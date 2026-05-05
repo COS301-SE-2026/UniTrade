@@ -1,0 +1,26 @@
+services:
+   db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: Unitrade-DB
+    ports: 
+    - "1433:1433"
+    env_file:
+      - ../../src/backend/.env
+    environment:
+      ACCEPT_EULA: ${ACCEPT_EULA_PARAMETER}
+      MSSQL_SA_PASSWORD: ${SECURE_SA_PASSOWRD}
+    volumes:
+    - db_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S sa -P $$SECURE_SA_PASSWORD -Q 'SELECT 1' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    
+volumes: 
+  db_data:
+  
+
+      
+
+    
