@@ -37,8 +37,16 @@ services:
     depends_on:
      db: 
        condition: service_healthy
-    
+   frontend:
+    build:
+      context: ../../src/web
+      dockerfile: Dockerfile
+    container_name: unitrade-web
+    ports:
+    - "3000:80"
+    depends_on:
+     - backend
+        
 
-    
 volumes: 
   db_data:

@@ -1,0 +1,12 @@
+.env*
+
+node_modules/
+dist/
+build/
+coverage/
+
+./vscode
+.dea
+*.log
+.git
+Dockerfile
