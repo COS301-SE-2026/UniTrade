@@ -1,4 +1,4 @@
 # Design Specification
 
 ## Wireframes
-[SignUp Page](../wireframes/Signup page.png)
+[SignUp Page](../wireframes/Signup-page.png)
