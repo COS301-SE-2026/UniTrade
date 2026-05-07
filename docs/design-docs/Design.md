@@ -1,4 +1,4 @@
 # Design Specification
 
 ## Wireframes
-![SignUp](../wireframes/Buyer-Dashboard-desktop.png)
+[SignUp Page](../wireframes/Signup page.png)
