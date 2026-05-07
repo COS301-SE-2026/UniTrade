@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "useDefineForClassFields": true,
+    "lib": [ "DOM", "DOM.Iterable", "ES2020" ],
+    "module": "esnext",
+    "skipLibCheck": true,
+
+
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "strict": true,
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+  },
+  "include": [ "src", "tests" ]
+}
