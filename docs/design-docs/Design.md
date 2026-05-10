@@ -2,27 +2,52 @@
 
 ## Wireframes
 
-[HomePage](../wireframes/Home-page.png)
+[HomePage](../wireframes/Home_page.png)
 
-![Home Page image](../wireframes/Home-page.png)
-
-[SignUp Page](../wireframes/Signup-page.png)
-
-![SignUp Page image](../wireframes/Signup-page.png)
+![Home Page image](../wireframes/Home_page.png)
 
 
-[Login Page](../wireframes/Login-page.png)
+[Terms and Conditions](../wireframes/Home_page_terms.png)
 
-![Login Page image](../wireframes/Login-page.png)
-
-
-[Buyer's Dashboard](../wireframes/Buyer-Dashboard-desktop.png)
-
-![Buyer's Dashboard](../wireframes/Buyer-Dashboard-desktop.png)
+![Terms and Conditions](../wireframes/Home_page_terms.png)
 
 
-[Seller's Dashboard](../wireframes/Seller-Dashboard.png)
+[SignUp Page](../wireframes/SignUp_Page.png)
 
-![Seller's Dashboard](../wireframes/Seller-Dashboard.png)
+![SignUp Page image](../wireframes/SignUp_Page.png)
+
+
+[OTP Verification](../wireframes/OTP_Verification.png)
+
+![OTP Verification](../wireframes/OTP_Verification.png)
+
+
+[Upload Proof Of Registration](../wireframes/Upload_Proof.png)
+
+![Upload Proof Of Registration](../wireframes/Upload_Proof.png)
+
+
+[Login Page](../wireframes/Login_Page.png)
+
+![Login Page image](../wireframes/Login_Page.png)
+
+
+[Buyer's Dashboard](../wireframes/Buyer's_Dashboard.png)
+
+![Buyer's Dashboard](../wireframes/Buyer's_Dashboard.png)
+
+
+[Seller's Dashboard](../wireframes/Seller's_Dashboard.png)
+
+![Seller's Dashboard](../wireframes/Seller's_Dashboard.png)
+
+
+
+
+
+
+
+
+
 
 
