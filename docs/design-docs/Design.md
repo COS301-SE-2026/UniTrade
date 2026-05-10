@@ -7,9 +7,9 @@
 ![Home Page image](../wireframes/Home_page.png)
 
 
-[Terms and Conditions](../wireframes/Home_page_terms.png)
+[Terms and Conditions](../wireframes/Home_page_Terms.png)
 
-![Terms and Conditions](../wireframes/Home_page_terms.png)
+![Terms and Conditions](../wireframes/Home_page_Terms.png)
 
 
 [SignUp Page](../wireframes/SignUp_Page.png)
