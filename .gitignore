@@ -1,0 +1,41 @@
+# Editor
+.vscode/
+.vs/
+
+#Env files
+
+.env
+.env.local
+.env.*.local
+
+!.env.example
+
+#Logs
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+#Node
+
+node_modules/
+dist/
+build/
+coverage/
+
+.expo/
+.expo-shared/
+
+#.NET
+bin/
+obj/
+
+# EF Core
+
+#Docker
+
+
+
+
+
