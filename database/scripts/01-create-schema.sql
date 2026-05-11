@@ -334,3 +334,10 @@ CREATE UNIQUE INDEX uix_vr_current
 
 CREATE INDEX ix_vr_user ON Verification_requests(user_id);
 CREATE INDEX ix_vr_status ON Verification_requests(status);
+
+--Listings 
+CREATE INDEX ix_listings_seller ON Listings(seller_id);
+CREATE INDEX ix_listings_status ON Listings(listing_status);
+CREATE INDEX ix_listings_course ON Listings(course_id);
+CREATE INDEX ix_listings_visibility ON Listings(listing_status);
+
