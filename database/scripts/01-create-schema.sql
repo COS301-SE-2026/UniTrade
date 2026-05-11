@@ -373,3 +373,33 @@ CREATE INDEX ix_notif_user_unread ON Notifications (user_id, is_read) WHERE is_r
 CREATE INDEX ix_audit_entity ON Audit_logs(entity_type, entity_id);
 CREATE INDEX ix_ausit_actor ON Audit_logs(actor_id);
 CREATE INDEX ix_audit_created ON Audit_logs(created_at at DESC);
+
+
+-- Triggers
+-- for user updating info
+CREATE TRIGGER tr_users_updated_at
+ON Users
+AFTER UPDATE
+AS
+BEGIN   
+    SET NOCOUNT ON;
+    UPDATE Users
+    SET updated_at = SYSDATETIME()
+    FROM Users u
+    INNER JOIN inserted i ON u.user_id = i.user_id;
+END;
+GO
+
+--listng updtaes 
+CREATE TRIGGER tr_lsitings_updated_at
+ON Listings
+AFTER UPDATE
+AS
+BEGIN   
+    SET NOCOUNT ON;
+    UPDATE Listings
+    SET updated_at = SYSDATETIME()
+    FROM Listings l
+    INNER JOIN inserted i ON l.listing_id = i.listing_id;
+END;
+GO
