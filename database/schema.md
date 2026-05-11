@@ -5,7 +5,7 @@
 
 ## 1. Users
 
-Stores core account information for every registered student on the platform. A user can act as both a buyer and a seller.
+Stores core identity and authentication information for every registered person on the platform. This base table is shared by all roles (students and admins). Role-specific data is stored in the Student_profiles and Admin_profiles tables.
 
 | Column | Data Type | Constraints | Description |
 |---|---|---|---|
@@ -19,8 +19,6 @@ Stores core account information for every registered student on the platform. A 
 | role | VARCHAR(10) | NOT NULL, CHECK contraint | One of: student, admin. Determines which profile table to join. |
 
 **Notes:**
-- `partial` verification status grants limited access: buyers can browse listings only; sellers' listings are saved as drafts.
-- `verified` status grants full platform access.
 - Email domain is validated on registration against known SA university domains stored in the `University` table.
 
 ---
@@ -406,6 +404,11 @@ Stores specific details about university students.
 | year_of_study | INT | NOT NULL, CHECK (1–6) | The student's current year of study. |
 | verification_status | VARCHAR(20) | NOT NULL, CHECK constraint | One of: `pending`, `partial`, `verified`, `rejected`. |
 | reputation_score | NUMERIC(4,2) | DEFAULT 0 | Aggregated trust score derived from reviews and behaviour (viadisputes).It is trigger maintained and should not be written to directly. |
+
+**Notes:**
+- `partial` verification status grants limited access: buyers can browse listings only; sellers' listings are saved as drafts.
+- `verified` status grants full platform access.
+- `reputation_score` is a cached field automatically updated via triggers on the `Reviews` and `Disputes` tables.
 
 
 ---
