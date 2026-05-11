@@ -17,6 +17,10 @@ GO
 
 USE [$(DB_NAME)];
 GO
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
 IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$(USER_ID)')
 BEGIN
     CREATE USER [$(USER_ID)] FOR LOGIN [$(USER_ID)];
@@ -379,6 +383,7 @@ CREATE INDEX ix_audit_created ON Audit_logs(created_at DESC);
 
 -- Triggers
 -- for user updating info
+GO
 CREATE TRIGGER tr_users_updated_at
 ON Users
 AFTER UPDATE
@@ -393,6 +398,7 @@ END;
 GO
 
 --listing updates 
+GO
 CREATE TRIGGER tr_listings_updated_at
 ON Listings
 AFTER UPDATE
@@ -407,6 +413,7 @@ END;
 GO
 
 -- recalculating the rep score after a review
+GO
 CREATE TRIGGER tr_reputation_on_review
 ON Reviews
 AFTER INSERT
@@ -426,6 +433,7 @@ GO
 
 -- verification resubmission
 -- when a new verification is created, invalidate all the previous ones
+GO
 CREATE TRIGGER tr_verification_set_current
 ON Verification_requests
 AFTER INSERT
@@ -440,6 +448,7 @@ END;
 GO
 
 -- audit log for listing status update
+GO
 CREATE TRIGGER tr_audit_listing_status
 ON Listings
 AFTER UPDATE
@@ -461,7 +470,7 @@ END;
 GO
 
 -- audit for verification decisions
-
+GO
 CREATE TRIGGER tr_audit_verification_decision
 ON Verification_requests
 AFTER UPDATE
