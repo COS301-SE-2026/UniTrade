@@ -391,4 +391,14 @@ An append-only log of all significant system and user actions. Used for security
 - `entity_type` + `entity_id` together function as a polymorphic foreign key, allowing the audit log to reference every table without drawing a relationship line to each one in the EER.
 - Covers both user-initiated actions (admin decisions, listing submissions) and automated system events (AI scoring, reservation expiry).
 
+## 18. Student_profiles
+
+Stores university students details
+
+## 19. Admin_profiles
+
+Stores admins details
+
+
+
 ---
