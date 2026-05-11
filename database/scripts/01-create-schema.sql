@@ -54,7 +54,7 @@ CREATE TABLE Course(
 
 
 CREATE TABLE Users(
-    user_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    user_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     first_name NVARCHAR(50) NOT NULL,
     last_name NVARCHAR(50) NOT NULL,
     email NVARCHAR(255) NOT NULL UNIQUE,
@@ -88,7 +88,7 @@ CREATE TABLE Admin_profiles(
 --- 6. Verification Requests
 
 CREATE TABLE Verification_requests(
-    verification_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    verification_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     user_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     attempt_number INT NOT NULL DEFAULT 1,
     is_current BIT NOT NULL DEFAULT 1,
@@ -115,7 +115,7 @@ CREATE TABLE Verification_requests(
 ---7. Listings
 
 CREATE TABLE Listings (
-    listing_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    listing_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     course_id INT NOT NULL REFERENCES Course(course_id),
     title NVARCHAR(150) NOT NULL ,
@@ -151,7 +151,7 @@ CREATE TABLE Listing_images(
 --9. Reservations
 
 CREATE TABLE Reservations(
-    reservation_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    reservation_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     buyer_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     is_bundle BIT NOT NULL DEFAULT 0,
@@ -200,7 +200,7 @@ CREATE TABLE Meetups (
 
 -- 12. Transactions
 CREATE TABLE Transactions(
-    transaction_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY, 
+    transaction_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(), 
     meetup_id INT NOT NULL REFERENCES Meetups(meetup_id), 
     buyer_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
@@ -233,7 +233,7 @@ CREATE TABLE Chat_messages(
 
 --14. Disputes 
 CREATE TABLE Disputes(
-    dispute_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    dispute_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     raised_by UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     against_user UNIQUEIDENTIFIER  NOT NULL REFERENCES Users(user_id),
     transaction_id UNIQUEIDENTIFIER  REFERENCES Transactions(transaction_id),
