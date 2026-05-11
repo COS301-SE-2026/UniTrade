@@ -363,3 +363,13 @@ CREATE INDEX ix_dispute_raised_by ON Disputes(raised_by);
 CREATE INDEX ix_dispute_against ON Disputes(against_user);
 CREATE INDEX ix_dispute_status ON Disputes(status);
 
+--Reviews 
+CREATE INDEX ix_review_reviewee ON Reviews(reviewee_id);
+
+-- Notifications
+CREATE INDEX ix_notif_user_unread ON Notifications (user_id, is_read) WHERE is_read =0;
+
+--Audit logs
+CREATE INDEX ix_audit_entity ON Audit_logs(entity_type, entity_id);
+CREATE INDEX ix_ausit_actor ON Audit_logs(actor_id);
+CREATE INDEX ix_audit_created ON Audit_logs(created_at at DESC);
