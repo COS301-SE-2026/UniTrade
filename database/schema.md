@@ -14,13 +14,9 @@ Stores core account information for every registered student on the platform. A 
 | last_name | VARCHAR(50) | NOT NULL | User's last name. |
 | email | VARCHAR(255) | UNIQUE, NOT NULL | Must be a valid SA university email domain. |
 | password | TEXT | NOT NULL | Securely hashed password. |
-| university_id | INT | FK → University(university_id), NOT NULL | The university the student attends. |
-| course_id | INT | FK → Course(course_id), NOT NULL | The student's enrolled degree/course. |
-| year_of_study | INT | NOT NULL, CHECK (1–6) | The student's current year of study. |
-| verification_status | VARCHAR(20) | NOT NULL, CHECK constraint | One of: `pending`, `partial`, `verified`, `rejected`. |
-| reputation_score | NUMERIC(4,2) | DEFAULT 0 | Aggregated trust score derived from reviews and behaviour(via disputes). |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Timestamp when the account was created. |
 | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Timestamp of the most recent account update. |
+| role | VARCHAR(10) | NOT NULL, CHECK contraint | One of: student, admin. Determines which profile table to join. |
 
 **Notes:**
 - `partial` verification status grants limited access: buyers can browse listings only; sellers' listings are saved as drafts.
@@ -84,6 +80,8 @@ Tracks the two-step student verification process: OTP email confirmation followe
 | status | VARCHAR(20) | NOT NULL, CHECK constraint | One of: `otp_pending`, `por_pending`, `under_review`, `approved`, `rejected`. |
 | submitted_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Timestamp when the request was created. |
 | decided_at | TIMESTAMP | | Timestamp when a final decision was made. |
+| attempt_number | INT | NOT NULL, DEFAULT 1 | The attempt number for this user (1st, 2nd, etc.). |
+| is_current | BOOLEAN | DEFAULT TRUE | Flags the active/latest record for a user. Only one attempt per user should be current at any time. |
 
 **Notes:**
 - This is a **1:1** relationship with `Users` , each user has exactly one verification request record.
@@ -230,7 +228,7 @@ Records a completed payment made at a meetup via Ozow.
 | amount | NUMERIC(10,2) | NOT NULL, CHECK (> 0) | Total amount paid in ZAR. |
 | ozow_transaction_id | VARCHAR(100) | UNIQUE | Transaction reference returned by Ozow's webhook. |
 | payment_status | VARCHAR(20) | NOT NULL, CHECK constraint | One of: `pending`, `completed`, `failed`, `cancelled`. |
-| pin_code | VARCHAR(10) | | System-generated PIN delivered to the buyer after successful payment. |
+| pin_hash | VARCHAR(10) | | System-generated PIN hash delivered to the buyer after successful payment. |
 | pin_entered_at | TIMESTAMP | | Timestamp when the seller entered the PIN. |
 | pin_status | VARCHAR(10) | NOT NULL, DEFAULT 'pending', CHECK constraint | One of: `pending`, `confirmed`. |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Timestamp when the transaction record was created. |
@@ -391,14 +389,38 @@ An append-only log of all significant system and user actions. Used for security
 - `entity_type` + `entity_id` together function as a polymorphic foreign key, allowing the audit log to reference every table without drawing a relationship line to each one in the EER.
 - Covers both user-initiated actions (admin decisions, listing submissions) and automated system events (AI scoring, reservation expiry).
 
+
+---
+
+
 ## 18. Student_profiles
 
-Stores university students details
+Stores specific details about university students.
+
+| Column | Data Type | Constraints | Description |
+|---|---|---|---|
+| std_id | SERIAL | PK | Unique identifier for each student. |
+| user_id | SERIAL | FK → User(user_id), NOT NULL | The students register/login details |
+| university_id | INT | FK → University(university_id), NOT NULL | The university the student attends. |
+| course_id | INT | FK → Course(course_id), NOT NULL | The student's enrolled degree/course. |
+| year_of_study | INT | NOT NULL, CHECK (1–6) | The student's current year of study. |
+| verification_status | VARCHAR(20) | NOT NULL, CHECK constraint | One of: `pending`, `partial`, `verified`, `rejected`. |
+| reputation_score | NUMERIC(4,2) | DEFAULT 0 | Aggregated trust score derived from reviews and behaviour (viadisputes).It is trigger maintained and should not be written to directly. |
+
+
+---
+
 
 ## 19. Admin_profiles
 
-Stores admins details
+Stores admins details.
 
+| Column | Data Type | Constraints | Description |
+|---|---|---|---|
+| admin_id | SERIAL | PK | Unique identifier for each admin. |
+| user_id | SERIAL | FK → User(user_id), NOT NULL | The admins register/login details. |
+| department | VARCHAR(100) | | The admin's department. |
+| access_level | VARCHAR(20) | NOT NULL | One of : `standard`, `senior`. |
 
 
 ---
