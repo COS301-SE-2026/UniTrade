@@ -45,7 +45,7 @@ CREATE TABLE University(
 CREATE TABLE Course(
     course_id INT IDENTITY(1,1) PRIMARY KEY,
     university_id INT NOT NULL REFERENCES University(university_id),
-    course_id NVARCHAR(30) NOT NULL UNIQUE,
+    course_code NVARCHAR(30) NOT NULL UNIQUE,
     course_name NVARCHAR(100) NOT NULL,
     faculty NVARCHAR(100)
 );
@@ -67,14 +67,14 @@ CREATE TABLE Users(
 
 --- 4. Student Profile
 CREATE TABLE Student_profiles(
-    student_id INT PRIMARY REFERENCES Users(user_id),
+    student_id UNIQUEIDENTIFIER PRIMARY REFERENCES Users(user_id),
     university_id INT NOT NULL REFERENCES University(university_id),
-    course_id NVARCHAR(30) NOT NULL REFERENCES Course(course_id),
+    course_id INT NOT NULL REFERENCES Course(course_id),
     year_of_study INT NOT NULL
                         CONSTRAINT chk_student_year CHECK(  year_of_study BETWEEN 1 AND 8),
-    verfication_status NVARCHAR(20) NOT NULL 
-                        CONSTRAINT chk_student_verfication CHECK (
-                            verfication_status IN ('pending', 'partial', 'verified', 'rejected')
+    verification_status NVARCHAR(20) NOT NULL 
+                        CONSTRAINT chk_student_verification CHECK (
+                            verification_status IN ('pending', 'partial', 'verified', 'rejected')
                         ),
     reputation_score NUMERIC(4, 2) DEFAULT 0
 );
@@ -128,10 +128,10 @@ CREATE TABLE Listings (
             condition IN ('new', 'good', 'fair','poor')
         ),
     listing_status NVARCHAR(20) NOT NULL 
-        CONSTRAINT chk_listing_status CHECK ( listing_status IN ('draft', 'pending', 'live', 'low_visivility', 'rejected', 'sold', 'removed')),
+        CONSTRAINT chk_listing_status CHECK ( listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')),
     ai_risk_score NUMERIC(5,2),
-    ai_risk_level NVARCHAR(10) CONSTRAINT chk_lisitng_risk CHECK (ai_risk_level IN ('draft', 'pending_review', 'live', 'low_visibilty', 'rejected', 'sold')),
-    visibilty_score INT NOT NULL DEFAULT 100,
+    ai_risk_level NVARCHAR(10) CONSTRAINT chk_listing_risk CHECK (ai_risk_level IN ('low', 'medium', 'high')),
+    visibility_score INT NOT NULL DEFAULT 100,
     is_bundle BIT NOT NULL DEFAULT 0,
     rejection_reason NVARCHAR(MAX),
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -163,17 +163,17 @@ CREATE TABLE Reservations(
     created_at DATETIME2 NOT NULL
 );
 
--- 10. eservation Listings
+-- 10. Reservation Listings
 CREATE TABLE Reservation_listings(
     reservation_id UNIQUEIDENTIFIER NOT NULL REFERENCES Reservations(reservation_id),
-    listing_id INT NOT NULL REFERENCES Listings(listing_id),
+    listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
 
     CONSTRAINT pk_reservation_listings PRIMARY KEY (reservation_id, listing_id)
 );
 
 CREATE TABLE Meetups (
     meetup_id INT IDENTITY(1,1) PRIMARY KEY,
-    reservation_id INT NOT NULL REFERENCES Reservations(reservation_id),
+    reservation_id UNIQUEIDENTIFIER NOT NULL REFERENCES Reservations(reservation_id),
     agreed_location_name NVARCHAR(150) NOT NULL, 
     agreed_latitude NUMERIC(9, 6) NOT NULL,
     agreed_longitude NUMERIC(9, 6) NOT NULL,
@@ -192,7 +192,7 @@ CREATE TABLE Meetups (
 
     checkin_window_closes_at DATETIME2 NOT NULL, 
     status NVARCHAR(20) NOT NULL
-        CONSTRAINT chk_eeting_status CHECK (
+        CONSTRAINT chk_meeting_status CHECK (
             status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')
         )
 );
@@ -239,7 +239,7 @@ CREATE TABLE Disputes(
     transaction_id UNIQUEIDENTIFIER  REFERENCES Transactions(transaction_id),
     listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
     dispute_type NVARCHAR(30) NOT NULL
-        CONSTRAINT chk_dispute_type CHECK (dispute_type IN ('listing_quality', 'no_show', 'false_listing')),;
+        CONSTRAINT chk_dispute_type CHECK (dispute_type IN ('listing_quality', 'no_show', 'false_listing')),
     description NVARCHAR(MAX) NOT NULL, 
     status NVARCHAR(20) NOT NULL 
         CONSTRAINT chk_dispute_status CHECK ( status IN ('open', 'under_review','resolved','closed')),
@@ -273,18 +273,18 @@ CREATE TABLE Reviews(
     comment NVARCHAR(MAX),
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 
-    CONSTRAINT review_per_transaction UNIQUE (transaction_id, review_id),
-    CONSTRAINT chk_review_self CHECK (review_id <> reviewee_id)
+    CONSTRAINT review_per_transaction UNIQUE (transaction_id, reviewer_id),
+    CONSTRAINT chk_review_self CHECK (reviewer_id <> reviewee_id)
 );
 
 -- 17. Wishlist 
-CREATE TABLE Wishlst_Items(
+CREATE TABLE Wishlist_Items(
     wishlist_id INT IDENTITY(1,1) PRIMARY KEY,
     student_id UNIQUEIDENTIFIER NOT NULL REFERENCES Student_profiles(student_id),
     listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
     added_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
 
-    CONSTRAINT wishlist_entry UNIQUE (user_id, listing_id)
+    CONSTRAINT wishlist_entry UNIQUE (student_id, listing_id)
 
 );
 
@@ -302,13 +302,13 @@ CREATE TABLE Notifications(
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
 
---19.. Audit LOgs
+--19.. Audit Logs
 CREATE TABLE Audit_logs(
     log_id BIGINT IDENTITY(1,1) PRIMARY KEY,
     actor_id UNIQUEIDENTIFIER REFERENCES Users(user_id),
     action NVARCHAR(100) NOT NULL,
     entity_type NVARCHAR(50) NOT NULL, 
-    entity_id INT NOT NULL,
+    entity_id NVARCHAR(100) NOT NULL,
     old_value NVARCHAR(MAX),
     new_value NVARCHAR(MAX),
     ip_address NVARCHAR(50),
@@ -325,7 +325,7 @@ CREATE INDEX ix_users_role ON Users(role);
 --Students
 CREATE INDEX ix_student_university ON Student_profiles(university_id);
 CREATE INDEX ix_student_course ON Student_profiles(course_id);
-CREATE INDEX ix_student_vstatus ON Student_profiles(verfication_status);
+CREATE INDEX ix_student_status ON Student_profiles(verification_status);
 
 --VR'S 
 CREATE UNIQUE INDEX uix_vr_current 
@@ -345,7 +345,7 @@ CREATE INDEX ix_listings_visibility ON Listings(listing_status);
 CREATE INDEX ix_res_buyer ON Reservations(buyer_id);
 CREATE INDEX ix_res_seller ON Reservations(seller_id);
 CREATE INDEX ix_res_status ON Reservations(reservation_status);
-CREATE INDEX ix_res_expires ON Reservations(expires_at) WHERE reservation_status ='active'; -- only actived when the reservation is active
+CREATE INDEX ix_res_expires ON Reservations(expires_at) WHERE reservation_status ='active'; -- only activated when the reservation is active
 
 -- chat messages
 CREATE INDEX ix_chat_reservation ON Chat_messages(reservation_id, sent_at);
@@ -371,8 +371,8 @@ CREATE INDEX ix_notif_user_unread ON Notifications (user_id, is_read) WHERE is_r
 
 --Audit logs
 CREATE INDEX ix_audit_entity ON Audit_logs(entity_type, entity_id);
-CREATE INDEX ix_ausit_actor ON Audit_logs(actor_id);
-CREATE INDEX ix_audit_created ON Audit_logs(created_at at DESC);
+CREATE INDEX ix_audit_actor ON Audit_logs(actor_id);
+CREATE INDEX ix_audit_created ON Audit_logs(created_at DESC);
 
 
 -- Triggers
@@ -390,8 +390,8 @@ BEGIN
 END;
 GO
 
---listng updtaes 
-CREATE TRIGGER tr_lsitings_updated_at
+--listing updates 
+CREATE TRIGGER tr_listings_updated_at
 ON Listings
 AFTER UPDATE
 AS
@@ -407,7 +407,7 @@ GO
 -- recalculating the rep score after a review
 CREATE TRIGGER tr_reputation_on_review
 ON Reviews
-AFTER UPDATE
+AFTER INSERT
 AS
 BEGIN   
     SET NOCOUNT ON;
@@ -423,10 +423,10 @@ END;
 GO
 
 -- verification resubmission
--- when a new verfication is cretaed, invalidate all ther previous ones
+-- when a new verification is created, invalidate all the previous ones
 CREATE TRIGGER tr_verification_set_current
 ON Verification_requests
-AFTER UPDATE
+AFTER INSERT
 AS
 BEGIN   
     SET NOCOUNT ON;
@@ -437,7 +437,7 @@ BEGIN
 END;
 GO
 
--- audit log for lsiting status update
+-- audit log for listing status update
 CREATE TRIGGER tr_audit_listing_status
 ON Listings
 AFTER UPDATE
@@ -453,12 +453,12 @@ BEGIN
         d.listing_status,
         i.listing_status
     FROM inserted i
-    INNER JOIN deleted d ON i.listing_id - d.listing_id
+    INNER JOIN deleted d ON i.listing_id = d.listing_id
     WHERE i.listing_status <> d.listing_status;
 END;
 GO
 
--- audit for verfication decisions
+-- audit for verification decisions
 
 CREATE TRIGGER tr_audit_verification_decision
 ON Verification_requests
@@ -468,14 +468,14 @@ BEGIN
     SET NOCOUNT ON;
     INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
     SELECT 
-        i.seller_id, 
+        i.admin_id, 
         'verification_decision',
         'Verification_request',
         i.verification_id,
         d.status,
         i.status
     FROM inserted i
-    INNER JOIN deleted d ON i.verification_id - d.verification_id
+    INNER JOIN deleted d ON i.verification_id = d.verification_id
     WHERE i.status <> d.status;
 END;
 GO
