@@ -77,3 +77,24 @@ const sellerNav: NavSection[] = [
   ],
   },
 ]
+
+const adminNav: NavSection[] = [
+  {
+    heading: 'Main',
+    items: [
+      { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} />},
+      { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} />, badge: 14},
+      { label: 'Listing Queue', to: '/admin/listings,', icon: <IconListCheck size={18} />, badge: 14},
+      { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} />, badge: 3},
+    ],
+  },
+
+  {
+    heading: 'Manage',
+    items: [
+      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
+      { label: 'Analytics', to: '/admin/analytics', icon: <IconChartBar size={18} /> },
+      { label: 'Settings', to: '/admin/settings', icon: <IconSettings size={18} /> },
+    ],
+  },
+]
