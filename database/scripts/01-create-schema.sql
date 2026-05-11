@@ -403,3 +403,21 @@ BEGIN
     INNER JOIN inserted i ON l.listing_id = i.listing_id;
 END;
 GO
+
+-- recalculating the rep score after a review
+CREATE TRIGGER tr_reputation_on_review
+ON Reviews
+AFTER UPDATE
+AS
+BEGIN   
+    SET NOCOUNT ON;
+    UPDATE Student_profiles
+    SET reputation_score = (
+        SELECT AVG(CAST(r.rating AS NUMERIC(4,2)))
+        FROM Reviews r
+        WHERE r.reviewee_id = i.reviewee_id
+    )
+    FROM Student_profiles sp
+    INNER JOIN inserted i ON sp.student_id = i.reviewee_id;
+END;
+GO
