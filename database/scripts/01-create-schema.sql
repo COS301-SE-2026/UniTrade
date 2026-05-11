@@ -314,3 +314,23 @@ CREATE TABLE Audit_logs(
     ip_address NVARCHAR(50),
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
+
+
+-- Indexes
+
+--Users 
+CREATE INDEX ix_users_email ON Users(email);
+CREATE INDEX ix_users_role ON Users(role);
+
+--Students
+CREATE INDEX ix_student_university ON Student_profiles(university_id);
+CREATE INDEX ix_student_course ON Student_profiles(course_id);
+CREATE INDEX ix_student_vstatus ON Student_profiles(verfication_status);
+
+--VR'S 
+CREATE UNIQUE INDEX uix_vr_current 
+    ON Verification_requests (user_id)
+    WHERE is_current = 1;
+
+CREATE INDEX ix_vr_user ON Verification_requests(user_id);
+CREATE INDEX ix_vr_status ON Verification_requests(status);
