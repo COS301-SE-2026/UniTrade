@@ -54,7 +54,7 @@ CREATE TABLE Course(
 
 
 CREATE TABLE Users(
-    user_id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
     first_name NVARCHAR(50) NOT NULL,
     last_name NVARCHAR(50) NOT NULL,
     email NVARCHAR(255) NOT NULL UNIQUE,
@@ -81,15 +81,15 @@ CREATE TABLE Student_profiles(
 
 ---5. Admin Profiles
 CREATE TABLE Admin_profiles(
-    admin_id INT PRIMARY KEY REFERENCES Users(user_id),
+    admin_id UNIQUEIDENTIFIER PRIMARY KEY REFERENCES Users(user_id),
     university_id INT NOT NULL REFERENCES University(university_id)
 );
 
 --- 6. Verification Requests
 
 CREATE TABLE Verification_requests(
-    verification_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES Users(user_id),
+    verification_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    user_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     attempt_number INT NOT NULL DEFAULT 1,
     is_current BIT NOT NULL DEFAULT 1,
     otp_code_hash NVARCHAR(10),
@@ -99,7 +99,7 @@ CREATE TABLE Verification_requests(
     ai_confidence_score NUMERIC(5,2),
     ai_decision NVARCHAR(20)
                 CONSTRAINT chk_vr_ai_decision CHECK (ai_decision IN ('auto_approved', 'escalated')),
-    admin_id INT REFERENCES Users(user_id),
+    admin_id UNIQUEIDENTIFIER REFERENCES Users(user_id),
     admin_decision NVARCHAR(20)
         CONSTRAINT chk_vr_admin_decision CHECK (admin_decision IN ('approved', 'rejected', 'resubmission')),
     rejection_reason NVARCHAR(MAX),
@@ -115,8 +115,8 @@ CREATE TABLE Verification_requests(
 ---7. Listings
 
 CREATE TABLE Listings (
-    listing_id INT IDENTITY(1,1) PRIMARY KEY,
-    seller_id INT NOT NULL REFERENCES Users(user_id),
+    listing_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     course_id INT NOT NULL REFERENCES Course(course_id),
     title NVARCHAR(150) NOT NULL ,
     description NVARCHAR(MAX) NOT NULL,
@@ -142,7 +142,7 @@ CREATE TABLE Listings (
 -- 8. Listing Images
 CREATE TABLE Listing_images(
     image_id INT IDENTITY(1,1) PRIMARY KEY, 
-    listing_id INT NOT NULL REFERENCES Listings(listing_id),
+    listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
     image_url NVARCHAR(MAX) NOT NULL, 
     is_primary BIT NOT NULL DEFAULT 0,
     uploaded_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
@@ -151,9 +151,9 @@ CREATE TABLE Listing_images(
 --9. Reservations
 
 CREATE TABLE Reservations(
-    reservation_id INT IDENTITY(1,1) PRIMARY KEY,
-    buyer_id INT NOT NULL REFERENCES Users(user_id),
-    seller_id INT NOT NULL REFERENCES Users(user_id),
+    reservation_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    buyer_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
+    seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     is_bundle BIT NOT NULL DEFAULT 0,
     reservation_status NVARCHAR(20) NOT NULL    
         CONSTRAINT chk_res_status CHECK (reservation_status IN ('active', 'expired', 'cancelled', 'completed')),
@@ -165,7 +165,7 @@ CREATE TABLE Reservations(
 
 -- 10. eservation Listings
 CREATE TABLE Reservation_listings(
-    reservation_id INT NOT NULL REFERENCES Reservations(reservation_id),
+    reservation_id UNIQUEIDENTIFIER NOT NULL REFERENCES Reservations(reservation_id),
     listing_id INT NOT NULL REFERENCES Listings(listing_id),
 
     CONSTRAINT pk_reservation_listings PRIMARY KEY (reservation_id, listing_id)
@@ -200,10 +200,10 @@ CREATE TABLE Meetups (
 
 -- 12. Transactions
 CREATE TABLE Transactions(
-    transaction_id INT IDENTITY(1,1) PRIMARY KEY, 
+    transaction_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY, 
     meetup_id INT NOT NULL REFERENCES Meetups(meetup_id), 
-    buyer_id INT NOT NULL REFERENCES Users(user_id),
-    seller_id INT NOT NULL REFERENCES Users(user_id),
+    buyer_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
+    seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     amount NUMERIC(10, 2) NOT NULL CONSTRAINT chk_txn_amount CHECK (amount>0),
     ozow_transaction_id NVARCHAR(100) UNIQUE,
     payment_status NVARCHAR(20) NOT NULL 
@@ -223,8 +223,8 @@ CREATE TABLE Transactions(
 
 CREATE TABLE Chat_messages(
     message_id INT IDENTITY(1,1) PRIMARY KEY,
-    reservation_id INT NOT NULL REFERENCES Reservations(reservation_id),
-    sender_id INT NOT NULL REFERENCES Users(user_id),
+    reservation_id UNIQUEIDENTIFIER NOT NULL REFERENCES Reservations(reservation_id),
+    sender_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     content NVARCHAR(MAX) NOT NULL,
     is_automated BIT NOT NULL DEFAULT 0,
     sent_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -233,17 +233,17 @@ CREATE TABLE Chat_messages(
 
 --14. Disputes 
 CREATE TABLE Disputes(
-    dispute_id INT IDENTITY(1,1) PRIMARY KEY,
-    raised_by INT NOT NULL REFERENCES Users(user_id),
-    against_user INT  NOT NULL REFERENCES Users(user_id),
-    transaction_id INT  REFERENCES Transactions(transaction_id),
-    listing_id INT NOT NULL REFERENCES Listings(listing_id),
+    dispute_id UNIQUEIDENTIFIER IDENTITY(1,1) PRIMARY KEY,
+    raised_by UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
+    against_user UNIQUEIDENTIFIER  NOT NULL REFERENCES Users(user_id),
+    transaction_id UNIQUEIDENTIFIER  REFERENCES Transactions(transaction_id),
+    listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
     dispute_type NVARCHAR(30) NOT NULL
         CONSTRAINT chk_dispute_type CHECK (dispute_type IN ('listing_quality', 'no_show', 'false_listing')),;
     description NVARCHAR(MAX) NOT NULL, 
     status NVARCHAR(20) NOT NULL 
         CONSTRAINT chk_dispute_status CHECK ( status IN ('open', 'under_review','resolved','closed')),
-    assigned_admin_id INT REFERENCES Users(user_id),
+    assigned_admin_id UNIQUEIDENTIFIER REFERENCES Users(user_id),
     resolution NVARCHAR(MAX),
 
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -253,8 +253,8 @@ CREATE TABLE Disputes(
 --15. Dispute evidence
 CREATE TABLE Dispute_Evidence(
     evidence_id INT IDENTITY(1,1) PRIMARY KEY,
-    dispute_id INT NOT NULL REFERENCES Disputes(dispute_id),
-    uploaded_by INT NOT NULL REFERENCES Users(user_id),
+    dispute_id UNIQUEIDENTIFIER NOT NULL REFERENCES Disputes(dispute_id),
+    uploaded_by UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     file_url NVARCHAR(MAX) NOT NULL,
     file_type NVARCHAR(10) NOT NULL
         CONSTRAINT chk_evidence_type CHECK (file_type IN ('pdf'))
@@ -265,9 +265,9 @@ CREATE TABLE Dispute_Evidence(
 --16. Reviews
 CREATE TABLE Reviews(
     review_id INT IDENTITY(1,1) PRIMARY KEY,
-    transaction_id INT NOT NULL REFERENCES Transactions(transaction_id),
-    reviewer_id INT NOT NULL REFERENCES Users(user_id),
-    reviewee_id INT NOT NULL REFERENCES Users(user_id),
+    transaction_id UNIQUEIDENTIFIER NOT NULL REFERENCES Transactions(transaction_id),
+    reviewer_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
+    reviewee_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     rating INT 
         CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5),
     comment NVARCHAR(MAX),
@@ -280,8 +280,8 @@ CREATE TABLE Reviews(
 -- 17. Wishlist 
 CREATE TABLE Wishlst_Items(
     wishlist_id INT IDENTITY(1,1) PRIMARY KEY,
-    student_id INT NOT NULL REFERENCES Student_profiles(student_id),
-    listing_id INT NOT NULL REFERENCES Listings(listing_id),
+    student_id UNIQUEIDENTIFIER NOT NULL REFERENCES Student_profiles(student_id),
+    listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
     added_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
 
     CONSTRAINT wishlist_entry UNIQUE (user_id, listing_id)
@@ -292,7 +292,7 @@ CREATE TABLE Wishlst_Items(
 
 CREATE TABLE Notifications(
     notification_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES Users(user_id),
+    user_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     type NVARCHAR(30) NOT NULL 
         CONSTRAINT chk_notif_type CHECK (type IN ('listing_status', 'reservation_status','meetup_reminder', 'chat', 'dispute', 'verification')),
     --reference_id INT, 
@@ -305,7 +305,7 @@ CREATE TABLE Notifications(
 --19.. Audit LOgs
 CREATE TABLE Audit_logs(
     log_id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    actor_id INT REFERENCES Users(user_id),
+    actor_id UNIQUEIDENTIFIER REFERENCES Users(user_id),
     action NVARCHAR(100) NOT NULL,
     entity_type NVARCHAR(50) NOT NULL, 
     entity_id INT NOT NULL,
