@@ -58,6 +58,7 @@ CREATE TABLE Users(
     first_name NVARCHAR(50) NOT NULL,
     last_name NVARCHAR(50) NOT NULL,
     email NVARCHAR(255) NOT NULL UNIQUE,
+    phone_number NVARCHAR(20) NOT NULL,
     password_hash NVARCHAR(MAX) NOT NULL,
     role NVARCHAR(10) NOT NULL 
                     CONSTRAINT chk_user_role CHECK (role IN ('student', 'admin')),
@@ -67,7 +68,8 @@ CREATE TABLE Users(
 
 --- 4. Student Profile
 CREATE TABLE Student_profiles(
-    student_id UNIQUEIDENTIFIER PRIMARY REFERENCES Users(user_id),
+    student_id UNIQUEIDENTIFIER PRIMARY KEY REFERENCES Users(user_id),
+    student_number NVARCHAR(50) ,
     university_id INT NOT NULL REFERENCES University(university_id),
     course_id INT NOT NULL REFERENCES Course(course_id),
     year_of_study INT NOT NULL
@@ -160,7 +162,7 @@ CREATE TABLE Reservations(
     seller_acknowledged_at DATETIME2,
     buyer_responded_at DATETIME2,
     expires_at DATETIME2 NOT NULL,
-    created_at DATETIME2 NOT NULL
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
 
 -- 10. Reservation Listings
@@ -271,7 +273,7 @@ CREATE TABLE Reviews(
     rating INT 
         CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5),
     comment NVARCHAR(MAX),
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
 
     CONSTRAINT review_per_transaction UNIQUE (transaction_id, reviewer_id),
     CONSTRAINT chk_review_self CHECK (reviewer_id <> reviewee_id)
@@ -339,7 +341,7 @@ CREATE INDEX ix_vr_status ON Verification_requests(status);
 CREATE INDEX ix_listings_seller ON Listings(seller_id);
 CREATE INDEX ix_listings_status ON Listings(listing_status);
 CREATE INDEX ix_listings_course ON Listings(course_id);
-CREATE INDEX ix_listings_visibility ON Listings(listing_status);
+CREATE INDEX ix_listings_visibility ON Listings(listing_status, visibility_score DESC) WHERE listing_status ='live';
 
 --Reservations
 CREATE INDEX ix_res_buyer ON Reservations(buyer_id);
