@@ -421,3 +421,61 @@ BEGIN
     INNER JOIN inserted i ON sp.student_id = i.reviewee_id;
 END;
 GO
+
+-- verification resubmission
+-- when a new verfication is cretaed, invalidate all ther previous ones
+CREATE TRIGGER tr_verification_set_current
+ON Verification_requests
+AFTER UPDATE
+AS
+BEGIN   
+    SET NOCOUNT ON;
+    UPDATE Verification_requests
+    SET is_current = 0
+    WHERE user_id IN (SELECT user_id FROM inserted)
+        AND verification_id NOT IN (SELECT verification_id FROM inserted);
+END;
+GO
+
+-- audit log for lsiting status update
+CREATE TRIGGER tr_audit_listing_status
+ON Listings
+AFTER UPDATE
+AS
+BEGIN   
+    SET NOCOUNT ON;
+    INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
+    SELECT 
+        i.seller_id, 
+        'listing_status_changed',
+        'Listing',
+        i.listing_id,
+        d.listing_status,
+        i.listing_status
+    FROM inserted i
+    INNER JOIN deleted d ON i.listing_id - d.listing_id
+    WHERE i.listing_status <> d.listing_status;
+END;
+GO
+
+-- audit for verfication decisions
+
+CREATE TRIGGER tr_audit_verification_decision
+ON Verification_requests
+AFTER UPDATE
+AS
+BEGIN   
+    SET NOCOUNT ON;
+    INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
+    SELECT 
+        i.seller_id, 
+        'verification_decision',
+        'Verification_request',
+        i.verification_id,
+        d.status,
+        i.status
+    FROM inserted i
+    INNER JOIN deleted d ON i.verification_id - d.verification_id
+    WHERE i.status <> d.status;
+END;
+GO
