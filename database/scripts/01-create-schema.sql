@@ -350,3 +350,16 @@ CREATE INDEX ix_res_expires ON Reservations(expires_at) WHERE reservation_status
 -- chat messages
 CREATE INDEX ix_chat_reservation ON Chat_messages(reservation_id, sent_at);
 CREATE INDEX ix_chat_unread ON Chat_messages(reservation_id, read_at) WHERE read_at IS NULL;
+
+-- Transactions 
+CREATE INDEX ix_txn_meetup ON Transactions (meetup_id);
+CREATE INDEX ix_txn_buyer ON Transactions(buyer_id);
+CREATE INDEX ix_txn_seller ON Transactions(seller_id);
+CREATE INDEX ix_txn_status ON Transactions(payment_status);
+
+-- Disputes 
+
+CREATE INDEX ix_dispute_raised_by ON Disputes(raised_by);
+CREATE INDEX ix_dispute_against ON Disputes(against_user);
+CREATE INDEX ix_dispute_status ON Disputes(status);
+
