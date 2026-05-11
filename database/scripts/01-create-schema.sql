@@ -341,3 +341,12 @@ CREATE INDEX ix_listings_status ON Listings(listing_status);
 CREATE INDEX ix_listings_course ON Listings(course_id);
 CREATE INDEX ix_listings_visibility ON Listings(listing_status);
 
+--Reservations
+CREATE INDEX ix_res_buyer ON Reservations(buyer_id);
+CREATE INDEX ix_res_seller ON Reservations(seller_id);
+CREATE INDEX ix_res_status ON Reservations(reservation_status);
+CREATE INDEX ix_res_expires ON Reservations(expires_at) WHERE reservation_status ='active'; -- only actived when the reservation is active
+
+-- chat messages
+CREATE INDEX ix_chat_reservation ON Chat_messages(reservation_id, sent_at);
+CREATE INDEX ix_chat_unread ON Chat_messages(reservation_id, read_at) WHERE read_at IS NULL;
