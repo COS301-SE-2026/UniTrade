@@ -98,3 +98,9 @@ const adminNav: NavSection[] = [
     ],
   },
 ]
+
+function getNav(role: string) {
+  if (role === 'admin') return adminNav
+  if (role === 'seller') return sellerNav
+  return buyerNav
+}
