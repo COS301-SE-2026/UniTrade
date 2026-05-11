@@ -55,3 +55,25 @@ const buyerNav: NavSection[] = [{
   ],
 },
 ]
+
+const sellerNav: NavSection[] = [
+  {
+    heading: 'Main',
+    items: [
+      { label: 'Dashboard', to: '/dashboard', icon: <IconLayoutDashboard size={18} />},
+       { label: 'Switch', to:'/switch', icon: <IconSwitchHorizontal size={18} />},
+      { label: 'My Listings', to: '/listings', icon: <IconPackage size={18} />, badge: 3},
+
+
+    ],
+  },
+
+  {
+    heading: 'Account',
+    items: [
+    { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5},
+    { label: 'Profile', to: '/profile', icon: <IconUser size={18} />},
+    { label: 'Settings', to: '/settings', icon: <IconSettings size={18} />},
+  ],
+  },
+]
