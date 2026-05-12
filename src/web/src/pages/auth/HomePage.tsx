@@ -6,6 +6,7 @@ import{
     IconRobot,
 }from '@tabler/icons-react'
 import React from 'react'
+import image from '../../assets/image.jpeg'
 import{ useNavigate} from 'react-router-dom'
 
 function Navbar(){
@@ -36,17 +37,24 @@ function Navbar(){
 }
 
 function ImageSection(){
-    return(
-        <div className = "relative w-full h-[500px] bg-[#003366] flex items-center" >
-            <div className = "absolute inset-0 bg-black/40" />
+    return (
+    <div
+      className="relative w-full h-[500px] flex items-center"
+      style={{
+        backgroundImage: `url(${image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'right-center',
+      }}
+    >
+      <div className="absolute inset-0 bg-black/30" />
 
-            <div className = "relative z-10 px-12">
-                <h2 className = "text-white text-5xl font-extrabold uppercase leading-tight max-w-lg">
-                    University Materials Made Accessible
-                </h2>
-            </div>
-        </div>
-    )
+      <div className="relative z-10 px-12">
+        <h2 className="text-white text-5xl font-extrabold uppercase leading-tight max-w-lg">
+          University Materials Made Accessible
+        </h2>
+      </div>
+    </div>
+  )
 }
 
 function DownloadSection(){
@@ -155,7 +163,6 @@ export default function HomePage() {
       <ImageSection />
       <WhatWeOffer />
       <DownloadSection />
-      <p className="p-8 text-gray-400">One step at a time .</p>
     </div>
   )
 }
