@@ -99,6 +99,8 @@ CREATE TABLE Verification_requests(
     attempt_number INT NOT NULL DEFAULT 1,
     is_current BIT NOT NULL DEFAULT 1,
     otp_code_hash NVARCHAR(10),
+    otp_sent_at DATETIME2,
+    otp_resend_count INT,
     otp_verified_at DATETIME2, 
     otp_expires_at DATETIME2 NOT NULL,
     por_file_path NVARCHAR(MAX),
