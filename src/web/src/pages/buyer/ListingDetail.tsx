@@ -18,3 +18,39 @@ function DetailRow ({ label, value}: { label: string; value: React.ReactNode}) {
     </div>
   )
 }
+
+function ReviewRow({
+  initials,
+  name,
+  stars,
+  text,
+  date,
+}: {
+  initials: string
+  name: string
+  stars: number
+  text: string
+  date: string
+}) {
+   return (
+    <div className="flex gap-3 py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
+      <div className="w-8 h-8 rounded-full bg-navy-700 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+        {initials}
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-navy-700 dark:text-white">{name}</p>
+        <div className="flex gap-0.5 my-0.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <IconStar
+              key={i}
+              size={11}
+              className={i < stars ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}
+            />
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 dark:text-white/50 leading-relaxed">{text}</p>
+        <p className="text-[10px] text-gray-300 mt-1">{date}</p>
+      </div>
+    </div>
+  )
+}
