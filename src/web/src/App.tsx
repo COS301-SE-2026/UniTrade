@@ -34,6 +34,7 @@ export default function App() {
       <Route element={<AppLayout />}>
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+        <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
