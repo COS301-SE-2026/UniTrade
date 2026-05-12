@@ -132,3 +132,135 @@ function DisputeRow({ title, meta }: DisputeRowProps) {
   )
 }
 
+
+export default function AdminDashboard() {
+  const navigate = useNavigate()
+
+  return (
+    <div className="space-y-6">
+     
+      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
+        WELCOME Admin
+      </h1>
+
+      
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard
+          title="Pending Verifications"
+          value={8}
+          sub="Oldest: 2 days ago"
+          subColor="text-amber-500"
+          subIcon={<IconClock size={13} />}
+        />
+        <StatCard
+          title="Listing Queue"
+          value={14}
+          sub="5 High Risk"
+          subColor="text-red-500"
+          subIcon={<IconAlertTriangle size={13} />}
+        />
+        <StatCard
+          title="Active Disputes"
+          value={3}
+          sub="Needs attention"
+          subColor="text-red-500"
+          subIcon={<IconFlag size={13} />}
+        />
+        <StatCard
+          title="Total Users"
+          value={8}
+          sub="12% this month"
+          subColor="text-green-600"
+          subIcon={<IconTrendingUp size={13} />}
+        />
+      </div>
+
+      
+      <div className="grid grid-cols-3 gap-4">
+
+        
+        <div className="col-span-2 bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-navy-700 dark:text-white">
+              List Moderation Queue
+            </h2>
+            <button
+              onClick={() => navigate('/admin/listings')}
+              className="text-xs text-[#00aaff] hover:underline"
+            >
+              view all
+            </button>
+          </div>
+
+          <ListingRow
+            title="Chemistry Textbook - 3rd Ed"
+            meta="CMY127 · R200 · Submitted 2hr ago"
+            risk="High Risk"
+          />
+          <ListingRow
+            title="HP Laptop 15' - Good condition"
+            meta="UP · R4500 · Submitted 4h ago"
+            risk="High Risk"
+          />
+          <ListingRow
+            title="Calculus - Early Transcendentals"
+            meta="WTW114 · R350 · Submitted 8h ago"
+            risk="Med Risk"
+          />
+          <ListingRow
+            title="Physics Lab Manual 2024"
+            meta="PHY114 · R150 · Submitted 10h ago"
+            risk="Med Risk"
+          />
+        </div>
+
+        
+        <div className="col-span-1 flex flex-col gap-4">
+
+          
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-navy-700 dark:text-white">
+                Student Verifications
+              </h2>
+              <button
+                onClick={() => navigate('/admin/verifications')}
+                className="text-xs text-[#00aaff] hover:underline"
+              >
+                view all
+              </button>
+            </div>
+            <VerificationRow initials="TM" name="Tafadzwa Musiiwa" meta="UP · BSC Comp Sci · Y3" />
+            <VerificationRow initials="MT" name="Mahadio Tlaka"    meta="UP · BSC Comp Sci · Y3" />
+            <VerificationRow initials="SK" name="Sabira Kaire"     meta="UP · BSC Comp Sci · Y3" />
+            <VerificationRow initials="ZS" name="Zelamene Shazi"   meta="UP · BSC Comp Sci · Y3" />
+          </div>
+
+    
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-navy-700 dark:text-white">
+                Active Disputes
+              </h2>
+              <button
+                onClick={() => navigate('/admin/disputes')}
+                className="text-xs text-[#00aaff] hover:underline"
+              >
+                view all
+              </button>
+            </div>
+            <DisputeRow
+              title="Listing Mismatch - Physics Manual"
+              meta="Buyer: TM · Seller: LV · 1 day ago"
+            />
+            <DisputeRow
+              title="No show report - Laptop"
+              meta="Buyer: TM · Seller: LV · 1 day ago"
+            />
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
