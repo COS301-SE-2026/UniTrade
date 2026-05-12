@@ -34,18 +34,17 @@ function StatCard({ title, value, sub, subColor = 'text-gray-500', subIcon }: St
   )
 }
 
-// ── Risk Pill ───────────────────────────────────────────────
-function RiskPill({ level }: { level: 'High Risk' | 'Med Risk' }) {
-  return (
-    <span
-      className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ${
-        level === 'High Risk'
-          ? 'bg-red-100 text-red-700'
-          : 'bg-amber-100 text-amber-700'
-      }`}
-    >
-      {level}
-    </span>
-  )
+function RiskPill ({ level }: { level: 'High Risk' | 'Med Risk' }) {
+    return (
+        <span
+          className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ${
+            level === 'High Risk'
+            ? 'bg-red-100 text-red-700'
+            : 'bg-amber-100 text-amber-700'
+          }`}
+          >
+            {level}
+          </span>
+    )
 }
 
