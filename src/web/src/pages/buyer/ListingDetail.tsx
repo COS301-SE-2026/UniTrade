@@ -86,3 +86,52 @@ function SimilarRow({
     </div>
   )
 }
+
+export default function ListingDetail() {
+  const navigate = useNavigate()
+
+  return (
+    <div className="space-y-4">
+
+      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <span 
+          className="text-[#00aaff] cursor-pointer hover:underline"
+          onClick={() => navigate('/buyer/dashboard')}>
+            Dashboard
+          </span>
+          <IconChevronRight size={12} />
+          <span className="text-[#00aaff] cursor-pointer hover:underline">Listings</span>
+          <IconChevronRight size={12} />
+          <span>Calculus - Early Transcendentals</span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+
+        <div className="col-span-2 space-y-4">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
+          <div className="w-full h-56 bg-gray-100 dark:bg-navy-700 rounded-lg flex items-center justify-center mb-3">
+            <span className="text-4xl">📚</span>
+          </div>
+          <div className="flex gap-2">
+            {[1,2,3].map((i) => (
+              <div 
+               key={i}
+               className={`w-14 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center cursor-pointer text-lg border-2 ${
+                i === 1
+                ? 'border-navy-700 dark:border-white'
+                : 'border-transparent'
+               }`}
+               >📚
+               </div>
+            ))}
+            <div className="w-14 h-12 rounded-lg bg-gray-50 dark:bg-navy-700 border-2 border-dashed border-gray-200
+            dark:border-white/10 flex items-center justify-center text-xs text-gray-400 cursor-pointer">
+              +1
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
