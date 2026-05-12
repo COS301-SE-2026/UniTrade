@@ -4,6 +4,7 @@ import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
+import ListingDetail from './pages/buyer/ListingDetail'
 import SellerDashboard from './pages/seller/SellerDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminVerifications from './pages/admin/AdminVerifications'
@@ -31,6 +32,7 @@ export default function App() {
 
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+        <Route path="/listings/:id" element={<ListingDetail />} /> {/*the id can be anything for now since the data is hardcoded*/}
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
