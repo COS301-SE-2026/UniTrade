@@ -98,7 +98,7 @@ CREATE TABLE Verification_requests(
     user_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     attempt_number INT NOT NULL DEFAULT 1,
     is_current BIT NOT NULL DEFAULT 1,
-    otp_code_hash NVARCHAR(10),
+    otp_code_hash NVARCHAR(64),
     otp_sent_at DATETIME2,
     otp_resend_count INT,
     otp_verified_at DATETIME2, 
