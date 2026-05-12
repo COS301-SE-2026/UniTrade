@@ -1,3 +1,13 @@
+import { useNavigate } from "react-router-dom"
+import {
+    IconClock,
+    IconAlertTriangle,
+    IconFlag,
+    IconTrendingUp,
+    IconCheck,
+    IconX,
+} from '@tabler/icons-react'
+
 export default function AdminDashboard() {
   return (
     <div>

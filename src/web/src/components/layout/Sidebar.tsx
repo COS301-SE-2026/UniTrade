@@ -38,7 +38,7 @@ const buyerNav: NavSection[] = [{
   heading: 'Main',
   items: [
     {
-      label: 'Dashboard', to: '/dashboard', icon: <IconLayoutDashboard size={18} />},
+      label: 'Dashboard', to: '/buyer/dashboard', icon: <IconLayoutDashboard size={18} />},
     { label: 'Switch', to:'/switch', icon: <IconSwitchHorizontal size={18} />},
     { label: 'My Orders', to:'/orders', icon: <IconShoppingBag size={18} />, badge:3},
     { label: 'My Wishlist', to: '/wishlist', icon: <IconHeart size={18} />},
