@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 
+import HomePage from './pages/auth/HomePage'
+
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import SellerDashboard from './pages/seller/SellerDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -25,10 +27,11 @@ export default function App() {
 
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-       
-        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/" element={<HomePage/>} />
+      <Route path="/auth/HomePage" element={<HomePage />} />
 
+
+      <Route element={<AppLayout />}>
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
 
