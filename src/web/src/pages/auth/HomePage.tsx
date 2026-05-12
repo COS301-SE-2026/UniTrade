@@ -49,6 +49,38 @@ function ImageSection(){
     )
 }
 
+function DownloadSection(){
+    return(
+        <div className = "relative w-full bg-[#003366] py-12 flex flex-col items-center justify-center" >
+
+            <h2 className = "text-white text-2xl font-bold mb-8 tracking-wide">
+                GET THE APP
+            </h2>
+
+            <div className = "flex items-center gap-6">
+
+                <button className = "flex items-center gap-2 bg-black text-white px-5 py-3 rounded-lg hover:bg-gray-900 transition-colors">
+                    <span className = "text-2xl"></span>
+                    <div className = "text-left">
+                     <p className="text-[10px] text-gray-400">Download on the</p>
+                     <p className="text-sm font-semibold">App Store</p>
+                     </div>
+                </button>
+            
+
+             <button className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-lg hover:bg-gray-900 transition-colors">
+             <span className="text-2xl">▶</span>
+             <div className="text-left">
+             <p className="text-[10px] text-gray-400">GET IT ON</p>
+             <p className="text-sm font-semibold">Google Play</p>
+          </div>
+        </button>
+
+            </div>
+        </div>
+    )
+}
+
 const features = [
     {
         icon: <IconMessage size={32} className="text-[#003366]" />,
@@ -122,6 +154,7 @@ export default function HomePage() {
       <Navbar />
       <ImageSection />
       <WhatWeOffer />
+      <DownloadSection />
       <p className="p-8 text-gray-400">One step at a time .</p>
     </div>
   )
