@@ -54,3 +54,35 @@ function ReviewRow({
     </div>
   )
 }
+
+function SimilarRow({
+  title,
+  meta,
+  condition,
+}: {
+  title: string,
+  meta: string,
+  condition: string
+}) {
+  const isGood = condition === 'Good'
+  return(
+    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0 cursor-pointer hover
+    :bg-gray-50 dark:hover:bg-white/5 rounded-lg px-1 transition-colors">
+      <div className="w-9 h-9 bg-gray-100 dark:bg-navy-700 rounded-lg flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-navy-700 dark:text-white truncate">{title}
+        </p>
+        <p className="text-[11px] text-gray-400 mt-0.5">{meta}</p>
+      </div>
+      <span 
+       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+        isGood
+        ? 'bg-green-100 text-green-700'
+        : 'bg-amber-100 text-amber-700'
+       }`}
+       >
+        {condition}
+       </span>
+    </div>
+  )
+}
