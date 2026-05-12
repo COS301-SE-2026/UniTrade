@@ -7,7 +7,7 @@ import{
   IconHeart,
   IconArrowUpRight,
   IconChevronDown,
-}from '@tabler/icon-react'
+}from '@tabler/icons-react'
 
 
 function StatCard({
@@ -33,11 +33,39 @@ function StatCard({
     
       <div className="px-4 py-3">
         <p className="text-2xl font-bold text-gray-800">{value}</p>
-        <p className={`text-xs mt-1 ${subColor}`}>{subText}</p>
+        <p className={`text-xs mt-1 ${subColour}`}>{subText}</p>
       </div>
     </div>
   )
 }
+
+function ProductCard({
+  title,
+  price,
+  image
+}: {
+  title: string
+  price: string
+  image: string
+}) {
+  return (
+    <div className = "border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
+
+      <div className = {'w-full h-36 rounded-lg ${image} flex items-center justify-center'}>
+        <IconShoppingBag size={40} className= "text-white/60" />
+      </div>
+      <p className = "text-sm font-semibold text-gray-800">{title}</p>
+      <p className = "text-sm text-gray-500">{price}</p>
+      <button className = "w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
+        Reserve
+      </button>
+      <button className="w-full py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+        Add to Wishlist
+      </button>
+    </div>
+  )
+}
+
 
 
 export default function BuyerDashboard() {
