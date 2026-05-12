@@ -62,7 +62,7 @@ CREATE TABLE Users(
     first_name NVARCHAR(50) NOT NULL,
     last_name NVARCHAR(50) NOT NULL,
     email NVARCHAR(255) NOT NULL UNIQUE,
-    phone_number NVARCHAR(20) NOT NULL,
+    phone_number NVARCHAR(20),
     password_hash NVARCHAR(MAX) NOT NULL,
     role NVARCHAR(10) NOT NULL 
                     CONSTRAINT chk_user_role CHECK (role IN ('student', 'admin')),
