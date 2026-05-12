@@ -1,5 +1,11 @@
 //the home page ( hte landing page) where the user will see the login and signup and what we offer 
-
+import{
+    IconMessage,
+    IconMapPin,
+    IconShieldCheck,
+    IconRobot,
+}from '@tabler/icons-react'
+import React from 'react'
 import{ useNavigate} from 'react-router-dom'
 
 function Navbar(){
@@ -43,11 +49,79 @@ function ImageSection(){
     )
 }
 
+const features = [
+    {
+        icon: <IconMessage size={32} className="text-[#003366]" />,
+        title: 'Real-Time Chat',
+        description: 
+        'Connect instantly with buyers and sellers through our secure in-app messaging system to discuss item details and coordinate exchanges.',
+    },
+    {
+        icon: <IconMapPin size={32} className="text-[#003366]" />,
+        title: 'Location Pickup',
+        description:
+        'Easily find and arrange safe meeting point on or near campus for convenient, face-to-face material handovers.',
+    },
+    {
+        icon: <IconShieldCheck size={32} className="text-[#003366]" />,
+        title: 'Secure Payments',
+        description:
+        'Experience peace of mind with our protected transaction processing, ensuring your funds are handles safely and reliably.',
+    },
+    {
+        icon: <IconRobot size={32} className="text-[#003366]" />,
+        title: 'AI Verification',
+        description:
+        'Shop with confidence using our smart verification system that authenticates listings and confirms student status to maintain a trusted community.',
+    },
+]
+
+function FeatureCard({
+    icon,
+    title,
+    description,
+}: {
+    icon: React.ReactNode
+    title: string
+    description: string
+}) {
+    return (
+        <div className="flex flex-col items-center text-center px-4">
+            <div className="w-20 h-20 rounded-full bg-[#dce9f7] flex items-center justify-center mb-4">
+                {icon}
+            </div>
+            <h3 className="text-sm font-bold text-[#003366] uppercase mb-2">{title}</h3>
+            <p className ="text-xs text-gray-600 leading-relaxed">{description}</p>  
+        </div>
+    )
+}
+
+function WhatWeOffer() {
+  return (
+    <section className="py-12 px-8 bg-white">
+      <h2 className="text-lg font-bold text-gray-800 mb-8">WHAT WE OFFER:</h2>
+
+      <div className="grid grid-cols-4 gap-6 w-full">
+        {features.map((feature) => (
+          <FeatureCard
+            key={feature.title}  
+            icon={feature.icon}
+            title={feature.title}
+            description={feature.description}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <ImageSection />
+      <WhatWeOffer />
       <p className="p-8 text-gray-400">One step at a time .</p>
     </div>
   )
