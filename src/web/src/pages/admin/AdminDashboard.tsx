@@ -80,7 +80,7 @@ function ListingRow({ title, meta, risk }: ListingRowProps) {
 }
 
 
-interface verificationRowProps {
+interface VerificationRowProps {
     initials: string
     name: string
     meta: string
@@ -105,3 +105,30 @@ function VerificationRow({ initials, name, meta }: VerificationRowProps) {
     </div>
   )
 }
+
+interface DisputeRowProps {
+  title: string
+  meta: string
+}
+
+function DisputeRow({ title, meta }: DisputeRowProps) {
+  return (
+    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
+      <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex-shrink-0 overflow-hidden">
+        <img
+          src={`https://placehold.co/48x48/e8eef5/b0bcd4?text=📦`}
+          alt={title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+      </div>
+      <button className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-colors">
+        Review
+      </button>
+    </div>
+  )
+}
+
