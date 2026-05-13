@@ -8,7 +8,11 @@ import{
   IconArrowUpRight,
   IconChevronDown,
 }from '@tabler/icons-react'
+import biologyTextbook from '../../assets/bio-textbook.jpg'
+import laptop from '../../assets/laptop.jpg'
+import labCoat from '../../assets/labcoat.jpg'
 
+console.log('Images:', biologyTextbook, laptop, labCoat)
 
 function StatCard({
   title,
@@ -51,9 +55,11 @@ function ProductCard({
   return (
     <div className = "border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
 
-      <div className = {`w-full h-36 rounded-lg ${image} flex items-center justify-center`}>
-        <IconShoppingBag size={40} className= "text-white/60" />
-      </div>
+       <img
+        src={image}
+        alt={title}
+        className="w-full h-36 rounded-lg object-cover"
+      />
       <p className = "text-sm font-semibold text-gray-800">{title}</p>
       <p className = "text-sm text-gray-500">{price}</p>
       <button className = "w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
@@ -89,7 +95,11 @@ function OrderRow({
   return (
     <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
       
-      <div className={`w-10 h-10 rounded-full ${image} flex-shrink-0`} />
+      <img
+        src={image}
+        alt={title}
+        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+      />
       
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-800 truncate">{title}</p>
@@ -146,16 +156,16 @@ export default function BuyerDashboard() {
 
   
   const products = [
-    { title: 'Biology Textbook', price: 'R1200', image: 'bg-orange-400' },
-    { title: 'Laptop', price: 'R5000', image: 'bg-pink-400' },
-    { title: 'Lab Coat', price: 'R50', image: 'bg-[#003366]' },
+    { title: 'Biology Textbook', price: 'R1200', image: 'biologyTextbook' },
+    { title: 'Laptop', price: 'R5000', image: 'laptop' },
+    { title: 'Lab Coat', price: 'R50', image: 'labCoat' },
   ]
 
   
   const recentOrders = [
-    { title: 'Textbook', date: '2 May 2026', price: 'R1200', status: 'Collected' as const, image: 'bg-orange-400' },
-    { title: 'Lab Coat', date: '5 May 2026', price: 'R50', status: 'Pending' as const, image: 'bg-gray-300' },
-    { title: 'Laptop', date: '4 May 2026', price: 'R5000', status: 'Cancelled' as const, image: 'bg-pink-400' },
+    { title: 'Textbook', date: '2 May 2026', price: 'R1200', status: 'Collected' as const, image: 'biologyTextbook' },
+    { title: 'Lab Coat', date: '5 May 2026', price: 'R50', status: 'Pending' as const, image: 'labCoat' },
+    { title: 'Laptop', date: '4 May 2026', price: 'R5000', status: 'Cancelled' as const, image: 'laptop' },
   ]
   return (
    <div className="flex flex-col gap-6">
