@@ -130,6 +130,66 @@ export default function ListingDetail() {
             </div>
           </div>
           </div>
+
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          <h1 className="text-lg font-bold text-navy-700 dark:text-white mb-1">
+            Calculus - Early Transcendentals
+            </h1>
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-2xl font-bold text-navy-700 dark:text-white">R280</span>
+              <span className="text-sm text-gray-400">. negotiable</span>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3
+              py-1 rounded-full font-medium">
+                <IconCheck size={11} /> Like New
+              </span>
+              <span className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                WTW114
+              </span>
+              <span className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                First Year
+              </span>
+              <span className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                University Of Pretoria
+              </span>
+            </div>
+            
+            <hr className="border-gray-100 dark:border-white/5 mb-4" />
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">Description</h3>
+            <p className="text-sm text-gray-500 dark:text-white/50 leading-relaxed mb-4">
+            Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP. Includes the original bookmark and a handwritten summary sheet for chapter 5.</p>
+            <hr className="border-gray-100 dark:border-white/5 mb-4" />
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">Listing details</h3>
+            <DetailRow label="Category" value="Textbook" />
+            <DetailRow label="Condition"
+            value={
+              <span className="flex items-center gap-2 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                <IconStar size={10} className="fill-green-700" /> Good
+              </span>
+            }
+            />
+            <DetailRow label="Course code" value="WTW114"/>
+            <DetailRow label="Listed on" value="7 May 2026" />
+            <DetailRow label="Views" value="42" />
+          </div>
+
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller reviews</h3>
+          <ReviewRow
+          initials="ZS"
+          name="Zelamene S."
+          stars={5}
+          text="Item was exaclty as described. Seller was on time and very friendly at the meetup."
+          date="3 May 2026" />
+          <ReviewRow
+          initials="SK"
+          name="Sabira K."
+          stars={4.5}
+          text="Book was in good condition. Would buy from this seller again." 
+          date="28 Apr 2026"/>
+          </div>
         </div>
       </div>
     </div>
