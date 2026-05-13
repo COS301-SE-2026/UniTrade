@@ -244,8 +244,16 @@ export default function ListingDetail() {
           gap-2 mb-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
             <IconMessage size={16} /> Message seller
           </button>
+          <button className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors">
+            <IconFlag size={13} /> Report this Listing </button>
         </div>
+
+        <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+        <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
+        <SimilarRow title="Calculus - Early Transcendentals 3rd Edition" meta="UP . R120" condition="Good" />
+        <SimilarRow title="Linear Algebra - 6th Ed" meta="UP . R310" condition="Fair" />
       </div>
+    </div>
     </div>
     </div>
   )
