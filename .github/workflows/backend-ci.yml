@@ -1,0 +1,70 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ["main", "dev"]
+    paths:
+      - "src/backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches: ["dev"]
+    paths:
+      - "src/backend/**"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        working-directory: src/backend
+        run: dotnet restore
+
+      - name: Build API
+        working-directory: src/backend/Api
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Build Tests
+        working-directory: src/backend/Tests
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Build Workers
+        working-directory: src/backend/Workers
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run Unit Tests
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit"
+
+      - name: Run Integration Tests
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration"
+    
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        working-directory: src/backend
+        run: dotnet restore
+
+      - name: Analyze code style
+        working-directory: src/backend
+        run: dotnet build --configuration Release --no-restore /p:EnforceCodeStyleInBuild=true
