@@ -191,7 +191,62 @@ export default function ListingDetail() {
           date="28 Apr 2026"/>
           </div>
         </div>
+
+        <div className="col-span-1 space-y-4">
+
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          <h3 className="text-sm font-semibold text-navy-600 dark:text-white mb-3">Seller</h3>
+          <div className="flex items-center gap-3 bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-navy-700 dark:bg-navy-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">LV</div>
+            <div>
+              <p className="text-sm font-semibold text-navy-700 dark:text-white">Langa Vakalisa</p>
+              <p className="text-xs text-gray-400">University of Pretoria</p>
+              <div className="flex gap-0.5 mt-0.5">
+                {Array.from({ length: 5}).map((_, i) =>(
+                  <IconStar key={i} size={10} className="text-amber-500 fill-amber-500" />
+                ))}
+               
+              </div>
+              <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1">
+                <IconCheck size={9} /> Verified student
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+            {[
+              { val: '12', label: 'Listings'
+              },
+              { val: '98%', label: 'Response'},
+              { val: '4.9', label: 'Rating'},
+            ].map(({ val, label}) => (
+              <div key={label}>
+                <p className="text-base font-bold text-navy-700 dark:text-white">{val}</p>
+                <p className="text-[10px] text-gray-400"> {label}</p>
+                </div>
+            ))}
+          </div>
+          <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
+            <span className="text-blue-500 text-sm flex-shrink-0">🛡</span>
+            <p className="text-xs text-blue-700 dark:text-white/70 leading-realxed">
+            Reserve now to hold this item for 24 hours. No payment until you meet and inspect it in person.</p>
+          </div>
+
+          <button className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center
+          justify-center gap-2 mb-2 transition-colors">
+            <IconBookmark size={16} /> Reserve this item
+          </button>
+          <button className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold
+          text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 bover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+            <IconHeart size={16} /> Add to wishlist
+          </button>
+          <button className="w-full border border-[#00aaff] text-[#00aaff] font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center 
+          gap-2 mb-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+            <IconMessage size={16} /> Message seller
+          </button>
+        </div>
       </div>
+    </div>
     </div>
   )
 }
