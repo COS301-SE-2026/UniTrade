@@ -9,7 +9,7 @@ public class User
     public string PhoneNumber { get; set; }
     public string PasswordHash { get; set; }
     public string Role { get; set; } // admin or student
-    public Datetime CreatedAt { get; set; }
-    public Datetime UpdatedAt { get; set; }
+    public Datetime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Datetime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 }
