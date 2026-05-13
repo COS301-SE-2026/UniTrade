@@ -14,7 +14,6 @@ import {
   IconFlag,
   IconUsers,
   IconChartBar,
-  IconPlus,
   IconPackage,
   IconChevronLeft,
   IconChevronRight,

@@ -4,8 +4,6 @@ import {
   IconAlertTriangle,
   IconFlag,
   IconTrendingUp,
-  IconCheck,
-  IconX,
 } from '@tabler/icons-react'
 
 
