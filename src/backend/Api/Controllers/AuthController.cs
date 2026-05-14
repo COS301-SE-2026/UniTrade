@@ -1,6 +1,7 @@
 using API.Modules.Identity.Models.DTO;
 using API.Modules.Identity;
 using API.Modules.Identity.Models;
+using Microsoft.AspNetCore.Mvc; 
 
 namespace API.Controllers
 {
@@ -17,15 +18,33 @@ namespace API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDTO loginDto)
+        public async Task<IActionResult> Login([FromBody]LoginDTO request)
         {
-            var response=await _identityService.LoginAsync(loginDto);//busines loic layer comes in
-            //remember to set cookiee!!!
 
+            if(string.IsNullOrEmpty(request.Email)|| string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest("Email and password are required");
+            }
+            var response=await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
 
+            if(response==null||response.User==null)
+            {
+                return Unauthorized("Invalid credentials");
+            }
 
-            
-            return ok(response);
+            Response.Cookies.Append("authToken",response.Token,new CookieOptions
+            {
+                HttpOnly=true,
+                Secure=true,
+                SameSite=Lax
+            });
+
+            return Ok(new 
+            {
+                response.Message,
+                response.User
+            }
+            );
         }
 
     }
