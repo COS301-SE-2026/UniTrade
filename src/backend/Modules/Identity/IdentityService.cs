@@ -50,7 +50,7 @@ public class IdentityService: IIdentityService
 
             if (profile!=null)
             {
-                if (profile. Verification_Status!=null)
+                if (profile.Verification_Status!=null)
                 {verificationStatus =profile.Verification_Status;}
                 else
                 {verificationStatus="pending";}
