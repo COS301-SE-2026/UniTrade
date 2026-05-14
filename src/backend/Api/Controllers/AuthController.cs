@@ -20,16 +20,17 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody]LoginDTO request)
         {
+        try{
 
             if(string.IsNullOrEmpty(request.Email)|| string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest("Email and password are required");
+                return BadRequest(new {message="Email and password are required"});
             }
             var response=await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
 
             if(response==null||response.User==null)
             {
-                return Unauthorized("Invalid credentials");
+                return Unauthorized(new {message="Invalid credentials"});
             }
 
             Response.Cookies.Append("authToken",response.Token,new CookieOptions
@@ -45,6 +46,10 @@ namespace API.Controllers
                 response.User
             }
             );
+        }
+        catch(Exception e)
+        {
+            return StatusCode(500,new{message="An internal server error occurred"});
         }
 
     }
