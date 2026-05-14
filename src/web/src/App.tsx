@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 import Login from './pages/autho/Login'
+import Signup from './pages/autho/Signup'
 
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import SellerDashboard from './pages/seller/SellerDashboard'
@@ -16,19 +17,19 @@ export default function App() {
 
   useEffect(() => {
     // Temporary: change role to 'buyer' | 'seller' | 'admin' to test different sidebars
-    /*setUser({
+    setUser({
       id: '1',
       name: 'Tafadzwa Musiiwa',
       initials: 'TM',
       role: 'buyer',
-    })*/
+    })
   }, [])
 
   return (
     <Routes>
       
       <Route path="/autho/login" element={<Login />} />
-      {user ? (
+      <Route path="/autho/signup" element={<Signup />} />
       <Route element={<AppLayout />}>
 
 
@@ -46,10 +47,7 @@ export default function App() {
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
       </Route>
-      ) : (
-        // Redirect to login if not authenticated
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      )}
+      <Route path="*" element={<Navigate to="/autho/login" replace />} />
     </Routes>
   )
 }
