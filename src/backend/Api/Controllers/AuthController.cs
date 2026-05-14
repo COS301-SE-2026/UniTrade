@@ -51,6 +51,22 @@ namespace API.Controllers
         {
             return StatusCode(500,new{message="An internal server error occurred"});
         }
+    }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("authToken", new CookieOptions
+            {
+                HttpOnly=true,
+                Secure=true,
+                SameSite=SameSiteMode.Lax
+            });
+            return ok(new 
+            {
+                message="Logged out successfully"
+            });
+        }
 
     }
 }
