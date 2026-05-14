@@ -1,9 +1,14 @@
-using API.Modules.Identity;
 using API.Modules.Identity.Models.DTO;
 using API.Infrastructure.Persistence;
 
 using Microsoft.IdentityModel.Tokens;
 using System.Text;//for encoding
+
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+
+using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace API.Modules.Identity
 {
@@ -38,8 +43,25 @@ public class IdentityService: IIdentityService
                 User=null
             };
         }
+        string verificationStatus = "n/a";
+        if (user.Role=="student")
+        {
+            var profile=await _dbContext.StudentProfiles.FirstOrDefaultAsync(s=>s.UserId == user.Id);
+
+            if (profile!=null)
+            {
+                if (profile. Verification_Status!=null)
+                {verificationStatus =profile.Verification_Status;}
+                else
+                {verificationStatus="pending";}
+            }
+            else
+            {
+                verificationStatus="pending";
+            }
+        }
        
-        string token=TokenGenerator(user);
+        string token=TokenGenerator(user, verificationStatus);
         
         var userDto=new UserDto{
             Id=user.Id, 
@@ -57,27 +79,31 @@ public class IdentityService: IIdentityService
 
     }
 
-    private string TokenGenerator(User user)
+    private string TokenGenerator(User user, string? verificationStatus=null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT_SECRET"]!));
 
         var credentials=new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
 
         //data that goes iunside token, like an id card
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim("sub", user.Id.ToString()),
             new Claim("email", user.Email),
             new Claim("role", user.Role),
-            new Claim("verification_status", user.Verification_Status)
         };
 
+        if(user.Role=="student")
+        {
+            claims.Add(new Claim("verification_status",verificationStatus));
+        }
+
         //blueprint for the token(form)
-        var token=JwtSecurityToken{
+        var token=new JwtSecurityToken(
             claims:claims,
             signingCredentials:credentials,
-            expires: DateTime.UtcNow.AddHoours(24)
-        };
+            expires: DateTime.UtcNow.AddHours(24)
+        );
         return new JwtSecurityTokenHandler().WriteToken(token);
 
     }

@@ -2,7 +2,8 @@ namespace API.Modules.Identity.Models
 {
     public class AdminProf
     {
-        public int Admin_ID { get; set; }
+        public Guid AdminId { get; set; }
+        public Guid UserId { get; set; }
         public int University_ID { get; set; }
     }
 }
