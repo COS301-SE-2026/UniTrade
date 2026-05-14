@@ -33,11 +33,11 @@ namespace API.Controllers
                 return Unauthorized(new {message="Invalid credentials"});
             }
 
-            Response.Cookies.Append("authToken",response.Token,new CookieOptions
+            Response.Cookies.Append("authToken",response.Token!,new CookieOptions
             {
                 HttpOnly=true,
                 Secure=true,
-                SameSite=Lax
+                SameSite=SameSite.Lax
             });
 
             return Ok(new 
@@ -62,7 +62,7 @@ namespace API.Controllers
                 Secure=true,
                 SameSite=SameSiteMode.Lax
             });
-            return ok(new 
+            return Ok(new 
             {
                 message="Logged out successfully"
             });
