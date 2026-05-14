@@ -2,12 +2,12 @@ name: Web Frontend CI
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main", "dev","feature/**","fix/**"]
     paths:
       - "src/web/**"
       - ".github/workflows/web-ci.yml"
   pull_request:
-    branches: ["dev"]
+    branches: ["dev","main"]
     paths:
       - "src/web/**"
 
@@ -37,7 +37,6 @@ jobs:
       - name: Lint code
         working-directory: src/web
         run: npm run lint
-        #continue on error
         
       - name: Build application
         working-directory: src/web

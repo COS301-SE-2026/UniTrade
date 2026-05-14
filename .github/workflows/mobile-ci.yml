@@ -2,12 +2,12 @@ name: Mobile Frontend CI
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main", "dev","feature/**","fix/**"]
     paths:
       - "src/mobile/**"
       - ".github/workflows/mobile-ci.yml"
   pull_request:
-    branches: ["dev"]
+    branches: ["dev","main"]
     paths:
       - "src/mobile/**"
 
@@ -45,3 +45,5 @@ jobs:
       - name: Run integration tests
         working-directory: src/mobile
         run: npm run test:run -- tests/integration
+
+      
