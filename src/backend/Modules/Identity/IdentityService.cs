@@ -24,7 +24,17 @@ public class IdentityService: IIdentityService
     }
     //main method
     public async Task<LoginResponse> LoginAsync(LoginDTO loginDto)
-    {
+{
+    try{
+        if(string.IsNullOrEmpty(loginDto.Email)|| string.IsNullOrEmpty(loginDto.Password))
+        {
+            return new LoginResponse
+            {
+                Message="Email and password are required",
+                User=null
+            };
+        }
+        
         //*user here follows User Model not schema
         var user=await _dbContext.Users.FirstOrDefaultAsync(u=>u.Email==loginDto.Email);
         //tasks: query db, verify password and get email, gen. token, then return a response
@@ -76,6 +86,14 @@ public class IdentityService: IIdentityService
             Message="Login successful",
             User=userDto
         };
+        }
+        catch(Exception e){
+            return new LoginResponse
+            {
+                Message="An error occurred during login",
+                User=null
+            };
+        }
 
     }
 
