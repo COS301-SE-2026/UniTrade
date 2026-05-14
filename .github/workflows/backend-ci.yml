@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main", "dev","feature/**","fix/**"]
     paths:
       - "src/backend/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
-    branches: ["dev"]
+    branches: ["dev","main"]
     paths:
       - "src/backend/**"
 
@@ -50,6 +50,7 @@ jobs:
     
 
   code-quality:
+    needs: build-and-test
     runs-on: ubuntu-latest
     
     steps:
