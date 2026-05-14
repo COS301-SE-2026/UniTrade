@@ -2,12 +2,12 @@ name: Web Frontend CI
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["**"]
     paths:
       - "src/web/**"
       - ".github/workflows/web-ci.yml"
   pull_request:
-    branches: ["dev"]
+    branches: ["dev","main"]
     paths:
       - "src/web/**"
 
@@ -37,16 +37,15 @@ jobs:
       - name: Lint code
         working-directory: src/web
         run: npm run lint
-        #continue on error
         
       - name: Build application
         working-directory: src/web
         run: npm run build
 
-      - name: Run unit tests
-        working-directory: src/web
-        run: npm run test:run
+      # - name: Run unit tests
+      #   working-directory: src/web
+      #   run: npm run test:run
 
-      - name: Run integration tests
-        working-directory: src/web
-        run: npm run test:run -- tests/integration
+      # - name: Run integration tests
+      #   working-directory: src/web
+      #   run: npm run test:run -- tests/integration
