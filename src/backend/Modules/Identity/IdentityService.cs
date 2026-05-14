@@ -2,7 +2,7 @@ using API.Modules.Identity;
 using API.Modules.Identity.Models.DTO;
 using API.Infrastructure.Persistence;
 
-namespace API.Models.Identity
+namespace API.Modules.Identity
 {
 public class IdentityService: IIdentityService
 {
@@ -14,14 +14,15 @@ public class IdentityService: IIdentityService
     //main method
     public async Task<LoginResponse> LoginAsync(LoginDTO loginDto)
     {
-        var user=await _dbContext.Users.FirstOrDefaultAsync(u=>u.email==loginDto.Email);
+        //*user here follows User Model not schema
+        var user=await _dbContext.Users.FirstOrDefaultAsync(u=>u.Email==loginDto.Email);
         //tasks: query db, verify password and get email, gen. token, then return a response
         if(user==null)
         {
             return new LoginResponse{
                 Token=null,
                 Message="Invalid credentials",
-                User=null;
+                User=null
             };
         }
         
@@ -36,12 +37,19 @@ public class IdentityService: IIdentityService
        
         string token="";
         
-        var userDto=new UserDto{Id=user.user_id, FirstName=user.first_name,LastName=user.last_name,PhoneNumber=user.phone_number};
+        var userDto=new UserDto{
+            Id=user.Id, 
+            FirstName=user.FirstName,
+            LastName=user.LastName,
+            PhoneNumber=user.PhoneNumber,
+            Email=user.Email,
+            Role=user.Role
+        };
 
         return new LoginResponse{
             Token=token,
             Message="Login successful",
-            user=userDto
+            User=userDto
         };
 
     }
