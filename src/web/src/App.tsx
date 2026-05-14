@@ -4,6 +4,7 @@ import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 import Login from './pages/autho/Login'
 import Signup from './pages/autho/Signup'
+import UploadListing from './pages/seller/UploadListing'
 
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import SellerDashboard from './pages/seller/SellerDashboard'
@@ -41,6 +42,7 @@ export default function App() {
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
+        <Route path="/seller/upload" element={<UploadListing />} />
 
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/verifications" element={<AdminVerifications />} />
