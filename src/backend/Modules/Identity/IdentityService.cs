@@ -2,14 +2,20 @@ using API.Modules.Identity;
 using API.Modules.Identity.Models.DTO;
 using API.Infrastructure.Persistence;
 
+using Microsoft.IdentityModel.Tokens;
+using System.Text;//for encoding
+
 namespace API.Modules.Identity
 {
 public class IdentityService: IIdentityService
 {
     private readonly AppDbContext _dbContext;
-    public IdentityService(AppDbContext dbContext)
+    private readonly IConfiguration _config;
+
+    public IdentityService(AppDbContext dbContext, IConfiguration config)
     {
        _dbContext=dbContext;//to query user tabel
+       _config=config;
     }
     //main method
     public async Task<LoginResponse> LoginAsync(LoginDTO loginDto)
@@ -20,22 +26,20 @@ public class IdentityService: IIdentityService
         if(user==null)
         {
             return new LoginResponse{
-                Token=null,
                 Message="Invalid credentials",
                 User=null
             };
         }
         
-        if(user.password_hash!=loginDto.Password)//remeber to hash this!!
+        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
         {
             return new LoginResponse{
-                Token=null,
                 Message="Invalid credentials",
-                User=null;
+                User=null
             };
         }
        
-        string token="";
+        string token=TokenGenerator(user);
         
         var userDto=new UserDto{
             Id=user.Id, 
@@ -47,10 +51,34 @@ public class IdentityService: IIdentityService
         };
 
         return new LoginResponse{
-            Token=token,
             Message="Login successful",
             User=userDto
         };
+
+    }
+
+    private string TokenGenerator(User user)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT_SECRET"]!));
+
+        var credentials=new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
+
+        //data that goes iunside token, like an id card
+        var claims = new[]
+        {
+            new Claim("sub", user.Id.ToString()),
+            new Claim("email", user.Email),
+            new Claim("role", user.Role),
+            new Claim("verification_status", user.Verification_Status)
+        };
+
+        //blueprint for the token(form)
+        var token=JwtSecurityToken{
+            claims:claims,
+            signingCredentials:credentials,
+            expires: DateTime.UtcNow.AddHoours(24)
+        };
+        return new JwtSecurityTokenHandler().WriteToken(token);
 
     }
 }
