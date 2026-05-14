@@ -67,5 +67,4 @@ jobs:
 
 
       - name: Analyze code style
-        working-directory: src/backend
-        run: dotnet build --configuration Release --no-restore /p:EnforceCodeStyleInBuild=true
+        run: dotnet build src/backend/Api/Api.csproj --configuration Release --no-restore /p:EnforceCodeStyleInBuild=true
