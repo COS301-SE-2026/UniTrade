@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
+import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
 
 import HomePage from './pages/auth/HomePage'
 
@@ -28,6 +30,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage/>} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
 
 
