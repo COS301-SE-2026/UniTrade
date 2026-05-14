@@ -58,6 +58,15 @@ Don't have an account?<a href="#" className="font-bold text-sky-900 hover:underl
 </div>
 </div>
 
+{/*right side:*/}
+<div className="hidden relative md:block md:w-1/2">
+  <img 
+  src={girl} 
+  alt="model-student-holding-books" 
+  className="absolute inset-0 h-full w-full object-cover"
+  />
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-900/80 via-sky-900/40 to-transparent"></div>
+    </div>
     </div>
     
     
