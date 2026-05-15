@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+
 namespace Modules.Identity.Models;
 
 public class StudentProfile
@@ -10,5 +12,7 @@ public class StudentProfile
     public int YearOfStudy { get; set; }
     public string VerificationStatus { get; set; } = "pending";
     public decimal ReputationScore { get; set; }
+
+    public User User {get; set;} = null!;
 
 }

@@ -25,8 +25,8 @@ services:
       start_period: 30s
    backend:
     build:
-      context: ../../src/backend/Api
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: src/backend/Api/Dockerfile
     container_name: unitrade-backend
     ports:
     - "8080:8080"

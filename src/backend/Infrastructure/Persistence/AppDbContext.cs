@@ -3,7 +3,7 @@ using Modules.Identity.Models;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.Course;
 using System.Security.Cryptography.X509Certificates;
-using System.Reflection.Metadata;
+
 
 namespace Infrastructure.Persistence;
 
@@ -12,7 +12,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     // Identity
-    public DbSet<User> Users => Set<Users>();
+    public DbSet<User> Users => Set<User>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
@@ -39,7 +39,6 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(x => x.Email)
                .IsUnique();
-
         });
 
 
@@ -57,25 +56,27 @@ public class AppDbContext : DbContext
             .HasPrecision(4, 2)
             .HasDefaultValue(0);
 
-            entity.HasKey(x => x.StudentNumber)
+            entity.Property(x => x.StudentNumber)
             .HasMaxLength(50);
 
             // one profile per user
-            entity.HasOne<User>()
-            .withOne()
+            entity.HasOne<User>(x => x.User)
+            .WithOne(x => x.StudentProfile)
             .HasForeignKey<StudentProfile>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
             // many students -> one Uni
             entity.HasOne<University>()
-            .withMany()
+            .WithMany()
             .HasForeignKey(x => x.UniversityId)
             .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne<Course>()
-            .withMany()
+            .WithMany()
             .HasForeignKey(x => x.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
+
+
         });
 
 
@@ -83,12 +84,17 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<AdminProfile>(entity =>
         {
             entity.HasKey(x => x.AdminId);
-            entity.withOne()
-            .HasForeignKey<StudentProfile>(x => x.UserId)
+
+            entity.Property(x => x.UniversityId)
+            .IsRequired();
+
+            entity.HasOne(x => x.User)
+            .WithOne(x => x.AdminProfile)
+            .HasForeignKey<AdminProfile>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne<University>()
-            .withMany()
+            .WithMany()
             .HasForeignKey(x => x.UniversityId)
             .OnDelete(DeleteBehavior.Cascade);
         });
@@ -97,7 +103,7 @@ public class AppDbContext : DbContext
         // University 
         modelBuilder.Entity<University>(entity =>
         {
-            entity..HasKey(x => x.UniversityId);
+            entity.HasKey(x => x.UniversityId);
 
             entity.Property(x => x.Name)
             .IsRequired();
@@ -105,7 +111,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.EmailDomain)
                 .IsRequired();
 
-            entity.Property(x => x.EmailDomain)
+            entity.HasIndex(x => x.EmailDomain)
                           .IsUnique();
         });
 
@@ -115,21 +121,24 @@ public class AppDbContext : DbContext
 
         // Course
 
-        modelBuilder.Entity<Course>()
-              .HasKey(x => x.CourseId);
+        modelBuilder.Entity<Course>(entity =>
+        {
+            entity.HasKey(x => x.CourseId);
 
-        modelBuilder.Entity<Course>()
-               .Property(x => x.CourseCode)
+            entity.Property(x => x.CourseCode)
                .IsRequired();
 
-        modelBuilder.Entity<Course>()
-             .Property(x => x.CourseName)
+            entity.Property(x => x.CourseName)
              .IsRequired();
 
-        modelBuilder.Entity<Course>()
-            .withMany()
-             .HasForeignKey(x => x.UniversityId)
-             .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<University>()
+            .WithMany()
+           .HasForeignKey(x => x.UniversityId)
+           .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+
 
         // Verification Requests
         modelBuilder.Entity<VerificationRequest>()
@@ -139,6 +148,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<VerificationRequest>()
                      .HasIndex(x => new { x.UserId, x.AttemptNumber })
                      .IsUnique();
+        modelBuilder.Entity<VerificationRequest>()
+        .Property(x => x.AiConfidenceScore).
+        HasPrecision(1, 4);
 
         modelBuilder.Entity<VerificationRequest>()
         .Property(x => x.Status)
@@ -158,7 +170,8 @@ public class AppDbContext : DbContext
        .HasMaxLength(255);
 
         modelBuilder.Entity<VerificationRequest>()
-             .withMany()
+            .HasOne<User>()
+             .WithMany()
               .HasForeignKey(x => x.UserId)
               .OnDelete(DeleteBehavior.Cascade);
     }
