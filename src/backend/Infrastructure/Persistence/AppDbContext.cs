@@ -9,5 +9,6 @@ namespace API.Infrastructure.Persistence{
         public DbSet<User> Users { get; set; };
         public DbSet<StudentProf>StudentProfiles{get;set;};
         public DbSet<AdminProf>AdminProfiles{get;set;};
+        public DbSet<University>Universities{get;set;};
     }
 }
