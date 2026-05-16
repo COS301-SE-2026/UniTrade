@@ -1,9 +1,9 @@
-using API.Modules.Identity.Models.DTO;
-using API.Modules.Identity;
-using API.Modules.Identity.Models;
+using Modules.Identity.Models.DTO;
+using Modules.Identity;
+using Modules.Identity.Models;
 using Microsoft.AspNetCore.Mvc; 
 
-namespace API.Controllers
+namespace Api.Controllers
 {
     [Route("api/auth")]
     [ApiController]

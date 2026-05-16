@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using API.Modules.Identity.Models; 
+using Modules.Identity.Models; 
 
-namespace API.Infrastructure.Persistence{
+namespace Infrastructure.Persistence{
 
     public class AppDbContext : DbContext
     {

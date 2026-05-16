@@ -1,5 +1,5 @@
-using API.Modules.Identity.Models.DTO;
-using API.Infrastructure.Persistence;
+using Modules.Identity.Models.DTO;
+using Infrastructure.Persistence;
 
 using Microsoft.IdentityModel.Tokens;
 using System.Text;//for encoding

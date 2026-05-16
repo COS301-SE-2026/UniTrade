@@ -1,5 +1,5 @@
-using API.Modules.Identity.Models.DTO;
-using API.Modules.Identity.Models;
+using Modules.Identity.Models.DTO;
+using Modules.Identity.Models;
 
 namespace API.Modules.Identity
 {
