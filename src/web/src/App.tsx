@@ -16,7 +16,7 @@ import AdminListingQueue from './pages/admin/AdminListingQueue'
 import AdminDisputes from './pages/admin/AdminDisputes'
 
 export default function App() {
-  const { user, setUser } = useAuthStore()
+  const { setUser } = useAuthStore()
 
   useEffect(() => {
     // Temporary: change role to 'buyer' | 'seller' | 'admin' to test different sidebars
@@ -52,7 +52,7 @@ export default function App() {
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
       </Route>
-      <Route path="*" element={<Navigate to="/autho/login" replace />} />
     </Routes>
   )
 }
+
