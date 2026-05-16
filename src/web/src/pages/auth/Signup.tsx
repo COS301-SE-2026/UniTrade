@@ -63,7 +63,7 @@ SIGNUP
 </form>
 
 <div className="mt-8 text-center text-sm text-gray-600">
-Already have an account?<a href="#" className="font-bold text-sky-900 hover:underline">SignUp</a>
+Already have an account?<a href="/auth/login" className="font-bold text-sky-900 hover:underline">Login</a>
 </div>
 </div>
 
