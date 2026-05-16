@@ -1,4 +1,4 @@
-namespace API.Modules.Identity.Models.DTO
+namespace Modules.Identity.Models.DTO
 {
     public class UserDto
     {

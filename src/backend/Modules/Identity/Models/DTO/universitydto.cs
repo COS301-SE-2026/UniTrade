@@ -1,4 +1,4 @@
-namespace Modules.Identity.Models
+namespace Modules.Identity.Models.DTO
 {
     public class University
     {

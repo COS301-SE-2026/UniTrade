@@ -1,4 +1,4 @@
-namespace API.Modules.Identity.Models
+namespace Modules.Identity.Models
 {
     public class User
     {
