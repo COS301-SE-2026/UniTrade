@@ -62,7 +62,7 @@ CREATE TABLE Users(
     first_name NVARCHAR(50) NOT NULL,
     last_name NVARCHAR(50) NOT NULL,
     email NVARCHAR(255) NOT NULL UNIQUE,
-    phone_number NVARCHAR(20) NOT NULL,
+    phone_number NVARCHAR(20) NULL,
     password_hash NVARCHAR(MAX) NOT NULL,
     role NVARCHAR(10) NOT NULL 
                     CONSTRAINT chk_user_role CHECK (role IN ('student', 'admin')),
@@ -75,7 +75,7 @@ CREATE TABLE Student_profiles(
     student_id UNIQUEIDENTIFIER PRIMARY KEY REFERENCES Users(user_id),
     student_number NVARCHAR(50) ,
     university_id INT NOT NULL REFERENCES University(university_id),
-    course_id INT NOT NULL REFERENCES Course(course_id),
+    course_id INT NULL REFERENCES Course(course_id),
     year_of_study INT NOT NULL
                         CONSTRAINT chk_student_year CHECK(  year_of_study BETWEEN 1 AND 8),
     verification_status NVARCHAR(20) NOT NULL 
@@ -98,8 +98,10 @@ CREATE TABLE Verification_requests(
     user_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
     attempt_number INT NOT NULL DEFAULT 1,
     is_current BIT NOT NULL DEFAULT 1,
-    otp_code_hash NVARCHAR(10),
+    otp_code_hash NVARCHAR(255),
     otp_verified_at DATETIME2, 
+    otp_sent_at DATETIME2,
+    otp_resend_count INT,
     otp_expires_at DATETIME2 NOT NULL,
     por_file_path NVARCHAR(MAX),
     ai_confidence_score NUMERIC(5,2),
