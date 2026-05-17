@@ -56,6 +56,8 @@ export default function OTPVerification() {
   }
 
   //Note we don't need the side bar for this page so I am just using a top bar, with the darkmode icon and not the search bar
+  const isComplete = otp.every(d => d !== '')
+
    return (
     <div className="min-h-screen bg-gray-50 dark:bg-navy-900 flex flex-col">
 
@@ -69,6 +71,81 @@ export default function OTPVerification() {
         {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
         </button>
         </header>
+
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white dark:bg-navy-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-navy-700 dark:text-white tracking-tight">
+              OTP Verification
+            </h1>
+            <p className="mt-4 text-sm text-gray-500 dark:text-white/50 leading-relaxed">
+              Please enter the OTP (One Time Pin) sent to your student email to complete your verification
+            </p>
+          </div>
+
+          <div className="mt-8 space-y-6">
+            <div className="grid grid-cols-4 gap-4">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={el => { inputRefs.current[index] = el }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => handleChange(index, e.target.value)}
+                  onKeyDown={e => handleKeyDown(index, e)}
+                  onPaste={handlePaste}
+                  className={`w-14 h-14 text-center text-xl font-semibold rounded-2xl border-2 outline-none transition-all dark:bg-navy-700
+                    ${digit
+                      ? 'border-navy-700 dark:border-white text-navy-700 dark:text-white bg-white'
+                      : 'border-[#00aaff] text-navy-700 dark:text-white bg-white'
+                    }
+                    focus:border-navy-700 dark:focus:border-white focus:ring-1 focus:ring-navy-700 dark:focus:ring-white`}
+                />
+              ))}
+            </div>
+
+            <div className="flex items-start justify-between text-sm">
+              <div className="flex items-center space-x-1">
+                <span className="text-gray-500 dark:text-white/50">Remaining Time:</span>
+                <span className="text-[#00aaff] font-semibold">
+                  00:{String(timeLeft).padStart(2, '0')}s
+                </span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-gray-500 dark:text-white/50">Didn't Get Code?</span>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={!resendActive}
+                  className={`font-semibold mt-0.5 transition-colors ${
+                    resendActive
+                      ? 'text-navy-700 dark:text-white cursor-pointer hover:text-[#00aaff]'
+                      : 'text-gray-300 dark:text-white/20 cursor-not-allowed'
+                  }`}
+                >
+                  Resend
+                </button>
+              </div>
+            </div>
+
+            {/* Verify button */}
+            <button
+              onClick={handleVerify}
+              disabled={!isComplete}
+              className={`w-full py-4 rounded-2xl text-white font-bold text-sm tracking-wide transition-all ${
+                isComplete
+                  ? 'bg-navy-700 hover:bg-navy-600 cursor-pointer active:scale-[0.99]'
+                  : 'bg-navy-700/40 cursor-not-allowed'
+              }`}
+            >
+              Verify OTP
+            </button>
+
+          </div>
+        </div>
+      </div>
     </div>
    )
 }
