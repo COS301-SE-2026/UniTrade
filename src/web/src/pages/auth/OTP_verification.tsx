@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconSun, IconMoon } from '@tabler/icons-react'
 import { useThemeStore } from '../../store/useThemeStore'
@@ -24,6 +24,12 @@ export default function OTPVerification() {
     setOtp(newOtp)
     if (value && index < 3) {
       inputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus()
     }
   }
 }
