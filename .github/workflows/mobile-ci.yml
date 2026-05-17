@@ -40,10 +40,10 @@ jobs:
 
       - name: Run unit tests
         working-directory: src/mobile
-        run: npm run test:run --tests/unit || echo 'Unit tests not configured yet'
+        run: npm run test:run  || echo 'Unit tests not configured yet'
 
       - name: Run integration tests
         working-directory: src/mobile
-        run: npm run test:run --tests/integration || echo 'Integration tests not configured yet'
+        run: npm run test:run -- tests/integration || echo 'Integration tests not configured yet'
 
       
