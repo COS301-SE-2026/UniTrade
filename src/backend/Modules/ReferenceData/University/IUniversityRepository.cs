@@ -1,6 +1,6 @@
 namespace Modules.ReferenceData.University;
 
-public interface IUniversityService
+public interface IUniversityRepository
 {
     Task<University?> GetByDomainAsync(string domain);
 }
