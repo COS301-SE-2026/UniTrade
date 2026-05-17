@@ -41,4 +41,17 @@ export default function OTPVerification() {
     setOtp(newOtp)
     inputRefs.current[Math.min(pasted.length, 3)]?.focus()
   }
+
+  const handleResend = () => {
+    if (!resendActive) return
+    setTimeLeft(59)
+    setResendActive(false)
+    setOtp(['', '' ,'', ''])
+    inputRefs.current[0]?.focus()
+  }
+
+  const handleVerify = () => {
+    if (otp.join('').length < 4) return
+    navigate('/upload-por') //this has to be changed depending on what we choose as the default dashboard
+  }
 }
