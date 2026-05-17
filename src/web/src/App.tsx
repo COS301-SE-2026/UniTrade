@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
-
+import OTP_verification from './pages/auth/OTP_verification'
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import ListingDetail from './pages/buyer/ListingDetail'
 import SellerDashboard from './pages/seller/SellerDashboard'
@@ -26,6 +26,7 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/verify-otp" element={<OTP_verification />} />
       <Route element={<AppLayout />}>
        
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
