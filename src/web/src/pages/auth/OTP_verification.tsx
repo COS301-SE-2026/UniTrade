@@ -54,4 +54,21 @@ export default function OTPVerification() {
     if (otp.join('').length < 4) return
     navigate('/upload-por') //this has to be changed depending on what we choose as the default dashboard
   }
+
+  //Note we don't need the side bar for this page so I am just using a top bar, with the darkmode icon and not the search bar
+   return (
+    <div className="min-h-screen bg-gray-50 dark:bg-navy-900 flex flex-col">
+
+      {/*the top bar*/}
+      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 dark:border-white/10">
+      <span className="text-base font-bold text-navy-700 dark:text-white">UniTrade</span>
+      <button 
+      onClick={toggle}
+      className="text-gray-500 dark:text-white/70 hover:text-navy-700 dark:hover:text-white transition-colors"
+      aria-label="Toggle dark mode" >
+        {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+        </button>
+        </header>
+    </div>
+   )
 }
