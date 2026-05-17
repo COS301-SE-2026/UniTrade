@@ -32,4 +32,13 @@ export default function OTPVerification() {
       inputRefs.current[index - 1]?.focus()
     }
   }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
+    const newOtp = ['', '', '', '']
+    pasted.split('').forEach((char, i) => { newOtp[i] = char})
+    setOtp(newOtp)
+    inputRefs.current[Math.min(pasted.length, 3)]?.focus()
+  }
 }
