@@ -1,8 +1,8 @@
 import {useNavigate} from 'react-router-dom'
 import {useAuthStore} from '../../store/useAuthStore'
-import calculasTextbook from '../../assests/calculas-textbook.jpg'
-import pencil from '../../mechanical-pencil.jpg'
-import laptop from '../../hp-laptop.jpg'
+import calculasTextbook from '../../assets/calculas-textbook.jpg'
+import pencil from '../../assets/mechanical-pencil.jpg'
+import laptop from '../../assets/hp-laptop.jpg'
 import {useState} from 'react'
 
 function CategoryCard({
