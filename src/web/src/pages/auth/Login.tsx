@@ -3,8 +3,8 @@ import girl from "../../assets/girl.png";
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
+    password: '',
   });
 
 return(
@@ -20,14 +20,6 @@ return(
 <p className="mt-2 text-sm text-gray-500">Enter your credentials to access your account</p>
 </div>
  <form className="space-y-6">
-<div>
-<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Name</label>
-  <input
-  type="text"
-  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
-  placeholder="Name"
-   />
-   </div>
    <div>
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email Address</label>
   <input
@@ -36,6 +28,14 @@ return(
   placeholder="Email Address"
 />
 </div>
+<div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
+  <input
+  type="password"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  placeholder="Password"
+ />
+   </div>
 
   <div className="flex items-center justify-between text-xs">
   <label className="flex items-center space-x-2 cursor-pointer text-gray-600">
