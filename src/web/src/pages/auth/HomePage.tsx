@@ -20,13 +20,13 @@ function Navbar(){
       
       <div className="flex gap-3">
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/auth/login')}
           className="px-6 py-2 bg-[#003366] text-white rounded font-semibold hover:bg-[#002244] transition-colors"
         >
           LOGIN
         </button>
         <button
-          onClick={() => navigate('/signup')}
+          onClick={() => navigate('/auth/signup')}
           className="px-6 py-2 bg-[#003366] text-white rounded font-semibold hover:bg-[#002244] transition-colors"
         >
           SignUp
