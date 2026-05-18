@@ -54,7 +54,7 @@ LOGIN
 </form>
 
 <div className="mt-8 text-center text-sm text-gray-600">
-Don't have an account?<a href="/auth/signup" className="font-bold text-sky-900 hover:underline">Sign Up</a>
+Don't have an account? <a href="/auth/Signup" className="font-bold text-sky-900 hover:underline">Sign Up</a>
 </div>
 </div>
 
