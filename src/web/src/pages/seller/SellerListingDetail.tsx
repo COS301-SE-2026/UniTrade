@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { IconCheck } from '@tabler/icons-react'
 import React, { useState } from 'react'
-import MyListings from './MyListings';
+//import MyListings from './MyListings';
 
 //Mock listing data
 const mockListing = {
