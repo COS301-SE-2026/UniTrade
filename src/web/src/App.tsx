@@ -31,8 +31,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage/>} />
-      <Route path="/auth/login" element={<Login />} />
-      <Route path="/auth/signup" element={<Signup />} />
+      <Route path="/auth/Login" element={<Login />} />
+      <Route path="/auth/Signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
 
 
