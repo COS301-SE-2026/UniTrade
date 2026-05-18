@@ -23,6 +23,47 @@ function CategoryCard({
     )
 }
 
+function ListingCard({
+    image,
+    title,
+    module,
+    category,
+    price,
+    condition,
+} : {
+    image : string
+    title :string
+    module : string
+    category : string
+    price : string
+    condition : 'Good' | 'Fair'| 'Poor'
+}) {
+    const conditionColours = {
+        Good : 'bg-green-100 text-green-700',
+        Fair : 'bg-yellow-100 text-yellow-700',
+        Poor : 'bg-red-100 text-red-700',
+    }
+
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
+            <img
+            src={image}
+            alt={title}
+            className="w-full h-48 object-cover"
+            />
+
+            <div className="p-4 flex flex-col gap-2 flex-1">
+                <div className = "flex items-start justify-between gap-2">
+                    <p className = "text-sm font-semibold text-gray-800">{title}</p>
+                    <span className= {`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${conditionStyles[condition]}`}>
+                        {condition}
+                    </span>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default function BrowseAllListing() {
     const { user} = useAuthStore()
     const [activeCategory, setActiveCategory] = useState('All')
@@ -33,7 +74,7 @@ export default function BrowseAllListing() {
 
             <div>
                 <h1 className = "text-2xl font-extrabold text-gray-800">Browse All Listings</h1>
-                <p className = "text-sm text-gray-400 mt-1">16 listings available University Of Pretoria</p>
+                <p className = "text-sm text-gray-400 mt-1">16 listings available at the University Of Pretoria</p>
             </div>
 
             <div className ="flex items-center justify-between">
