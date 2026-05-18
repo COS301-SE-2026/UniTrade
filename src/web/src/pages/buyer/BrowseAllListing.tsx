@@ -19,6 +19,7 @@ function CategoryCard({
         onClick={onClick}
         className= {`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${active ? 'bg-[#003366] text-white border-[#003366]' : 'bg-white text-gray-700 border-gray-300 hover:border-[#00336]'}`}
         >
+        {title}
         </button>
     )
 }
@@ -55,9 +56,23 @@ function ListingCard({
             <div className="p-4 flex flex-col gap-2 flex-1">
                 <div className = "flex items-start justify-between gap-2">
                     <p className = "text-sm font-semibold text-gray-800">{title}</p>
-                    <span className= {`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${conditionStyles[condition]}`}>
+                    <span className= {`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${conditionColours[condition]}`}>
                         {condition}
                     </span>
+                </div>
+
+                <p className="text-xs text-gray-400">{module} . UP</p>
+                <p className="text-xs text-gray-400">{category} . UP</p>
+
+                <p className="text-sm font-bold text-gray-800">{price}</p>
+
+                <div className="flex flex-col gap-2 mt-auto pt-2">
+                    <button className="w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
+                    Reserve
+                </button>
+                <button className="w-full py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+                    Add to Wishlist
+                </button>
                 </div>
             </div>
         </div>
@@ -105,7 +120,16 @@ export default function BrowseAllListing() {
                 </div>
             </div>
 
-            /*still nedd to do the products 
+             <div className="grid grid-cols-4 gap-4">
+                {filtered.map((listing) => (
+                    <ListingCard key={listing.title} {...listing} />
+                ))}
+            </div>
+
+      
+            <p className="text-sm text-gray-400">
+            Showing {filtered.length} of {listings.length} listings
+            </p>
             
         </div>
     )
