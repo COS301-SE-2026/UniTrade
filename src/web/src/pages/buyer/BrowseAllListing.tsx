@@ -1,8 +1,11 @@
-import {useNavigate} from 'react-router-dom'
 import {useAuthStore} from '../../store/useAuthStore'
 import calculasTextbook from '../../assets/calculas-textbook.jpg'
 import pencil from '../../assets/mechanical-pencil.jpg'
-import laptop from '../../assets/hp-laptop.jpg'
+import biologyTextbook from '../../assets/bio-textbook.jpg'
+import labCoat from '../../assets/labcoat.jpg'
+import hplaptop from '../../assets/hp-laptop.jpg'
+import laptop from '../../assets/laptop.jpg'
+
 import {useState} from 'react'
 
 function CategoryCard({
@@ -17,7 +20,7 @@ function CategoryCard({
     return(
         <button
         onClick={onClick}
-        className= {`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${active ? 'bg-[#003366] text-white border-[#003366]' : 'bg-white text-gray-700 border-gray-300 hover:border-[#00336]'}`}
+        className= {`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${active ? 'bg-[#003366] text-white border-[#003366]' : 'bg-white text-gray-700 border-gray-300 hover:border-[#003366]'}`}
         >
         {title}
         </button>
@@ -84,6 +87,61 @@ export default function BrowseAllListing() {
     const [activeCategory, setActiveCategory] = useState('All')
     const categories = ['All', 'Textbooks', 'Electronics', 'Lab Equipment', 'Stationary']
 
+    const listings = [
+    {
+      image: biologyTextbook,
+      title: 'Cambridge IGCSE Biology',
+      module: 'BIO121',
+      category: 'Textbooks',
+      price: 'R1200',
+      condition: 'Good' as const,
+    },
+    {
+        image : laptop,
+        title : 'Macbook Air',
+        module : 'COS101',
+        category : 'Electronics',
+        price : 'R8000',
+        condition : 'Fair' as const,
+    },
+    {
+      image: hplaptop,
+      title: 'HP Laptop',
+      module: 'BEng 345',
+      category: 'Electronics',
+      price: 'R4500',
+      condition: 'Good' as const,
+    },
+    {
+      image: labCoat,
+      title: 'Lab Coat',
+      module: 'CHM101',
+      category: 'Lab Equipment',
+      price: 'R350',
+      condition: 'Fair' as const,
+    },
+    {
+      image: calculasTextbook,
+      title: 'Calculus Textbook',
+      module: 'WTW114',
+      category: 'Textbooks',
+      price: 'R350',
+      condition: 'Fair' as const,
+    },
+    {
+        image : pencil,
+        title : 'Mechanical Pencil',
+        module : 'All',
+        category : 'Stationary',
+        price : 'R85',
+        condition : 'Good' as const,
+    }
+  ]
+
+   const filtered = activeCategory === 'All'
+    ? listings
+    : listings.filter((l) => l.category === activeCategory)
+
     return (
         <div className = "flex flex-col gap-6">
 
@@ -126,11 +184,27 @@ export default function BrowseAllListing() {
                 ))}
             </div>
 
-      
-            <p className="text-sm text-gray-400">
-            Showing {filtered.length} of {listings.length} listings
-            </p>
+            <div className = "flex items-center justify-between">
+                <p className="text-sm text-gray-400">
+                    Showing {filtered.length} of {listings.length} listings
+                </p>
+
             
+                <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((page) => (
+            <button
+                key={page}
+                className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
+                page === 1
+                  ? 'bg-[#003366] text-white'
+                  : 'bg-white border border-gray-300 text-gray-600 hover:border-[#003366]'
+              }`}
+            >
+              {page}
+            </button>
+          ))} 
+          </div>
+        </div>
         </div>
     )
 }
