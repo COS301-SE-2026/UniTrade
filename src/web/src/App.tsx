@@ -13,6 +13,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminVerifications from './pages/admin/AdminVerifications'
 import AdminListingQueue from './pages/admin/AdminListingQueue'
 import AdminDisputes from './pages/admin/AdminDisputes'
+import BrowseListings from './pages/buyer/BrowseAllListing'
 
 export default function App() {
   const { setUser } = useAuthStore()
@@ -33,12 +34,14 @@ export default function App() {
       <Route path="/auth/login" element={<Login />} />
       <Route path="/auth/signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
+      
 
 
       <Route element={<AppLayout />}>
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
+        <Route path="/listings" element={<BrowseListings />} />
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
