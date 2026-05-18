@@ -3,8 +3,8 @@ import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 import OTP_verification from './pages/auth/OTP_verification'
-import Login from './pages/auth/Login'
-import Signup from './pages/auth/Signup'
+//import Login from './pages/auth/Login'
+//import Signup from './pages/auth/Signup'
 import HomePage from './pages/auth/HomePage'
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import ListingDetail from './pages/buyer/ListingDetail'
@@ -32,12 +32,12 @@ export default function App() {
   return (
     <Routes>
       <Route path="/verify-otp" element={<OTP_verification />} />
-      <Route element={<AppLayout />}>
+      {/*<Route element={<AppLayout />}>*/}
        
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/" element={<HomePage/>} />
-      <Route path="/auth/login" element={<Login />} />
-      <Route path="/auth/signup" element={<Signup />} />
+      {/*</Route><Route path="/auth/login" element={<Login />} />*/}
+      {/*<Route path="/auth/signup" element={<Signup />} />*/}
       <Route path="/auth/HomePage" element={<HomePage />} />
 
 

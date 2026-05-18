@@ -1,52 +1,49 @@
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { IconCheck } from '@tabler/icons-react'
-import React, { useState } from 'react'
-//import MyListings from './MyListings';
+import type React from 'react'
+import { listingsService } from '../../services/listingsService'
+import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
+import type { SellerListingDetail as SellerListingDetailType } from '../../types/listing'
 
-//Mock listing data
-const mockListing = {
-    id: '4',
-    title: 'Calculus - Early Transcendentals',
-    price: 'R4500',
-    condition: 'Good',
-    category: 'Textbook',
-    courseCode: 'WTW114',
-    listedOn: '7 May 2026',
-    views: 42,
-    description: 'Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP. Includes the original bookmark and a handwritten summary sheet for chapter 5.',
-    tags: ['Good', 'WTW114', 'First Year', 'UP'],
-    images: [
-        'https://placehold.co/540x300/1a3a7a/ffffff?text=Calculus',
-        'https://placehold.co/80x70/1a3a7a/ffffff?text=img2',
-        'https://placehold.co/80x70/1a3a7a/ffffff?text=img3',
-        'https://placehold.co/80x70/1a3a7a/ffffff?text=img4',
-    ],
-    status: 'live' as const,
-    aiScore: 78,
-    aiLabel: 'Low Risk',
-    reserved: true,
-    timeline: [
-        { label: 'Draft created',         time: '7 May 2026 · 09:15', done: true  },
-        { label: 'Submitted for review',  time: '7 May 2026 · 09:22', done: true  },
-        { label: 'AI Scoring Complete',   time: '7 May 2026 · 09:23', done: true  },
-        { label: 'Live',                  time: '7 May 2026 · 09:23', done: true  },
-    ],
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between items-center py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
+      <span className="text-xs text-gray-400">{label}</span>
+      <span className="text-xs font-medium text-navy-700 dark:text-white">{value}</span>
+    </div>
+  )
 }
 
-function DetailRow({ label, value }: { label: string; value: React.ReactNode}) {
-    return (
-        <div className="flex justify-between items-center py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
-            <span className="text-xs text-gray-400">{label}</span>
-            <span className="text-xs font-medium text-navy-700 dark:text-white">{value}</span>
-        </div>
-    )
-}
 
-//Main Page
 export default function SellerListingDetail() {
   const navigate = useNavigate()
-  const listing = mockListing
+  const { id } = useParams<{ id: string }>()
+  const [listing, setListing] = useState<SellerListingDetailType | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedImg, setSelectedImg] = useState(0)
+
+  useEffect(() => {
+    if (!id) return
+    listingsService.getSellerListingById(id)
+      .then(data => setListing(data))
+      .catch(() => setError('Failed to load listing'))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <p className="text-sm text-gray-400">Loading...</p>
+    </div>
+  )
+
+  if (error || !listing) return (
+    <div className="flex items-center justify-center h-64">
+      <p className="text-sm text-red-400">{error ?? 'Listing not found'}</p>
+    </div>
+  )
 
   return (
     <div className="space-y-4">
@@ -61,6 +58,7 @@ export default function SellerListingDetail() {
         <span>›</span>
         <span className="text-navy-700 dark:text-white">{listing.title}</span>
       </div>
+
       <div className="grid grid-cols-3 gap-5">
 
         <div className="col-span-2 space-y-4">
@@ -93,20 +91,18 @@ export default function SellerListingDetail() {
               {listing.title}
             </h1>
             <p className="text-2xl font-bold text-navy-700 dark:text-white mb-3">
-              {listing.price}
+              {formatPrice(listing.price)}
             </p>
 
             <div className="flex flex-wrap gap-2 mb-4">
+              <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
+                <IconCheck size={10} /> {formatCondition(listing.condition)}
+              </span>
               {listing.tags.map(tag => (
                 <span
                   key={tag}
-                  className={`text-xs px-3 py-1 rounded-full font-medium ${
-                    tag === 'Good'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70'
-                  }`}
+                  className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70"
                 >
-                  {tag === 'Good' && <IconCheck size={10} className="inline mr-1" />}
                   {tag}
                 </span>
               ))}
@@ -122,21 +118,20 @@ export default function SellerListingDetail() {
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-1">
               Listing Details
             </h3>
-            <DetailRow label="Category" value={listing.category} />
+            <DetailRow label="Category"    value={listing.category} />
             <DetailRow
               label="Condition"
               value={
                 <span className="bg-green-100 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                  {listing.condition}
+                  {formatCondition(listing.condition)}
                 </span>
               }
             />
             <DetailRow label="Course Code" value={listing.courseCode} />
-            <DetailRow label="Listed On"   value={listing.listedOn} />
+            <DetailRow label="Listed On"   value={formatDate(listing.listedAt)} />
             <DetailRow label="Views"       value={listing.views} />
           </div>
         </div>
-
         <div className="col-span-1 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
@@ -146,10 +141,10 @@ export default function SellerListingDetail() {
                 Listing Details
               </h3>
               <div className="flex gap-2">
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700">
-                  Live
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 capitalize">
+                  {listing.status}
                 </span>
-                {listing.reserved && (
+                {listing.isReserved && (
                   <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-500 border border-blue-200">
                     Reserved
                   </span>
@@ -166,14 +161,13 @@ export default function SellerListingDetail() {
                   <span className="text-white text-[10px] font-bold">AI</span>
                 </div>
                 <p className="text-sm font-semibold text-navy-700 dark:text-white">
-                  AI Confidence Score - {listing.aiLabel}
+                  AI Confidence Score — {listing.aiLabel}
                 </p>
               </div>
-            
               <div className="h-2 bg-gray-200 dark:bg-navy-600 rounded-full mb-1.5">
                 <div
-                  className="h-2 bg-green-500 rounded-full"
-                  style={{ width: `${listing.aiScore}%` }}
+                  className="h-2 bg-green-500 rounded-full transition-all"
+                  style={{ width: `${listing.aiScore ?? 0}%` }}
                 />
               </div>
               <p className="text-xs text-green-600 font-semibold">
@@ -187,7 +181,6 @@ export default function SellerListingDetail() {
             <div className="space-y-0">
               {listing.timeline.map((step, i) => (
                 <div key={i} className="flex gap-3 pb-3 relative">
-                  {/* Dot */}
                   <div className="flex flex-col items-center flex-shrink-0">
                     <div className={`w-3 h-3 rounded-full mt-0.5 ${
                       i === listing.timeline.length - 1
@@ -198,12 +191,13 @@ export default function SellerListingDetail() {
                       <div className="w-px flex-1 bg-gray-200 dark:bg-white/10 mt-1" />
                     )}
                   </div>
-
                   <div className="pb-1">
                     <p className="text-xs font-semibold text-navy-700 dark:text-white">
                       {step.label}
                     </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{step.time}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {formatDate(step.time)}
+                    </p>
                   </div>
                 </div>
               ))}
