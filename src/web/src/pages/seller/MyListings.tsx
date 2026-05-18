@@ -29,3 +29,25 @@ const mockListings: Listing[] = [
   { id: '4', title: 'Calculus - Early Transcendentals', meta: 'WTW114 · Listed 3 May 2026', price: 'R350',  status: 'draft',    views: 89, image: 'https://placehold.co/48x48/1a3a7a/ffffff?text=CA' },
   { id: '5', title: 'Molecular Biology - 6th Ed',  meta: 'BIO226 · Listed 3 May 2026',     price: 'R350',  status: 'rejected', views: 89, image: 'https://placehold.co/48x48/1a3a7a/ffffff?text=MB' },
 ]
+
+const statusStyles: Record<ListingStatus, string> = {
+    live: 'bg-green-100 text-green-700',
+    pending: 'bg-amber-100 text-amber-700',
+    draft: 'bg-[#e0f7fa] text-[#006064]',
+    rejected: 'bg-red-100 text-red-400',
+}
+
+const statusLabel: Record<ListingStatus, string> = {
+    live: 'live',
+    pending: 'Pending Review',
+    draft: 'Draft',
+    rejected: 'Rejected',
+}
+
+function statusPill({ status } : {status: ListingStatus}) {
+    return (
+        <span className={`text-xs font-medium px-3 py-1 rounded =-full ${statusStyles[status]}`}>
+            {statusLabel[status]}
+        </span>
+    )
+}
