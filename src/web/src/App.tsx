@@ -3,6 +3,9 @@ import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 import OTP_verification from './pages/auth/OTP_verification'
+import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
+import HomePage from './pages/auth/HomePage'
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import ListingDetail from './pages/buyer/ListingDetail'
 import SellerDashboard from './pages/seller/SellerDashboard'
@@ -32,10 +35,17 @@ export default function App() {
       <Route element={<AppLayout />}>
        
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/" element={<HomePage/>} />
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/signup" element={<Signup />} />
+      <Route path="/auth/HomePage" element={<HomePage />} />
 
+
+      <Route element={<AppLayout />}>
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         <Route path="/listings/:id" element={<ListingDetail />} /> {/*the id can be anything for now since the data is hardcoded*/}
+        <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
