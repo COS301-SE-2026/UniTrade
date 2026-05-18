@@ -7,6 +7,7 @@ import {
     IconNotes,
     IconBoxPadding,
 } from '@tabler/icons-react'
+import ListingDetail from '../buyer/ListingDetail'
 
 //Types needed 
 type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
@@ -44,7 +45,7 @@ const statusLabel: Record<ListingStatus, string> = {
     rejected: 'Rejected',
 }
 
-function statusPill({ status } : {status: ListingStatus}) {
+function StatusPill({ status } : {status: ListingStatus}) {
     return (
         <span className={`text-xs font-medium px-3 py-1 rounded =-full ${statusStyles[status]}`}>
             {statusLabel[status]}
@@ -101,4 +102,148 @@ function ActionButtons({ listing }: { listing: Listing }) {
     }
 
     return null
+}
+
+type Tab = 'all' | ListingStatus 
+
+export default function MyListings() {
+  const [activeTab, setActiveTab] = useState<Tab>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const filtered = activeTab === 'all'
+    ? mockListings
+    : mockListings.filter(l => l.status === activeTab)
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'all',      label: `All` },
+    { key: 'live',     label: `Live (${mockListings.filter(l => l.status === 'live').length})` },
+    { key: 'pending',  label: `Pending (${mockListings.filter(l => l.status === 'pending').length})` },
+    { key: 'draft',    label: `Drafts (${mockListings.filter(l => l.status === 'draft').length})` },
+    { key: 'rejected', label: `Rejected (${mockListings.filter(l => l.status === 'rejected').length})` },
+  ]
+
+  return (
+    <div className="space-y-6">
+
+      <div>
+        <h1 className="text-2xl font-bold text-navy-700 dark:text-white">My Listings</h1>
+        <p className="text-sm text-gray-400 mt-1">Manage all Listings in one place</p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          { icon: <IconPackage size={20} />, value: 12, label: 'Total Listings' },
+          { icon: <span className="text-base">((·))</span>, value: 7,  label: 'Live' },
+          { icon: <IconNotes size={20} />, value: 3,  label: 'Pending Review' },
+          { icon: <IconBoxPadding size={20} />, value: 2,  label: 'Drafts' },
+        ].map(({ icon, value, label }) => (
+          <div
+            key={label}
+            className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3"
+          >
+            {icon && <span className="text-navy-700 dark:text-white">{icon}</span>}
+            <div>
+              <p className="text-2xl font-bold text-navy-700 dark:text-white">{value}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => { setActiveTab(tab.key); setCurrentPage(1) }}
+            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${
+              activeTab === tab.key
+                ? 'bg-navy-700 text-white border-navy-700'
+                : 'bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
+    
+<div className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
+  <div className="w-12 flex-shrink-0" />
+  <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+    Listing
+  </div>
+  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-16 text-right">
+    Price
+  </div>
+  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
+    Status
+  </div>
+  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-right">
+    Views
+  </div>
+  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-44 text-right">
+    Actions
+  </div>
+</div>
+{filtered.map((listing, i) => (
+    <div
+            key={listing.id}
+            className={`flex items-center gap-4 px-5 py-4 ${
+              i < filtered.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''
+            }`}
+          >
+            
+            <img
+              src={listing.image}
+              alt={listing.title}
+              className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+            />
+
+           
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
+                {listing.title}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">{listing.meta}</p>
+            </div>
+
+            <p className="text-sm font-semibold text-navy-700 dark:text-white w-16 text-right">
+              {listing.price}
+            </p>
+
+            <div className="w-32 flex justify-center">
+              <StatusPill status={listing.status} />
+            </div>
+            <p className="text-sm text-gray-400 w-10 text-right">{listing.views}</p>
+
+            <div className="w-44 flex justify-end">
+              <ActionButtons listing={listing} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-400">
+          Showing {filtered.length} of {mockListings.length} listings
+        </p>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map(page => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
+                currentPage === page
+                  ? 'bg-navy-700 text-white border-navy-700'
+                  : 'bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  )
 }
