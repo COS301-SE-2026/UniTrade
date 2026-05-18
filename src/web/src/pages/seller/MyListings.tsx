@@ -51,3 +51,54 @@ function statusPill({ status } : {status: ListingStatus}) {
         </span>
     )
 }
+
+function ActionButtons({ listing }: { listing: Listing }) {
+    const navigate = useNavigate()
+
+    if (listing.status === 'live' || listing.status === 'pending') {
+        return (
+            <div className="flex gap-2">
+                <button 
+                  onClick={ () => navigate(`/seller/listings/${listing.id}`)}
+                  className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
+                    View
+                  </button>
+                  <button className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50
+                  dark:hover:bg-white/5 transition-colors">
+                    Edit
+                  </button>
+            </div>
+        )
+    }
+
+    if (listing.status === 'draft') {
+        return (
+            <div className="flex gap-2">
+                <button className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold
+                px-5 py-2 rounded-full transition-colors">
+                    Submit
+                </button>
+                <button className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm 
+                font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    Edit
+                </button>
+            </div>
+        )
+    }
+
+    if (listing.status === 'rejected') {
+        return (
+            <div className="flex gap-2">
+                <button className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
+                   Resubmit 
+                </button>
+                <button className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm
+                font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition colors">
+                    Edit
+                </button>
+            </div>
+        )
+    }
+
+    return null
+}
