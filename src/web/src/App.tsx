@@ -13,6 +13,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminVerifications from './pages/admin/AdminVerifications'
 import AdminListingQueue from './pages/admin/AdminListingQueue'
 import AdminDisputes from './pages/admin/AdminDisputes'
+import BrowseListings from './pages/buyer/BrowseAllListing'
 import MyListings from './pages/seller/MyListings'
 import SellerListingDetail from './pages/seller/SellerListingDetail'
 
@@ -39,6 +40,7 @@ export default function App() {
       {/*</Route><Route path="/auth/login" element={<Login />} />*/}
       {/*<Route path="/auth/signup" element={<Signup />} />*/}
       <Route path="/auth/HomePage" element={<HomePage />} />
+      
 
 
       <Route element={<AppLayout />}>
@@ -46,6 +48,7 @@ export default function App() {
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         <Route path="/listings/:id" element={<ListingDetail />} /> {/*the id can be anything for now since the data is hardcoded*/}
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
+        <Route path="/listings" element={<BrowseListings />} />
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
