@@ -32,10 +32,10 @@ const mockListings: Listing[] = [
 ]
 
 const statusStyles: Record<ListingStatus, string> = {
-    live: 'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    draft: 'bg-[#e0f7fa] text-[#006064]',
-    rejected: 'bg-red-100 text-red-400',
+  live:     'bg-green-100 text-green-700',
+  pending:  'bg-amber-100 text-amber-700',
+  draft:    'bg-[#e0f7fa] text-[#006064]',
+  rejected: 'bg-red-100 text-red-400',
 }
 
 const statusLabel: Record<ListingStatus, string> = {
@@ -45,12 +45,12 @@ const statusLabel: Record<ListingStatus, string> = {
     rejected: 'Rejected',
 }
 
-function StatusPill({ status } : {status: ListingStatus}) {
-    return (
-        <span className={`text-xs font-medium px-3 py-1 rounded =-full ${statusStyles[status]}`}>
-            {statusLabel[status]}
-        </span>
-    )
+function StatusPill({ status }: { status: ListingStatus }) {
+  return (
+    <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusStyles[status]}`}>
+      {statusLabel[status]}
+    </span>
+  )
 }
 
 function ActionButtons({ listing }: { listing: Listing }) {
@@ -166,40 +166,37 @@ export default function MyListings() {
       </div>
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
     
-<div className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
-  <div className="w-12 flex-shrink-0" />
-  <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-    Listing
-  </div>
-  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-16 text-right">
-    Price
-  </div>
-  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
-    Status
-  </div>
-  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-right">
-    Views
-  </div>
-  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-44 text-right">
-    Actions
-  </div>
-</div>
-{filtered.map((listing, i) => (
+        <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
+        <div className="w-12 flex-shrink-0" />
+        <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            Listing
+        </div>
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-16 text-right">
+            Price
+        </div>
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
+            Status
+        </div>
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-right">
+            Views
+        </div>
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-44 text-right">
+            Actions
+        </div>
+        </div>
+    {filtered.map((listing, i) => (
     <div
             key={listing.id}
             className={`flex items-center gap-4 px-5 py-4 ${
               i < filtered.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''
             }`}
           >
-            
-            <img
+        <img
               src={listing.image}
               alt={listing.title}
               className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
             />
-
-           
-            <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
                 {listing.title}
               </p>
@@ -222,7 +219,6 @@ export default function MyListings() {
         ))}
       </div>
 
-      
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">
           Showing {filtered.length} of {mockListings.length} listings
