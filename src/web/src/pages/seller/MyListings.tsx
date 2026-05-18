@@ -177,7 +177,7 @@ export default function MyListings() {
         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
             Status
         </div>
-        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-right">
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-30 text-right">
             Views
         </div>
         <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-44 text-right">
@@ -192,7 +192,7 @@ export default function MyListings() {
             }`}
           >
         <img
-              src={listing.image}
+              src={`https://placehold.co/48x48/e8eef5/b0bcd4?text=📚`}
               alt={listing.title}
               className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
             />
