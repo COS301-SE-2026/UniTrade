@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { IconCheck } from '@tabler/icons-react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 //Mock listing data
 const mockListing = {
@@ -30,4 +30,13 @@ const mockListing = {
         { label: 'AI Scoring Complete',   time: '7 May 2026 · 09:23', done: true  },
         { label: 'Live',                  time: '7 May 2026 · 09:23', done: true  },
     ],
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode}) {
+    return (
+        <div className="flex justify-between items-center py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
+            <span className="text-xs text-gray-400">{label}</span>
+            <span className="text-xs font-medium text-navy-700 dark:text-white">{value}</span>
+        </div>
+    )
 }
