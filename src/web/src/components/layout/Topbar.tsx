@@ -1,10 +1,10 @@
 import { IconBell, IconSun, IconMoon, IconSearch } from '@tabler/icons-react'
 import { useThemeStore } from '../../store/useThemeStore'
-import { useAuthStore } from '../../store/useAuthStore'
+//import { useAuthStore } from '../../store/useAuthStore'
 
 export default function Topbar() {
   const { isDark, toggle } = useThemeStore()
-  const { user } = useAuthStore()
+  //const { user } = useAuthStore()
 
   return (
     <header className="h-14 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-white/10 flex items-center px-5 gap-4 flex-shrink-0">
