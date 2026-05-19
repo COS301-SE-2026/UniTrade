@@ -6,7 +6,6 @@ namespace Modules.Listings.Models.DTO
         [Required] //fail-fast property(see if there is more stricter ones to add later)
         public string Title{get;set;}
 
-        [Required]
         public string Description{get;set;}
 
         [Required]
