@@ -12,16 +12,13 @@ public class AuthController : ControllerBase
 {
     private readonly IIdentityService _identityService;
     private readonly IVerificationService _verificationService;
-    private readonly IUserRepository _users;
 
     public AuthController(
         IIdentityService identityService,
-        IVerificationService verificationService,
-        IUserRepository users)
+        IVerificationService verificationService)
     {
         _identityService = identityService;
         _verificationService = verificationService;
-        _users = users;
     }
 
     [HttpPost("register")]
@@ -31,7 +28,7 @@ public class AuthController : ControllerBase
         {
             var user = await _identityService.RegisterAsync(dto);
 
-            await _verificationService.InitiateAsync(dto.Email, user.UserId);
+            await _verificationService.InitiateAsync(user.Email, user.UserId);
 
             return Ok(new
             {
@@ -42,11 +39,13 @@ public class AuthController : ControllerBase
         {
             return ex.Message switch
             {
+                "invalid_email" => UnprocessableEntity(new { error = "invalid_email" }),
+                "invalid_year_of_study" => UnprocessableEntity(new { error = "invalid_year_of_study" }),
                 "email_taken" => Conflict(new { error = "email_taken" }),
                 "otp_already_sent" => StatusCode(429, new { error = "otp_already_sent" }),
                 "invalid_domain" => UnprocessableEntity(new { error = "invalid_domain" }),
                 "weak_password" => UnprocessableEntity(new { error = "weak_password" }),
-                _ => StatusCode(500, new { error = "server_error",detail = ex.Message, stack = ex.StackTrace  })
+                _ => StatusCode(500, new { error = "server_error" })
             };
         }
     }
@@ -56,20 +55,13 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = await _users.GetByEmailAsync(dto.Email);
+            var user = await _identityService.GetUserByEmailAsync(dto.Email);
 
             if (user == null)
                 return Unauthorized(new { error = "invalid_otp" });
 
-            
-            var result = await _verificationService.VerifyAsync(user.UserId, dto.Otp);
 
-            if (!result)
-                return Unauthorized(new { error = "invalid_otp", attempts_remaining = 3 });
-
-            user.StudentProfile!.VerificationStatus = "verified";
-
-            await _users.UpdateAsync(user);
+            await _verificationService.VerifyAsync(user.UserId, dto.Otp);
 
             return Ok(new
             {
@@ -83,7 +75,7 @@ public class AuthController : ControllerBase
                 "invalid_otp" => Unauthorized(new { error = "invalid_otp" }),
                 "otp_expired" => Unauthorized(new { error = "otp_expired" }),
                 "max_attempts_exceeded" => StatusCode(429, new { error = "max_attempts_exceeded" }),
-                _ => StatusCode(500, new { error = "server_error",detail = ex.Message, stack = ex.StackTrace })
+                _ => StatusCode(500, new { error = "server_error" })
             };
         }
     }
@@ -93,7 +85,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = await _users.GetByEmailAsync(dto.Email);
+            var user = await _identityService.GetUserByEmailAsync(dto.Email);
 
             if (user == null)
             {
@@ -115,15 +107,15 @@ public class AuthController : ControllerBase
         {
             return ex.Message switch
             {
-                "already_verified" => Conflict (new {error= "already_verified"}),
-                "invalid_request" => BadRequest(new {error ="invalid_request", detail = ex.Message, stack = ex.StackTrace}),
+                "already_verified" => Conflict(new { error = "already_verified" }),
+                "invalid_request" => BadRequest(new { error = "invalid_request", detail = ex.Message }),
                 "resend_limit_exceeded" =>
                     StatusCode(429, new { error = "resend_limit_exceeded", retry_after_seconds = 60 }),
 
                 "cooldown_active" =>
                     StatusCode(429, new { error = "cooldown_active", retry_after_seconds = 60 }),
 
-                _ => StatusCode(500, new { error = "server_error",detail = ex.Message, stack = ex.StackTrace  })
+                _ => StatusCode(500, new { error = "server_error" })
             };
         }
     }

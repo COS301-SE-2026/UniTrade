@@ -5,6 +5,7 @@ using Modules.ReferenceData.University;
 using Modules.Identity.Repositories;
 using Modules.Identity;
 using System.Net.Mail;
+using Microsoft.EntityFrameworkCore;
 
 public class IdentityService : IIdentityService
 {
@@ -21,13 +22,13 @@ public class IdentityService : IIdentityService
     public async Task<User> RegisterAsync(RegisterDto dto)
     {
         //check password strength
-        if (IsPasswordStrong(dto.Password))
-        {
+        if (!IsPasswordStrong(dto.Password))
+        {   
             throw new Exception("weak_password");
         }
 
         // check email format 
-        if (IsValidEmailFormat(dto.Email))
+        if (!IsValidEmailFormat(dto.Email))
         {
             throw new Exception("invalid_email");
         }
@@ -121,7 +122,7 @@ public class IdentityService : IIdentityService
         {
             return false;
         }
-        return password.Any(char.IsLetterOrDigit);
+        return password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsDigit) && password.Any(ch => !char.IsLetterOrDigit(ch));
     }
     private static bool IsValidEmailFormat(string? email)
     {

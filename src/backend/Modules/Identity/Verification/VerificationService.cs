@@ -13,7 +13,7 @@ public class VerificationService : IVerificationService
     private readonly IUserRepository _users;
     private readonly INotificationsService _notifications;
     private const int OTP_EXPIRY_MINUTES = 5;
-    private const int MAX_ATTEMPTS = 5;
+    private const int MAX_ATTEMPTS = 3;
     private const int MAX_RESENDS = 3;
     private const int RESEND_COOLDOWN_SECONDS = 60;
 
@@ -127,7 +127,6 @@ public class VerificationService : IVerificationService
 
     }
 
-
     public async Task ResendAsync(Guid userId, string email)
     {
         var record = await _verifications.GetCurrentByUserIdAsync(userId);
@@ -157,8 +156,6 @@ public class VerificationService : IVerificationService
         var otp = GenerateOtp();
         var hash = HashOtp(otp);
 
-
-        record.UserId = userId;
         record.OtpCodeHash = hash;
         record.OtpSentAt = DateTime.UtcNow;
         record.OtpExpiresAt = DateTime.UtcNow.AddMinutes(OTP_EXPIRY_MINUTES);
@@ -179,7 +176,7 @@ public class VerificationService : IVerificationService
     }
     private string HashOtp(string otp)
     {
-        var secret = Environment.GetEnvironmentVariable("Otp_Secret") ?? throw new InvalidOperationException("Oto_Secret environment variable is not configured");
+        var secret = Environment.GetEnvironmentVariable("Otp_Secret") ?? throw new InvalidOperationException("Otp_Secret environment variable is not configured");
 
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));
