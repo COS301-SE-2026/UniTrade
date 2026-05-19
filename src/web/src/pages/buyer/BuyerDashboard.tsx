@@ -1,6 +1,7 @@
 import {useNavigate} from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import {useAuthStore} from '../../store/useAuthStore'
-import { listingService } from '../../serives/listingsService'
+import { listingsService } from '../../services/listingsService'
 import { formatPrice} from '../../utils/formatters'
 import type { BrowseListing} from '../../types/listing'
 import{
@@ -11,6 +12,7 @@ import{
   IconArrowUpRight,
   IconChevronDown,
 }from '@tabler/icons-react'
+
 
 function StatCard({
   title,
@@ -47,7 +49,7 @@ function ProductCard({
   image
 }: {
   title: string
-  price: string
+  price: number
   image: string
 }) {
   return (
@@ -59,7 +61,8 @@ function ProductCard({
         className="w-full h-36 rounded-lg object-cover"
       />
       <p className = "text-sm font-semibold text-gray-800">{title}</p>
-      <p className = "text-sm text-gray-500">{price}</p>
+      <p className = "text-sm text-gray-500">{formatPrice(price)}</p>
+
       <button className = "w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
         Reserve
       </button>
@@ -79,7 +82,7 @@ function OrderRow({
 }: {
   title: string
   date: string
-  price: string
+  price: number
   status: 'Collected' | 'Pending' | 'Cancelled'
   image: string
 }) {
@@ -105,7 +108,7 @@ function OrderRow({
       </div>
       
       <div className="text-right">
-        <p className="text-sm font-bold text-gray-800">{price}</p>
+        <p className="text-sm font-bold text-gray-800">{formatPrice(price)}</p>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyles[status]}`}>
           {status}
         </span>
@@ -120,6 +123,14 @@ export default function BuyerDashboard() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
 
+  const [products, setProducts] = useState<BrowseListing[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    listingsService.getBrowseListings().then(data => setProducts(data.listings.slice(0, 3)))
+    .finally(() => setLoading(false))
+  }, [])
+  
   const stats = [
     {
       title: 'Total Orders',
@@ -151,19 +162,11 @@ export default function BuyerDashboard() {
     },
 
   ]
-
-  
-  const products = [
-    { title: 'Biology Textbook', price: 'R1200', image: 'biologyTextbook' },
-    { title: 'Laptop', price: 'R5000', image: 'laptop' },
-    { title: 'Lab Coat', price: 'R50', image: 'labCoat' },
-  ]
-
   
   const recentOrders = [
-    { title: 'Textbook', date: '2 May 2026', price: 'R1200', status: 'Collected' as const, image: 'biologyTextbook' },
-    { title: 'Lab Coat', date: '5 May 2026', price: 'R50', status: 'Pending' as const, image: 'labCoat' },
-    { title: 'Laptop', date: '4 May 2026', price: 'R5000', status: 'Cancelled' as const, image: 'laptop' },
+    { title: 'Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '' },
+    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[1]?.image ?? '' },
+    { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '' },
   ]
   return (
    <div className="flex flex-col gap-6">
@@ -204,7 +207,7 @@ export default function BuyerDashboard() {
 
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
-              <ProductCard key={p.title} {...p} 
+              <ProductCard key={p.id} {...p} 
               />
             ))}
           </div>
