@@ -4,8 +4,8 @@ using namespace Modules.Listing.Models.DTO;
 
 namespace API.Controller
 {
-    [Route]
-    [ApiController("api/listings")]
+    [Route("api/listings")]
+    [ApiController]
     
     public class AuthController: ControllerBase
     {
