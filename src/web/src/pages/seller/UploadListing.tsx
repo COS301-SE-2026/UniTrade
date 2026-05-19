@@ -63,7 +63,7 @@ const UploadListing: React.FC = () => {
         <h3 className="text-sm font-bold text-slate-900">Step 2: Pictures</h3>
       </div>
       <div className="flex-1 w-full bg-white border border=slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <h4 className="text-sm font-bold text-[#0F2D5E]" border-b-border-slate-100 pb-2>Images<span className="text-xs font-normal text-slate-400">(Drag & Drop or Upload)</span>"</h4>
+        <h4 className="text-sm font-bold text-[#0F2D5E]" border-b-border-slate-100 pb-2>Images<span className="text-xs font-normal text-slate-400">(Drag & Drop or Upload)</span></h4>
 
         <div className="grid grid-cols-4 gap-4">
                 <div className="aspect-square bg-slate-50 rounded-xl border border-slate-200 overflow-hidden relative flex items-center justify-center p-2">
