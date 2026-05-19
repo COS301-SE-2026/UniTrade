@@ -7,7 +7,7 @@ category: "Textbook" | "Electronics" | "Furniture" | "Other";
 moduleTag: string;
 customField: string; 
 description: string;
-condition: "New" | "Excellent" | "Good";
+condition: "Like_New" | "Good" | "Fair" | "Worn";
 price: number;
 }
 
@@ -18,7 +18,7 @@ const EditListing: React.FC = () => {
     moduleTag: "",
     customField: "",
     description: "",
-    condition: "Excellent",
+    condition: "Like_New",
     price: 0,
   });
 
@@ -29,7 +29,7 @@ const EditListing: React.FC = () => {
         moduleTag: "ECN301",
         customField: "",
         description: "This textbook is in excellent condition, with only minor signs of wear. It has been well cared for and is free from any major damage or markings. The pages are clean and intact, making it a great resource for students studying financial economics and statistics.",
-        condition: "Excellent",
+        condition: "Like_New",
         price: 500,
     });}, []);
 
@@ -40,7 +40,7 @@ const EditListing: React.FC = () => {
         moduleTag: "ECN301",
         customField: "",
         description: "This textbook is in excellent condition, with only minor signs of wear. It has been well cared for and is free from any major damage or markings. The pages are clean and intact, making it a great resource for students studying financial economics and statistics.",
-        condition: "Excellent",
+        condition: "Like_New",
         price: 500, 
       })
   }, []);
@@ -207,17 +207,20 @@ const EditListing: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-2">Condition</label>
-            <div className="flex gap-4 pt-1">
-              {(["New", "Excellent", "Good"] as const).map((item) => (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {(["Like_New", "Good", "Fair", "Worn"] as const).map((item) => (
                 <button
                   key={item}
                   type="button"
-                  onClick={() =>handleChange("condition", item)}
-                  className={`text-xs font-bold tracking-wide transition-all $
-                  {condition === item ? "text-slate-900 underline underline-offset-4 decoration-2 decoration-sky-500" : "text-slate-400 hover:text-slate-600"
-                  }`}
-                  >{item}
-                </button>
+                  onClick={() => handleChange("condition", item)}
+        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+          formData.condition === item 
+            ? "bg-[#0F2D5E] text-white border-transparent shadow-sm" 
+            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+        }`}
+      >
+        {item.replace("_", " ")}
+      </button>
               ))}
             </div>
           </div>

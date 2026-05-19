@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { IconUpload, IconCheck } from "@tabler/icons-react";
 
 const UploadListing: React.FC = () => {
-  const [condition, setCondition] = useState<"New" | "Excellent" | "Good">("Excellent");
+  const [condition, setCondition] = useState<"Like_New" | "Good" | "Fair" | "Worn">("Like_New");
  const [category, setCategory] = useState<"Textbook" | "Electronics" | "Furniture" | "Other">("Textbook");
  
   return (
@@ -148,18 +148,21 @@ const UploadListing: React.FC = () => {
         </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-1">Condition</label>
-            <div className="flex gap-4 pt-1">
-              {(["New", "Excellent", "Good"] as const).map((item) => (
+            <label className="block text-xs font-semibold text-slate-500 mb-2">Condition</label>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {(["Like_New", "Good", "Fair", "Worn"] as const).map((item) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => setCondition(item)}
-                  className={`text-xs font-bold tracking-wide transition-all $
-                  {condition === item ? "text-slate-900 underline underline-offset-4 decoration-2 decoration-sky-500" : "text-slate-400 hover:text-slate-600"
-                  }`}
-                  >{item}
-                </button>
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+          condition === item 
+            ? "bg-[#0F2D5E] text-white border-transparent shadow-sm" 
+            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+        }`}
+      >
+        {item.replace("_", " ")}
+      </button>
               ))}
             </div>
           </div>
