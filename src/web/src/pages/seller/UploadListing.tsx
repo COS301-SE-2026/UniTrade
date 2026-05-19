@@ -41,6 +41,34 @@ const UploadListing: React.FC = () => {
       </div>
     </div>
    </div>
+
+        {/*Step 2: Pictures*/}
+       <div className="relative">
+
+        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify -center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="w-44 pt-2 shrink-0">
+        <h3 className="text-sm font-bold text-slate-900">Step 2: Pictures</h3>
+      </div>
+      <div className="flex-1 w-full bg-white border border=slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <h4 className="text-sm font-bold text-[#0F2D5E]" border-b-border-slate-100 pb-2>Images<span className="text-xs font-normal text-slate-400">(Drag & Drop or Upload)</span>"</h4>
+
+        <div className="grid grid-cols-4 gap-4">
+                <div className="aspect-square bg-slate-50 rounded-xl border border-slate-200 overflow-hidden relative flex items-center justify-center p-2">
+                  <div className="w-full h-full bg-red-100 border border-red-200 rounded shadow-xs flex flex-col items-center justify-center p-1 text-center text-[7px] font-black text-red-700 leading-none">
+                    FINANCIAL ECONOMICS
+                  </div>
+                </div>
+             {[1, 2, 3].map((idx) => (
+                  <button key={idx} type="button" className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-400 transition-colors group">
+                    <IconUpload size={20} className="mb-1 group-hover:scale-110 transition-transform"/>
+                  </button>
+              ))}
+              </div>
+              <p className="text-[10px] text-slate-400">Up to 5 photos, max 10MB each.</p>
+          </div>
+        </div>
+      </div>
   </div>
   );
 };
