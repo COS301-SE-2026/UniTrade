@@ -6,9 +6,20 @@ const UploadListing: React.FC = () => {
  
  
   return (
+    <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
+    <div>
+      <h2 className="text-2xl font-bold text-[#0F2D5E]" tracking-tight>Create New Listing</h2>
+    </div>
 
-    //*Basic info block*/ 
+    {/*steps tracker*/}
+     <div className="relative pl-12 space-y-8 mt-6">
+     <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200"></div>  
+     
+    {/*Basic info block*/}
+
       <div className="relative">
+
+        {/*aCTIVE circles*/}
 
         <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
       <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -41,11 +52,12 @@ const UploadListing: React.FC = () => {
       </div>
     </div>
    </div>
+   </div>
 
         {/*Step 2: Pictures*/}
        <div className="relative">
 
-        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify -center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
+        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
       <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="w-44 pt-2 shrink-0">
         <h3 className="text-sm font-bold text-slate-900">Step 2: Pictures</h3>
@@ -73,7 +85,7 @@ const UploadListing: React.FC = () => {
  {/*Step 3: Price*/}
        <div className="relative">
 
-        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify -center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
+        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
       <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="w-44 pt-2 shrink-0">
         <h3 className="text-sm font-bold text-slate-900">Step 3: Price</h3>
@@ -137,7 +149,9 @@ const UploadListing: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>     
+      </div>    
+      </div> 
+
       <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-slate-200">
         <button type="button" className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-xs">
         Save Draft
