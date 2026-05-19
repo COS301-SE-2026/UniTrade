@@ -14,3 +14,9 @@ describe('formatPrice', () => {
     })
 })
 
+describe('formatDate', () => {
+    it('formats an ISO string to be a readable date', () => {
+        expect(formatDate('2026-05-07T09:14:00Z')).toBe('7 May 2026')
+    })
+})
+
