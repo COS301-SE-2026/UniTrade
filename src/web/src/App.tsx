@@ -26,7 +26,7 @@ export default function App() {
       id: '1',
       name: 'Tafadzwa Musiiwa',
       initials: 'TM',
-      role: 'admin',
+      role: 'buyer',
     })
   }, [])
 

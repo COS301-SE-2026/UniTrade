@@ -90,3 +90,21 @@ export interface SellerListingDetail {
   isReserved: boolean
   timeline: TimelineStep[]
 }
+
+export type BrowseCondition = 'Good' | 'Fair' | 'Poor'
+export type BrowseCategory = 'Textbooks' | 'Electronics' | 'Lab Equipment' | 'Stationary'
+
+export interface BrowseListing {
+  id: string
+  image: string
+  title: string
+  module: string
+  category: BrowseCategory
+  price: number
+  condition: BrowseCondition
+}
+
+export interface BrowseListingsResponse {
+  listings: BrowseListing[]
+  total: number
+}

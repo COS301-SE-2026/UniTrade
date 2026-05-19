@@ -199,14 +199,15 @@ export default function BuyerDashboard() {
           </div>
 
           <div className="flex justify-end mb-2">
-            <button className="text-xs text-[#00aaff] hover:underline flex items-center gap-1">
+            <button className="text-xs text-[#00aaff] hover:underline flex items-center gap-1" onClick={() => navigate('/buyer/listings')}>
               view all <IconArrowUpRight size={12} />
             </button>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
-              <ProductCard key={p.title} {...p} />
+              <ProductCard key={p.title} {...p} 
+              />
             ))}
           </div>
         </div>

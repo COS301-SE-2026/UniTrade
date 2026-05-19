@@ -9,7 +9,7 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
 import type { ListingDetail as ListingDetailType } from '../../types/listing'
 
-// ── DetailRow, ReviewRow, SimilarRow stay exactly the same ──
+
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-white/5 last:border-0">
@@ -59,7 +59,7 @@ function SimilarRow({ title, meta, condition }: { title: string; meta: string; c
   )
 }
 
-// ── Main Page ───────────────────────────────────────────────
+
 export default function ListingDetail() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -223,7 +223,7 @@ export default function ListingDetail() {
             </button>
           </div>
 
-          {/* Similar listings */}
+          
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
             {listing.similarListings.map(similar => (
