@@ -3,27 +3,34 @@ using System.Security.Cryptography;
 using System.Text;
 using Modules.Identity.Models;
 using Modules.Notifications;
-
+using Modules.Identity.Repositories;
 namespace Modules.Identity.Verification;
 
 public class VerificationService : IVerificationService
 {
     private readonly IVerificationRepository _verifications;
-    private readonly INotificationsService _notifications;
 
+    private readonly IUserRepository _users;
+    private readonly INotificationsService _notifications;
     private const int OTP_EXPIRY_MINUTES = 5;
     private const int MAX_ATTEMPTS = 5;
     private const int MAX_RESENDS = 3;
     private const int RESEND_COOLDOWN_SECONDS = 60;
 
-    public VerificationService(IVerificationRepository verifications, INotificationsService notifications)
+    public VerificationService(IVerificationRepository verifications, IUserRepository users, INotificationsService notifications)
     {
-        _notifications = notifications;
         _verifications = verifications;
+        _users = users;
+        _notifications = notifications;
+
     }
     public async Task InitiateAsync(string email, Guid userId)
     {
-
+        var user = await _users.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("user_not_found");
+        }
 
         // invalidate previous otp
         var existing = await _verifications.GetCurrentByUserIdAsync(userId);
@@ -44,13 +51,14 @@ public class VerificationService : IVerificationService
             OtpSentAt = DateTime.UtcNow,
             OtpExpiresAt = DateTime.UtcNow.AddMinutes(OTP_EXPIRY_MINUTES),
 
-            AttemptNumber = 1,
+            AttemptNumber = 0,
             OtpResendCount = 0,
 
             IsCurrent = true,
             Status = "otp_pending",
 
-            SubmittedAt = DateTime.UtcNow
+            SubmittedAt = DateTime.UtcNow // considering removing this since otp sent at handles this
+
         };
 
         await _verifications.CreateAsync(record);
@@ -68,7 +76,7 @@ public class VerificationService : IVerificationService
             throw new Exception("invalid_otp");
         }
 
-        if (record.Status == "otp_verified")
+        if (record.OtpVerifiedAt != null)
         {
             return true;
         }
@@ -90,15 +98,32 @@ public class VerificationService : IVerificationService
         if (hash != record.OtpCodeHash)
         {
             record.AttemptNumber++;
+
+            if (record.AttemptNumber >= MAX_ATTEMPTS)
+            {
+                record.Status = "rejected";
+                await _verifications.UpdateAsync(record);
+                throw new Exception("max_attempts_exceeded");
+            }
+
             await _verifications.UpdateAsync(record);
             throw new Exception("invalid_otp");
+
         }
 
         record.Status = "por_pending";
         record.OtpVerifiedAt = DateTime.UtcNow;
-
         await _verifications.UpdateAsync(record);
+
+        var User = await _users.GetByIdAsync(userId);
+        if (User?.StudentProfile != null)
+        {
+            User.StudentProfile.VerificationStatus = "verified";
+            await _users.UpdateAsync(User);
+
+        }
         return true;
+
 
     }
 
@@ -134,20 +159,19 @@ public class VerificationService : IVerificationService
 
 
         record.UserId = userId;
-
         record.OtpCodeHash = hash;
         record.OtpSentAt = DateTime.UtcNow;
         record.OtpExpiresAt = DateTime.UtcNow.AddMinutes(OTP_EXPIRY_MINUTES);
         record.OtpResendCount = (record.OtpResendCount ?? 0) + 1;
+        record.AttemptNumber = 0;
 
         await _verifications.UpdateAsync(record);
-
         await _notifications.SendOtpEmailAsync(email, otp);
 
     }
 
 
-    private string GenerateOtp()
+    private static string GenerateOtp()
     {
         var bytes = RandomNumberGenerator.GetBytes(2);
         var value = BitConverter.ToUInt16(bytes, 0) % 10000;
@@ -155,7 +179,7 @@ public class VerificationService : IVerificationService
     }
     private string HashOtp(string otp)
     {
-        var secret = Environment.GetEnvironmentVariable("Otp_Secret") ?? " ";
+        var secret = Environment.GetEnvironmentVariable("Otp_Secret") ?? throw new InvalidOperationException("Oto_Secret environment variable is not configured");
 
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));
