@@ -3,7 +3,7 @@ import { IconUpload, IconCheck } from "@tabler/icons-react";
 
 const UploadListing: React.FC = () => {
   const [condition, setCondition] = useState<"New" | "Excellent" | "Good">("Excellent");
- 
+ const [category, setCategory] = useState<"Textbook" | "Electronics" | "Furniture" | "Other">("Textbook");
  
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
@@ -28,22 +28,64 @@ const UploadListing: React.FC = () => {
       </div>
       <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
         <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">Listing Information</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <input
-            type="text"
-            placeholder="Title"
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"/>
-          </div>
-          
-          <div>
-            <select 
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer">
-           
-              <option>Module Tags</option>
-            </select>
-          </div>
+        
+      {/*category tabs*/}
+      <div>
+        <label className="block text-xs font-semibold text-slate-500 mb-2">Category</label>
+        <div className="flex flex-wrap gap-2">
+          {(["Textbook", "Electronics", "Furniture", "Other"] as const).map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setCategory(cat)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
+                category === cat ? "bg-[#0F2D5E] text-white border-transparent shadow-sm" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
+      </div>
+
+    {/*Input field*/}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+     <div className={category !== "Other" ? "md:col-span-2" :"md:col-span-3"}>
+      <input     type="text"
+      placeholder="Title"
+    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"/>
+</div>
+{/*textbook tags*/}
+{category === "Textbook" && (
+  <div>
+    <select className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer">
+                   <option>Module / Course Tags</option>
+                    <option value="WTW114">WTW114</option>
+                    <option value="ECN301">ECN301</option>
+                    </select>
+          </div>)}
+
+ {/*electronics specs*/}
+{category === "Electronics" && (
+  <div>
+    <input
+    type="text"
+    placeholder="Brand / Model"
+  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"/>
+</div>)}
+
+  {/*furniture specs*/}
+  {category === "Furniture" && (
+    <div>
+      <input
+      type="text"
+      placeholder="Dimensions"
+    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"/>
+  </div>)}
+  </div> 
+    
+
+
       <div>
       <textarea
       placeholder="Description"
