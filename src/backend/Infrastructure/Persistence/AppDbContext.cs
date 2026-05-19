@@ -10,5 +10,6 @@ namespace Infrastructure.Persistence{
         public DbSet<StudentProf>StudentProfiles{get;set;};
         public DbSet<AdminProf>AdminProfiles{get;set;};
         public DbSet<University>Universities{get;set;};
+        public DbSet<listingsModel>Listings{get;set;};
     }
 }
