@@ -39,7 +39,7 @@ namespace Modules.Listings
             var listingLookUp=await _dbContext.Listing.FindAsync(id);
             if(listingLookUp==null)
             { 
-                return null;
+                return false;
             }
 
             listingLookUp.Title=listings.Title;
@@ -50,7 +50,7 @@ namespace Modules.Listings
 
             await _dbContext.SaveChangesAsync();
 
-            return listingLookUp;
+            return true;
         }
 
 
