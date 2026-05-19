@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Tests
         working-directory: src/backend/Tests
-        run: dotnet build --configuration Release --no-restore || echo 'tests not configured yet.'
+        run: dotnet build --configuration Release --no-restore
 
       - name: Build Workers
         working-directory: src/backend/Workers
@@ -42,11 +42,11 @@ jobs:
 
       - name: Run Unit Tests
         working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit" || echo 'Unit tests not configured yet.'
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit" 
 
       - name: Run Integration Tests
         working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" || echo 'integration tests not configured yet.'
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" 
     
 
   code-quality:
