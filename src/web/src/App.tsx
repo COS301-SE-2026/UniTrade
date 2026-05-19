@@ -7,13 +7,16 @@ import Signup from './pages/auth/Signup'
 import UploadListing from './pages/seller/UploadListing'
 
 import HomePage from './pages/auth/HomePage'
-
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
+import ListingDetail from './pages/buyer/ListingDetail'
 import SellerDashboard from './pages/seller/SellerDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminVerifications from './pages/admin/AdminVerifications'
 import AdminListingQueue from './pages/admin/AdminListingQueue'
 import AdminDisputes from './pages/admin/AdminDisputes'
+import BrowseListings from './pages/buyer/BrowseAllListing'
+import MyListings from './pages/seller/MyListings'
+import SellerListingDetail from './pages/seller/SellerListingDetail'
 
 export default function App() {
   const { setUser } = useAuthStore()
@@ -24,16 +27,21 @@ export default function App() {
       id: '1',
       name: 'Tafadzwa Musiiwa',
       initials: 'TM',
-      role: 'buyer',
+      role: 'admin',
     })
   }, [])
 
   return (
     <Routes>
+      <Route path="/verify-otp" element={<OTP_verification />} />
+      {/*<Route element={<AppLayout />}>*/}
+       
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/" element={<HomePage/>} />
       <Route path="/auth/Login" element={<Login />} />
       <Route path="/auth/Signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
+      
 
 
       <Route element={<AppLayout />}>
@@ -41,11 +49,15 @@ export default function App() {
 
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+        <Route path="/listings/:id" element={<ListingDetail />} /> {/*the id can be anything for now since the data is hardcoded*/}
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
+        <Route path="/buyer/listings" element={<BrowseListings />} />
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
+        <Route path="/seller/listings" element={<MyListings />} />
+        <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
 
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/verifications" element={<AdminVerifications />} />
