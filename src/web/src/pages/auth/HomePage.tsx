@@ -161,7 +161,7 @@ function WhatWeOffer() {
 function Footer() {
   return (
     <footer className = "bg-white border-t border-gray-200 px-12 py-8">
-      <div className = "grid grid-cols-3 gap-3">
+      <div className = "grid grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
 
         <div>
           <div className = "flex items-center gap-2 mb-3">

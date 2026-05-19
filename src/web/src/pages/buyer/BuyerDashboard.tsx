@@ -164,8 +164,8 @@ export default function BuyerDashboard() {
   ]
   
   const recentOrders = [
-    { title: 'Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '' },
-    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[1]?.image ?? '' },
+    { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '' },
+    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '' },
     { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '' },
   ]
   return (
