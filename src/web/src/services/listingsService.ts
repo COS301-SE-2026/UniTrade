@@ -1,6 +1,16 @@
 import type { ListingDetail } from '../types/listing'
 import type { ListingSummary, MyListingsResponse } from '../types/listing'
 import type { SellerListingDetail } from '../types/listing'
+import calculasTextbook from '../assets/calculas-textbook.jpg'
+import pencil from '../assets/mechanical-pencil.jpg'
+import biologyTextbook from '../assets/bio-textbook.jpg'
+import labCoat from '../assets/labcoat.jpg'
+import hplaptop from '../assets/hp-laptop.jpg'
+import laptop from '../assets/laptop.jpg'
+import type {
+  BrowseListing,
+  BrowseListingsResponse,
+} from '../types/listing'
 
 const mockMyListings: ListingSummary[] = [
   { id: '1', title: 'Chemistry Textbook - 3rd Ed',      meta: 'CMY127 · Listed 7 May 2026',      price: 250,  status: 'live',     views: 42, imageUrl: 'https://placehold.co/48x48/1a3a7a/ffffff?text=CH' },
@@ -91,6 +101,14 @@ const mockSellerListingDetail: SellerListingDetail = {
   ],
 }
 
+const mockBrowseListings: BrowseListing[] = [
+  { id: '1', image: biologyTextbook,   title: 'Cambridge IGCSE Biology', module: 'BIO121',   category: 'Textbooks',     price: 1200, condition: 'Good' },
+  { id: '2', image: laptop,            title: 'Macbook Air',             module: 'COS101',   category: 'Electronics',   price: 8000, condition: 'Fair' },
+  { id: '3', image: hplaptop,          title: 'HP Laptop',               module: 'BEng 345', category: 'Electronics',   price: 4500, condition: 'Good' },
+  { id: '4', image: labCoat,           title: 'Lab Coat',                module: 'CHM101',   category: 'Lab Equipment', price: 350,  condition: 'Fair' },
+  { id: '5', image: calculasTextbook,  title: 'Calculus Textbook',       module: 'WTW114',   category: 'Textbooks',     price: 350,  condition: 'Fair' },
+  { id: '6', image: pencil,            title: 'Mechanical Pencil',       module: 'All',      category: 'Stationary',    price: 85,   condition: 'Good' },
+]
 //Service, right now this returns mock data, when the actual API is ready, we have to replace the insodes of each function only
 
 const BASE_URL = import.meta.env.VITE_API_URL
@@ -132,6 +150,19 @@ export const listingsService = {
   //   headers: { Authorization: `Bearer ${token}` }
   // })
   // if (!res.ok) throw new Error('Failed to fetch listing')
+  // return res.json()
+},
+
+getBrowseListings: async (): Promise<BrowseListingsResponse> => {
+  //MOCK — replacing this block when API is ready:
+  return {
+    listings: mockBrowseListings,
+    total: mockBrowseListings.length,
+  }
+
+  // REAL API — should uncomment when backend is ready:
+  // const res = await fetch(`${BASE_URL}/listings`)
+  // if (!res.ok) throw new Error('Failed to fetch listings')
   // return res.json()
 },
 
