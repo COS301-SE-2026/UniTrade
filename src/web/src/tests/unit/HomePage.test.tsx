@@ -20,4 +20,15 @@ describe('HomePage', () => {
         expect(screen.getByText('UniTrade')).toBeInTheDocument()
     } )
 
+    it('shows the login button in the navbar', () => {
+        renderHomePage()
+        expect(screen.getByText('LOGIN')).toBeInTheDocument()
+
+    })
+
+    it('shows the signup button in the navbar', () => {
+        renderHomePage()
+        expect(screen.getByText('SignUp')).toBeInTheDocument()
+    })
+
 })
