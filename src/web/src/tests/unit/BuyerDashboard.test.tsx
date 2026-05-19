@@ -1,4 +1,4 @@
-import {render , screen } from '@testing-library/react'
+import {render , screen, waitFor } from '@testing-library/react'
 import {MemoryRouter} from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach} from 'vitest'
 import BuyerDashboard from '../../pages/buyer/BuyerDashboard'
@@ -53,6 +53,23 @@ describe('BuyerDashboard', () => {
     expect(screen.getByText('Total Spent')).toBeInTheDocument()
     expect(screen.getByText('Pending Collection')).toBeInTheDocument()
     expect(screen.getByText('Wishlist Items')).toBeInTheDocument()
+  })
+
+    it('shows suggested for you section', () => {
+    renderBuyerDashboard()
+    expect(screen.getByText('Suggested For You')).toBeInTheDocument()
+  })
+
+    it('shows recent orders section', () => {
+    renderBuyerDashboard()
+    expect(screen.getByText('Recent Orders')).toBeInTheDocument()
+  })
+
+    it('shows products after loading', async () => {
+    renderBuyerDashboard()
+    await waitFor(() => {
+      expect(screen.getByText('Biology Textbook')).toBeInTheDocument()
+    })
   })
 
 })
