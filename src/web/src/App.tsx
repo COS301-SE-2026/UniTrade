@@ -5,6 +5,7 @@ import { useAuthStore } from './store/useAuthStore'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
 import UploadListing from './pages/seller/UploadListing'
+import EditListing from './pages/seller/EditListing'
 
 import HomePage from './pages/auth/HomePage'
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
@@ -55,6 +56,7 @@ export default function App() {
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
+        <Route path="/seller/editListing/:id" element={<EditListing />} />
         <Route path="/seller/listings" element={<MyListings />} />
         <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
 
