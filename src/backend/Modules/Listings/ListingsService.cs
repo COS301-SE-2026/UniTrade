@@ -24,18 +24,33 @@ namespace Modules.Listings
                 Description=listings.Description,
                 Price=listing.Price,
                 Condition=listings.condition
+                Created_at=DateTime.UtcNow
             }
 
             //update db (iinsert)
             _dbContext.Listings.Add(newlistings);
             await _dbContext.SaveChangesAsync();
 
-            //return
+            return newlistings;
         }
 
-        public async Task<bool> UpdateListings()
+        public async Task<bool> UpdateListings(CreateListingsDto listings, int id)
         {
+            var listingLookUp=await _dbContext.Listing.FindAsync(id);
+            if(listingLookUp==null)
+            { 
+                return null;
+            }
 
+            listingLookUp.Title=listings.Title;
+            listingLookUp.Description=listings.Description;
+            listingLookUp.Price=listings.Price;
+            listingLookUp.Condition=listings.Condition;
+            listingLookUp.Updated_at=DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            return listingLookUp;
         }
 
 
