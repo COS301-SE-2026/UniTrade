@@ -9,50 +9,78 @@ const Signup: React.FC = () => {
 
 
 {/*left side*/}
-<div className="flex w-full flex-col justify-center px-12 py-12 md:w-1/2 lg:px-20">
-<div className="mb-18">
+<div className="flex w-full flex-col justify-center px-12 py-12 md:w-3/5 lg:px-20">
+<div className="mb-8">
 <h1 className="text-4xl font-bold tracking-tight text-gray-900 uppercase">Get Started</h1>
 </div>
 
 
  <form className="space-y-4">
-{[
-    { label: "Name",
-        type: "text",
-        placeholder: "Name"},
-    {
-        label: "Email Address",
-        type: "email",
-        placeholder: "Email Address"
-    } ,  
+   
+<div className="grid grid-cols-2 gap-4">
+ <div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
+  <input
+  type="text"
+   placeholder="FirstName"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+   </div>
+    <div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
+  <input
+  type="text"
+   placeholder="Last Name"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+   </div>
 
-    {   
-        label: "University",
-        type: "text",
-        placeholder: "University"
-    },
-    {
-       label: "Degree Program",
-        type: "text",
-        placeholder: "Degree Program"
-    },
-    {
-        label: "Year of Study",
-        type: "text",
-        placeholder: "Year of Study"    
-    },{
-        label: "Password", type: 'password',placeholder: ''
-        
-    },
-    ].map((field) => (
-        <div key={field.label}>
-        <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">{field.label}</label>
-        <input
-        type={field.type}
-        className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"/>
 </div>
-    ))}
+   
+   <div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email</label>
+  <input
+  type="email"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  placeholder="Email"
+ />
+   </div>
 
+<div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
+  <input
+  type="text"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  placeholder="University"
+ />
+   </div>
+
+<div className="grid grid-cols-2 gap-4">
+<div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
+  <input
+  type="text"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  placeholder="Degree Program"
+ />
+   </div>
+
+<div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
+  <input
+  type="text"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  placeholder="Year of Study"
+ />
+   </div>
+</div>
+
+<div>
+<label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
+  <input
+  type="password"
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  placeholder="Password"
+ />
+   </div>
 
 <button
 type="submit"
