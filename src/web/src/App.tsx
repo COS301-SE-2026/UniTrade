@@ -2,9 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
-import OTP_verification from './pages/auth/OTP_verification'
-//import Login from './pages/auth/Login'
-//import Signup from './pages/auth/Signup'
+import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
+import UploadListing from './pages/seller/UploadListing'
+
 import HomePage from './pages/auth/HomePage'
 import BuyerDashboard from './pages/buyer/BuyerDashboard'
 import ListingDetail from './pages/buyer/ListingDetail'
@@ -32,18 +33,19 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/verify-otp" element={<OTP_verification />} />
       {/*<Route element={<AppLayout />}>*/}
        
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/" element={<HomePage/>} />
-      {/*</Route><Route path="/auth/login" element={<Login />} />*/}
-      {/*<Route path="/auth/signup" element={<Signup />} />*/}
+      <Route path="/auth/Login" element={<Login />} />
+      <Route path="/auth/Signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
       
 
 
       <Route element={<AppLayout />}>
+
+
        
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         <Route path="/listings/:id" element={<ListingDetail />} /> {/*the id can be anything for now since the data is hardcoded*/}
@@ -52,6 +54,7 @@ export default function App() {
 
         
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
+        <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/listings" element={<MyListings />} />
         <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
 
@@ -63,3 +66,4 @@ export default function App() {
     </Routes>
   )
 }
+
