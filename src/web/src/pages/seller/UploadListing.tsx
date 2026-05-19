@@ -113,7 +113,40 @@ const UploadListing: React.FC = () => {
       </div>
       </div>
       </div>
-  </div>
+
+ {/*Confirmation Summary */}
+ <div className="relative">
+
+        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-sm font-bold">
+          4
+        </div>
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="w-44 pt-2 shrink-0">
+            <h3 className="text-sm font-bold text-slate-900">Step 4: Confirmation</h3>
+          </div>
+          <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">Summary Overview</h4>
+            <div className="flex gap-4 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className="w-10 h-12 bg-red-100 border border-red-200 rounded flex items-center justify-center p-0.5 text-center text-[5px] font-black text-red-700 leading-none shadow-xs">
+                FINANCIAL ECON
+              </div>
+              <div>
+                <h5 className="text-sm font-bold text-slate-800">Financial Economics and Statistics 16th Edition</h5>
+                <p className="text-xs text-slate-400">Preview Layout Summary</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>     
+      <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-slate-200">
+        <button type="button" className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-xs">
+        Save Draft
+        </button>
+        <button type="submit" className="px-6 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold tracking-wide hover:bg-sky-900 transition-all shadow-md">Submit Listing
+        </button>
+    
+</div>
+</div>
   );
 };
 
