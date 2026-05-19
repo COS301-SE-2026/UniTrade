@@ -22,7 +22,7 @@ const Signup: React.FC = () => {
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
   <input
   type="text"
-   placeholder="FirstName"
+   placeholder="First Name"
   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
    </div>
     <div>
@@ -46,11 +46,22 @@ const Signup: React.FC = () => {
 
 <div>
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
-  <input
-  type="text"
-  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
-  placeholder="University"
- />
+  <select
+  defaultValue=""
+  className="w-full rounded-xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  >
+  <option value="" disabled hidden>Select University</option>
+  <option value="UCT">University of Cape Town</option>
+  <option value="UJ">University of Johannesburg</option>
+  <option value="SU">Stellenbosch University</option>
+  <option value="WITS">University of the Witwatersrand</option>
+  <option value="UP">University of Pretoria</option>
+  <option value="NWU">North-West University</option>
+  <option value="RU">Rhodes University</option>
+ <option value="UFH">University of Fort Hare</option>
+  <option value="UKZN">University of KwaZulu-Natal</option>
+
+ </select>
    </div>
 
 <div className="grid grid-cols-2 gap-4">
