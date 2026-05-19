@@ -29,7 +29,32 @@ const renderBuyerDashboard = () =>
     )
 
 describe('BuyerDashboard', () => {
-    
+    beforeEach(() => {
+        useAuthStore.setState({
+            user: { id: '1', name: 'Tafadzwa Mussiwa', initials: 'TM', role:'buyer'}
+        })
+        vi.mocked(listingsService.getBrowseListings).mockResolvedValue(mockListings)
+    })
+
+    it('buyer dashboard appears up without crashing or lagging', () => {
+        renderBuyerDashboard()
+    })
+
+    it('shows the welcome message with the users name', () => {
+        renderBuyerDashboard()
+        expect(screen.getByText((content, element) => {
+            return element?.tagName === 'H1' && content.includes('Tafadzwa')
+        })).toBeInTheDocument()
+    })
+
+    it('shows all stat cards', () => {
+    renderBuyerDashboard()
+    expect(screen.getByText('Total Orders')).toBeInTheDocument()
+    expect(screen.getByText('Total Spent')).toBeInTheDocument()
+    expect(screen.getByText('Pending Collection')).toBeInTheDocument()
+    expect(screen.getByText('Wishlist Items')).toBeInTheDocument()
+  })
+
 })
 
 
