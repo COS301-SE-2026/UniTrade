@@ -69,6 +69,50 @@ const UploadListing: React.FC = () => {
           </div>
         </div>
       </div>
+
+ {/*Step 3: Price*/}
+       <div className="relative">
+
+        <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify -center text-sm font-bold shadow-md shadow-sky-200"><IconCheck size={16} stroke={2}/> </div>
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="w-44 pt-2 shrink-0">
+        <h3 className="text-sm font-bold text-slate-900">Step 3: Price</h3>
+      </div>
+      <div className="flex-1 w-full bg-white border border=slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <h4 className="text-sm font-bold text-[#0F2D5E]" border-b-border-slate-100 pb-2>Pricing</h4>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1 ">Price (ZAR)</label>
+            <div className="relative rounded-xl shadow-xs">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="text-slate-500 text-sm">R</span>
+          </div>
+          <input
+            type="number"
+           className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-none focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
+        </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">Condition</label>
+            <div className="flex gap-4 pt-1">
+              {(["New", "Excellent", "Good"] as const).map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setCondition(item)}
+                  className={`text-xs font-bold tracking-wide transition-all $
+                  {condition === item ? "text-slate-900 underline underline-offset-4 decoration-2 decoration-sky-500" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                  >{item}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      </div>
   </div>
   );
 };
