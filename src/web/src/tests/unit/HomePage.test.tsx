@@ -31,4 +31,28 @@ describe('HomePage', () => {
         expect(screen.getByText('SignUp')).toBeInTheDocument()
     })
 
+    it('shows the text over the image', () =>{
+        renderHomePage()
+        expect(screen.getByText(/university materials made accessible/i)).toBeInTheDocument()
+    })
+
+    it('shows the what we offer section', () => {
+        renderHomePage()
+        expect(screen.getByText(/what we offer/i)).toBeInTheDocument()
+    })
+
+    it('shows the footer section', () => {
+        renderHomePage()
+        expect(screen.getByText(/Contact Info/i)).toBeInTheDocument()
+        expect(screen.getByText(/Support/i)).toBeInTheDocument()
+        expect(screen.getByText(/Social Media/i)).toBeInTheDocument()
+    })
+
+    it('shows the get the app section', () => {
+        renderHomePage()
+        expect(screen.getByText('GET THE APP')).toBeInTheDocument()
+    })
+
+
+
 })
