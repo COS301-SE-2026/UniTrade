@@ -1,5 +1,8 @@
 import {useNavigate} from 'react-router-dom'
 import {useAuthStore} from '../../store/useAuthStore'
+import { listingService } from '../../serives/listingsService'
+import { formatPrice} from '../../utils/formatters'
+import type { BrowseListing} from '../../types/listing'
 import{
   IconShoppingBag,
   IconCurrencyDollar,
@@ -8,11 +11,6 @@ import{
   IconArrowUpRight,
   IconChevronDown,
 }from '@tabler/icons-react'
-import biologyTextbook from '../../assets/bio-textbook.jpg'
-import laptop from '../../assets/laptop.jpg'
-import labCoat from '../../assets/labcoat.jpg'
-
-console.log('Images:', biologyTextbook, laptop, labCoat)
 
 function StatCard({
   title,
