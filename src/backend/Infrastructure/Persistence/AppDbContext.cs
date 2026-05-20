@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Models;
+using Modules.Listings.Models;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.Course;
 using System.Security.Cryptography.X509Certificates;
@@ -19,7 +20,8 @@ public class AppDbContext : DbContext
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
 
-    public DbSet<Listing> Listings => SetIndexBinder<Listings>();
+    public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<ListingImage> ListingImages => Set<ListingImage>();
 
     // Reference data 
     public DbSet<University> Universities => Set<University>();
@@ -305,8 +307,6 @@ public class AppDbContext : DbContext
            entity.Property(x => x.AiRiskLevel).HasColumnName("ai_risk_level").HasMaxLength(10);
            entity.Property(x => x.VisibilityScore).HasColumnName("visibility_score").HasDefaultValue(100);
 
-           entity.Property(x => x.IsBundle).HasColumnName("is_bundle").HasDefaultValue(false);
-
            entity.Property(x => x.RejectionReason).HasColumnName("rejection_reason");
 
            entity.Property(x => x.ViewCount).HasColumnName("view_count").HasDefaultValue(0);
@@ -326,7 +326,7 @@ public class AppDbContext : DbContext
            .HasForeignKey(x => x.SellerId)
            .OnDelete(DeleteBehavior.Restrict);
 
-           entity.HasOne<Courses>()
+           entity.HasOne<Course>()
            .WithMany()
            .HasForeignKey(x => x.CourseId)
            .OnDelete(DeleteBehavior.Restrict);
@@ -344,6 +344,8 @@ public class AppDbContext : DbContext
               .HasDatabaseName("ix_listings_feed").
               HasFilter("[listing_status] = 'live'")
               .IsDescending(false, true, true);
+
+            entity.Ignore(x => x.Seller); // for populating Seller info manually 
        });
 
         //Listing Images
