@@ -23,7 +23,7 @@ namespace Modules.Listings
                 Title=listings.Title,
                 Description=listings.Description,
                 Price=listing.Price,
-                Condition=listings.condition
+                Condition=listings.condition,
                 Created_at=DateTime.UtcNow
             }
 
