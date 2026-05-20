@@ -45,6 +45,39 @@ const renderSellerDashboard = () =>
         renderSellerDashboard()
         expect(screen.getByText('Pending Delivery')).toBeInTheDocument()
     })
+
+    it('shows the New Listing card', () => {
+      renderSellerDashboard()
+      expect(screen.getByText('New Listing')).toBeInTheDocument()
+    })
+
+    it('shows the correct Total Orders value of 15', () => {
+      renderSellerDashboard()
+      expect(screen.getByText('15')).toBeInTheDocument()
+    })
+
+    it('shows the correct Total Sales value of R1500', () => {
+      renderSellerDashboard()
+      expect(screen.getByText('R1500')).toBeInTheDocument()
+    })
+
+    it('shows the correct Pending Delivery value of 1', () => {
+      renderSellerDashboard()
+      expect(screen.getByText('1')).toBeInTheDocument()
+    })
+
+    it('shows +12% this month for both Orders and Sales cards', () => {
+      renderSellerDashboard()
+      const labels = screen.getAllByText(/\+12% this month/i)
+      expect(labels.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('shows Collection soon for Pending Delivery', () => {
+      renderSellerDashboard()
+      expect(screen.getByText(/collection soon/i)).toBeInTheDocument()
+    })
+
+    
 })
 
 
