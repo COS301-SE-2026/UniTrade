@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Modules.Identity.Models.DTO;
+using Modules.Identity.Models.Dto;
 using Modules.Identity;
 using Modules.Identity.Verification;
 using Modules.Identity.Repositories;

@@ -1,6 +1,7 @@
 using Modules.Listings.Models.Dto;
 
 namespace Modules.Listings.Models.Dto;
+
 public record ListingSummaryDto
 (
     Guid ListingId,

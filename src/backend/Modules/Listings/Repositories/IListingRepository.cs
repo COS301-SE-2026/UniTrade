@@ -9,8 +9,7 @@ public interface IListingRepository
     Task<Listing?> GetByIdAsync(Guid listingId);
     Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(ListFilterDto listingFilterDto);
     Task AddAsync(Listing listings);
-    Task UpdateAsync(Listing listings,Guid id);
-    Task<Listing> DeleteByIdAsync(Guid id);
-    Task<Listing> GetUserId(Guid id);
-
+    Task UpdateAsync(Listing listings, Guid id);
+    Task DeleteByIdAsync(Guid id);
+    
 }

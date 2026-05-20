@@ -14,7 +14,7 @@ using System.IdentityModel.Tokens.Jwt;
 using BCrypt.Net;
 using Microsoft.Extensions.Configuration;
 using Modules.Identity.Models.Dto;
-
+using Modules.Identity.Models.DTO;
 ////note for me(sabira)---> make sure to change paths regarding infra 
 public class IdentityService : IIdentityService
 {
@@ -246,43 +246,41 @@ public class IdentityService : IIdentityService
 
     public async Task<object> GetMeAsync(string userId)
     {
-        var getUser=await _users.GetByIdAsync(Guid.Parse(userId));
+        var getUser = await _users.GetByIdAsync(Guid.Parse(userId));
 
-        if(getUser==null)
+        if (getUser == null)
         {
             throw new Exception("user not found");
         }
 
-        if(getUser.Role=="student")
+        if (getUser.Role == "student")
         {
             //make a student dto
             return new
             {
-                User=new UserDto
+                User = new UserDto
                 {
-                    Id=getUser.UserId,
-                    FirstName=getUser.FirstName,
-                    LastName=getUser.LastName,
-                    Email=getUser.Email,
-                    Role=getUser.Role
+                    UserId = getUser.UserId,
+                    FirstName = getUser.FirstName,
+                    LastName = getUser.LastName,
+                    Email = getUser.Email,
                 },
                 //i didnt follow the response you wanted zee, i made it nested instead. hopefully not a problem
-                Std=new StudentDto
+                Std = new StudentDto
                 {
-                    VerificationStatus=getUser.StudentProfile?.VerificationStatus ?? "pending"
+                    VerificationStatus = getUser.StudentProfile?.VerificationStatus ?? "pending"
                 }
             };
         }
 
         return new UserDto
         {
-            Id= getUser.UserId,
-            FirstName=getUser.FirstName,
-            LastName=getUser.LastName,
-            Email=getUser.Email,
-            Role=getUser.Role
+            UserId = getUser.UserId,
+            FirstName = getUser.FirstName,
+            LastName = getUser.LastName,
+            Email = getUser.Email,
         };
-        
+
     }
 
 }

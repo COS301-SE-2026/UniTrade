@@ -29,66 +29,66 @@ public class ListingService : IListingService
         ?? l.Images.FirstOrDefault()?.ImageUrl;
 
 
-   private static ListingSummaryDto MapToSummary(Listing l) => new(
-    l.ListingId, l.SellerId, l.Seller?.FullName ?? "",
-    l.Title, l.Description, l.Price, l.Condition, l.ListingType,
-    l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
-    l.isBundle ?? false, l.ViewCount ?? 0,
-    l.CreatedAt, l.UpdatedAt,
-    l.Images
-        .OrderByDescending(i => i.IsPrimary)
-        .Select(i => new ListingImageDto(i.ImageId, i.ImageUrl, i.IsPrimary))
-        .ToList());
+    private static ListingSummaryDto MapToSummary(Listing l) => new(
+     l.ListingId, l.SellerId, l.Seller?.FullName ?? "",
+     l.Title, l.Description, l.Price, l.Condition, l.ListingType,
+     l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
+     l.isBundle ?? false, l.ViewCount ?? 0,
+     l.CreatedAt, l.UpdatedAt,
+     l.Images
+         .OrderByDescending(i => i.IsPrimary)
+         .Select(i => new ListingImageDto(i.ImageId, i.ImageUrl, i.IsPrimary))
+         .ToList());
 
-        
-        public async Task<Listing> CreateListings(ListingSummaryDto listings)
+
+    public async Task<Listing> CreateListings(ListingSummaryDto listings)
+    {
+        //link dto to model. update server side
+        var NewListings = new Listing
         {
-            //link dto to model. update server side
-            var newlistings=new Listing
-            {
-                Title=listings.Title,
-                Description=listings.Description,
-                Price=listing.Price,
-                Condition=listings.condition,
-                Created_at=DateTime.UtcNow
-            };
+            Title = listings.Title,
+            Description = listings.Description,
+            Price = listings.Price,
+            Condition = listings.Condition,
+            CreatedAt = DateTime.UtcNow
+        };
 
-            //repo call
-            await _listingrepo.AddAsync(newlistings);
+        //repo call
+        await _listings.AddAsync(NewListings);
 
-            return newlistings;
+        return NewListings;
+    }
+
+    public async Task<bool> UpdateListings(ListingSummaryDto listings, Guid id)
+    {
+        var listingLookUp = await _listings.GetByIdAsync(id);
+        if (listingLookUp == null)
+        {
+            return false;
         }
 
-        public async Task<bool> UpdateListings(ListingSummaryDto listings, int id)
+        listingLookUp.Title = listings.Title;
+        listingLookUp.Description = listings.Description;
+        listingLookUp.Price = listings.Price;
+        listingLookUp.Condition = listings.Condition;
+        listingLookUp.UpdatedAt = DateTime.UtcNow;
+
+        await _listings.UpdateAsync(listingLookUp, id);
+
+        return true;
+    }
+
+    public async Task<bool> DeleteListings(Guid id)
+    {
+        var listing = await _listings.GetByIdAsync(id);
+
+        if (listing == null)
         {
-            var listingLookUp=await _listingrepo.GetByIdAsync(id);
-            if(listingLookUp==null)
-            { 
-                return false;
-            }
-
-            listingLookUp.Title=listings.Title;
-            listingLookUp.Description=listings.Description;
-            listingLookUp.Price=listings.Price;
-            listingLookUp.Condition=listings.Condition;
-            listingLookUp.Updated_at=DateTime.UtcNow;
-
-            await _listingrepo.UpdateAsync(listingLookUp);
-
-            return true;
+            return false;
         }
 
-        public async Task<bool> DeleteListings(int id)
-        {
-            var listing=await _listingrepo.GetByIdAsync(id);
+        await _listings.DeleteByIdAsync(id);
 
-            if (listing==null)
-            {
-                return false;
-            } 
-
-            await _listingrepo.DeleteByIdAsync(id);
-
-            return true;
-        }
+        return true;
+    }
 }

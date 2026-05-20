@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Modules.Listings;
 using Modules.Listings.Models.Dto;
-
-
+using Api.Controllers;
+using Modules.Listings.Models;
 namespace Api.Controllers;
 
 [ApiController]
@@ -14,34 +14,36 @@ public class ListingController : ControllerBase
     public ListingController(IListingService listings) => _listings = listings;
 
     [HttpPost]
-        public async Task<IActionResult> Create([FromBody]CreateListingsDto request)
+    public async Task<IActionResult> Create([FromBody] ListingSummaryDto request)
+    {
+        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Condition) || request.Price <= 0)
         {
-            if(string.IsNullOrEmpty(request.Title)|| string.IsNullOrEmpty(request.Condition)|| request.Price <= 0)
-            {
-                return BadRequest("Field(s) missing.");
-            }
-
-            var response= await _listingsService.CreateListings(request);
-            return Ok(response);
+            return BadRequest("Field(s) missing.");
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] CreateListingsDto request,int id)
-        {
-            var updateL=await _listingsService.Listing.UpdateAsync;
+        var response = await _listings.CreateListings(request);
+        return Ok(response);
+    }
 
-            if(!updateL){
-                return NotFound();
-            }
-            return Ok("Listings updated successfully");
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update([FromBody] ListingSummaryDto request, Guid id)
+    {
+        var updateL = await _listings.UpdateListings(request, id);
+
+        if (!updateL)
+        {
+            return NotFound();
         }
+        return Ok("Listings updated successfully");
+    }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success=await _listingsService.DeleteAsync(id);
+        var success = await _listings.DeleteListings(id);
 
-        if(!success){
+        if (!success)
+        {
             return NotFound();
         }
 

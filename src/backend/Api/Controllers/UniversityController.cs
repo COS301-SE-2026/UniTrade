@@ -19,11 +19,11 @@ namespace Api.Controllers
         {
             try
             {
-                var universities = _context.Universities.Where(u=> u.Is_Active).Select(u=> new
+                var universities = _context.Universities.Where(u=> u.IsActive).Select(u=> new
                 {
-                    u.University_ID,
+                    u.UniversityId,
                     u.Name,
-                    u.Email_domain
+                    u.EmailDomain
                 }).ToList();
 
                 return Ok(new
@@ -32,7 +32,7 @@ namespace Api.Controllers
                     data = universities
                 });
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new { message = "An error occurred while fetching universities" });
             }
