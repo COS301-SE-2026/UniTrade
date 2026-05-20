@@ -2,7 +2,7 @@ using API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using API.Modules.Identity; 
+using Modules.Identity; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +18,9 @@ builder.Services.AddDbContext<AppDbContext>(options=>
 
 //service layer for login endpoint
 builder.Services.AddScoped<IIdentityService,IdentityService>();
+
+//service layer for listings
+builder.Services.AddScoped<IListingsService,ListingsService>();
 
 //authentication setup(jwt)
 var jwtSecret=builder.Configuration["JWT_SECRET"];
