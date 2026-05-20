@@ -15,7 +15,7 @@ namespace Modules.Listings
             _dbContext=dbContext;
         }
 
-        public async Task<Listings> CreateListings(CreateListingsDto listings)
+        public async Task<Listings> CreateListings(ListingsDto listings)
         {
             //link dto to model. update server side
             var newlistings=new Listing
@@ -34,7 +34,7 @@ namespace Modules.Listings
             return newlistings;
         }
 
-        public async Task<bool> UpdateListings(CreateListingsDto listings, int id)
+        public async Task<bool> UpdateListings(ListingsDto listings, int id)
         {
             var listingLookUp=await _dbContext.Listing.FindAsync(id);
             if(listingLookUp==null)
