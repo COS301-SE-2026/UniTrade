@@ -12,6 +12,7 @@ using Modules.ReferenceData.University;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using System.Threading.RateLimiting;
 
 DotEnv.Load(options: new DotEnvOptions(
     envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -22,6 +23,32 @@ var builder = WebApplication.CreateBuilder(args);
 // configs 
 builder.Configuration.AddEnvironmentVariables();
 
+//rate limiting, for login and register, the verify otp endpoints already handle this 
+builder.Services.AddRateLimiter(options =>
+{
+    //allow 5 attempts per IP per hour
+    options.AddPolicy("register", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+    _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = 5, // might be a bit harsh??
+        Window = TimeSpan.FromHours(1),
+        QueueLimit = 0
+    }));
+
+    // allow 10 per IP per 15 minutes
+    options.AddPolicy("login", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+    _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = 10,
+        Window = TimeSpan.FromMinutes(15),
+        QueueLimit = 0
+    }));
+
+    options.RejectionStatusCode = 429;
+
+});
 // db context 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -90,14 +117,15 @@ else
 {
     app.UseHsts();
 }
-app.UseHttpsRedirection();
 
+app.UseForwardedHeaders();
+app.UseHttpsRedirection();
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseMiddleware<AuthMiddleware>();
-app.UseAuthentication();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
