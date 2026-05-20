@@ -175,7 +175,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("me")]
-    [Authorise]
+    [Authorize]
     public async Task<IActionResult> GetMe()
     {
         try
