@@ -55,5 +55,24 @@ expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
 });
 });
 
+test('should handle failed login and display error message', async () => {
+
+mockPost.mockRejectedValueOnce(new Error('Invalid credentials'));
+
+render(<Login />);
+
+const loginButton = screen.getByRole('button', { name: /login/i });
+
+fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com',name: 'email' } });
+fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'notpassword',name: 'password' } });
+fireEvent.click(loginButton);
+
+await waitFor(() => {
+
+expect(screen.getByText(/Invalid email or password/i)).toBeInTheDocument();
+
+
+});
+});
 
 });;
