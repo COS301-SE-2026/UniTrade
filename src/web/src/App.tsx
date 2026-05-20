@@ -4,6 +4,7 @@ import AppLayout from './components/layout/AppLayout'
 import { useAuthStore } from './store/useAuthStore'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
+import OTP_verification from './pages/auth/OTP_verification'
 import UploadListing from './pages/seller/UploadListing'
 import EditListing from './pages/seller/EditListing'
 
@@ -36,11 +37,12 @@ export default function App() {
     <Routes>
       {/*<Route element={<AppLayout />}>*/}
        
-        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/auth/HomePage" replace />} />
       <Route path="/" element={<HomePage/>} />
       <Route path="/auth/Login" element={<Login />} />
       <Route path="/auth/Signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
+      <Route path="/verify-otp" element={<OTP_verification />} />
       
 
 
