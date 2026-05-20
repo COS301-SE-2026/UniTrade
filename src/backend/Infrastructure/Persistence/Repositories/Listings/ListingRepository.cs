@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence;
 using Modules.Listings.Models;
-using Modules.Listings.Models.Dto;
+using Modules.Listings.Models.DTO;
 using Modules.Listings.Repositories;
 
 namespace Infrastructure.Persistence.Repositories.Listings;
@@ -9,8 +9,13 @@ namespace Infrastructure.Persistence.Repositories.Listings;
 public class ListingRepository : IListingRepository
 {
     private readonly AppDbContext _db;
+    private readonly ListingsService _listingsService;
 
-    public ListingRepository(AppDbContext db) => _db = db;
+    public ListingRepository(AppDbContext db, ListingsService listingsService)
+    {
+        _db=db;
+        _listingsService=listingsService;
+    } 
 
     public async Task<Listing?> GetByIdAsync(Guid listingId)
     {
@@ -165,5 +170,31 @@ public class ListingRepository : IListingRepository
             item.Images = images.Where(i => i.ListingId == item.ListingId).ToList();
 
         return (items, total);
+    }
+
+    public async Task AddAsync(ListingsModel listings)
+    {
+        _db.Listings.Add(listing);
+        await _db.Listings.SaveChangesAsync();
+    }
+    public async Task UpdateAsync(Listings listings,Guid id)
+    {
+        _db.Listings.Update(id);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteByIdAsync(Guid id)
+    {
+        var listing = await _db.Listings.FindAsync(id);
+            if (listing!=null)
+            {
+                _db.Listings.Remove(listing);
+                await _db.SaveChangesAsync();
+            }
+    }
+
+    public async Task<ListingsModel> GetByIdAsync(Guid id)
+    {
+        return await _db.Listings.FindAsync(id);
     }
 }

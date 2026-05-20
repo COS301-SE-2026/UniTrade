@@ -41,7 +41,7 @@ public class ListingService : IListingService
         .ToList());
 
         
-        public async Task<Listing> CreateListings(ListingsDto listings)
+        public async Task<Listing> CreateListings(ListingSummaryDto listings)
         {
             //link dto to model. update server side
             var newlistings=new Listing
@@ -59,7 +59,7 @@ public class ListingService : IListingService
             return newlistings;
         }
 
-        public async Task<bool> UpdateListings(ListingsDto listings, int id)
+        public async Task<bool> UpdateListings(ListingSummaryDto listings, int id)
         {
             var listingLookUp=await _listingrepo.GetByIdAsync(id);
             if(listingLookUp==null)

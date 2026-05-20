@@ -1,4 +1,4 @@
-using Infrastructure.Persistence;
+//using Infrastructure.Persistence;
 using Modules.Notifications;
 using Modules.Identity.Models;
 using Modules.ReferenceData.University;
@@ -13,7 +13,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using BCrypt.Net;
 using Microsoft.Extensions.Configuration;
-using Modules.Identity.Models.DTO;
+using Modules.Identity.Models.Dto;
 
 ////note for me(sabira)---> make sure to change paths regarding infra 
 public class IdentityService : IIdentityService
