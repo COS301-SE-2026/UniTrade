@@ -1,15 +1,258 @@
 using Microsoft.EntityFrameworkCore;
-using Modules.Identity.Models; 
+using Modules.Identity.Models;
+using Modules.ReferenceData.University;
+using Modules.ReferenceData.Course;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 
-namespace Infrastructure.Persistence{
 
-    public class AppDbContext : DbContext
+namespace Infrastructure.Persistence;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    // Identity
+    public DbSet<User> Users => Set<User>();
+    public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
+    public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
+    public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    ///add listing model after resolving conflicts
+
+    // Reference data 
+    public DbSet<University> Universities => Set<University>();
+    public DbSet<Course> Courses => Set<Course>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options):base(options) {}
-        public DbSet<User> Users { get; set; };
-        public DbSet<StudentProf>StudentProfiles{get;set;};
-        public DbSet<AdminProf>AdminProfiles{get;set;};
-        public DbSet<University>Universities{get;set;};
-        public DbSet<listingsModel>Listings{get;set;};
+        base.OnModelCreating(modelBuilder);
+
+        // FOR User
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("Users", tb => tb.HasTrigger("tr_users_updated_at"));
+
+            entity.HasKey(x => x.UserId);
+            entity.Property(x => x.UserId).HasColumnName("user_id");
+
+            entity.Property(x => x.Role)
+                .HasMaxLength(10)
+                .IsRequired().HasColumnName("role");
+            entity.Property(x => x.FirstName)
+               .IsRequired().HasColumnName("first_name").HasMaxLength(50).IsRequired();
+
+            entity.Property(x => x.LastName)
+              .IsRequired().HasColumnName("last_name").HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Email)
+                          .IsRequired().HasColumnName("email").HasMaxLength(255).IsRequired();
+
+            entity.Property(x => x.PhoneNumber)
+               .IsRequired().HasColumnName("phone_number").HasMaxLength(20);
+
+            entity.Property(x => x.PasswordHash)
+                .IsRequired().HasColumnName("password_hash").IsRequired();
+
+
+            entity.Property(x => x.CreatedAt)
+                            .HasColumnName("created_at");
+
+            entity.Property(x => x.UpdatedAt)
+                                .HasColumnName("updated_at");
+
+            entity.HasIndex(x => x.Email)
+               .IsUnique();
+
+        });
+
+
+        // FOR Student
+
+        modelBuilder.Entity<StudentProfile>(entity =>
+   {
+       entity.ToTable("Student_profiles");
+
+       entity.HasKey(x => x.StudentId);
+
+       entity.Property(x => x.StudentId)
+           .HasColumnName("student_id");
+
+       entity.Property(x => x.StudentNumber)
+           .HasColumnName("student_number")
+           .HasMaxLength(50);
+
+       entity.Property(x => x.UniversityId)
+           .HasColumnName("university_id")
+           .IsRequired();
+
+       entity.Property(x => x.CourseId)
+           .HasColumnName("course_id");
+
+       entity.Property(x => x.YearOfStudy)
+           .HasColumnName("year_of_study")
+           .IsRequired();
+
+       entity.Property(x => x.VerificationStatus)
+           .HasColumnName("verification_status")
+           .HasMaxLength(20)
+           .IsRequired()
+           .HasDefaultValue("pending");
+
+       entity.Property(x => x.ReputationScore)
+           .HasColumnName("reputation_score")
+           .HasPrecision(4, 2)
+           .HasDefaultValue(0);
+
+       entity.HasOne(x => x.User)
+           .WithOne(x => x.StudentProfile)
+           .HasForeignKey<StudentProfile>(x => x.StudentId)
+           .OnDelete(DeleteBehavior.Cascade);
+
+       entity.HasOne<University>()
+           .WithMany()
+           .HasForeignKey(x => x.UniversityId)
+           .OnDelete(DeleteBehavior.Restrict);
+
+       entity.HasOne<Course>()
+            .WithMany()
+            .HasForeignKey(x => x.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+   });      //ADMIN
+        modelBuilder.Entity<AdminProfile>(entity =>
+        {
+            entity.ToTable("Admin_profiles");
+
+            entity.Property(x => x.AdminId).HasColumnName("admin_id");
+
+            entity.HasKey(x => x.AdminId);
+
+            entity.Property(x => x.UniversityId).HasColumnName("university_id")
+            .IsRequired();
+
+            entity.Property(x => x.UserId).HasColumnName("user_id");
+
+            entity.HasOne(x => x.User)
+            .WithOne(x => x.AdminProfile)
+            .HasForeignKey<AdminProfile>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(x => x.UniversityId).HasColumnName("university_id");
+
+            entity.HasOne<University>()
+            .WithMany()
+            .HasForeignKey(x => x.UniversityId)
+            .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+        // University 
+        modelBuilder.Entity<University>(entity =>
+        {
+            entity.ToTable("University");
+
+            entity.Property(x => x.UniversityId).HasColumnName("university_id");
+
+            entity.HasKey(x => x.UniversityId);
+
+            entity.Property(x => x.Name).HasColumnName("name")
+            .IsRequired();
+
+            entity.Property(x => x.IsActive).HasColumnName("is_active")
+           ;
+
+            entity.Property(x => x.EmailDomain).HasColumnName("email_domain")
+                .IsRequired();
+
+            entity.HasIndex(x => x.EmailDomain)
+                          .IsUnique();
+        });
+
+
+
+
+
+        // Course
+
+        modelBuilder.Entity<Course>(entity =>
+        {
+            entity.ToTable("Course");
+
+            entity.Property(x => x.CourseId).HasColumnName("course_id");
+            entity.HasKey(x => x.CourseId);
+
+            entity.Property(x => x.CourseCode).HasColumnName("course_code")
+               .IsRequired();
+
+            entity.Property(x => x.CourseName).HasColumnName("course_name")
+             .IsRequired();
+
+            entity.Property(x => x.UniversityId).HasColumnName("university_id");
+            entity.HasOne<University>()
+            .WithMany()
+           .HasForeignKey(x => x.UniversityId)
+           .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+
+
+        // Verification Requests
+        modelBuilder.Entity<VerificationRequest>(entity =>
+{
+    entity.ToTable("Verification_requests", tb =>
+    {
+        tb.HasTrigger("tr_verification_set_current");
+        tb.HasTrigger("tr_audit_verification_decision");
+    });
+
+    entity.HasKey(x => x.VerificationId);
+    entity.Property(x => x.VerificationId)
+          .HasColumnName("verification_id");
+
+    entity.HasIndex(x => new { x.UserId, x.AttemptNumber })
+          .IsUnique();
+
+    entity.Property(x => x.UserId).HasColumnName("user_id");
+
+    entity.Property(x => x.AiConfidenceScore)
+          .HasColumnName("ai_confidence_score")
+          .HasPrecision(4, 2);
+
+    entity.Property(x => x.Status)
+          .HasColumnName("status")
+          .HasMaxLength(20)
+          .HasDefaultValue("otp_pending");
+
+    entity.Property(x => x.AiDecision)
+          .HasColumnName("ai_decision")
+          .HasMaxLength(20);
+
+    entity.Property(x => x.AdminDecision)
+          .HasColumnName("admin_decision")
+          .HasMaxLength(20);
+
+    entity.Property(x => x.OtpCodeHash)
+          .HasColumnName("otp_code_hash")
+          .HasMaxLength(255);
+
+    entity.Property(x => x.IsCurrent).HasColumnName("is_current");
+    entity.Property(x => x.AdminId).HasColumnName("admin_id");
+    entity.Property(x => x.AttemptNumber).HasColumnName("attempt_number");
+    entity.Property(x => x.DecidedAt).HasColumnName("decided_at");
+    entity.Property(x => x.OtpExpiresAt).HasColumnName("otp_expires_at");
+    entity.Property(x => x.OtpResendCount).HasColumnName("otp_resend_count");
+    entity.Property(x => x.OtpSentAt).HasColumnName("otp_sent_at");
+    entity.Property(x => x.OtpVerifiedAt).HasColumnName("otp_verified_at");
+    entity.Property(x => x.PorFilePath).HasColumnName("por_file_path");
+    entity.Property(x => x.RejectionReason).HasColumnName("rejection_reason");
+    entity.Property(x => x.SubmittedAt).HasColumnName("submitted_at");
+
+
+    entity.HasOne<User>()
+          .WithMany()
+          .HasForeignKey(x => x.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+});
+
     }
 }

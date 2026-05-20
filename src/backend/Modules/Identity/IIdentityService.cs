@@ -1,10 +1,13 @@
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Models;
 
-namespace API.Modules.Identity
+namespace Modules.Identity;
+
+public interface IIdentityService
 {
-    public interface IIdentityService
-    {
-        Task<LoginResponse> LoginAsync(LoginDTO loginDto);
-    }
+    
+    Task<User> RegisterAsync(RegisterDto dto);
+    Task<User?> GetUserByEmailAsync(string email);
+    Task<string> LoginAsync(LoginDTO loginDto);
+    Task<object> GetMeAsync(string userId); 
 }
