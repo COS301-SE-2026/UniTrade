@@ -244,11 +244,11 @@ public class IdentityService : IIdentityService
 
     public async Task<User> GetMeAsync(string userId)
     {
-        var getUser=await _users.GetByIdAsync(userid);
+        var getUser=await _users.GetByIdAsync(Guid.Parse(userId));
 
         if(getUser==null)
         {
-            return throw new Exception("user not found");
+            throw new Exception("user not found");
         }
 
         if(getUser.Role=="student")
