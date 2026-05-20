@@ -1,4 +1,5 @@
-namespace API.Modules.Identity.Models.DTO
+using System.Text.Json.Serialization;
+namespace Modules.Identity.Models.DTO
 {
     public class LoginResponse
     {

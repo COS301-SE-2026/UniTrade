@@ -1,72 +1,201 @@
+using Microsoft.AspNetCore.Mvc;
 using Modules.Identity.Models.DTO;
 using Modules.Identity;
-using Modules.Identity.Models;
-using Microsoft.AspNetCore.Mvc; 
+using Modules.Identity.Verification;
+using Modules.Identity.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
-namespace Api.Controllers
+namespace Api.Controllers;
+
+[ApiController]
+[Route("api/auth")]
+public class AuthController : ControllerBase
 {
-    [Route("api/auth")]
-    [ApiController]
+    private readonly IIdentityService _identityService;
+    private readonly IVerificationService _verificationService;
 
-    public class AuthController:ControllerBase
+    public AuthController(
+        IIdentityService identityService,
+        IVerificationService verificationService)
     {
+        _identityService = identityService;
+        _verificationService = verificationService;
+    }
 
-        private readonly IIdentityService _identityService;
-        public AuthController(IIdentityService identityService)
+
+    [HttpPost("register")]
+    [EnableRateLimiting("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    {
+        try
         {
-            _identityService=identityService;
-        }
+            var user = await _identityService.RegisterAsync(dto);
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody]LoginDTO request)
-        {
-        try{
+            await _verificationService.InitiateAsync(user.Email, user.UserId);
 
-            if(string.IsNullOrEmpty(request.Email)|| string.IsNullOrEmpty(request.Password))
+            return Ok(new
             {
-                return BadRequest(new {message="Email and password are required"});
-            }
-            var response=await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
-
-            if(response==null||response.User==null)
-            {
-                return Unauthorized(new {message="Invalid credentials"});
-            }
-
-            Response.Cookies.Append("authToken",response.Token!,new CookieOptions
-            {
-                HttpOnly=true,
-                Secure=true,
-                SameSite=SameSite.Lax
+                message = "OTP sent to your email."
             });
-
-            return Ok(new 
-            {
-                response.Message,
-                response.User
-            }
-            );
         }
-        catch(Exception e)
+        catch (Exception ex)
         {
-            return StatusCode(500,new{message="An internal server error occurred"});
+            return ex.Message switch
+            {
+                "invalid_email" => UnprocessableEntity(new { error = "invalid_email" }),
+                "invalid_year_of_study" => UnprocessableEntity(new { error = "invalid_year_of_study" }),
+                "email_taken" => Conflict(new { error = "email_taken" }),
+                "otp_already_sent" => StatusCode(429, new { error = "otp_already_sent" }),
+                "invalid_domain" => UnprocessableEntity(new { error = "invalid_domain" }),
+                "weak_password" => UnprocessableEntity(new { error = "weak_password" }),
+                _ => StatusCode(500, new { error = "server_error" })
+            };
         }
     }
 
-        [HttpPost("logout")]
-        public IActionResult Logout()
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+    {
+        try
         {
-            Response.Cookies.Delete("authToken", new CookieOptions
+            var user = await _identityService.GetUserByEmailAsync(dto.Email);
+
+            if (user == null)
+                return Unauthorized(new { error = "invalid_otp" });
+
+
+            await _verificationService.VerifyAsync(user.UserId, dto.Otp);
+
+            return Ok(new
             {
-                HttpOnly=true,
-                Secure=true,
-                SameSite=SameSiteMode.Lax
-            });
-            return Ok(new 
-            {
-                message="Logged out successfully"
+                message = "Verified successfully."
             });
         }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+                "invalid_otp" => Unauthorized(new { error = "invalid_otp" }),
+                "otp_expired" => Unauthorized(new { error = "otp_expired" }),
+                "max_attempts_exceeded" => StatusCode(429, new { error = "max_attempts_exceeded" }),
+                _ => StatusCode(500, new { error = "server_error" })
+            };
+        }
+    }
 
+    [HttpPost("resend-otp")]
+    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+    {
+        try
+        {
+            var user = await _identityService.GetUserByEmailAsync(dto.Email);
+
+            if (user == null)
+            {
+                // this prevents email enumeration (always return success)
+                return Ok(new
+                {
+                    message = "If this email is registered and pending verification, a new OTP has been sent."
+                });
+            }
+
+            await _verificationService.ResendAsync(user.UserId, dto.Email);
+
+            return Ok(new
+            {
+                message = "If this email is registered and pending verification, a new OTP has been sent."
+            });
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+                "already_verified" => Conflict(new { error = "already_verified" }),
+                "invalid_request" => BadRequest(new { error = "invalid_request" }),
+                "resend_limit_exceeded" =>
+                    StatusCode(429, new { error = "resend_limit_exceeded", retry_after_seconds = 60 }),
+
+                "cooldown_active" =>
+                    StatusCode(429, new { error = "cooldown_active", retry_after_seconds = 60 }),
+
+                _ => StatusCode(500, new { error = "server_error" })
+            };
+        }
+    }
+
+    [HttpPost("login")]
+    [EnableRateLimiting("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDTO request)
+    {
+        try
+        {
+
+
+            var token = await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
+
+            Response.Cookies.Append("authToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(24)
+            });
+
+            return Ok(new
+            {
+                message = "Login successful"
+            }
+            );
+        }
+        catch (Exception e)
+        {
+            return e.Message switch
+            {
+                "invalid_credentials" => Unauthorized(new { error = "invalid_credentials" }),
+                _ => StatusCode(500, new { error = "server_error" })
+            };
+        }
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("authToken", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax
+        });
+        return Ok(new
+        {
+            message = "Logged out successfully"
+        });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe()
+    {
+        try
+        {
+            //'USer' here is built in. .net puts all jwt claims in this Object when client requests
+            var userId=User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new{ error="unauthenticated"});
+            }
+
+            var result = await _identityService.GetMeAsync(userId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+            "not_found"=> Unauthorized(new { error="unauthenticated" }),_ => StatusCode(500, new { error = "server_error" })
+            };
+        }
     }
 }
