@@ -1,6 +1,9 @@
-import { useState } from "react";
+import React,{ useState } from "react";
 import girl from "../../assets/girl.png";
 import { useNavigate } from "react-router-dom";
+
+type APIResponse = {data: {token?: string}}
+type APIType = {post: (url: string, data: unknown) => Promise<APIResponse>}
 
 
 const Signup: React.FC = () => {
@@ -26,12 +29,12 @@ const Signup: React.FC = () => {
    }));     
     };
 
-  
+
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoading(true);
   setError(null);
-  const API = (window as any).API || { post: async () => ({ data: {} }) };// for testing
+  const API = (window as unknown as { API?: APIType}).API ?? { post: async (): Promise<APIResponse> => ({ data: {} }) }// for testing
   try {
     const response = await API.post('/auth/Signup',{
       firstName: formData.firstName,
@@ -46,7 +49,7 @@ const handleSubmit = async (e: React.FormEvent) => {
    if(response.data && response.data.token) {
      navigate('/buyer/dashboard');
    }
-  }catch (err) {
+  }catch {
     setError('Signup failed. Please check your details and try again.');
   } finally {
     setLoading(false);

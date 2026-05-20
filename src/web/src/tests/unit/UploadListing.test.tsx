@@ -1,5 +1,5 @@
 import {render,screen,fireEvent} from '@testing-library/react';
-import {describe,test,expect,beforeEach,vi} from 'vitest';
+import {test,expect} from 'vitest';
 import UploadListing from '../../pages/seller/UploadListing';
 import '@testing-library/jest-dom';
 
