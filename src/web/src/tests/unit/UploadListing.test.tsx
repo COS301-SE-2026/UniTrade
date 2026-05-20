@@ -42,6 +42,16 @@ test('should update condition pills on selection tap', ()  =>
     
 });
 
+test('should update input when typing', () => {
+    render(<UploadListing />);
+    fillForm();
+
+    expect(screen.getByPlaceholderText('Title')).toHaveValue('Calculus Early Transcendentals');
+    expect(screen.getByPlaceholderText('Description')).toHaveValue('Good condition, Minor scratches');
+
+
+});
+
 
 
 
