@@ -6,22 +6,26 @@ using Modules.Notifications;
 using Modules.Identity.Repositories;
 namespace Modules.Identity.Verification;
 
+using Microsoft.Extensions.Configuration;
+
 public class VerificationService : IVerificationService
 {
     private readonly IVerificationRepository _verifications;
 
     private readonly IUserRepository _users;
     private readonly INotificationsService _notifications;
+    private readonly IConfiguration _config;
     private const int OTP_EXPIRY_MINUTES = 5;
     private const int MAX_ATTEMPTS = 3;
     private const int MAX_RESENDS = 3;
     private const int RESEND_COOLDOWN_SECONDS = 60;
 
-    public VerificationService(IVerificationRepository verifications, IUserRepository users, INotificationsService notifications)
+    public VerificationService(IVerificationRepository verifications, IUserRepository users, INotificationsService notifications, IConfiguration config)
     {
         _verifications = verifications;
         _users = users;
         _notifications = notifications;
+        _config = config;
 
     }
     public async Task InitiateAsync(string email, Guid userId)
@@ -120,6 +124,8 @@ public class VerificationService : IVerificationService
         {
             User.StudentProfile.VerificationStatus = "verified";
             await _users.UpdateAsync(User);
+            await _notifications.SendWelcomeEmailAsync(User.Email, User.FirstName);
+
 
         }
         return true;
@@ -176,7 +182,7 @@ public class VerificationService : IVerificationService
     }
     private string HashOtp(string otp)
     {
-        var secret = Environment.GetEnvironmentVariable("Otp_Secret") ?? throw new InvalidOperationException("Otp_Secret environment variable is not configured");
+        var secret = _config["Otp:Secret"] ?? throw new InvalidOperationException("Otp:Secret environment variable is not configured");
 
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));

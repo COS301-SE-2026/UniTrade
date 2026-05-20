@@ -125,7 +125,7 @@ CREATE TABLE Verification_requests(
 CREATE TABLE Listings (
     listing_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
-    course_id INT NOT NULL REFERENCES Course(course_id),
+    course_id INT NULL REFERENCES Course(course_id),
     title NVARCHAR(150) NOT NULL ,
     description NVARCHAR(MAX) NOT NULL,
     price NUMERIC(10, 2) NOT NULL 

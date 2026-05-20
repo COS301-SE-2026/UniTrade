@@ -51,4 +51,118 @@ public class ResendEmailService : INotificationsService
         }
     }
 
+    public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
+    {
+        var payload = new
+        {
+            from = _config["Resend:FromEmail"],
+            to = toEmail,
+            subject = "Welcome to UniTrade!",
+            html = WelcomeHtml(firstName)
+        };
+        var apiKey = _config["Resend:ApiKey"];
+
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        var response = await _http.PostAsJsonAsync("https://api.resend.com/emails", payload);
+        response.EnsureSuccessStatusCode();
+    }
+
+    // will have to ask the front end team to align it to the palette
+    private static string WelcomeHtml(string firstName) => $"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </head>
+    <body style="margin:0;padding:0;background:#f0f4f8;font-family:'Segoe UI',Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:40px 0;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+              
+              <tr>
+                <td style="background:#0f2d6b;padding:36px 40px;text-align:center;">
+                  <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">UniTrade</h1>
+                  <p style="margin:6px 0 0;color:#93b4e8;font-size:14px;">Your university marketplace</p>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding:40px;">
+                  <h2 style="margin:0 0 16px;color:#0f2d6b;font-size:22px;">Welcome, {firstName}!</h2>
+                  <p style="margin:0 0 16px;color:#4a5568;font-size:15px;line-height:1.6;">
+                    Your account has been verified and you're all set. You can now buy and sell textbooks, 
+                    notes, and more with students at your university.
+                  </p>
+
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+                    <tr><td style="border-top:1px solid #e2e8f0;"></td></tr>
+                  </table>
+
+                  <!-- steps -->
+                  <p style="margin:0 0 16px;color:#0f2d6b;font-size:15px;font-weight:600;">Get started in 3 steps:</p>
+                  
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:10px 0;">
+                        <table cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="background:#1a56db;color:#fff;border-radius:50%;width:28px;height:28px;text-align:center;font-size:13px;font-weight:700;vertical-align:middle;">1</td>
+                            <td style="padding-left:12px;color:#4a5568;font-size:14px;">Browse listings from students at your university</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px 0;">
+                        <table cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="background:#1a56db;color:#fff;border-radius:50%;width:28px;height:28px;text-align:center;font-size:13px;font-weight:700;vertical-align:middle;">2</td>
+                            <td style="padding-left:12px;color:#4a5568;font-size:14px;">Post your first listing — textbooks, notes, or items</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px 0;">
+                        <table cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="background:#1a56db;color:#fff;border-radius:50%;width:28px;height:28px;text-align:center;font-size:13px;font-weight:700;vertical-align:middle;">3</td>
+                            <td style="padding-left:12px;color:#4a5568;font-size:14px;">Connect with buyers and sellers on campus</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
+                    <tr>
+                      <td align="center">
+                        <a href="https://UniTrade.co.za" 
+                           style="display:inline-block;background:#1a56db;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.2px;">
+                          Go to UniTrade
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="background:#f7f9fc;border-top:1px solid #5095f0;padding:20px 40px;text-align:center;">
+                  <p style="margin:0;color:#a0aec0;font-size:12px;">
+                    You're receiving this because you created a UniTrade account.<br/>
+                    © 2025 UniTrade. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+    """;
 }

@@ -108,7 +108,7 @@ public class AuthController : ControllerBase
             return ex.Message switch
             {
                 "already_verified" => Conflict(new { error = "already_verified" }),
-                "invalid_request" => BadRequest(new { error = "invalid_request", detail = ex.Message }),
+                "invalid_request" => BadRequest(new { error = "invalid_request" }),
                 "resend_limit_exceeded" =>
                     StatusCode(429, new { error = "resend_limit_exceeded", retry_after_seconds = 60 }),
 

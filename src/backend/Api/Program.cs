@@ -14,6 +14,7 @@ using Modules.ReferenceData.University;
 DotEnv.Load(options: new DotEnvOptions(
     envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
 ));
+
 var builder = WebApplication.CreateBuilder(args);
 
 // configs 
