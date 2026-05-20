@@ -17,21 +17,21 @@ public class ListingsRepository : IListingsRepository
     public async Task AddAsync(ListingsModel listings)
     {
         try{
-            _dbContext.ListingsModel.Add(listing);
-            _dbContext.ListingsModel.SaveChangesAsync();
+            _dbContext.Listings.Add(listing);
+            await _dbContext.Listings.SaveChangesAsync();
         }
         catch(Exception e)
         {
-            
+
         }
     }
     public async Task UpdateAsync(Listings listings,Guid id)
     {
-        _dbContext.Listings.UpdateAsync(id);
+        _dbContext.Listings.Update(id);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<User?> DeleteByIdAsync(Guid id)
+    public async Task<Listings> DeleteByIdAsync(Guid id)
     {
         _dbContext.Listings.Remove(id);
         await _dbContext.SaveChangesAsync();
