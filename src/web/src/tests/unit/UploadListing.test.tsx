@@ -25,6 +25,21 @@ const electronicsTab = screen.getByRole('button', {name:
     /electronics/i });
     fireEvent.click(electronicsTab);
     expect(screen.getByPlaceholderText('Brand / Model')).toBeInTheDocument();
+
+    const furnitureTab = screen.getByRole('button', {name:
+    /furniture/i });
+    fireEvent.click(furnitureTab);
+    expect(screen.getByPlaceholderText('Dimensions')).toBeInTheDocument();
+
+});
+
+test('should update condition pills on selection tap', ()  =>
+{
+    render(<UploadListing />);
+    const likeNewPill = screen.getByRole('button', {name: /like new/i});
+    fireEvent.click(likeNewPill);
+    expect(likeNewPill).toHaveClass('bg-[#0F2D5E]');
+    
 });
 
 
