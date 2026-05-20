@@ -1,4 +1,4 @@
-using Modules.Identity.Models.DTO;
+using Modules.Identity.Models.Dto;
 using Modules.Identity.Models;
 
 namespace Modules.Identity;
