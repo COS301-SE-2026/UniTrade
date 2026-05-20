@@ -1,31 +1,28 @@
-using Modules.Listing;
-using Modules.Listing.Models;
-using Modules.Listing.Models.DTO;
+using Microsoft.AspNetCore.Mvc;
+using Modules.Listings;
+using Modules.Listings.Models.Dto;
 
-namespace API.Controller
+
+namespace Api.Controllers;
+
+[ApiController]
+[Route("api/listings")]
+public class ListingController : ControllerBase
 {
-    [Route("api/listings")]
-    [ApiController]
-    
-    public class ListingsController: ControllerBase
-    {
-        private readonly IListingsService _listingsService;
+    private readonly IListingService _listings;
 
-        public ListingsController(IListingsService listingsService)
-        {
-            _listingsService=listingsService;
-        }
+    public ListingController(IListingService listings) => _listings = listings;
 
-        [HttpPost]
+    [HttpPost]
         public async Task<IActionResult> Create([FromBody]CreateListingsDto request)
         {
-            if(string.IsNullOrEmpty(request.Title)|| string.IsNullOrEmpty(request.Price)|| string.IsNullOrEmpty(request.Price))
+            if(string.IsNullOrEmpty(request.Title)|| string.IsNullOrEmpty(request.Condition)|| request.Price <= 0)
             {
                 return BadRequest("Field(s) missing.");
             }
 
             var response= await _listingsService.CreateListings(request);
-            return response;
+            return Ok(response);
         }
 
         [HttpPut("{id}")]
@@ -33,23 +30,37 @@ namespace API.Controller
         {
             var updateL=await _listingsService.Listing.UpdateAsync;
 
-            if(updateL==null){
+            if(!updateL){
                 return NotFound();
             }
-            return Ok(updateL);
+            return Ok("Listings updated successfully");
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var success=await _listingsService.DeleteAsync(id);
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var success=await _listingsService.DeleteAsync(id);
 
-            if(!success){
-                return NotFound();
-            }
-
-            return NoContent();
+        if(!success){
+            return NotFound();
         }
 
+        return NoContent();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] ListFilterDto filter)
+    {
+        var result = await _listings.ListAsync(filter);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var listing = await _listings.GetByIdAsync(id);
+        if (listing == null)
+            return NotFound(new { error = "listing_not_found" });
+        return Ok(listing);
     }
 }

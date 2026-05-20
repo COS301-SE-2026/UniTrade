@@ -1,15 +1,16 @@
-using Modules.Listings.Models.DTO;
 using Modules.Listings.Models;
+using Modules.Listings.Models.Dto;
+using Modules.Listings.Repositories;
+using Modules.SharedKernel;
 
 namespace Modules.Listings;
 
-public interface IListingsService
+public interface IListingService
 {
-   
-        Task<Listing> CreateListings(ListingsDto listings);//retruning a listings-> so when
+    Task<Listing> CreateListings(ListingSummaryDto listings);//retruning a listings-> so when
         //users can see WHEN it was created and so on.P.s could be void, but retruning is stardard procedure.
-        Task<bool> UpdateListings(ListingsDto listings, int id);
-        Task<bool> DeleteListings(int id);
-
-
+    Task<bool> UpdateListings(ListingSummaryDto listings, int id);
+    Task<bool> DeleteListings(int id);
+    Task<ListingSummaryDto?> GetByIdAsync(Guid listingId);
+    Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter);
 }
