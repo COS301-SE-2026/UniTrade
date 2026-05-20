@@ -1,10 +1,10 @@
 using Modules.Listings.Models;
 using Modules.Listings.Models.DTO;
 
-namespace Modules.Listings
+using Modules.Listings;
+
+public class ListingsService: IListingsService
 {
-    public class ListingsService: IListingsService
-    {
         ///connect to db/repo--> make sure to change this to repo like zee's structure!!!
         /// 
         //for now connecting to the 
@@ -25,7 +25,7 @@ namespace Modules.Listings
                 Price=listing.Price,
                 Condition=listings.condition,
                 Created_at=DateTime.UtcNow
-            }
+            };
 
             //update db (iinsert)
             _dbContext.Listings.Add(newlistings);
@@ -67,7 +67,7 @@ namespace Modules.Listings
 
             return true;
         }
-    }
 }
+
 
 
