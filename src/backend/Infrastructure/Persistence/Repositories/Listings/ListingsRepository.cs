@@ -16,14 +16,24 @@ public class ListingsRepository : IListingsRepository
 
     public async Task AddAsync(ListingsModel listings)
     {
-
+        try{
+            _dbContext.ListingsModel.Add(listing);
+            _dbContext.ListingsModel.SaveChangesAsync();
+        }
+        catch(Exception e)
+        {
+            
+        }
     }
-    public async Task UpdateAsync(ListingsModel listings,Guid id)
+    public async Task UpdateAsync(Listings listings,Guid id)
     {
-
+        _dbContext.Listings.UpdateAsync(id);
+        await _dbContext.SaveChangesAsync();
     }
+
     public async Task<User?> DeleteByIdAsync(Guid id)
     {
-
+        _dbContext.Listings.Remove(id);
+        await _dbContext.SaveChangesAsync();
     }
 }
