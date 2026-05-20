@@ -13,6 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using System.Threading.RateLimiting;
+using Modules.Listings;
+using Modules.Listings.Repositories;
+using Infrastructure.Persistence.Repositories.Listings;
 
 DotEnv.Load(options: new DotEnvOptions(
     envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -72,6 +75,10 @@ builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
+
+
+builder.Services.AddScoped<IListingService, ListingService>();
+builder.Services.AddScoped<IListingRepository, ListingRepository>();
 
 //authentication setup(jwt)
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT_SECRET is not configured");

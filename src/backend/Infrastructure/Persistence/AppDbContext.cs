@@ -309,8 +309,13 @@ public class AppDbContext : DbContext
 
            entity.Property(x => x.RejectionReason).HasColumnName("rejection_reason");
 
+           entity.Property(x => x.isBundle)
+               .HasColumnName("is_bundle");
            entity.Property(x => x.ViewCount).HasColumnName("view_count").HasDefaultValue(0);
-
+           entity.Property(x => x.AiRiskScore).HasColumnName("ai_risk_score");
+           entity.Property(x => x.AiRiskLevel).HasColumnName("ai_risk_level");
+           entity.Property(x => x.VisibilityScore).HasColumnName("visibility_score");
+           entity.Property(x => x.RejectionReason).HasColumnName("rejection_reason");
            entity.Property(x => x.CreatedAt)
                           .HasColumnName("created_at")
                           .HasDefaultValueSql("SYSDATETIME()")
@@ -321,7 +326,7 @@ public class AppDbContext : DbContext
                                .HasDefaultValueSql("SYSDATETIME()")
                            .ValueGeneratedOnAddOrUpdate();
 
-           entity.HasOne(x => x.Seller)
+           entity.HasOne<User>()
            .WithMany()
            .HasForeignKey(x => x.SellerId)
            .OnDelete(DeleteBehavior.Restrict);
@@ -345,7 +350,6 @@ public class AppDbContext : DbContext
               HasFilter("[listing_status] = 'live'")
               .IsDescending(false, true, true);
 
-            entity.Ignore(x => x.Seller); // for populating Seller info manually 
        });
 
         //Listing Images
