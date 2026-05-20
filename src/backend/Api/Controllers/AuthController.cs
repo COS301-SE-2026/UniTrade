@@ -173,4 +173,29 @@ public class AuthController : ControllerBase
             message = "Logged out successfully"
         });
     }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe()
+    {
+        try
+        {
+            //'USer' here is built in. .net puts all jwt claims in this Object when client requests
+            var userId=User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new{ error="unauthenticated"});
+            }
+
+            var result = await _identityService.GetMeAsync(userId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+            "not_found"=> Unauthorized(new { error="unauthenticated" }),_ => StatusCode(500, new { error = "server_error" })
+            };
+        }
+    }
 }
