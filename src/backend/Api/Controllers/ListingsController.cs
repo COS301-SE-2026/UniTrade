@@ -31,13 +31,24 @@ namespace API.Controller
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] CreateListingsDto request,int id)
         {
-            var updateL=await _dbContext.Listing.UpdateAsync;
+            var updateL=await _listingsService.Listing.UpdateAsync;
 
             if(update==null){
-                return false;
+                return null;
             }
-            return true;
+            return updateL;
         }
-    }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success=await _listingsService.DeleteAsync(id);
+
+            if(success==null){
+                return null;
+            }
+
+            return success;
+        }
 
 }
