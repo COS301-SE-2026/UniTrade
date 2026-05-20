@@ -1,11 +1,23 @@
 import {render, screen,fireEvent, waitFor} from '@testing-library/react'
 import {describe,test,expect, beforeEach, vi} from 'vitest';
 import Login from '../../pages/auth/Login';
+import { authService } from '../../services/authService';
 
 //mock useNavigate
 const mockPost = vi.fn();
-const mockedNavigate = vi.fn();
 
+
+vi.mock('../../services/authService' ,() =>({
+    authService: { login: vi.fn(),
+      getMe: vi.fn()
+    },
+}))
+
+vi.mock('../../store/useAuthStore' ,() =>({
+    useAuthStore: ()=> ({ setUser: vi.fn()}),
+}))
+
+const mockedNavigate = vi.fn()
 vi.mock('react-router-dom',async () => {
 const actual = await vi.importActual('react-router-dom');
   return{...actual,
@@ -14,64 +26,71 @@ const actual = await vi.importActual('react-router-dom');
     });
 
 //mock girl.png
-vi.mock('../../assets/girl.png', () => ({default: 'mocked-girl.png'}));
+vi.mock('../../assets/girl.png', () => ({default: 'mocked-girl.png'}))
 
 describe('Login Component', () => {
 
 beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  (window as unknown as { API: {post: typeof mockPost}}).API = { post: mockPost };
+    mockedNavigate.mockReset()
+    vi.mocked(authService.login).mockReset()
+    vi.mocked(authService.getMe).mockReset()
 });
 
 
 test( 'should render the login form and buttons', () => {
     render(<Login />);
 
-    expect(screen.getByText('Welcome Back!')).toBeInTheDocument();
-    expect(screen.getByText('Enter your credentials to access your account')).toBeInTheDocument();
+    expect(screen.getByText('Welcome Back!')).toBeInTheDocument()
+    expect(screen.getByText('Enter your credentials to access your account')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Email Address')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
 });
 
 test(' should handle successful login and navigate to dashboard', async () => {
-
-mockPost.mockResolvedValue({ data: { token: 'fake-jwt-token' },});
-
-render(<Login />);
-
-const loginButton = screen.getByRole('button', { name: /login/i });
+   vi.mocked(authService.login).mockResolvedValueOnce(undefined)
+    vi.mocked(authService.getMe).mockResolvedValueOnce({
+      userId :'1',
+      firstName: 'Langa',
+      lastName: 'Vakalisa',
+      email: 'langavaks@gmail.com',
+      role: 'buyer',
+      university:'UP'
+    })
+  
+render(<Login />)
 
 fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com',name: 'email' } });
 fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password100',name: 'password' } });
-fireEvent.click(loginButton);
-
-expect(mockPost).toHaveBeenCalledWith('/auth/Login', { email: 'langavaks@gmail.com', password: 'password100' });
+fireEvent.click(screen.getByRole('button',{name:/login/i}))
 
 await waitFor(() => {
-expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
-});
-});
+expect(authService.login).toHaveBeenCalledWith({
+
+  Email:'langavaks@gmail.com',
+  Password: 'password100',
+})
+
+expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard')
+})
+})
 
 test('should handle failed login and display error message', async () => {
-
-mockPost.mockRejectedValueOnce(new Error('Invalid credentials'));
+ vi.mocked(authService.login).mockRejectedValueOnce(new Error('Server Error'))
 
 render(<Login />);
 
-const loginButton = screen.getByRole('button', { name: /login/i });
 
 fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com',name: 'email' } });
 fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'notpassword',name: 'password' } });
-fireEvent.click(loginButton);
+fireEvent.click(screen.getByRole('button',{name:/login/i}))
 
 await waitFor(() => {
 
-expect(screen.getByText(/Invalid email or password/i)).toBeInTheDocument();
+expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument()
 
 
-});
-});
+})
+})
 
-});
+})

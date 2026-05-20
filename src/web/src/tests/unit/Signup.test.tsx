@@ -1,6 +1,17 @@
 import {render, screen,fireEvent, waitFor} from '@testing-library/react'
 import {describe,test,expect, beforeEach, vi} from 'vitest';
+import { authService } from '../../services/authService';
 import Signup from '../../pages/auth/Signup';
+
+
+vi.mock('../../services/authService' ,() =>({
+    authService: { register: vi.fn()},
+}));
+
+vi.mock('../../store/useAuthStore' ,() =>({
+    useAuthStore: ()=> ({ setPendingEmail: vi.fn()}),
+}));
+
 
 //mock useNavigate
 const mockPost = vi.fn();
@@ -86,7 +97,7 @@ test('should update fields when typing', () => {
 
 });
 
-test('should navigate to dashboard after successful signup', async () => {
+test('should navigate to verify-otp after successful signup', async () => {
 
 mockPost.mockResolvedValueOnce({data: {token: 'fake-jwt-token'}});
 
@@ -96,7 +107,7 @@ formFilled();
 fireEvent.click(screen.getByRole('button', {name:/signup/i}));
 await waitFor(() => {
 
-expect(mockPost).toBeCalledWith('/auth/Signup' ,
+expect(authService.register).toHaveBeenCalledWith(
    {
     firstName: 'Langa',
         lastName: 'Vakalisa',
@@ -107,12 +118,12 @@ expect(mockPost).toBeCalledWith('/auth/Signup' ,
         password: 'Password@100',
     });
 
-expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
+expect(mockedNavigate).toHaveBeenCalledWith('/verify-otp');
 });
 });
 
 test('should show error messages on failed signup', async () => {
-mockPost.mockRejectedValueOnce(new Error('Server error'));
+vi.mocked(authService.register).mockRejectedValueOnce(new Error('Server error'));
 render(<Signup />);
 formFilled();
 fireEvent.click(screen.getByRole('button', {name:
@@ -120,7 +131,7 @@ fireEvent.click(screen.getByRole('button', {name:
 }));
 
 await waitFor(() =>{
-expect(screen.getByText('Signup failed. Please check your details and try again.')).toBeInTheDocument();
+expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
 })
 });
 });
