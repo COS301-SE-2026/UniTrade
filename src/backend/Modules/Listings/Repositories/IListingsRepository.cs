@@ -3,11 +3,11 @@ using Modules.Listings.Models;
 
 namespace Modules.Listings.Repositories;
 
-public interface ListingsRepository
+public interface IListingsRepository
 {
-    Task AddAsync(ListingsModel listings);
-    Task UpdateAsync(ListingsModel listings,Guid id);
-    Task<User?> DeleteByIdAsync(Guid id);
-    Task<ListingsModel> GetUserId(Guid id);
+    Task AddAsync(Listing listings);
+    Task UpdateAsync(Listing listings,Guid id);
+    Task<Listing> DeleteByIdAsync(Guid id);
+    Task<Listing> GetUserId(Guid id);
 
 }
