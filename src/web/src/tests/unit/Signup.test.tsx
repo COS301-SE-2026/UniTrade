@@ -123,8 +123,4 @@ await waitFor(() =>{
 expect(screen.getByText('Signup failed. Please check your details and try again.')).toBeInTheDocument();
 })
 });
-
-test ('should show loading state while request is in flight' ,async ()=> {
-mockPost.mockRejectedValueOnce(new Error('Invalid credentials'));
-})
 });
