@@ -12,8 +12,8 @@ vi.mock('../../services/listingsService', () => ({
 
 const mockListings = {
   listings: [
-    { id: '1', image: '', title: 'Biology Textbook', module: 'BIO121', category: 'Textbooks', price: 1200, condition: 'Good' as const },
-    { id: '2', image: '', title: 'HP Laptop', module: 'COS101', category: 'Electronics', price: 4500, condition: 'Good' as const },
+    { id: '1', image: '', title: 'Biology Textbook', module: 'BIO121', category: 'Textbooks' as const, price: 1200, condition: 'Good' as const },
+    { id: '2', image: '', title: 'HP Laptop', module: 'COS101', category: 'Electronics' as const, price: 4500, condition: 'Good' as const },
   ],
   total: 2,
 }
