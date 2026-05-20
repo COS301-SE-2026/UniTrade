@@ -48,7 +48,7 @@ beforeEach(() => {
     mockedNavigate.mockReset();
     //vi.clearAllMocks();
     localStorage.clear();
-  (window as any).API = { post: mockPost };
+  (window as unknown as { API: {post: typeof mockPost}}).API = { post: mockPost };
 });
 
 
@@ -78,7 +78,7 @@ test('should update fields when typing', () => {
    expect(screen.getByPlaceholderText('First Name')).toHaveValue('Langa');
     expect(screen.getByPlaceholderText('Last Name')).toHaveValue('Vakalisa');
     expect(screen.getByPlaceholderText('Email')).toHaveValue('langavaks@gmail.com');
-    expect(screen.getByDisplayValue('University of Pretoria')).toBeInTheDocument
+    expect(screen.getByDisplayValue('University of Pretoria')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Degree Program')).toHaveValue('Computer Science');
     expect(screen.getByPlaceholderText('Year of Study')).toHaveValue('3');
     expect(screen.getByPlaceholderText('Password')).toHaveValue('Password@100');

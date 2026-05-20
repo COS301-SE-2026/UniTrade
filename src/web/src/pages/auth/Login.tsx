@@ -1,8 +1,57 @@
-import React from "react";
+import React, {useState} from "react";
 import girl from "../../assets/girl.png";
+import { useNavigate} from "react-router-dom";
+
+type  APIResponse = { data: { token?: string}}
+type APIType = { post: (url: string, data: unknown) => Promise<APIResponse> };
 
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const API = (window as unknown as { API?: APIType }).API ?? {
+      post: async (): Promise<APIResponse> => ({ data: {} })
+    }
+
+    try {
+      const response = await API.post('/auth/Login', {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.data?.token) {
+        navigate('/buyer/dashboard');
+      }
+    } catch {
+      setError('Invalid email or password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
 return(
   <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
   <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
