@@ -125,7 +125,7 @@ CREATE TABLE Verification_requests(
 CREATE TABLE Listings (
     listing_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
     seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
-    course_id INT NULL REFERENCES Course(course_id),
+
     title NVARCHAR(150) NOT NULL ,
     description NVARCHAR(MAX) NOT NULL,
     price NUMERIC(10, 2) NOT NULL 
@@ -135,15 +135,37 @@ CREATE TABLE Listings (
         CONSTRAINT chk_listing_condition CHECK(
             condition IN ('new', 'good', 'fair','poor')
         ),
+
+    
+    listing_type NVARCHAR(20) NOT NULL
+        CONSTRAINT chl_listing_type CHECK (listing_type IN ('book', 'laptop', 'stationery', 'electronics', 'clothing', 'furniture', 'other')),
+
+    -- book-specific
+    course_id INT NULL REFERENCES Course(course_id),
+    isbn NVARCHAR(13) NULL CONSTRAINT chk_isbn_validity CHECK(isbn = 10 || isbn=13) ,
+    author NVARCHAR(120) NULL,
+    edition NVARCHAR(50) NULL,
+
     listing_status NVARCHAR(20) NOT NULL 
         CONSTRAINT chk_listing_status CHECK ( listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')),
-    ai_risk_score NUMERIC(5,2),
-    ai_risk_level NVARCHAR(10) CONSTRAINT chk_listing_risk CHECK (ai_risk_level IN ('low', 'medium', 'high')),
-    visibility_score INT NOT NULL DEFAULT 100,
-    is_bundle BIT NOT NULL DEFAULT 0,
-    rejection_reason NVARCHAR(MAX),
+    
+    -- AI Mod (nullable; not implemented in MVP)
+    ai_risk_score NUMERIC(5,2) NULL,
+    ai_risk_level NVARCHAR(10)  NULL CONSTRAINT chk_listing_risk CHECK (ai_risk_level IN ('low', 'medium', 'high')),
+    visibility_score INT NULL DEFAULT 100,
+
+    is_bundle BIT NULL DEFAULT 0,
+
+    rejection_reason NVARCHAR(MAX) NULL,
+
+    view_count INT NULL DEFAULT 0,
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT chk_listing_book_fields CHECK (
+        listing_type ='book'
+        OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)
+    )
     
 );
 
@@ -348,7 +370,7 @@ CREATE INDEX ix_listings_seller ON Listings(seller_id);
 CREATE INDEX ix_listings_status ON Listings(listing_status);
 CREATE INDEX ix_listings_course ON Listings(course_id);
 CREATE INDEX ix_listings_visibility ON Listings(listing_status, visibility_score DESC) WHERE listing_status ='live';
-
+CREATE INDEX ix_listings_created_at ON Listings (created_at DESC);
 --Reservations
 CREATE INDEX ix_res_buyer ON Reservations(buyer_id);
 CREATE INDEX ix_res_seller ON Reservations(seller_id);
