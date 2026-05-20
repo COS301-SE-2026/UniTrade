@@ -12,7 +12,7 @@ public class ListingsService: IListingsService
         private readonly IListingsRepository _listingrepo;
         
         
-        public class ListingsService(IUserRepository users,IListingsRepository listingsrepo)
+        public ListingsService(IUserRepository users,IListingsRepository listingsrepo)
         {
             _users=users;
             _listingrepo=listingsrepo;
@@ -30,9 +30,8 @@ public class ListingsService: IListingsService
                 Created_at=DateTime.UtcNow
             };
 
-            //update db (iinsert)
-            _dbContext.Listings.Add(newlistings);
-            await _dbContext.SaveChangesAsync();
+            //repo call
+            await _listingrepo.AddAsync(newlistings);
 
             return newlistings;
         }
@@ -51,7 +50,7 @@ public class ListingsService: IListingsService
             listingLookUp.Condition=listings.Condition;
             listingLookUp.Updated_at=DateTime.UtcNow;
 
-            await _dbContext.SaveChangesAsync();
+            await _listingrepo.UpdateAsync(listingLookUp);
 
             return true;
         }
@@ -65,8 +64,7 @@ public class ListingsService: IListingsService
                 return false;
             } 
 
-            _dbContext.Listings.Remove(listing);
-            await _dbContext.SaveChangesAsync();
+            await _listingrepo.DeleteByIdAsync(id);
 
             return true;
         }
