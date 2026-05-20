@@ -1,8 +1,8 @@
-namespace Modules.Listings.Models;
 using Modules.Listings.Models.DTO;
+namespace Modules.Listings.Models;
 
+public interface IListingsService
 {
-    public interface IListingsService
     {
         Task<Listings> CreateListings(ListingsDto listings);//retruning a listings-> so when
         //users can see WHEN it was created and so on.P.s could be void, but retruning is stardard procedure.
