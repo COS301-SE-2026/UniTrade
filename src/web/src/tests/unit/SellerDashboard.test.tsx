@@ -20,5 +20,31 @@ const renderSellerDashboard = () =>
     </MemoryRouter>
   )
 
-  
+  describe('SellerDashboard', () => {
+
+    it('the seller dashboard appears up without lagging or crashing', () => {
+        renderSellerDashboard()
+    })
+
+    it('shows the welcome message with the users name', () => {
+        renderSellerDashboard()
+        expect(screen.getByText(/welcome back tafadzwa/i)).toBeInTheDocument()
+    })
+
+    it('shows the Total Orders card', () => {
+        renderSellerDashboard()
+        expect(screen.getByText('Total Orders')).toBeInTheDocument()
+    })
+
+    it('shows the Total Sales card', () => {
+        renderSellerDashboard()
+        expect(screen.getByText('Total Sales')).toBeInTheDocument()
+    })
+
+    it('shows the Pending Delivery card', () => {
+        renderSellerDashboard()
+        expect(screen.getByText('Pending Delivery')).toBeInTheDocument()
+    })
+})
+
 
