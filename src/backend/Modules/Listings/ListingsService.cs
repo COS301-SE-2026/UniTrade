@@ -55,9 +55,19 @@ namespace Modules.Listings
 
 
         //dont knwo how this works
-        public async Task<bool> DeleteLsitings()
+        public async Task<bool> DeleteLsitings(int id)
         {
+            var listing=await _db.Listings.FindAsync(id);
 
+            if (listing==null)
+            {
+                return false;
+            } 
+
+            _dbContext.Listings.Remove(listing);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }
