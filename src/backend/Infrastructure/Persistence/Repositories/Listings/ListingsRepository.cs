@@ -27,7 +27,16 @@ public class ListingsRepository : IListingsRepository
 
     public async Task DeleteByIdAsync(Guid id)
     {
-        _dbContext.Listings.Remove(id);
-        await _dbContext.SaveChangesAsync();
+        var listing = await _dbContext.Listings.FindAsync(id);
+            if (listing!=null)
+            {
+                _dbContext.Listings.Remove(listing);
+                await _dbContext.SaveChangesAsync();
+            }
+    }
+
+    public async Task<ListingsModel> GetByIdAsync(Guid id)
+    {
+        return await _dbContext.Listings.FindAsync(id);
     }
 }
