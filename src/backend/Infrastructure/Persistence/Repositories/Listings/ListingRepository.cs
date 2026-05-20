@@ -3,19 +3,17 @@ using Infrastructure.Persistence;
 using Modules.Listings.Models;
 using Modules.Listings.Models.DTO;
 using Modules.Listings.Repositories;
-
+using Modules.Listings.Models.Dto;
 namespace Infrastructure.Persistence.Repositories.Listings;
 
 public class ListingRepository : IListingRepository
 {
     private readonly AppDbContext _db;
-    private readonly ListingsService _listingsService;
 
-    public ListingRepository(AppDbContext db, ListingsService listingsService)
+    public ListingRepository(AppDbContext db)
     {
-        _db=db;
-        _listingsService=listingsService;
-    } 
+        _db = db;
+    }
 
     public async Task<Listing?> GetByIdAsync(Guid listingId)
     {
@@ -172,29 +170,27 @@ public class ListingRepository : IListingRepository
         return (items, total);
     }
 
-    public async Task AddAsync(ListingsModel listings)
+    public async Task AddAsync(Listing listings)
     {
-        _db.Listings.Add(listing);
-        await _db.Listings.SaveChangesAsync();
+        _db.Listings.Add(listings);
+        await _db.SaveChangesAsync();
     }
-    public async Task UpdateAsync(Listings listings,Guid id)
+    public async Task UpdateAsync(Listing listings, Guid id)
     {
-        _db.Listings.Update(id);
+        listings.ListingId = id;
+        _db.Listings.Update(listings);
         await _db.SaveChangesAsync();
     }
 
     public async Task DeleteByIdAsync(Guid id)
     {
         var listing = await _db.Listings.FindAsync(id);
-            if (listing!=null)
-            {
-                _db.Listings.Remove(listing);
-                await _db.SaveChangesAsync();
-            }
+        if (listing != null)
+        {
+            _db.Listings.Remove(listing);
+            await _db.SaveChangesAsync();
+        }
     }
 
-    public async Task<ListingsModel> GetByIdAsync(Guid id)
-    {
-        return await _db.Listings.FindAsync(id);
-    }
+
 }
