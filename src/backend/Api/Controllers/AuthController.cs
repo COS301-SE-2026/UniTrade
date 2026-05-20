@@ -204,7 +204,7 @@ Path = "/"
         {
             return ex.Message switch
             {
-            "not_found"=> Unauthorized(new { error="unauthenticatedfailling" }),_ => StatusCode(500, new { error = "server_error", detail= ex.Message })
+            "not_found"=> Unauthorized(new { error="unauthenticatedfailling" }),_ => StatusCode(500, new { error = "server_error",})
             };
         }
     }
