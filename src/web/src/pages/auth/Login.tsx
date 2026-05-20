@@ -1,49 +1,11 @@
-import React, {useState} from "react";
-import { useNavigate } from "react-router-dom";
-//import API from "../../api/API";
+import React from "react";
 import girl from "../../assets/girl.png";
 
 
 const Login: React.FC = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
- const navigate = useNavigate();
- const [error,setError] = useState<string | null>(null) ;
- const [loading,setLoading] = useState(false);
-
- const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-const { name, value } = e.target;
-setFormData(prevState => ({
-  ...prevState,
-  [name]: value,
-}));     
- };
-
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError(null);
-  const API = (window as any).API || { post: async () => ({ data: {} }) };// for testing
-  try {
-    const response = await API.post('/auth/Login',{email: formData.email, password: formData.password });
-    //localStorage.setItem('token', response.data.token);
-   if(response.data && response.data.token) {
-     navigate('/buyer/dashboard');
-   }
-  }catch (error) {
-    setError('Invalid email or password');
-  } finally {
-    setLoading(false);
-  }
-  };
-
 return(
   <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
   <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-
-
 
 {/*left side*/}
 <div className="flex w-full flex-col justify-center px-12 py-16 md:w-1/2 lg:px-20">

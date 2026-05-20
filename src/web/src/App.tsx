@@ -30,7 +30,7 @@ export default function App() {
       initials: 'TM',
       role: 'buyer',
     })
-  }, [])
+  }, [setUser])
 
   return (
     <Routes>

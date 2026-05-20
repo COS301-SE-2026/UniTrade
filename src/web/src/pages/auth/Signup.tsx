@@ -1,6 +1,7 @@
-import React, {useState} from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import girl from "../../assets/girl.png";
+import { useNavigate } from "react-router-dom";
+
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
