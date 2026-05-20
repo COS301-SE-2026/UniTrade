@@ -49,7 +49,7 @@ const handleSubmit = async (e: React.FormEvent) => {
    if(response.data && response.data.token) {
      navigate('/buyer/dashboard');
    }
-  }catch (_err) {
+  }catch {
     setError('Signup failed. Please check your details and try again.');
   } finally {
     setLoading(false);
