@@ -53,8 +53,6 @@ namespace Modules.Listings
             return true;
         }
 
-
-        //dont knwo how this works
         public async Task<bool> DeleteLsitings(int id)
         {
             var listing=await _db.Listings.FindAsync(id);
