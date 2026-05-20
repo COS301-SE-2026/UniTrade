@@ -8,28 +8,8 @@ import {
 import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { ListingSummary, ListingStatus } from '../../types/listing'
+import StatusPill from '../../components/layout/ui/StatusPill'
 
-const statusStyles: Record<ListingStatus, string> = {
-  live:     'bg-green-100 text-green-700',
-  pending:  'bg-amber-100 text-amber-700',
-  draft:    'bg-[#e0f7fa] text-[#006064]',
-  rejected: 'bg-red-100 text-red-400',
-}
-
-const statusLabel: Record<ListingStatus, string> = {
-  live:     'Live',
-  pending:  'Pending Review',
-  draft:    'Draft',
-  rejected: 'Rejected',
-}
-
-function StatusPill({ status }: { status: ListingStatus }) {
-  return (
-    <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusStyles[status]}`}>
-      {statusLabel[status]}
-    </span>
-  )
-}
 
 function ActionButtons({ listing }: { listing: ListingSummary }) {
   const navigate = useNavigate()
