@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
 
 namespace Modules.Listings.Models;
@@ -32,6 +33,8 @@ public class Listing
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    [NotMapped]
     public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 
