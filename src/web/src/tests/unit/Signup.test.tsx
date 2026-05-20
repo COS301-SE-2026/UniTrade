@@ -45,7 +45,9 @@ fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: val
 describe('Login Component', () => {
 
 beforeEach(() => {
-    vi.clearAllMocks();
+    mockPost.mockReset();
+    mockedNavigate.mockReset();
+    //vi.clearAllMocks();
     localStorage.clear();
   (window as any).API = { post: mockPost };
 });
@@ -85,7 +87,28 @@ test('should update fields when typing', () => {
 
 });
 
+test('should navigate to dashboard after successful signup', async () => {
 
+mockPost.mockResolvedValueOnce({data: {token: 'fake-jwt-token'}});
 
+render(<Signup />);
+formFilled();
+
+fireEvent.click(screen.getByRole('button', {name:/signup/i}));
+await waitFor(() => {
+
+expect(mockPost).toBeCalledWith('/auth/Signup' ,
+   {
+    firstName: 'Langa',
+        lastName: 'Vakalisa',
+        email: 'langavaks@gmail.com',
+        university: 'UP',
+        degreeProgram: 'Computer Science',
+        yearOfStudy: '3',
+        password: 'Password@100',
+    });
+
+expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
 });
-
+});
+});
