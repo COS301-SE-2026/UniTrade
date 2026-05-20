@@ -1,4 +1,4 @@
-using Modules.Listings;
+using Modules.Listings.Models;
 
 namespace Modules.Listings.Models;
 
