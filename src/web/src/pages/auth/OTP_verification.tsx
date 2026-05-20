@@ -207,8 +207,8 @@ export default function OTPVerification() {
       setOtp(['', '', '', ''])
       setError(null)
       inputRefs.current[0]?.focus()
-    } catch (err: any) {
-      setError(getAuthErrorMessage(err.message))
+    } catch (err: unknown) {
+      setError(getAuthErrorMessage((err as Error).message))
     }
   }
 
@@ -220,8 +220,8 @@ export default function OTPVerification() {
       await authService.verifyOtp(pendingEmail, otp.join(''))
       clearPendingEmail()
       navigate('/auth/Login')
-    } catch (err: any) {
-      setError(getAuthErrorMessage(err.message))
+    } catch (err: unknown) {
+      setError(getAuthErrorMessage((err as Error).message))
       setOtp(['', '', '', ''])
       inputRefs.current[0]?.focus()
     } finally {

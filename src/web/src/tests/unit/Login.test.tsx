@@ -3,9 +3,6 @@ import {describe,test,expect, beforeEach, vi} from 'vitest';
 import Login from '../../pages/auth/Login';
 import { authService } from '../../services/authService';
 
-//mock useNavigate
-const mockPost = vi.fn();
-
 
 vi.mock('../../services/authService' ,() =>({
     authService: { login: vi.fn(),

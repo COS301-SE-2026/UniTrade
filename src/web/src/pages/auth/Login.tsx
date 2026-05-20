@@ -42,8 +42,12 @@ const handleSubmit = async (e: React.FormEvent) => {
     else if (me.role === 'seller') navigate('/seller/dashboard')
     else navigate('/buyer/dashboard')
 
-  } catch (err: any) {
-    setError(getAuthErrorMessage(err.message))
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      setError(getAuthErrorMessage(err.message))
+    } else {
+      setError(getAuthErrorMessage(String(err)))
+    }
   } finally {
     setLoading(false)
   }

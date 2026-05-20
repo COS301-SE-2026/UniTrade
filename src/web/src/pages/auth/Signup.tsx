@@ -35,8 +35,12 @@ const Signup: React.FC = () => {
       // save email so OTP page knows who to verify
       setPendingEmail(formData.email)
       navigate('/verify-otp')
-    } catch (err: any) {
-      setError(getAuthErrorMessage(err.message))
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(getAuthErrorMessage(err.message))
+      } else {
+        setError(getAuthErrorMessage(String(err)))
+      }
     } finally {
       setLoading(false)
     }
