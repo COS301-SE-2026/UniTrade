@@ -33,7 +33,7 @@ public class Listings
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public UserStringHandle? Seller { get; set; }
+    public User? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 
 
