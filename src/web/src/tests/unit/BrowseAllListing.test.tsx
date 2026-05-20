@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import BrowseAllListing from './BrowseAllListing'
+import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
 import { listingsService } from '../../services/listingsService'
 
 vi.mock('../../services/listingsService', () => ({
@@ -24,7 +24,32 @@ const renderBrowseAllListing = () => {
             <BrowseAllListing/>
         </MemoryRouter>
     )
+  }
 
 describe('BrowseAllListing', () => {
+  beforeEach(() => {
+    vi.mocked(listingsService.getBrowseListings).mockResolvedValue(mockListings)
+  })
 
-})}
+  it('shows up without lagging or crashing', async () => {
+    renderBrowseAllListing()
+    await waitFor(() => {
+      expect(screen.getByText('Browse All Listings')).toBeInTheDocument()
+    })
+  })
+
+  it('shows all category buttons', async () => {
+    renderBrowseAllListing()
+    await waitFor(() => {
+      expect(screen.getByText('All')).toBeInTheDocument()
+      
+      const textbookElements = screen.getAllByText('Textbooks')
+      expect(textbookElements.length).toBeGreaterThan(0)
+
+      const electronicsElements = screen.getAllByText('Electronics')
+      expect(electronicsElements.length).toBeGreaterThan(0)
+    })
+  })
+
+})
+
