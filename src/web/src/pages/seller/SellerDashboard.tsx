@@ -1,7 +1,7 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
 import {
-IconClock,IconTrendingUp,IconPlus,IconAlertTriangle,IconFlag,IconDots,IconPackage,IconCalendar,
+IconTrendingUp,IconPlus,IconDots,IconCalendar,
 } from '@tabler/icons-react';
 
 const SellerDashboard: React.FC = () =>

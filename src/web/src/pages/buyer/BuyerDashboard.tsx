@@ -124,7 +124,7 @@ export default function BuyerDashboard() {
   const navigate = useNavigate()
 
   const [products, setProducts] = useState<BrowseListing[]>([])
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   
   useEffect(() => {
     listingsService.getBrowseListings().then(data => setProducts(data.listings.slice(0, 3)))

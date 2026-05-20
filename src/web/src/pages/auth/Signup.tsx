@@ -1,4 +1,3 @@
-import React, {useState} from "react";
 import girl from "../../assets/girl.png";
 
 const Signup: React.FC = () => {
