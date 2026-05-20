@@ -27,6 +27,17 @@ namespace API.Controller
             var response= new _listingsService.CreateListings(request);
             return response;
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update([FromBody] CreateListingsDto request,int id)
+        {
+            var updateL=await _dbContext.Listing.UpdateAsync;
+
+            if(update==null){
+                return false;
+            }
+            return true;
+        }
     }
 
 }
