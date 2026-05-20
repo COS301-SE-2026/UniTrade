@@ -10,5 +10,5 @@ public interface IIdentityService
     Task<User> RegisterAsync(RegisterDto dto);
     Task<User?> GetUserByEmailAsync(string email);
     Task<string> LoginAsync(LoginDTO loginDto);
-    Task<User> GetMeAsync(string userId); 
+    Task<object> GetMeAsync(string userId); 
 }
