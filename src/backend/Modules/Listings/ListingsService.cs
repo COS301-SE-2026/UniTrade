@@ -1,25 +1,46 @@
-using Modules.Listings.Models;
-using Modules.Listings.Models.DTO;
-using Modules.Identity.Repositories;
 using Modules.Listings.Repositories;
-
+using Modules.Listings.Models.Dto;
+using Modules.Listings.Models;
+using Modules.SharedKernel;
 namespace Modules.Listings;
 
-public class ListingsService: IListingsService
+public class ListingService : IListingService
 {
-        ///connect to db/repo--> make sure to change this to repo like zee's structure!!!
-        /// 
-        //for now connecting to the 
-        private readonly IUserRepository _users;
-        private readonly IListingsRepository _listingrepo;
-        
-        
-        public ListingsService(IUserRepository users,IListingsRepository listingsrepo)
-        {
-            _users=users;
-            _listingrepo=listingsrepo;
-        }
+    private readonly IListingRepository _listings;
 
+    public ListingService(IListingRepository listings) => _listings = listings;
+
+    public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
+    {
+        var listing = await _listings.GetByIdAsync(listingId);
+        return listing == null ? null : MapToSummary(listing);
+    }
+
+    public async Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter)
+    {
+        var (items, total) = await _listings.ListAsync(filter);
+        return new PagedResult<ListingSummaryDto>(
+            items.Select(MapToSummary).ToList(),
+            total);
+    }
+
+    private static string? PrimaryImage(Listing l) =>
+        l.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+        ?? l.Images.FirstOrDefault()?.ImageUrl;
+
+
+   private static ListingSummaryDto MapToSummary(Listing l) => new(
+    l.ListingId, l.SellerId, l.Seller?.FullName ?? "",
+    l.Title, l.Description, l.Price, l.Condition, l.ListingType,
+    l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
+    l.isBundle ?? false, l.ViewCount ?? 0,
+    l.CreatedAt, l.UpdatedAt,
+    l.Images
+        .OrderByDescending(i => i.IsPrimary)
+        .Select(i => new ListingImageDto(i.ImageId, i.ImageUrl, i.IsPrimary))
+        .ToList());
+
+        
         public async Task<Listing> CreateListings(ListingsDto listings)
         {
             //link dto to model. update server side
@@ -71,6 +92,3 @@ public class ListingsService: IListingsService
             return true;
         }
 }
-
-
-
