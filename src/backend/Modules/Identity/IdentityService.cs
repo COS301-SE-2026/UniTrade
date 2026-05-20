@@ -1,4 +1,3 @@
-using Modules.Identity.Models.DTO;
 using Infrastructure.Persistence;
 using Modules.Notifications;
 using Modules.Identity.Models;

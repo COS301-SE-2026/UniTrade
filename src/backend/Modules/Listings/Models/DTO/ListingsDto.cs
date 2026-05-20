@@ -9,7 +9,7 @@ namespace Modules.Listings.Models.DTO
         public string Description{get;set;}
 
         [Required]
-        public NUMERIC Price{get;set;}
+        public decimal Price{get;set;}
 
         [Required]
         public string Condition{get;set;}

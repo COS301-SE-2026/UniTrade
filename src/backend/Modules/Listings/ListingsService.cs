@@ -1,7 +1,9 @@
 using Modules.Listings.Models;
 using Modules.Listings.Models.DTO;
+using Modules.Identity.Repositories;
+using Modules.Listings.Repositories;
 
-using Modules.Listings;
+namespace Modules.Listings;
 
 public class ListingsService: IListingsService
 {
@@ -18,7 +20,7 @@ public class ListingsService: IListingsService
             _listingrepo=listingsrepo;
         }
 
-        public async Task<Listings> CreateListings(ListingsDto listings)
+        public async Task<Listing> CreateListings(ListingsDto listings)
         {
             //link dto to model. update server side
             var newlistings=new Listing
@@ -38,7 +40,7 @@ public class ListingsService: IListingsService
 
         public async Task<bool> UpdateListings(ListingsDto listings, int id)
         {
-            var listingLookUp=await _dbContext.Listing.FindAsync(id);
+            var listingLookUp=await _listingrepo.GetByIdAsync(id);
             if(listingLookUp==null)
             { 
                 return false;
@@ -57,7 +59,7 @@ public class ListingsService: IListingsService
 
         public async Task<bool> DeleteListings(int id)
         {
-            var listing=await _db.Listings.FindAsync(id);
+            var listing=await _listingrepo.GetByIdAsync(id);
 
             if (listing==null)
             {
