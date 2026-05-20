@@ -1,15 +1,15 @@
-name: Mobile Frontend CI
+name: Web Frontend CI
 
 on:
   push:
     branches: ["**"]
     paths:
-      - "src/mobile/**"
-      - ".github/workflows/mobile-ci.yml"
+      - "src/web/**"
+      - ".github/workflows/web-ci.yml"
   pull_request:
     branches: ["dev","main"]
     paths:
-      - "src/mobile/**"
+      - "src/web/**"
 
 jobs:
   build-and-test:
@@ -28,22 +28,24 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: "src/mobile/package-lock.json"
+          cache-dependency-path: "src/web/package-lock.json"
 
       - name: Install dependencies
-        working-directory: src/mobile
+        working-directory: src/web
         run: npm ci
 
       - name: Lint code
-        working-directory: src/mobile
+        working-directory: src/web
         run: npm run lint
+        
+      - name: Build application
+        working-directory: src/web
+        run: npm run build
 
       - name: Run unit tests
-        working-directory: src/mobile
-        run: npm run test:run  || echo 'Unit tests not configured yet'
+        working-directory: src/web
+        run: npm run test:run || echo 'Unit tests not configured'
 
       - name: Run integration tests
-        working-directory: src/mobile
-        run: npm run test:run -- tests/integration || echo 'Integration tests not configured yet'
-
-      
+        working-directory: src/web
+        run: npm run test:run -- tests/integration || echo ' Integration tests not configured'
