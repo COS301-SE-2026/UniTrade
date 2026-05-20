@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import { useNavigate } from "react-router-dom";
 import girl from "../../assets/girl.png";
-import { IconEmailStamp } from "@tabler/icons-react";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -47,7 +46,7 @@ const handleSubmit = async (e: React.FormEvent) => {
      navigate('/buyer/dashboard');
    }
   }catch (err) {
-    setError('Signup failed.Please check your detils and try again');
+    setError('Signup failed. Please check your details and try again.');
   } finally {
     setLoading(false);
   }

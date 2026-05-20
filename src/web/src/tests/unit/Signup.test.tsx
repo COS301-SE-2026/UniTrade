@@ -1,6 +1,5 @@
-import React from 'react';
 import {render, screen,fireEvent, waitFor} from '@testing-library/react'
-import {describe,test,expect, beforeEach, vi,it} from 'vitest';
+import {describe,test,expect, beforeEach, vi} from 'vitest';
 import Signup from '../../pages/auth/Signup';
 
 //mock useNavigate
@@ -111,4 +110,21 @@ expect(mockPost).toBeCalledWith('/auth/Signup' ,
 expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
 });
 });
+
+test('should show error messages on failed signup', async () => {
+mockPost.mockRejectedValueOnce(new Error('Server error'));
+render(<Signup />);
+formFilled();
+fireEvent.click(screen.getByRole('button', {name:
+    /signup/i
+}));
+
+await waitFor(() =>{
+expect(screen.getByText('Signup failed. Please check your details and try again.')).toBeInTheDocument();
+})
+});
+
+test ('should show loading state while request is in flight' ,async ()=> {
+mockPost.mockRejectedValueOnce(new Error('Invalid credentials'));
+})
 });
