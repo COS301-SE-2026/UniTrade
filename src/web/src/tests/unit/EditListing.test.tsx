@@ -40,5 +40,32 @@ const renderEditListing = () =>
         it('shows the pre-filled title', () => {
             renderEditListing()
             expect(screen.getAllByDisplayValue('Financial Economics and Statistics 16th Edition')[0]).toBeInTheDocument()
-    }) 
+        }) 
+
+        it('shows the condition buttons', () => {
+            renderEditListing()
+            expect(screen.getByRole('button', { name: /like new/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /good/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /fair/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /worn/i })).toBeInTheDocument()
+        })
+
+        it('shows Save Changes and Cancel Changes buttons', () => {
+        renderEditListing()
+        expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /cancel changes/i })).toBeInTheDocument()
+        })
+
+        it('updates title when typing', () => {
+        renderEditListing()
+        const titleInput = screen.getByDisplayValue('Financial Economics and Statistics 16th Edition')
+        fireEvent.change(titleInput, { target: { value: 'New Title' } })
+        expect(screen.getByDisplayValue('New Title')).toBeInTheDocument()
+        })
+
+        it('shows pre-filled price of 500', () => {
+        renderEditListing()
+        expect(screen.getByDisplayValue('500')).toBeInTheDocument()
+        })
+
 })
