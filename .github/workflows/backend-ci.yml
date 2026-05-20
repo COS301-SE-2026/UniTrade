@@ -32,21 +32,21 @@ jobs:
         working-directory: src/backend/Api
         run: dotnet build --configuration Release --no-restore
 
-      # - name: Build Tests
-      #   working-directory: src/backend/Tests
-      #   run: dotnet build --configuration Release --no-restore
+      - name: Build Tests
+        working-directory: src/backend/Tests
+        run: dotnet build --configuration Release --no-restore
 
-      # - name: Build Workers
-      #   working-directory: src/backend/Workers
-      #   run: dotnet build --configuration Release --no-restore
+      - name: Build Workers
+        working-directory: src/backend/Workers
+        run: dotnet build --configuration Release --no-restore || echo 'Worker not configured yet'
 
-      # - name: Run Unit Tests
-      #   working-directory: src/backend/Tests
-      #   run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit"
+      - name: Run Unit Tests
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit"
 
-      # - name: Run Integration Tests
-      #   working-directory: src/backend/Tests
-      #   run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration"
+      - name: Run Integration Tests
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration"
     
 
   code-quality:
