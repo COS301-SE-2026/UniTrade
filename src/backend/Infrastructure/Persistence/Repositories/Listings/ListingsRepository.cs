@@ -22,7 +22,7 @@ public class ListingsRepository : IListingsRepository
         }
         catch(Exception e)
         {
-
+            
         }
     }
     public async Task UpdateAsync(Listings listings,Guid id)
