@@ -7,23 +7,33 @@ using Modules.Identity;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
 
+using Microsoft.IdentityModel.Tokens;
+using System.Text;//for encoding
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using BCrypt.Net;
+using Microsoft.Extensions.Configuration;
+using Modules.Identity.Models.DTO;
 public class IdentityService : IIdentityService
 {
     private readonly IUserRepository _users;
     private readonly INotificationsService _notifications;
     private readonly IUniversityRepository _universities;
-    public IdentityService(IUserRepository users, INotificationsService notifications, IUniversityRepository universities)
+    private readonly IConfiguration _config;
+
+    public IdentityService(IUserRepository users, INotificationsService notifications, IUniversityRepository universities, IConfiguration config)
     {
         _users = users;
         _notifications = notifications;
         _universities = universities;
+        _config = config;
     }
 
     public async Task<User> RegisterAsync(RegisterDto dto)
     {
         //check password strength
         if (!IsPasswordStrong(dto.Password))
-        {   
+        {
             throw new Exception("weak_password");
         }
 
@@ -141,4 +151,97 @@ public class IdentityService : IIdentityService
             return false;
         }
     }
+
+    //main method
+    public async Task<string> LoginAsync(LoginDTO loginDto)
+    {
+
+        if (string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
+        {
+            /*return new LoginResponse
+            {
+                Message = "Email and password are required",
+                User = null
+            };*/
+            // BecauseMiddle ware throws exceptions
+            throw new Exception("invalid_credentials");
+
+        }
+
+        //*user here follows User Model not schema
+        var user = await _users.GetByEmailAsync(loginDto.Email.Trim().ToLowerInvariant());
+        //tasks: query db, verify password and get email, gen. token, then return a response
+        if (user == null)
+        {
+            /* return new LoginResponse
+             {
+                 Message = "Invalid credentials",
+                 User = null
+             };
+             */
+            throw new Exception("invalid_credentials");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+        {
+            throw new Exception("invalid_credentials");
+
+        }
+        string verificationStatus = "n/a";
+
+        if (user.Role == "student")
+        {
+
+
+            if (user.StudentProfile != null)
+            { verificationStatus = user.StudentProfile.VerificationStatus ?? "pending"; }
+
+            else
+            { verificationStatus = "pending"; }
+        }
+        else
+        {
+            verificationStatus = "pending";
+        }
+
+        return TokenGenerator(user, verificationStatus);
+
+    }
+
+
+
+    private string TokenGenerator(User user, string? verificationStatus = null)
+    {
+        var secret = _config["Jwt:Secret"] ??
+        throw new InvalidOperationException("Jwt__Secret is not configured");
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        //data that goes inside token, like an id card
+        var claims = new List<Claim>
+        {
+            new Claim("sub", user.UserId.ToString()),
+            new Claim("email", user.Email),
+            new Claim("role", user.Role),
+        };
+
+        if (user.Role == "student")
+        {
+            claims.Add(new Claim("verification_status"!, verificationStatus!));
+        }
+
+        //blueprint for the token(form)
+        var token = new JwtSecurityToken(
+            claims: claims,
+            signingCredentials: credentials,
+            expires: DateTime.UtcNow.AddHours(24)
+        );
+        return new JwtSecurityTokenHandler().WriteToken(token);
+
+    }
+
 }
+
+

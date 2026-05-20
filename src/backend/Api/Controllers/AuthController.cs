@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Modules.Identity.Models.Dto;
+using Modules.Identity.Models.DTO;
 using Modules.Identity;
 using Modules.Identity.Verification;
 using Modules.Identity.Repositories;
@@ -120,4 +121,52 @@ public class AuthController : ControllerBase
         }
     }
 
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDTO request)
+    {
+        try
+        {
+
+
+            var token = await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
+
+            Response.Cookies.Append("authToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(24)
+            });
+
+            return Ok(new
+            {
+                message = "Login successful"
+            }
+            );
+        }
+        catch (Exception e)
+        {
+            return e.Message switch
+            {
+                "invalid_credentials" => Unauthorized(new { error = "invalid_credentials" }),
+                _ => StatusCode(500, new { error = "server_error" })
+            };
+        }
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("authToken", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax
+        });
+        return Ok(new
+        {
+            message = "Logged out successfully"
+        });
+    }
 }
