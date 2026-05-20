@@ -18,6 +18,14 @@ expect(screen.getByPlaceholderText('Description')).toBeInTheDocument();
 expect(screen.getByDisplayValue('Module / Course Tags')).toBeInTheDocument();
 });
 
+test('should show correct conditions and dropdown inputs' ,() =>{
+
+render(<UploadListing />);
+const electronicsTab = screen.getByRole('button', {name:
+    /electronics/i });
+    fireEvent.click(electronicsTab);
+    expect(screen.getByPlaceholderText('Brand / Model')).toBeInTheDocument();
+});
 
 
 
