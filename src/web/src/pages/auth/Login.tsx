@@ -1,17 +1,10 @@
-import React, {useState} from "react";
+import React from "react";
 import girl from "../../assets/girl.png";
 
 const Login: React.FC = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-
 return(
   <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
   <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-
-
 
 {/*left side*/}
 <div className="flex w-full flex-col justify-center px-12 py-16 md:w-1/2 lg:px-20">

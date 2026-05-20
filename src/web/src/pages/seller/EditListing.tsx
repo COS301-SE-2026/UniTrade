@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { IconUpload, IconCheck } from "@tabler/icons-react";
 
 interface ListingData {
@@ -12,38 +12,15 @@ price: number;
 }
 
 const EditListing: React.FC = () => {
-  const [formData, setFormData] = useState<ListingData>({
-    title: "",
-    category: "Textbook",
-    moduleTag: "",
-    customField: "",
-    description: "",
-    condition: "Like_New",
-    price: 0,
-  });
-
-  useEffect(() => {
-    setFormData({
-        title: "Financial Economics and Statistics 16th Edition",
-        category: "Textbook",
-        moduleTag: "ECN301",
-        customField: "",
-        description: "This textbook is in excellent condition, with only minor signs of wear. It has been well cared for and is free from any major damage or markings. The pages are clean and intact, making it a great resource for students studying financial economics and statistics.",
-        condition: "Like_New",
-        price: 500,
-    });}, []);
-
-    useEffect(() => {
-      setFormData({
-        title: "Financial Economics and Statistics 16th Edition",
-        category: "Textbook",
-        moduleTag: "ECN301",
-        customField: "",
-        description: "This textbook is in excellent condition, with only minor signs of wear. It has been well cared for and is free from any major damage or markings. The pages are clean and intact, making it a great resource for students studying financial economics and statistics.",
-        condition: "Like_New",
-        price: 500, 
-      })
-  }, []);
+const [formData, setFormData] = useState<ListingData>({
+  title: "Financial Economics and Statistics 16th Edition",
+  category: "Textbook",
+  moduleTag: "ECN301",
+  customField: "",
+  description: "This textbook is in excellent condition, with only minor signs of wear. It has been well cared for and is free from any major damage or markings. The pages are clean and intact, making it a great resource for students studying financial economics and statistics.",
+  condition: "Like_New",
+  price: 500,
+});
 
   const handleChange =(field: keyof ListingData, value: string | number) => {
     setFormData((prev) => ({...prev, [field]: value}));

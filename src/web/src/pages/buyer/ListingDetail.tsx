@@ -30,8 +30,8 @@ function ReviewRow({ initials, name, stars, text, date }: {
       <div>
         <p className="text-xs font-semibold text-navy-700 dark:text-white">{name}</p>
         <div className="flex gap-0.5 my-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <IconStar key={i} size={11} className={i < stars ? 'text-amber-500 fill-amber-500' : 'text-gray-300'} />
+          {Array.from({ length: 5 }).map((_, index) => (
+            <IconStar key={index} size={11} className={index < stars ? 'text-amber-500 fill-amber-500' : 'text-gray-300'} />
           ))}
         </div>
         <p className="text-xs text-gray-500 dark:text-white/50 leading-relaxed">{text}</p>
@@ -109,7 +109,7 @@ export default function ListingDetail() {
               <span className="text-4xl">📚</span>
             </div>
             <div className="flex gap-2">
-              {listing.images.map((img, i) => (
+              {listing.images.map((img) => (
                 <div key={img.id} className={`w-14 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center cursor-pointer text-lg border-2 ${
                   img.isPrimary ? 'border-navy-700 dark:border-white' : 'border-transparent'
                 }`}>
@@ -179,8 +179,8 @@ export default function ListingDetail() {
                 <p className="text-sm font-semibold text-navy-700 dark:text-white">{listing.sellerName}</p>
                 <p className="text-xs text-gray-400">{listing.university}</p>
                 <div className="flex gap-0.5 mt-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <IconStar key={i} size={10} className="text-amber-500 fill-amber-500" />
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <IconStar key={index} size={10} className="text-amber-500 fill-amber-500" />
                   ))}
                 </div>
                 <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1">

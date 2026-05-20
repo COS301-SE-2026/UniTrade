@@ -111,7 +111,7 @@ const mockBrowseListings: BrowseListing[] = [
 ]
 //Service, right now this returns mock data, when the actual API is ready, we have to replace the insodes of each function only
 
-const BASE_URL = import.meta.env.VITE_API_URL
+//const BASE_URL = import.meta.env.VITE_API_URL
 
 export const listingsService = {
     getById: async (id: string): Promise<ListingDetail> => {
