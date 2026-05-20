@@ -375,6 +375,9 @@ CREATE INDEX ix_listings_seller ON Listings(seller_id);
 CREATE INDEX ix_listings_course ON Listings(course_id);
 CREATE INDEX ix_listings_feed ON Listings(listing_status, visibility_score DESC) WHERE listing_status ='live';
 CREATE INDEX ix_listings_created_at ON Listings (created_at DESC);
+
+CREATE INDEX ix_listing_images_listing ON Listing_images(listing_id);
+
 --Reservations
 CREATE INDEX ix_res_buyer ON Reservations(buyer_id);
 CREATE INDEX ix_res_seller ON Reservations(seller_id);
