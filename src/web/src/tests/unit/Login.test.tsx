@@ -1,5 +1,5 @@
 import {render, screen,fireEvent, waitFor} from '@testing-library/react'
-import {describe,test,expect, beforeEach, vi,it} from 'vitest';
+import {describe,test,expect, beforeEach, vi} from 'vitest';
 import Login from '../../pages/auth/Login';
 
 //mock useNavigate
@@ -21,7 +21,7 @@ describe('Login Component', () => {
 beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-  (window as any).API = { post: mockPost };
+  (window as unknown as { API: {post: typeof mockPost}}).API = { post: mockPost };
 });
 
 
