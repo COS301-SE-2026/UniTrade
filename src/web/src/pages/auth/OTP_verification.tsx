@@ -8,14 +8,15 @@ export default function OTPVerification() {
   const { isDark, toggle } = useThemeStore()
   const [otp, setOtp] = useState(['','','',''])
   const [timeLeft, setTimeLeft] = useState(59)
-  const [resendActive, setResendActive] = useState(false)
+  //const [resendActive, setResendActive] = useState(false)
+ const resendActive = timeLeft === 0;
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
-    if (timeLeft === 0){ setResendActive(true); return}
-    const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [timeLeft])
+  if (timeLeft === 0) return; // no setState needed
+  const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+  return () => clearTimeout(timer);
+}, [timeLeft]);
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return 
@@ -45,7 +46,7 @@ export default function OTPVerification() {
   const handleResend = () => {
     if (!resendActive) return
     setTimeLeft(59)
-    setResendActive(false)
+    //setResendActive(false)
     setOtp(['', '' ,'', ''])
     inputRefs.current[0]?.focus()
   }
