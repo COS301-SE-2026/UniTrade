@@ -1,6 +1,60 @@
+import { useState } from "react";
 import girl from "../../assets/girl.png";
+import { useNavigate } from "react-router-dom";
+
 
 const Signup: React.FC = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName:'',
+    lastName: '',
+      email: '',
+      university:'',
+      degreeProgram:'',
+      yearOfStudy:'',
+      password: '',
+    });
+
+    const [error,setError] = useState<string | null>(null) ;
+     const [loading,setLoading] = useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+   const { name, value } = e.target;
+   setFormData(prev=> ({
+     ...prev,
+     [name]: value,
+   }));     
+    };
+
+  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  const API = (window as any).API || { post: async () => ({ data: {} }) };// for testing
+  try {
+    const response = await API.post('/auth/Signup',{
+      firstName: formData.firstName,
+      lastName:formData.lastName,
+      email:formData.email,
+      university:formData.university,
+      degreeProgram:formData.degreeProgram,
+      yearOfStudy:formData.yearOfStudy,
+      password:formData.password,
+    });
+   
+   if(response.data && response.data.token) {
+     navigate('/buyer/dashboard');
+   }
+  }catch (err) {
+    setError('Signup failed. Please check your details and try again.');
+  } finally {
+    setLoading(false);
+  }
+  };
+
+
+
  return(
   <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
   <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
@@ -14,21 +68,35 @@ const Signup: React.FC = () => {
 </div>
 
 
- <form className="space-y-4">
-   
+ <form className="space-y-4" onSubmit={handleSubmit}>
+{/*error block popup for validation*/}
+{error && (
+  <div className="rounded-md bg-red-100 p-4">
+    <p className="text-sm text-red-700">{error}</p>
+  </div>
+)}
+
+
 <div className="grid grid-cols-2 gap-4">
  <div>
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
   <input
   type="text"
+  name="firstName"
    placeholder="First Name"
+   value={formData.firstName}
+   onChange={handleChange}
   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
    </div>
     <div>
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
   <input
   type="text"
+  name="lastName"
+  value={formData.lastName}
+  onChange={handleChange}
    placeholder="Last Name"
+   required
   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
    </div>
 
@@ -38,6 +106,9 @@ const Signup: React.FC = () => {
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email</label>
   <input
   type="email"
+  name="email"
+  value={formData.email}
+   onChange={handleChange}
   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
   placeholder="Email"
  />
@@ -46,8 +117,11 @@ const Signup: React.FC = () => {
 <div>
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
   <select 
-  defaultValue=""
-  className=" text-gray-400 w-full rounded-xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  name="university"
+  value={formData.university}
+  onChange={handleChange}
+  required
+   className=" text-gray-400 w-full rounded-xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
   >
   <option className="text-gray-300"value ="">Select University</option>
   <option className="text-gray-900" value="UCT">University of Cape Town</option>
@@ -68,8 +142,11 @@ const Signup: React.FC = () => {
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
   <input
   type="text"
+  name="degreeProgram"
   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
   placeholder="Degree Program"
+  value={formData.degreeProgram}
+  onChange={handleChange}
  />
    </div>
 
@@ -77,8 +154,13 @@ const Signup: React.FC = () => {
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
   <input
   type="text"
-  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  name="yearOfStudy"
+   value={formData.yearOfStudy}
+  onChange={handleChange}
   placeholder="Year of Study"
+  required
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  
  />
    </div>
 </div>
@@ -87,16 +169,23 @@ const Signup: React.FC = () => {
 <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
   <input
   type="password"
-  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+  name="password"
+   value={formData.password}
+  onChange={handleChange}
   placeholder="Password"
+  required
+  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+
+
  />
    </div>
 
 <button
 type="submit"
-className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md"
+disabled={loading}
+className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50"
 >
-SIGNUP
+{loading ? 'Signing up...' : 'SIGNUP'}
 </button>
 </form>
 
