@@ -12,7 +12,7 @@ public class AuthMiddleware(RequestDelegate next, IConfiguration config)
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var token = context.Request.Cookies["jwt"];
+        var token = context.Request.Cookies["authToken"];
 
         if (!string.IsNullOrEmpty(token))
         {

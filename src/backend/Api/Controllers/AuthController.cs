@@ -4,6 +4,8 @@ using Modules.Identity.Models.DTO;
 using Modules.Identity;
 using Modules.Identity.Verification;
 using Modules.Identity.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers;
 
@@ -22,7 +24,9 @@ public class AuthController : ControllerBase
         _verificationService = verificationService;
     }
 
+
     [HttpPost("register")]
+    [EnableRateLimiting("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         try
@@ -121,8 +125,8 @@ public class AuthController : ControllerBase
         }
     }
 
-
     [HttpPost("login")]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> Login([FromBody] LoginDTO request)
     {
         try
