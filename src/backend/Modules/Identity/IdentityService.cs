@@ -242,6 +242,11 @@ public class IdentityService : IIdentityService
 
     }
 
+    public async Task<User> GetMeAsync(string userId)
+    {
+        
+    }
+
 }
 
 
