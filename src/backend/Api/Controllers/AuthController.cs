@@ -6,6 +6,7 @@ using Modules.Identity.Verification;
 using Modules.Identity.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 
 namespace Api.Controllers;
 
@@ -135,13 +136,15 @@ public class AuthController : ControllerBase
 
             var token = await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
 
-            Response.Cookies.Append("authToken", token, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddHours(24)
-            });
+           Response.Cookies.Append("authToken", token, new CookieOptions
+
+{
+HttpOnly = true,
+Secure = false,        
+SameSite = SameSiteMode.Lax,
+Expires = DateTimeOffset.UtcNow.AddHours(24),
+Path = "/"
+});
 
             return Ok(new
             {
@@ -181,7 +184,13 @@ public class AuthController : ControllerBase
         try
         {
             //'USer' here is built in. .net puts all jwt claims in this Object when client requests
-            var userId=User.FindFirst("sub")?.Value;
+            var claims = User.Claims.ToList();
+        System.Diagnostics.Debug.WriteLine($"Claims count: {claims.Count}");
+        foreach (var claim in claims)
+        {
+            System.Diagnostics.Debug.WriteLine($"Claim: {claim.Type} = {claim.Value}");
+        }
+           var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -195,7 +204,7 @@ public class AuthController : ControllerBase
         {
             return ex.Message switch
             {
-            "not_found"=> Unauthorized(new { error="unauthenticated" }),_ => StatusCode(500, new { error = "server_error" })
+            "not_found"=> Unauthorized(new { error="unauthenticatedfailling" }),_ => StatusCode(500, new { error = "server_error", detail= ex.Message })
             };
         }
     }

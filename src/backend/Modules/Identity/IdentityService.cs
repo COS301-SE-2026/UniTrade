@@ -243,45 +243,24 @@ public class IdentityService : IIdentityService
     }
 
     public async Task<object> GetMeAsync(string userId)
+{
+    var user = await _users.GetByIdAsync(Guid.Parse(userId));
+
+    if (user == null)
+        throw new Exception("not_found");
+
+    return new
     {
-        var getUser=await _users.GetByIdAsync(Guid.Parse(userId));
-
-        if(getUser==null)
-        {
-            throw new Exception("user not found");
-        }
-
-        if(getUser.Role=="student")
-        {
-            //make a student dto
-            return new
-            {
-                User=new UserDto
-                {
-                    Id=getUser.UserId,
-                    FirstName=getUser.FirstName,
-                    LastName=getUser.LastName,
-                    Email=getUser.Email,
-                    Role=getUser.Role
-                },
-                //i didnt follow the response you wanted zee, i made it nested instead. hopefully not a problem
-                Std=new StudentDto
-                {
-                    VerificationStatus=getUser.StudentProfile?.VerificationStatus ?? "pending"
-                }
-            };
-        }
-
-        return new UserDto
-        {
-            Id= getUser.UserId,
-            FirstName=getUser.FirstName,
-            LastName=getUser.LastName,
-            Email=getUser.Email,
-            Role=getUser.Role
-        };
-        
-    }
+        userId = user.UserId,
+        firstName = user.FirstName,
+        lastName = user.LastName,
+        email = user.Email,
+        role = user.Role,
+        university = user.StudentProfile?.UniversityId.ToString() ?? "",
+        verificationStatus = user.StudentProfile?.VerificationStatus ?? "pending"
+    };
+}
+ 
 
 }
 
