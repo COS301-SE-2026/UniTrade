@@ -34,7 +34,26 @@ test( 'should render the login form and buttons', () => {
     expect(screen.getByPlaceholderText('Email Address')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
-}); 
+});
+
+test(' should handle successful login and navigate to dashboard', async () => {
+
+mockPost.mockResolvedValue({ data: { token: 'fake-jwt-token' },});
+
+render(<Login />);
+
+const loginButton = screen.getByRole('button', { name: /login/i });
+
+fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com',name: 'email' } });
+fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password100',name: 'password' } });
+fireEvent.click(loginButton);
+
+expect(mockPost).toHaveBeenCalledWith('/auth/Login', { email: 'langavaks@gmail.com', password: 'password100' });
+
+await waitFor(() => {
+expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
+});
+});
 
 
 });;
