@@ -1,17 +1,17 @@
-using namespace Modules.Listing;
-using namespace Modules.Listing.Models;
-using namespace Modules.Listing.Models.DTO;
+using Modules.Listing;
+using Modules.Listing.Models;
+using Modules.Listing.Models.DTO;
 
 namespace API.Controller
 {
     [Route("api/listings")]
     [ApiController]
     
-    public class AuthController: ControllerBase
+    public class ListingsController: ControllerBase
     {
         private readonly IListingsService _listingsService;
 
-        public AuthController(IListingsService listingsService)
+        public ListingsController(IListingsService listingsService)
         {
             _listingsService=listingsService;
         }
@@ -19,12 +19,12 @@ namespace API.Controller
         [HttpPost]
         public async Task<IActionResult> Create([FromBody]CreateListingsDto request)
         {
-            if(request.Title==string.Empty()|| request.Price==string.empty()|| request.Condition==string.Empty())
+            if(string.IsNullOrEmpty(request.Title)|| string.IsNullOrEmpty(request.Price)|| string.IsNullOrEmpty(request.Price))
             {
                 return BadRequest("Field(s) missing.");
             }
 
-            var response= new _listingsService.CreateListings(request);
+            var response= await _listingsService.CreateListings(request);
             return response;
         }
 
@@ -33,10 +33,10 @@ namespace API.Controller
         {
             var updateL=await _listingsService.Listing.UpdateAsync;
 
-            if(update==null){
-                return null;
+            if(updateL==null){
+                return NotFound();
             }
-            return updateL;
+            return Ok(updateL);
         }
 
         [HttpDelete("{id}")]
@@ -44,11 +44,12 @@ namespace API.Controller
         {
             var success=await _listingsService.DeleteAsync(id);
 
-            if(success==null){
-                return null;
+            if(!success){
+                return NotFound();
             }
 
-            return success;
+            return NoContent();
         }
 
+    }
 }
