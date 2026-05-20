@@ -8,11 +8,14 @@ public class ListingsService: IListingsService
         ///connect to db/repo--> make sure to change this to repo like zee's structure!!!
         /// 
         //for now connecting to the 
-        private readonly AppDbContext _dbContext;
-
-        public class ListingsService(AppDbContext dbContext)
+        private readonly IUserRepository _users;
+        private readonly IListingsRepository _listingrepo;
+        
+        
+        public class ListingsService(IUserRepository users,IListingsRepository listingsrepo)
         {
-            _dbContext=dbContext;
+            _users=users;
+            _listingrepo=listingsrepo;
         }
 
         public async Task<Listings> CreateListings(ListingsDto listings)
