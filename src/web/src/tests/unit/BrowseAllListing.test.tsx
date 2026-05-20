@@ -51,5 +51,23 @@ describe('BrowseAllListing', () => {
     })
   })
 
+  it('filters listings when category is clicked', async () => {
+  renderBrowseAllListing()
+  await waitFor(() => {
+    expect(screen.getByText('Biology Textbook')).toBeInTheDocument()
+  })
+
+  const buttons = screen.getAllByRole('button', { name: 'Textbooks' })
+  fireEvent.click(buttons[0])
+
+  expect(screen.queryByText('HP Laptop')).not.toBeInTheDocument()
+  expect(screen.getByText('Biology Textbook')).toBeInTheDocument()
+})
+
+  it('shows loading state initially', () => {
+    renderBrowseAllListing()
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
+  })
+
 })
 
