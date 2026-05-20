@@ -242,7 +242,7 @@ public class IdentityService : IIdentityService
 
     }
 
-    public async Task<User> GetMeAsync(string userId)
+    public async Task<object> GetMeAsync(string userId)
     {
         var getUser=await _users.GetByIdAsync(Guid.Parse(userId));
 
