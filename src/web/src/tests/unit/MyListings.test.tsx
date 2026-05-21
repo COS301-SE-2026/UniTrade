@@ -101,6 +101,64 @@ describe('MyListings', () => {
             })
         })
 
+
+        it('filters to live listings when Live tab is clicked', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
+        })
+            fireEvent.click(screen.getByText(/^Live/))
+            expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
+            expect(screen.queryByText('HP Laptop')).not.toBeInTheDocument()
+        })
+
+        it('filters to draft listings when Drafts tab is clicked', async () => {
+            renderMyListings()
+            await waitFor(() => {
+        expect(screen.getByText('Geometry Set')).toBeInTheDocument()
+        })
+            fireEvent.click(screen.getByText(/^Drafts/))
+            expect(screen.getByText('Geometry Set')).toBeInTheDocument()
+            expect(screen.queryByText('Chemistry Textbook')).not.toBeInTheDocument()
+        })
+
+
+        it('shows all listing titles', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
+            expect(screen.getByText('HP Laptop')).toBeInTheDocument()
+            expect(screen.getByText('Geometry Set')).toBeInTheDocument()
+            expect(screen.getByText('Calculus Textbook')).toBeInTheDocument()
+            })
+        })
+
+        it('shows table column headers', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Listing')).toBeInTheDocument()
+            expect(screen.getByText('Price')).toBeInTheDocument()
+            expect(screen.getByText('Status')).toBeInTheDocument()
+            expect(screen.getByText('Views')).toBeInTheDocument()
+            expect(screen.getByText('Actions')).toBeInTheDocument()
+            })
+        })
+
+        it('shows correct listing count', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Showing 4 of 4 listings')).toBeInTheDocument()
+            })
+        })
+
+        it('shows error message when service fails', async () => {
+            vi.mocked(listingsService.getMyListings).mockRejectedValueOnce(new Error('Network error'))
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Failed to load listings')).toBeInTheDocument()
+            })
+        })
+
     
 })
 
