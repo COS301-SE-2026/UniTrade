@@ -59,9 +59,9 @@ const mockListingDetail: ListingDetail = {
   university: 'University of Pretoria',
   tags: ['WTW114', 'First Year', 'University of Pretoria'],
   images: [
-    { id: '1', url: '', isPrimary: true  },
-    { id: '2', url: '', isPrimary: false },
-    { id: '3', url: '', isPrimary: false },
+    { id: '1', url: biologyTextbook, isPrimary: true  },
+    { id: '2', url: biologyTextbook, isPrimary: false },
+    { id: '3', url: biologyTextbook, isPrimary: false },
   ],
   views: 42,
   listedAt: '2026-05-07T09:14:00Z',
@@ -113,15 +113,24 @@ const mockSellerListingDetail: SellerListingDetail = {
   ],
 }
 
+export interface CreateListingPayload {
+  title:         string
+  description:   string
+  price:         number
+  condition:     string
+  listingType:   string
+  courseId:      number | null
+  listingStatus: string
+}
+
 export const listingsService = {
+
   getById: async (id: string): Promise<ListingDetail> => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, {
       credentials: 'include',
     })
     if (!res.ok) throw new Error('Failed to fetch listing')
-
     const item = await res.json()
-
     return {
       ...mockListingDetail,
       id:          item.listingId,
@@ -143,67 +152,60 @@ export const listingsService = {
     }
   },
 
-getMyListings: async (): Promise<MyListingsResponse> => {
-  const user = useAuthStore.getState().user
+  getMyListings: async (): Promise<MyListingsResponse> => {
+    const user = useAuthStore.getState().user
+    if (!user) return { listings: mockMyListings, total: mockMyListings.length }
 
-  if (!user) return { listings: mockMyListings, total: mockMyListings.length }
+    const res = await fetch(`${BASE_URL}/listings?sellerId=${user.id}`, {
+      credentials: 'include',
+    })
+    if (!res.ok) throw new Error('Failed to fetch listings')
 
-  const res = await fetch(`${BASE_URL}/listings?sellerId=${user.id}`, {
-    credentials: 'include',
-  })
-  if (!res.ok) throw new Error('Failed to fetch listings')
+    const data = await res.json()
+    const listings: ListingSummary[] = data.items.map((item: any) => ({
+      id:       item.listingId,
+      title:    item.title,
+      meta:     `${item.listingType} · Listed ${new Date(item.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+      price:    item.price,
+      status:   item.listingStatus,
+      views:    item.viewCount,
+      imageUrl: item.images.find((i: any) => i.isPrimary)?.path
+                ?? item.images[0]?.path
+                ?? biologyTextbook,
+    }))
+    return { listings, total: data.total }
+  },
 
-  const data = await res.json()
-
-  const listings: ListingSummary[] = data.items.map((item: any) => ({
-    id:       item.listingId,
-    title:    item.title,
-    meta:     `${item.listingType} · Listed ${new Date(item.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}`,
-    price:    item.price,
-    status:   item.listingStatus,
-    views:    item.viewCount,
-    imageUrl: item.images.find((i: any) => i.isPrimary)?.path
-              ?? item.images[0]?.path
-              ?? biologyTextbook,
-  }))
-
-  return { listings, total: data.total }
-},
-
-getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
-  const res = await fetch(`${BASE_URL}/listings/${id}`, {
-    credentials: 'include',
-  })
-  if (!res.ok) throw new Error('Failed to fetch listing')
-
-  const item = await res.json()
-
-  return {
-    ...mockSellerListingDetail,
-    id:          item.listingId,
-    title:       item.title,
-    price:       item.price,
-    condition:   item.condition,
-    status:      item.listingStatus,
-    views:       item.viewCount,
-    listedAt:    item.createdAt,
-    description: item.description,
-    courseCode:  item.courseId?.toString() ?? mockSellerListingDetail.courseCode,
-    category:    mapCategory(item.listingType) as SellerListingDetail['category'],
-    images:      item.images.length > 0
-                   ? item.images.map((i: any) => i.path)
-                   : mockSellerListingDetail.images,
-  }
-},
+  getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
+    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+      credentials: 'include',
+    })
+    if (!res.ok) throw new Error('Failed to fetch listing')
+    const item = await res.json()
+    return {
+      ...mockSellerListingDetail,
+      id:          item.listingId,
+      title:       item.title,
+      price:       item.price,
+      condition:   item.condition,
+      status:      item.listingStatus,
+      views:       item.viewCount,
+      listedAt:    item.createdAt,
+      description: item.description,
+      courseCode:  item.courseId?.toString() ?? mockSellerListingDetail.courseCode,
+      category:    mapCategory(item.listingType) as SellerListingDetail['category'],
+      images:      item.images.length > 0
+                     ? item.images.map((i: any) => i.path)
+                     : mockSellerListingDetail.images,
+    }
+  },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
     const res = await fetch(`${BASE_URL}/listings`, {
       credentials: 'include',
     })
     if (!res.ok) throw new Error('Failed to fetch listings')
-
     const data = await res.json()
-
     const listings: BrowseListing[] = data.items.map((item: any) => ({
       id:        item.listingId,
       title:     item.title,
@@ -215,23 +217,66 @@ getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
                  ?? item.images[0]?.path
                  ?? biologyTextbook,
     }))
-
     return { listings, total: data.total }
   },
 
-updateListing: async (id: string, payload: { title: string; description: string; price: number; condition: string }): Promise<void> => {
-  const res = await fetch(`${BASE_URL}/listings/${id}`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      title:       payload.title,
-      description: payload.description,
-      price:       payload.price,
-      condition:   payload.condition,
-    }),
-  })
-  if (!res.ok) throw new Error('Failed to update listing')
-},
+  uploadImages: async (files: File[]): Promise<string[]> => {
+    const fd = new FormData()
+    files.forEach(f => fd.append('files', f))
+    const res = await fetch(`${BASE_URL}/listings/images`, {
+      method: 'POST',
+      credentials: 'include',
+      body: fd,
+    })
+    if (!res.ok) throw new Error('Failed to upload images')
+    const { urls } = await res.json()
+    return urls
+  },
+
+  createListing: async (payload: CreateListingPayload, imageUrls: string[]): Promise<void> => {
+    const user = useAuthStore.getState().user
+    const res = await fetch(`${BASE_URL}/listings`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title:         payload.title,
+        description:   payload.description,
+        price:         payload.price,
+        condition:     payload.condition,
+        listingType:   payload.listingType,
+        sellerId:      user?.id,
+        listingStatus: payload.listingStatus,
+        courseId:      payload.courseId,
+        isBundle:      false,
+        viewCount:     0,
+        isbn:          null,
+        author:        null,
+        edition:       null,
+        createdAt:     new Date().toISOString(),
+        updatedAt:     new Date().toISOString(),
+        images:        imageUrls.map((url, i) => ({
+          imageUrl:  url,
+          isPrimary: i === 0,
+        })),
+      }),
+    })
+    if (!res.ok) throw new Error('Failed to create listing')
+  },
+
+  updateListing: async (id: string, payload: { title: string; description: string; price: number; condition: string }): Promise<void> => {
+    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title:       payload.title,
+        description: payload.description,
+        price:       payload.price,
+        condition:   payload.condition,
+      }),
+    })
+    if (!res.ok) throw new Error('Failed to update listing')
+  },
 
 }
