@@ -21,6 +21,8 @@ using Infrastructure.Storage;
 using Modules.SharedKernel;
 
 
+
+
 DotEnv.Load(options: new DotEnvOptions(
     envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
 ));
@@ -89,6 +91,7 @@ builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
 var key = Encoding.UTF8.GetBytes(jwtSecret);

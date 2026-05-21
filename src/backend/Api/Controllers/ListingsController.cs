@@ -3,6 +3,7 @@ using Modules.Listings;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Models;
 using Modules.SharedKernel;
+
 namespace Api.Controllers;
 
 [ApiController]
@@ -12,7 +13,6 @@ public class ListingController : ControllerBase
     private readonly IListingService _listings;
     private readonly IBlobStorageService _blob;
 
-
     public ListingController(IListingService listings, IBlobStorageService blob)
     {
         _listings = listings;
@@ -20,7 +20,7 @@ public class ListingController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ListingSummaryDto request)
+    public async Task<IActionResult> Create([FromBody] CreateListingDto request)
     {
         if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Condition) || request.Price <= 0)
             return BadRequest("Field(s) missing.");
@@ -30,7 +30,7 @@ public class ListingController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromBody] ListingSummaryDto request, Guid id)
+    public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id)
     {
         var updateL = await _listings.UpdateListings(request, id);
         if (!updateL) return NotFound();
@@ -67,7 +67,7 @@ public class ListingController : ControllerBase
         if (files is null || files.Count == 0)
             return BadRequest("no_files");
 
-        const long maxBytes = 10 * 1024 * 1024;//10 mb is max 
+        const long maxBytes = 10 * 1024 * 1024;
         string[] allowed = ["image/jpeg", "image/png", "image/webp"];
 
         var urls = new List<string>();
