@@ -4,6 +4,7 @@ import girl from '../../assets/girl.png'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
+import type { UserRole } from '../../store/useAuthStore'
 
 const Login: React.FC = () => {
   const navigate = useNavigate()
@@ -18,6 +19,7 @@ const Login: React.FC = () => {
   }
 
 const handleSubmit = async (e: React.FormEvent) => {
+  
   e.preventDefault()
   setLoading(true)
   setError(null)
@@ -29,25 +31,20 @@ const handleSubmit = async (e: React.FormEvent) => {
     })
 
     const me = await authService.getMe()
+    
 
-    setUser({
-      id: me.userId,
-      name: `${me.firstName} ${me.lastName}`,
-      initials: `${me.firstName[0]}${me.lastName[0]}`.toUpperCase(),
-      role: me.role,
-      university: me.university,
-    })
+   setUser({
+  id: me.user.userId,
+  name: `${me.user.firstName} ${me.user.lastName}`,
+  initials: `${me.user.firstName[0]}${me.user.lastName[0]}`.toUpperCase(),
+  role: me.user.userRole as UserRole,
+  university: me.user.university,
+})
+if (me.user.userRole === 'admin') navigate('/admin/dashboard')
+else navigate('/buyer/dashboard')
 
-    if (me.role === 'admin') navigate('/admin/dashboard')
-    else if (me.role === 'seller') navigate('/seller/dashboard')
-    else navigate('/buyer/dashboard')
-
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      setError(getAuthErrorMessage(err.message))
-    } else {
-      setError(getAuthErrorMessage(String(err)))
-    }
+  } catch (err: any) {
+    setError(getAuthErrorMessage(err.message))
   } finally {
     setLoading(false)
   }

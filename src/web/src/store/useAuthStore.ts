@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type UserRole = 'student' | 'admin' 
+export type UserRole = 'student' | 'admin'
 export type ViewMode = 'buyer' | 'seller'
 
 interface User {

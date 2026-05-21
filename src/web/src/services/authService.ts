@@ -16,13 +16,17 @@ export interface LoginPayload {
 }
 
 export interface MeResponse {
-  userId: string
-  firstName: string
-  lastName: string
-  email: string
-  university: string
-  role: 'student' | 'buyer' | 'seller' | 'admin'
-  verificationStatus?: string
+  user: {
+    userId: string
+    firstName: string
+    lastName: string
+    email: string
+    userRole: 'student' | 'admin'
+    university?: string
+  }
+  std: {
+    verificationStatus: string
+  }
 }
 
 export const authService = {
@@ -74,7 +78,7 @@ export const authService = {
     })
     if (!res.ok) {
       const data = await res.json()
-      console.log(data);
+      
       throw new Error(data.error ?? 'server_error')
     }
   },
