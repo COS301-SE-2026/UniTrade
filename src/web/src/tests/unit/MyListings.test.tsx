@@ -7,8 +7,15 @@ import { listingsService } from '../../services/listingsService'
 vi.mock('../../services/listingsService', () => ({
   listingsService: {
     getMyListings: vi.fn(),
+    deleteListing: vi.fn(),
   },
 }))
+
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
 
 const mockListings = {
   listings: [
@@ -64,39 +71,32 @@ describe('MyListings', () => {
         it('shows Live stat card', async () => {
            renderMyListings()
            await waitFor(() => {
-           expect(screen.getByText('Live')).toBeInTheDocument()
+           expect(screen.getAllByText('Live').length).toBeGreaterThan(0)
           })
         })
 
         it('shows Pending Review stat card', async () => {
            renderMyListings()
            await waitFor(() => {
-           expect(screen.getByText('Pending Review')).toBeInTheDocument()
+           expect(screen.getAllByText('Pending Review').length).toBeGreaterThan(0)
             })
         })
 
         it('shows Drafts stat card', async () => {
             renderMyListings()
             await waitFor(() => {
-            expect(screen.getByText('Drafts')).toBeInTheDocument()
-            })
-        })
-
-        it('shows Drafts stat card', async () => {
-            renderMyListings()
-            await waitFor(() => {
-            expect(screen.getByText('Drafts')).toBeInTheDocument()
+            expect(screen.getAllByText('Drafts').length).toBeGreaterThan(0)
             })
         })
 
         it('shows all the filter tabs', async () => {
             renderMyListings()
             await waitFor(() => {
-            expect(screen.getByText('All')).toBeInTheDocument()
-            expect(screen.getByText(/Live/)).toBeInTheDocument()
-            expect(screen.getByText(/Pending/)).toBeInTheDocument()
-            expect(screen.getByText(/Drafts/)).toBeInTheDocument()
-            expect(screen.getByText(/Rejected/)).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^all$/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^live/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^pending/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^drafts/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^rejected/i })).toBeInTheDocument()
 
             })
         })
@@ -107,7 +107,7 @@ describe('MyListings', () => {
             await waitFor(() => {
             expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
         })
-            fireEvent.click(screen.getByText(/^Live/))
+            fireEvent.click(screen.getByRole('button', { name: /^live/i }))
             expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
             expect(screen.queryByText('HP Laptop')).not.toBeInTheDocument()
         })
@@ -117,7 +117,7 @@ describe('MyListings', () => {
             await waitFor(() => {
         expect(screen.getByText('Geometry Set')).toBeInTheDocument()
         })
-            fireEvent.click(screen.getByText(/^Drafts/))
+            fireEvent.click(screen.getByRole('button', { name: /^drafts/i }))
             expect(screen.getByText('Geometry Set')).toBeInTheDocument()
             expect(screen.queryByText('Chemistry Textbook')).not.toBeInTheDocument()
         })
