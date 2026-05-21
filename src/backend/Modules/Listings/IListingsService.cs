@@ -7,7 +7,7 @@ namespace Modules.Listings;
 
 public interface IListingService
 {
-    Task<Listing> CreateListings(ListingSummaryDto listings);//retruning a listings-> so when
+    Task<ListingSummaryDto> CreateListings(ListingSummaryDto listings);//retruning a listings-> so when
                                                              //users can see WHEN it was created and so on.P.s could be void, but retruning is stardard procedure.
     Task<bool> UpdateListings(ListingSummaryDto listings, Guid id);
     Task<bool> DeleteListings(Guid id);
