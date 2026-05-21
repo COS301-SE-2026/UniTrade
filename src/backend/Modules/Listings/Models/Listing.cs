@@ -30,13 +30,10 @@ public class Listing
     public int? ViewCount { get; set; }
     //===========
 
-
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    
     [NotMapped]
     public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
-
 
 }

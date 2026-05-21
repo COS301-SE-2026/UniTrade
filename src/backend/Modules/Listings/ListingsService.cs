@@ -41,7 +41,7 @@ public class ListingService : IListingService
          .ToList());
 
 
-    public async Task<Listing> CreateListings(ListingSummaryDto listings)
+    public async Task<ListingSummaryDto> CreateListings(ListingSummaryDto listings)
     {
         //link dto to model. update server side
         var NewListings = new Listing
@@ -63,19 +63,19 @@ public class ListingService : IListingService
             ViewCount = listings.ViewCount,
             Images = listings.Images
             .Select(dto => new ListingImage
-            {       
-            ImageId = dto.ImageId,
-            ImageUrl = dto.path,
-            IsPrimary = dto.IsPrimary
+            {
+                ImageId = dto.ImageId,
+                ImageUrl = dto.path,
+                IsPrimary = dto.IsPrimary
             }).ToList(),
-           UpdatedAt = listings.UpdatedAt,
+            UpdatedAt = listings.UpdatedAt,
             CreatedAt = DateTime.UtcNow
         };
 
         //repo call
         await _listings.AddAsync(NewListings);
 
-        return NewListings;
+        return MapToSummary(NewListings);
     }
 
     public async Task<bool> UpdateListings(ListingSummaryDto listings, Guid id)
