@@ -124,8 +124,8 @@ CREATE TABLE Verification_requests(
 
 CREATE TABLE Listings (
     listing_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
-    seller_id UNIQUEIDENTIFIER NOT NULL REFERENCES Users(user_id),
-    course_id INT NULL REFERENCES Course(course_id),
+    seller_id UNIQUEIDENTIFIER NOT NULL,
+
     title NVARCHAR(150) NOT NULL ,
     description NVARCHAR(MAX) NOT NULL,
     price NUMERIC(10, 2) NOT NULL 
@@ -135,25 +135,52 @@ CREATE TABLE Listings (
         CONSTRAINT chk_listing_condition CHECK(
             condition IN ('new', 'good', 'fair','poor')
         ),
+
+    
+    listing_type NVARCHAR(20) NOT NULL
+        CONSTRAINT chk_listing_type CHECK (listing_type IN ('book', 'laptop', 'stationery', 'electronics', 'clothing', 'furniture', 'other')),
+
+    -- book-specific
+    course_id INT NULL,
+    isbn NVARCHAR(13) NULL CONSTRAINT chk_isbn_validity CHECK(isbn IS NULL OR LEN(isbn) IN  (10,13)) ,
+    author NVARCHAR(120) NULL,
+    edition NVARCHAR(50) NULL,
+
     listing_status NVARCHAR(20) NOT NULL 
         CONSTRAINT chk_listing_status CHECK ( listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')),
-    ai_risk_score NUMERIC(5,2),
-    ai_risk_level NVARCHAR(10) CONSTRAINT chk_listing_risk CHECK (ai_risk_level IN ('low', 'medium', 'high')),
-    visibility_score INT NOT NULL DEFAULT 100,
-    is_bundle BIT NOT NULL DEFAULT 0,
-    rejection_reason NVARCHAR(MAX),
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
     
+    -- AI Mod (nullable; not implemented in MVP)
+    ai_risk_score NUMERIC(5,2) NULL,
+    ai_risk_level NVARCHAR(10)  NULL CONSTRAINT chk_listing_risk CHECK (ai_risk_level IN ('low', 'medium', 'high')),
+    visibility_score INT NULL DEFAULT 100,
+
+    is_bundle BIT NULL DEFAULT 0,
+
+    rejection_reason NVARCHAR(MAX) NULL,
+
+    view_count INT NULL DEFAULT 0,
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT chk_listing_book_fields CHECK (
+        listing_type ='book'
+        OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)
+    ),
+
+    CONSTRAINT FK_Listings_Users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
+    CONSTRAINT FK_Listings_Course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
+
 );
 
 -- 8. Listing Images
 CREATE TABLE Listing_images(
     image_id INT IDENTITY(1,1) PRIMARY KEY, 
-    listing_id UNIQUEIDENTIFIER NOT NULL REFERENCES Listings(listing_id),
+    listing_id UNIQUEIDENTIFIER NOT NULL,
     image_url NVARCHAR(MAX) NOT NULL, 
     is_primary BIT NOT NULL DEFAULT 0,
-    uploaded_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    uploaded_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_listingImages_Listings FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
 );
 
 --9. Reservations
@@ -345,9 +372,11 @@ CREATE INDEX ix_vr_status ON Verification_requests(status);
 
 --Listings 
 CREATE INDEX ix_listings_seller ON Listings(seller_id);
-CREATE INDEX ix_listings_status ON Listings(listing_status);
 CREATE INDEX ix_listings_course ON Listings(course_id);
-CREATE INDEX ix_listings_visibility ON Listings(listing_status, visibility_score DESC) WHERE listing_status ='live';
+CREATE INDEX ix_listings_feed ON Listings(listing_status, visibility_score DESC) WHERE listing_status ='live';
+CREATE INDEX ix_listings_created_at ON Listings (created_at DESC);
+
+CREATE INDEX ix_listing_images_listing ON Listing_images(listing_id);
 
 --Reservations
 CREATE INDEX ix_res_buyer ON Reservations(buyer_id);

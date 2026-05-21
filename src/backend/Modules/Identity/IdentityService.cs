@@ -1,5 +1,5 @@
+//using Infrastructure.Persistence;
 using Modules.Notifications;
-using Modules.Identity.Models.Dto;
 using Modules.Identity.Models;
 using Modules.ReferenceData.University;
 using Modules.Identity.Repositories;
@@ -13,7 +13,9 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using BCrypt.Net;
 using Microsoft.Extensions.Configuration;
+using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
+////note for me(sabira)---> make sure to change paths regarding infra 
 public class IdentityService : IIdentityService
 {
     private readonly IUserRepository _users;
@@ -243,25 +245,48 @@ public class IdentityService : IIdentityService
     }
 
     public async Task<object> GetMeAsync(string userId)
-{
-    var user = await _users.GetByIdAsync(Guid.Parse(userId));
-
-    if (user == null)
-        throw new Exception("not_found");
-
-    return new
     {
-        userId = user.UserId,
-        firstName = user.FirstName,
-        lastName = user.LastName,
-        email = user.Email,
-        role = user.Role,
-        university = user.StudentProfile?.UniversityId.ToString() ?? "",
-        verificationStatus = user.StudentProfile?.VerificationStatus ?? "pending"
-    };
-}
- 
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+
+        if (user == null)
+            throw new Exception("not_found");
+
+        var getUser = await _users.GetByIdAsync(Guid.Parse(userId));
+
+        if (getUser == null)
+        {
+            throw new Exception("user not found");
+        }
+
+        if (getUser.Role == "student")
+        {
+            //make a student dto
+            return new
+            {
+                User = new UserDto
+                {
+                    UserId = getUser.UserId,
+                    FirstName = getUser.FirstName,
+                    LastName = getUser.LastName,
+                    Email = getUser.Email,
+                },
+                //I didn't follow the response you wanted zee, i made it nested instead. hopefully not a problem
+                Std = new StudentDto
+                {
+                    VerificationStatus = getUser.StudentProfile?.VerificationStatus ?? "pending"
+                }
+            };
+        }
+
+        return new UserDto
+        {
+            UserId = getUser.UserId,
+            FirstName = getUser.FirstName,
+            LastName = getUser.LastName,
+            Email = getUser.Email,
+        };
+
+    }
 
 }
-
 
