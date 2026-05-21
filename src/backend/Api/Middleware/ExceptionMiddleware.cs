@@ -3,9 +3,10 @@ using System.Text.Json;
 
 namespace Api.Middleware;
 
-public class ExceptionMiddleware(RequestDelegate next)
+public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
 {
     private readonly RequestDelegate _next = next;
+    private readonly ILogger<ExceptionMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -15,6 +16,7 @@ public class ExceptionMiddleware(RequestDelegate next)
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unhandled exception");
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -40,17 +42,15 @@ public class ExceptionMiddleware(RequestDelegate next)
             "invalid_email" => (HttpStatusCode.UnprocessableEntity, "invalid_email"),
             "listing_not_found" => (HttpStatusCode.NotFound, "listing_not_found"),
             "forbidden" => (HttpStatusCode.Forbidden, "forbidden"),
-            _ => (HttpStatusCode.InternalServerError, exception.Message) // ← changed
+            _ => (HttpStatusCode.InternalServerError, "server_error")
         };
 
         response.StatusCode = (int)statusCode;
 
         var result = JsonSerializer.Serialize(new
         {
-            error = message,
-            detail = exception.StackTrace // ← added
+            error = message
         });
-
         await response.WriteAsync(result);
     }
 }
