@@ -24,12 +24,13 @@ export default function App() {
   const { setUser } = useAuthStore()
 
   useEffect(() => {
-    // Temporary: change role to 'buyer' | 'seller' | 'admin' to test different sidebars
+    
     setUser({
       id: '1',
       name: 'Tafadzwa Musiiwa',
       initials: 'TM',
-      role: 'buyer',
+      role: 'student',
+      university: 'University of Cape Town',
     })
   }, [setUser])
 
