@@ -4,11 +4,13 @@ import {
   IconPackage,
   IconNotes,
   IconBoxPadding,
+  IconPlus,
 } from '@tabler/icons-react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { ListingSummary, ListingStatus } from '../../types/listing'
 import StatusPill from '../../components/layout/ui/StatusPill'
+import biologyTextbook from '../../assets/bio-textbook.jpg'
 
 
 function ActionButtons({ listing }: { listing: ListingSummary }) {
@@ -23,7 +25,10 @@ function ActionButtons({ listing }: { listing: ListingSummary }) {
         >
           View
         </button>
-        <button className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+        <button
+          onClick={() => navigate(`/seller/editListing/${listing.id}`)}
+          className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        >
           Edit
         </button>
       </div>
@@ -36,7 +41,10 @@ function ActionButtons({ listing }: { listing: ListingSummary }) {
         <button className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
           Submit
         </button>
-        <button className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+        <button
+          onClick={() => navigate(`/seller/editListing/${listing.id}`)}
+          className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        >
           Edit
         </button>
       </div>
@@ -49,7 +57,10 @@ function ActionButtons({ listing }: { listing: ListingSummary }) {
         <button className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
           Resubmit
         </button>
-        <button className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+        <button
+          onClick={() => navigate(`/seller/editListing/${listing.id}`)}
+          className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        >
           Edit
         </button>
       </div>
@@ -62,6 +73,7 @@ function ActionButtons({ listing }: { listing: ListingSummary }) {
 type Tab = 'all' | ListingStatus
 
 export default function MyListings() {
+  const navigate = useNavigate()
   const [listings, setListings] = useState<ListingSummary[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -87,10 +99,10 @@ export default function MyListings() {
     listings.filter(l => l.status === status).length
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'all',      label: 'All' },
-    { key: 'live',     label: `Live (${count('live')})` },
-    { key: 'pending',  label: `Pending (${count('pending')})` },
-    { key: 'draft',    label: `Drafts (${count('draft')})` },
+    { key: 'all', label: 'All' },
+    { key: 'live', label: `Live (${count('live')})` },
+    { key: 'pending', label: `Pending (${count('pending')})` },
+    { key: 'draft', label: `Drafts (${count('draft')})` },
     { key: 'rejected', label: `Rejected (${count('rejected')})` },
   ]
 
@@ -109,17 +121,25 @@ export default function MyListings() {
   return (
     <div className="space-y-6">
 
-      <div>
-        <h1 className="text-2xl font-bold text-navy-700 dark:text-white">My Listings</h1>
-        <p className="text-sm text-gray-400 mt-1">Manage all Listings in one place</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-navy-700 dark:text-white">My Listings</h1>
+          <p className="text-sm text-gray-400 mt-1">Manage all Listings in one place</p>
+        </div>
+        <button
+          onClick={() => navigate('/seller/upload')}
+          className="flex items-center gap-2 bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors"
+        >
+          <IconPlus size={16} /> New Listing
+        </button>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
         {[
-          { icon: <IconPackage size={20} />,    value: total,           label: 'Total Listings' },
-          { icon: <span className="text-base">((·))</span>, value: count('live'),    label: 'Live' },
-          { icon: <IconNotes size={20} />,      value: count('pending'), label: 'Pending Review' },
-          { icon: <IconBoxPadding size={20} />, value: count('draft'),   label: 'Drafts' },
+          { icon: <IconPackage size={20} />, value: total, label: 'Total Listings' },
+          { icon: <span className="text-base">((·))</span>, value: count('live'), label: 'Live' },
+          { icon: <IconNotes size={20} />, value: count('pending'), label: 'Pending Review' },
+          { icon: <IconBoxPadding size={20} />, value: count('draft'), label: 'Drafts' },
         ].map(({ icon, value, label }) => (
           <div
             key={label}
@@ -139,18 +159,17 @@ export default function MyListings() {
           <button
             key={tab.key}
             onClick={() => { setActiveTab(tab.key); setCurrentPage(1) }}
-            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${
-              activeTab === tab.key
+            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${activeTab === tab.key
                 ? 'bg-navy-700 text-white border-navy-700'
                 : 'bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'
-            }`}
+              }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
 
+      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
         <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
           <div className="w-12 flex-shrink-0" />
           <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Listing</div>
@@ -163,12 +182,11 @@ export default function MyListings() {
         {filtered.map((listing, i) => (
           <div
             key={listing.id}
-            className={`flex items-center gap-4 px-5 py-4 ${
-              i < filtered.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''
-            }`}
+            className={`flex items-center gap-4 px-5 py-4 ${i < filtered.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''
+              }`}
           >
             <img
-              src={listing.imageUrl}
+              src={listing.imageUrl || biologyTextbook}
               alt={listing.title}
               className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
             />
@@ -190,6 +208,12 @@ export default function MyListings() {
             </div>
           </div>
         ))}
+
+        {filtered.length === 0 && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-gray-400">No listings found.</p>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
@@ -201,11 +225,10 @@ export default function MyListings() {
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
-                currentPage === page
+              className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
                   ? 'bg-navy-700 text-white border-navy-700'
                   : 'bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50'
-              }`}
+                }`}
             >
               {page}
             </button>

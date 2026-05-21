@@ -3,6 +3,7 @@ import type { ListingSummary, MyListingsResponse } from '../types/listing'
 import type { SellerListingDetail } from '../types/listing'
 import type { BrowseListing, BrowseListingsResponse, BrowseCondition, BrowseCategory } from '../types/listing'
 import biologyTextbook from '../assets/bio-textbook.jpg'
+import { useAuthStore } from '../store/useAuthStore'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 
@@ -142,16 +143,58 @@ export const listingsService = {
     }
   },
 
-  getMyListings: async (): Promise<MyListingsResponse> => {
-    return {
-      listings: mockMyListings,
-      total: mockMyListings.length,
-    }
-  },
+getMyListings: async (): Promise<MyListingsResponse> => {
+  const user = useAuthStore.getState().user
 
-  getSellerListingById: async (_id: string): Promise<SellerListingDetail> => {
-    return mockSellerListingDetail
-  },
+  if (!user) return { listings: mockMyListings, total: mockMyListings.length }
+
+  const res = await fetch(`${BASE_URL}/listings?sellerId=${user.id}`, {
+    credentials: 'include',
+  })
+  if (!res.ok) throw new Error('Failed to fetch listings')
+
+  const data = await res.json()
+
+  const listings: ListingSummary[] = data.items.map((item: any) => ({
+    id:       item.listingId,
+    title:    item.title,
+    meta:     `${item.listingType} · Listed ${new Date(item.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+    price:    item.price,
+    status:   item.listingStatus,
+    views:    item.viewCount,
+    imageUrl: item.images.find((i: any) => i.isPrimary)?.path
+              ?? item.images[0]?.path
+              ?? biologyTextbook,
+  }))
+
+  return { listings, total: data.total }
+},
+
+getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
+  const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    credentials: 'include',
+  })
+  if (!res.ok) throw new Error('Failed to fetch listing')
+
+  const item = await res.json()
+
+  return {
+    ...mockSellerListingDetail,
+    id:          item.listingId,
+    title:       item.title,
+    price:       item.price,
+    condition:   item.condition,
+    status:      item.listingStatus,
+    views:       item.viewCount,
+    listedAt:    item.createdAt,
+    description: item.description,
+    courseCode:  item.courseId?.toString() ?? mockSellerListingDetail.courseCode,
+    category:    mapCategory(item.listingType) as SellerListingDetail['category'],
+    images:      item.images.length > 0
+                   ? item.images.map((i: any) => i.path)
+                   : mockSellerListingDetail.images,
+  }
+},
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
     const res = await fetch(`${BASE_URL}/listings`, {
@@ -175,4 +218,20 @@ export const listingsService = {
 
     return { listings, total: data.total }
   },
+
+updateListing: async (id: string, payload: { title: string; description: string; price: number; condition: string }): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title:       payload.title,
+      description: payload.description,
+      price:       payload.price,
+      condition:   payload.condition,
+    }),
+  })
+  if (!res.ok) throw new Error('Failed to update listing')
+},
+
 }

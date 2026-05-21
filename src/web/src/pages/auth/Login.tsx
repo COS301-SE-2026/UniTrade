@@ -41,7 +41,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   university: me.user.university,
 })
 if (me.user.userRole === 'admin') navigate('/admin/dashboard')
-else navigate('/buyer/dashboard')
+else navigate('/buyer/listings')
 
   } catch (err: any) {
     setError(getAuthErrorMessage(err.message))
