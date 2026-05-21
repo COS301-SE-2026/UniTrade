@@ -6,7 +6,7 @@ public record ListingSummaryDto
 (
     Guid ListingId,
     Guid SellerId,
-     string SellerName,
+     //string SellerName,
      string Title,
      string Description,
      decimal Price,
@@ -16,7 +16,7 @@ public record ListingSummaryDto
      string? Isbn,
      string? Author,
      string? Edition,
-     string ListingStatus,
+     string ListingStatus,  
     bool IsBundle, int ViewCount,
 
      DateTime CreatedAt,
