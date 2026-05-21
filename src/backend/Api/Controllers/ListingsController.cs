@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modules.Listings;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Models;
-
+using Modules.SharedKernel;
 namespace Api.Controllers;
 
 [ApiController]
@@ -10,8 +10,14 @@ namespace Api.Controllers;
 public class ListingController : ControllerBase
 {
     private readonly IListingService _listings;
+    private readonly IBlobStorageService _blob;
 
-    public ListingController(IListingService listings) => _listings = listings;
+
+    public ListingController(IListingService listings, IBlobStorageService blob)
+    {
+        _listings = listings;
+        _blob = blob;
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ListingSummaryDto request)
@@ -53,5 +59,27 @@ public class ListingController : ControllerBase
         if (listing == null)
             return NotFound(new { error = "listing_not_found" });
         return Ok(listing);
+    }
+
+    [HttpPost("images")]
+    public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> files)
+    {
+        if (files is null || files.Count == 0)
+            return BadRequest("no_files");
+
+        const long maxBytes = 10 * 1024 * 1024;//10 mb is max 
+        string[] allowed = ["image/jpeg", "image/png", "image/webp"];
+
+        var urls = new List<string>();
+        foreach (var file in files)
+        {
+            if (file.Length == 0 || file.Length > maxBytes) return BadRequest("file_too_large");
+            if (!allowed.Contains(file.ContentType)) return BadRequest("invalid_file_type");
+
+            await using var stream = file.OpenReadStream();
+            urls.Add(await _blob.UploadAsync(stream, file.FileName, file.ContentType));
+        }
+
+        return Ok(new { urls });
     }
 }
