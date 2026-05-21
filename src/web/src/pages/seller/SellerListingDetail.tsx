@@ -16,7 +16,6 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   )
 }
 
-
 export default function SellerListingDetail() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -61,6 +60,7 @@ export default function SellerListingDetail() {
 
       <div className="grid grid-cols-3 gap-5">
 
+        {/* Left column */}
         <div className="col-span-2 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
@@ -127,88 +127,38 @@ export default function SellerListingDetail() {
                 </span>
               }
             />
-            <DetailRow label="Course Code" value={listing.courseCode} />
-            <DetailRow label="Listed On"   value={formatDate(listing.listedAt)} />
-            <DetailRow label="Views"       value={listing.views} />
+            {listing.courseCode && (
+              <DetailRow label="Course Code" value={listing.courseCode} />
+            )}
+            <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
+            <DetailRow label="Views"     value={listing.views} />
           </div>
         </div>
+
         <div className="col-span-1 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-white/5">
-              <h3 className="text-sm font-semibold text-navy-700 dark:text-white">
-                Listing Details
-              </h3>
-              <div className="flex gap-2">
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 capitalize">
-                  {listing.status}
-                </span>
-                {listing.isReserved && (
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-500 border border-blue-200">
-                    Reserved
-                  </span>
-                )}
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">Listing Verifications Detail</h3>
+            <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-navy-600 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                <div className="h-2.5 w-16 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
               </div>
-            </div>
-
-            <h4 className="text-xs font-semibold text-[#00aaff] uppercase tracking-wide mb-3">
-              AI Risk Score
-            </h4>
-            <div className="bg-gray-50 dark:bg-navy-700 rounded-xl p-3 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-navy-700 dark:bg-navy-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-[10px] font-bold">AI</span>
-                </div>
-                <p className="text-sm font-semibold text-navy-700 dark:text-white">
-                  AI Confidence Score — {listing.aiLabel}
-                </p>
-              </div>
-              <div className="h-2 bg-gray-200 dark:bg-navy-600 rounded-full mb-1.5">
-                <div
-                  className="h-2 bg-green-500 rounded-full transition-all"
-                  style={{ width: `${listing.aiScore ?? 0}%` }}
-                />
-              </div>
-              <p className="text-xs text-green-600 font-semibold">
-                {listing.aiScore}/100 — went live automatically
-              </p>
-            </div>
-
-            <h4 className="text-xs font-semibold text-[#00aaff] uppercase tracking-wide mb-3">
-              Submission timeline
-            </h4>
-            <div className="space-y-0">
-              {listing.timeline.map((step, i) => (
-                <div key={i} className="flex gap-3 pb-3 relative">
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div className={`w-3 h-3 rounded-full mt-0.5 ${
-                      i === listing.timeline.length - 1
-                        ? 'bg-navy-700 dark:bg-white'
-                        : 'bg-green-500'
-                    }`} />
-                    {i < listing.timeline.length - 1 && (
-                      <div className="w-px flex-1 bg-gray-200 dark:bg-white/10 mt-1" />
-                    )}
-                  </div>
-                  <div className="pb-1">
-                    <p className="text-xs font-semibold text-navy-700 dark:text-white">
-                      {step.label}
-                    </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      {formatDate(step.time)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
+                Coming soon
+              </span>
             </div>
           </div>
 
+         
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
-              Actions
-            </h3>
-            <button className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors">
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">Actions</h3>
+            <button
+              onClick={() => navigate(`/seller/editListing/${id}`)}
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors"
+            >
               Edit Listing
             </button>
             <button className="w-full border border-gray-200 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-xl mb-2.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
