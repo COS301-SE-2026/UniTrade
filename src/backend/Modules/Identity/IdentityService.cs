@@ -269,6 +269,7 @@ public class IdentityService : IIdentityService
                     FirstName = getUser.FirstName,
                     LastName = getUser.LastName,
                     Email = getUser.Email,
+                    UserRole = getUser.Role, 
                 },
                 //I didn't follow the response you wanted zee, i made it nested instead. hopefully not a problem
                 Std = new StudentDto
