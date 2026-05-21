@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
+using Modules.Identity.Models.Dto;
 using Modules.Identity;
 using Modules.Identity.Verification;
 using Modules.Identity.Repositories;
@@ -136,15 +136,15 @@ public class AuthController : ControllerBase
 
             var token = await _identityService.LoginAsync(request);//business logic layer comes in. It gives us the results
 
-           Response.Cookies.Append("authToken", token, new CookieOptions
+            Response.Cookies.Append("authToken", token, new CookieOptions
 
-{
-HttpOnly = true,
-Secure = false,        
-SameSite = SameSiteMode.Lax,
-Expires = DateTimeOffset.UtcNow.AddHours(24),
-Path = "/"
-});
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(24),
+                Path = "/"
+            });
 
             return Ok(new
             {
@@ -185,16 +185,12 @@ Path = "/"
         {
             //'USer' here is built in. .net puts all jwt claims in this Object when client requests
             var claims = User.Claims.ToList();
-        System.Diagnostics.Debug.WriteLine($"Claims count: {claims.Count}");
-        foreach (var claim in claims)
-        {
-            System.Diagnostics.Debug.WriteLine($"Claim: {claim.Type} = {claim.Value}");
-        }
-           var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new{ error="unauthenticated"});
+                return Unauthorized(new { error = "unauthenticated" });
             }
 
             var result = await _identityService.GetMeAsync(userId);
@@ -204,7 +200,8 @@ Path = "/"
         {
             return ex.Message switch
             {
-            "not_found"=> Unauthorized(new { error="unauthenticatedfailling" }),_ => StatusCode(500, new { error = "server_error",})
+                "not_found" => Unauthorized(new { error = "unauthenticatedfailling" }),
+                _ => StatusCode(500, new { error = "server_error", })
             };
         }
     }
