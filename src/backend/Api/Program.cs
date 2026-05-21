@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Http.Json;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Infrastructure.Persistence.Repositories.Listings;
+using Infrastructure.Storage;
+using Modules.SharedKernel;
 
 
 DotEnv.Load(options: new DotEnvOptions(
@@ -86,7 +88,7 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
-
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
 var key = Encoding.UTF8.GetBytes(jwtSecret);
