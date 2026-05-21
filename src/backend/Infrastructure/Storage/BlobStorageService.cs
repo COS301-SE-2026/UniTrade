@@ -1,5 +1,6 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.Extensions.Configuration;
 using Modules.SharedKernel;
 
@@ -16,14 +17,12 @@ public class BlobStorageService : IBlobStorageService
         var containerName = config["Azure:Blob:Container"] ?? "listing-images";
 
         _container = new BlobContainerClient(connectionString, containerName);
-        // Blob-level public read so the returned URLs work directly in <img src>
         _container.CreateIfNotExists();
     }
 
     public async Task<string> UploadAsync(Stream content, string fileName,
         string contentType, CancellationToken ct = default)
     {
-        // Random name prevents collisions and stops users guessing/overwriting each other's files
         var blobName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
         var blob = _container.GetBlobClient(blobName);
 
@@ -33,6 +32,32 @@ public class BlobStorageService : IBlobStorageService
         }, ct);
 
         return blob.Uri.ToString();
+
+
+    }
+
+    public string GetReadUrl(string blobNameOrUrl, TimeSpan? validFor = null)
+    {
+
+        var blobName = Uri.TryCreate(blobNameOrUrl, UriKind.Absolute, out var uri)
+            ? Path.GetFileName(uri.LocalPath)
+            : blobNameOrUrl;
+
+        var blob = _container.GetBlobClient(blobName);
+
+        if (!blob.CanGenerateSasUri)
+            throw new InvalidOperationException("Cannot generate SAS — no account key available.");
+
+        var sas = new BlobSasBuilder
+        {
+            BlobContainerName = _container.Name,
+            BlobName = blobName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.Add(validFor ?? TimeSpan.FromMinutes(30))
+        };
+        sas.SetPermissions(BlobSasPermissions.Read);
+
+        return blob.GenerateSasUri(sas).ToString();
     }
 
     public async Task DeleteAsync(string blobUrl, CancellationToken ct = default)
