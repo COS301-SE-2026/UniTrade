@@ -2,13 +2,19 @@ using Modules.Listings.Repositories;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Models;
 using Modules.SharedKernel;
+
 namespace Modules.Listings;
 
 public class ListingService : IListingService
 {
     private readonly IListingRepository _listings;
+    private readonly IBlobStorageService _blob;
 
-    public ListingService(IListingRepository listings) => _listings = listings;
+    public ListingService(IListingRepository listings, IBlobStorageService blob)
+    {
+        _listings = listings;
+        _blob = blob;
+    }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
     {
@@ -24,67 +30,52 @@ public class ListingService : IListingService
             total);
     }
 
-    private static string? PrimaryImage(Listing l) =>
-        l.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
-        ?? l.Images.FirstOrDefault()?.ImageUrl;
+    private ListingSummaryDto MapToSummary(Listing l) => new(
+        l.ListingId, l.SellerId,
+        l.Title, l.Description, l.Price, l.Condition, l.ListingType,
+        l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
+        l.isBundle ?? false, l.ViewCount ?? 0,
+        l.CreatedAt, l.UpdatedAt,
+        l.Images
+            .OrderByDescending(i => i.IsPrimary)
+            .Select(i => new ListingImageDto(i.ImageId, _blob.GetReadUrl(i.ImageUrl), i.IsPrimary))
+            .ToList());
 
-
-    private static ListingSummaryDto MapToSummary(Listing l) => new(
-     l.ListingId, l.SellerId,
-     l.Title, l.Description, l.Price, l.Condition, l.ListingType,
-     l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
-     l.isBundle ?? false, l.ViewCount ?? 0,
-     l.CreatedAt, l.UpdatedAt,
-     l.Images
-         .OrderByDescending(i => i.IsPrimary)
-         .Select(i => new ListingImageDto(i.ImageId, i.ImageUrl, i.IsPrimary))
-         .ToList());
-
-
-    public async Task<ListingSummaryDto> CreateListings(ListingSummaryDto listings)
+    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto)
     {
-        //link dto to model. update server side
-        var NewListings = new Listing
+        var newListing = new Listing
         {
-            Title = listings.Title,
-            Description = listings.Description,
-            Price = listings.Price,
-            Condition = listings.Condition,
-            ListingType = listings.ListingType,
-            Author = listings.Author,
-            Isbn = listings.Isbn,
-            Edition = listings.Edition,
-            SellerId = listings.SellerId,
-            //SellerName = listings.Seller.FirstName,   
-            ListingStatus = listings.ListingStatus,
-            ListingId = listings.ListingId,
-            CourseId = listings.CourseId,
-            isBundle = listings.IsBundle,
-            ViewCount = listings.ViewCount,
-            Images = listings.Images
-            .Select(dto => new ListingImage
+            Title = dto.Title,
+            Description = dto.Description,
+            Price = dto.Price,
+            Condition = dto.Condition,
+            ListingType = dto.ListingType,
+            Author = dto.Author,
+            Isbn = dto.Isbn,
+            Edition = dto.Edition,
+            SellerId = dto.SellerId,
+            ListingStatus = dto.ListingStatus,
+            ListingId = Guid.NewGuid(),
+            CourseId = dto.CourseId,
+            isBundle = dto.IsBundle,
+            ViewCount = 0,
+            Images = dto.Images.Select(i => new ListingImage
             {
-                ImageId = dto.ImageId,
-                ImageUrl = dto.path,
-                IsPrimary = dto.IsPrimary
+                ImageUrl = i.ImageUrl,
+                IsPrimary = i.IsPrimary
             }).ToList(),
-            UpdatedAt = listings.UpdatedAt,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
         };
 
-        //repo call
-        await _listings.AddAsync(NewListings);
-
-        return MapToSummary(NewListings);
+        await _listings.AddAsync(newListing);
+        return MapToSummary(newListing);
     }
 
-    public async Task<bool> UpdateListings(ListingSummaryDto listings, Guid id)
+    public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id)
     {
         var listingLookUp = await _listings.GetByIdAsync(id);
-        if (listingLookUp == null)
-        {
-            return false;
-        }
+        if (listingLookUp == null) return false;
 
         listingLookUp.Title = listings.Title;
         listingLookUp.Description = listings.Description;
@@ -93,21 +84,15 @@ public class ListingService : IListingService
         listingLookUp.UpdatedAt = DateTime.UtcNow;
 
         await _listings.UpdateAsync(listingLookUp, id);
-
         return true;
     }
 
     public async Task<bool> DeleteListings(Guid id)
     {
         var listing = await _listings.GetByIdAsync(id);
-
-        if (listing == null)
-        {
-            return false;
-        }
+        if (listing == null) return false;
 
         await _listings.DeleteByIdAsync(id);
-
         return true;
     }
 }

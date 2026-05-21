@@ -3,11 +3,6 @@ import { clsx } from 'clsx'
 import {
   IconLayoutDashboard,
   IconSwitchHorizontal,
-  IconShoppingBag,
-  IconHeart,
-  IconBookmark,
-  IconMessage,
-  IconUser,
   IconSettings,
   IconShieldCheck,
   IconListCheck,
@@ -37,40 +32,40 @@ const buyerNav: NavSection[] = [
   {
     heading: 'Main',
     items: [
-      { label: 'Dashboard', to: '/buyer/dashboard', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
+      /*{ label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
       { label: 'My Wishlist', to: '/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'Reserved', to: '/reserved', icon: <IconBookmark size={18} />, badge: 2 },
+      { label: 'Reserved', to: '/reserved', icon: <IconBookmark size={18} />, badge: 2 },*/
     ],
   },
-  {
+  /*{
     heading: 'Account',
     items: [
       { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/profile', icon: <IconUser size={18} /> },
       { label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
-  },
+  },*/
 ]
 
 const sellerNav: NavSection[] = [
   {
     heading: 'Main',
     items: [
-      { label: 'Dashboard', to: '/seller/dashboard', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'My Listings', to: '/seller/listings', icon: <IconPackage size={18} />, badge: 3 },
+      { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
     ],
   },
-  {
+  /*{
     heading: 'Account',
     items: [
       { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/profile', icon: <IconUser size={18} /> },
       { label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
-  },
+  },*/
 ]
 
 const adminNav: NavSection[] = [
@@ -109,7 +104,7 @@ export default function Sidebar() {
     if (user?.role !== 'student') return
     const newMode = viewMode === 'buyer' ? 'seller' : 'buyer'
     toggleViewMode()
-    navigate(newMode === 'buyer' ? '/buyer/dashboard' : '/seller/dashboard')
+    navigate(newMode === 'buyer' ? '/buyer/listings' : '/seller/listings')
   }
 
   return (

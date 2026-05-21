@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence;
 using Modules.Listings.Models;
-using Modules.Listings.Models.DTO;
+using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
 using Modules.Listings.Models.Dto;
 namespace Infrastructure.Persistence.Repositories.Listings;
@@ -75,6 +75,7 @@ public class ListingRepository : IListingRepository
             .AsNoTracking()
             .Where(i => i.ListingId == listing.ListingId)
             .ToListAsync();
+        
 
         return listing;
     }
