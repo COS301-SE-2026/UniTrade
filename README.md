@@ -2,9 +2,11 @@
 
 # UniTrade
 
-**The trusted peer-to-peer marketplace for South African university students.**
+### The trusted peer-to-peer marketplace for South African university students
 
-<img src="src/web/src/assets/group_photo.jpeg" alt="DevNexus Team" width="600" />
+<img src="src/web/src/assets/group_photo.jpeg" alt="DevNexus Team" width="80%" />
+
+<br/>
 
 
 [![Build Status](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/build.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions)
@@ -12,9 +14,15 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+<br/>
+
 [Live Demo](#) · [Report a Bug](https://github.com/COS301-SE-2026/UniTrade/issues) · [Request a Feature](https://github.com/COS301-SE-2026/UniTrade/issues)
 
-<em>The DevNexus Team — University of Pretoria · COS301 Capstone 2026</em>
+<br/><br/>
+
+<sub>
+<em>The DevNexus Team — University of Pretoria · COS301 Capstone 2026
+</em></sub>
 
 </div>
 
@@ -25,8 +33,8 @@ A web and mobile marketplace for South African university students to buy and se
 
 ## The problem
 
-University students in South Africa face significant financial pressure, from high tuition fees, rising living costs, and expensive prescribes textbooks. The current alternatives are bleak: buy new materials at full price, or rely on informal peer networks that are unreliable, unverified, and often unsafe.
-There is no structured, trusted space where students can exchange academic materials with confidence.
+University students in South Africa face significant financial pressure, from high tuition fees, rising living costs, and expensive prescribed textbooks. The current alternatives are bleak: buy new materials at full price, or rely on informal peer networks that are unreliable, unverified, and often unsafe.
+There is currently no structured and trusted platform where students can safely exchange academic materials with confidence.
 
 ## What UniTrade does
 
@@ -38,13 +46,13 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 | Feature | Description |
 |---|---|
-| 🔒 **Student Verification** | Every account is verified against university enrollment records before transacting |
-| 🤖 **AI Listing Verification** | Azure Computer Vision checks listing images for accuracy and detects fraud at delivery |
-| 💬 **Real-Time Chat** | Secure in-app messaging between buyers and sellers to coordinate meetups |
-| 📍 **Location Pickup** | Google Maps integration for arranging safe, campus-based handovers |
-| 🛡️ **Secure Payments** | OZOW integration — pay directly from your bank account, no card needed |
-| 📚 **AI Material Suggestions** | OpenAI-powered degree-specific material recommendations and price optimisation |
-| 🔔 **Multi-Channel Notifications** | Push notifications (FCM) and transactional emails (Resend) |
+| **Student Verification** | Every account is verified against university enrollment records before transacting |
+| **AI Listing Verification** | Azure Computer Vision checks listing images for accuracy and detects fraud at delivery |
+| **Real-Time Chat** | Secure in-app messaging between buyers and sellers to coordinate meetups |
+| **Location Pickup** | Google Maps integration for arranging safe, campus-based handovers |
+| **Secure Payments** | OZOW integration — pay directly from your bank account, no card needed |
+| **AI Material Suggestions** | OpenAI-powered degree-specific material recommendations and price optimization |
+| **Multi-Channel Notifications** | Push notifications (FCM) and transactional emails (Resend) |
 
 ---
 
@@ -63,37 +71,6 @@ UniTrade provides a structured, verified marketplace where students can list, br
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 
-
-### Database
-![Microsoft SQL Server](https://img.shields.io/badge/Microsoft_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
-![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
-
-### Cloud & DevOps
-![Azure](https://img.shields.io/badge/Microsoft_Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
-
-### AI & Integrations
-![Azure](https://img.shields.io/badge/Azure_Computer_Vision-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
-![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
-![Google Maps](https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)
-
----
-
-## Tech Stack
-
-### Frontend
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
-
-### Mobile
-![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-
-### Backend
-![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 
 ### Database
 ![Microsoft SQL Server](https://img.shields.io/badge/Microsoft_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
