@@ -12,7 +12,7 @@ export function getAuthErrorMessage(code: string): string {
     invalid_credentials:    'Incorrect email or password.',
     resend_limit_exceeded:  'Too many resend attempts. Please wait 60 seconds.',
     cooldown_active:        'Please wait 60 seconds before requesting another OTP.',
-    server_error:           'Something went wrong. Please try again.',
+    server_error:           'Something went wrongajsahs. Please try again.',
   }
-  return messages[code] ?? 'Something went wrong. Please try again.'
+  return messages[code] ?? 'Something went wrongbaaabs. Please try again.'
 }
