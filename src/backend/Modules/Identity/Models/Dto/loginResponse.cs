@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-namespace Modules.Identity.Models.DTO
+namespace Modules.Identity.Models.Dto
 {
     public class LoginResponse
     {
