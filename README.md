@@ -6,6 +6,14 @@
 
 <img src="src/web/src/assets/group_photo.jpeg" alt="DevNexus Team" width="600" />
 
+
+[![Build Status](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/build.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions)
+[![Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+[Live Demo](#) · [Report a Bug](https://github.com/COS301-SE-2026/UniTrade/issues) · [Request a Feature](https://github.com/COS301-SE-2026/UniTrade/issues)
+
 <em>The DevNexus Team — University of Pretoria · COS301 Capstone 2026</em>
 
 </div>
@@ -107,28 +115,202 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 ```
 UniTrade/
+│
+├── .github/
+│   ├── workflows/
+│   │   ├── backend-ci.yml
+│   │   ├── web-ci.yml
+│   │   ├── mobile-ci.yml
+│   │   ├── cd.yml
+│  
+│
+├── docs/
+│   ├── diagrams/
+│   ├── requirements/
+│   ├── design-docs/
+│   └── security-research/
+│
 ├── src/
-│   ├── web/                    # React frontend
+│   │
+│   ├── web/                               # React.js
+│   │   ├── public/
 │   │   ├── src/
-│   │   │   ├── pages/
-│   │   │   │   ├── auth/       # Login, Signup, OTP, HomePage
-│   │   │   │   ├── buyer/      # Buyer Dashboard, Browse Listings
-│   │   │   │   ├── seller/     # Seller Dashboard, Listings
-│   │   │   │   └── admin/      # Admin Dashboard, Verifications
-│   │   │   ├── components/     # Shared layout components
-│   │   │   ├── services/       # API service layer
-│   │   │   ├── store/          # Zustand state management
-│   │   │   ├── types/          # TypeScript type definitions
-│   │   │   └── utils/          # Utility functions
-│   │   └── src/tests/          # Unit and integration tests
-│   ├── backend/                # ASP.NET Core API
-│   └── mobile/                 # React Native app
+│   │   │   ├── assets/
+│   │   │   ├── components/                # Shared UI components
+│   │   │   ├── features/
+│   │   │   │   ├── auth/
+│   │   │   │   ├── listings/
+│   │   │   │   ├── reservations/
+│   │   │   │   ├── chat/
+│   │   │   │   ├── payments/
+│   │   │   │   └── profile/
+│   │   │   ├── hooks/
+│   │   │   ├── services/                  # API client calls
+│   │   │   ├── store/                     # State management
+│   │   │   ├── types/
+│   │   │   └── utils/
+│   │   ├── tests/
+│   │   │   ├── unit/                      # Individual component tests (Jest)
+│   │   │   ├── integration/               # Multi-component + service layer tests (RTL)
+│   │   │   └── e2e/                       # Full browser flows (Playwright)
+│   │   ├── .env.example
+│   │   ├── Dockerfile
+│   │   └── package.json
+│   │
+│   ├── mobile/                            # React Native
+│   │   ├── src/
+│   │   │   ├── assets/
+│   │   │   ├── components/
+│   │   │   ├── features/
+│   │   │   │   ├── auth/
+│   │   │   │   ├── listings/
+│   │   │   │   ├── reservations/
+│   │   │   │   ├── chat/
+│   │   │   │   ├── payments/
+│   │   │   │   └── profile/
+│   │   │   ├── hooks/
+│   │   │   ├── navigation/
+│   │   │   ├── services/
+│   │   │   ├── store/
+│   │   │   ├── types/
+│   │   │   └── utils/
+│   │   ├── tests/
+│   │   │   ├── unit/                      # Individual component tests (Jest)
+│   │   │   ├── integration/               # Multi-component + service layer tests (RTL)
+│   │   │   └── e2e/                       # Device/simulator flows (Detox)
+│   │   ├── .env.example
+│   │   └── package.json
+│   │
+│   └── backend/                           # C# — Modular Monolith
+│       ├── Api/                  # Entry point — controllers, middleware, startup
+│       │   ├── Controllers/
+│       │   │   ├── AuthController.cs
+│       │   │   ├── ListingsController.cs
+│       │   │   ├── ReservationsController.cs
+│       │   │   ├── PaymentsController.cs
+│       │   │   ├── ChatController.cs
+│       │   │   └── WebhookController.cs   # Ozow inbound webhook
+│       │   ├── Hubs/
+│       │   │   └── ChatHub.cs             # SignalR/WebSocket hub
+│       │   ├── Middleware/
+│       │   │   ├── AuthMiddleware.cs
+│       │   │   └── ExceptionMiddleware.cs
+│       │   ├── appsettings.json
+│       │   ├── appsettings.Development.json
+│       │   ├── Program.cs
+│       │   ├── Dockerfile
+│       │   └── Api.csproj
+│       │
+│       ├── Modules/              # All business logic
+│       │   ├── Identity/
+│       │   │   ├── IIdentityService.cs
+│       │   │   ├── IdentityService.cs
+│       │   │   ├── Verification/
+│       │   │   │   ├── IVerificationService.cs
+│       │   │   │   └── VerificationService.cs
+│       │   │   └── Models/
+│       │   ├── Listings/
+│       │   │   ├── IListingsService.cs
+│       │   │   ├── ListingsService.cs
+│       │   │   ├── Moderation/
+│       │   │   │   ├── IModerationService.cs
+│       │   │   │   └── ModerationService.cs
+│       │   │   └── Models/
+│       │   ├── Reservations/
+│       │   │   ├── IReservationsService.cs
+│       │   │   ├── ReservationsService.cs
+│       │   │   ├── StateMachine/
+│       │   │   │   ├── ReservationStateMachine.cs
+│       │   │   │   └── ReservationStates.cs
+│       │   │   └── Models/
+│       │   ├── Payments/
+│       │   │   ├── IPaymentsService.cs
+│       │   │   ├── PaymentsService.cs
+│       │   │   └── Models/
+│       │   ├── Chat/
+│       │   │   ├── IChatService.cs
+│       │   │   ├── ChatService.cs
+│       │   │   └── Models/
+│       │   ├── Disputes/
+│       │   │   ├── IDisputesService.cs
+│       │   │   ├── DisputesService.cs
+│       │   │   └── Models/
+│       │   ├── Reputation/
+│       │   │   ├── IReputationService.cs
+│       │   │   ├── ReputationService.cs
+│       │   │   └── Models/
+│       │   ├── Notifications/
+│       │   │   ├── INotificationsService.cs
+│       │   │   ├── NotificationsService.cs
+│       │   │   └── Models/
+│       │   └── Audit/
+│       │       ├── IAuditService.cs
+│       │       ├── AuditService.cs
+│       │       └── Models/
+│       │
+│       ├── Infrastructure/       # All external concerns
+│       │   ├── Persistence/
+│       │   │   ├── AppDbContext.cs
+│       │   │   └── Repositories/
+│       │   ├── Cache/
+│       │   │   └── RedisCache.cs
+│       │   ├── Storage/
+│       │   │   └── BlobStorageService.cs
+│       │   ├── Messaging/
+│       │   │   └── ServiceBusPublisher.cs
+│       │   ├── Search/
+│       │   │   └── AzureSearchService.cs
+│       │   ├── AI/
+│       │   │   ├── ComputerVisionService.cs
+│       │   │   └── OpenAIService.cs
+│       │   ├── Payments/
+│       │   │   └── OzowClient.cs
+│       │   ├── Maps/
+│       │   │   └── GoogleMapsService.cs
+│       │   └── Notifications/
+│       │       ├── ResendEmailService.cs
+│       │       └── FcmPushService.cs
+│       │
+│       ├── Workers/
+│       │   ├── ReservationExpiryWorker.cs
+│       │   ├── ListingModerationWorker.cs
+│       │   ├── VerificationWorker.cs
+│       │   ├── NotificationWorker.cs
+│       │   └── Workers.csproj
+│       │
+│       └── Tests/
+│       |   ├── Unit/
+│       |   │   ├── Modules/
+│       |    │   └── Workers/
+│       |   ├── Integration/               # DB + Redis + Service Bus via Docker
+│       |   │   ├── Modules/
+│       |   │   └── Infrastructure/
+│       |   └── UniTrade.Tests.csproj
+│       ├── swagger/
+│       │   └── openapi.json
+│
+├── database/
+│   ├── migrations/
+│   ├── seeds/
+│   └── scripts/
+│
 ├── infra/
-│   └── docker/                 # Docker Compose configuration
-└── database/
-    └── scripts/                # DB initialisation scripts
+│   ├── azure/
+│   │   ├── container-apps.bicep
+│   │   ├── sql.bicep
+│   │   ├── redis.bicep
+│   │   ├── servicebus.bicep
+│   │   ├── storage.bicep
+│   │   └── frontdoor.bicep
+│   └── docker/
+│       └── docker-compose.yml             # Local dev: spins up SQL, Redis, Service Bus
+│
+│
+├── .env.example
+├── .gitignore
+├── README.md
+└── UniTrade.sln
 ```
-
 ---
 ## Team — DevNexus
 
@@ -162,7 +344,7 @@ We are **DevNexus**, a team of five final-year Computer Science students from th
       <em>Frontend</em><br/><br/>
       Versatile full-stack developer with a focus on performance, scalability, and optimised database architecture.<br/><br/>
       <strong>Skills:</strong> Java, C++, NextJS, JavaScript, PostgreSQL, PyTorch<br/><br/>
-      <a href="#">LinkedIn</a>
+      <a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7?trk=contact-info">LinkedIn</a>
     </td>
     <td align="center" width="200">
       <strong>Tafadzwa Musiiwa</strong><br/>
