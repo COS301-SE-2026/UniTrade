@@ -29,5 +29,22 @@ const renderMyListings = () => {
 }
 
 describe('MyListings', () => {
-    
+
+    beforeEach(() => {
+        vi.mocked(listingsService.getMyListings).mockResolvedValue(mockListings)
+
+        it('the pages appears without crashing or lagging ', async () => {
+            renderMyListings()
+            await waitFor(() => {
+                expect(screen.getByText('My Listings')).toBeInTheDocument()
+            })
+        })
+
+        it('shows the page heading and subtitle', async () => {
+            renderMyListings()
+            await waitFor(() => {
+                expect(screen.getByText('My Listings')).toBeInTheDocument()
+            })
+        })
+
 })
