@@ -43,6 +43,7 @@ public class ListingService : IListingService
 
     public async Task<ListingSummaryDto> CreateListings(ListingSummaryDto listings)
     {
+        // will use azure blob storage ater
         //link dto to model. update server side
         var NewListings = new Listing
         {
