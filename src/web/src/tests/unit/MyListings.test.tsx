@@ -32,6 +32,7 @@ describe('MyListings', () => {
 
     beforeEach(() => {
         vi.mocked(listingsService.getMyListings).mockResolvedValue(mockListings)
+7    })        
 
         it('the pages appears without crashing or lagging ', async () => {
             renderMyListings()
@@ -47,4 +48,59 @@ describe('MyListings', () => {
             })
         })
 
+        it('shows loading state initially', () => {
+            renderMyListings() 
+            expect(screen.getByText('Loading...')).toBeInTheDocument()
+        })
+
+        it('shows Total Listings stat card', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Total Listings')).toBeInTheDocument()
+            })
+
+        })
+
+        it('shows Live stat card', async () => {
+           renderMyListings()
+           await waitFor(() => {
+           expect(screen.getByText('Live')).toBeInTheDocument()
+          })
+        })
+
+        it('shows Pending Review stat card', async () => {
+           renderMyListings()
+           await waitFor(() => {
+           expect(screen.getByText('Pending Review')).toBeInTheDocument()
+            })
+        })
+
+        it('shows Drafts stat card', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Drafts')).toBeInTheDocument()
+            })
+        })
+
+        it('shows Drafts stat card', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('Drafts')).toBeInTheDocument()
+            })
+        })
+
+        it('shows all the filter tabs', async () => {
+            renderMyListings()
+            await waitFor(() => {
+            expect(screen.getByText('All')).toBeInTheDocument()
+            expect(screen.getByText(/Live/)).toBeInTheDocument()
+            expect(screen.getByText(/Pending/)).toBeInTheDocument()
+            expect(screen.getByText(/Drafts/)).toBeInTheDocument()
+            expect(screen.getByText(/Rejected/)).toBeInTheDocument()
+
+            })
+        })
+
+    
 })
+
