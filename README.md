@@ -330,7 +330,7 @@ We are **DevNexus**, a team of five final-year Computer Science students from th
       <em>Backend</em><br/><br/>
       Focuses on cybersecurity, system assurance, and DevOps pipelines. Brings deep understanding of networks and system design.<br/><br/>
       <strong>Skills:</strong> Java, C++, TypeScript, Angular, NextJS, PostgreSQL<br/><br/>
-      <a href="#">LinkedIn</a>
+      <a href="https://www.linkedin.com/in/saira-kaire-666365378/">LinkedIn</a>
     </td>
     <td align="center" width="200">
       <strong>Mahadio Tlaka</strong><br/>
