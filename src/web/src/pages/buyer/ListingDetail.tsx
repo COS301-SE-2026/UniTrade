@@ -59,18 +59,23 @@ function SimilarRow({ title, meta, condition }: { title: string; meta: string; c
   )
 }
 
+const ACADEMIC_CATEGORIES: string[] = ['textbook', 'lab_equipment']
 
 export default function ListingDetail() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [listing, setListing] = useState<ListingDetailType | null>(null)
+  const [activeImage, setActiveImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
     listingsService.getById(id)
-      .then(data => setListing(data))
+      .then(data => {
+        setListing(data)
+        setActiveImage(data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null)
+      })
       .catch(() => setError('Failed to load listing'))
       .finally(() => setLoading(false))
   }, [id])
@@ -87,6 +92,8 @@ export default function ListingDetail() {
     </div>
   )
 
+  const isAcademic = ACADEMIC_CATEGORIES.includes(listing.category)
+
   return (
     <div className="space-y-4">
 
@@ -95,7 +102,7 @@ export default function ListingDetail() {
           Dashboard
         </span>
         <IconChevronRight size={12} />
-        <span className="text-[#00aaff] cursor-pointer hover:underline">Listings</span>
+        <span className="text-[#00aaff] cursor-pointer hover:underline" onClick={() => navigate('/buyer/listings')}>Listings</span>
         <IconChevronRight size={12} />
         <span>{listing.title}</span>
       </div>
@@ -105,19 +112,42 @@ export default function ListingDetail() {
         <div className="col-span-2 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <div className="w-full h-56 bg-gray-100 dark:bg-navy-700 rounded-lg flex items-center justify-center mb-3">
-              <span className="text-4xl">📚</span>
+            
+            <div className="w-full h-56 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700">
+              {activeImage ? (
+                <img
+                  src={activeImage}
+                  alt={listing.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-4xl">📚</span>
+                </div>
+              )}
             </div>
+
             <div className="flex gap-2">
               {listing.images.map((img) => (
-                <div key={img.id} className={`w-14 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center cursor-pointer text-lg border-2 ${
-                  img.isPrimary ? 'border-navy-700 dark:border-white' : 'border-transparent'
-                }`}>
-                  📚
+                <div
+                  key={img.id}
+                  onClick={() => setActiveImage(img.url)}
+                  className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${
+                    activeImage === img.url
+                      ? 'border-navy-700 dark:border-white'
+                      : 'border-transparent'
+                  }`}
+                >
+                  {img.url ? (
+                    <img src={img.url} alt={listing.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-lg">📚</div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
+
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h1 className="text-lg font-bold text-navy-700 dark:text-white mb-1">{listing.title}</h1>
             <div className="flex items-baseline gap-2 mb-3">
@@ -131,7 +161,7 @@ export default function ListingDetail() {
               <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 <IconCheck size={11} /> {formatCondition(listing.condition)}
               </span>
-              {listing.tags.map(tag => (
+              {isAcademic && listing.tags.map(tag => (
                 <span key={tag} className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full">
                   {tag}
                 </span>
@@ -146,7 +176,7 @@ export default function ListingDetail() {
 
             <hr className="border-gray-100 dark:border-white/5 mb-4" />
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">Listing details</h3>
-            <DetailRow label="Category"    value={listing.category} />
+            <DetailRow label="Category"  value={listing.category} />
             <DetailRow label="Condition"
               value={
                 <span className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
@@ -154,17 +184,23 @@ export default function ListingDetail() {
                 </span>
               }
             />
-            <DetailRow label="Course code" value={listing.courseCode} />
-            <DetailRow label="Listed on"   value={formatDate(listing.listedAt)} />
-            <DetailRow label="Views"       value={listing.views} />
+           
+            {isAcademic && listing.courseCode && (
+              <DetailRow label="Course code" value={listing.courseCode} />
+            )}
+            <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
+            <DetailRow label="Views"     value={listing.views} />
           </div>
 
-          
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller reviews</h3>
-            {listing.reviews.map(review => (
-              <ReviewRow key={review.id} {...review} />
-            ))}
+            {listing.reviews.length > 0 ? (
+              listing.reviews.map(review => (
+                <ReviewRow key={review.id} {...review} />
+              ))
+            ) : (
+              <p className="text-xs text-gray-400">No reviews yet.</p>
+            )}
           </div>
         </div>
 
@@ -191,9 +227,9 @@ export default function ListingDetail() {
 
             <div className="grid grid-cols-3 gap-2 mb-4 text-center">
               {[
-                { val: listing.sellerTotalListings, label: 'Listings'  },
-                { val: `${listing.sellerResponseRate}%`, label: 'Response' },
-                { val: listing.sellerRating,         label: 'Rating'   },
+                { val: listing.sellerTotalListings,      label: 'Listings'  },
+                { val: `${listing.sellerResponseRate}%`, label: 'Response'  },
+                { val: listing.sellerRating,             label: 'Rating'    },
               ].map(({ val, label }) => (
                 <div key={label}>
                   <p className="text-base font-bold text-navy-700 dark:text-white">{val}</p>
@@ -223,12 +259,15 @@ export default function ListingDetail() {
             </button>
           </div>
 
-          
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
-            {listing.similarListings.map(similar => (
-              <SimilarRow key={similar.id} title={similar.title} meta={similar.meta} condition={similar.condition} />
-            ))}
+            {listing.similarListings.length > 0 ? (
+              listing.similarListings.map(similar => (
+                <SimilarRow key={similar.id} title={similar.title} meta={similar.meta} condition={similar.condition} />
+              ))
+            ) : (
+              <p className="text-xs text-gray-400">No similar listings found.</p>
+            )}
           </div>
         </div>
       </div>

@@ -40,18 +40,16 @@ public class ExceptionMiddleware(RequestDelegate next)
             "invalid_email" => (HttpStatusCode.UnprocessableEntity, "invalid_email"),
             "listing_not_found" => (HttpStatusCode.NotFound, "listing_not_found"),
             "forbidden" => (HttpStatusCode.Forbidden, "forbidden"),
-            _ => (HttpStatusCode.InternalServerError, "server_error")
-
+            _ => (HttpStatusCode.InternalServerError, exception.Message) // ← changed
         };
 
         response.StatusCode = (int)statusCode;
 
-        var result = JsonSerializer.Serialize(
-            new
-            {
-                error = message
-            }
-        );
+        var result = JsonSerializer.Serialize(new
+        {
+            error = message,
+            detail = exception.StackTrace // ← added
+        });
 
         await response.WriteAsync(result);
     }
