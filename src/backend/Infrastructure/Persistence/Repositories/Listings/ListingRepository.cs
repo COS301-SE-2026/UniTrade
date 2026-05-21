@@ -75,6 +75,7 @@ public class ListingRepository : IListingRepository
             .AsNoTracking()
             .Where(i => i.ListingId == listing.ListingId)
             .ToListAsync();
+        
 
         return listing;
     }
