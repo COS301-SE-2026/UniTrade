@@ -19,6 +19,16 @@ const SellerDashboard: React.FC = () => {
     {id: '11005', date: '2025-09-26', customer: 'Langa',    status: 'Cancelled', color: 'bg-red-100 text-red-600'},
   ];
 
+   const salesDays = [
+    { day: 'Tuesday',   amount: 'R1,584', width: '88%' },
+    { day: 'Monday',    amount: 'R1,296', width: '72%' },
+    { day: 'Sunday',    amount: 'R1,080', width: '60%' },
+    { day: 'Saturday',  amount: 'R1,440', width: '80%' },
+    { day: 'Friday',    amount: 'R990',   width: '55%' },
+    { day: 'Thursday',  amount: 'R1,224', width: '68%' },
+    { day: 'Wednesday', amount: 'R810',   width: '45%' },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
     <header>
@@ -120,13 +130,16 @@ const SellerDashboard: React.FC = () => {
             </button>
           </div>
 
-          <div className="space-y-3">
-            {['Tuesday', 'Monday', 'Sunday', 'Saturday', 'Friday', 'Thursday', 'Wednesday'].map((day) => (
+           <div className="space-y-3">
+            {salesDays.map(({ day, amount, width }) => (
               <div key={day} className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 w-20 shrink-0">{day}</span>
                 <div className="flex-1 bg-slate-100 rounded-lg h-7 overflow-hidden">
-                  <div className="bg-sky-500 h-full w-[88%] flex items-center justify-end pr-3 rounded-lg transition-all duration-1000">
-                    <span className="text-[10px] text-white font-bold tracking-tighter">R1600</span>
+                  <div
+                    className="bg-sky-500 h-full flex items-center justify-end pr-3 rounded-lg transition-all duration-1000"
+                    style={{ width }}
+                  >
+                    <span className="text-[10px] text-white font-bold">{amount}</span>
                   </div>
                 </div>
               </div>

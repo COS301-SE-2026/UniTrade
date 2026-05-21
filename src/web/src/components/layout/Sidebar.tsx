@@ -106,7 +106,7 @@ export default function Sidebar() {
   }
 
   const handleSwitch = () => {
-    if (user?.role !== 'student') return // admin cannot switch
+    if (user?.role !== 'student') return
     const newMode = viewMode === 'buyer' ? 'seller' : 'buyer'
     toggleViewMode()
     navigate(newMode === 'buyer' ? '/buyer/dashboard' : '/seller/dashboard')
