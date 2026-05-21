@@ -30,7 +30,7 @@ public class ListingService : IListingService
 
 
     private static ListingSummaryDto MapToSummary(Listing l) => new(
-     l.ListingId, l.SellerId, l.Seller?.FullName ?? "",
+     l.ListingId, l.SellerId,
      l.Title, l.Description, l.Price, l.Condition, l.ListingType,
      l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
      l.isBundle ?? false, l.ViewCount ?? 0,
@@ -50,6 +50,25 @@ public class ListingService : IListingService
             Description = listings.Description,
             Price = listings.Price,
             Condition = listings.Condition,
+            ListingType = listings.ListingType,
+            Author = listings.Author,
+            Isbn = listings.Isbn,
+            Edition = listings.Edition,
+            SellerId = listings.SellerId,
+            //SellerName = listings.Seller.FirstName,   
+            ListingStatus = listings.ListingStatus,
+            ListingId = listings.ListingId,
+            CourseId = listings.CourseId,
+            isBundle = listings.IsBundle,
+            ViewCount = listings.ViewCount,
+            Images = listings.Images
+            .Select(dto => new ListingImage
+            {       
+            ImageId = dto.ImageId,
+            ImageUrl = dto.path,
+            IsPrimary = dto.IsPrimary
+            }).ToList(),
+           UpdatedAt = listings.UpdatedAt,
             CreatedAt = DateTime.UtcNow
         };
 
