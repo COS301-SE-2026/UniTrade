@@ -116,7 +116,7 @@ const mockBrowseListings: BrowseListing[] = [
 export const listingsService = {
     getById: async (id: string): Promise<ListingDetail> => {
         // we should replace this when the api is ready
-        console.log('getById called with', id)
+       
         return mockListingDetail
 
         //this has to be uncommented whe  the backend is ready
@@ -142,7 +142,7 @@ export const listingsService = {
 
   getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
   // MOCK — replacing this block when API is ready:
-  console.log('getSellerListingById called with', id)
+  
   return mockSellerListingDetail
 
   //REAL API — should uncomment when backend is ready:
