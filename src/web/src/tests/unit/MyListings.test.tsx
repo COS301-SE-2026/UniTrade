@@ -39,7 +39,7 @@ describe('MyListings', () => {
 
     beforeEach(() => {
         vi.mocked(listingsService.getMyListings).mockResolvedValue(mockListings)
-7    })        
+ })        
 
         it('the pages appears without crashing or lagging ', async () => {
             renderMyListings()

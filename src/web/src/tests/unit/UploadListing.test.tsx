@@ -2,7 +2,6 @@ import {render,screen} from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom'
 import {describe,expect,it, vi, beforeEach} from 'vitest';
 import UploadListing from '../../pages/seller/UploadListing';
-import { listingsService } from '../../services/listingsService'
 import '@testing-library/jest-dom';
 
 vi.mock('../../services/listingsService', () => ({

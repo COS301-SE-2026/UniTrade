@@ -47,7 +47,9 @@ const renderDetail = (id = '42') =>
   describe('SellerListingDetail', () => {
     beforeEach(() => {
     vi.clearAllMocks()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(listingsService.getSellerListingById).mockResolvedValue(mockListing as any)
+    
   })
 
     it('page shows up without crashing or lagging ', async () => {
