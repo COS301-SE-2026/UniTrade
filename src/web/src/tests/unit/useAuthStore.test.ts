@@ -10,30 +10,30 @@ describe("useAuthStore", () => {
     expect(useAuthStore.getState().user).toBeNull();
   });
 
-  it("should set a buyer user correctly", () => {
+  it("should set a student user correctly", () => {
     useAuthStore.getState().setUser({
       id: "1",
       name: "Tafadzwa Musiiwa",
       initials: "TM",
-      role: "buyer",
+      role: "student",
     });
 
     const user = useAuthStore.getState().user;
     expect(user).not.toBeNull();
     expect(user?.name).toBe("Tafadzwa Musiiwa");
-    expect(user?.role).toBe("buyer");
+    expect(user?.role).toBe("student");
     expect(user?.initials).toBe("TM");
   });
 
-  it("should set a seller user correctly", () => {
+  it("should set a student user correctly", () => {
     useAuthStore.getState().setUser({
       id: "2",
       name: "Langa Vakalisa",
       initials: "LV",
-      role: "seller",
+      role: "student",
     });
 
-    expect(useAuthStore.getState().user?.role).toBe("seller");
+    expect(useAuthStore.getState().user?.role).toBe("student");
   });
 
   it("should set an admin user correctly", () => {
@@ -52,7 +52,7 @@ describe("useAuthStore", () => {
       id: "1",
       name: "Tafadzwa Musiiwa",
       initials: "TM",
-      role: "buyer",
+      role: "student",
     });
 
     useAuthStore.getState().clearUser();
@@ -64,18 +64,18 @@ describe("useAuthStore", () => {
       id: "1",
       name: "Tafadzwa Musiiwa",
       initials: "TM",
-      role: "buyer",
+      role: "student",
     });
 
     useAuthStore.getState().setUser({
       id: "2",
       name: "Langa Vakalisa",
       initials: "LV",
-      role: "seller",
+      role: "student",
     });
 
     const user = useAuthStore.getState().user;
     expect(user?.name).toBe("Langa Vakalisa");
-    expect(user?.role).toBe("seller");
+    expect(user?.role).toBe("student");
   });
 });
