@@ -6,6 +6,15 @@ import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
 import type { UserRole } from '../../store/useAuthStore'
 
+interface ApiError {
+  message: string
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
 const Login: React.FC = () => {
   const navigate = useNavigate()
   const { setUser } = useAuthStore()
@@ -43,8 +52,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 if (me.user.userRole === 'admin') navigate('/admin/dashboard')
 else navigate('/buyer/listings')
 
-  } catch (err: any) {
-    setError(getAuthErrorMessage(err.message))
+  } catch (err: unknown) {
+    const error = err as ApiError
+    setError(getAuthErrorMessage(error.message))
   } finally {
     setLoading(false)
   }
