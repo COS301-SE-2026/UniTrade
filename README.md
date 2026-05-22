@@ -96,7 +96,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 ## Documentation
 | Document | Link |
 | --- | --- |
-| SRS Document| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf|
+| SRS Document| [https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf](https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd-Mahadio/docs/requirements/UniTrade_SRS_Demo_1.pdf)|
 | WireFrame| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf|
 | Figma_Doc (WireFrames) | https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Plan2?node-id=0-1&t=d203OEm1RvksQhm1-1|
 | Branding_Style_Doc | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade%20%E2%80%93%20Brand%20Style%20Guide.pdf |
