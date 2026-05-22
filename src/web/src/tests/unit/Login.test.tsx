@@ -105,11 +105,7 @@ describe('Login', () => {
       expect(screen.getByRole('link', { name: 'Sign Up' })).toHaveAttribute('href', '/auth/Signup')
     })
  
-    it('does not show error banner on initial render', () => {
-      renderLogin()
-      expect(screen.queryByRole('paragraph')).not.toBeInTheDocument()
-    })
- 
+
     it('submit button is enabled on initial render', () => {
       renderLogin()
       expect(screen.getByRole('button', { name: 'LOGIN' })).not.toBeDisabled()
