@@ -217,18 +217,18 @@ describe('BrowseAllListing', () => {
     })
  
 it('renders condition badges with correct text', async () => {
-  renderComponent()
-  await screen.findByText('Calculus Textbook')
+    renderComponent()
+    await screen.findByText('Calculus Textbook')
 
-  const grid = screen.getByRole('img', { name: 'Calculus Textbook' }).closest('.grid')!
+    const grid = screen.getByRole('img', { name: 'Calculus Textbook' }).closest('.grid') as HTMLElement
 
-  const badges = within(grid).getAllByText(/Good|Fair|Poor/)
-  const badgeTexts = badges.map(b => b.textContent)
+    const badges = within(grid).getAllByText(/Good|Fair|Poor/)
+    const badgeTexts = badges.map(b => b.textContent)
 
-  expect(badgeTexts.filter(t => t === 'Good')).toHaveLength(2)
-  expect(badgeTexts).toContain('Fair')
-  expect(badgeTexts).toContain('Poor')
-})
+    expect(badgeTexts.filter(t => t === 'Good')).toHaveLength(2)
+    expect(badgeTexts).toContain('Fair')
+    expect(badgeTexts).toContain('Poor')
+  })
  
     it('renders all category filter buttons', async () => {
       renderComponent()
