@@ -147,8 +147,24 @@ describe('Login Component', () => {
     })
   })
 
+    test('should handle failed login and display error message', async () => {
+    const apiErrorReason = 'Invalid credentials'
+    const transformedErrorMessage = 'Invalid email or password'
+    
+    vi.mocked(authService.login).mockRejectedValue(new Error(apiErrorReason))
+    vi.mocked(getAuthErrorMessage).mockReturnValue(transformedErrorMessage)
 
+    render(<Login />)
 
+    fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com', name: 'email' } })
+    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'notpassword', name: 'password' } })
+    
+    fireEvent.click(screen.getByRole('button', { name: /login/i }))
+
+    const errorAlert = await screen.findByText(transformedErrorMessage)
+    expect(errorAlert).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /login/i })).not.toBeDisabled()
+  })
 
 });
 
