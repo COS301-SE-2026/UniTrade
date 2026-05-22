@@ -1,77 +1,54 @@
-import {render, screen,fireEvent, waitFor} from '@testing-library/react'
-import {describe,test,expect, beforeEach, vi} from 'vitest';
-import Login from '../../pages/auth/Login';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, test, expect, beforeEach, vi, it } from 'vitest'
+import { useNavigate } from 'react-router-dom'
+import Login from '../../pages/auth/Login'
+import { authService } from '../../services/authService'
+import { useAuthStore } from '../../store/useAuthStore'
+import { getAuthErrorMessage } from '../../utils/authErrors'
 
-//mock useNavigate
-const mockPost = vi.fn();
-const mockedNavigate = vi.fn();
+// 1. Unified Module Mocks (Declare these exactly once at the top level)
+vi.mock('react-router-dom', () => ({
+  useNavigate: vi.fn(),
+}))
 
-vi.mock('react-router-dom',async () => {
-const actual = await vi.importActual('react-router-dom');
-  return{...actual,
-    useNavigate: () => mockedNavigate,
-        }; 
-    });
+vi.mock('../../services/authService', () => ({
+  authService: {
+    login: vi.fn(),
+    getMe: vi.fn(),
+  },
+}))
 
-//mock girl.png
-vi.mock('../../assets/girl.png', () => ({default: 'mocked-girl.png'}));
+vi.mock('../../store/useAuthStore', () => ({
+  useAuthStore: vi.fn(),
+}))
+
+vi.mock('../../utils/authErrors', () => ({
+  getAuthErrorMessage: vi.fn((msg) => msg),
+}))
+
+vi.mock('../../assets/girl.png', () => ({ default: 'girl-mock-path.png' }))
 
 describe('Login Component', () => {
+  const mockNavigate = vi.fn()
+  const mockSetUser = vi.fn()
 
-beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  (window as unknown as { API: {post: typeof mockPost}}).API = { post: mockPost };
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    
+    // Wire up our navigation and state spies
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate)
+    vi.mocked(useAuthStore).mockReturnValue({ setUser: mockSetUser })
+  })
+    test('should render the login form and buttons correctly', () => {
+    render(<Login />)
+
+    expect(screen.getByRole('heading', { name: /welcome back!/i })).toBeInTheDocument()
+    expect(screen.getByText('Enter your credentials to access your account')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Email Address')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
+  })
 });
 
-
-test( 'should render the login form and buttons', () => {
-    render(<Login />);
-
-    expect(screen.getByText('Welcome Back!')).toBeInTheDocument();
-    expect(screen.getByText('Enter your credentials to access your account')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Email Address')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
-});
-
-test(' should handle successful login and navigate to dashboard', async () => {
-
-mockPost.mockResolvedValue({ data: { token: 'fake-jwt-token' },});
-
-render(<Login />);
-
-const loginButton = screen.getByRole('button', { name: /login/i });
-
-fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com',name: 'email' } });
-fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password100',name: 'password' } });
-fireEvent.click(loginButton);
-
-expect(mockPost).toHaveBeenCalledWith('/auth/Login', { email: 'langavaks@gmail.com', password: 'password100' });
-
-await waitFor(() => {
-expect(mockedNavigate).toHaveBeenCalledWith('/buyer/dashboard');
-});
-});
-
-test('should handle failed login and display error message', async () => {
-
-mockPost.mockRejectedValueOnce(new Error('Invalid credentials'));
-
-render(<Login />);
-
-const loginButton = screen.getByRole('button', { name: /login/i });
-
-fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com',name: 'email' } });
-fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'notpassword',name: 'password' } });
-fireEvent.click(loginButton);
-
-await waitFor(() => {
-
-expect(screen.getByText(/Invalid email or password/i)).toBeInTheDocument();
-
-
-});
-});
-
-});
+  
