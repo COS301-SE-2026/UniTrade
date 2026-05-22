@@ -1,8 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor,within  } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
 import { listingsService } from '../../services/listingsService'
+
 
 vi.mock('../../services/listingsService', () => ({
   listingsService: {
@@ -71,3 +72,93 @@ describe('BrowseAllListing', () => {
 
 })
 
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+ 
+vi.mock('../../services/listingsService', () => ({
+  listingsService: {
+    getBrowseListings: vi.fn(),
+  },
+}))
+ 
+vi.mock('../../utils/formatters', () => ({
+  formatPrice: (price: number) => `R${price}`,
+}))
+  
+
+import type { BrowseListing } from '../../types/listing'
+import userEvent from '@testing-library/user-event'
+ 
+const makeListings = (): BrowseListing[] => [
+  {
+    id: '1',
+    title: 'Calculus Textbook',
+    category: 'Textbooks',
+    condition: 'Good',
+    price: 200,
+    module: 'WTW 158',
+    image: 'calc.jpg',
+  },
+  {
+    id: '2',
+    title: 'Arduino Kit',
+    category: 'Electronics',
+    condition: 'Fair',
+    price: 450,
+    module: 'EIR 271',
+    image: 'arduino.jpg',
+  },
+  {
+    id: '3',
+    title: 'Lab Goggles',
+    category: 'Lab Equipment',
+    condition: 'Poor',
+    price: 80,
+    module: 'CMY 117',
+    image: 'goggles.jpg',
+  },
+  {
+    id: '4',
+    title: 'Staedtler Pens',
+    category: 'Stationary',
+    condition: 'Good',
+    price: 50,
+    module: 'General',
+    image: 'pens.jpg',
+  },
+]
+ 
+const renderComponent = () =>
+  render(
+    <MemoryRouter>
+      <BrowseAllListing />
+    </MemoryRouter>
+  )
+describe('BrowseAllListing', () => {
+  beforeEach(() => {
+  vi.clearAllMocks()
+  })
+
+ 
+  describe('Loading state', () => {
+    it('shows a loading indicator while fetching', () => {
+      vi.mocked(listingsService.getBrowseListings).mockImplementation(
+        () => new Promise(() => {}) // never resolves
+      )
+      renderComponent()
+      expect(screen.getByText(/loading/i)).toBeInTheDocument()
+    })
+ 
+    it('hides the listing grid while loading', () => {
+      vi.mocked(listingsService.getBrowseListings).mockImplementation(
+        () => new Promise(() => {})
+      )
+      renderComponent()
+      expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
+    })
+  })
+ 
+})
