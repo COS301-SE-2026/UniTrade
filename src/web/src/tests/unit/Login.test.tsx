@@ -6,7 +6,6 @@ import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/useAuthStore'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 
-// 1. Unified Module Mocks (Declare these exactly once at the top level)
 vi.mock('react-router-dom', () => ({
   useNavigate: vi.fn(),
 }))
@@ -36,11 +35,10 @@ describe('Login Component', () => {
     vi.clearAllMocks()
     localStorage.clear()
     
-    // Wire up our navigation and state spies
     vi.mocked(useNavigate).mockReturnValue(mockNavigate)
     vi.mocked(useAuthStore).mockReturnValue({ setUser: mockSetUser })
   })
-    test('should render the login form and buttons correctly', () => {
+    test('should render the Login form and buttons correctly', () => {
     render(<Login />)
 
     expect(screen.getByRole('heading', { name: /welcome back!/i })).toBeInTheDocument()
