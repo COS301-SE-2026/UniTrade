@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, } from '@testing-library/react'
+
 import { MemoryRouter } from 'react-router-dom'
 import Login from '../../pages/auth/Login'
 
@@ -27,10 +27,6 @@ vi.mock('../../utils/authErrors', () => ({
 }))
  
 vi.mock('../../assets/girl.png', () => ({ default: 'girl.png' }))
-
- 
-import { authService } from '../../services/authService'
-import { getAuthErrorMessage } from '../../utils/authErrors'
  
 const renderLogin = () =>
   render(
@@ -38,26 +34,8 @@ const renderLogin = () =>
       <Login />
     </MemoryRouter>
   )
- 
-const makeMePayload = (overrides: { userRole?: string } = {}) => ({
-  user: {
-    userId: '123',
-    firstName: 'Langa',
-    lastName: 'Vakalisa',
-    userRole: 'buyer',
-    university: 'University of Pretoria',
-    email: 'langa@tuks.co.za',
-    ...overrides,
-  },
-  std: { verificationStatus: 'verified' },
-})
- 
-const fillAndSubmit = async (email: string, password: string) => {
-  const user = userEvent.setup()
-  await user.type(screen.getByPlaceholderText('Email Address'), email)
-  await user.type(screen.getByPlaceholderText('Password'), password)
-  await user.click(screen.getByRole('button', { name: 'LOGIN' }))
-}
+  
+
  
  
 describe('Login', () => {
@@ -112,4 +90,5 @@ describe('Login', () => {
     })
   })
 
+  
 })
