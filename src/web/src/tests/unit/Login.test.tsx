@@ -47,6 +47,21 @@ describe('Login Component', () => {
     expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })
+
+
+    test('should track user typing ', () => {
+    render(<Login />)
+
+    const emailInput = screen.getByPlaceholderText('Email Address') as HTMLInputElement
+    const passwordInput = screen.getByPlaceholderText('Password') as HTMLInputElement
+
+    fireEvent.change(emailInput, { target: { value: 'langavaks@gmail.com', name: 'email' } })
+    fireEvent.change(passwordInput, { target: { value: 'Password100', name: 'password' } })
+
+    expect(emailInput.value).toBe('langavaks@gmail.com')
+    expect(passwordInput.value).toBe('Password100')
+  })
+
 });
 
   
