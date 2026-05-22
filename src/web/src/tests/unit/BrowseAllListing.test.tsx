@@ -161,4 +161,21 @@ describe('BrowseAllListing', () => {
     })
   })
  
+  
+  describe('Error state', () => {
+    it('shows an error message when the request fails', async () => {
+      vi.mocked(listingsService.getBrowseListings).mockRejectedValueOnce(new Error('Network error'))
+      renderComponent()
+      expect(await screen.findByText(/failed to load listings/i)).toBeInTheDocument()
+    })
+ 
+    it('does not render listings on error', async () => {
+      vi.mocked(listingsService.getBrowseListings).mockRejectedValueOnce(new Error('fail'))
+      renderComponent()
+      await screen.findByText(/failed to load listings/i)
+      expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
+    })
+  })
+ 
+
 })
