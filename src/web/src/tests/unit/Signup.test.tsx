@@ -105,6 +105,30 @@ describe('Signup page', () => {
     })
   })
  
+describe('Form interactions', () => {
+    it('updates input values as the user types', async () => {
+      renderSignup()
+      const user = userEvent.setup()
+      const firstNameInput = screen.getByPlaceholderText('First Name')
+ 
+      await user.type(firstNameInput, 'Alice')
+      expect(firstNameInput).toHaveValue('Alice')
+    })
+ 
+    it('updates the university select when an option is chosen', async () => {
+      renderSignup()
+      const user = userEvent.setup()
+      const select = screen.getByRole('combobox')
+ 
+      await user.selectOptions(select, 'WITS')
+      expect(select).toHaveValue('WITS')
+    })
+ 
+    it('shows the password as hidden text', () => {
+      renderSignup()
+      expect(screen.getByPlaceholderText('Password')).toHaveAttribute('type', 'password')
+    })
+  })
 
 
 })
