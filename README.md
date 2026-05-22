@@ -15,8 +15,8 @@
 <!-- Quality, Licensing & Contribution Badges -->
 [![Vitest Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
-[![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
 <br/>
 
