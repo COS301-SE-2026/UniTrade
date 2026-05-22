@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { IconUpload, IconCheck, IconX } from '@tabler/icons-react'
 import { listingsService } from '../../services/listingsService'
 
+interface ApiError {
+  message: string
+}
+
 const UploadListing: React.FC = () => {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -51,8 +55,9 @@ const UploadListing: React.FC = () => {
         listingStatus: 'live',
       }, urls)
       navigate('/seller/listings')
-    } catch (err: any) {
-      setError(err.message ?? 'Something went wrong')
+    } catch (err: unknown) {
+      const error = err as ApiError
+      setError(error.message ?? 'Something went wrong')
     } finally {
       setSubmitting(false)
     }
@@ -81,8 +86,9 @@ const UploadListing: React.FC = () => {
         listingStatus: 'draft',
       }, urls)
       navigate('/seller/listings')
-    } catch (err: any) {
-      setError(err.message ?? 'Something went wrong')
+    } catch (err: unknown) {
+      const error = err as ApiError
+      setError(error.message ?? 'Something went wrong')
     } finally {
       setSubmitting(false)
     }

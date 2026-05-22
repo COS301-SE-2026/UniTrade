@@ -31,12 +31,12 @@ const renderBuyerDashboard = () =>
 describe('BuyerDashboard', () => {
     beforeEach(() => {
         useAuthStore.setState({
-            user: { id: '1', name: 'Tafadzwa Mussiwa', initials: 'TM', role:'buyer'}
+            user: { id: '1', name: 'Tafadzwa Mussiwa', initials: 'TM', role:'student'}
         })
         vi.mocked(listingsService.getBrowseListings).mockResolvedValue(mockListings)
     })
 
-    it('buyer dashboard appears up without crashing or lagging', () => {
+    it('student dashboard appears up without crashing or lagging', () => {
         renderBuyerDashboard()
     })
 
