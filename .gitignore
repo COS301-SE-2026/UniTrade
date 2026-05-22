@@ -38,8 +38,9 @@ obj/
 #Coverage 
 TestResults/
 CoverageReport/
+coveragereport/
 
 
-
-
+#Helper scripts 
+convenienceScript.sh
 
