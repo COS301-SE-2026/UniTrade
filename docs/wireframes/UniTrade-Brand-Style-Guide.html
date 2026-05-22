@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniTrade – Brand Style Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --primary:    #0D1F4E;
+    --secondary:  #04B4FD;
+    --accent:     #0D1F4E;
+    --white:      #ffffff;
+    --black:      #000000;
+    --gray-light: #E5E7EB;
+    --gray-mid:   #e2e8f0;
+    --gray-text:  #64748b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: #E5E7EB;
+    color: var(--black);
+    line-height: 1.6;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 60%, var(--secondary) 100%);
+    color: white;
+    padding: 80px 60px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    right: -80px; top: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .cover-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .cover h1 span { color: var(--secondary); }
+  .cover p {
+    font-size: 17px;
+    opacity: 0.85;
+    max-width: 540px;
+    margin-bottom: 40px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    font-size: 13px;
+    opacity: 0.7;
+  }
+  .cover-meta strong { display: block; color: white; opacity: 1; font-size: 15px; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 60px 0; border-bottom: 1px solid var(--gray-mid); }
+  .section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 8px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: var(--gray-text);
+    max-width: 620px;
+    margin-bottom: 40px;
+  }
+
+  /* ── COLOUR PALETTE ── */
+  .colour-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .colour-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .colour-swatch {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .colour-swatch .hex-display {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: 0.05em;
+  }
+  .colour-swatch.on-light .hex-display {
+    background: rgba(0,0,0,0.08);
+    color: #333;
+  }
+  .colour-info {
+    background: white;
+    padding: 14px 16px;
+  }
+  .colour-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--black);
+    margin-bottom: 2px;
+  }
+  .colour-rgb { font-size: 11px; color: var(--gray-text); }
+  .colour-usage { font-size: 11px; color: var(--gray-text); margin-top: 4px; line-height: 1.4; }
+
+  /* ── USAGE RATIOS ── */
+  .ratio-bar {
+    display: flex;
+    height: 44px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .ratio-seg { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; transition: flex 0.3s; }
+  .ratio-seg.white-seg { color: #999; border: 1px solid var(--gray-mid); }
+  .ratio-legend { display: flex; flex-wrap: wrap; gap: 16px; }
+  .ratio-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-text); }
+  .ratio-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── DO / DON'T ── */
+  .dos-donts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .do-card, .dont-card {
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .do-card { background: #f0fdf4; border: 1.5px solid #86efac; }
+  .dont-card { background: #fff1f2; border: 1.5px solid #fda4af; }
+  .card-header {
+    display: flex; align-items: center; gap-8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .do-card .card-header { color: #1a6b2e; }
+  .dont-card .card-header { color: #8b0000; }
+  .card-header .icon { font-size: 18px; margin-right: 8px; }
+  .check-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .check-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px; color: #374151; line-height: 1.5;
+  }
+  .check-list li::before {
+    flex-shrink: 0; width: 18px; height: 18px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; margin-top: 1px;
+  }
+  .do-card .check-list li::before { display: none; }
+  .dont-card .check-list li::before { display: none; }
+
+  /* ── TYPOGRAPHY ── */
+  .type-table { width: 100%; border-collapse: collapse; }
+  .type-table th {
+    text-align: left; padding: 12px 16px;
+    background: var(--accent); color: white;
+    font-family: 'Poppins', sans-serif; font-size: 12px;
+    font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .type-table th:first-child { border-radius: 8px 0 0 0; }
+  .type-table th:last-child { border-radius: 0 8px 0 0; }
+  .type-table td { padding: 14px 16px; border-bottom: 1px solid var(--gray-mid); font-size: 13px; vertical-align: middle; }
+  .type-table tr:last-child td { border-bottom: none; }
+  .type-table tr:nth-child(even) td { background: #fafbfc; }
+  .type-sample { font-family: 'Poppins', sans-serif; }
+
+  /* ── LIVE TYPE SPECIMENS ── */
+  .type-specimens { display: flex; flex-direction: column; gap: 0; margin-top: 32px; }
+  .specimen-row {
+    display: grid; grid-template-columns: 160px 1fr;
+    align-items: center; gap: 24px;
+    padding: 20px 0; border-bottom: 1px solid var(--gray-mid);
+  }
+  .specimen-row:last-child { border-bottom: none; }
+  .specimen-meta { font-size: 12px; color: var(--gray-text); line-height: 1.6; }
+  .specimen-meta strong { display: block; font-size: 13px; color: var(--black); font-family: 'Poppins', sans-serif; font-weight: 600; }
+
+  /* ── COMPONENTS ── */
+  .component-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .component-block { background: white; border-radius: 12px; padding: 28px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+  .component-block h4 {
+    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-mid);
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn-primary {
+    background: var(--primary); color: white; border: none;
+    padding: 10px 24px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-secondary {
+    background: white; color: var(--primary); border: 1.5px solid var(--primary);
+    padding: 10px 24px; border-radius: 8px; font-family: 'Poppins', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--secondary); color: white; border-color: var(--secondary); }
+  .btn-danger {
+    background: transparent; color: var(--accent); border: none;
+    padding: 10px 0; font-family: 'Poppins', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    text-decoration: underline; text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s;
+  }
+  .btn-danger:hover { text-decoration-color: var(--accent); }
+
+  /* Badges */
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+  }
+  .badge-live { background: #B3E4C0; color: #1a6b2e; }
+  .badge-pending { background: #FFE798; color: #7a5800; }
+  .badge-rejected { background: #FFADAD; color: #8b0000; }
+  .badge-good { background: #dbeafe; color: var(--primary); }
+  .badge-interested { background: #e0f2fe; color: var(--secondary); }
+
+  /* Cards */
+  .sample-card {
+    border: 1px solid var(--secondary);
+    border-radius: 10px; padding: 16px; background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .sample-card-title { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
+  .sample-card-body { font-size: 13px; color: var(--gray-text); }
+
+  /* Chat bubbles */
+  .chat-demo { display: flex; flex-direction: column; gap: 12px; }
+  .bubble {
+    max-width: 75%; padding: 10px 14px; border-radius: 12px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .bubble-buyer { background: white; color: var(--black); box-shadow: 0 1px 4px rgba(0,0,0,0.08); align-self: flex-start; }
+  .bubble-seller { background: var(--primary); color: white; align-self: flex-end; }
+
+  /* Input */
+  .sample-input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--secondary);
+    border-radius: 8px; font-family: 'Open Sans', sans-serif; font-size: 14px;
+    color: var(--black); outline: none;
+  }
+  .sample-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27,117,188,0.12); }
+
+  /* ── TONE OF VOICE ── */
+  .tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .tone-card {
+    border-radius: 10px; padding: 20px 24px;
+  }
+  .tone-good { background: #f0fdf4; border-left: 4px solid #1a6b2e; }
+  .tone-bad  { background: #fff1f2; border-left: 4px solid #8b0000; }
+  .tone-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .tone-good .tone-label { color: #1a6b2e; }
+  .tone-bad  .tone-label { color: #8b0000; }
+  .tone-card p { font-size: 14px; color: #374151; font-style: italic; line-height: 1.5; }
+
+  /* ── FOOTER ── */
+  .guide-footer {
+    background: var(--accent); color: rgba(255,255,255,0.7);
+    padding: 40px 60px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px;
+  }
+  .guide-footer strong { color: white; }
+
+  /* ── TABLES (generic) ── */
+  .info-table { width: 100%; border-collapse: collapse; }
+  .info-table th {
+    text-align: left; padding: 11px 14px;
+    background: var(--primary); color: white;
+    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600;
+  }
+  .info-table td { padding: 11px 14px; border-bottom: 1px solid var(--gray-mid); font-size: 13px; }
+  .info-table tr:last-child td { border-bottom: none; }
+  .info-table tr:nth-child(even) td { background: #fafbfc; }
+
+  /* ══════════════════════════════════════════
+     PRINT STYLES — page breaks & colour fidelity
+     ══════════════════════════════════════════ */
+  @media print {
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body { background: white; }
+
+    /* Cover fills its own page */
+    .cover {
+      min-height: 100vh;
+      page-break-after: always;
+      break-after: page;
+    }
+
+    /* Each section starts on a new page */
+    .section {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* Keep these blocks together — don't split across pages */
+    .colour-card,
+    .component-block,
+    .tone-card,
+    .do-card,
+    .dont-card,
+    .dos-donts,
+    .ratio-bar,
+    .sample-card,
+    .chat-demo {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Tables: keep header with rows, never split a row */
+    thead { display: table-header-group; }
+    tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Component grid: let individual cards break across pages naturally */
+    .component-grid {
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+
+    /* Footer gets its own page */
+    .guide-footer {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* Clean up shadows for print */
+    .colour-card,
+    .component-block,
+    .sample-card,
+    .ratio-bar {
+      box-shadow: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ COVER ═══════════════ -->
+<div class="cover">
+  <div class="container">
+    <div class="cover-badge">Brand Style Guide · 2026</div>
+    <h1>UniTrade<br/><span>Brand Overview</span></h1>
+    <p>The single source of truth for how UniTrade looks, speaks, and feels — across web, mobile, and print.</p>
+    <div class="cover-meta">
+      <div><strong>Version</strong>1.0</div>
+      <div><strong>Platform</strong>Web &amp; Mobile</div>
+      <div><strong>Context</strong>South African Universities</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ═══════════════ 1. COLOUR PALETTE ═══════════════ -->
+  <div class="section">
+    <div class="section-label">Section 1</div>
+    <div class="section-title">Colour Palette</div>
+    <div class="section-desc">
+      Every colour in UniTrade's system has a specific role. Using colours outside this palette — or in the wrong proportion — breaks brand consistency and reduces trust.
+    </div>
+
+    <div class="colour-grid">
+      <!-- Primary Blue -->
+      <div class="colour-card">
+        <div class="colour-swatch" style="background:#0D1F4E;">
+          <span class="hex-display">#0D1F4E</span>
+        </div>
+        <div class="colour-info">
+          <div class="colour-name">Primary Blue</div>
+          <div class="colour-rgb">RGB (27, 117, 188)</div>
+          <div class="colour-usage">Headers, primary buttons, key accents, active nav states</div>
+        </div>
+      </div>
+      <!-- Secondary Lighter Blue -->
+      <div class="colour-card">
+        <div class="colour-swatch" style="background:#04B4FD;">
+          <span class="hex-display">#04B4FD</span>
+        </div>
+        <div class="colour-info">
+          <div class="colour-name">Secondary Blue</div>
+          <div class="colour-rgb">RGB (0, 174, 239)</div>
+          <div class="colour-usage">Borders, inactive states, dividers, badges, chat timestamps</div>
+        </div>
+      </div>
+      <!-- Accent Dark Blue -->
+      <div class="colour-card">
+        <div class="colour-swatch" style="background:#0D1F4E;">
+          <span class="hex-display">#0D1F4E</span>
+        </div>
+        <div class="colour-info">
+          <div class="colour-name">Accent Dark Blue</div>
+          <div class="colour-rgb">RGB (38, 34, 98)</div>
+          <div class="colour-usage">Footer backgrounds, hover states, emphasised text</div>
+        </div>
+      </div>
+      <!-- White -->
+      <div class="colour-card">
+        <div class="colour-swatch on-light" style="background:#ffffff; border:1px solid #e2e8f0;">
+          <span class="hex-display">#ffffff</span>
+        </div>
+        <div class="colour-info">
+          <div class="colour-name">Neutral White</div>
+          <div class="colour-rgb">RGB (255, 255, 255)</div>
+          <div class="colour-usage">Backgrounds, cards, text on dark colours, form fields</div>
+        </div>
+      </div>
+      <!-- Black -->
+      <div class="colour-card">
+        <div class="colour-swatch" style="background:#000000;">
+          <span class="hex-display">#000000</span>
+        </div>
+        <div class="colour-info">
+          <div class="colour-name">Neutral Black</div>
+          <div class="colour-rgb">RGB (0, 0, 0)</div>
+          <div class="colour-usage">Body text, headings, input borders, dark UI elements</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colour usage ratio bar -->
+    <div class="section-label" style="margin-bottom:12px;">Colour Usage Ratios — per screen</div>
+    <div class="ratio-bar">
+      <div class="ratio-seg white-seg" style="flex:60; background:#f8fafc; color:#94a3b8;">60% White</div>
+      <div class="ratio-seg" style="flex:25; background:#0D1F4E;">25%</div>
+      <div class="ratio-seg" style="flex:10; background:#000000;">10%</div>
+      <div class="ratio-seg" style="flex:4; background:#04B4FD;">4%</div>
+      <div class="ratio-seg" style="flex:1; background:#0D1F4E;">1%</div>
+    </div>
+    <div class="ratio-legend">
+      <div class="ratio-item"><div class="ratio-dot" style="background:#f8fafc; border:1px solid #e2e8f0;"></div>White (~60%) — backgrounds, cards, forms</div>
+      <div class="ratio-item"><div class="ratio-dot" style="background:#0D1F4E;"></div>Primary Blue (~25%) — header, buttons, nav</div>
+      <div class="ratio-item"><div class="ratio-dot" style="background:#000000;"></div>Black (~10%) — body text, borders</div>
+      <div class="ratio-item"><div class="ratio-dot" style="background:#04B4FD;"></div>Secondary Blue (~4%) — badges, dividers</div>
+      <div class="ratio-item"><div class="ratio-dot" style="background:#0D1F4E;"></div>Dark Accent (~1%) — footer, hover</div>
+    </div>
+
+    <!-- Interactive States -->
+    <div style="margin-top:36px;">
+      <div class="section-label" style="margin-bottom:12px;">Interactive States</div>
+      <table class="info-table" style="border-radius:8px; overflow:hidden;">
+        <thead>
+          <tr><th>Element</th><th>Default</th><th>Hover / Active</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Primary Button</td><td><span style="background:#0D1F4E;color:white;padding:2px 10px;border-radius:4px;font-size:12px;">#0D1F4E</span></td><td><span style="background:#0D1F4E;color:white;padding:2px 10px;border-radius:4px;font-size:12px;">#0D1F4E</span></td></tr>
+          <tr><td>Secondary Button</td><td>White + #0D1F4E border</td><td>Fill #04B4FD, white text</td></tr>
+          <tr><td>Links</td><td><span style="color:#0D1F4E;font-size:13px;">#0D1F4E</span></td><td>Underlined</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Colour Do's and Don'ts -->
+    <div style="margin-top:36px;">
+      <div class="section-label" style="margin-bottom:12px;">Colour Do's &amp; Don'ts</div>
+      <div class="dos-donts">
+        <div class="do-card">
+          <div class="card-header"><span class="icon">&#10003;</span> Do</div>
+          <ul class="check-list">
+            <li>Use #0D1F4E as the primary button and header colour</li>
+            <li>Use white backgrounds with blue accents for cards</li>
+            <li>Use #0D1F4E only for footer and hover states</li>
+            <li>Use #04B4FD for dividers, badges, and secondary elements</li>
+            <li>Maintain the 60/25/10/4/1 ratio per screen</li>
+          </ul>
+        </div>
+        <div class="dont-card">
+          <div class="card-header"><span class="icon">&#10007;</span> Don't</div>
+          <ul class="check-list">
+            <li>Don't use colours outside this palette (e.g. random greens or reds for branding)</li>
+            <li>Don't place dark blue (#0D1F4E) as a main background for entire pages</li>
+            <li>Don't use low-contrast combos like light blue text on white</li>
+            <li>Don't overuse the accent dark blue — it is meant to be rare</li>
+            <li>Don't use colour alone to convey status — always pair with text or icons</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 2. TYPOGRAPHY ═══════════════ -->
+  <div class="section">
+    <div class="section-label">Section 2</div>
+    <div class="section-title">Typography</div>
+    <div class="section-desc">
+      UniTrade uses <strong>Poppins</strong> for headings (strong, geometric, trustworthy) and <strong>Open Sans</strong> for body text (readable, warm, accessible). Both are free for web use.
+    </div>
+
+    <table class="type-table" style="border-radius:8px; overflow:hidden; margin-bottom:40px;">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Font &amp; Weight</th>
+          <th>Size</th>
+          <th>Line Height</th>
+          <th>Colour</th>
+          <th>Live Sample</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>H1 — Page Title</td>
+          <td>Poppins Bold 700</td>
+          <td>40px / 2.5rem</td>
+          <td>1.2</td>
+          <td>#000000</td>
+          <td><span class="type-sample" style="font-size:28px;font-weight:700;line-height:1.2;color:#000;">Browse Listings</span></td>
+        </tr>
+        <tr>
+          <td>H2 — Section Heading</td>
+          <td>Poppins Semi-Bold 600</td>
+          <td>32px / 2rem</td>
+          <td>1.3</td>
+          <td>#000000</td>
+          <td><span class="type-sample" style="font-size:22px;font-weight:600;color:#000;">What We Offer</span></td>
+        </tr>
+        <tr>
+          <td>H3 — Card Title</td>
+          <td>Poppins Semi-Bold 600</td>
+          <td>24px / 1.5rem</td>
+          <td>1.4</td>
+          <td>#0D1F4E</td>
+          <td><span class="type-sample" style="font-size:17px;font-weight:600;color:#0D1F4E;">Biology Textbook</span></td>
+        </tr>
+        <tr>
+          <td>Subheading</td>
+          <td>Poppins Medium 500</td>
+          <td>20px / 1.25rem</td>
+          <td>1.4</td>
+          <td>#04B4FD</td>
+          <td><span class="type-sample" style="font-size:15px;font-weight:500;color:#04B4FD;">University of Pretoria</span></td>
+        </tr>
+        <tr>
+          <td>Body Text (Large)</td>
+          <td>Open Sans Regular 400</td>
+          <td>18px / 1.125rem</td>
+          <td>1.5</td>
+          <td>#000000</td>
+          <td><span style="font-size:15px;color:#000;">Good condition, minor highlighting on pages 3–5.</span></td>
+        </tr>
+        <tr>
+          <td>Body Text (Standard)</td>
+          <td>Open Sans Regular 400</td>
+          <td>16px / 1rem</td>
+          <td>1.5</td>
+          <td>#000000</td>
+          <td><span style="font-size:13px;color:#000;">Reserve now to hold this item for 24 hours.</span></td>
+        </tr>
+        <tr>
+          <td>Small / Meta</td>
+          <td>Open Sans Regular 400</td>
+          <td>14px / 0.875rem</td>
+          <td>1.4</td>
+          <td>Black 60%</td>
+          <td><span style="font-size:12px;color:#64748b;">BIO121 · Listed 7 May 2026 · 42 views</span></td>
+        </tr>
+        <tr>
+          <td>Button / Label</td>
+          <td>Poppins Medium 500</td>
+          <td>16px / 1rem</td>
+          <td>1.2</td>
+          <td>White on dark</td>
+          <td><button class="btn-primary" style="cursor:default;">Reserve</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Typography Do's and Don'ts -->
+    <div class="dos-donts">
+      <div class="do-card">
+        <div class="card-header"><span class="icon">&#10003;</span> Do</div>
+        <ul class="check-list">
+          <li>Use Poppins for all headings (H1–H3) and button labels</li>
+          <li>Use Open Sans for body copy, descriptions, and meta text</li>
+          <li>Keep H1 at 40px — do not make page titles smaller</li>
+          <li>Use #0D1F4E for H3 card titles to create visual hierarchy</li>
+          <li>Keep body text at minimum 16px for accessibility</li>
+        </ul>
+      </div>
+      <div class="dont-card">
+        <div class="card-header"><span class="icon">&#10007;</span> Don't</div>
+        <ul class="check-list">
+          <li>Don't use more than 2 font families on any page</li>
+          <li>Don't use font weights lighter than 400 (Regular)</li>
+          <li>Don't set body text below 14px — it becomes unreadable</li>
+          <li>Don't use ALL CAPS for body text (only acceptable in small labels)</li>
+          <li>Don't mix Poppins and Open Sans in the same sentence</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 3. UI COMPONENTS ═══════════════ -->
+  <div class="section">
+    <div class="section-label">Section 3</div>
+    <div class="section-title">UI Components</div>
+    <div class="section-desc">
+      All interactive elements follow a consistent visual pattern. Below are the live components with their correct colours, states, and usage rules.
+    </div>
+
+    <div class="component-grid">
+
+      <!-- Buttons -->
+      <div class="component-block">
+        <h4>Buttons</h4>
+        <div class="btn-row" style="margin-bottom:20px;">
+          <button class="btn-primary">Reserve Item</button>
+          <button class="btn-secondary">Add to Wishlist</button>
+          <button class="btn-danger">Report listing</button>
+        </div>
+        <table class="info-table" style="border-radius:6px;overflow:hidden;">
+          <thead><tr><th>Type</th><th>Background</th><th>Text</th></tr></thead>
+          <tbody>
+            <tr><td>Primary</td><td>#0D1F4E → hover #0D1F4E</td><td>White</td></tr>
+            <tr><td>Secondary</td><td>White → hover #04B4FD</td><td>#0D1F4E</td></tr>
+            <tr><td>Report Link</td><td>Transparent</td><td>#0D1F4E, underline hover</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Status Badges -->
+      <div class="component-block">
+        <h4>Status Badges</h4>
+        <div class="badge-row" style="margin-bottom:20px;">
+          <span class="badge badge-live">Live</span>
+          <span class="badge badge-pending">Needs Review</span>
+          <span class="badge badge-rejected">Rejected</span>
+          <span class="badge badge-good">Good Condition</span>
+          <span class="badge badge-interested">2 Interested</span>
+        </div>
+        <table class="info-table" style="border-radius:6px;overflow:hidden;">
+          <thead><tr><th>Badge</th><th>Background</th><th>Text</th></tr></thead>
+          <tbody>
+            <tr><td>Live</td><td>#B3E4C0 (green-100)</td><td>#1a6b2e</td></tr>
+            <tr><td>Needs Review</td><td>#FFE798 (yellow-100)</td><td>#7a5800</td></tr>
+            <tr><td>Rejected</td><td>#FFADAD (red-100)</td><td>#8b0000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card -->
+      <div class="component-block">
+        <h4>Listing Card</h4>
+        <div class="sample-card" style="max-width:280px;">
+          <div style="height:100px;background:#dbeafe;border-radius:6px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:28px;">IMG</div>
+          <div class="sample-card-title">Biology Textbook</div>
+          <div class="sample-card-body">BIO121 · UP</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:#000;margin:8px 0;">R1 200</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn-primary" style="width:100%;">Reserve</button>
+            <button class="btn-secondary" style="width:100%;">Add to Wishlist</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--gray-text);margin-top:12px;">Card border: 1px solid #04B4FD · Background: white</p>
+      </div>
+
+      <!-- Chat Bubbles -->
+      <div class="component-block">
+        <h4>Chat Bubbles</h4>
+        <div class="chat-demo">
+          <div class="bubble bubble-buyer">Hi, is this textbook still available?</div>
+          <div class="bubble bubble-seller">Yes it is! Can meet tomorrow at Library Cafe.</div>
+          <div class="bubble bubble-buyer">Perfect, see you at 2pm!</div>
+        </div>
+        <table class="info-table" style="border-radius:6px;overflow:hidden;margin-top:16px;">
+          <thead><tr><th>Bubble</th><th>Background</th><th>Text</th></tr></thead>
+          <tbody>
+            <tr><td>Buyer (received)</td><td>White + subtle shadow</td><td>#000000</td></tr>
+            <tr><td>Seller (sent)</td><td>#0D1F4E</td><td>White</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Form Input -->
+      <div class="component-block">
+        <h4>Form Inputs</h4>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--gray-text);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course Code</label>
+            <input class="sample-input" placeholder="e.g. BIO121" value="BIO121"/>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--gray-text);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Price (ZAR)</label>
+            <input class="sample-input" placeholder="e.g. 250" value="R 1 200"/>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--gray-text);margin-top:12px;">Border: 1px solid #04B4FD · Focus ring: #0D1F4E at 12% opacity</p>
+      </div>
+
+      <!-- Component Do / Don't -->
+      <div class="component-block">
+        <h4>Component Rules</h4>
+        <ul class="check-list">
+          <li style="color:#1a6b2e;"><strong>Do:</strong> Always pair Reserve (primary) + Add to Wishlist (secondary) on listing cards</li>
+          <li style="color:#1a6b2e;"><strong>Do:</strong> Use pill-shaped badges (border-radius: 20px) for all status labels</li>
+          <li style="color:#8b0000;"><strong>Don't:</strong> Use red as a button colour — red is only for destructive badge states</li>
+          <li style="color:#8b0000;"><strong>Don't:</strong> Create new button styles — use only Primary, Secondary, or Link</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ 4. LOGO RULES ═══════════════ -->
+  <div class="section">
+    <div class="section-label">Section 4</div>
+    <div class="section-title">Logo Usage</div>
+    <div class="section-desc">
+      The UniTrade logo must always have clear space around it and may only appear in approved colour versions.
+    </div>
+
+    <!-- Logo size table -->
+    <table class="info-table" style="border-radius:8px;overflow:hidden;margin-bottom:32px;">
+      <thead>
+        <tr><th>Context</th><th>Minimum Width</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Desktop / Tablet website</td><td>120px</td><td>Wordmark + icon mark</td></tr>
+        <tr><td>Mobile website / app header</td><td>90px</td><td>Icon + abbreviated wordmark if needed</td></tr>
+        <tr><td>Print (business cards, flyers)</td><td>25mm (~1 inch)</td><td>Use vector format only</td></tr>
+        <tr><td>Favicon / App icon</td><td>32 × 32px</td><td>Icon only — no wordmark</td></tr>
+      </tbody>
+    </table>
+
+    <div class="dos-donts">
+      <div class="do-card">
+        <div class="card-header"><span class="icon">&#10003;</span> Do</div>
+        <ul class="check-list">
+          <li>Use the logo exactly as provided — no modifications</li>
+          <li>Always maintain clear space (no text or graphics crowding the logo)</li>
+          <li>Use the reversed white version on dark backgrounds</li>
+          <li>Scale the logo proportionally when resizing</li>
+          <li>Use the icon alone as a favicon or app badge</li>
+        </ul>
+      </div>
+      <div class="dont-card">
+        <div class="card-header"><span class="icon">&#10007;</span> Don't</div>
+        <ul class="check-list">
+          <li>Don't stretch or distort the logo disproportionately</li>
+          <li>Don't change logo colours except to approved mono versions (white or black)</li>
+          <li>Don't place the logo on busy photography without a solid backing or scrim</li>
+          <li>Don't rotate or tilt the logo</li>
+          <li>Don't add drop shadows, glows, or outlines to the logo</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5. TONE OF VOICE ═══════════════ -->
+  <div class="section">
+    <div class="section-label">Section 5</div>
+    <div class="section-title">Tone of Voice</div>
+    <div class="section-desc">
+      UniTrade speaks like a trustworthy peer — not a corporation. Short sentences, active voice, honest language. Here are real examples of what that sounds like.
+    </div>
+
+    <div class="tone-grid">
+      <div class="tone-card tone-good">
+        <div class="tone-label">Write Like This</div>
+        <p>"We verify, you trade safely."</p>
+      </div>
+      <div class="tone-card tone-bad">
+        <div class="tone-label">Not Like This</div>
+        <p>"We are not responsible for transactions conducted on this platform."</p>
+      </div>
+      <div class="tone-card tone-good">
+        <div class="tone-label">Write Like This</div>
+        <p>"Check in when you arrive."</p>
+      </div>
+      <div class="tone-card tone-bad">
+        <div class="tone-label">Not Like This</div>
+        <p>"Location verification shall be performed upon arrival at the designated meetup point."</p>
+      </div>
+      <div class="tone-card tone-good">
+        <div class="tone-label">Write Like This</div>
+        <p>"No payment until you meet and inspect in person."</p>
+      </div>
+      <div class="tone-card tone-bad">
+        <div class="tone-label">Not Like This</div>
+        <p>"Payment processing will be withheld until physical inspection has occurred."</p>
+      </div>
+      <div class="tone-card tone-good">
+        <div class="tone-label">Write Like This</div>
+        <p>"Your listing was rejected. Here's why and how to fix it."</p>
+      </div>
+      <div class="tone-card tone-bad">
+        <div class="tone-label">Not Like This</div>
+        <p>"Your submission did not meet the required criteria and has been declined."</p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;background:#f0f4ff;border-radius:10px;padding:20px 24px;border-left:4px solid var(--primary);">
+      <div style="font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;color:var(--primary);margin-bottom:8px;">Three Core Principles</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div><strong style="font-size:13px;">Trustworthy, not cold</strong><br/><span style="font-size:13px;color:var(--gray-text);">We protect users without hiding behind legalese.</span></div>
+        <div><strong style="font-size:13px;">Student-first, not academic</strong><br/><span style="font-size:13px;color:var(--gray-text);">Short sentences. Active voice. Real language.</span></div>
+        <div><strong style="font-size:13px;">Direct about rules</strong><br/><span style="font-size:13px;color:var(--gray-text);">No fine print. No hidden catches.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 6. IMAGERY ═══════════════ -->
+  <div class="section">
+    <div class="section-label">Section 6</div>
+    <div class="section-title">Imagery &amp; Photography</div>
+    <div class="section-desc">
+      Photography choices reflect the real South African student experience — not polished stock imagery.
+    </div>
+    <div class="dos-donts">
+      <div class="do-card">
+        <div class="card-header"><span class="icon">&#10003;</span> Use</div>
+        <ul class="check-list">
+          <li>Real students on South African campuses (UP, Wits, UCT, etc.)</li>
+          <li>Study sessions, meetups at libraries and cafes</li>
+          <li>Textbook close-ups and phone showing the app</li>
+          <li>Warm, natural lighting with no heavy filters</li>
+          <li>Overlays over hero images to ensure text contrast</li>
+        </ul>
+      </div>
+      <div class="dont-card">
+        <div class="card-header"><span class="icon">&#10007;</span> Avoid</div>
+        <ul class="check-list">
+          <li>Generic "businesspeople" stock photos</li>
+          <li>Foreign campuses that don't reflect SA student life</li>
+          <li>Heavy Instagram-style filters or colour grading</li>
+          <li>Posed, unnatural looking studio photos</li>
+          <li>Images that don't relate to academic or student life</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="guide-footer">
+  <div>
+    <strong>UniTrade</strong> — Brand Style Guide v1.0<br/>
+    COS301 Capstone Project · University of Pretoria · 2026
+  </div>
+  <div style="text-align:right;">
+    For questions, contact the frontend team.<br/>
+    This document is the single source of truth for brand decisions.
+  </div>
+</div>
+
+</body>
+</html>
