@@ -177,6 +177,74 @@ describe('BrowseAllListing', () => {
     })
   })
  
-  
+    describe('Successful render', () => {
+    beforeEach(() => {
+      vi.mocked(listingsService.getBrowseListings).mockResolvedValue({
+        listings: makeListings(),
+        total: 4,
+      })
+    })
+ 
+    it('renders the page heading', async () => {
+      renderComponent()
+      expect(await screen.findByRole('heading', { name: /browse all listings/i })).toBeInTheDocument()
+    })
+ 
+    it('displays the total listing count from the API', async () => {
+      renderComponent()
+      expect(await screen.findByText(/4 listings available/i)).toBeInTheDocument()
+    })
+ 
+    it('renders a card for every listing', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      expect(screen.getByText('Arduino Kit')).toBeInTheDocument()
+      expect(screen.getByText('Lab Goggles')).toBeInTheDocument()
+      expect(screen.getByText('Staedtler Pens')).toBeInTheDocument()
+    })
+ 
+    it('formats prices via formatPrice', async () => {
+      renderComponent()
+      await screen.findByText('R200')
+      expect(screen.getByText('R450')).toBeInTheDocument()
+    })
+ 
+    it('renders Reserve and Add to Wishlist buttons for each card', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
+      expect(screen.getAllByRole('button', { name: /add to wishlist/i })).toHaveLength(4)
+    })
+ 
+it('renders condition badges with correct text', async () => {
+  renderComponent()
+  await screen.findByText('Calculus Textbook')
+
+  const grid = screen.getByRole('img', { name: 'Calculus Textbook' }).closest('.grid')!
+
+  const badges = within(grid).getAllByText(/Good|Fair|Poor/)
+  const badgeTexts = badges.map(b => b.textContent)
+
+  expect(badgeTexts.filter(t => t === 'Good')).toHaveLength(2)
+  expect(badgeTexts).toContain('Fair')
+  expect(badgeTexts).toContain('Poor')
+})
+ 
+    it('renders all category filter buttons', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      for (const cat of ['All', 'Textbooks', 'Electronics', 'Lab Equipment', 'Stationary']) {
+        expect(screen.getByRole('button', { name: cat })).toBeInTheDocument()
+      }
+    })
+ 
+    it('renders the condition and sort dropdowns', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      expect(screen.getByDisplayValue('All conditions')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Newest')).toBeInTheDocument()
+    })
+  })
+
 
 })
