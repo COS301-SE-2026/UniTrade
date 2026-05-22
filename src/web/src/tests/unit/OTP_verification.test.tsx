@@ -46,7 +46,9 @@ describe('OTPVerification', () => {
     vi.mocked(useAuthStore).mockReturnValue({
       pendingEmail: 'student@up.ac.za',
       clearPendingEmail: vi.fn(),
-    } as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}     as any)
+    
   })
 
   it('page shows up without lagging or crashing ', () => {
@@ -107,6 +109,7 @@ describe('OTPVerification', () => {
   })
 
   it('calls authService.verifyOtp with the correct email and OTP on submit', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(authService.verifyOtp).mockResolvedValue(undefined as any)
     renderOTP()
     fillOtp('1234')
