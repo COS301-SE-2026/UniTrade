@@ -246,5 +246,62 @@ it('renders condition badges with correct text', async () => {
     })
   })
 
+   
+  describe('Category filtering', () => {
+    beforeEach(() => {
+      vi.mocked(listingsService.getBrowseListings).mockResolvedValue({
+        listings: makeListings(),
+        total: 4,
+      })
+    })
+ 
+    it('"All" is active by default', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      // all 4 listings visible
+      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
+    })
+ 
+    it('filters to Textbooks only', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      await userEvent.click(screen.getByRole('button', { name: 'Textbooks' }))
+      expect(screen.getByText('Calculus Textbook')).toBeInTheDocument()
+      expect(screen.queryByText('Arduino Kit')).not.toBeInTheDocument()
+    })
+ 
+    it('filters to Electronics only', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      await userEvent.click(screen.getByRole('button', { name: 'Electronics' }))
+      expect(screen.getByText('Arduino Kit')).toBeInTheDocument()
+      expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
+    })
+ 
+    it('clicking All after a filter restores all listings', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      await userEvent.click(screen.getByRole('button', { name: 'Textbooks' }))
+      await userEvent.click(screen.getByRole('button', { name: 'All' }))
+      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
+    })
+  })
+ 
+  describe('Navigation', () => {
+    beforeEach(() => {
+      vi.mocked(listingsService.getBrowseListings).mockResolvedValue({
+        listings: makeListings(),
+        total: 4,
+      })
+    })
+ 
+    it('navigates to the listing detail page when the image is clicked', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      await userEvent.click(screen.getByAltText('Calculus Textbook'))
+      expect(mockNavigate).toHaveBeenCalledWith('/listings/1')
+    })
+  })
+
 
 })
