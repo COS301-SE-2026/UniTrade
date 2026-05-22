@@ -40,11 +40,11 @@ const renderSignup = () =>
 const fillRequiredFields = async (overrides: Record<string, string> = {}) => {
   const user = userEvent.setup()
   const fields: Record<string, string> = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: 'jane@example.com',
+    firstName: 'Langa',
+    lastName: 'Vakalisa',
+    email: 'langavaks@gmail.com',
     yearOfStudy: '2',
-    password: 'secret123',
+    password: 'Password100',
     ...overrides,
   }
  
@@ -57,12 +57,58 @@ const fillRequiredFields = async (overrides: Record<string, string> = {}) => {
  
   return fields
 }
- 
-// ── Tests ─────────────────────────────────────────────────────────────────────
- 
+  
 describe('Signup page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
+  
+  describe('Rendering', () => {
+    it('renders the heading', () => {
+      renderSignup()
+      expect(screen.getByRole('heading', { name: /get started/i })).toBeInTheDocument()
+    })
+ 
+    it('renders all required form fields', () => {
+      renderSignup()
+      expect(screen.getByPlaceholderText('First Name')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Last Name')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Email')).toBeInTheDocument()
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Year of Study')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+    })
+ 
+    it('renders the optional Degree Program field', () => {
+      renderSignup()
+      expect(screen.getByPlaceholderText('Degree Program')).toBeInTheDocument()
+    })
+ 
+    it('renders all university options', () => {
+      renderSignup()
+      const select = screen.getByRole('combobox')
+      const options = Array.from(select.querySelectorAll('option')).map(o => o.textContent)
+      expect(options).toContain('University of Cape Town')
+      expect(options).toContain('University of Pretoria')
+      expect(options).toContain('University of the Witwatersrand')
+    })
+ 
+    it('renders the login link', () => {
+      renderSignup()
+      expect(screen.getByRole('link', { name: /login/i })).toHaveAttribute('href', '/auth/Login')
+    })
+ 
+    it('does not show an error banner on first render', () => {
+      renderSignup()
+      expect(screen.queryByRole('paragraph')).not.toBeInTheDocument()
+    })
+  })
+ 
+
+
 })
+
+
+
+
