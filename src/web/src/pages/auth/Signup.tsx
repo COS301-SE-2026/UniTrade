@@ -5,6 +5,10 @@ import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
 
+interface ApiError {
+  message: string
+}
+
 const Signup: React.FC = () => {
   const navigate = useNavigate()
   const { setPendingEmail } = useAuthStore()
@@ -35,8 +39,9 @@ const Signup: React.FC = () => {
       // save email so OTP page knows who to verify
       setPendingEmail(formData.email)
       navigate('/verify-otp')
-    } catch (err: any) {
-      setError(getAuthErrorMessage(err.message))
+    } catch (err: unknown) {
+      const error = err as ApiError
+      setError(getAuthErrorMessage(error.message))
     } finally {
       setLoading(false)
     }
