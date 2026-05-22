@@ -213,11 +213,14 @@ export const listingsService = {
       listedAt: item.createdAt,
       courseCode: item.courseId?.toString() ?? mockListingDetail.courseCode,
       category: mapCategory(item.listingType),
-      images: item.images.map((i: any) => ({
-        id: i.imageId.toString(),
-        url: i.path,
-        isPrimary: i.isPrimary,
-      })),
+      images: item.images.map((i: unknown) => {
+        const img = i as { imageId: number; path: string; isPrimary: boolean }
+        return{
+        id: img.imageId.toString(),
+        url: img.path,
+        isPrimary: img.isPrimary,
+        }
+      }),
     };
   },
 
@@ -232,20 +235,24 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch listings");
 
     const data = await res.json();
-    const listings: ListingSummary[] = data.items.map((item: any) => ({
-      id: item.listingId,
-      title: item.title,
-      meta: `${item.listingType} · Listed ${new Date(item.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
-      price: item.price,
-      status: item.listingStatus,
-      views: item.viewCount,
+    const listings: ListingSummary[] = data.items.map((item: unknown) => {
+      const l = item as { listingId: string; title: string; listingType: string; createdAt: string; price: number; listingStatus: string; viewCount: number; images: { isPrimary: boolean; path: string }[] }
+      return {
+      id: l.listingId,
+      title: l.title,
+      meta: `${l.listingType} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+      price: l.price,
+      status: l.listingStatus,
+      views: l.viewCount,
       imageUrl:
-        item.images.find((i: any) => i.isPrimary)?.path ??
-        item.images[0]?.path ??
+        l.images.find(i => i.isPrimary)?.path ??
+        l.images[0]?.path ??
         biologyTextbook,
-    }));
-    return { listings, total: data.total };
+      }
+    })
+    return { listings, total: data.total }
   },
+     
 
   getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, {
@@ -270,7 +277,7 @@ export const listingsService = {
       ) as SellerListingDetail["category"],
       images:
         item.images.length > 0
-          ? item.images.map((i: any) => i.path)
+          ? item.images.map((i: unknown) => (i as { path: string }).path)
           : mockSellerListingDetail.images,
     };
   },
@@ -281,20 +288,29 @@ export const listingsService = {
     });
     if (!res.ok) throw new Error("Failed to fetch listings");
     const data = await res.json();
-    const listings: BrowseListing[] = data.items.map((item: any) => ({
-      id: item.listingId,
-      title: item.title,
-      price: item.price,
-      module: item.courseId?.toString() ?? "General",
-      category: mapBrowseCategory(item.listingType),
-      condition: mapCondition(item.condition),
-      image:
-        item.images.find((i: any) => i.isPrimary)?.path ??
-        item.images[0]?.path ??
-        biologyTextbook,
-    }));
-    return { listings, total: data.total };
+    const listings: BrowseListing[] = data.items.map((item: unknown) => {
+      const l = item as {
+        listingId: string
+        title: string
+        price: number
+        courseId?: number
+        listingType: string
+        condition: string
+        images: { isPrimary: boolean; path: string }[]
+      }
+      return {
+        id: l.listingId,
+        title: l.title,
+        price: l.price,
+        module: l.courseId?.toString() ?? "General",
+        category: mapBrowseCategory(l.listingType),
+        condition: mapCondition(l.condition),
+        image: l.images.find(i => i.isPrimary)?.path ?? l.images[0]?.path ?? biologyTextbook,
+      }
+    })
+    return { listings, total: data.total }
   },
+
 
   uploadImages: async (files: File[]): Promise<string[]> => {
     const fd = new FormData();

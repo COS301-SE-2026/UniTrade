@@ -43,7 +43,8 @@ const renderEditListing = () =>
     describe('EditListing', () => {
         beforeEach(() => {
             vi.clearAllMocks()
-            vi.mocked(listingsService.getById).mockResolvedValue(mockApiListing as any)
+           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           vi.mocked(listingsService.getById).mockResolvedValue(mockApiListing as any)
         })
 
         it('shows up without lagging or crashing', async () =>{

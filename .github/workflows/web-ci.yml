@@ -45,7 +45,3 @@ jobs:
       - name: Run unit tests
         working-directory: src/web
         run: npm run test:run 
-
-      - name: Run integration tests
-        working-directory: src/web
-        run: npm run test:run -- tests/integration 
