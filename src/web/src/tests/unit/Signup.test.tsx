@@ -184,6 +184,32 @@ describe('Form interactions', () => {
     })
   })
 
+describe('Loading state', () => {
+    it('disables the submit button while the request is in flight', async () => {
+      vi.mocked(authService.register).mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 200))
+      )
+      renderSignup()
+      await fillRequiredFields()
+      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+ 
+      expect(await screen.findByRole('button', { name: /signing up/i })).toBeDisabled()
+    })
+ 
+    it('shows "Signing up…" label during the request', async () => {
+      vi.mocked(authService.register).mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 200))
+      )
+      renderSignup()
+      await fillRequiredFields()
+      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+ 
+      expect(await screen.findByText(/signing up/i)).toBeInTheDocument()
+    })
+  })
+ 
+
+
 
 })
 
