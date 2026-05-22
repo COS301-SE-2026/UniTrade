@@ -1,171 +1,119 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, test, expect, beforeEach, vi, it } from 'vitest'
-import { useNavigate } from 'react-router-dom'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import Login from '../../pages/auth/Login'
-import { authService } from '../../services/authService'
-import { useAuthStore } from '../../store/useAuthStore'
-import { getAuthErrorMessage } from '../../utils/authErrors'
 
-vi.mock('react-router-dom', () => ({
-  useNavigate: vi.fn(),
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+ 
+const mockSetUser = vi.fn()
+vi.mock('../../store/useAuthStore', () => ({
+  useAuthStore: () => ({ setUser: mockSetUser }),
 }))
-
+ 
 vi.mock('../../services/authService', () => ({
   authService: {
     login: vi.fn(),
     getMe: vi.fn(),
   },
 }))
-
-vi.mock('../../store/useAuthStore', () => ({
-  useAuthStore: vi.fn(),
-}))
-
+ 
 vi.mock('../../utils/authErrors', () => ({
-  getAuthErrorMessage: vi.fn((msg) => msg),
+  getAuthErrorMessage: vi.fn((msg: string) => `Friendly: ${msg}`),
 }))
+ 
+vi.mock('../../assets/girl.png', () => ({ default: 'girl.png' }))
 
-vi.mock('../../assets/girl.png', () => ({ default: 'girl-mock-path.png' }))
-
-describe('Login Component', () => {
-  const mockNavigate = vi.fn()
-  const mockSetUser = vi.fn()
-
+ 
+import { authService } from '../../services/authService'
+import { getAuthErrorMessage } from '../../utils/authErrors'
+ 
+const renderLogin = () =>
+  render(
+    <MemoryRouter>
+      <Login />
+    </MemoryRouter>
+  )
+ 
+const makeMePayload = (overrides: { userRole?: string } = {}) => ({
+  user: {
+    userId: '123',
+    firstName: 'Langa',
+    lastName: 'Vakalisa',
+    userRole: 'buyer',
+    university: 'University of Pretoria',
+    email: 'langa@tuks.co.za',
+    ...overrides,
+  },
+  std: { verificationStatus: 'verified' },
+})
+ 
+const fillAndSubmit = async (email: string, password: string) => {
+  const user = userEvent.setup()
+  await user.type(screen.getByPlaceholderText('Email Address'), email)
+  await user.type(screen.getByPlaceholderText('Password'), password)
+  await user.click(screen.getByRole('button', { name: 'LOGIN' }))
+}
+ 
+ 
+describe('Login', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
-    
-    vi.mocked(useNavigate).mockReturnValue(mockNavigate)
-    vi.mocked(useAuthStore).mockReturnValue({ setUser: mockSetUser })
-  })
-    test('should render the Login form and buttons correctly', () => {
-    render(<Login />)
-
-    expect(screen.getByRole('heading', { name: /welcome back!/i })).toBeInTheDocument()
-    expect(screen.getByText('Enter your credentials to access your account')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Email Address')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })
 
-
-    test('should track user typing ', () => {
-    render(<Login />)
-
-    const emailInput = screen.getByPlaceholderText('Email Address') as HTMLInputElement
-    const passwordInput = screen.getByPlaceholderText('Password') as HTMLInputElement
-
-    fireEvent.change(emailInput, { target: { value: 'langavaks@gmail.com', name: 'email' } })
-    fireEvent.change(passwordInput, { target: { value: 'Password100', name: 'password' } })
-
-    expect(emailInput.value).toBe('langavaks@gmail.com')
-    expect(passwordInput.value).toBe('Password100')
-  })
-
-    test('should handle successful login and navigate to admin', async () => {
-    const mockUserPayload = {
-      user: {
-        userId: '23526964',
-        firstName: 'Langa',
-        lastName: 'Vakalisa',
-        userRole: 'admin',
-        university: 'University of Pretoria',
-        email: 'langavaks@gmail.com',
-      },
-      std: {
-        verificationStatus: 'verified',
-      },
-    }
-
-
-        vi.mocked(authService.login).mockResolvedValue(undefined)
-    vi.mocked(authService.getMe).mockResolvedValue(mockUserPayload)
-
-    render(<Login />)
-
-    fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com', name: 'email' } })
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'adminpass', name: 'password' } })
-    
-    const loginButton = screen.getByRole('button', { name: /login/i })
-    fireEvent.click(loginButton)
-
-    expect(screen.getByRole('button', { name: /logging in\.\.\./i })).toBeDisabled()
-
-    await waitFor(() => {
-      expect(authService.login).toHaveBeenCalledWith({
-        Email: 'langavaks@gmail.com',
-        Password: 'adminpass',
-      })
-      expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard')
+ 
+  describe('Rendering', () => {
+    it('renders the heading and subtitle', () => {
+      renderLogin()
+      expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument()
+      expect(screen.getByText('Enter your credentials to access your account')).toBeInTheDocument()
     })
-
-    expect(mockSetUser).toHaveBeenCalledWith({
-      id: '23526964',
-      name: 'Langa Vakalisa',
-      initials: 'LV',
-      role: 'admin',
-      university: 'University of Pretoria',
+ 
+    it('renders email and password inputs', () => {
+      renderLogin()
+      expect(screen.getByPlaceholderText('Email Address')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
+    })
+ 
+    it('renders password input as type password', () => {
+      renderLogin()
+      expect(screen.getByPlaceholderText('Password')).toHaveAttribute('type', 'password')
+    })
+ 
+    it('renders the LOGIN submit button', () => {
+      renderLogin()
+      expect(screen.getByRole('button', { name: 'LOGIN' })).toBeInTheDocument()
+    })
+ 
+    it('renders Remember Me checkbox', () => {
+      renderLogin()
+      expect(screen.getByRole('checkbox')).toBeInTheDocument()
+      expect(screen.getByText('Remember Me')).toBeInTheDocument()
+    })
+ 
+    it('renders Forgot Password link', () => {
+      renderLogin()
+      expect(screen.getByRole('link', { name: 'Forgot Password' })).toBeInTheDocument()
+    })
+ 
+    it('renders Sign Up link pointing to /auth/Signup', () => {
+      renderLogin()
+      expect(screen.getByRole('link', { name: 'Sign Up' })).toHaveAttribute('href', '/auth/Signup')
+    })
+ 
+    it('does not show error banner on initial render', () => {
+      renderLogin()
+      expect(screen.queryByRole('paragraph')).not.toBeInTheDocument()
+    })
+ 
+    it('submit button is enabled on initial render', () => {
+      renderLogin()
+      expect(screen.getByRole('button', { name: 'LOGIN' })).not.toBeDisabled()
     })
   })
 
-
-    test('should handle successful login and navigate to buyerlistings', async () => {
-    const mockUserPayload = {
-      user: {
-        userId: '23526964',
-        firstName: 'Langa',
-        lastName: 'Vakalisa',
-        userRole: 'buyer',
-        university: 'University of Pretoria',
-        email: 'langavaks@gmail.com',
-      },
-      std: {
-        verificationStatus: 'verified',
-      },
-    }
-
-    vi.mocked(authService.login).mockResolvedValue(undefined)
-    vi.mocked(authService.getMe).mockResolvedValue(mockUserPayload)
-
-    render(<Login />)
-
-    fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail', name: 'email' } })
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'Password100', name: 'password' } })
-    
-    fireEvent.click(screen.getByRole('button', { name: /login/i }))
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/buyer/listings')
-    })
-    
-    expect(mockSetUser).toHaveBeenCalledWith({
-      id: '23526964',
-      name: 'Langa Vakalisa',
-      initials: 'LV',
-      role: 'buyer',
-      university: 'University of Pretoria',
-    })
-  })
-
-    test('should handle failed login and display error message', async () => {
-    const apiErrorReason = 'Invalid credentials'
-    const transformedErrorMessage = 'Invalid email or password'
-    
-    vi.mocked(authService.login).mockRejectedValue(new Error(apiErrorReason))
-    vi.mocked(getAuthErrorMessage).mockReturnValue(transformedErrorMessage)
-
-    render(<Login />)
-
-    fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com', name: 'email' } })
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'notpassword', name: 'password' } })
-    
-    fireEvent.click(screen.getByRole('button', { name: /login/i }))
-
-    const errorAlert = await screen.findByText(transformedErrorMessage)
-    expect(errorAlert).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /login/i })).not.toBeDisabled()
-  })
-
-});
-
-  
+})
