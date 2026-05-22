@@ -8,17 +8,22 @@
 
 <br/>
 
+<!-- CI/CD Status Pipeline Badges -->
+[![Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml)
+[![Web Frontend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 
-[![Build Status](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/build.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions)
-[![Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+<!-- Quality, Licensing & Contribution Badges -->
+[![Vitest Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
+[![Code Style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
 <br/>
 
 [Live Demo](#) · [Report a Bug](https://github.com/COS301-SE-2026/UniTrade/issues) · [Request a Feature](https://github.com/COS301-SE-2026/UniTrade/issues)
 
 <br/><br/>
+
 
 <sub>
 <em>The DevNexus Team — University of Pretoria · COS301 Capstone 2026
@@ -384,5 +389,5 @@ UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by DevNexus · University of Pretoria · COS301 Capstone 2026</sub>
+  <sub>Built by DevNexus · University of Pretoria · COS301 Capstone 2026</sub>
 </div>
