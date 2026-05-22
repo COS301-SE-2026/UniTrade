@@ -62,6 +62,55 @@ describe('Login Component', () => {
     expect(passwordInput.value).toBe('Password100')
   })
 
+    test('should handle successful login and navigate to admin', async () => {
+    const mockUserPayload = {
+      user: {
+        userId: '23526964',
+        firstName: 'Langa',
+        lastName: 'Vakalisa',
+        userRole: 'admin',
+        university: 'University of Pretoria',
+        email: 'langavaks@gmail.com',
+      },
+      std: {
+        verificationStatus: 'verified',
+      },
+    }
+
+
+        vi.mocked(authService.login).mockResolvedValue(undefined)
+    vi.mocked(authService.getMe).mockResolvedValue(mockUserPayload)
+
+    render(<Login />)
+
+    fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail.com', name: 'email' } })
+    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'adminpass', name: 'password' } })
+    
+    const loginButton = screen.getByRole('button', { name: /login/i })
+    fireEvent.click(loginButton)
+
+    expect(screen.getByRole('button', { name: /logging in\.\.\./i })).toBeDisabled()
+
+    await waitFor(() => {
+      expect(authService.login).toHaveBeenCalledWith({
+        Email: 'langavaks@gmail.com',
+        Password: 'adminpass',
+      })
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard')
+    })
+
+    expect(mockSetUser).toHaveBeenCalledWith({
+      id: '23526964',
+      name: 'Langa Vakalisa',
+      initials: 'LV',
+      role: 'admin',
+      university: 'University of Pretoria',
+    })
+  })
+
+
+
+
 });
 
   
