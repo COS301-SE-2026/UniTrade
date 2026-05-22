@@ -159,6 +159,10 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 
+interface ApiError {
+  message: string
+}
+
 export default function OTPVerification() {
   const navigate = useNavigate()
   const { isDark, toggle } = useThemeStore()
@@ -207,8 +211,9 @@ export default function OTPVerification() {
       setOtp(['', '', '', ''])
       setError(null)
       inputRefs.current[0]?.focus()
-    } catch (err: any) {
-      setError(getAuthErrorMessage(err.message))
+    } catch (err: unknown) {
+      const error = err as ApiError
+      setError(getAuthErrorMessage(error.message))
     }
   }
 
@@ -220,8 +225,9 @@ export default function OTPVerification() {
       await authService.verifyOtp(pendingEmail, otp.join(''))
       clearPendingEmail()
       navigate('/auth/Login')
-    } catch (err: any) {
-      setError(getAuthErrorMessage(err.message))
+    } catch (err: unknown) {
+      const error = err as ApiError
+      setError(getAuthErrorMessage(error.message))
       setOtp(['', '', '', ''])
       inputRefs.current[0]?.focus()
     } finally {
