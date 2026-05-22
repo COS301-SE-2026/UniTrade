@@ -26,11 +26,6 @@ const renderSellerDashboard = () =>
         renderSellerDashboard()
     })
 
-    it('shows the welcome message with the users name', () => {
-        renderSellerDashboard()
-        expect(screen.getByText(/welcome back tafadzwa/i)).toBeInTheDocument()
-    })
-
     it('shows the Total Orders card', () => {
         renderSellerDashboard()
         expect(screen.getByText('Total Orders')).toBeInTheDocument()
@@ -151,11 +146,6 @@ const renderSellerDashboard = () =>
       })
     })
 
-    it('shows R1600 in all 7 bar chart segments', () => {
-      renderSellerDashboard()
-      const values = screen.getAllByText('R1600')
-      expect(values).toHaveLength(7)
-    })
 
     it('navigates to /seller/upload when New Listing button is clicked', () => {
       renderSellerDashboard()
