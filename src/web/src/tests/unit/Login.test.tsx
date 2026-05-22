@@ -109,6 +109,45 @@ describe('Login Component', () => {
   })
 
 
+    test('should handle successful login and navigate to buyerlistings', async () => {
+    const mockUserPayload = {
+      user: {
+        userId: '23526964',
+        firstName: 'Langa',
+        lastName: 'Vakalisa',
+        userRole: 'buyer',
+        university: 'University of Pretoria',
+        email: 'langavaks@gmail.com',
+      },
+      std: {
+        verificationStatus: 'verified',
+      },
+    }
+
+    vi.mocked(authService.login).mockResolvedValue(undefined)
+    vi.mocked(authService.getMe).mockResolvedValue(mockUserPayload)
+
+    render(<Login />)
+
+    fireEvent.change(screen.getByPlaceholderText('Email Address'), { target: { value: 'langavaks@gmail', name: 'email' } })
+    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'Password100', name: 'password' } })
+    
+    fireEvent.click(screen.getByRole('button', { name: /login/i }))
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/buyer/listings')
+    })
+    
+    expect(mockSetUser).toHaveBeenCalledWith({
+      id: '23526964',
+      name: 'Langa Vakalisa',
+      initials: 'LV',
+      role: 'buyer',
+      university: 'University of Pretoria',
+    })
+  })
+
+
 
 
 });
