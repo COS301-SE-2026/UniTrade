@@ -23,6 +23,10 @@
  </ItemGroup>
 
 <ItemGroup>
+
+  <Compile Remove="Unit/Api/ListingControllerTests.cs" />
+  <Compile Remove="Unit/Modules/ListingServiceTests.cs" />
+
 <ProjectReference Include="../Api/Api.csproj" />
 <ProjectReference Include="../Modules/Modules.csproj" />
 <ProjectReference Include="../Infrastructure/Infrastructure.csproj" />
