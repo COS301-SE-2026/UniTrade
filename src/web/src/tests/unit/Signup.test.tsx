@@ -111,8 +111,8 @@ describe('Form interactions', () => {
       const user = userEvent.setup()
       const firstNameInput = screen.getByPlaceholderText('First Name')
  
-      await user.type(firstNameInput, 'Alice')
-      expect(firstNameInput).toHaveValue('Alice')
+      await user.type(firstNameInput, 'Langa')
+      expect(firstNameInput).toHaveValue('Langa')
     })
  
     it('updates the university select when an option is chosen', async () => {
@@ -127,6 +127,60 @@ describe('Form interactions', () => {
     it('shows the password as hidden text', () => {
       renderSignup()
       expect(screen.getByPlaceholderText('Password')).toHaveAttribute('type', 'password')
+    })
+  })
+
+    describe('Successful submission', () => {
+    it('calls authService.register with the correct payload', async () => {
+      vi.mocked(authService.register).mockResolvedValueOnce(undefined)
+      renderSignup()
+ 
+      const fields = await fillRequiredFields()
+      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+ 
+      await waitFor(() => {
+        expect(authService.register).toHaveBeenCalledWith(
+          expect.objectContaining({
+            firstName: fields.firstName,
+            lastName: fields.lastName,
+            email: fields.email,
+            yearOfStudy: fields.yearOfStudy,
+            password: fields.password,
+          })
+        )
+      })
+    })
+ 
+    it('saves the pending email in the auth store', async () => {
+      vi.mocked(authService.register).mockResolvedValueOnce(undefined)
+      renderSignup()
+      await fillRequiredFields({ email: 'langavaks@gmail.com' })
+      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+ 
+      await waitFor(() => {
+        expect(mockSetPendingEmail).toHaveBeenCalledWith('langavaks@gmail.com')
+      })
+    })
+ 
+    it('navigates to /verify-otp on success', async () => {
+      vi.mocked(authService.register).mockResolvedValueOnce(undefined)
+      renderSignup()
+      await fillRequiredFields()
+      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+ 
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/verify-otp')
+      })
+    })
+ 
+    it('re-enables the submit button after the request completes', async () => {
+      vi.mocked(authService.register).mockResolvedValueOnce(undefined)
+      renderSignup()
+      await fillRequiredFields()
+      const btn = screen.getByRole('button', { name: /signup/i })
+ 
+      fireEvent.submit(btn)
+      await waitFor(() => expect(btn).not.toBeDisabled())
     })
   })
 
