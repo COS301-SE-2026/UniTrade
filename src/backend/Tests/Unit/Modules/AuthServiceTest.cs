@@ -15,6 +15,7 @@ using Moq;
 using Xunit;
 
 namespace Api.Tests.Services;
+[Trait("Category", "Unit")]
 
 public class IdentityServiceTests
 {
