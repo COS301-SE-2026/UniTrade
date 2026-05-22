@@ -10,6 +10,7 @@ on:
     branches: ["dev","main"]
     paths:
       - "src/backend/**"
+      - ".github/workflows/backend-ci.yml"
 
 jobs:
   build-and-test:
@@ -50,7 +51,6 @@ jobs:
     
 
   code-quality:
-    needs: build-and-test
     runs-on: ubuntu-latest
     
     steps:
