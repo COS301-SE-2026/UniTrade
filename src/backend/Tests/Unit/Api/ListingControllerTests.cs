@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -12,182 +14,276 @@ using Modules.SharedKernel;
 namespace Api.Tests;
 
 [Trait("Category", "Unit")]
-
 public class ListingControllerTests
 {
     private readonly Mock<IListingService> _service = new(MockBehavior.Strict);
+    private readonly Mock<IBlobStorageService> _blob = new(MockBehavior.Strict);
     private readonly ListingController _sut;
 
-    public ListingControllerTests() => _sut = new ListingController(_service.Object);
+    public ListingControllerTests() =>
+        _sut = new ListingController(_service.Object, _blob.Object);
 
 
-    // Create, validation guard
-
-
+    // POST /api/listings Create
     [Theory]
-    [InlineData("", "good", 100)]      // missing title
-    [InlineData("Title", "", 100)]     // missing condition
-    [InlineData("Title", "good", 0)]   // non-positive price
+    [InlineData("", "good", 100)]
+    [InlineData("Title", "", 100)]
+    [InlineData("Title", "good", 0)]
     [InlineData("Title", "good", -5)]
     public async Task Create_ReturnsBadRequest_AndSkipsService_WhenInputInvalid(
         string title, string condition, decimal price)
     {
-        // Arrange
-        var dto = ADto(title: title, condition: condition, price: price);
+        var dto = ACreateDto(title: title, condition: condition, price: price);
 
-        // Act
         var result = await _sut.Create(dto);
 
-        // Assert
         Assert.IsType<BadRequestObjectResult>(result);
-        _service.Verify(s => s.CreateListings(It.IsAny<ListingSummaryDto>()),
-                        Times.Never);
+        _service.Verify(s => s.CreateListings(It.IsAny<CreateListingDto>()), Times.Never);
     }
+
+    private static ListingSummaryDto ASummaryDto() => new(
+         ListingId: Guid.NewGuid(),
+         SellerId: Guid.NewGuid(),
+         Title: "Product",
+         Description: "desc",
+         Price: 100m,
+         Condition: "good",
+         ListingType: "other",
+         CourseId: null,
+         Isbn: null,
+         Author: null,
+         Edition: null,
+         ListingStatus: "live",
+         IsBundle: false,
+         ViewCount: 0,
+         CreatedAt: DateTime.UtcNow,
+         UpdatedAt: DateTime.UtcNow,
+         Images: new List<ListingImageDto>());
+
 
     [Fact]
     public async Task Create_ReturnsOkWithCreatedListing_WhenInputValid()
     {
-        // Arrange
-        var dto = ADto(title: "Valid", condition: "good", price: 50m);
-        _service.Setup(s => s.CreateListings(dto)).ReturnsAsync(dto);
+        var dto = ACreateDto(title: "Valid", condition: "good", price: 50m);
+        var summary = ASummaryDto();
+        _service.Setup(s => s.CreateListings(dto)).ReturnsAsync(summary);
 
-        // Act
         var result = await _sut.Create(dto);
 
-        // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Same(dto, ok.Value);
+        Assert.Same(summary, ok.Value);
         _service.Verify(s => s.CreateListings(dto), Times.Once);
     }
 
 
-    // Update
-    [Fact]
-    public async Task Update_ReturnsNotFound_WhenServiceReportsMissing()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-        var dto = ADto();
-        _service.Setup(s => s.UpdateListings(dto, id)).ReturnsAsync(false);
+    // PUT /api/listings/{id} Update
 
-        // Act
-        var result = await _sut.Update(dto, id);
-
-        // Assert
-        Assert.IsType<NotFoundResult>(result);
-    }
-
+    private static UpdateListingDto AnUpdateDto(
+        string title = "Updated",
+        string description = "desc",
+        decimal price = 100m, string condition = "good") => new()
+        {
+            Title = title,
+            Description = description,
+            Price = price,
+            Condition = condition
+        };
     [Fact]
     public async Task Update_ReturnsOk_WhenServiceReportsSuccess()
     {
-        // Arrange
         var id = Guid.NewGuid();
-        var dto = ADto();
+        var dto = AnUpdateDto();
         _service.Setup(s => s.UpdateListings(dto, id)).ReturnsAsync(true);
-
-        // Act
         var result = await _sut.Update(dto, id);
-
-        // Assert
         Assert.IsType<OkObjectResult>(result);
     }
-
-
-    // Delete
     [Fact]
-    public async Task Delete_ReturnsNotFound_WhenServiceReportsMissing()
+    public async Task Update_ReturnsNotFound_WhenServiceReportsMissing()
     {
-        // Arrange
         var id = Guid.NewGuid();
-        _service.Setup(s => s.DeleteListings(id)).ReturnsAsync(false);
+        var dto = AnUpdateDto();
+        _service.Setup(s => s.UpdateListings(dto, id)).ReturnsAsync(false);
 
-        // Act
-        var result = await _sut.Delete(id);
+        var result = await _sut.Update(dto, id);
 
-        // Assert
         Assert.IsType<NotFoundResult>(result);
     }
-
     [Fact]
     public async Task Delete_ReturnsNoContent_WhenServiceReportsSuccess()
     {
-        // Arrange
         var id = Guid.NewGuid();
         _service.Setup(s => s.DeleteListings(id)).ReturnsAsync(true);
 
-        // Act
         var result = await _sut.Delete(id);
 
-        // Assert
         Assert.IsType<NoContentResult>(result);
     }
 
+    // DELETE /api/listings/{id} Delete
+    [Fact]
+    public async Task Delete_ReturnsNotFound_WhenServiceReportsMissing()
+    {
+        var id = Guid.NewGuid();
+        _service.Setup(s => s.DeleteListings(id)).ReturnsAsync(false);
+        var result = await _sut.Delete(id);
+        Assert.IsType<NotFoundResult>(result);
+    }
 
-    // GetAll
+    // GET /api/listings GetAll
     [Fact]
     public async Task GetAll_ReturnsOkWithPagedResult()
     {
-        // Arrange
         var filter = new ListFilterDto();
         var paged = new PagedResult<ListingSummaryDto>(
-            new List<ListingSummaryDto> { ADto() }, 1);
+            new List<ListingSummaryDto> { ASummaryDto() }, 1);
         _service.Setup(s => s.ListAsync(filter)).ReturnsAsync(paged);
 
-        // Act
         var result = await _sut.GetAll(filter);
-
-        // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(paged, ok.Value);
     }
-    // GetById
+
+    // GET /api/listings/{id} GetById
     [Fact]
     public async Task GetById_ReturnsNotFound_WhenServiceReturnsNull()
     {
-        // Arrange
         var id = Guid.NewGuid();
         _service.Setup(s => s.GetByIdAsync(id)).ReturnsAsync((ListingSummaryDto?)null);
-
-        // Act
         var result = await _sut.GetById(id);
-
-        // Assert
         Assert.IsType<NotFoundObjectResult>(result);
     }
-
     [Fact]
     public async Task GetById_ReturnsOkWithListing_WhenFound()
     {
-        // Arrange
-        var dto = ADto();
+        var dto = ASummaryDto();
         _service.Setup(s => s.GetByIdAsync(dto.ListingId)).ReturnsAsync(dto);
-
-        // Act
         var result = await _sut.GetById(dto.ListingId);
-
-        // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(dto, ok.Value);
     }
-    private static ListingSummaryDto ADto(
+
+    // POST /api/listings/images UploadImages
+
+    [Fact]
+    public async Task UploadImages_ReturnsBadRequest_WhenFileListIsNull()
+    {
+        var result = await _sut.UploadImages(null!);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+    [Fact]
+    public async Task UploadImages_ReturnsBadRequest_WhenFileListIsEmpty()
+    {
+        var result = await _sut.UploadImages(new List<IFormFile>());
+        Assert.IsType<BadRequestObjectResult>(result);
+        _blob.Verify(b => b.UploadAsync(
+            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
+            Times.Never);
+    }
+    [Fact]
+    public async Task UploadImages_ReturnsBadRequest_WhenFileSizeExceedsLimit()
+    {
+        var bigFile = AFormFile(contentType: "image/jpeg", length: 11 * 1024 * 1024);
+
+        var result = await _sut.UploadImages(new List<IFormFile> { bigFile });
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        _blob.Verify(b => b.UploadAsync(
+            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
+            Times.Never);
+    }
+    [Fact]
+    public async Task UploadImages_ReturnsBadRequest_WhenFileIsEmpty()
+    {
+        var emptyFile = AFormFile(contentType: "image/jpeg", length: 0);
+        var result = await _sut.UploadImages(new List<IFormFile> { emptyFile });
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Theory]
+    [InlineData("application/pdf")]
+    [InlineData("image/gif")]
+    [InlineData("text/plain")]
+    public async Task UploadImages_ReturnsBadRequest_WhenContentTypeIsNotAllowed(string contentType)
+    {
+        var file = AFormFile(contentType: contentType, length: 1024);
+        var result = await _sut.UploadImages(new List<IFormFile> { file });
+        Assert.IsType<BadRequestObjectResult>(result);
+        _blob.Verify(b => b.UploadAsync(
+            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
+            Times.Never);
+    }
+    [Theory]
+    [InlineData("image/jpeg")]
+    [InlineData("image/png")]
+    [InlineData("image/webp")]
+    public async Task UploadImages_ReturnsOkWithUrls_WhenFileIsValid(string contentType)
+    {
+        var file = AFormFile(contentType: contentType, length: 512);
+        _blob.Setup(b => b.UploadAsync(It.IsAny<Stream>(), file.FileName, contentType, default))
+             .ReturnsAsync("https:/some_url_w_image");
+
+        var result = await _sut.UploadImages(new List<IFormFile> { file });
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var payload = Assert.IsAssignableFrom<object>(ok.Value);
+        var urls = (IEnumerable<string>)payload.GetType().GetProperty("urls")!.GetValue(payload)!;
+        Assert.Contains("https:/some_url_w_image", urls);
+    }
+
+    [Fact]
+    public async Task UploadImages_CallsBlob_OncePerFile_AndReturnsAllUrls()
+    {
+        var f1 = AFormFile(contentType: "image/jpeg", length: 100, name: "a.jpg");
+        var f2 = AFormFile(contentType: "image/png", length: 200, name: "b.png");
+        _blob.Setup(b => b.UploadAsync(It.IsAny<Stream>(), "a.jpg", "image/jpeg", default))
+             .ReturnsAsync("https:url_name.jpg");
+        _blob.Setup(b => b.UploadAsync(It.IsAny<Stream>(), "b.png", "image/png", default))
+             .ReturnsAsync("https:/url_image.png");
+
+        var result = await _sut.UploadImages(new List<IFormFile> { f1, f2 });
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var urls = (IEnumerable<string>)ok.Value!.GetType().GetProperty("urls")!.GetValue(ok.Value)!;
+        Assert.Collection(urls,
+            u => Assert.Equal("https:url_name.jpg", u),
+            u => Assert.Equal("https:/url_image.png", u));
+        _blob.Verify(b => b.UploadAsync(
+            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
+            Times.Exactly(2));
+    }
+
+
+    // Helpers
+    private static IFormFile AFormFile(
+        string contentType = "image/jpeg",
+        long length = 1024,
+        string name = "testImage.jpg")
+    {
+        var mock = new Mock<IFormFile>();
+        mock.Setup(f => f.ContentType).Returns(contentType);
+        mock.Setup(f => f.Length).Returns(length);
+        mock.Setup(f => f.FileName).Returns(name);
+        mock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[length]));
+        return mock.Object;
+    }
+
+    private static CreateListingDto ACreateDto(
         string title = "Product",
-        string condition = "good",
-        decimal price = 100m) => new(
-            ListingId: Guid.NewGuid(),
-            SellerId: Guid.NewGuid(),
-            Title: title,
-            Description: "desc",
-            Price: price,
-            Condition: condition,
-            ListingType: "other",
-            CourseId: null,
-            Isbn: null,
-            Author: null,
-            Edition: null,
-            ListingStatus: "live",
-            IsBundle: false,
-            ViewCount: 0,
-            CreatedAt: DateTime.UtcNow,
-            UpdatedAt: DateTime.UtcNow,
-            Images: new List<ListingImageDto>());
+        string condition = "good", decimal price = 100m) => new()
+        {
+            SellerId = Guid.NewGuid(),
+            Title = title,
+            Description = "desc",
+            Price = price,
+            Condition = condition,
+            ListingType = "other",
+            CourseId = null,
+            Isbn = null,
+            Author = null,
+            Edition = null,
+            ListingStatus = "live",
+            IsBundle = false,
+            Images = new List<CreateListingImageDto>()
+        };
 }
