@@ -396,35 +396,31 @@ CREATE TRIGGER tr_users_updated_at
 --listing updates 
 
 CREATE TRIGGER tr_listings_updated_at
-ON Listings
-AFTER UPDATE
-AS
-BEGIN   
-    SET NOCOUNT ON;
-    UPDATE Listings
-    SET updated_at = now()
-    FROM Listings l
-    INNER JOIN inserted i ON l.listing_id = i.listing_id;
-END;
+    BEFORE UPDATE ON Listings
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_set_updated_at();
 
 
 -- recalculating the rep score after a review
 
-CREATE TRIGGER tr_reputation_on_review
-ON Reviews
-AFTER INSERT
-AS
+CREATE OR REPLACE FUNCTION fn_reputation_on_review()
+RETURNS trigger AS $$
 BEGIN   
-    SET NOCOUNT ON;
     UPDATE Student_profiles
     SET reputation_score = (
-        SELECT AVG(CAST(r.rating AS NUMERIC(4,2)))
+        SELECT AVG(r.rating::NUMERIC(4,2))
         FROM Reviews r
-        WHERE r.reviewee_id = i.reviewee_id
+        WHERE r.reviewee_id = NEW.reviewee_id
     )
-    FROM Student_profiles sp
-    INNER JOIN inserted i ON sp.student_id = i.reviewee_id;
+    WHERE student_id = NEW.reviewee_id;
+    RETURN NULL;
 END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_reputation_on_review 
+    AFTER INSERT ON Reviews
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_reputation_on_review();
 
 
 -- verification resubmission
