@@ -426,40 +426,46 @@ CREATE TRIGGER tr_reputation_on_review
 -- verification resubmission
 -- when a new verification is created, invalidate all the previous ones
 
-CREATE TRIGGER tr_verification_set_current
-ON Verification_requests
-AFTER INSERT
-AS
+CREATE OR REPLACE FUNCTION fn_verification_set_current()
+RETURNS trigger AS $$
 BEGIN   
-    SET NOCOUNT ON;
     UPDATE Verification_requests
-    SET is_current = 0
-    WHERE user_id IN (SELECT user_id FROM inserted)
-        AND verification_id NOT IN (SELECT verification_id FROM inserted);
+    SET is_current = FALSE
+    WHERE user_id = NEW.user_id
+        AND verification_id <> NEW.verification_id;
+    RETURN NULL;
 END;
+$$ LANGUAGE plpgsql;
 
+CREATE TRIGGER tr_verification_set_current 
+    AFTER INSERT ON Verification_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_verification_set_current();
 
 -- audit log for listing status update
 
-CREATE TRIGGER tr_audit_listing_status
-ON Listings
-AFTER UPDATE
-AS
-BEGIN   
-    SET NOCOUNT ON;
-    INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
-    SELECT 
-        i.seller_id, 
-        'listing_status_changed',
-        'Listing',
-        i.listing_id,
-        d.listing_status,
-        i.listing_status
-    FROM inserted i
-    INNER JOIN deleted d ON i.listing_id = d.listing_id
-    WHERE i.listing_status <> d.listing_status;
+CREATE OR REPLACE FUNCTION fn_audit_listing_status()
+RETURNS trigger AS $$ 
+BEGIN
+    IF NEW.listing_status <> OLD.listing_status THEN
+        INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
+        VALUES ( 
+            NEW.seller_id, 
+            'listing_status_changed',
+            'Listing',
+            NEW.listing_id::TEXT,
+            OLD.listing_status,
+            NEW.listing_status
+        );
+        END IF;
+        RETURN NULL;
 END;
+$$ LANGUAGE plpgsql;
 
+CREATE TRIGGER tr_audit_listing_status
+    AFTER UPDATE ON Listings
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_listing_status();
 
 -- audit for verification decisions
 
