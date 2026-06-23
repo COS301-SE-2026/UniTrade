@@ -222,47 +222,40 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("uix_vr_current")
                 .IsUnique()
                 .HasFilter("is_current = true");
-            
         });
 
         // Listings
 
         modelBuilder.Entity<Listing>(entity =>
         {
-            entity.ToTable(
-                "Listings",
-                tb =>
-                {
-                    tb.HasTrigger("tr_listings_updated_at");
-                    tb.HasTrigger("tr_audit_listing_status");
+            entity.ToTable(tb =>
+            {
+                tb.HasTrigger("tr_listings_updated_at");
+                tb.HasTrigger("tr_audit_listing_status");
 
-                    tb.HasCheckConstraint("chk_listing_price", "price>0");
+                tb.HasCheckConstraint("chk_listing_price", "price > 0");
 
-                    tb.HasCheckConstraint(
-                        "chk_listing_condition",
-                        "condition IN ('new', 'good', 'fair', 'poor')"
-                    );
-                    tb.HasCheckConstraint(
-                        "chk_listing_type",
-                        "listing_type IN ('book', 'laptop', 'stationery', 'electronics', 'clothing', 'furniture', 'other')"
-                    );
-                    tb.HasCheckConstraint(
-                        "chk_listing_risk",
-                        "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
-                    );
-                    tb.HasCheckConstraint(
-                        "chk_isbn_validity",
-                        "isbn IS NULL OR LEN(isbn) IN  (10,13)"
-                    );
-                    tb.HasCheckConstraint(
-                        "chk_listing_book_fields",
-                        "listing_type ='book'  OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)"
-                    );
-                }
-            );
+                tb.HasCheckConstraint(
+                    "chk_listing_condition",
+                    "condition IN ('new', 'good', 'fair', 'poor')"
+                );
+                tb.HasCheckConstraint(
+                    "chk_listing_type",
+                    "listing_type IN ('book', 'laptop', 'stationery', 'electronics', 'clothing', 'furniture', 'other')"
+                );
+                tb.HasCheckConstraint(
+                    "chk_listing_risk",
+                    "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
+                );
+                tb.HasCheckConstraint("chk_isbn_validity", "isbn IS NULL OR LEN(isbn) IN  (10,13)");
+                tb.HasCheckConstraint(
+                    "chk_listing_book_fields",
+                    "listing_type ='book'  OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)"
+                );
+            });
 
             //LISTING_ID
-            entity.Property(x => x.ListingId).HasDefaultValueSql("NEWSEQUENTIALID()");
+            entity.Property(x => x.ListingId).HasDefaultValueSql("gen_random_uuid()");
             entity.HasKey(x => x.ListingId);
 
             entity.Property(x => x.SellerId).IsRequired();
@@ -289,20 +282,17 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.RejectionReason);
 
-            entity.Property(x => x.isBundle);
+            entity.Property(x => x.isBundle).HasDefaultValue(false);
             entity.Property(x => x.ViewCount).HasDefaultValue(0);
-            entity.Property(x => x.AiRiskScore);
-            entity.Property(x => x.AiRiskLevel);
-            entity.Property(x => x.VisibilityScore);
+            entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
+            entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
+            entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
             entity.Property(x => x.RejectionReason);
-            entity
-                .Property(x => x.CreatedAt)
-                .HasDefaultValueSql("SYSDATETIME()")
-                .ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
 
             entity
                 .Property(x => x.UpdatedAt)
-                .HasDefaultValueSql("SYSDATETIME()")
+                .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAddOrUpdate();
 
             entity
@@ -344,8 +334,6 @@ public class AppDbContext : DbContext
         //Listing Images
         modelBuilder.Entity<ListingImage>(entity =>
         {
-            entity.ToTable("Listing_images");
-
             entity.Property(x => x.ImageId).ValueGeneratedOnAdd();
             entity.HasKey(x => x.ImageId);
 
@@ -354,10 +342,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.IsPrimary).HasDefaultValue(false).IsRequired();
 
-            entity
-                .Property(x => x.UploadedAt)
-                .HasDefaultValueSql("SYSDATETIME()")
-                .ValueGeneratedOnAdd();
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
 
             entity
                 .HasOne(x => x.Listing)
