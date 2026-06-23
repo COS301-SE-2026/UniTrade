@@ -1,6 +1,3 @@
-using System.Dynamic;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Models;
 using Modules.Listings.Models;
@@ -38,16 +35,16 @@ public class AppDbContext : DbContext
         // FOR User
         modelBuilder.Entity<User>(entity =>
         {
-            entity.ToTable("Users", tb => tb.HasTrigger("tr_users_updated_at"));
+            entity.ToTable(tb => tb.HasTrigger("tr_users_updated_at"));
 
             entity.HasKey(x => x.UserId);
 
             entity.Property(x => x.Role).HasMaxLength(10).IsRequired();
-            entity.Property(x => x.FirstName).IsRequired().HasMaxLength(50).IsRequired();
-            entity.Property(x => x.LastName).IsRequired().HasMaxLength(50).IsRequired();
-            entity.Property(x => x.Email).IsRequired().HasMaxLength(255).IsRequired();
+            entity.Property(x => x.FirstName).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.LastName).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Email).HasMaxLength(255).IsRequired();
             entity.Property(x => x.PhoneNumber).HasMaxLength(20);
-            entity.Property(x => x.PasswordHash).IsRequired().IsRequired();
+            entity.Property(x => x.PasswordHash).IsRequired();
 
             entity.Property(x => x.CreatedAt);
             entity.Property(x => x.UpdatedAt);
@@ -171,7 +168,7 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_verification_set_current");
-                tb.HasTrigger("tr_audit_verification_decision");
+               // tb.HasTrigger("tr_audit_verification_decision");
 
                 // NOTE: When we implement the AI Verification subsystem, add the missing constraints
                 tb.HasCheckConstraint(
@@ -196,18 +193,6 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.OtpCodeHash).HasMaxLength(255);
 
-            entity.Property(x => x.IsCurrent);
-            entity.Property(x => x.AdminId);
-            entity.Property(x => x.AttemptNumber);
-            entity.Property(x => x.DecidedAt);
-            entity.Property(x => x.OtpExpiresAt);
-            entity.Property(x => x.OtpResendCount);
-            entity.Property(x => x.OtpSentAt);
-            entity.Property(x => x.OtpVerifiedAt);
-            entity.Property(x => x.PorFilePath);
-            entity.Property(x => x.RejectionReason);
-            entity.Property(x => x.SubmittedAt);
-
             entity
                 .HasOne<User>()
                 .WithMany()
@@ -231,7 +216,7 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_listings_updated_at");
-                tb.HasTrigger("tr_audit_listing_status");
+                //tb.HasTrigger("tr_audit_listing_status");
 
                 tb.HasCheckConstraint("chk_listing_price", "price > 0");
 
@@ -247,7 +232,7 @@ public class AppDbContext : DbContext
                     "chk_listing_risk",
                     "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
                 );
-                tb.HasCheckConstraint("chk_isbn_validity", "isbn IS NULL OR LEN(isbn) IN  (10,13)");
+                tb.HasCheckConstraint("chk_isbn_validity", "isbn IS NULL OR length(isbn) IN  (10,13)");
                 tb.HasCheckConstraint(
                     "chk_listing_book_fields",
                     "listing_type ='book'  OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)"
@@ -284,10 +269,6 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.isBundle).HasDefaultValue(false);
             entity.Property(x => x.ViewCount).HasDefaultValue(0);
-            entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
-            entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
-            entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
-            entity.Property(x => x.RejectionReason);
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
 
             entity
@@ -313,7 +294,7 @@ public class AppDbContext : DbContext
             entity
                 .HasIndex(x => new { x.ListingStatus, x.VisibilityScore })
                 .HasDatabaseName("ix_listings_visibility")
-                .HasFilter("[listing_status] = 'live'")
+                .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true);
             entity
                 .HasIndex(x => x.CreatedAt)
@@ -327,7 +308,7 @@ public class AppDbContext : DbContext
                     x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_feed")
-                .HasFilter("[listing_status] = 'live'")
+                .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
         });
 
