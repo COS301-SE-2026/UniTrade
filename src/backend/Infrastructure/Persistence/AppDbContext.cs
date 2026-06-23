@@ -104,13 +104,11 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(x =>  x.UniversityId).HasDatabaseName("ix_student_university");
-            entity.HasIndex(x =>  x.CourseId).HasDatabaseName("ix_student_course");
-            entity.HasIndex(x =>  x.VerificationStatus).HasDatabaseName("ix_student_status");
-
+            entity.HasIndex(x => x.UniversityId).HasDatabaseName("ix_student_university");
+            entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_student_course");
+            entity.HasIndex(x => x.VerificationStatus).HasDatabaseName("ix_student_status");
         });
-        
-        
+
         //ADMIN
 
         modelBuilder.Entity<AdminProfile>(entity =>
@@ -137,15 +135,11 @@ public class AppDbContext : DbContext
         // University
         modelBuilder.Entity<University>(entity =>
         {
-            entity.ToTable("University");
-
-            entity.Property(x => x.UniversityId);
-
             entity.HasKey(x => x.UniversityId);
 
             entity.Property(x => x.Name).IsRequired();
 
-            entity.Property(x => x.IsActive);
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
 
             entity.Property(x => x.EmailDomain).IsRequired();
 
@@ -156,21 +150,19 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Course>(entity =>
         {
-            entity.ToTable("Course");
-
-            entity.Property(x => x.CourseId);
             entity.HasKey(x => x.CourseId);
 
             entity.Property(x => x.CourseCode).IsRequired();
 
             entity.Property(x => x.CourseName).IsRequired();
 
-            entity.Property(x => x.UniversityId);
             entity
                 .HasOne<University>()
                 .WithMany()
                 .HasForeignKey(x => x.UniversityId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.CourseCode).IsUnique();
         });
 
         // Verification Requests
