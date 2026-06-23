@@ -97,7 +97,7 @@ CREATE TABLE Listings (
     
     condition VARCHAR(5) NOT NULL 
         CONSTRAINT chk_listing_condition CHECK(
-            condition IN ('new', 'good', 'fair','poor')
+            condition IN ('new', 'od', 'fair','poor')
         ),
 
     
@@ -378,22 +378,23 @@ CREATE INDEX ix_audit_created ON Audit_logs(created_at DESC);
 
 -- Triggers
 -- for user updating info
-GO
-CREATE TRIGGER tr_users_updated_at
-ON Users
-AFTER UPDATE
-AS
+
+CREATE OR REPLACE FUNCTION fn_set_updated_at()
+RETURNS trigger AS $$
 BEGIN   
-    SET NOCOUNT ON;
-    UPDATE Users
-    SET updated_at = now()
-    FROM Users u
-    INNER JOIN inserted i ON u.user_id = i.user_id;
+    NEW.updated_at := now();
+    RETURN NEW;
 END;
-GO
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_users_updated_at
+    BEFORE UPDATE ON Users
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_set_updated_at();
+
 
 --listing updates 
-GO
+
 CREATE TRIGGER tr_listings_updated_at
 ON Listings
 AFTER UPDATE
@@ -405,10 +406,10 @@ BEGIN
     FROM Listings l
     INNER JOIN inserted i ON l.listing_id = i.listing_id;
 END;
-GO
+
 
 -- recalculating the rep score after a review
-GO
+
 CREATE TRIGGER tr_reputation_on_review
 ON Reviews
 AFTER INSERT
@@ -424,11 +425,11 @@ BEGIN
     FROM Student_profiles sp
     INNER JOIN inserted i ON sp.student_id = i.reviewee_id;
 END;
-GO
+
 
 -- verification resubmission
 -- when a new verification is created, invalidate all the previous ones
-GO
+
 CREATE TRIGGER tr_verification_set_current
 ON Verification_requests
 AFTER INSERT
@@ -440,10 +441,10 @@ BEGIN
     WHERE user_id IN (SELECT user_id FROM inserted)
         AND verification_id NOT IN (SELECT verification_id FROM inserted);
 END;
-GO
+
 
 -- audit log for listing status update
-GO
+
 CREATE TRIGGER tr_audit_listing_status
 ON Listings
 AFTER UPDATE
@@ -462,10 +463,10 @@ BEGIN
     INNER JOIN deleted d ON i.listing_id = d.listing_id
     WHERE i.listing_status <> d.listing_status;
 END;
-GO
+
 
 -- audit for verification decisions
-GO
+
 CREATE TRIGGER tr_audit_verification_decision
 ON Verification_requests
 AFTER UPDATE
@@ -484,4 +485,4 @@ BEGIN
     INNER JOIN deleted d ON i.verification_id = d.verification_id
     WHERE i.status <> d.status;
 END;
-GO
+
