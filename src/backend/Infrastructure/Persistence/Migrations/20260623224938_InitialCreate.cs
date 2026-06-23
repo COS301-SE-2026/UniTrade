@@ -658,7 +658,8 @@ namespace Infrastructure.Persistence.Migrations
             "
             );
 
-            migrationBuilder.Sql(@"
+            migrationBuilder.Sql(
+                @"
                 CREATE
                 OR REPLACE FUNCTION unitrade.fn_audit_listing_status() RETURNS trigger AS $ $ BEGIN IF NEW.listing_status <> OLD.listing_status THEN
                 INSERT INTO
@@ -693,9 +694,11 @@ namespace Infrastructure.Persistence.Migrations
                 UPDATE
                     ON listings FOR EACH ROW EXECUTE FUNCTION unitrade.fn_audit_listing_status();
 
-            ");
+            "
+            );
 
-            migrationBuilder.Sql(@"
+            migrationBuilder.Sql(
+                @"
                 CREATE
                 OR REPLACE FUNCTION unitrade.fn_audit_verification_decision() RETURNS trigger AS $ $ BEGIN IF NEW.status <> OLD.status THEN
                 INSERT INTO
@@ -729,14 +732,28 @@ namespace Infrastructure.Persistence.Migrations
                 AFTER
                 UPDATE
                     ON verification_requests FOR EACH ROW EXECUTE FUNCTION unitrade.fn_audit_verification_decision();
-                            ");
-
-
+                            "
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(
+                @"
+                DROP TRIGGER IF EXISTS tr_audit_verification_decision ON unitrade.verification_requests;
+                DROP TRIGGER IF EXISTS tr_audit_listing_status ON unitrade.listings;
+                DROP TRIGGER IF EXISTS tr_verification_set_current ON unitrade.verification_requests;
+                DROP TRIGGER IF EXISTS tr_listings_updated_at ON unitrade.listings;
+                DROP TRIGGER IF EXISTS tr_users_updated_at ON unitrade.users;
+        
+                DROP FUNCTION IF EXISTS unitrade.fn_audit_verification_decision();
+                DROP FUNCTION IF EXISTS unitrade.fn_audit_listing_status();
+                DROP FUNCTION IF EXISTS unitrade.fn_verification_set_current();
+                DROP FUNCTION IF EXISTS unitrade.fn_set_updated_at();
+
+                "
+            );
             migrationBuilder.DropTable(name: "admin_profiles", schema: "unitrade");
 
             migrationBuilder.DropTable(name: "listing_images", schema: "unitrade");
