@@ -58,27 +58,27 @@ CREATE TABLE Admin_profiles(
 --- 6. Verification Requests
 
 CREATE TABLE Verification_requests(
-    verification_id UUID PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    verification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES Users(user_id),
     attempt_number INT NOT NULL DEFAULT 1,
-    is_current BIT NOT NULL DEFAULT 1,
+    is_current BOOLEAN NOT NULL DEFAULT TRUE,
     otp_code_hash VARCHAR(255),
-    otp_verified_at DATETIME2, 
-    otp_sent_at DATETIME2,
+    otp_verified_at TIMESTAMPTZ, 
+    otp_sent_at TIMESTAMPTZ,
     otp_resend_count INT,
-    otp_expires_at DATETIME2 NOT NULL,
-    por_file_path VARCHAR(MAX),
+    otp_expires_at TIMESTAMPTZ NOT NULL,
+    por_file_path TEXT,
     ai_confidence_score NUMERIC(5,2),
     ai_decision VARCHAR(20)
                 CONSTRAINT chk_vr_ai_decision CHECK (ai_decision IN ('auto_approved', 'escalated')),
     admin_id UUID REFERENCES Users(user_id),
     admin_decision VARCHAR(20)
         CONSTRAINT chk_vr_admin_decision CHECK (admin_decision IN ('approved', 'rejected', 'resubmission')),
-    rejection_reason VARCHAR(MAX),
+    rejection_reason TEXT,
     status VARCHAR(20) NOT NULL 
             CONSTRAINT chk_vr_status CHECK (status IN ('otp_pending', 'por_pending', 'under_review', 'approved', 'rejected')),
-    submitted_at DATETIME2 DEFAULT SYSDATETIME(),
-    decided_at DATETIME2,
+    submitted_at TIMESTAMPTZ DEFAULT now(),
+    decided_at TIMESTAMPTZ,
 
     CONSTRAINT vr_user_attempt UNIQUE (user_id, attempt_number)
 );
@@ -87,11 +87,11 @@ CREATE TABLE Verification_requests(
 ---7. Listings
 
 CREATE TABLE Listings (
-    listing_id UUID PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    listing_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     seller_id UUID NOT NULL,
 
     title VARCHAR(150) NOT NULL ,
-    description VARCHAR(MAX) NOT NULL,
+    description TEXT NOT NULL,
     price NUMERIC(10, 2) NOT NULL 
                 CONSTRAINT chk_listing_price CHECK (price>0),
     
@@ -118,13 +118,13 @@ CREATE TABLE Listings (
     ai_risk_level VARCHAR(10)  NULL CONSTRAINT chk_listing_risk CHECK (ai_risk_level IN ('low', 'medium', 'high')),
     visibility_score INT NULL DEFAULT 100,
 
-    is_bundle BIT NULL DEFAULT 0,
+    is_bundle BOOLEAN NULL DEFAULT FALSE,
 
-    rejection_reason VARCHAR(MAX) NULL,
+    rejection_reason TEXT NULL,
 
     view_count INT NULL DEFAULT 0,
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT chk_listing_book_fields CHECK (
         listing_type ='book'
@@ -140,9 +140,9 @@ CREATE TABLE Listings (
 CREATE TABLE Listing_images(
     image_id INT IDENTITY(1,1) PRIMARY KEY, 
     listing_id UUID NOT NULL,
-    image_url VARCHAR(MAX) NOT NULL, 
-    is_primary BIT NOT NULL DEFAULT 0,
-    uploaded_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    image_url TEXT NOT NULL, 
+    is_primary BOOLEAN NOT NULL DEFAULT 0,
+    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT FK_listingImages_Listings FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
 );
@@ -150,16 +150,16 @@ CREATE TABLE Listing_images(
 --9. Reservations
 
 CREATE TABLE Reservations(
-    reservation_id UUID PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     buyer_id UUID NOT NULL REFERENCES Users(user_id),
     seller_id UUID NOT NULL REFERENCES Users(user_id),
-    is_bundle BIT NOT NULL DEFAULT 0,
+    is_bundle BOOLEAN NOT NULL DEFAULT 0,
     reservation_status VARCHAR(20) NOT NULL    
         CONSTRAINT chk_res_status CHECK (reservation_status IN ('active', 'expired', 'cancelled', 'completed')),
-    seller_acknowledged_at DATETIME2,
-    buyer_responded_at DATETIME2,
-    expires_at DATETIME2 NOT NULL,
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    seller_acknowledged_at TIMESTAMPTZ,
+    buyer_responded_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 10. Reservation Listings
@@ -176,20 +176,20 @@ CREATE TABLE Meetups (
     agreed_location_name VARCHAR(150) NOT NULL, 
     agreed_latitude NUMERIC(9, 6) NOT NULL,
     agreed_longitude NUMERIC(9, 6) NOT NULL,
-    agreed_time DATETIME2 NOT NULL,
+    agreed_time TIMESTAMPTZ NOT NULL,
 
-    buyer_checked_in BIT NOT NULL DEFAULT 0,
-    buyer_checkin_time DATETIME2,
+    buyer_checked_in BOOLEAN NOT NULL DEFAULT 0,
+    buyer_checkin_time TIMESTAMPTZ,
     buyer_checkin_latitude  NUMERIC(9, 6),
     buyer_checkin_longitude  NUMERIC(9, 6),
 
-    seller_checked_in BIT NOT NULL DEFAULT 0,
-    seller_checkin_time DATETIME2,
+    seller_checked_in BOOLEAN NOT NULL DEFAULT 0,
+    seller_checkin_time TIMESTAMPTZ,
     seller_checkin_latitude  NUMERIC(9, 6),
     seller_checkin_longitude  NUMERIC(9, 6),
 
 
-    checkin_window_closes_at DATETIME2 NOT NULL, 
+    checkin_window_closes_at TIMESTAMPTZ NOT NULL, 
     status VARCHAR(20) NOT NULL
         CONSTRAINT chk_meeting_status CHECK (
             status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')
@@ -199,7 +199,7 @@ CREATE TABLE Meetups (
 
 -- 12. Transactions
 CREATE TABLE Transactions(
-    transaction_id UUID PRIMARY KEY DEFAULT NEWSEQUENTIALID(), 
+    transaction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
     meetup_id INT NOT NULL REFERENCES Meetups(meetup_id), 
     buyer_id UUID NOT NULL REFERENCES Users(user_id),
     seller_id UUID NOT NULL REFERENCES Users(user_id),
@@ -210,11 +210,11 @@ CREATE TABLE Transactions(
             payment_status IN ('pending', 'completed', 'failed', 'cancelled')
         ),
     
-    pin_hash VARCHAR(MAX),
-    pin_entered_at DATETIME2,
+    pin_hash TEXT,
+    pin_entered_at TIMESTAMPTZ,
     pin_status VARCHAR(10) NOT NULL DEFAULT 'pending'
         CONSTRAINT chk_txn_pin_status CHECK (pin_status IN ('pending', 'confirmed')),
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 
 );
 
@@ -224,29 +224,29 @@ CREATE TABLE Chat_messages(
     message_id INT IDENTITY(1,1) PRIMARY KEY,
     reservation_id UUID NOT NULL REFERENCES Reservations(reservation_id),
     sender_id UUID NOT NULL REFERENCES Users(user_id),
-    content VARCHAR(MAX) NOT NULL,
-    is_automated BIT NOT NULL DEFAULT 0,
-    sent_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    read_at DATETIME2
+    content TEXT NOT NULL,
+    is_automated BOOLEAN NOT NULL DEFAULT 0,
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    read_at TIMESTAMPTZ
 );
 
 --14. Disputes 
 CREATE TABLE Disputes(
-    dispute_id UUID PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+    dispute_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     raised_by UUID NOT NULL REFERENCES Users(user_id),
     against_user UUID  NOT NULL REFERENCES Users(user_id),
     transaction_id UUID  REFERENCES Transactions(transaction_id),
     listing_id UUID NOT NULL REFERENCES Listings(listing_id),
     dispute_type VARCHAR(30) NOT NULL
         CONSTRAINT chk_dispute_type CHECK (dispute_type IN ('listing_quality', 'no_show', 'false_listing')),
-    description VARCHAR(MAX) NOT NULL, 
+    description TEXT NOT NULL, 
     status VARCHAR(20) NOT NULL 
         CONSTRAINT chk_dispute_status CHECK ( status IN ('open', 'under_review','resolved','closed')),
     assigned_admin_id UUID REFERENCES Users(user_id),
-    resolution VARCHAR(MAX),
+    resolution TEXT,
 
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    resolved_at DATETIME2 
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    resolved_at TIMESTAMPTZ 
 );
 
 --15. Dispute evidence
@@ -254,11 +254,11 @@ CREATE TABLE Dispute_Evidence(
     evidence_id INT IDENTITY(1,1) PRIMARY KEY,
     dispute_id UUID NOT NULL REFERENCES Disputes(dispute_id),
     uploaded_by UUID NOT NULL REFERENCES Users(user_id),
-    file_url VARCHAR(MAX) NOT NULL,
+    file_url TEXT NOT NULL,
     file_type VARCHAR(10) NOT NULL
         CONSTRAINT chk_evidence_type CHECK (file_type IN ('pdf'))
         ,
-    uploaded_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 --16. Reviews
@@ -269,8 +269,8 @@ CREATE TABLE Reviews(
     reviewee_id UUID NOT NULL REFERENCES Users(user_id),
     rating INT 
         CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5),
-    comment VARCHAR(MAX),
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT review_per_transaction UNIQUE (transaction_id, reviewer_id),
     CONSTRAINT chk_review_self CHECK (reviewer_id <> reviewee_id)
@@ -281,7 +281,7 @@ CREATE TABLE Wishlist_Items(
     wishlist_id INT IDENTITY(1,1) PRIMARY KEY,
     student_id UUID NOT NULL REFERENCES Student_profiles(student_id),
     listing_id UUID NOT NULL REFERENCES Listings(listing_id),
-    added_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    added_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT wishlist_entry UNIQUE (student_id, listing_id)
 
@@ -296,9 +296,9 @@ CREATE TABLE Notifications(
         CONSTRAINT chk_notif_type CHECK (type IN ('listing_status', 'reservation_status','meetup_reminder', 'chat', 'dispute', 'verification')),
     --reference_id INT, 
     --reference_type VARCHAR(30),
-    message VARCHAR(MAX) NOT NULL,
-    is_read BIT NOT NULL DEFAULT 0,
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 --19.. Audit Logs
@@ -308,10 +308,10 @@ CREATE TABLE Audit_logs(
     action VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL, 
     entity_id VARCHAR(100) NOT NULL,
-    old_value VARCHAR(MAX),
-    new_value VARCHAR(MAX),
+    old_value TEXT,
+    new_value TEXT,
     ip_address VARCHAR(50),
-    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 
@@ -386,7 +386,7 @@ AS
 BEGIN   
     SET NOCOUNT ON;
     UPDATE Users
-    SET updated_at = SYSDATETIME()
+    SET updated_at = now()
     FROM Users u
     INNER JOIN inserted i ON u.user_id = i.user_id;
 END;
@@ -401,7 +401,7 @@ AS
 BEGIN   
     SET NOCOUNT ON;
     UPDATE Listings
-    SET updated_at = SYSDATETIME()
+    SET updated_at = now()
     FROM Listings l
     INNER JOIN inserted i ON l.listing_id = i.listing_id;
 END;
