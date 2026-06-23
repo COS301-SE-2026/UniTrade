@@ -469,22 +469,26 @@ CREATE TRIGGER tr_audit_listing_status
 
 -- audit for verification decisions
 
-CREATE TRIGGER tr_audit_verification_decision
-ON Verification_requests
-AFTER UPDATE
-AS
+CREATE OR REPLACE FUNCTION fn_audit_verification_decision()
+RETURNS trigger AS $$ 
 BEGIN   
-    SET NOCOUNT ON;
-    INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
-    SELECT 
-        i.admin_id, 
-        'verification_decision',
-        'Verification_request',
-        i.verification_id,
-        d.status,
-        i.status
-    FROM inserted i
-    INNER JOIN deleted d ON i.verification_id = d.verification_id
-    WHERE i.status <> d.status;
+    IF NEW.status <> OLD.status THEN
+        INSERT INTO Audit_logs (actor_id,action, entity_type, entity_id, old_value, new_value)
+        VALUES ( 
+            NEW.admin_id, 
+            'verification_decision',
+            'Verification_request',
+            NEW.verification_id::TEXT,
+            OLD.status,
+            NEW.status
+        );
+        END IF;
+        RETURN NULL;
 END;
+$$ LANGUAGE plpgsql;
 
+
+CREATE TRIGGER tr_audit_verification_decision
+    AFTER UPDATE ON Verification_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_verification_decision();
