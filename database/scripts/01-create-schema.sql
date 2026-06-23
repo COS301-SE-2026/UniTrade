@@ -131,8 +131,8 @@ CREATE TABLE Listings (
         OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)
     ),
 
-    CONSTRAINT fk_Listings_Users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
-    CONSTRAINT fk_Listings_Course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
+    CONSTRAINT fk_listings_users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
+    CONSTRAINT fk_listings_course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
 
 );
 
@@ -144,7 +144,7 @@ CREATE TABLE Listing_images(
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT fk_listingImages_Listings FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
+    CONSTRAINT fk_listing_images_listings FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
 );
 
 --9. Reservations
