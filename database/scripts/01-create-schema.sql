@@ -1,57 +1,21 @@
-IF DB_ID('$(DB_NAME)') IS NULL
-    CREATE DATABASE [$(DB_NAME)];
-GO
-
-USE master;
-GO
-IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = '$(USER_ID)')
-BEGIN
-    CREATE LOGIN [$(USER_ID)]
-    WITH PASSWORD = '$(APP_USER_PASSWORD)',
-        CHECK_POLICY = ON,
-        CHECK_EXPIRATION = OFF;
-END
-GO
-
-
-
-USE [$(DB_NAME)];
-GO
-SET ANSI_NULLS ON;
-GO
-SET QUOTED_IDENTIFIER ON;
-GO
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$(USER_ID)')
-BEGIN
-    CREATE USER [$(USER_ID)] FOR LOGIN [$(USER_ID)];
-  
-END
-GO
-
-ALTER ROLE db_datareader ADD MEMBER [$(USER_ID)];
-ALTER ROLE db_datawriter ADD MEMBER [$(USER_ID)];
-
-GO
-
 --- User and Identity Management
 
 --- 1. University
 CREATE TABLE University(
-    university_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) NOT NULL, 
-    email_domain NVARCHAR(100) NOT NULL UNIQUE,
-    -- city NVARCHAR(100) NOT NULL,
-    is_active BIT DEFAULT 1
+    university_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(100) NOT NULL, 
+    email_domain VARCHAR(100) NOT NULL UNIQUE,
+    is_active BOOLEAN DEFAULT TRUE
 )
 
 --- 2. Course/module 
 
 CREATE TABLE Course(
-    course_id INT IDENTITY(1,1) PRIMARY KEY,
+    course_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     university_id INT NOT NULL REFERENCES University(university_id),
-    course_code NVARCHAR(30) NOT NULL UNIQUE,
-    course_name NVARCHAR(100) NOT NULL,
-    faculty NVARCHAR(100)
+    course_code VARCHAR(30) NOT NULL UNIQUE,
+    course_name VARCHAR(100) NOT NULL,
+    faculty VARCHAR(100)
 );
 
 --- 3. Users
