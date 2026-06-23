@@ -168,23 +168,25 @@ public class AppDbContext : DbContext
         // Verification Requests
         modelBuilder.Entity<VerificationRequest>(entity =>
         {
-            entity.ToTable(
-                "Verification_requests",
-                tb =>
-                {
-                    tb.HasTrigger("tr_verification_set_current");
-                    tb.HasTrigger("tr_audit_verification_decision");
-                }
-            );
+            entity.ToTable(tb =>
+            {
+                tb.HasTrigger("tr_verification_set_current");
+                tb.HasTrigger("tr_audit_verification_decision");
+
+                // NOTE: When we implement the AI Verification subsystem, add the missing constraints
+                tb.HasCheckConstraint(
+                    "chk_vr_status",
+                    "status IN ('otp_pending', 'por_pending','under_review','approved', 'rejected')"
+                );
+            });
 
             entity.HasKey(x => x.VerificationId);
-            entity.Property(x => x.VerificationId);
 
             entity.HasIndex(x => new { x.UserId, x.AttemptNumber }).IsUnique();
 
             entity.Property(x => x.UserId);
 
-            entity.Property(x => x.AiConfidenceScore).HasPrecision(4, 2);
+            entity.Property(x => x.AiConfidenceScore).HasPrecision(5, 2);
 
             entity.Property(x => x.Status).HasMaxLength(20).HasDefaultValue("otp_pending");
 
@@ -211,6 +213,16 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_vr_user");
+            entity.HasIndex(x => x.Status).HasDatabaseName("ix_vr_status");
+
+            entity
+                .HasIndex(x => x.UserId)
+                .HasDatabaseName("uix_vr_current")
+                .IsUnique()
+                .HasFilter("is_current = true");
+            
         });
 
         // Listings
