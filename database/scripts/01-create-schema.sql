@@ -329,7 +329,7 @@ CREATE INDEX ix_student_status ON Student_profiles(verification_status);
 --VR'S 
 CREATE UNIQUE INDEX uix_vr_current 
     ON Verification_requests (user_id)
-    WHERE is_current = 1;
+    WHERE is_current = TRUE;
 
 CREATE INDEX ix_vr_user ON Verification_requests(user_id);
 CREATE INDEX ix_vr_status ON Verification_requests(status);
@@ -368,7 +368,7 @@ CREATE INDEX ix_dispute_status ON Disputes(status);
 CREATE INDEX ix_review_reviewee ON Reviews(reviewee_id);
 
 -- Notifications
-CREATE INDEX ix_notif_user_unread ON Notifications (user_id, is_read) WHERE is_read =0;
+CREATE INDEX ix_notif_user_unread ON Notifications (user_id, is_read) WHERE is_read = FALSE;
 
 --Audit logs
 CREATE INDEX ix_audit_entity ON Audit_logs(entity_type, entity_id);
