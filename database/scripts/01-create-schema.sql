@@ -5,7 +5,9 @@ CREATE TABLE University(
     name VARCHAR(100) NOT NULL,
     email_domain VARCHAR(100) NOT NULL UNIQUE,
     is_active BOOLEAN DEFAULT TRUE
-) --- 2. Course/module 
+);
+
+--- 2. Course/module 
 CREATE TABLE Course(
     course_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     university_id INT NOT NULL REFERENCES University(university_id),
