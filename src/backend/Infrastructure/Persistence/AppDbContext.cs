@@ -33,6 +33,8 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasDefaultSchema("unitrade");
+
         // FOR User
         modelBuilder.Entity<User>(entity =>
         {
@@ -113,10 +115,6 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<AdminProfile>(entity =>
         {
-            entity.ToTable("Admin_profiles");
-
-            entity.Property(x => x.AdminId);
-
             entity.HasKey(x => x.AdminId);
 
             entity.Property(x => x.UniversityId).IsRequired();
@@ -128,8 +126,6 @@ public class AppDbContext : DbContext
                 .WithOne(x => x.AdminProfile)
                 .HasForeignKey<AdminProfile>(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            entity.Property(x => x.UniversityId);
 
             entity
                 .HasOne<University>()
