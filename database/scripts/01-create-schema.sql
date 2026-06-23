@@ -131,20 +131,20 @@ CREATE TABLE Listings (
         OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)
     ),
 
-    CONSTRAINT FK_Listings_Users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
-    CONSTRAINT FK_Listings_Course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
+    CONSTRAINT fk_Listings_Users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
+    CONSTRAINT fk_Listings_Course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
 
 );
 
 -- 8. Listing Images
 CREATE TABLE Listing_images(
-    image_id INT IDENTITY(1,1) PRIMARY KEY, 
+    image_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     listing_id UUID NOT NULL,
     image_url TEXT NOT NULL, 
-    is_primary BOOLEAN NOT NULL DEFAULT 0,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    CONSTRAINT FK_listingImages_Listings FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
+    CONSTRAINT fk_listingImages_Listings FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
 );
 
 --9. Reservations
@@ -153,7 +153,7 @@ CREATE TABLE Reservations(
     reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     buyer_id UUID NOT NULL REFERENCES Users(user_id),
     seller_id UUID NOT NULL REFERENCES Users(user_id),
-    is_bundle BOOLEAN NOT NULL DEFAULT 0,
+    is_bundle BOOLEAN NOT NULL DEFAULT FALSE,
     reservation_status VARCHAR(20) NOT NULL    
         CONSTRAINT chk_res_status CHECK (reservation_status IN ('active', 'expired', 'cancelled', 'completed')),
     seller_acknowledged_at TIMESTAMPTZ,
@@ -171,19 +171,19 @@ CREATE TABLE Reservation_listings(
 );
 
 CREATE TABLE Meetups (
-    meetup_id INT IDENTITY(1,1) PRIMARY KEY,
+    meetup_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     reservation_id UUID NOT NULL REFERENCES Reservations(reservation_id),
     agreed_location_name VARCHAR(150) NOT NULL, 
     agreed_latitude NUMERIC(9, 6) NOT NULL,
     agreed_longitude NUMERIC(9, 6) NOT NULL,
     agreed_time TIMESTAMPTZ NOT NULL,
 
-    buyer_checked_in BOOLEAN NOT NULL DEFAULT 0,
+    buyer_checked_in BOOLEAN NOT NULL DEFAULT FALSE,
     buyer_checkin_time TIMESTAMPTZ,
     buyer_checkin_latitude  NUMERIC(9, 6),
     buyer_checkin_longitude  NUMERIC(9, 6),
 
-    seller_checked_in BOOLEAN NOT NULL DEFAULT 0,
+    seller_checked_in BOOLEAN NOT NULL DEFAULT FALSE,
     seller_checkin_time TIMESTAMPTZ,
     seller_checkin_latitude  NUMERIC(9, 6),
     seller_checkin_longitude  NUMERIC(9, 6),
@@ -221,11 +221,11 @@ CREATE TABLE Transactions(
 --13. Chat messages
 
 CREATE TABLE Chat_messages(
-    message_id INT IDENTITY(1,1) PRIMARY KEY,
+    message_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     reservation_id UUID NOT NULL REFERENCES Reservations(reservation_id),
     sender_id UUID NOT NULL REFERENCES Users(user_id),
     content TEXT NOT NULL,
-    is_automated BOOLEAN NOT NULL DEFAULT 0,
+    is_automated BOOLEAN NOT NULL DEFAULT FALSE,
     sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     read_at TIMESTAMPTZ
 );
@@ -251,7 +251,7 @@ CREATE TABLE Disputes(
 
 --15. Dispute evidence
 CREATE TABLE Dispute_Evidence(
-    evidence_id INT IDENTITY(1,1) PRIMARY KEY,
+    evidence_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     dispute_id UUID NOT NULL REFERENCES Disputes(dispute_id),
     uploaded_by UUID NOT NULL REFERENCES Users(user_id),
     file_url TEXT NOT NULL,
@@ -263,7 +263,7 @@ CREATE TABLE Dispute_Evidence(
 
 --16. Reviews
 CREATE TABLE Reviews(
-    review_id INT IDENTITY(1,1) PRIMARY KEY,
+    review_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     transaction_id UUID NOT NULL REFERENCES Transactions(transaction_id),
     reviewer_id UUID NOT NULL REFERENCES Users(user_id),
     reviewee_id UUID NOT NULL REFERENCES Users(user_id),
@@ -278,7 +278,7 @@ CREATE TABLE Reviews(
 
 -- 17. Wishlist 
 CREATE TABLE Wishlist_Items(
-    wishlist_id INT IDENTITY(1,1) PRIMARY KEY,
+    wishlist_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     student_id UUID NOT NULL REFERENCES Student_profiles(student_id),
     listing_id UUID NOT NULL REFERENCES Listings(listing_id),
     added_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -290,20 +290,20 @@ CREATE TABLE Wishlist_Items(
 --18. Notifications
 
 CREATE TABLE Notifications(
-    notification_id INT IDENTITY(1,1) PRIMARY KEY,
+    notification_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES Users(user_id),
     type VARCHAR(30) NOT NULL 
         CONSTRAINT chk_notif_type CHECK (type IN ('listing_status', 'reservation_status','meetup_reminder', 'chat', 'dispute', 'verification')),
     --reference_id INT, 
     --reference_type VARCHAR(30),
     message TEXT NOT NULL,
-    is_read BOOLEAN NOT NULL DEFAULT 0,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 --19.. Audit Logs
 CREATE TABLE Audit_logs(
-    log_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    log_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     actor_id UUID REFERENCES Users(user_id),
     action VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL, 
