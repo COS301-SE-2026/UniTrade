@@ -1,14 +1,11 @@
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Azure.Storage.Sas;
+
 using Microsoft.Extensions.Configuration;
 using Modules.SharedKernel;
 
 namespace Infrastructure.Storage;
 
-public class BlobStorageService : IBlobStorageService
+public class PostgresImageStorageService : IImageStorageService
 {
-    private readonly BlobContainerClient _container;
 
     public BlobStorageService(IConfiguration config)
     {
