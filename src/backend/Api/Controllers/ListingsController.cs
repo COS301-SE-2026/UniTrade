@@ -11,12 +11,12 @@ namespace Api.Controllers;
 public class ListingController : ControllerBase
 {
     private readonly IListingService _listings;
-    private readonly IBlobStorageService _blob;
+    private readonly IImageStorageService _images;
 
-    public ListingController(IListingService listings, IBlobStorageService blob)
+    public ListingController(IListingService listings, IImageStorageService images)
     {
         _listings = listings;
-        _blob = blob;
+        _images = images;
     }
 
     [HttpPost]
@@ -61,8 +61,8 @@ public class ListingController : ControllerBase
         return Ok(listing);
     }
 
-    [HttpPost("images")]
-    public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> files)
+    [HttpPost("{listingId:guid}/images")]
+    public async Task<IActionResult> UploadImages(Guid listingId, [FromForm] List<IFormFile> files, CancellationToken ct)
     {
         if (files is null || files.Count == 0)
             return BadRequest("no_files");
@@ -70,16 +70,19 @@ public class ListingController : ControllerBase
         const long maxBytes = 10 * 1024 * 1024;
         string[] allowed = ["image/jpeg", "image/png", "image/webp"];
 
-        var urls = new List<string>();
+        var imageIds = new List<int>();
         foreach (var file in files)
         {
             if (file.Length == 0 || file.Length > maxBytes) return BadRequest("file_too_large");
             if (!allowed.Contains(file.ContentType)) return BadRequest("invalid_file_type");
 
-            await using var stream = file.OpenReadStream();
-            urls.Add(await _blob.UploadAsync(stream, file.FileName, file.ContentType));
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream, ct);
+
+            var id = await _images.UploadAsync(listingId, stream.ToArray(), file.ContentType, isPrimary: false, ct);
+            imageIds.Add(id);
         }
 
-        return Ok(new { urls });
+        return Ok(new { imageIds });
     }
 }
