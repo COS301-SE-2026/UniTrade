@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -102,7 +101,7 @@ namespace Infrastructure.Persistence.Migrations
                     university_id = table.Column<int>(type: "integer", nullable: false),
                     course_code = table.Column<string>(type: "text", nullable: false),
                     course_name = table.Column<string>(type: "text", nullable: false),
-                    faculty = table.Column<string>(type: "text", nullable: false),
+                    faculty = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -608,11 +607,10 @@ namespace Infrastructure.Persistence.Migrations
                 unique: true,
                 filter: "is_current = true"
             );
-
             migrationBuilder.Sql(
                 @"
                 CREATE
-                OR REPLACE FUNCTION unitrade.fn_set_updated_at() RETURNS trigger AS $ $ BEGIN NEW.updated_at := now();
+                OR REPLACE FUNCTION unitrade.fn_set_updated_at() RETURNS trigger AS $$ BEGIN NEW.updated_at := now();
 
                 RETURN NEW;
 
@@ -657,83 +655,6 @@ namespace Infrastructure.Persistence.Migrations
 
             "
             );
-
-            migrationBuilder.Sql(
-                @"
-                CREATE
-                OR REPLACE FUNCTION unitrade.fn_audit_listing_status() RETURNS trigger AS $ $ BEGIN IF NEW.listing_status <> OLD.listing_status THEN
-                INSERT INTO
-                    audit_logs (
-                        actor_id,
-                        action,
-                        entity_type,
-                        entity_id,
-                        old_value,
-                        new_value
-                    )
-                VALUES
-                    (
-                        NEW.seller_id,
-                        'listing_status_changed',
-                        'Listing',
-                        NEW.listing_id :: TEXT,
-                        OLD.listing_status,
-                        NEW.listing_status
-                    );
-
-                END IF;
-
-                RETURN NULL;
-
-                END;
-
-                $$ LANGUAGE plpgsql;
-
-                CREATE TRIGGER tr_audit_listing_status
-                AFTER
-                UPDATE
-                    ON listings FOR EACH ROW EXECUTE FUNCTION unitrade.fn_audit_listing_status();
-
-            "
-            );
-
-            migrationBuilder.Sql(
-                @"
-                CREATE
-                OR REPLACE FUNCTION unitrade.fn_audit_verification_decision() RETURNS trigger AS $ $ BEGIN IF NEW.status <> OLD.status THEN
-                INSERT INTO
-                    audit_logs (
-                        actor_id,
-                        action,
-                        entity_type,
-                        entity_id,
-                        old_value,
-                        new_value
-                    )
-                VALUES
-                    (
-                        NEW.admin_id,
-                        'verification_decision',
-                        'Verification_request',
-                        NEW.verification_id :: TEXT,
-                        OLD.status,
-                        NEW.status
-                    );
-
-                END IF;
-
-                RETURN NULL;
-
-                END;
-
-                $ $ LANGUAGE plpgsql;
-
-                CREATE TRIGGER tr_audit_verification_decision
-                AFTER
-                UPDATE
-                    ON verification_requests FOR EACH ROW EXECUTE FUNCTION unitrade.fn_audit_verification_decision();
-                            "
-            );
         }
 
         /// <inheritdoc />
@@ -741,14 +662,10 @@ namespace Infrastructure.Persistence.Migrations
         {
             migrationBuilder.Sql(
                 @"
-                DROP TRIGGER IF EXISTS tr_audit_verification_decision ON unitrade.verification_requests;
-                DROP TRIGGER IF EXISTS tr_audit_listing_status ON unitrade.listings;
                 DROP TRIGGER IF EXISTS tr_verification_set_current ON unitrade.verification_requests;
                 DROP TRIGGER IF EXISTS tr_listings_updated_at ON unitrade.listings;
                 DROP TRIGGER IF EXISTS tr_users_updated_at ON unitrade.users;
-        
-                DROP FUNCTION IF EXISTS unitrade.fn_audit_verification_decision();
-                DROP FUNCTION IF EXISTS unitrade.fn_audit_listing_status();
+                    
                 DROP FUNCTION IF EXISTS unitrade.fn_verification_set_current();
                 DROP FUNCTION IF EXISTS unitrade.fn_set_updated_at();
 

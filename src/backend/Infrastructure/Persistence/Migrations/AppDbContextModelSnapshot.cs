@@ -491,7 +491,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("course_name");
 
                     b.Property<string>("Faculty")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("faculty");
 
