@@ -39,6 +39,10 @@ public class IdentityService : IIdentityService
             throw new Exception("weak_password");
         }
 
+        if(email.Length>256)
+        {
+            return false;
+        }
         // check email format 
         if (!IsValidEmailFormat(dto.Email))
         {
