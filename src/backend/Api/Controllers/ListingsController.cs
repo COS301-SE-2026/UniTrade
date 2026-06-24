@@ -1,7 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Listings;
-using Modules.Listings.Models.Dto;
 using Modules.Listings.Models;
+using Modules.Listings.Models.Dto;
 using Modules.SharedKernel;
 
 namespace Api.Controllers;
@@ -22,7 +23,11 @@ public class ListingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateListingDto request)
     {
-        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Condition) || request.Price <= 0)
+        if (
+            string.IsNullOrEmpty(request.Title)
+            || string.IsNullOrEmpty(request.Condition)
+            || request.Price <= 0
+        )
             return BadRequest("Field(s) missing.");
 
         var response = await _listings.CreateListings(request);
@@ -33,7 +38,8 @@ public class ListingController : ControllerBase
     public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id)
     {
         var updateL = await _listings.UpdateListings(request, id);
-        if (!updateL) return NotFound();
+        if (!updateL)
+            return NotFound();
         return Ok("Listings updated successfully");
     }
 
@@ -41,7 +47,8 @@ public class ListingController : ControllerBase
     public async Task<IActionResult> Delete(Guid id)
     {
         var success = await _listings.DeleteListings(id);
-        if (!success) return NotFound();
+        if (!success)
+            return NotFound();
         return NoContent();
     }
 
@@ -61,8 +68,13 @@ public class ListingController : ControllerBase
         return Ok(listing);
     }
 
+    [Authorize]
     [HttpPost("{listingId:guid}/images")]
-    public async Task<IActionResult> UploadImages(Guid listingId, [FromForm] List<IFormFile> files, CancellationToken ct)
+    public async Task<IActionResult> UploadImages(
+        Guid listingId,
+        [FromForm] List<IFormFile> files,
+        CancellationToken ct
+    )
     {
         if (files is null || files.Count == 0)
             return BadRequest("no_files");
@@ -73,16 +85,50 @@ public class ListingController : ControllerBase
         var imageIds = new List<int>();
         foreach (var file in files)
         {
-            if (file.Length == 0 || file.Length > maxBytes) return BadRequest("file_too_large");
-            if (!allowed.Contains(file.ContentType)) return BadRequest("invalid_file_type");
+            if (file.Length == 0 || file.Length > maxBytes)
+                return BadRequest("file_too_large");
+            if (!allowed.Contains(file.ContentType))
+                return BadRequest("invalid_file_type");
 
             using var stream = new MemoryStream();
             await file.CopyToAsync(stream, ct);
 
-            var id = await _images.UploadAsync(listingId, stream.ToArray(), file.ContentType, isPrimary: false, ct);
+            var id = await _images.UploadAsync(
+                listingId,
+                stream.ToArray(),
+                file.ContentType,
+                isPrimary: false,
+                ct
+            );
             imageIds.Add(id);
         }
 
         return Ok(new { imageIds });
+    }
+
+    [Authorize]
+    [HttpGet("{listingId:guid}/images/{imageId:int}")]
+    public async Task<IActionResult> GetImage(Guid listingId, int imageId, CancellationToken ct)
+    {
+        var res = await _images.GetAsync(imageId, ct);
+
+        if (res is null)
+        {
+            return NotFound();
+        }
+
+        var (data, contentType) = res.Value;
+
+        var etag = "\"" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]+ "\"";\
+
+        if(Request.Headers.IfNoneMatch == etag)
+        {
+            return StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        Response.Headers.CacheControl = "private, max-age=86400";
+        Response.Headers.ETag = etag;
+
+        return File(data, contentType);
     }
 }

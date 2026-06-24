@@ -8,12 +8,10 @@ namespace Modules.Listings;
 public class ListingService : IListingService
 {
     private readonly IListingRepository _listings;
-    private readonly IBlobStorageService _blob;
 
-    public ListingService(IListingRepository listings, IBlobStorageService blob)
+    public ListingService(IListingRepository listings)
     {
         _listings = listings;
-        _blob = blob;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -38,7 +36,7 @@ public class ListingService : IListingService
         l.CreatedAt, l.UpdatedAt,
         l.Images
             .OrderByDescending(i => i.IsPrimary)
-            .Select(i => new ListingImageDto(i.ImageId, _blob.GetReadUrl(i.ImageUrl), i.IsPrimary))
+            .Select(i => new ListingImageDto(i.ImageId, $"/api/listings/{l.listingId}/images/{i.imageId}", i.IsPrimary))
             .ToList());
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto)
@@ -59,11 +57,7 @@ public class ListingService : IListingService
             CourseId = dto.CourseId,
             isBundle = dto.IsBundle,
             ViewCount = 0,
-            Images = dto.Images.Select(i => new ListingImage
-            {
-                ImageUrl = i.ImageUrl,
-                IsPrimary = i.IsPrimary
-            }).ToList(),
+            Images = new List<ListingImage>(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };

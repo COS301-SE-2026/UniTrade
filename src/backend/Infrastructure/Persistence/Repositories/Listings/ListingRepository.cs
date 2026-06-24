@@ -3,6 +3,7 @@ using Infrastructure.Persistence;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
+using System.Net.Mime;
 namespace Infrastructure.Persistence.Repositories.Listings;
 
 public class ListingRepository : IListingRepository
@@ -73,6 +74,15 @@ public class ListingRepository : IListingRepository
         listing.Images = await _db.ListingImages
             .AsNoTracking()
             .Where(i => i.ListingId == listing.ListingId)
+            .Select( i => new ListingImage
+            {
+                ImageId = i.ImageId,
+                ListingId = i.ListingId,
+                ContentType = i.ContentType,
+                FileSize= i.FileSize,
+                IsPrimary = i.IsPrimary,
+                UploadedAt = i.UploadedAt
+            })
             .ToListAsync();
         
 
@@ -162,6 +172,15 @@ public class ListingRepository : IListingRepository
         var images = await _db.ListingImages
             .AsNoTracking()
             .Where(i => listingIds.Contains(i.ListingId))
+            .Select( i => new ListingImage
+            {
+                ImageId = i.ImageId,
+                ListingId = i.ListingId,
+                ContentType = i.ContentType,
+                FileSize= i.FileSize,
+                IsPrimary = i.IsPrimary,
+                UploadedAt = i.UploadedAt
+            })
             .ToListAsync();
 
         foreach (var item in items)
