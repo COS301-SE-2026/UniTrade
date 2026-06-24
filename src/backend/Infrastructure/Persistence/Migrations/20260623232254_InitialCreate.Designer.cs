@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260623224938_InitialCreate")]
+    [Migration("20260623232254_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -494,7 +494,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("course_name");
 
                     b.Property<string>("Faculty")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("faculty");
 
