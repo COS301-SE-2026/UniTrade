@@ -168,7 +168,7 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_verification_set_current");
-               // tb.HasTrigger("tr_audit_verification_decision");
+                // tb.HasTrigger("tr_audit_verification_decision");
 
                 // NOTE: When we implement the AI Verification subsystem, add the missing constraints
                 tb.HasCheckConstraint(
@@ -232,7 +232,10 @@ public class AppDbContext : DbContext
                     "chk_listing_risk",
                     "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
                 );
-                tb.HasCheckConstraint("chk_isbn_validity", "isbn IS NULL OR length(isbn) IN  (10,13)");
+                tb.HasCheckConstraint(
+                    "chk_isbn_validity",
+                    "isbn IS NULL OR length(isbn) IN  (10,13)"
+                );
                 tb.HasCheckConstraint(
                     "chk_listing_book_fields",
                     "listing_type ='book'  OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)"
@@ -319,7 +322,10 @@ public class AppDbContext : DbContext
             entity.HasKey(x => x.ImageId);
 
             entity.Property(x => x.ListingId).IsRequired();
-            entity.Property(x => x.ImageUrl).IsRequired();
+
+            entity.Property(x => x.ImageData).hasColumnType("bytea").IsRequired();
+            entity.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.FileSize).IsRequired();
 
             entity.Property(x => x.IsPrimary).HasDefaultValue(false).IsRequired();
 
