@@ -142,7 +142,7 @@ public class IdentityService : IIdentityService
         {
             return false;
         }
-        if(email.Length>256)
+        if(email.Length>254)
         {
             return false;
         }
