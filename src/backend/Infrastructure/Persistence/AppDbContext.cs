@@ -323,7 +323,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.ListingId).IsRequired();
 
-            entity.Property(x => x.ImageData).hasColumnType("bytea").IsRequired();
+            entity.Property(x => x.ImageData).HasColumnType("bytea").IsRequired();
             entity.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
             entity.Property(x => x.FileSize).IsRequired();
 

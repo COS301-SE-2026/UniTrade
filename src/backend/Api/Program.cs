@@ -20,7 +20,7 @@ using Modules.Notifications;
 using Modules.ReferenceData.University;
 using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
-
+using Infrastructure.Storage.Repositories;
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -86,7 +86,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:3000")
+                .WithOrigins("http://localhost:3000", "http://localhost:8080")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -106,7 +106,7 @@ builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
-builder.Services.AddSingleton<IImageStorageService, PostgresImageStorageService>();
+builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]

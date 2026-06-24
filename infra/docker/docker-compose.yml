@@ -46,7 +46,11 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${DB_NAME};Username=${APP_USER_ID};Password=${APP_USER_PASSWORD}"
-      ConnectionStrings__MigrationsConnection: "Host=db;Port=5432;Database=${DB_NAME};Username=${POSTGRES_USER_ID};Password=${POSTGRES_PASSWORD}"    
+      ConnectionStrings__MigrationsConnection: "Host=db;Port=5432;Database=${DB_NAME};Username=${POSTGRES_USER_ID};Password=${POSTGRES_PASSWORD}"
+      Jwt__Secret: ${Jwt__Secret}
+      Otp__Secret: ${Otp__Secret}
+      Resend__ApiKey: ${Resend__ApiKey}
+      Resend__FromEmail: ${Resend__FromEmail}
     depends_on:
      db: 
        condition: service_healthy

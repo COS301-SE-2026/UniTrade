@@ -19,19 +19,16 @@ import AdminDisputes from './pages/admin/AdminDisputes'
 import BrowseListings from './pages/buyer/BrowseAllListing'
 import MyListings from './pages/seller/MyListings'
 import SellerListingDetail from './pages/seller/SellerListingDetail'
+const BASE_URL = import.meta.env.VITE_API_URL
 
 export default function App() {
   const { setUser } = useAuthStore()
 
-  useEffect(() => {
-    
-    setUser({
-      id: '1',
-      name: 'Tafadzwa Musiiwa',
-      initials: 'TM',
-      role: 'student',
-      university: 'University of Cape Town',
-    })
+   useEffect(() => {
+
+    fetch(`${BASE_URL}/auth/me`, {
+      credentials: 'include',
+    }).then(res => res.ok ? res.json() : null).then(user => { if (user) setUser({ id: user.userId,name: user.name, initials: user.initials, role: user.role}) }).catch(() => { })
   }, [setUser])
 
   return (

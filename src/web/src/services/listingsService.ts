@@ -11,7 +11,11 @@ import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+const API_ORIGIN = new URL(BASE_URL).origin;
 
+export function imageUrl(path: string): string {
+  return `${API_ORIGIN}${path}`;
+}
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
     like_new: "Good",
@@ -214,12 +218,12 @@ export const listingsService = {
       courseCode: item.courseId?.toString() ?? mockListingDetail.courseCode,
       category: mapCategory(item.listingType),
       images: item.images.map((i: unknown) => {
-        const img = i as { imageId: number; path: string; isPrimary: boolean }
-        return{
-        id: img.imageId.toString(),
-        url: img.path,
-        isPrimary: img.isPrimary,
-        }
+        const img = i as { imageId: number; path: string; isPrimary: boolean };
+        return {
+          id: img.imageId.toString(),
+          url: imageUrl(img.path),
+          isPrimary: img.isPrimary,
+        };
       }),
     };
   },
@@ -236,23 +240,30 @@ export const listingsService = {
 
     const data = await res.json();
     const listings: ListingSummary[] = data.items.map((item: unknown) => {
-      const l = item as { listingId: string; title: string; listingType: string; createdAt: string; price: number; listingStatus: string; viewCount: number; images: { isPrimary: boolean; path: string }[] }
+      const l = item as {
+        listingId: string;
+        title: string;
+        listingType: string;
+        createdAt: string;
+        price: number;
+        listingStatus: string;
+        viewCount: number;
+        images: { isPrimary: boolean; path: string }[];
+      };
+      const primary =
+        l.images.find((i) => i.isPrimary)?.path ?? l.images[0]?.path;
       return {
-      id: l.listingId,
-      title: l.title,
-      meta: `${l.listingType} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
-      price: l.price,
-      status: l.listingStatus,
-      views: l.viewCount,
-      imageUrl:
-        l.images.find(i => i.isPrimary)?.path ??
-        l.images[0]?.path ??
-        biologyTextbook,
-      }
-    })
-    return { listings, total: data.total }
+        id: l.listingId,
+        title: l.title,
+        meta: `${l.listingType} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+        price: l.price,
+        status: l.listingStatus,
+        views: l.viewCount,
+        imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
+    return { listings, total: data.total };
   },
-     
 
   getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, {
@@ -277,7 +288,7 @@ export const listingsService = {
       ) as SellerListingDetail["category"],
       images:
         item.images.length > 0
-          ? item.images.map((i: unknown) => (i as { path: string }).path)
+          ? item.images.map((i: unknown) => imageUrl((i as { path: string }).path))
           : mockSellerListingDetail.images,
     };
   },
@@ -290,14 +301,16 @@ export const listingsService = {
     const data = await res.json();
     const listings: BrowseListing[] = data.items.map((item: unknown) => {
       const l = item as {
-        listingId: string
-        title: string
-        price: number
-        courseId?: number
-        listingType: string
-        condition: string
-        images: { isPrimary: boolean; path: string }[]
-      }
+        listingId: string;
+        title: string;
+        price: number;
+        courseId?: number;
+        listingType: string;
+        condition: string;
+        images: { isPrimary: boolean; path: string }[];
+      };
+      const primary =
+        l.images.find((i) => i.isPrimary)?.path ?? l.images[0]?.path;
       return {
         id: l.listingId,
         title: l.title,
@@ -305,30 +318,26 @@ export const listingsService = {
         module: l.courseId?.toString() ?? "General",
         category: mapBrowseCategory(l.listingType),
         condition: mapCondition(l.condition),
-        image: l.images.find(i => i.isPrimary)?.path ?? l.images[0]?.path ?? biologyTextbook,
-      }
-    })
-    return { listings, total: data.total }
+        image: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
+    return { listings, total: data.total };
   },
 
-
-  uploadImages: async (files: File[]): Promise<string[]> => {
+  uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
     files.forEach((f) => fd.append("files", f));
-    const res = await fetch(`${BASE_URL}/listings/images`, {
+    const res = await fetch(`${BASE_URL}/listings/${listingId}/images`, {
       method: "POST",
       credentials: "include",
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to upload images");
-    const { urls } = await res.json();
-    return urls;
+    const { imageIds } = await res.json();
+    return imageIds;
   },
 
-  createListing: async (
-    payload: CreateListingPayload,
-    imageUrls: string[],
-  ): Promise<void> => {
+  createListing: async (payload: CreateListingPayload): Promise<string> => {
     const user = useAuthStore.getState().user;
     const res = await fetch(`${BASE_URL}/listings`, {
       method: "POST",
@@ -350,13 +359,11 @@ export const listingsService = {
         edition: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        images: imageUrls.map((url, i) => ({
-          imageUrl: url,
-          isPrimary: i === 0,
-        })),
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
+    const createdListing = await res.json();
+    return createdListing.listingId;
   },
 
   updateListing: async (
