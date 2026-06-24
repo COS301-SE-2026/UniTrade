@@ -39,10 +39,6 @@ public class IdentityService : IIdentityService
             throw new Exception("weak_password");
         }
 
-        if(email.Length>256)
-        {
-            return false;
-        }
         // check email format 
         if (!IsValidEmailFormat(dto.Email))
         {
@@ -146,11 +142,15 @@ public class IdentityService : IIdentityService
         {
             return false;
         }
+        if(email.Length>256)
+        {
+            return false;
+        }
         try
         {
             var address = new MailAddress(email);
             var parts = email.Split('@');
-            return address.Address == email && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]);
+            return address.Address == email.Trim() && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]);
         }
         catch
         {
