@@ -1,4 +1,4 @@
-
+using System.Net.Mime;
 using Microsoft.Extensions.Configuration;
 using Modules.SharedKernel;
 
@@ -6,36 +6,32 @@ namespace Infrastructure.Storage;
 
 public class PostgresImageStorageService : IImageStorageService
 {
+    private readonly IListingImageRepository _images;
 
-    public BlobStorageService(IConfiguration config)
+    public BlobStorageService(IListingImageRepository images) => _images = images;
+
+    Task<int> UploadAsync(
+        Guid listingId,
+        byte[] data,
+        string contentType,
+        bool isPrimary,
+        CancellationToken ct = default
+    )
     {
-        var connectionString = config["Azure:Blob:ConnectionString"]
-            ?? throw new InvalidOperationException("Blob connection string not configured");
-        var containerName = config["Azure:Blob:Container"] ?? "listing-images";
-
-        _container = new BlobContainerClient(connectionString, containerName);
-        _container.CreateIfNotExists();
-    }
-
-    public async Task<string> UploadAsync(Stream content, string fileName,
-        string contentType, CancellationToken ct = default)
-    {
-        var blobName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
-        var blob = _container.GetBlobClient(blobName);
-
-        await blob.UploadAsync(content, new BlobUploadOptions
+        var image = new ListingImage
         {
-            HttpHeaders = new BlobHttpHeaders { ContentType = contentType }
-        }, ct);
+            ListingId = listingId,
+            ImageData = data,
+            ContentType = contentType,
+            FileSize = data.Length,
+            IsPrimary = isPrimary,
+        };
 
-        return blob.Uri.ToString();
-
-
+        return _images.AddAsync(image, ct);
     }
 
     public string GetReadUrl(string blobNameOrUrl, TimeSpan? validFor = null)
     {
-
         var blobName = Uri.TryCreate(blobNameOrUrl, UriKind.Absolute, out var uri)
             ? Path.GetFileName(uri.LocalPath)
             : blobNameOrUrl;
@@ -50,7 +46,7 @@ public class PostgresImageStorageService : IImageStorageService
             BlobContainerName = _container.Name,
             BlobName = blobName,
             Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.Add(validFor ?? TimeSpan.FromMinutes(30))
+            ExpiresOn = DateTimeOffset.UtcNow.Add(validFor ?? TimeSpan.FromMinutes(30)),
         };
         sas.SetPermissions(BlobSasPermissions.Read);
 
