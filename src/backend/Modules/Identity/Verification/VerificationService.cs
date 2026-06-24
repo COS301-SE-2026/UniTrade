@@ -82,7 +82,7 @@ public class VerificationService : IVerificationService
 
         if (record.OtpVerifiedAt != null)
         {
-            return true;
+            throw new Exception("already_verified");
         }
 
         if (record.OtpExpiresAt < DateTime.UtcNow)
@@ -176,10 +176,11 @@ public class VerificationService : IVerificationService
 
     private static string GenerateOtp()
     {
-        var bytes = RandomNumberGenerator.GetBytes(2);
-        var value = BitConverter.ToUInt16(bytes, 0) % 10000;
-        return value.ToString("D4");
+        var bytes = RandomNumberGenerator.GetInt32(100000,999999).ToString();
+        
+        return bytes;
     }
+
     private string HashOtp(string otp)
     {
         var secret = _config["Otp:Secret"] ?? throw new InvalidOperationException("Otp:Secret environment variable is not configured");
