@@ -254,7 +254,7 @@ public class IdentityService : IIdentityService
 
         if (getUser == null)
         {
-            throw new Exception("user not found");
+            throw new Exception("not_found");
         }
 
         if (getUser.Role == "student")
