@@ -1,4 +1,4 @@
-using System.Net.Mime;
+using Infrastructure.Storage.Repositories;
 using Microsoft.Extensions.Configuration;
 using Modules.SharedKernel;
 
@@ -8,9 +8,9 @@ public class PostgresImageStorageService : IImageStorageService
 {
     private readonly IListingImageRepository _images;
 
-    public BlobStorageService(IListingImageRepository images) => _images = images;
+    public PostgresImageStorageService(IListingImageRepository images) => _images = images;
 
-    Task<int> UploadAsync(
+    public Task<int> UploadAsync(
         Guid listingId,
         byte[] data,
         string contentType,
@@ -30,13 +30,9 @@ public class PostgresImageStorageService : IImageStorageService
         return _images.AddAsync(image, ct);
     }
 
-    Task<(byte[] Data, string ContentType)> GetAsync(int imageId, CancellationToken ct = default)
-    {
-        return _images.GetDataAsync(imageId, ct);
-    }
+    public Task<(byte[] Data, string ContentType)?> GetAsync(int imageId, CancellationToken ct = default) =>
+        _images.GetDataAsync(imageId, ct);
 
-    public async Task DeleteAsync(string blobUrl, CancellationToken ct = default)
-    {
-        return _images.DeleteAsync(imageId, ct);
-    }
+    public Task DeleteAsync(int imageId, CancellationToken ct = default) =>
+        _images.DeleteAsync(imageId, ct);
 }

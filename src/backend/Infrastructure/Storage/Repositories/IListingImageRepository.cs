@@ -1,5 +1,6 @@
-namespace Infrastructure.Storage.Repositories;
 using Modules.Listings.Models;
+namespace Infrastructure.Storage.Repositories;
+
 public interface IListingImageRepository
 {
     Task<int> AddAsync(ListingImage image, CancellationToken ct = default);
