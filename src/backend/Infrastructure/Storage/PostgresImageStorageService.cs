@@ -1,5 +1,6 @@
 using Infrastructure.Storage.Repositories;
 using Microsoft.Extensions.Configuration;
+using Modules.Listings.Models;
 using Modules.SharedKernel;
 
 namespace Infrastructure.Storage;

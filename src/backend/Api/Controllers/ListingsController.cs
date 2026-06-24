@@ -97,7 +97,7 @@ public class ListingController : ControllerBase
                 listingId,
                 stream.ToArray(),
                 file.ContentType,
-                isPrimary: false,
+                false,
                 ct
             );
             imageIds.Add(id);
@@ -119,7 +119,7 @@ public class ListingController : ControllerBase
 
         var (data, contentType) = res.Value;
 
-        var etag = "\"" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]+ "\"";\
+        var etag = "\"" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]+ "\"";
 
         if(Request.Headers.IfNoneMatch == etag)
         {

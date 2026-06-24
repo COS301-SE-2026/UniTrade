@@ -36,7 +36,7 @@ public class ListingService : IListingService
         l.CreatedAt, l.UpdatedAt,
         l.Images
             .OrderByDescending(i => i.IsPrimary)
-            .Select(i => new ListingImageDto(i.ImageId, $"/api/listings/{l.listingId}/images/{i.imageId}", i.IsPrimary))
+            .Select(i => new ListingImageDto(i.ImageId, $"/api/listings/{l.ListingId}/images/{i.ImageId}", i.IsPrimary))
             .ToList());
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto)

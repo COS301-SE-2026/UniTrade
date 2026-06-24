@@ -9,6 +9,6 @@ public interface IImageStorageService
         bool IsPrimary,
         CancellationToken ct = default
     );
-    Task<(byte[] Data, string ContentType)> GetAsync(int imageId, CancellationToken ct = default);
+    Task<(byte[] Data, string ContentType)?> GetAsync(int imageId, CancellationToken ct = default);
     Task DeleteAsync(int imageId, CancellationToken ct = default);
 }
