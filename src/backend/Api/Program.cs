@@ -19,6 +19,7 @@ using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.ReferenceData.University;
 using Modules.SharedKernel;
+using Infrastructure.Persistence.Repositories.ListingImages;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -104,7 +105,8 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
-builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
+builder.Services.AddSingleton<IImageStorageService, PostgresImageStorageService>();
 
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
