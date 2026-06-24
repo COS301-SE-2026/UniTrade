@@ -250,11 +250,6 @@ public class IdentityService : IIdentityService
 
     public async Task<object> GetMeAsync(string userId)
     {
-        var user = await _users.GetByIdAsync(Guid.Parse(userId));
-
-        if (user == null)
-            throw new Exception("not_found");
-
         var getUser = await _users.GetByIdAsync(Guid.Parse(userId));
 
         if (getUser == null)
