@@ -1,5 +1,5 @@
 using Modules.Listings.Models;
-namespace Infrastructure.Storage.Repositories;
+namespace Modules.Listings.Repositories;
 
 public interface IListingImageRepository
 {

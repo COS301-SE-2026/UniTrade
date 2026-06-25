@@ -35,9 +35,9 @@ public class ListingController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id)
+    public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id, CancellationToken ct)
     {
-        var updateL = await _listings.UpdateListings(request, id);
+        var updateL = await _listings.UpdateListings(request, id, ct);
         if (!updateL)
             return NotFound();
         return Ok("Listings updated successfully");
