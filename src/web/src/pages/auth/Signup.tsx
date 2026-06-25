@@ -35,8 +35,9 @@ const Signup: React.FC = () => {
       try {
         const data = await authService.getUniversities();
         setUniversities(data);
-      } catch (err: any){
-        setUniError(err.message || 'Could not load universities');
+      } catch (err: unknown){
+        const message = err instanceof Error ? err.message : 'Could not load universities';
+        setUniError(message);
       } finally {
         setUniloading(false);
       }
