@@ -288,7 +288,9 @@ export const listingsService = {
       ) as SellerListingDetail["category"],
       images:
         item.images.length > 0
-          ? item.images.map((i: unknown) => imageUrl((i as { path: string }).path))
+          ? item.images.map((i: unknown) =>
+              imageUrl((i as { path: string }).path),
+            )
           : mockSellerListingDetail.images,
     };
   },
@@ -373,6 +375,7 @@ export const listingsService = {
       description: string;
       price: number;
       condition: string;
+      removedImageIds?: number[];
     },
   ): Promise<void> => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, {
@@ -384,6 +387,7 @@ export const listingsService = {
         description: payload.description,
         price: payload.price,
         condition: payload.condition,
+        removedImageIds: payload.removedImageIds?? []
       }),
     });
     if (!res.ok) throw new Error("Failed to update listing");

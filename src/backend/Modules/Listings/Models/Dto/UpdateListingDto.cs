@@ -7,5 +7,5 @@ public class UpdateListingDto
     public decimal Price { get; set; }
     public string Condition { get; set; } = string.Empty;
 
-    public List<int>? RemovedImagesIds{get; set;}
+    public List<int>? RemovedImageIds{get; set;}
 }
