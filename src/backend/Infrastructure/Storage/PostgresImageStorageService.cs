@@ -1,4 +1,4 @@
-using Infrastructure.Storage.Repositories;
+using Modules.Listings.Repositories;
 using Microsoft.Extensions.Configuration;
 using Modules.Listings.Models;
 using Modules.SharedKernel;

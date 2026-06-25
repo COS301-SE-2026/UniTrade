@@ -1,5 +1,5 @@
 using Infrastructure.Persistence;
-using Infrastructure.Storage.Repositories;
+using Modules.Listings.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Modules.Listings.Models;
 

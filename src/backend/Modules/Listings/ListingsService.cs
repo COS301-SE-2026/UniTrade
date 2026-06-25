@@ -1,6 +1,6 @@
-using Modules.Listings.Repositories;
-using Modules.Listings.Models.Dto;
 using Modules.Listings.Models;
+using Modules.Listings.Models.Dto;
+using Modules.Listings.Repositories;
 using Modules.SharedKernel;
 
 namespace Modules.Listings;
@@ -9,9 +9,12 @@ public class ListingService : IListingService
 {
     private readonly IListingRepository _listings;
 
-    public ListingService(IListingRepository listings)
+    private readonly IListingImageRepository _images;
+
+    public ListingService(IListingRepository listings, IListingImageRepository images)
     {
         _listings = listings;
+        _images = images;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -23,21 +26,35 @@ public class ListingService : IListingService
     public async Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter)
     {
         var (items, total) = await _listings.ListAsync(filter);
-        return new PagedResult<ListingSummaryDto>(
-            items.Select(MapToSummary).ToList(),
-            total);
+        return new PagedResult<ListingSummaryDto>(items.Select(MapToSummary).ToList(), total);
     }
 
-    private ListingSummaryDto MapToSummary(Listing l) => new(
-        l.ListingId, l.SellerId,
-        l.Title, l.Description, l.Price, l.Condition, l.ListingType,
-        l.CourseId, l.Isbn, l.Author, l.Edition, l.ListingStatus,
-        l.isBundle ?? false, l.ViewCount ?? 0,
-        l.CreatedAt, l.UpdatedAt,
-        l.Images
-            .OrderByDescending(i => i.IsPrimary)
-            .Select(i => new ListingImageDto(i.ImageId, $"/api/listings/{l.ListingId}/images/{i.ImageId}", i.IsPrimary))
-            .ToList());
+    private ListingSummaryDto MapToSummary(Listing l) =>
+        new(
+            l.ListingId,
+            l.SellerId,
+            l.Title,
+            l.Description,
+            l.Price,
+            l.Condition,
+            l.ListingType,
+            l.CourseId,
+            l.Isbn,
+            l.Author,
+            l.Edition,
+            l.ListingStatus,
+            l.isBundle ?? false,
+            l.ViewCount ?? 0,
+            l.CreatedAt,
+            l.UpdatedAt,
+            l.Images.OrderByDescending(i => i.IsPrimary)
+                .Select(i => new ListingImageDto(
+                    i.ImageId,
+                    $"/api/listings/{l.ListingId}/images/{i.ImageId}",
+                    i.IsPrimary
+                ))
+                .ToList()
+        );
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto)
     {
@@ -66,25 +83,39 @@ public class ListingService : IListingService
         return MapToSummary(newListing);
     }
 
-    public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id)
+    public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id, CancellationToken ct= default)
     {
-        var listingLookUp = await _listings.GetByIdAsync(id);
-        if (listingLookUp == null) return false;
+        // updates to text based fields
+        var listingLookUp = await _listings.GetByIdTrackedAsync(id);
+        if (listingLookUp == null)
+            return false;
 
         listingLookUp.Title = listings.Title;
         listingLookUp.Description = listings.Description;
         listingLookUp.Price = listings.Price;
         listingLookUp.Condition = listings.Condition;
         listingLookUp.UpdatedAt = DateTime.UtcNow;
+        await _listings.SaveAsync();
 
-        await _listings.UpdateAsync(listingLookUp, id);
+        // updates to images
+
+        if (listings.RemovedImagesIds is { Count: > 0 })
+        {
+            foreach (var imageId in listings.RemovedImagesIds)
+            {
+                await _images.DeleteAsync(imageId, ct);
+            }
+        }
+    
+
         return true;
     }
 
     public async Task<bool> DeleteListings(Guid id)
     {
         var listing = await _listings.GetByIdAsync(id);
-        if (listing == null) return false;
+        if (listing == null)
+            return false;
 
         await _listings.DeleteByIdAsync(id);
         return true;

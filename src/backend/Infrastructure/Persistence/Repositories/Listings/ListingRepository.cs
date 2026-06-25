@@ -1,9 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+using System.Net.Mime;
 using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
-using System.Net.Mime;
+
 namespace Infrastructure.Persistence.Repositories.Listings;
 
 public class ListingRepository : IListingRepository
@@ -17,34 +18,37 @@ public class ListingRepository : IListingRepository
 
     public async Task<Listing?> GetByIdAsync(Guid listingId)
     {
-        var row = await _db.Listings
-            .AsNoTracking()
+        var row = await _db
+            .Listings.AsNoTracking()
             .Where(l => l.ListingId == listingId)
-            .Join(_db.Users,
+            .Join(
+                _db.Users,
                 l => l.SellerId,
                 u => u.UserId,
-                (l, u) => new
-                {
-                    l.ListingId,
-                    l.SellerId,
-                    l.Title,
-                    l.Description,
-                    l.Price,
-                    l.Condition,
-                    l.ListingType,
-                    l.ListingStatus,
-                    l.CourseId,
-                    l.Isbn,
-                    l.Author,
-                    l.Edition,
-                    l.isBundle,
-                    l.ViewCount,
-                    l.CreatedAt,
-                    l.UpdatedAt,
-                    SellerUserId = u.UserId,
-                    u.FirstName,
-                    u.LastName
-                })
+                (l, u) =>
+                    new
+                    {
+                        l.ListingId,
+                        l.SellerId,
+                        l.Title,
+                        l.Description,
+                        l.Price,
+                        l.Condition,
+                        l.ListingType,
+                        l.ListingStatus,
+                        l.CourseId,
+                        l.Isbn,
+                        l.Author,
+                        l.Edition,
+                        l.isBundle,
+                        l.ViewCount,
+                        l.CreatedAt,
+                        l.UpdatedAt,
+                        SellerUserId = u.UserId,
+                        u.FirstName,
+                        u.LastName,
+                    }
+            )
             .FirstOrDefaultAsync();
 
         if (row == null)
@@ -68,35 +72,36 @@ public class ListingRepository : IListingRepository
             ViewCount = row.ViewCount,
             CreatedAt = row.CreatedAt,
             UpdatedAt = row.UpdatedAt,
-            Seller = new SellerInfo(row.SellerUserId, row.FirstName, row.LastName)
+            Seller = new SellerInfo(row.SellerUserId, row.FirstName, row.LastName),
         };
 
-        listing.Images = await _db.ListingImages
-            .AsNoTracking()
+        listing.Images = await _db
+            .ListingImages.AsNoTracking()
             .Where(i => i.ListingId == listing.ListingId)
-            .Select( i => new ListingImage
+            .Select(i => new ListingImage
             {
                 ImageId = i.ImageId,
                 ListingId = i.ListingId,
                 ContentType = i.ContentType,
-                FileSize= i.FileSize,
+                FileSize = i.FileSize,
                 IsPrimary = i.IsPrimary,
-                UploadedAt = i.UploadedAt
+                UploadedAt = i.UploadedAt,
             })
             .ToListAsync();
-        
 
         return listing;
     }
 
-    public async Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(ListFilterDto listingFilterDto)
+    public async Task<Listing?> GetByIdTrackedAsync(Guid id) =>
+        await _db.Listings.FirstOrDefaultAsync(l => l.ListingId == id);
+
+    public async Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(
+        ListFilterDto listingFilterDto
+    )
     {
-        var query = _db.Listings
-            .AsNoTracking()
-            .Join(_db.Users,
-                l => l.SellerId,
-                u => u.UserId,
-                (l, u) => new { l, u });
+        var query = _db
+            .Listings.AsNoTracking()
+            .Join(_db.Users, l => l.SellerId, u => u.UserId, (l, u) => new { l, u });
 
         if (!string.IsNullOrWhiteSpace(listingFilterDto.ListingType))
             query = query.Where(x => x.l.ListingType == listingFilterDto.ListingType);
@@ -114,11 +119,11 @@ public class ListingRepository : IListingRepository
         {
             var searchInput = listingFilterDto.Search.Trim();
             query = query.Where(x =>
-                x.l.Title.Contains(searchInput) || x.l.Description.Contains(searchInput));
+                x.l.Title.Contains(searchInput) || x.l.Description.Contains(searchInput)
+            );
         }
 
         var total = await query.CountAsync();
-
 
         var rows = await query
             .OrderByDescending(x => x.l.CreatedAt)
@@ -142,44 +147,45 @@ public class ListingRepository : IListingRepository
                 x.l.UpdatedAt,
                 SellerUserId = x.u.UserId,
                 x.u.FirstName,
-                x.u.LastName
+                x.u.LastName,
             })
             .ToListAsync();
 
         // Map to entity
         var items = rows.Select(r => new Listing
-        {
-            ListingId = r.ListingId,
-            SellerId = r.SellerId,
-            Title = r.Title,
-            Description = r.Description,
-            Price = r.Price,
-            Condition = r.Condition,
-            ListingType = r.ListingType,
-            ListingStatus = r.ListingStatus,
-            CourseId = r.CourseId,
-            Isbn = r.Isbn,
-            Author = r.Author,
-            Edition = r.Edition,
-            isBundle = r.isBundle,
-            ViewCount = r.ViewCount,
-            CreatedAt = r.CreatedAt,
-            UpdatedAt = r.UpdatedAt,
-            Seller = new SellerInfo(r.SellerUserId, r.FirstName, r.LastName)
-        }).ToList();
+            {
+                ListingId = r.ListingId,
+                SellerId = r.SellerId,
+                Title = r.Title,
+                Description = r.Description,
+                Price = r.Price,
+                Condition = r.Condition,
+                ListingType = r.ListingType,
+                ListingStatus = r.ListingStatus,
+                CourseId = r.CourseId,
+                Isbn = r.Isbn,
+                Author = r.Author,
+                Edition = r.Edition,
+                isBundle = r.isBundle,
+                ViewCount = r.ViewCount,
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                Seller = new SellerInfo(r.SellerUserId, r.FirstName, r.LastName),
+            })
+            .ToList();
 
         var listingIds = items.Select(l => l.ListingId).ToList();
-        var images = await _db.ListingImages
-            .AsNoTracking()
+        var images = await _db
+            .ListingImages.AsNoTracking()
             .Where(i => listingIds.Contains(i.ListingId))
-            .Select( i => new ListingImage
+            .Select(i => new ListingImage
             {
                 ImageId = i.ImageId,
                 ListingId = i.ListingId,
                 ContentType = i.ContentType,
-                FileSize= i.FileSize,
+                FileSize = i.FileSize,
                 IsPrimary = i.IsPrimary,
-                UploadedAt = i.UploadedAt
+                UploadedAt = i.UploadedAt,
             })
             .ToListAsync();
 
@@ -194,6 +200,12 @@ public class ListingRepository : IListingRepository
         _db.Listings.Add(listings);
         await _db.SaveChangesAsync();
     }
+
+    public async Task SaveAsync()
+    {
+        await _db.SaveChangesAsync();
+    }
+
     public async Task UpdateAsync(Listing listings, Guid id)
     {
         listings.ListingId = id;
@@ -210,6 +222,4 @@ public class ListingRepository : IListingRepository
             await _db.SaveChangesAsync();
         }
     }
-
-
 }
