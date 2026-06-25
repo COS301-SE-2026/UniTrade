@@ -29,6 +29,12 @@ export interface MeResponse {
   }
 }
 
+export interface University {
+  universityId: string;
+  name: string;
+  emailDomain: string;
+}
+
 export const authService = {
   register: async (payload: RegisterPayload): Promise<void> => {
     const res = await fetch(`${BASE_URL}/auth/register`, {
