@@ -99,9 +99,9 @@ public class ListingService : IListingService
 
         // updates to images
 
-        if (listings.RemovedImagesIds is { Count: > 0 })
+        if (listings.RemovedImageIds is { Count: > 0 })
         {
-            foreach (var imageId in listings.RemovedImagesIds)
+            foreach (var imageId in listings.RemovedImageIds)
             {
                 await _images.DeleteAsync(imageId, ct);
             }
