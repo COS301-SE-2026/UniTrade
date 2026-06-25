@@ -44,7 +44,7 @@ const EditListing: React.FC = () => {
     { imageId: number; url: string }[]
   >([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newFiles] = useState<File[]>([]);// set new files
   const removeExisting = (imageId: number) => {
     setRemovedImageIds((prev) => [...prev, imageId]);
     setExistingImages((prev) => prev.filter((img) => img.imageId !== imageId));
