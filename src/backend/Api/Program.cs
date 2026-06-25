@@ -76,6 +76,20 @@ builder.Services.AddRateLimiter(options =>
             )
     );
 
+    options.AddPolicy(
+        "resend-otp",
+        httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(15),
+                    QueueLimit = 0,
+                }
+            )
+    );
+
     options.RejectionStatusCode = 429;
 });
 
