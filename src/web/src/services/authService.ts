@@ -29,7 +29,7 @@ export interface MeResponse {
   }
 }
 
-export interface University {
+export interface University { //defines the exact shape of the university data coming back for backend
   universityId: string;
   name: string;
   emailDomain: string;
@@ -104,5 +104,19 @@ export const authService = {
       method: 'POST',
       credentials: 'include',
     })
+  },
+
+  getUniversities: async(): Promise<University[]> => {
+    const res = await fetch(`&{Base_URL}/universities`, {
+      method: 'GET',
+      headers: { 'Contet-Type': 'application/json'},
+      credentials: 'include'
+    });
+    if (!res.ok){
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to load Universities');
+    }
+    const json = await res.json();
+    return json.data || [];
   },
 }
