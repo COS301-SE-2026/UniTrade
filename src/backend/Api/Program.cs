@@ -30,6 +30,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+//rate limiters
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy(
@@ -55,6 +57,20 @@ builder.Services.AddRateLimiter(options =>
                 {
                     PermitLimit = 10,
                     Window = TimeSpan.FromMinutes(15),
+                    QueueLimit = 0,
+                }
+            )
+    );
+
+    options.AddPolicy(
+        "verify-otp",
+        httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }
             )
