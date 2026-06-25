@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface RegisterPayload {
   firstName: string
@@ -107,9 +107,10 @@ export const authService = {
   },
 
   getUniversities: async(): Promise<University[]> => {
-    const res = await fetch(`&{Base_URL}/universities`, {
+    
+    const res = await fetch(`${BASE_URL}/universities`, {
       method: 'GET',
-      headers: { 'Contet-Type': 'application/json'},
+      //headers: { 'Content-Type': 'application/json'},
       credentials: 'include'
     });
     if (!res.ok){
@@ -119,4 +120,5 @@ export const authService = {
     const json = await res.json();
     return json.data || [];
   },
+
 }
