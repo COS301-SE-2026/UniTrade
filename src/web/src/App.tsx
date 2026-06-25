@@ -36,6 +36,7 @@ export default function App() {
           setUser({
             id: u.userId,
             name: u.firstName,
+            initials: `${u.firstName?.[0]?? ""}${u.lastName?.[0]?? ""}`,
             role: u.userRole,
           });
         }

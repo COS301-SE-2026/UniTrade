@@ -6,6 +6,7 @@ export type ViewMode = 'buyer' | 'seller'
 interface User {
   id: string
   name: string
+  initials: string
   role: UserRole
 }
 
