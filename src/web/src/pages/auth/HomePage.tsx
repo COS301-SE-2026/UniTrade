@@ -149,7 +149,7 @@ function Navbar() {
 
 function Firstpage() {
   return (
-    <div className="min-h-screen bg-navy-700 pt-16 pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-navy-700 pt-16 pb-10 relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-6 text-center">
         <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6 ml-auto mt-1">
         <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
