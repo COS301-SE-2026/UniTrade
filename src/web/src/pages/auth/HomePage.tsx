@@ -13,19 +13,19 @@ import { useState } from 'react';
 import logo from "../../assets/logo.jpeg"
 import { useNavigate } from 'react-router-dom';
 
-/*interface StatProps {
+interface StatProps {
   number: string;
   label: string;
-}*/
+}
 
-/*function Stat({ number, label }: StatProps) {
+function Stat({ number, label }: StatProps) {
   return (
     <div className="text-center">
-      <p className="text-4xl font-bold text-white">{number}</p>
-      <p className="text-sm text-blue-200 mt-1">{label}</p>
+      <p className="text-2xl font-bold text-white mx-5">{number}</p>
+      <p className="text-sm text-gray-400 mt-1 mx-5 whitespace-nowrap">{label}</p>
     </div>
   );
-}*/
+}
 
 /*interface ProblemCardProps {
   icon: React.ReactNode;
@@ -126,10 +126,39 @@ function Navbar() {
   )
 }
 
+function Firstpage() {
+  return (
+    <div className="bg-navy-700 pt-16 pb-20 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto px-6 text-center">
+        <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6 ml-auto mt-1">
+        <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
+        MADE FOR SA UNIVERSITY STUDENTS
+        </div>
+        <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto max-w-100">
+          Buy and sell University materials <span className="text-blue-400">on your campus</span>
+        </h1>
+       
+       <p className="mt-6 text-al text-gray-400 max-w-2xl mx-auto">
+        UniTrade is the verified peer-to-peer marketplace for South African students.
+        No shipping, no strangers - just your campus community.
+       </p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto">
+        <Stat number="5+" label="SA UNIVERSITIES" />
+        <Stat number="100%" label="VERIFIED STUDENTS" />
+        <Stat number="0" label="SHIPPING FEES" />
+      </div>
+    </div>
+  )
+}
+
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
       <Navbar />
+      <Firstpage />
     </div>
   )
 }
