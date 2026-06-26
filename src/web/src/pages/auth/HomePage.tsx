@@ -42,3 +42,21 @@ function ProblemCard({ icon, title, description }: ProblemCardProps){
     </div>
   );
 }
+
+interface SolutionCardProps {
+  icon: React.ReactNode;
+  title: string,
+  description: string;
+}
+
+function SolutionCard({ icon, title, description }: SolutionCardProps) {
+  return (
+    <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
+      <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+        {icon}
+      </div>
+      <h3 className="font-semibold text-navy-700 dark:text-white mb-2">{title}</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{description}</p>
+    </div>
+  );
+}
