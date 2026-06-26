@@ -1,5 +1,5 @@
 import { useState } from 'react';
-/*import {
+import {
   IconShield,
   IconUsers,
   IconMapPin,
@@ -7,9 +7,9 @@ import { useState } from 'react';
   IconRobot,
   IconPackage,
   IconStar,
-  IconArrowRight,
-  IconCheck,
-} from '@tabler/icons-react'*/
+  //IconArrowRight,
+  //IconCheck,
+} from '@tabler/icons-react'
 import logo from "../../assets/logo.jpeg"
 import { useNavigate } from 'react-router-dom';
 
@@ -27,31 +27,31 @@ function Stat({ number, label }: StatProps) {
   );
 }
 
-/*interface ProblemCardProps {
+interface ProblemCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-}*/
+}
 
-/*function ProblemCard({ icon, title, description }: ProblemCardProps) {
+function ProblemCard({ icon, title, description }: ProblemCardProps) {
   return (
-    <div className="bg-white/90 dark:bg-navy-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-white/10">
-      <div className="w-12 h-12 bg-blue-100 dark:bg-navy-700 rounded-xl flex items-center justify-center mb-4">
+    <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
+      <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white text-lg mb-2">{title}</h3>
       <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{description}</p>
     </div>
   );
-}*/
+}
 
-/*interface SolutionCardProps {
+interface SolutionCardProps {
   icon: React.ReactNode;
   title: string,
   description: string;
-}*/
+}
 
-/*function SolutionCard({ icon, title, description }: SolutionCardProps) {
+function SolutionCard({ icon, title, description }: SolutionCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
       <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -61,7 +61,7 @@ function Stat({ number, label }: StatProps) {
       <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{description}</p>
     </div>
   );
-}*/
+}
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -128,7 +128,7 @@ function Navbar() {
 
 function Firstpage() {
   return (
-    <div className="bg-navy-700 pt-16 pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-navy-700 pt-16 pb-20 relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-6 text-center">
         <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6 ml-auto mt-1">
         <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
@@ -153,12 +153,98 @@ function Firstpage() {
   )
 }
 
+function Theproblem() {
+  return (
+    <div id="problem" className="bg-gray-100 mx-auto px-6 py-20">
+      <div className="max-w-7xl mx-auto px-6">
+      <div className="text-center mb-12">
+        <span className="uppercase text-s tracking-widest font-mono text-red-500">THE PROBLEM</span>
+        <h2 className="text-3xl font-bold text-navy-700 dark:text-white mt-3">
+          Common marketplaces fail university students
+        </h2>
+        <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Existing sites and platforms are built for anyone and everyone, making them not suitable for students.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ProblemCard
+         icon={<IconShield size={28} className="text-red-600" />}
+         title="Safety concerns"
+         description="Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms."/>
+
+         <ProblemCard
+         icon={<IconUsers size={28} className="text-amber-600" />}
+         title="Lack of accountability"
+         description="Anonymous sellers can disappear after a bad transaction. There is no community to hold people accountable."/>
+
+         <ProblemCard
+         icon={<IconMapPin size={28} className="text-blue-600" />}
+         title="Inconvenience meetup locations"
+         description="Coordinating with people across a city or country is time consuming. Students need a marketplace that works within their daily campus routine."/>
+      </div>
+
+      </div>
+    </div>
+  )
+}
+
+function Thesolution() {
+  return (
+    <div id="solution" className="bg-white dark:bg-navy-950 py-20">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
+          <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">
+            Everything a student markerplace needs
+          </h2>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">Built specifically for SA campus life</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+           <SolutionCard
+            icon={<IconUsers size={26} />}
+            title="Verified students only"
+            description="Every use is verified against their university student email. No outsiders, no scammers - just you campus community."
+            />
+            <SolutionCard
+            icon={<IconMapPin size={26} />}
+            title="Meet on campus"
+            description="Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS."
+            />
+            <SolutionCard
+            icon={<IconLock size={26} />}
+            title="Secure payments via OZOW"
+            description="Pay instantly via OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation."
+            />
+            <SolutionCard
+            icon={<IconRobot size={26} />}
+            title="AI listing verification"
+            description="Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them."
+            />
+            <SolutionCard
+            icon={<IconPackage size={26} />}
+            title="Bundle packs"
+            description="First year? Reserve a full set of textbooks from one seller is a single transaction. No need to meet 10 different people."
+            />
+            <SolutionCard
+            icon={<IconStar size={26} />}
+            title="Trust and reputation"
+            description="Every buyer and seller builds a reputation score from real transactions. See ratings and reviews before you commit."
+            />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
       <Navbar />
       <Firstpage />
+      <Theproblem />
+      <Thesolution />
     </div>
   )
 }
