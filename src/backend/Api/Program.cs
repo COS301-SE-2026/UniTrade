@@ -1,31 +1,30 @@
+using System.Text;
+using System.Threading.RateLimiting;
 using Api.Middleware;
 using dotenv.net;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.Repositories.Listings;
+using Infrastructure.Storage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
-using Modules.Notifications;
-using Modules.ReferenceData.University;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Http.Json;
 using Modules.Listings;
 using Modules.Listings.Repositories;
-using Infrastructure.Persistence.Repositories.Listings;
-using Infrastructure.Storage;
+using Modules.Notifications;
+using Modules.ReferenceData.University;
 using Modules.SharedKernel;
-
-
-
-
-DotEnv.Load(options: new DotEnvOptions(
-    envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
-));
+using Infrastructure.Persistence.Repositories.ListingImages;
+DotEnv.Load(
+    options: new DotEnvOptions(
+        envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
+    )
+);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,32 +32,43 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddPolicy("register", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromHours(1),
-                QueueLimit = 0
-            }));
+    options.AddPolicy(
+        "register",
+        httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromHours(1),
+                    QueueLimit = 0,
+                }
+            )
+    );
 
-    options.AddPolicy("login", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(15),
-                QueueLimit = 0
-            }));
+    options.AddPolicy(
+        "login",
+        httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(15),
+                    QueueLimit = 0,
+                }
+            )
+    );
 
     options.RejectionStatusCode = 429;
 });
 
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration["ConnectionStrings:Connection"]);
+    options
+        .UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"])
+        .UseSnakeCaseNamingConvention();
 });
 
 builder.Services.Configure<JsonOptions>(options =>
@@ -70,13 +80,17 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
-    {
-        policy.WithOrigins("http://localhost:3001")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+    options.AddPolicy(
+        "AllowReactApp",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:3000", "http://localhost:8080")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -90,50 +104,53 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
-builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
+builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 
-var jwtSecret = builder.Configuration["Jwt:Secret"]
+var jwtSecret =
+    builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder
+    .Services.AddAuthentication(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateLifetime = true,
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateLifetime = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+        };
 
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = ctx =>
+        options.Events = new JwtBearerEvents
         {
-            var token = ctx.Request.Cookies["authToken"];
-            ctx.Token = token;
-            return Task.CompletedTask;
-        },
-        OnAuthenticationFailed = ctx =>
-        {
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = ctx =>
-        {
-            return Task.CompletedTask;
-        },
-        OnChallenge = ctx =>
-        {
-            return Task.CompletedTask;
-        }
-    };
-});
+            OnMessageReceived = ctx =>
+            {
+                var token = ctx.Request.Cookies["authToken"];
+                ctx.Token = token;
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = ctx =>
+            {
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = ctx =>
+            {
+                return Task.CompletedTask;
+            },
+            OnChallenge = ctx =>
+            {
+                return Task.CompletedTask;
+            },
+        };
+    });
 
 var app = builder.Build();
 
@@ -148,7 +165,10 @@ else
 }
 
 app.UseForwardedHeaders();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseRouting();
 app.UseCors("AllowReactApp");
 app.UseRateLimiter();
@@ -158,4 +178,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
