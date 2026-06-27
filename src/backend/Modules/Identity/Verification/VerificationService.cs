@@ -150,6 +150,11 @@ public class VerificationService : IVerificationService
 
         }
 
+        if((record.TotalAttemptCount?? 0) >= MAX_TOTAL_ATTEMPTS || record.IsLocked)
+        {
+            throw new Exception("resend_limit_exceeded");
+        }
+
         if ((record.OtpResendCount ?? 0) >= MAX_RESENDS)
         {
             throw new Exception("resend_limit_exceeded");
