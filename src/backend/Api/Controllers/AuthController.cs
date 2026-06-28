@@ -57,6 +57,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("verify-otp")]
+    [EnableRateLimiting("verify-otp")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
     {
         try
@@ -87,6 +88,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("resend-otp")]
+    [EnableRateLimiting("resend-otp")]
     public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
     {
         try
