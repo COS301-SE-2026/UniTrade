@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface RegisterPayload {
   firstName: string
@@ -27,6 +27,12 @@ export interface MeResponse {
   std: {
     verificationStatus: string
   }
+}
+
+export interface University { //defines the exact shape of the university data coming back for backend
+  universityId: string;
+  name: string;
+  emailDomain: string;
 }
 
 export const authService = {
@@ -99,4 +105,20 @@ export const authService = {
       credentials: 'include',
     })
   },
+
+  getUniversities: async(): Promise<University[]> => {
+    
+    const res = await fetch(`${BASE_URL}/universities`, {
+      method: 'GET',
+      //headers: { 'Content-Type': 'application/json'},
+      credentials: 'include'
+    });
+    if (!res.ok){
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to load Universities');
+    }
+    const json = await res.json();
+    return json.data || [];
+  },
+
 }

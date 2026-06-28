@@ -38,7 +38,7 @@ obj/
 #Coverage 
 TestResults/
 CoverageReport/
-
+coveragereport/
 
 
 #Helper scripts 
