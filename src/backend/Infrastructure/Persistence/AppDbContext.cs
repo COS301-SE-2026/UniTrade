@@ -194,7 +194,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AttemptNumber).HasDefaultValue(0);
             entity.Property(x => x.TotalAttemptCount).HasDefaultValue(0);
             entity.Property(x => x.LastAttemptAt);
-            entity.Property(x => x.ResendCount).HasDefaultValue(0);
+            entity.Property(x => x.OtpResendCount).HasDefaultValue(0);
 
             entity
                 .HasOne<User>()
