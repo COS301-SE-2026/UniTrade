@@ -136,7 +136,7 @@ export default function OTPVerification() {
               <div className="flex items-center space-x-1">
                 <span className="text-gray-500 dark:text-white/50">Remaining Time:</span>
                 <span className="text-[#00aaff] font-semibold">
-                  00:{String(timeLeft).padStart(2, '0')}s
+                  {timeLeft >= 60 ? '01:00' : `00:${String(timeLeft).padStart(2, '0')}`}s
                 </span>
               </div>
               <div className="flex flex-col items-end">
