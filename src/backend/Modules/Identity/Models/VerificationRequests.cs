@@ -7,7 +7,7 @@ public class VerificationRequest
 
     public int AttemptNumber { get; set; } = 0;
     public int? TotalAttemptCount { get; set; } = 0;
-    public DateTime? LastAttemptAt { get; set; } = 0;
+    public DateTime? LastAttemptAt { get; set; }
 
     public bool IsCurrent { get; set; } = true;
 
