@@ -12,6 +12,7 @@
      <PrivateAssets>all</PrivateAssets>
    </PackageReference>
    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
+   <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
    <PackageReference Include="Moq" Version="4.20.72" />
    <PackageReference Include="Testcontainers.MsSql" Version="4.11.0" />
@@ -23,6 +24,7 @@
  </ItemGroup>
 
 <ItemGroup>
+
 <ProjectReference Include="../Api/Api.csproj" />
 <ProjectReference Include="../Modules/Modules.csproj" />
 <ProjectReference Include="../Infrastructure/Infrastructure.csproj" />
