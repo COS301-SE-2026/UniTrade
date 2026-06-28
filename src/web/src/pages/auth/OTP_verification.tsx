@@ -14,8 +14,8 @@ export default function OTPVerification() {
   const navigate = useNavigate()
   const { isDark, toggle } = useThemeStore()
   const { pendingEmail, clearPendingEmail } = useAuthStore()
-  const [otp, setOtp] = useState(['', '', '', ''])
-  const [timeLeft, setTimeLeft] = useState(59)
+  const [otp, setOtp] = useState(['', '', '', '','',''])
+  const [timeLeft, setTimeLeft] = useState(60)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const resendActive = timeLeft === 0
@@ -32,7 +32,7 @@ export default function OTPVerification() {
     const newOtp = [...otp]
     newOtp[index] = value.slice(-1)
     setOtp(newOtp)
-    if (value && index < 3) inputRefs.current[index + 1]?.focus()
+    if (value && index < 5) inputRefs.current[index + 1]?.focus()
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -43,19 +43,19 @@ export default function OTPVerification() {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
-    const newOtp = ['', '', '', '']
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    const newOtp = ['', '', '', '','','']
     pasted.split('').forEach((char, i) => { newOtp[i] = char })
     setOtp(newOtp)
-    inputRefs.current[Math.min(pasted.length, 3)]?.focus()
+    inputRefs.current[Math.min(pasted.length, 5)]?.focus()
   }
 
   const handleResend = async () => {
     if (!resendActive || !pendingEmail) return
     try {
       await authService.resendOtp(pendingEmail)
-      setTimeLeft(59)
-      setOtp(['', '', '', ''])
+      setTimeLeft(60)
+      setOtp(['', '', '', '','',''])
       setError(null)
       inputRefs.current[0]?.focus()
     } catch (err: unknown) {
@@ -65,7 +65,7 @@ export default function OTPVerification() {
   }
 
   const handleVerify = async () => {
-    if (otp.join('').length < 4 || !pendingEmail) return
+    if (otp.join('').length < 6 || !pendingEmail) return
     setLoading(true)
     setError(null)
     try {
@@ -75,7 +75,7 @@ export default function OTPVerification() {
     } catch (err: unknown) {
       const error = err as ApiError
       setError(getAuthErrorMessage(error.message))
-      setOtp(['', '', '', ''])
+      setOtp(['', '', '', '','',''])
       inputRefs.current[0]?.focus()
     } finally {
       setLoading(false)
@@ -110,7 +110,7 @@ export default function OTPVerification() {
               </div>
             )}
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-6 gap-3">
               {otp.map((digit, index) => (
                 <input
                   key={index}
