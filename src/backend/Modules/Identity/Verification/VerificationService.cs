@@ -6,6 +6,7 @@ using Modules.Notifications;
 using Modules.Identity.Repositories;
 namespace Modules.Identity.Verification;
 
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 
 public class VerificationService : IVerificationService
@@ -85,34 +86,47 @@ public class VerificationService : IVerificationService
             throw new Exception("already_verified");
         }
 
+
+        if (record.AttemptNumber >= MAX_ATTEMPTS)
+        {
+            throw new Exception("otp_invalidated_resend_required");
+        }
         if (record.OtpExpiresAt < DateTime.UtcNow)
         {
             throw new Exception("otp_expired");
         }
-        if (record.AttemptNumber >= MAX_ATTEMPTS)
-        {
-            record.Status = "rejected";
-            await _verifications.UpdateAsync(record);
-            throw new Exception("max_attempts_exceeded");
-
-        }
 
         var hash = HashOtp(otp);
         var hashBytes = Convert.FromBase64String(hash);
-        var storedBytes= Convert.FromBase64String(record.OtpCodeHash);
+        var storedBytes = Convert.FromBase64String(record.OtpCodeHash);
 
-        if (!CryptographicOperations.FixedTimeEquals(hashBytes,storedBytes))
+        if (!CryptographicOperations.FixedTimeEquals(hashBytes, storedBytes))
         {
+            // instead of locking the account, exponential delay is applied
+            var requiredDelay = ComputeDelay(record.TotalAttemptCount ?? 0);
+
+            if (record.LastAttempt != null)
+            {
+                var elapsed = DateTime.UtcNow - record.LastAttempt.Value;
+                if (elapsed < requiredDelay)
+                {
+                    // if a user tries too soon since the last failure occurred, we reject it without counting it 
+                    // as a new attempt
+                    var waitSeconds = (int)(requiredDelay - elapsed).TotalSeconds;
+                    throw new Exception($"too_many_attempts:{waitSeconds}");
+                }
+            }
+            //but a guess genuinely cleared the delay window is counted
             record.AttemptNumber++;
+            record.TotalAttemptCount = (CertificateRevocationListBuilder.TotalAttemoCount ?? 0) + 1;
+            record.LastAttempt = DateTime.UtcNow;
+            await _verifications.UpdateAsync(record);
 
             if (record.AttemptNumber >= MAX_ATTEMPTS)
             {
-                record.Status = "rejected";
-                await _verifications.UpdateAsync(record);
-                throw new Exception("max_attempts_exceeded");
+                throw new Exception("otp_invalidated_resend_required");
             }
 
-            await _verifications.UpdateAsync(record);
             throw new Exception("invalid_otp");
 
         }
@@ -127,7 +141,6 @@ public class VerificationService : IVerificationService
             User.StudentProfile.VerificationStatus = "verified";
             await _users.UpdateAsync(User);
             await _notifications.SendWelcomeEmailAsync(User.Email, User.FirstName);
-
 
         }
         return true;
@@ -150,17 +163,10 @@ public class VerificationService : IVerificationService
 
         }
 
-        if((record.TotalAttemptCount?? 0) >= MAX_TOTAL_ATTEMPTS || record.IsLocked)
+        if ((record.TotalAttemptCount ?? 0) >= MAX_TOTAL_ATTEMPTS || record.IsLocked)
         {
             throw new Exception("resend_limit_exceeded");
         }
-
-        if ((record.OtpResendCount ?? 0) >= MAX_RESENDS)
-        {
-            throw new Exception("resend_limit_exceeded");
-        }
-
-
         if (record.OtpSentAt != null &&
         (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < RESEND_COOLDOWN_SECONDS)
             throw new Exception("cooldown_active");
@@ -183,8 +189,8 @@ public class VerificationService : IVerificationService
 
     private static string GenerateOtp()
     {
-        var bytes = RandomNumberGenerator.GetInt32(100000,999999).ToString();
-        
+        var bytes = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
         return bytes;
     }
 
@@ -195,5 +201,13 @@ public class VerificationService : IVerificationService
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));
         return Convert.ToBase64String(hash);
+    }
+
+    private static TimeSpan ComputeDelay(int count)
+    {
+        // the delay grows exponentially till the 15 minute bound 
+        if (count == 0) return TimeSpan.Zero;
+        var seconds = Math.Min(Math.Pow(2, count), 900);
+        return TimeSpan.FromSeconds(seconds);
     }
 }
