@@ -27,8 +27,8 @@ public class AcsEmailService : INotificationsService
 
     public async Task SendOtpEmailAsync(string email, string otp)
     {
-        subject = "Your UniTrade Verification Code";
-        html = $"""
+        var subject = "Your UniTrade Verification Code";
+        var html = $"""
                 <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
                     <h2 style="color: rgb(26, 26, 26);">Verify your UniTrade account</h2>
                     <p style="color: #444;">Use the code below to complete your registration. It expires in <strong>5 minutes</strong>.</p>
@@ -40,7 +40,7 @@ public class AcsEmailService : INotificationsService
                     <p style="color: #888; font-size: 13px;">If you didn't create a UniTrade account, you can safely ignore this email.</p>
                 </div>
             """;
-        await SendOtpEmailAsync(email, subject, html);
+        await SendAsync(email, subject, html);
     }
 
     public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
@@ -54,8 +54,8 @@ public class AcsEmailService : INotificationsService
         try
         {
             EmailSendOperation operation = await _emailClient.SendAsync(
-                WaitCallback: WaitUntil.Completed,
-                _senderAddress: senderAddress,
+                wait: WaitUntil.Completed,
+                senderAddress: _senderAddress,
                 recipientAddress: recipient,
                 subject: subject,
                 htmlContent: html
@@ -73,12 +73,7 @@ public class AcsEmailService : INotificationsService
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(
-                ex,
-                "Email to {Recipient} ended in a non-success status {Status}",
-                recipient,
-                operation.Value.Status
-            );
+            _logger.LogError(ex, "Email to {Recipient} failed to send", recipient);
             throw new Exception("email_send_failed");
         }
     }

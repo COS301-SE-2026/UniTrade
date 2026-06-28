@@ -20,6 +20,8 @@ using Modules.Notifications;
 using Modules.ReferenceData.University;
 using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
+using Azure.Communication.Email;
+
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -131,12 +133,13 @@ builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
-builder.Services.AddHttpClient<INotificationsService, ResendEmailService>();
+builder.Services.AddHttpClient<INotificationsService, AcsEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
 builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 
+builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"]));
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
