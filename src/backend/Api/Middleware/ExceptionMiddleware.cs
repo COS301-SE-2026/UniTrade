@@ -20,7 +20,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private  async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var response = context.Response;
         response.ContentType = "application/json";
@@ -30,13 +30,13 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         if (exceptionMessage.StartsWith("too_many_attempts:", StringComparison.Ordinal))
         {
             var parts = exceptionMessage.Split(':');
-            if (parts == 2 && int.TryParse(parts[1], out var secs))
+            if (parts.Length == 2 && int.TryParse(parts[1], out var secs))
             {
                 retryAfter = secs;
             }
             exceptionMessage = "too_many_attempts";
         }
-        var (statusCode, message) = exceptionMessage switch
+        var (statusCode, error) = exceptionMessage switch
         {
             // for registration and login
             "email_taken" => (HttpStatusCode.Conflict, "email_taken"),
@@ -74,12 +74,12 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
 
         if (statusCode == HttpStatusCode.InternalServerError)
         {
-            _logger.LogError(exception, "Unhandled exception: ", exception.Message);
+            _logger.LogError(exception, "Unhandled exception: {Message}", exception.Message);
         }
         response.StatusCode = (int)statusCode;
 
         var result = JsonSerializer.Serialize(
-            new { error = ErrorEventArgs, retry_after_seconds = retryAfter }
+            new { error = error, retry_after_seconds = retryAfter }
         );
 
         await response.WriteAsync(result);
