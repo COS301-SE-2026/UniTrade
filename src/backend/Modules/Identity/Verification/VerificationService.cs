@@ -105,9 +105,9 @@ public class VerificationService : IVerificationService
             // instead of locking the account, exponential delay is applied
             var requiredDelay = ComputeDelay(record.TotalAttemptCount ?? 0);
 
-            if (record.LastAttempt != null)
+            if (record.LastAttemptAt != null)
             {
-                var elapsed = DateTime.UtcNow - record.LastAttempt.Value;
+                var elapsed = DateTime.UtcNow - record.LastAttemptAt.Value;
                 if (elapsed < requiredDelay)
                 {
                     // if a user tries too soon since the last failure occurred, we reject it without counting it 
@@ -118,8 +118,8 @@ public class VerificationService : IVerificationService
             }
             //but a guess genuinely cleared the delay window is counted
             record.AttemptNumber++;
-            record.TotalAttemptCount = (CertificateRevocationListBuilder.TotalAttemoCount ?? 0) + 1;
-            record.LastAttempt = DateTime.UtcNow;
+            record.TotalAttemptCount = (record.TotalAttemptCount ?? 0) + 1;
+            record.LastAttemptAt = DateTime.UtcNow;
             await _verifications.UpdateAsync(record);
 
             if (record.AttemptNumber >= MAX_ATTEMPTS)
@@ -161,11 +161,6 @@ public class VerificationService : IVerificationService
         {
             throw new Exception("already_verified");
 
-        }
-
-        if ((record.TotalAttemptCount ?? 0) >= MAX_TOTAL_ATTEMPTS || record.IsLocked)
-        {
-            throw new Exception("resend_limit_exceeded");
         }
         if (record.OtpSentAt != null &&
         (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < RESEND_COOLDOWN_SECONDS)
