@@ -179,8 +179,6 @@ public class AppDbContext : DbContext
 
             entity.HasKey(x => x.VerificationId);
 
-            entity.HasIndex(x => new { x.UserId, x.AttemptNumber }).IsUnique();
-
             entity.Property(x => x.UserId);
 
             entity.Property(x => x.AiConfidenceScore).HasPrecision(5, 2);
@@ -192,6 +190,11 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AdminDecision).HasMaxLength(20);
 
             entity.Property(x => x.OtpCodeHash).HasMaxLength(255);
+
+            entity.Property(x => x.AttemptNumber).HasDefaultValue(0);
+            entity.Property(x => x.TotalAttemptCount).HasDefaultValue(0);
+            entity.Property(x => x.LastAttemptAt);
+            entity.Property(x => x.ResendCount).HasDefaultValue(0);
 
             entity
                 .HasOne<User>()
