@@ -49,8 +49,8 @@ services:
       ConnectionStrings__MigrationsConnection: "Host=db;Port=5432;Database=${DB_NAME};Username=${POSTGRES_USER_ID};Password=${POSTGRES_PASSWORD}"
       Jwt__Secret: ${Jwt__Secret}
       Otp__Secret: ${Otp__Secret}
-      Resend__ApiKey: ${Resend__ApiKey}
-      Resend__FromEmail: ${Resend__FromEmail}
+      Acs__SenderAddress: ${Acs__SenderAddress}
+      Acs__ConnectionString: ${Acs__ConnectionString}
     depends_on:
      db: 
        condition: service_healthy
