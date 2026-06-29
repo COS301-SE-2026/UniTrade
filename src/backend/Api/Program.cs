@@ -21,6 +21,7 @@ using Modules.ReferenceData.University;
 using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Azure.Communication.Email;
+using Modules.ReferenceData;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -132,6 +133,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
+builder.Services.AddScoped<IUniversityService,UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<INotificationsService, AcsEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
