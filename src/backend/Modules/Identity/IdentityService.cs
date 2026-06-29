@@ -45,7 +45,9 @@ public class IdentityService : IIdentityService
             throw new Exception("invalid_email");
         }
 
-        var normalisedEmail = dto.Email.Trim().ToLowerInvariant();
+        var normalisedEmail = NormaliseEmail(dto.Email.Trim().ToLowerInvariant());
+
+        normalisedEmail=normalisedEmail.Replace("\u3002",".").Replace("\uff0e",".").Replace("\uff61",".");
 
         var emailParts = normalisedEmail.Split('@');
 
@@ -146,16 +148,71 @@ public class IdentityService : IIdentityService
         {
             return false;
         }
+
+        email=NormaliseEmail(email);
+
         try
         {
-            var address = new MailAddress(email);
-            var parts = email.Split('@');
-            return address.Address == email.Trim() && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]);
+            var address = new System.Net.Mail.MailAddress(email);
+            
+            if(address.Address!=email.Trim())
+            {
+                return false;
+            }
         }
         catch
         {
             return false;
         }
+
+        var parts=email.Split('@');
+         if(parts.Length!=2)
+         {
+            return false;
+         }
+
+         var local=parts[0];
+         var domain=parts[1];
+
+        if(string.IsNullOrWhiteSpace(local)|| string.IsNullOrWhiteSpace(domain))
+        {
+            return false;
+        }
+
+        if(System.Text.Encoding.UTF8.GetByteCount(local)>64)
+        {
+            return false;
+        }
+
+        if(System.Text.Encoding.UTF8.GetByteCount(domain)>255)
+        {
+            return false;
+        }
+
+        var labels=domain.Split('.');
+        if(labels.Last().All(char.IsDigit))
+        {
+            return false;
+        }
+
+        if(!local.StartsWith("\"")&& local.Contains(".."))
+        {
+            return false;
+        }
+
+        else{
+            return true;
+        }
+    }
+
+    public static string NormaliseEmail(string email)
+    {
+        email=email.Replace("\uff20","@");
+
+        //strip invisible chars
+        var ignore=new HashSet<char>{'\u00ad','\u200b','\u2060','\ufeff'};
+
+        return new string( email.Where(c=>!ignore.Contains(c)).ToArray());
     }
 
     //main method
