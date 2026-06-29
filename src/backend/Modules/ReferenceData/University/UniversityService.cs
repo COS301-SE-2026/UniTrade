@@ -1,6 +1,7 @@
-using Infrastructure.Persistence;
+using Modules.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Models.Dto;
+using Modules.ReferenceData.University;
 
 namespace Modules.ReferenceData;
 
