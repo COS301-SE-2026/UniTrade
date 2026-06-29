@@ -55,11 +55,9 @@ CREATE TABLE Admin_profiles(
 CREATE TABLE Verification_requests(
     verification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES Users(user_id),
-
     attempt_number INT NOT NULL DEFAULT 0,
     total_attempt_count INT NOT NULL DEFAULT 0,
     last_attempt_at TIMESTAMPTZ,
-
     is_current BOOLEAN NOT NULL DEFAULT TRUE,
     otp_code_hash VARCHAR(255),
     otp_verified_at TIMESTAMPTZ,
@@ -91,6 +89,7 @@ CREATE TABLE Verification_requests(
 CREATE TABLE Listings (
     listing_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     seller_id UUID NOT NULL,
+    category_id INT NOT NULL,
     title VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
     price NUMERIC(10, 2) NOT NULL CONSTRAINT chk_listing_price CHECK (price > 0),
@@ -98,7 +97,7 @@ CREATE TABLE Listings (
         condition IN ('new', 'good', 'fair', 'poor')
     ),
     course_id INT NULL,
-   
+    metadata JSONB NULL,
     listing_status VARCHAR(20) NOT NULL CONSTRAINT chk_listing_status CHECK (
         listing_status IN (
             'draft',
@@ -119,10 +118,40 @@ CREATE TABLE Listings (
     view_count INT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    
+    CONSTRAINT fk_listings_category FOREIGN KEY (category_id) REFERENCES Listing_category(category_id),
     CONSTRAINT fk_listings_users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
     CONSTRAINT fk_listings_course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
 );
+
+-- 7.1 Listing category
+CREATE TABLE Listing_category(
+    category_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    root_category_id INT NULL REFERENCES Listing_category(category_id),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- 7.2 Book details
+CREATE TABLE Book_details(
+    listing_id UUID PRIMARY KEY,
+    isbn VARCHAR(13) NULL CONSTRAINT chk_isbn_validity CHECK (
+        isbn IS NULL
+        OR length(isbn) IN (10, 13)
+    ),
+    author VARCHAR(120) NULL,
+    edition VARCHAR(50) NULL,
+    CONSTRAINT fk_book_details_listing FOREIGN KEY (listing_id) REFERENCES Listings(listing_id) ON DELETE CASCADE
+);
+
+INSERT INTO
+    Listing_category (name)
+VALUES
+    ('book'),
+    ('electronics'),
+    ('stationery'),
+    ('clothing'),
+    ('furniture'),
+    ('other');
 
 -- 8. Listing Images
 CREATE TABLE Listing_images(
