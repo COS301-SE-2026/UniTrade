@@ -20,6 +20,6 @@ public class UniversityRepository : IUniversityRepository
 
     public async Task<List<University>> GetActiveAsync()
     {
-        return await _context.Universities.Where(u=>u.Is_Active).ToListAsync();
+        return await _context.Universities.Where(u=>u.IsActive).ToListAsync();
     }
 }
