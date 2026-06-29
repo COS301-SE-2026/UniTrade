@@ -12,10 +12,11 @@ public class UniversityRepository : IUniversityRepository
     {
         _context = context;
     }
-    /*public async Task<University?> GetByDomainAsync(string domain)
+
+    public async Task<University?> GetByDomainAsync(string domain)
     {
         return await _context.Universities.FirstOrDefaultAsync(x => x.EmailDomain == domain);
-    }*/
+    }
 
     public async Task<List<University>> GetActiveAsync()
     {
