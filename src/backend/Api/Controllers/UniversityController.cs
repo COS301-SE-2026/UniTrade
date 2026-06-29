@@ -2,6 +2,7 @@ using Infrastructure.Persistence;
 using Modules.Identity.Models;
 using Microsoft.AspNetCore.Mvc;
 using Modules.ReferenceData;
+using Modules.ReferenceData.University;
 
 namespace Api.Controllers
 {
