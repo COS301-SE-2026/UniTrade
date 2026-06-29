@@ -19,10 +19,10 @@ public class UniversityService : IUniversityService
 
         return result.Select(u=>new University
         {
-            UniversityID=u.University_ID,
+            University_ID=u.UniversityID,
             Name=u.Name,
-            EmailDomain=u.Email_domain,
-            IsActive=u.Is_Active
+            Email_Domain=u.EmailDomain,
+            Is_Active=u.IsActive
         }).ToList();
     }
 
