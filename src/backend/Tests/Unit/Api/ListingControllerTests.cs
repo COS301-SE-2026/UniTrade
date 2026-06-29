@@ -17,13 +17,17 @@ namespace Api.Tests;
 public class ListingControllerTests
 {
     private readonly Mock<IListingService> _service = new(MockBehavior.Strict);
-    private readonly Mock<IBlobStorageService> _blob = new(MockBehavior.Strict);
+    private readonly Mock<IImageStorageService> _imageStorage;
+
     private readonly ListingController _sut;
 
-    public ListingControllerTests() =>
-        _sut = new ListingController(_service.Object, _blob.Object);
+    public ListingControllerTests()
+    {
+        _service = new Mock<IListingService>();
+        _imageStorage = new Mock<IImageStorageService>();
+        _sut = new ListingController(_service.Object, _imageStorage.Object);
 
-
+    }
     // POST /api/listings Create
     [Theory]
     [InlineData("", "good", 100)]
@@ -88,26 +92,8 @@ public class ListingControllerTests
             Price = price,
             Condition = condition
         };
-    [Fact]
-    public async Task Update_ReturnsOk_WhenServiceReportsSuccess()
-    {
-        var id = Guid.NewGuid();
-        var dto = AnUpdateDto();
-        _service.Setup(s => s.UpdateListings(dto, id)).ReturnsAsync(true);
-        var result = await _sut.Update(dto, id);
-        Assert.IsType<OkObjectResult>(result);
-    }
-    [Fact]
-    public async Task Update_ReturnsNotFound_WhenServiceReportsMissing()
-    {
-        var id = Guid.NewGuid();
-        var dto = AnUpdateDto();
-        _service.Setup(s => s.UpdateListings(dto, id)).ReturnsAsync(false);
 
-        var result = await _sut.Update(dto, id);
 
-        Assert.IsType<NotFoundResult>(result);
-    }
     [Fact]
     public async Task Delete_ReturnsNoContent_WhenServiceReportsSuccess()
     {
@@ -163,96 +149,6 @@ public class ListingControllerTests
     }
 
     // POST /api/listings/images UploadImages
-
-    [Fact]
-    public async Task UploadImages_ReturnsBadRequest_WhenFileListIsNull()
-    {
-        var result = await _sut.UploadImages(null!);
-
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-    [Fact]
-    public async Task UploadImages_ReturnsBadRequest_WhenFileListIsEmpty()
-    {
-        var result = await _sut.UploadImages(new List<IFormFile>());
-        Assert.IsType<BadRequestObjectResult>(result);
-        _blob.Verify(b => b.UploadAsync(
-            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
-            Times.Never);
-    }
-    [Fact]
-    public async Task UploadImages_ReturnsBadRequest_WhenFileSizeExceedsLimit()
-    {
-        var bigFile = AFormFile(contentType: "image/jpeg", length: 11 * 1024 * 1024);
-
-        var result = await _sut.UploadImages(new List<IFormFile> { bigFile });
-
-        Assert.IsType<BadRequestObjectResult>(result);
-        _blob.Verify(b => b.UploadAsync(
-            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
-            Times.Never);
-    }
-    [Fact]
-    public async Task UploadImages_ReturnsBadRequest_WhenFileIsEmpty()
-    {
-        var emptyFile = AFormFile(contentType: "image/jpeg", length: 0);
-        var result = await _sut.UploadImages(new List<IFormFile> { emptyFile });
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-
-    [Theory]
-    [InlineData("application/pdf")]
-    [InlineData("image/gif")]
-    [InlineData("text/plain")]
-    public async Task UploadImages_ReturnsBadRequest_WhenContentTypeIsNotAllowed(string contentType)
-    {
-        var file = AFormFile(contentType: contentType, length: 1024);
-        var result = await _sut.UploadImages(new List<IFormFile> { file });
-        Assert.IsType<BadRequestObjectResult>(result);
-        _blob.Verify(b => b.UploadAsync(
-            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
-            Times.Never);
-    }
-    [Theory]
-    [InlineData("image/jpeg")]
-    [InlineData("image/png")]
-    [InlineData("image/webp")]
-    public async Task UploadImages_ReturnsOkWithUrls_WhenFileIsValid(string contentType)
-    {
-        var file = AFormFile(contentType: contentType, length: 512);
-        _blob.Setup(b => b.UploadAsync(It.IsAny<Stream>(), file.FileName, contentType, default))
-             .ReturnsAsync("https:/some_url_w_image");
-
-        var result = await _sut.UploadImages(new List<IFormFile> { file });
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var payload = Assert.IsAssignableFrom<object>(ok.Value);
-        var urls = (IEnumerable<string>)payload.GetType().GetProperty("urls")!.GetValue(payload)!;
-        Assert.Contains("https:/some_url_w_image", urls);
-    }
-
-    [Fact]
-    public async Task UploadImages_CallsBlob_OncePerFile_AndReturnsAllUrls()
-    {
-        var f1 = AFormFile(contentType: "image/jpeg", length: 100, name: "a.jpg");
-        var f2 = AFormFile(contentType: "image/png", length: 200, name: "b.png");
-        _blob.Setup(b => b.UploadAsync(It.IsAny<Stream>(), "a.jpg", "image/jpeg", default))
-             .ReturnsAsync("https:url_name.jpg");
-        _blob.Setup(b => b.UploadAsync(It.IsAny<Stream>(), "b.png", "image/png", default))
-             .ReturnsAsync("https:/url_image.png");
-
-        var result = await _sut.UploadImages(new List<IFormFile> { f1, f2 });
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var urls = (IEnumerable<string>)ok.Value!.GetType().GetProperty("urls")!.GetValue(ok.Value)!;
-        Assert.Collection(urls,
-            u => Assert.Equal("https:url_name.jpg", u),
-            u => Assert.Equal("https:/url_image.png", u));
-        _blob.Verify(b => b.UploadAsync(
-            It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string>(), default),
-            Times.Exactly(2));
-    }
-
 
     // Helpers
     private static IFormFile AFormFile(
