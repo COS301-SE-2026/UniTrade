@@ -95,27 +95,10 @@ CREATE TABLE Listings (
     description TEXT NOT NULL,
     price NUMERIC(10, 2) NOT NULL CONSTRAINT chk_listing_price CHECK (price > 0),
     condition VARCHAR(5) NOT NULL CONSTRAINT chk_listing_condition CHECK(
-        condition IN ('new', 'od', 'fair', 'poor')
+        condition IN ('new', 'good', 'fair', 'poor')
     ),
-    listing_type VARCHAR(20) NOT NULL CONSTRAINT chk_listing_type CHECK (
-        listing_type IN (
-            'book',
-            'laptop',
-            'stationery',
-            'electronics',
-            'clothing',
-            'furniture',
-            'other'
-        )
-    ),
-    -- book-specific
     course_id INT NULL,
-    isbn VARCHAR(13) NULL CONSTRAINT chk_isbn_validity CHECK(
-        isbn IS NULL
-        OR LEN(isbn) IN (10, 13)
-    ),
-    author VARCHAR(120) NULL,
-    edition VARCHAR(50) NULL,
+   
     listing_status VARCHAR(20) NOT NULL CONSTRAINT chk_listing_status CHECK (
         listing_status IN (
             'draft',
@@ -136,15 +119,7 @@ CREATE TABLE Listings (
     view_count INT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT chk_listing_book_fields CHECK (
-        listing_type = 'book'
-        OR (
-            course_id IS NULL
-            AND isbn IS NULL
-            AND author IS NULL
-            AND edition IS NULL
-        )
-    ),
+    
     CONSTRAINT fk_listings_users FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
     CONSTRAINT fk_listings_course FOREIGN KEY (course_id) REFERENCES Course(course_id) ON DELETE NO ACTION
 );
