@@ -9,7 +9,7 @@ public class UniversityService : IUniversityService
 {
     private readonly IUniversityRepository _universities;
 
-    public UniversityService(UniversityRepository universities)
+    public UniversityService(IUniversityRepository universities)
     {
         _universities=universities;
     }
