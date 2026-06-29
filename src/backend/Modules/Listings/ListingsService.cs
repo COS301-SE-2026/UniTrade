@@ -93,7 +93,7 @@ public class ListingService : IListingService
 
         if(listingLookUp.SellerId!=callerId)
         {
-            throw new ForbiddenException("Only sellers can update listings");
+            throw new UnauthorizedAccessException("Only sellers can update listings");
         }
 
         listingLookUp.Title = listings.Title;
@@ -125,12 +125,12 @@ public class ListingService : IListingService
 
         if(listing.SellerId!=callerId)
         {
-            throw new ForbiddenException("Only sellers can delete listings");
+            throw new UnauthorizedAccessException("Only sellers can delete listings");
         }
 
         foreach(var image in listing.Images)
         {
-            await _images.DeleteAsync(image.ImageUrl);//this delet only has an interface???
+            await _images.DeleteAsync(image.ImageId);//this delet only has an interface???
         }
 
         await _listings.DeleteByIdAsync(id);

@@ -18,9 +18,9 @@ public class UniversityService : IUniversityService
     {
         var results=await _universities.GetActiveAsync();
 
-        return results.Select(u=>new University
+        return results.Select(u=>new Modules.Identity.Models.DTO.University
         {
-            University_ID=u.UniversityID,
+            University_ID=u.UniversityId,
             Name=u.Name,
             Email_domain=u.EmailDomain,
             Is_Active=u.IsActive
