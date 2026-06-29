@@ -21,6 +21,7 @@ using Modules.ReferenceData.University;
 using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Azure.Communication.Email;
+using Modules.ReferenceData;
 
 DotEnv.Load(
     options: new DotEnvOptions(
