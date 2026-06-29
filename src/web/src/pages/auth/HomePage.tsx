@@ -159,6 +159,7 @@ function WhatWeOffer() {
 }
 
 function Footer() {
+  const navigate = useNavigate();
   return (
     <footer className = "bg-white border-t border-gray-200 px-12 py-8">
       <div className = "grid grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
@@ -177,7 +178,12 @@ function Footer() {
           <div>
           <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">Support</p>
           <ul className="flex flex-col gap-1">
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Help Center</li>
+            <li
+               onClick={() => navigate('/help-center')}
+               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+               >
+                Help Center
+               </li>
             <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
             <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
           </ul>
