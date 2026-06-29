@@ -1,6 +1,5 @@
 //using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Modules.Identity.Models.Dto;
 using Modules.ReferenceData.University;
 
 namespace Modules.ReferenceData;
@@ -14,7 +13,7 @@ public class UniversityService : IUniversityService
         _universities=universities;
     }
 
-    public async Task<List<University>> GetActiveUniversitiesAsync()
+    public async Task<List<Modules.Identity.Models.Dto.University>> GetActiveUniversitiesAsync()
     {
         var results=await _universities.GetActiveAsync();
 
