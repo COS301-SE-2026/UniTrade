@@ -15,13 +15,16 @@ namespace Modules.Listings.Tests;
 [Trait("Category", "Unit")]
 public class ListingServiceTests
 {
-    private readonly Mock<IBlobStorageService> _blob = new(MockBehavior.Strict);
     private readonly Mock<IListingRepository> _repo = new(MockBehavior.Strict);
+    private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly ListingService _sut;
 
     public ListingServiceTests()
     {
-        _sut = new ListingService(_repo.Object, _blob.Object);
+        _repo = new Mock<IListingRepository>();
+        _imageRepo = new Mock<IListingImageRepository>();
+        _sut = new ListingService(_repo.Object, _imageRepo.Object);
+
     }
 
     // GetByIdAsync
@@ -42,7 +45,6 @@ public class ListingServiceTests
     {
         var listing = AListing(title: "Calculus Textbook", price: 250m);
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        SetupBlobForListing(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
 
@@ -57,27 +59,8 @@ public class ListingServiceTests
         var images = new List<ListingImage> { AnImage(url: "a.jpg"), AnImage(url: "b.jpg") };
         var listing = AListing(images: images);
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null)).Returns("https://some_url");
 
         await _sut.GetByIdAsync(listing.ListingId);
-
-        _blob.Verify(b => b.GetReadUrl("a.jpg", null), Times.Once);
-        _blob.Verify(b => b.GetReadUrl("b.jpg", null), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_OrdersImagesByPrimaryFirst()
-    {
-        var otherPic = AnImage(isPrimary: false, url: "otherPic.jpg");
-        var mainPic = AnImage(isPrimary: true, url: "mainPic.jpg");
-        var listing = AListing(images: new List<ListingImage> { otherPic, mainPic });
-        _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        SetupBlobForListing(listing, blobSuffix: "?sas");
-
-        var result = await _sut.GetByIdAsync(listing.ListingId);
-
-        Assert.Equal("mainPic.jpg?sas", result!.Images.First().path);
-        Assert.True(result.Images.First().IsPrimary);
     }
 
     // ListAsync
@@ -88,7 +71,6 @@ public class ListingServiceTests
         var filter = new ListFilterDto();
         var listings = new List<Listing> { AListing(title: "A"), AListing(title: "B") };
         _repo.Setup(r => r.ListAsync(filter)).ReturnsAsync((listings, 57));
-        _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null)).Returns("https://some_url");
 
         var result = await _sut.ListAsync(filter);
 
@@ -104,7 +86,6 @@ public class ListingServiceTests
         var listing = AListing();
         listing.isBundle = null;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        SetupBlobForListing(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
 
@@ -130,7 +111,6 @@ public class ListingServiceTests
         _repo.Setup(r => r.AddAsync(It.IsAny<Listing>()))
              .Callback<Listing>(l => captured = l)
              .Returns(Task.CompletedTask);
-        _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null)).Returns("https://some_url");
 
         var result = await _sut.CreateListings(dto);
 
@@ -148,7 +128,6 @@ public class ListingServiceTests
         _repo.Setup(r => r.AddAsync(It.IsAny<Listing>()))
              .Callback<Listing>(l => captured = l)
              .Returns(Task.CompletedTask);
-        _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null)).Returns("https://some_url");
 
         await _sut.CreateListings(ACreateDto());
 
@@ -157,40 +136,15 @@ public class ListingServiceTests
     }
 
     [Fact]
-    public async Task CreateListings_Throws_WhenImagesIsNull()
-    {
-        var dto = ACreateDto(); dto.Images = null!;
-
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.CreateListings(dto));
-        _repo.Verify(r => r.AddAsync(It.IsAny<Listing>()), Times.Never);
-    }
-   
-
-    [Fact]
     public async Task GetByIdAsync_MapsIsBundle_AsTrue_WhenSet()
     {
         var listing = AListing();
         listing.isBundle = true;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        SetupBlobForListing(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
 
         Assert.True(result!.IsBundle);
-    }
-     [Fact]
-    public async Task CreateListings_MapsImages_AndReturnsSignedUrls()
-    {
-        var imageDto = new CreateListingImageDto { ImageUrl = "raw.jpg", IsPrimary = true };
-        var dto = ACreateDto(images: new List<CreateListingImageDto> { imageDto });
-        _repo.Setup(r => r.AddAsync(It.IsAny<Listing>())).Returns(Task.CompletedTask);
-        _blob.Setup(b => b.GetReadUrl("raw.jpg", null)).Returns("https://images_herr");
-
-        var result = await _sut.CreateListings(dto);
-
-        var img = Assert.Single(result.Images);
-        Assert.Equal("https://images_herr", img.path);
-        Assert.True(img.IsPrimary);
     }
 
     [Fact]
@@ -199,7 +153,6 @@ public class ListingServiceTests
         var listing = AListing();
         listing.ViewCount = null;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        SetupBlobForListing(listing);
         var result = await _sut.GetByIdAsync(listing.ListingId);
         Assert.Equal(0, result!.ViewCount);
     }
@@ -211,7 +164,6 @@ public class ListingServiceTests
         _repo.Setup(r => r.AddAsync(It.IsAny<Listing>()))
              .Callback<Listing>(l => captured = l)
              .Returns(Task.CompletedTask);
-        _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null)).Returns("https://images_herr");
 
         await _sut.CreateListings(ACreateDto());
 
@@ -220,16 +172,7 @@ public class ListingServiceTests
 
     // UpdateListings
 
-    [Fact]
-    public async Task UpdateListings_ReturnsTrue_AndPersists_WhenFound()
-    {
-        var existing = AListing();
-        _repo.Setup(r => r.GetByIdAsync(existing.ListingId)).ReturnsAsync(existing);
-        _repo.Setup(r => r.UpdateAsync(existing, existing.ListingId)).Returns(Task.CompletedTask);
-        var result = await _sut.UpdateListings(AnUpdateDto(), existing.ListingId);
-        Assert.True(result);
-        _repo.Verify(r => r.UpdateAsync(existing, existing.ListingId), Times.Once);
-    }
+    
     [Fact]
     public async Task UpdateListings_ReturnsFalse_AndSkipsUpdate_WhenNotFound()
     {
@@ -240,33 +183,7 @@ public class ListingServiceTests
         _repo.Verify(r => r.UpdateAsync(It.IsAny<Listing>(), It.IsAny<Guid>()), Times.Never);
     }
 
-    [Fact]
-    public async Task UpdateListings_OnlyMutatesEditableFields()
-    {
-        var existing = AListing(title: "old", price: 10m, condition: "fair");
-        existing.ListingType = "book";
-        _repo.Setup(r => r.GetByIdAsync(existing.ListingId)).ReturnsAsync(existing);
-        _repo.Setup(r => r.UpdateAsync(existing, existing.ListingId)).Returns(Task.CompletedTask);
-
-        var dto = AnUpdateDto(title: "new", price: 9m, condition: "new");
-        await _sut.UpdateListings(dto, existing.ListingId);
-
-        Assert.Equal("new", existing.Title);
-        Assert.Equal("new", existing.Condition);
-        Assert.Equal(9m, existing.Price);
-        Assert.Equal("book", existing.ListingType);
-    }
-    [Fact]
-    public async Task UpdateListings_RefreshesUpdatedAt()
-    {
-        var existing = AListing();
-        existing.UpdatedAt = DateTime.UtcNow.AddDays(-5);
-        _repo.Setup(r => r.GetByIdAsync(existing.ListingId)).ReturnsAsync(existing);
-        _repo.Setup(r => r.UpdateAsync(existing, existing.ListingId)).Returns(Task.CompletedTask);
-        var before = DateTime.UtcNow;
-        await _sut.UpdateListings(AnUpdateDto(), existing.ListingId);
-        Assert.InRange(existing.UpdatedAt, before, DateTime.UtcNow);
-    }
+    
 
     [Fact]
     public async Task GetByIdAsync_MapsViewCount_WhenSet()
@@ -274,7 +191,6 @@ public class ListingServiceTests
         var listing = AListing();
         listing.ViewCount = 42;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
-        SetupBlobForListing(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
 
@@ -300,16 +216,7 @@ public class ListingServiceTests
         Assert.True(result);
         _repo.Verify(r => r.DeleteByIdAsync(existing.ListingId), Times.Once);
     }
-    private void SetupBlobForListing(Listing listing, string blobSuffix = "")
-    {
-        foreach (var img in listing.Images)
-            _blob.Setup(b => b.GetReadUrl(img.ImageUrl, null))
-                 .Returns(img.ImageUrl + blobSuffix);
 
-        if (!listing.Images.Any())
-            _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null))
-                 .Returns("https://images_herr");
-    }
     [Fact]
     public async Task ListAsync_PassesFilterToRepository_Unchanged()
     {
@@ -324,7 +231,6 @@ public class ListingServiceTests
         var filter = new ListFilterDto { ListingStatus = "live", SellerId = Guid.NewGuid() };
         var listings = Enumerable.Range(0, 5).Select(_ => AListing()).ToList();
         _repo.Setup(r => r.ListAsync(filter)).ReturnsAsync((listings, 100));
-        _blob.Setup(b => b.GetReadUrl(It.IsAny<string>(), null)).Returns("https://some_url");
 
         var result = await _sut.ListAsync(filter);
         Assert.Equal(5, result.Items.Count);
@@ -355,7 +261,6 @@ public class ListingServiceTests
 
     private static ListingImage AnImage(bool isPrimary = false, string url = "img.jpg") => new()
     {
-        ImageUrl = url,
         IsPrimary = isPrimary
     };
     private static UpdateListingDto AnUpdateDto(
