@@ -41,7 +41,7 @@ public class ListingService : IListingService
             .Select(i => new ListingImageDto(i.ImageId, _blob.GetReadUrl(i.ImageUrl), i.IsPrimary))
             .ToList());
 
-    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto)
+    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto,Guid callerId)
     {
         var newListing = new Listing
         {
@@ -53,7 +53,7 @@ public class ListingService : IListingService
             Author = dto.Author,
             Isbn = dto.Isbn,
             Edition = dto.Edition,
-            SellerId = dto.SellerId,
+            SellerId = callerId,
             ListingStatus = dto.ListingStatus,
             ListingId = Guid.NewGuid(),
             CourseId = dto.CourseId,
@@ -74,6 +74,10 @@ public class ListingService : IListingService
 
     public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id)
     {
+        if(id!=SellerId)
+        {
+            throw new ForbiddenException("Only sellers can update Listings");
+        }
         var listingLookUp = await _listings.GetByIdAsync(id);
         if (listingLookUp == null) return false;
 
@@ -89,6 +93,11 @@ public class ListingService : IListingService
 
     public async Task<bool> DeleteListings(Guid id)
     {
+        if(id!=SellerId)
+        {
+            throw new ForbiddenException("Only sellers can delete Listings");
+        }
+
         var listing = await _listings.GetByIdAsync(id);
         if (listing == null) return false;
 

@@ -3,6 +3,7 @@ using Modules.Listings;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Models;
 using Modules.SharedKernel;
+using System.Security.Claims;
 
 namespace Api.Controllers;
 
@@ -25,7 +26,8 @@ public class ListingController : ControllerBase
         if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Condition) || request.Price <= 0)
             return BadRequest("Field(s) missing.");
 
-        var response = await _listings.CreateListings(request);
+        var callerId= Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var response = await _listings.CreateListings(request,callerId);
         return Ok(response);
     }
 
