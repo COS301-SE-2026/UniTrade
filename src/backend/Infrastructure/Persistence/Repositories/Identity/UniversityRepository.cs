@@ -16,4 +16,9 @@ public class UniversityRepository : IUniversityRepository
     {
         return await _context.Universities.FirstOrDefaultAsync(x => x.EmailDomain == domain);
     }
+
+    public async Task<List<University>> GetActiveAsync()
+    {
+        return await _context.Universities.Where(u=>u.Is_Active).ToListAsync();
+    }
 }
