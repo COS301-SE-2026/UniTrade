@@ -363,6 +363,24 @@ CREATE INDEX ix_listings_created_at ON Listings (created_at DESC);
 
 CREATE INDEX ix_listing_images_listing ON Listing_images(listing_id);
 
+CREATE INDEX ix_listings_category ON Listings(category_id);
+
+CREATE INDEX ix_listings_course_browse ON Listings (course_id, listing_status, created_at DESC) INCLUDE (title, price, seller_id, category_id)
+WHERE
+    listing_status = 'live';
+
+CREATE INDEX ix_listings_feed ON Listings (
+    listing_status,
+    visibility_score DESC,
+    created_at DESC
+)
+WHERE
+    listing_status = 'live';
+
+CREATE INDEX ix_listings_category_browse ON Listings (category_id, listing_status, created_at DESC) INCLUDE (title, price, seller_id)
+WHERE
+    listing_status = 'live';
+
 --Reservations
 CREATE INDEX ix_res_buyer ON Reservations(buyer_id);
 
