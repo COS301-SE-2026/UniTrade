@@ -101,6 +101,11 @@ public class ListingService : IListingService
         var listing = await _listings.GetByIdAsync(id);
         if (listing == null) return false;
 
+        foreach(var image in listings.Images)
+        {
+            await _blob.DeleteAsync(image.ImageUrl);//this delet only has an interface???
+        }
+
         await _listings.DeleteByIdAsync(id);
         return true;
     }
