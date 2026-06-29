@@ -55,12 +55,16 @@ CREATE TABLE Admin_profiles(
 CREATE TABLE Verification_requests(
     verification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES Users(user_id),
-    attempt_number INT NOT NULL DEFAULT 1,
+
+    attempt_number INT NOT NULL DEFAULT 0,
+    total_attempt_count INT NOT NULL DEFAULT 0,
+    last_attempt_at TIMESTAMPTZ,
+
     is_current BOOLEAN NOT NULL DEFAULT TRUE,
     otp_code_hash VARCHAR(255),
     otp_verified_at TIMESTAMPTZ,
     otp_sent_at TIMESTAMPTZ,
-    otp_resend_count INT,
+    otp_resend_count INT NOT NULL DEFAULT 0,
     otp_expires_at TIMESTAMPTZ NOT NULL,
     por_file_path TEXT,
     ai_confidence_score NUMERIC(5, 2),
@@ -81,7 +85,6 @@ CREATE TABLE Verification_requests(
     ),
     submitted_at TIMESTAMPTZ DEFAULT now(),
     decided_at TIMESTAMPTZ,
-    CONSTRAINT vr_user_attempt UNIQUE (user_id, attempt_number)
 );
 
 ---7. Listings
