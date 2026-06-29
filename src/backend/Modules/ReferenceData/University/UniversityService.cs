@@ -19,10 +19,12 @@ public class UniversityService : IUniversityService
 
         return result.Select(u=>new University
         {
-            University_ID=u.University_ID,
+            UniversityID=u.University_ID,
             Name=u.Name,
             EmailDomain=u.Email_domain,
-            Is_Active=u.Is_Active
+            IsActive=u.Is_Active
         }).ToList();
     }
+
+    //getdomain???(its still in the db repo)
 }

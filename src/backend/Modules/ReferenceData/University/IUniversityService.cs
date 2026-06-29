@@ -3,7 +3,7 @@ using Modules.Identity.Models.Dto;//the dto can be found here,if err just take o
 
 public interface IUniversityService
 {
-    Task<University?> GetByDomainAsync(string domain);
+    //Task<University?> GetByDomainAsync(string domain);
 
     Task<List<University>> GetActiveUniversitiesAsync();
 }
