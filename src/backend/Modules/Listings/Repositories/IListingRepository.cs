@@ -7,9 +7,10 @@ namespace Modules.Listings.Repositories;
 public interface IListingRepository
 {
     Task<Listing?> GetByIdAsync(Guid listingId);
+    Task<Listing?> GetByIdTrackedAsync(Guid id);
     Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(ListFilterDto listingFilterDto);
     Task AddAsync(Listing listings);
+    Task SaveAsync();
     Task UpdateAsync(Listing listings, Guid id);
     Task DeleteByIdAsync(Guid id);
-    
 }
