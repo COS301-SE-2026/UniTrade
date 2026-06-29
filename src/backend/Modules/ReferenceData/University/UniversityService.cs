@@ -1,12 +1,13 @@
-using Infrastructure.Persistence;
+//using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Models.Dto;
+using using Modules.ReferenceData.University;
 
 namespace Modules.ReferenceData;
 
 public class UniversityService : IUniversityService
 {
-    private readonly UniversityRepository _universities;
+    private readonly IUniversityRepository _universities;
 
     public UniversityService(UniversityRepository universities)
     {
@@ -17,11 +18,11 @@ public class UniversityService : IUniversityService
     {
         var results=await _universities.GetActiveAsync();
 
-        return result.Select(u=>new University
+        return results.Select(u=>new University
         {
             University_ID=u.UniversityID,
             Name=u.Name,
-            Email_Domain=u.EmailDomain,
+            Email_domain=u.EmailDomain,
             Is_Active=u.IsActive
         }).ToList();
     }
