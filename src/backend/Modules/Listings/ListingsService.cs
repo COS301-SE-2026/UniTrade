@@ -83,16 +83,18 @@ public class ListingService : IListingService
         return MapToSummary(newListing);
     }
 
-    public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id, CancellationToken ct= default)
+    public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id,Guid callerId, CancellationToken ct= default)
     {
-        if(id!=SellerId)
-        {
-            throw new ForbiddenException("Only sellers can update Listings");
-        }
+       
         // updates to text based fields
         var listingLookUp = await _listings.GetByIdTrackedAsync(id);
         if (listingLookUp == null)
             return false;
+
+        if(listingLookUp.SellerId!=callerId)
+        {
+            throw new ForbiddenException("Only sellers can update listings");
+        }
 
         listingLookUp.Title = listings.Title;
         listingLookUp.Description = listings.Description;
@@ -117,18 +119,18 @@ public class ListingService : IListingService
 
     public async Task<bool> DeleteListings(Guid id)
     {
-        if(id!=SellerId)
-        {
-            throw new ForbiddenException("Only sellers can delete Listings");
-        }
-
         var listing = await _listings.GetByIdAsync(id);
         if (listing == null)
             return false;
 
-        foreach(var image in listings.Images)
+        if(listing.SellerId!=callerId)
         {
-            await _blob.DeleteAsync(image.ImageUrl);//this delet only has an interface???
+            throw new ForbiddenException("Only sellers can delete listings");
+        }
+
+        foreach(var image in listing.Images)
+        {
+            await _images.DeleteAsync(image.ImageUrl);//this delet only has an interface???
         }
 
         await _listings.DeleteByIdAsync(id);
