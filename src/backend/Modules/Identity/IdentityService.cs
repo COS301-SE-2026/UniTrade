@@ -142,11 +142,15 @@ public class IdentityService : IIdentityService
         {
             return false;
         }
+        if(email.Length>254)
+        {
+            return false;
+        }
         try
         {
             var address = new MailAddress(email);
             var parts = email.Split('@');
-            return address.Address == email && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]);
+            return address.Address == email.Trim() && parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]);
         }
         catch
         {
@@ -246,16 +250,11 @@ public class IdentityService : IIdentityService
 
     public async Task<object> GetMeAsync(string userId)
     {
-        var user = await _users.GetByIdAsync(Guid.Parse(userId));
-
-        if (user == null)
-            throw new Exception("not_found");
-
         var getUser = await _users.GetByIdAsync(Guid.Parse(userId));
 
         if (getUser == null)
         {
-            throw new Exception("user not found");
+            throw new Exception("not_found");
         }
 
         if (getUser.Role == "student")
