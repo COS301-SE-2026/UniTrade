@@ -1,6 +1,5 @@
 namespace Modules.ReferenceData.University;
 
-using ;
 using Modules.Identity.Models.Dto;//the dto can be found here,if err just take out .Dto(i think)
 
 public interface IUniversityService
