@@ -1,10 +1,9 @@
+using Modules.Identity.Models.DTO;//the dto can be found here,if err just take out .Dto(i think)
+
 namespace Modules.ReferenceData.University;
-
-using Modules.Identity.Models.Dto;//the dto can be found here,if err just take out .Dto(i think)
-
 public interface IUniversityService
 {
     //Task<University?> GetByDomainAsync(string domain);
 
-    Task<List<Modules.Identity.Models.Dto.University>> GetActiveUniversitiesAsync();
+    Task<List<University>> GetActiveUniversitiesAsync();
 }

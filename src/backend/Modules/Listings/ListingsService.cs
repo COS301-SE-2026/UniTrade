@@ -117,7 +117,7 @@ public class ListingService : IListingService
         return true;
     }
 
-    public async Task<bool> DeleteListings(Guid id)
+    public async Task<bool> DeleteListings(Guid id,Guid callerId)
     {
         var listing = await _listings.GetByIdAsync(id);
         if (listing == null)
