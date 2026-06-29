@@ -1,11 +1,11 @@
 namespace Modules.ReferenceData.University;
 
-using Modules.ReferenceData.University;
+using ;
 using Modules.Identity.Models.Dto;//the dto can be found here,if err just take out .Dto(i think)
 
 public interface IUniversityService
 {
     //Task<University?> GetByDomainAsync(string domain);
 
-    Task<List<University>> GetActiveUniversitiesAsync();
+    Task<List<Modules.Identity.Models.Dto.University>> GetActiveUniversitiesAsync();
 }
