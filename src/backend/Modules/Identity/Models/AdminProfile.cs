@@ -7,5 +7,4 @@ public class AdminProfile
     public int UniversityId { get; set; }
 
     public User User { get; set; } = null!;
-
 }

@@ -13,20 +13,22 @@ public class UniversityService : IUniversityService
 
     public UniversityService(IUniversityRepository universities)
     {
-        _universities=universities;
+        _universities = universities;
     }
 
     public async Task<List<Modules.Identity.Models.DTO.University>> GetActiveUniversitiesAsync()
     {
-        var results=await _universities.GetActiveAsync();
+        var results = await _universities.GetActiveAsync();
 
-        return results.Select(u=>new Modules.Identity.Models.DTO.University
-        {
-            University_ID=u.UniversityId,
-            Name=u.Name,
-            Email_domain=u.EmailDomain,
-            Is_Active=u.IsActive
-        }).ToList();
+        return results
+            .Select(u => new Modules.Identity.Models.DTO.University
+            {
+                University_ID = u.UniversityId,
+                Name = u.Name,
+                Email_domain = u.EmailDomain,
+                Is_Active = u.IsActive,
+            })
+            .ToList();
     }
 
     //getdomain???(its still in the db repo)

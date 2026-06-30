@@ -1,15 +1,15 @@
-
+using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
-using Infrastructure.Persistence;
-using Modules.ReferenceData;
 
 namespace Infrastructure.Persistence.Repositories;
 
 public class UniversityRepository : IUniversityRepository
 {
     private readonly AppDbContext _context;
+
     public UniversityRepository(AppDbContext context)
     {
         _context = context;
@@ -22,6 +22,6 @@ public class UniversityRepository : IUniversityRepository
 
     public async Task<List<University>> GetActiveAsync()
     {
-        return await _context.Universities.Where(u=>u.IsActive).ToListAsync();
+        return await _context.Universities.Where(u => u.IsActive).ToListAsync();
     }
 }

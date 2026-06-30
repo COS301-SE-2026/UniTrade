@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.SharedKernel;
-using System.Security.Claims;
 
 namespace Api.Controllers;
 
@@ -31,17 +31,21 @@ public class ListingController : ControllerBase
         )
             return BadRequest("Field(s) missing.");
 
-        var callerId= Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var response = await _listings.CreateListings(request,callerId);
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var response = await _listings.CreateListings(request, callerId);
         return Ok(response);
     }
 
     [HttpPut("{id}")]
     [Authorize]
-    public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id, CancellationToken ct)
+    public async Task<IActionResult> Update(
+        [FromBody] UpdateListingDto request,
+        Guid id,
+        CancellationToken ct
+    )
     {
-        var callerId=Guid.Parse(User.FindFirstValue("sub")!);
-        var updateL = await _listings.UpdateListings(request, id,callerId, ct);
+        var callerId = Guid.Parse(User.FindFirstValue("sub")!);
+        var updateL = await _listings.UpdateListings(request, id, callerId, ct);
         if (!updateL)
             return NotFound();
         return Ok("Listings updated successfully");
@@ -51,8 +55,8 @@ public class ListingController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var callerId=Guid.Parse(User.FindFirstValue("sub")!);
-        var success = await _listings.DeleteListings(id,callerId);
+        var callerId = Guid.Parse(User.FindFirstValue("sub")!);
+        var success = await _listings.DeleteListings(id, callerId);
         if (!success)
             return NotFound();
         return NoContent();
@@ -86,7 +90,7 @@ public class ListingController : ControllerBase
             return BadRequest("no_files");
 
         const long maxBytes = 10 * 1024 * 1024;
-        string[] allowed = ["image/jpeg", "image/png", "image/webp"];
+        string[] allowed = new string[] { "image/jpeg", "image/png", "image/webp" };
 
         var imageIds = new List<int>();
         foreach (var file in files)
@@ -125,9 +129,12 @@ public class ListingController : ControllerBase
 
         var (data, contentType) = res.Value;
 
-        var etag = "\"" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]+ "\"";
+        var etag =
+            "\""
+            + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]
+            + "\"";
 
-        if(Request.Headers.IfNoneMatch == etag)
+        if (Request.Headers.IfNoneMatch == etag)
         {
             return StatusCode(StatusCodes.Status304NotModified);
         }
