@@ -173,7 +173,7 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
     return () => timers.forEach(clearTimeout);
   }, [cycleKey]);
 
-  const bubbleText = stage === 'thinking' ? 'AgileBridge + DevNexus' : '=UniTrade';
+  const bubbleText = stage === 'thinking' ? 'AgileBridge + DevNexus' : 'UniTrade';
   const dots = stage === 'thinking' ? (
     <span className="inline-flex gap-1 ml-1">
       <span className="animate-bounce delay-0">.</span>
@@ -184,10 +184,10 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
 
   const bubbleColor =
     stage === 'thinking'
-      ? 'bg-blue-500/90'
+      ? 'bg-navy-700'
       : stage === 'answer'
-        ? 'bg-green-500/90 shadon-lg shadow-green-500/30'
-        : 'bg-amber-500/90'
+        ? 'bg-blue-400 shadon-lg shadow-green-500/30'
+        : 'bg-blue-400'
   return (
     <div
       className={`relative flex flex-col items-center ${className}`}
