@@ -1,4 +1,4 @@
-namespace Modules.ReferenceData.University;
+namespace Modules.ReferenceData.University.Repositories;
 
 public interface IUniversityRepository
 {
