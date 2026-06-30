@@ -551,6 +551,7 @@ export default function HomePage() {
       <Thesolution />
       <Howitworks />
       <BuyersSellers />
+      <Footer />
       <GetApp />
     </div>
   )
