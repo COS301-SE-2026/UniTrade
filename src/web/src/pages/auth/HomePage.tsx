@@ -11,6 +11,8 @@ import {
   IconPoint,
 } from '@tabler/icons-react'
 import logo from "../../assets/logo.jpeg"
+import Apple from "../../assets/Apple.png"
+import Play from "../../assets/Play.png"
 import { useNavigate } from 'react-router-dom';
 
 interface StatProps {
@@ -477,6 +479,34 @@ function BuyersSellers() {
   )
 }
 
+function GetApp() {
+  return (
+    <div className="bg-navy-700 py-16">
+    <div className="max-w-4xl mx-auto px-6 text-center">
+      <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
+      <p className="text-blue-200 mt-3">Available on IOS and Android</p>
+
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
+        <a href="#" className="block">
+          <img 
+          src={Apple}
+          alt="Download on the App Store"
+          className="h-14"
+          />
+        </a>
+        <a href="#" className="block">
+          <img 
+            src={Play}
+            alt="GET IT ON Google Play"
+            className="h-14"
+            />
+        </a>
+      </div>
+    </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
@@ -486,6 +516,7 @@ export default function HomePage() {
       <Thesolution />
       <Howitworks />
       <BuyersSellers />
+      <GetApp />
     </div>
   )
 }
