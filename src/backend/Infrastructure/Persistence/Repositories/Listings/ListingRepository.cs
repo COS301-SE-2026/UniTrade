@@ -18,76 +18,19 @@ public class ListingRepository : IListingRepository
 
     public async Task<Listing?> GetByIdAsync(Guid listingId)
     {
-        var row = await _db
+        var query = _db
             .Listings.AsNoTracking()
-            .Where(l => l.ListingId == listingId)
-            .Join(
-                _db.Users,
-                l => l.SellerId,
-                u => u.UserId,
-                (l, u) =>
-                    new
-                    {
-                        l.ListingId,
-                        l.SellerId,
-                        l.Title,
-                        l.Description,
-                        l.Price,
-                        l.Condition,
-                        l.ListingType,
-                        l.ListingStatus,
-                        l.CourseId,
-                        l.Isbn,
-                        l.Author,
-                        l.Edition,
-                        l.isBundle,
-                        l.ViewCount,
-                        l.CreatedAt,
-                        l.UpdatedAt,
-                        SellerUserId = u.UserId,
-                        u.FirstName,
-                        u.LastName,
-                    }
-            )
-            .FirstOrDefaultAsync();
+            .Include(l => l.Category)
+            .Include(l => l.BookDetails)
+            .Include(l => l.Images);
 
-        if (row == null)
-            return null;
+        var listing = query.FirstOrDefaultAsync(l => l.ListingId == listingId);
 
-        var listing = new Listing
+        if (listing == null)
         {
-            ListingId = row.ListingId,
-            SellerId = row.SellerId,
-            Title = row.Title,
-            Description = row.Description,
-            Price = row.Price,
-            Condition = row.Condition,
-            ListingType = row.ListingType,
-            ListingStatus = row.ListingStatus,
-            CourseId = row.CourseId,
-            Isbn = row.Isbn,
-            Author = row.Author,
-            Edition = row.Edition,
-            isBundle = row.isBundle,
-            ViewCount = row.ViewCount,
-            CreatedAt = row.CreatedAt,
-            UpdatedAt = row.UpdatedAt,
-            Seller = new SellerInfo(row.SellerUserId, row.FirstName, row.LastName),
-        };
-
-        listing.Images = await _db
-            .ListingImages.AsNoTracking()
-            .Where(i => i.ListingId == listing.ListingId)
-            .Select(i => new ListingImage
-            {
-                ImageId = i.ImageId,
-                ListingId = i.ListingId,
-                ContentType = i.ContentType,
-                FileSize = i.FileSize,
-                IsPrimary = i.IsPrimary,
-                UploadedAt = i.UploadedAt,
-            })
-            .ToListAsync();
+            return null;
+        }
+        await AttachSellerInfoAsync(new[] { listing });
 
         return listing;
     }
@@ -220,6 +163,41 @@ public class ListingRepository : IListingRepository
         {
             _db.Listings.Remove(listing);
             await _db.SaveChangesAsync();
+        }
+    }
+
+    // helper function to attach a seller (with their information) to a listing
+    private async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
+    {
+        if (listings.Count == 0)
+        {
+            return;
+        }
+
+        var sellerIds = listings.Select(l => l.SellerId).Distinct().ToList();
+
+        var sellers = await _db
+            .Users.AsNoTracking()
+            .Where(u => sellerIds.Contains(u.UserId))
+            .Select(u => new
+            {
+                u.UserId,
+                u.FirstName,
+                u.LastName,
+            })
+            .ToListAsync();
+
+        var byId = sellers.ToDictionary(
+            u => u.UserId,
+            u => new SellerInfo(u.UserId, u.FirstName, u.LastName)
+        );
+
+        foreach (var listing in listings)
+        {
+            if (byId.TryGetValue(listing.SellerId, out var seller))
+            {
+                listing.Seller = seller;
+            }
         }
     }
 }
