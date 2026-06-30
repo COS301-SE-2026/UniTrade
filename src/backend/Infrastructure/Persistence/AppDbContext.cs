@@ -252,7 +252,7 @@ public class AppDbContext : DbContext
             // since at its core unitrade is a textbook market place, a lot of queries around this
             entity.Property(x => x.CourseId);
 
-            entity.Property(x => x.MetaData).HasColumnType("jsonb");
+            entity.Property(x => x.Metadata).HasColumnType("jsonb");
 
             entity.Property(x => x.ListingStatus).HasMaxLength(20).IsRequired();
 
@@ -302,17 +302,11 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.CategoryId).HasDatabaseName("ix_listings_category");
 
             entity
-                .HasIndex(x => new { x.ListingStatus, x.VisibilityScore })
-                .HasDatabaseName("ix_listings_visibility")
-                .HasFilter("listing_status = 'live'")
-                .IsDescending(false, true);
-
-            entity
                 .HasIndex(x => new
                 {
                     x.CourseId,
                     x.ListingStatus,
-                    x.CreatedAt,
+                    x.CreatedAt
                 })
                 .HasDatabaseName("ix_listings_course_browse")
                 .HasFilter("listing_status = 'live'")
@@ -329,7 +323,7 @@ public class AppDbContext : DbContext
                 {
                     x.CategoryId,
                     x.ListingStatus,
-                    x.CreatedAt,
+                    x.CreatedAt
                 })
                 .HasDatabaseName("ix_listings_category_browse")
                 .HasFilter("listing_status = 'live'")
@@ -341,14 +335,12 @@ public class AppDbContext : DbContext
                     x.SellerId
                 });
 
-            
-
             entity
                 .HasIndex(x => new
                 {
                     x.ListingStatus,
                     x.VisibilityScore,
-                    x.CreatedAt,
+                    x.CreatedAt
                 })
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
@@ -357,9 +349,11 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ListingCategory>(entity =>
         {
+
             entity.HasKey(x => x.CategoryId);
 
-            entity.Property(x => x.Name).HasMaxLength(50).IsUnique().IsRequired();
+            entity.Property(x => x.Name).HasMaxLength(50).IsRequired();
+            entity.HasIndex(x => x.Name).IsUnique();
 
             entity.Property(x => x.IsActive).HasDefaultValue(true).IsRequired();
         });
@@ -367,7 +361,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<BookDetails>(entity =>
         {
             entity.HasKey(x => x.ListingId);
-            entity.Property(x => ListingId).ValueGeneratedNever();
+            entity.Property(x => x.ListingId).ValueGeneratedNever();
 
             entity.Property(x => x.Isbn).HasMaxLength(13);
             entity.Property(x => x.Author).HasMaxLength(120);
