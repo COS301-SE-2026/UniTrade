@@ -16,6 +16,7 @@ public class ListingRepository : IListingRepository
         _db = db;
     }
 
+    // for read only purposes
     public async Task<Listing?> GetByIdAsync(Guid listingId)
     {
         var query = _db
@@ -35,19 +36,28 @@ public class ListingRepository : IListingRepository
         return listing;
     }
 
+    // for updates
     public async Task<Listing?> GetByIdTrackedAsync(Guid id) =>
-        await _db.Listings.FirstOrDefaultAsync(l => l.ListingId == id);
+        await _db
+            .Listings.AsNoTracking()
+            .Include(l => l.Category)
+            .Include(l => l.BookDetails)
+            .Include(l => l.Images)
+            .FirstOrDefaultAsync(l => l.ListingId == id);
 
     public async Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(
         ListFilterDto listingFilterDto
     )
+    
     {
         var query = _db
             .Listings.AsNoTracking()
-            .Join(_db.Users, l => l.SellerId, u => u.UserId, (l, u) => new { l, u });
+            .Include(l => l.Category)
+            .Include(l => l.BookDetails)
+            .Include(l => l.Images);
 
-        if (!string.IsNullOrWhiteSpace(listingFilterDto.ListingType))
-            query = query.Where(x => x.l.ListingType == listingFilterDto.ListingType);
+        if (listingFilterDto.CategoryId.HasValue)
+            query = query.Where(x => x.l.CategoryId == listingFilterDto.CategoryId);
 
         if (!string.IsNullOrWhiteSpace(listingFilterDto.ListingStatus))
             query = query.Where(x => x.l.ListingStatus == listingFilterDto.ListingStatus);
@@ -68,72 +78,15 @@ public class ListingRepository : IListingRepository
 
         var total = await query.CountAsync();
 
-        var rows = await query
-            .OrderByDescending(x => x.l.CreatedAt)
-            .Select(x => new
-            {
-                x.l.ListingId,
-                x.l.SellerId,
-                x.l.Title,
-                x.l.Description,
-                x.l.Price,
-                x.l.Condition,
-                x.l.ListingType,
-                x.l.ListingStatus,
-                x.l.CourseId,
-                x.l.Isbn,
-                x.l.Author,
-                x.l.Edition,
-                x.l.isBundle,
-                x.l.ViewCount,
-                x.l.CreatedAt,
-                x.l.UpdatedAt,
-                SellerUserId = x.u.UserId,
-                x.u.FirstName,
-                x.u.LastName,
-            })
-            .ToListAsync();
-
         // Map to entity
-        var items = rows.Select(r => new Listing
-            {
-                ListingId = r.ListingId,
-                SellerId = r.SellerId,
-                Title = r.Title,
-                Description = r.Description,
-                Price = r.Price,
-                Condition = r.Condition,
-                ListingType = r.ListingType,
-                ListingStatus = r.ListingStatus,
-                CourseId = r.CourseId,
-                Isbn = r.Isbn,
-                Author = r.Author,
-                Edition = r.Edition,
-                isBundle = r.isBundle,
-                ViewCount = r.ViewCount,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt,
-                Seller = new SellerInfo(r.SellerUserId, r.FirstName, r.LastName),
-            })
-            .ToList();
-
-        var listingIds = items.Select(l => l.ListingId).ToList();
-        var images = await _db
-            .ListingImages.AsNoTracking()
-            .Where(i => listingIds.Contains(i.ListingId))
-            .Select(i => new ListingImage
-            {
-                ImageId = i.ImageId,
-                ListingId = i.ListingId,
-                ContentType = i.ContentType,
-                FileSize = i.FileSize,
-                IsPrimary = i.IsPrimary,
-                UploadedAt = i.UploadedAt,
-            })
+        var items = await query
+            .OrderByDescending(l => l.CreatedAt)
+            .Skip(listingFilterDto.Skip)
+            .Take(listingFilterDto.Take)
+            .AsSplitQuery()
             .ToListAsync();
 
-        foreach (var item in items)
-            item.Images = images.Where(i => i.ListingId == item.ListingId).ToList();
+        await AttachSellerInfoAsync(items);
 
         return (items, total);
     }

@@ -100,7 +100,7 @@ public class VerificationService : IVerificationService
 
         var hash = HashOtp(otp);
         var hashBytes = Convert.FromBase64String(hash);
-        var storedBytes = Convert.FromBase64String(record.OtpCodeHash);
+        var storedBytes = Convert.FromBase64String(record.OtpCodeHash!);
 
         if (!CryptographicOperations.FixedTimeEquals(hashBytes, storedBytes))
         {
