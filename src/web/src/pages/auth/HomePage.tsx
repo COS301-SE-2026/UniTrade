@@ -8,7 +8,7 @@ import {
   IconPackage,
   IconStar,
   IconArrowRight,
-  //IconCheck,
+  IconPoint,
 } from '@tabler/icons-react'
 import logo from "../../assets/logo.jpeg"
 import { useNavigate } from 'react-router-dom';
@@ -84,6 +84,31 @@ function Step({ number, title, description }: StepProps) {
     </div>
   )
 }
+
+interface BenefitListProps {
+  title: string;
+  items: string[];
+}
+
+function BenefitList({ title, items }: BenefitListProps) {
+  return (
+    <div className="bg-white dark:bg-navy-800 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
+      <h3 className="font-semibold text-navy-700 dark:text-white mb-6 flex items-center gap-2">
+        {title}
+      </h3>
+      <ul className="space-y-4">
+        {items.map((item, index) => (
+          <li key={index} className="flex items-start gap-3 text-sm">
+            <div className="mt-1 text-green-500">
+              <IconPoint size={18} />
+            </div>
+            <span className="text-gray-700 dark:text-gray-300">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate()
@@ -139,8 +164,8 @@ function Navbar() {
           <a href="#problem" className="block py-2">The Problem</a>
           <a href="#solution" className="block py-2">The Solution</a>
           <a href="#how-it-works" className="block py-2">How it works</a>
-          <a href="#for-buyers" className="block py-2">For buyers</a>
-          <a href="#for-sellers" className="block py-2">For sellers</a>
+          <a href="#for-buyerssellers" className="block py-2">For buyers</a>
+          <a href="#for-buyerssellers" className="block py-2">For sellers</a>
         </div>
       )}
     </nav>
@@ -287,7 +312,7 @@ function Firstpage() {
 
 function Theproblem() {
   return (
-    <div id="problem" className="bg-gray-100 mx-auto px-6 py-20">
+    <div id="problem" className="bg-white mx-auto px-6 py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <span className="uppercase text-s tracking-widest font-mono text-red-500">THE PROBLEM</span>
@@ -323,7 +348,7 @@ function Theproblem() {
 
 function Thesolution() {
   return (
-    <div id="solution" className="bg-white dark:bg-navy-950 py-20">
+    <div id="for-buyerssellers" className="bg-white dark:bg-navy-950 py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
@@ -372,7 +397,7 @@ function Thesolution() {
 
 function Howitworks() {
   return (
-    <div id="how-it-works" className="bg-gray-100 mx-auto px-6 py-20">
+    <div id="how-it-works" className="bg-white mx-auto px-6 py-20">
       <div className="text-center mb-12">
         <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
         <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
@@ -413,6 +438,45 @@ function Howitworks() {
     </div>
   )
 }
+
+function BuyersSellers() {
+  return (
+    <div id="how-it-works" className="max-w-7xl mx-auto px-6 py-16 bg-white dark:bg-navy-900">
+      <div className="text-center mb-12">
+        <span className="uppercase text-s tracking-widest font-mono text-blue-400">WHO IT'S FOR</span>
+        <h2 className="text-4xl font-bold text-navy-700 dark:text-white">Built for both sides of the transaction</h2>
+        <p className="mt-3 text-gray-600 dark:text-gray-400">Whether you're buying ofr next semester or clearing out last year's books.</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <BenefitList
+        title="For buyers"
+        items={[
+          "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
+          "Browse by your course code or module.",
+          "Reserve items before someone else does.",
+          "Chat with the seller and schedule a meeting.",
+          "Inspect before paying.",
+          "Rate and review the seller"
+        ]}
+        />
+      
+        <BenefitList
+        title="For sellers"
+        items={[
+          "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
+          "List under 2 minutes.",
+          "AI scans your photos automatically.",
+          "Get notified when a buyer is interested.",
+          "Chat with the buyer.",
+          "Rate and review the buyer"
+        ]}
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
@@ -421,6 +485,7 @@ export default function HomePage() {
       <Theproblem />
       <Thesolution />
       <Howitworks />
+      <BuyersSellers />
     </div>
   )
 }
