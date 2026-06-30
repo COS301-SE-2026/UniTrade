@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import OTPVerification from '../../pages/auth/OTP_verification'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -47,8 +47,11 @@ describe('OTPVerification', () => {
       pendingEmail: 'student@up.ac.za',
       clearPendingEmail: vi.fn(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}     as any)
-    
+    } as any)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('page shows up without lagging or crashing ', () => {
@@ -66,9 +69,9 @@ describe('OTPVerification', () => {
     expect(screen.getByText('student@up.ac.za')).toBeInTheDocument()
   })
 
-  it('shows 4 OTP input boxes', () => {
+  it('shows 6 OTP input boxes', () => {
     renderOTP()
-    expect(screen.getAllByRole('textbox')).toHaveLength(4)
+    expect(screen.getAllByRole('textbox')).toHaveLength(6)
   })
 
   it('shows the Verify OTP button', () => {
@@ -82,9 +85,17 @@ describe('OTPVerification', () => {
   })
 
   it('shows the remaining time countdown', () => {
+    vi.useFakeTimers()
     renderOTP()
     expect(screen.getByText(/remaining time/i)).toBeInTheDocument()
-    expect(screen.getByText(/00:59s/i)).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+
+    expect(
+      screen.getByText((_, el) => el?.textContent === '00:59s')
+    ).toBeInTheDocument()
   })
 
   it('shows the dark mode toggle button', () => {
@@ -102,9 +113,9 @@ describe('OTPVerification', () => {
     expect(screen.getByRole('button', { name: /resend/i })).toBeDisabled()
   })
 
-  it('Verify OTP button becomes enabled after all 4 digits are entered', () => {
+  it('Verify OTP button becomes enabled after all 6 digits are entered', () => {
     renderOTP()
-    fillOtp('1234')
+    fillOtp('123456')
     expect(screen.getByRole('button', { name: /verify otp/i })).not.toBeDisabled()
   })
 
@@ -112,12 +123,10 @@ describe('OTPVerification', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(authService.verifyOtp).mockResolvedValue(undefined as any)
     renderOTP()
-    fillOtp('1234')
+    fillOtp('123456')
     fireEvent.click(screen.getByRole('button', { name: /verify otp/i }))
     await waitFor(() => {
-      expect(authService.verifyOtp).toHaveBeenCalledWith('student@up.ac.za', '1234')
+      expect(authService.verifyOtp).toHaveBeenCalledWith('student@up.ac.za', '123456')
     })
   })
-
 })
-
