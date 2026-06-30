@@ -154,11 +154,10 @@ const EditListing: React.FC = () => {
                       key={cat}
                       type="button"
                       onClick={() => handleChange("category", cat)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        formData.category === cat
+                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat
                           ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       {cat}
                     </button>
@@ -348,11 +347,10 @@ const EditListing: React.FC = () => {
                           key={item}
                           type="button"
                           onClick={() => handleChange("condition", item)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                            formData.condition === item
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${formData.condition === item
                               ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                               : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                          }`}
+                            }`}
                         >
                           {item.replace("_", " ")}
                         </button>
@@ -384,7 +382,8 @@ const EditListing: React.FC = () => {
                 <div className="w-10 h-12 rounded overflow-hidden flex-shrink-0">
                   <img
                     src={
-                      existingImages[0]?.url || URL.createObjectURL(newFiles[0])
+                      existingImages[0]?.url ||
+                      (newFiles.length > 0 ? URL.createObjectURL(newFiles[0]) : '')
                     }
                     alt={formData.title}
                     className="w-full h-full object-cover"
