@@ -18,6 +18,8 @@ using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.ReferenceData.University;
+using Modules.ReferenceData.University.Repositories;
+
 using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Azure.Communication.Email;
