@@ -380,44 +380,36 @@ function Thesolution() {
 }
 
 function Howitworks() {
+  const steps = [
+    { number: 1, title: "Browse listings", description: "Search by course code, university or category. Filter by condition and price" },
+    { number: 2, title: "Reserve the item", description: "Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup." },
+    { number: 3, title: "Meet on Campus", description: "Agree on a campus location. Both parties check in on arrival for accountability." },
+    { number: 4, title: "Inspect and pay", description: "Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done." },
+  ];
+
   return (
     <div id="how-it-works" className="bg-white mx-auto px-6 py-20">
-      <div className="text-center mb-12">
-        <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
-        <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
-        <p className="mt-3 text-gray-600 dark:text-gray-400">The whole process is designed around campus life fast, safe, and simple.</p>
-      </div>
+      <Reveal>
+        <div className="text-center mb-12">
+          <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
+          <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">The whole process is designed around campus life fast, safe, and simple.</p>
+        </div>
+      </Reveal>
 
       <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start relative">
-        <Step
-          number={1}
-          title="Browse listings"
-          description="Search by course code, university or category. Filter by condition and price"
-        />
-        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-
-
-        <div className="hidden md:block  absolute " />
-        <Step
-          number={2}
-          title="Reserve the item"
-          description="Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup."
-        />
-        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-        <div className="hidden md:block absolute" />
-        <Step
-          number={3}
-          title="Meet on Campus"
-          description="Agree on a campus location. Both parties check in on arrival for accountability."
-
-        />
-        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-        <div className="hidden md:block absolute" />
-        <Step
-          number={4}
-          title="Inspect and pay"
-          description="Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done."
-        />
+        {steps.map((s, i) => (
+          <>
+            <Reveal key={s.title} delay={i * 150} className="flex-1">
+              <Step {...s} />
+            </Reveal>
+            {i < steps.length - 1 && (
+              <div className="my-8 text-blue-500 hidden md:block">
+                <IconArrowRight size={26} />
+              </div>
+            )}
+          </>
+        ))}
       </div>
     </div>
   )
