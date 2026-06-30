@@ -76,11 +76,11 @@ function Step({ number, title, description }: StepProps) {
         <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
           {number}
         </div>
-      <div>
-      <h3 className="font-semibold text-navy-700 dark:text-white">{title}</h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{description}</p>
+        <div>
+          <h3 className="font-semibold text-navy-700 dark:text-white">{title}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{description}</p>
+        </div>
       </div>
-    </div>
     </div>
   )
 }
@@ -152,10 +152,10 @@ type AvatarStage = 'thinking' | 'answer' | 'joy';
 
 interface AlexAvatarProps {
   className?: string;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
-function AlexAvatar ({ className = '', onClick }: AlexAvatarProps) {
+function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   const [stage, setStage] = useState<AvatarStage>('thinking');
   const [cycleKey, setCycleKey] = useState(0);
 
@@ -165,7 +165,7 @@ function AlexAvatar ({ className = '', onClick }: AlexAvatarProps) {
     timers.push(setTimeout(() => setStage('answer'), 1800));
     timers.push(setTimeout(() => setStage('joy'), 3600));
     timers.push(setTimeout(() => setStage('thinking'), 6200));
-    timers.push (
+    timers.push(
       setTimeout(() => {
         setCycleKey((k) => k + 1)
       }, 6200)
@@ -182,112 +182,139 @@ function AlexAvatar ({ className = '', onClick }: AlexAvatarProps) {
     </span>
   ) : null;
 
-  const bubbleColor = 
-  stage === 'thinking'
-  ? 'bg-blue-500/90'
-  : stage === 'answer'
-  ? 'bg-green-500/90 shadon-lg shadow-green-500/30'
-  : 'bg-amber-500/90'
+  const bubbleColor =
+    stage === 'thinking'
+      ? 'bg-blue-500/90'
+      : stage === 'answer'
+        ? 'bg-green-500/90 shadon-lg shadow-green-500/30'
+        : 'bg-amber-500/90'
   return (
     <div
-       className={`relative flex flex-col items-center ${className}`}
-       onClick={onClick}
-       role="img"
-       aria-label="Alex avatar"
-      >
-        <div className="relative mb-6 flex flex-col items-center">
-          <div 
-            className={`px-6 py-4 rounded-[2rem] text-white text-sm font-medium
+      className={`relative flex flex-col items-center ${className}`}
+      onClick={onClick}
+      role="img"
+      aria-label="Alex avatar"
+    >
+      <div className="relative mb-6 flex flex-col items-center">
+        <div
+          className={`px-6 py-4 rounded-[2rem] text-white text-sm font-medium
                         transition-all duration-500 max-w-[220px] text-center
                         ${bubbleColor}
                         ${stage === 'answer' ? 'scale-105' : 'scale-100'}`}>
-                          {bubbleText}
-                          {dots}
-                        </div>
-                        <div className={`w-4 h-4 rounded-full mt-1 transition-colors duration-500 ${bubbleColor}`} />
-                        <div className={`w-2.5 h-2.5 rounded-full mt-1 transition-colors duration-500 ${bubbleColor}`} />
+          {bubbleText}
+          {dots}
         </div>
-        <div 
-         key={cycleKey}
-         className={
+        <div className={`w-4 h-4 rounded-full mt-1 transition-colors duration-500 ${bubbleColor}`} />
+        <div className={`w-2.5 h-2.5 rounded-full mt-1 transition-colors duration-500 ${bubbleColor}`} />
+      </div>
+      <div
+        key={cycleKey}
+        className={
           `w-56 h-56 md:w-72 md:h-72 overflow-hidden
           transition-transform duration-500
           ${stage === 'thinking' ? 'animate-pulse-slow' : ''}
           ${stage === 'joy' ? 'animate-joy-bounce' : ''}`
-         }
-         >
-          <img src={ALEX_IMAGE}
+        }
+      >
+        <img src={ALEX_IMAGE}
           alt="Alex Avatar"
           className="w-ful h-full object-contain"
-          />
-         </div>
-         {stage === 'joy' && (
-          <div className="absolute -top-6 -right-6 text-3xl animate-sparkle" />
-         )}
-         {stage === 'joy' && (
-          <div className="absolute -top-2 -left-6 text-2xl animate-sparkle-delay" />
-         )}
+        />
       </div>
-       
+      {stage === 'joy' && (
+        <div className="absolute -top-6 -right-6 text-3xl animate-sparkle" />
+      )}
+      {stage === 'joy' && (
+        <div className="absolute -top-2 -left-6 text-2xl animate-sparkle-delay" />
+      )}
+    </div>
+
   )
 }
 function Firstpage() {
   return (
-    <div className="min-h-screen bg-navy-700 pt-16 pb-10 relative overflow-hidden">
-      <div className="max-w-5xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6 ml-auto mt-1">
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="absolute inset-0 bg-white" />
+      <div className="absolute inset-0 z-10">
+      <svg
+      className="absolute inset-0 w-full h-full"
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="none"
+      >
+        <path 
+        d="M0,o
+        L780,0
+        C 820, 250 650, 500 620,1000
+        L0,1000 Z"
+        fill="#0d1f4e"
+        />
+      </svg>
+      </div>
+      <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
+        <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
+            <div className="inline-flex items-center gap-2 bg-white/10 text-blue-40 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
         <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
         MADE FOR SA UNIVERSITY STUDENTS
         </div>
         <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto max-w-100">
-          Buy and sell University materials <span className="text-blue-400">on your campus</span>
+          Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
         </h1>
        
-       <p className="mt-6 text-al text-gray-400 max-w-2xl mx-auto">
+       <p className="mt-6 text-gray-400">
         UniTrade is the verified peer-to-peer marketplace for South African students.
         No shipping, no strangers - just your campus community.
        </p>
-      </div>
 
-      <div className="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto">
-        <Stat number="5+" label="SA UNIVERSITIES" />
+       <div className="grid grid-cols-3 gap-6 mt-12">
+        <Stat number="+5" label="SA UNIVERSITIES" />
         <Stat number="100%" label="VERIFIED STUDENTS" />
         <Stat number="0" label="SHIPPING FEES" />
+       </div>
+      </div>
+    
+
+    <div className="flex-1 flex justify-end pr-4 lg:pr-12">
+      <div className="lg:translate-x-24">
+        <AlexAvatar />
       </div>
     </div>
-  )
+    </div>
+    </div>
+    </div>
+  );
 }
 
 function Theproblem() {
   return (
     <div id="problem" className="bg-gray-100 mx-auto px-6 py-20">
       <div className="max-w-7xl mx-auto px-6">
-      <div className="text-center mb-12">
-        <span className="uppercase text-s tracking-widest font-mono text-red-500">THE PROBLEM</span>
-        <h2 className="text-3xl font-bold text-navy-700 dark:text-white mt-3">
-          Common marketplaces fail university students
-        </h2>
-        <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Existing sites and platforms are built for anyone and everyone, making them not suitable for students.
-        </p>
-      </div>
+        <div className="text-center mb-12">
+          <span className="uppercase text-s tracking-widest font-mono text-red-500">THE PROBLEM</span>
+          <h2 className="text-3xl font-bold text-navy-700 dark:text-white mt-3">
+            Common marketplaces fail university students
+          </h2>
+          <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Existing sites and platforms are built for anyone and everyone, making them not suitable for students.
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <ProblemCard
-         icon={<IconShield size={28} className="text-red-600" />}
-         title="Safety concerns"
-         description="Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms."/>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ProblemCard
+            icon={<IconShield size={28} className="text-red-600" />}
+            title="Safety concerns"
+            description="Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms." />
 
-         <ProblemCard
-         icon={<IconUsers size={28} className="text-amber-600" />}
-         title="Lack of accountability"
-         description="Anonymous sellers can disappear after a bad transaction. There is no community to hold people accountable."/>
+          <ProblemCard
+            icon={<IconUsers size={28} className="text-amber-600" />}
+            title="Lack of accountability"
+            description="Anonymous sellers can disappear after a bad transaction. There is no community to hold people accountable." />
 
-         <ProblemCard
-         icon={<IconMapPin size={28} className="text-blue-600" />}
-         title="Inconvenience meetup locations"
-         description="Coordinating with people across a city or country is time consuming. Students need a marketplace that works within their daily campus routine."/>
-      </div>
+          <ProblemCard
+            icon={<IconMapPin size={28} className="text-blue-600" />}
+            title="Inconvenience meetup locations"
+            description="Coordinating with people across a city or country is time consuming. Students need a marketplace that works within their daily campus routine." />
+        </div>
 
       </div>
     </div>
@@ -307,36 +334,36 @@ function Thesolution() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-           <SolutionCard
+          <SolutionCard
             icon={<IconUsers size={26} />}
             title="Verified students only"
             description="Every use is verified against their university student email. No outsiders, no scammers - just you campus community."
-            />
-            <SolutionCard
+          />
+          <SolutionCard
             icon={<IconMapPin size={26} />}
             title="Meet on campus"
             description="Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS."
-            />
-            <SolutionCard
+          />
+          <SolutionCard
             icon={<IconLock size={26} />}
             title="Secure payments via OZOW"
             description="Pay instantly via OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation."
-            />
-            <SolutionCard
+          />
+          <SolutionCard
             icon={<IconRobot size={26} />}
             title="AI listing verification"
             description="Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them."
-            />
-            <SolutionCard
+          />
+          <SolutionCard
             icon={<IconPackage size={26} />}
             title="Bundle packs"
             description="First year? Reserve a full set of textbooks from one seller is a single transaction. No need to meet 10 different people."
-            />
-            <SolutionCard
+          />
+          <SolutionCard
             icon={<IconStar size={26} />}
             title="Trust and reputation"
             description="Every buyer and seller builds a reputation score from real transactions. See ratings and reviews before you commit."
-            />
+          />
         </div>
       </div>
     </div>
@@ -345,45 +372,45 @@ function Thesolution() {
 
 function Howitworks() {
   return (
-  <div id="how-it-works" className="bg-gray-100 mx-auto px-6 py-20">
-    <div className="text-center mb-12">
-      <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
-      <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
-      <p className="mt-3 text-gray-600 dark:text-gray-400">The whole process is designed around campus life fast, safe, and simple.</p>
-    </div>
+    <div id="how-it-works" className="bg-gray-100 mx-auto px-6 py-20">
+      <div className="text-center mb-12">
+        <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
+        <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
+        <p className="mt-3 text-gray-600 dark:text-gray-400">The whole process is designed around campus life fast, safe, and simple.</p>
+      </div>
 
-    <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start relative">
-      <Step 
-      number={1}
-      title="Browse listings"
-      description="Search by course code, university or category. Filter by condition and price"
-      />
-      <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-      
-      
-      <div className="hidden md:block  absolute "/>
-        <Step 
-      number={2}
-      title="Reserve the item"
-      description="Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup."
-      />
-       <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-      <div className="hidden md:block absolute"/>
-        <Step 
-      number={3}
-      title="Meet on Campus"
-      description="Agree on a campus location. Both parties check in on arrival for accountability."
-      
-      />
-       <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-      <div className="hidden md:block absolute"/>
-          <Step 
-      number={4}
-      title="Inspect and pay"
-      description="Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done."
-      />
+      <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start relative">
+        <Step
+          number={1}
+          title="Browse listings"
+          description="Search by course code, university or category. Filter by condition and price"
+        />
+        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
+
+
+        <div className="hidden md:block  absolute " />
+        <Step
+          number={2}
+          title="Reserve the item"
+          description="Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup."
+        />
+        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
+        <div className="hidden md:block absolute" />
+        <Step
+          number={3}
+          title="Meet on Campus"
+          description="Agree on a campus location. Both parties check in on arrival for accountability."
+
+        />
+        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
+        <div className="hidden md:block absolute" />
+        <Step
+          number={4}
+          title="Inspect and pay"
+          description="Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done."
+        />
+      </div>
     </div>
-  </div>
   )
 }
 export default function HomePage() {
