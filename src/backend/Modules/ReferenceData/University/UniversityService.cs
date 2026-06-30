@@ -1,28 +1,28 @@
-using Modules.Infrastructure.Persistence;
+//using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Modules.Identity.Models.Dto;
 using Modules.ReferenceData.University;
+//using Modules.Identity.Models.DTO;
 
 namespace Modules.ReferenceData;
 
 public class UniversityService : IUniversityService
 {
-    private readonly UniversityRepository _universities;
+    private readonly IUniversityRepository _universities;
 
-    public UniversityService(UniversityRepository universities)
+    public UniversityService(IUniversityRepository universities)
     {
         _universities=universities;
     }
 
-    public async Task<List<University>> GetActiveUniversitiesAsync()
+    public async Task<List<Modules.Identity.Models.DTO.University>> GetActiveUniversitiesAsync()
     {
         var results=await _universities.GetActiveAsync();
 
-        return result.Select(u=>new University
+        return results.Select(u=>new Modules.Identity.Models.DTO.University
         {
-            University_ID=u.UniversityID,
+            University_ID=u.UniversityId,
             Name=u.Name,
-            Email_Domain=u.EmailDomain,
+            Email_domain=u.EmailDomain,
             Is_Active=u.IsActive
         }).ToList();
     }
