@@ -1,16 +1,17 @@
+
 import { useEffect, useRef, useState } from 'react';
+
+const supportsIO = typeof IntersectionObserver !== 'undefined';
 
 export function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+
+  const [inView, setInView] = useState(!supportsIO);
 
   useEffect(() => {
+    if (!supportsIO) return; 
     const el = ref.current;
     if (!el) return;
-    if (typeof IntersectionObserver === 'undefined') {
-      setInView(true);
-      return;
-    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
