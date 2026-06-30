@@ -363,11 +363,11 @@ function Thesolution() {
          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             { icon: <IconShield size={28} />, title: "Verified students only", description: "Every user is verified against their university student email. No outsiders, no scammers - just you campus community." },
-            { icon: <IconUsers size={28} />, title: "Meet on campus", description: "Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS." },
-            { icon: <IconMapPin size={28} />, title: "Secure payments via OZOW", description: "Pay instantly at the meetup using OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
-            { icon: <IconMapPin size={28}  />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
-            { icon: <IconMapPin size={28}  />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
-            { icon: <IconMapPin size={28} />, title: "Trust and reputation", description: "Every buyer and seller builds a reputation score from real transactions. See ratings and reviews rates before you commit." },
+            { icon: <IconMapPin size={28} />, title: "Meet on campus", description: "Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS." },
+            { icon: <IconLock size={28} />, title: "Secure payments via OZOW", description: "Pay instantly at the meetup using OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
+            { icon: <IconRobot size={28}  />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
+            { icon: <IconPackage size={28}  />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
+            { icon: <IconStar size={28} />, title: "Trust and reputation", description: "Every buyer and seller builds a reputation score from real transactions. See ratings and reviews rates before you commit." },
           ].map((p, i) => (
             <Reveal key={p.title} delay={i * 120}>
               <SolutionCard {...p} />
