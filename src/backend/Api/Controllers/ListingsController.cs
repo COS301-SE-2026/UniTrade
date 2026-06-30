@@ -36,7 +36,7 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return UnauthorizedAccessException(new { error = "unauthenticated" });
+            return Unauthorized(new { error = "unauthenticated" });
         }
         var response = await _listings.CreateListings(request, callerId);
         return Ok(response);
@@ -54,7 +54,7 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return UnauthorizedAccessException(new { error = "unauthenticated" });
+            return Unauthorized(new { error = "unauthenticated" });
         }
 
         var updateL = await _listings.UpdateListings(request, id, callerId, ct);
@@ -71,7 +71,7 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return UnauthorizedAccessException(new { error = "unauthenticated" });
+            return Unauthorized(new { error = "unauthenticated" });
         }
 
         var success = await _listings.DeleteListings(id, callerId);
@@ -113,12 +113,12 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return UnauthorizedAccessException(new { error = "unauthenticated" });
+            return Unauthorized(new { error = "unauthenticated" });
         }
 
         if (!await _listings.IsOwnerAsync(listingId, callerId))
         {
-            return StatusCode(StatusCodes.Status403NotModified, new { error = "forbidden" });
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
         }
 
         const long maxBytes = 10 * 1024 * 1024;
