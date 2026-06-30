@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   IconShield,
   IconUsers,
@@ -155,6 +155,82 @@ interface AlexAvatarProps {
   onClick: () => void;
 }
 
+function AlexAvatar ({ className = '', onClick }: AlexAvatarProps) {
+  const [stage, setStage] = useState<AvatarStage>('thinking');
+  const [cycleKey, setCycleKey] = useState(0);
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    timers.push(setTimeout(() => setStage('answer'), 1800));
+    timers.push(setTimeout(() => setStage('joy'), 3600));
+    timers.push(setTimeout(() => setStage('thinking'), 6200));
+    timers.push (
+      setTimeout(() => {
+        setCycleKey((k) => k + 1)
+      }, 6200)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [cycleKey]);
+
+  const bubbleText = stage === 'thinking' ? 'AgileBridge + DevNexus' : '=UniTrade';
+  const dots = stage === 'thinking' ? (
+    <span className="inline-flex gap-1 ml-1">
+      <span className="animate-bounce delay-0">.</span>
+      <span className="animate-bounce delay-150">.</span>
+      <span className="animate-bounce delay-300">.</span>
+    </span>
+  ) : null;
+
+  const bubbleColor = 
+  stage === 'thinking'
+  ? 'bg-blue-500/90'
+  : stage === 'answer'
+  ? 'bg-green-500/90 shadon-lg shadow-green-500/30'
+  : 'bg-amber-500/90'
+  return (
+    <div
+       className={`relative flex flex-col items-center ${className}`}
+       onClick={onClick}
+       role="img"
+       aria-label="Alex avatar"
+      >
+        <div className="relative mb-6 flex flex-col items-center">
+          <div 
+            className={`px-6 py-4 rounded-[2rem] text-white text-sm font-medium
+                        transition-all duration-500 max-w-[220px] text-center
+                        ${bubbleColor}
+                        ${stage === 'answer' ? 'scale-105' : 'scale-100'}`}>
+                          {bubbleText}
+                          {dots}
+                        </div>
+                        <div className={`w-4 h-4 rounded-full mt-1 transition-colors duration-500 ${bubbleColor}`} />
+                        <div className={`w-2.5 h-2.5 rounded-full mt-1 transition-colors duration-500 ${bubbleColor}`} />
+        </div>
+        <div 
+         key={cycleKey}
+         className={
+          `w-56 h-56 md:w-72 md:h-72 overflow-hidden
+          transition-transform duration-500
+          ${stage === 'thinking' ? 'animate-pulse-slow' : ''}
+          ${stage === 'joy' ? 'animate-joy-bounce' : ''}`
+         }
+         >
+          <img src={ALEX_IMAGE}
+          alt="Alex Avatar"
+          className="w-ful h-full object-contain"
+          />
+         </div>
+         {stage === 'joy' && (
+          <div className="absolute -top-6 -right-6 text-3xl animate-sparkle" />
+         )}
+         {stage === 'joy' && (
+          <div className="absolute -top-2 -left-6 text-2xl animate-sparkle-delay" />
+         )}
+      </div>
+       
+  )
+}
 function Firstpage() {
   return (
     <div className="min-h-screen bg-navy-700 pt-16 pb-10 relative overflow-hidden">
