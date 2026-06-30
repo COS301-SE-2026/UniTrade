@@ -351,35 +351,43 @@ function Theproblem() {
 function Footer() {
   const navigate = useNavigate();
   return (
-    <footer className = "bg-white border-t border-gray-200 px-12 py-8">
-      <div className = "grid grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
+    <footer className = "bg-white border-t border-gray-100 px-6 md:px-12 py-12">
+      <div className = "max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10 md:gap-6">
 
-        <div>
-          <div className = "flex items-center gap-2 mb-3">
-            <div className = "w-8 h-8 bg-[#003366] rounded-full flex items-center justify-center">
-              <span className = "text-white bold text-xs font-bold">U</span>
+          <div className = "flex items-center gap-3">
+            <div className = "w-10 h-10 rounded-full overflow-hidden bg-navy-700 ring-1 ring-gray-100 flex items-center justify-center flex-shrink-0">
+              <img
+                src={logo}
+                alt="UniTrade logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                  "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+                }}
+                />
               </div>
-              <p className = "text-xs font bold text-gray-700 uppercase tracking-wide">Contact Info</p>
-            </div>
-            <p className="text-xs text-gray-500">+123 456 789</p>
-            <p className="text-xs text-gray-500">DevNexus28@gmail.com</p>
+              <div>
+                <p className="text-sm font-semibold text-navy-700">UniTrade</p>
+                <p className="text-xs text-gray-500">DevNexus28@gmail.com</p>
+              </div>
           </div>
 
-          <div>
-          <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">Support</p>
-          <ul className="flex flex-col gap-1">
-            <li
-               onClick={() => navigate('/help-center')}
-               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-               >
-                Help Center
-               </li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
-          </ul>
-          </div>
-          </div>
-          </footer>
+          <button
+          onClick={() => navigate('/auth/help-center')}
+          className="text-sm text-gray-500 hover:text-navy-700 transition-colors cursor-pointer"
+        >
+          Help Center
+        </button>
+
+      </div>
+
+      <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-50">
+        <p className="text-xs text-gray-400 text-center md:text-left">
+          © {new Date().getFullYear()} UniTrade. All rights reserved.
+        </p>
+      </div>
+    </footer>
+          
   );
 }
 
@@ -551,8 +559,9 @@ export default function HomePage() {
       <Thesolution />
       <Howitworks />
       <BuyersSellers />
-      <Footer />
       <GetApp />
+      <Footer />
+
     </div>
   )
 }
