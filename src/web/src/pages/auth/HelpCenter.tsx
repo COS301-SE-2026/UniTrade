@@ -18,7 +18,6 @@ import logo from "../../assets/logo.jpeg"
 
 function Navbar() 
 {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate()
   return (
     <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
@@ -37,9 +36,14 @@ function Navbar()
           </div>
           <h1 className="font-bold text-navy-700 dark:text-white text-3xl mb-2">UniTrade</h1>
         </div>
+        <button 
+          onClick={ () => navigate(-1) }
+          className = "p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
+          <IconArrowLeft size={20} />
+          </button>
         </div>
          </nav>
-  )
+  );
 }
 
 interface QuickLinkItem{
@@ -98,16 +102,7 @@ export default function HelpCenter() {
 
     return(
         <div className = 'min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16'>
-            <nav className = 'flex items-center justify-between px-8 py-4 bg-white shadow-sm border-b border-gray-100'>
-                <div className = 'flex items-center gap-4'>
-                    <button onClick= {() => navigate('/')}
-                        className = "p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
-                        <IconArrowLeft size={20} />
-                        </button>
-                        <h1 className = "text-xl font-bold text-[#003366]">Unitrade</h1>
-                </div>
-                <div className = "text-sm text-gray-500 font-medium">Student Help Support</div>
-            </nav>
+            <Navbar />
 
       <div className="max-w-5xl mx-auto px-6 mt-8 relative">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible">
