@@ -102,12 +102,14 @@ function BenefitList({ title, items }: BenefitListProps) {
       </h3>
       <ul className="space-y-4">
         {items.map((item, index) => (
-          <li key={index} className="flex items-start gap-3 text-sm">
-            <div className="mt-1 text-green-500">
-              <IconPoint size={18} />
-            </div>
-            <span className="text-gray-700 dark:text-gray-300">{item}</span>
-          </li>
+          <Reveal key={index} delay={index * 80}>
+            <li className="flex items-start gap-3 text-sm">
+              <div className="mt-1 text-green-500">
+                <IconPoint size={18} />
+              </div>
+              <span className="text-gray-700 dark:text-gray-300">{item}</span>
+            </li>
+          </Reveal>
         ))}
       </ul>
     </div>
@@ -416,38 +418,41 @@ function Howitworks() {
 }
 
 function BuyersSellers() {
+  const buyerItems = [
+    "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
+    "Browse by your course code or module.",
+    "Reserve items before someone else does.",
+    "Chat with the seller and schedule a meeting.",
+    "Inspect before paying.",
+    "Rate and review the seller",
+  ];
+
+  const sellerItems = [
+    "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
+    "List under 2 minutes.",
+    "AI scans your photos automatically.",
+    "Get notified when a buyer is interested.",
+    "Chat with the buyer.",
+    "Rate and review the buyer",
+  ];
+
   return (
     <div id="for-buyerssellers" className="max-w-7xl mx-auto px-6 py-16 bg-white dark:bg-navy-900">
-      <div className="text-center mb-12">
-        <span className="uppercase text-s tracking-widest font-mono text-blue-400">WHO IT'S FOR</span>
-        <h2 className="text-4xl font-bold text-navy-700 dark:text-white">Built for both sides of the transaction</h2>
-        <p className="mt-3 text-gray-600 dark:text-gray-400">Whether you're buying ofr next semester or clearing out last year's books.</p>
-      </div>
+      <Reveal>
+        <div className="text-center mb-12">
+          <span className="uppercase text-s tracking-widest font-mono text-blue-400">WHO IT'S FOR</span>
+          <h2 className="text-4xl font-bold text-navy-700 dark:text-white">Built for both sides of the transaction</h2>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">Whether you're buying for next semester or clearing out last year's books.</p>
+        </div>
+      </Reveal>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <BenefitList
-          title="For buyers"
-          items={[
-            "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
-            "Browse by your course code or module.",
-            "Reserve items before someone else does.",
-            "Chat with the seller and schedule a meeting.",
-            "Inspect before paying.",
-            "Rate and review the seller"
-          ]}
-        />
-
-        <BenefitList
-          title="For sellers"
-          items={[
-            "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
-            "List under 2 minutes.",
-            "AI scans your photos automatically.",
-            "Get notified when a buyer is interested.",
-            "Chat with the buyer.",
-            "Rate and review the buyer"
-          ]}
-        />
+        <Reveal delay={0}>
+          <BenefitList title="For buyers" items={buyerItems} />
+        </Reveal>
+        <Reveal delay={150}>
+          <BenefitList title="For sellers" items={sellerItems} />
+        </Reveal>
       </div>
     </div>
   )
