@@ -12,7 +12,7 @@ import {
   IconArrowLeft
 } from '@tabler/icons-react';
 import { useNavigate} from 'react-router-dom';
-import AlexAvatar from '/auth/AlexAvatar';
+import AlexAvatar from './AlexAvatar.tsx';
 
 interface QuickLinkItem{
     icon: React.ReactNode;
@@ -68,4 +68,96 @@ export default function HelpCenter() {
     ];
 
 
+    return(
+        <div className = 'min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16'>
+            <nav className = 'flex items-center justify-between px-8 py-4 bg-white shadow-sm border-b border-gray-100'>
+                <div className = 'flex items-center gap-4'>
+                    <button onClick= {() => navigate('/')}
+                        className = "p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
+                        <IconArrowLeft size={20} />
+                        </button>
+                        <h1 className = "text-xl font-bold text-[#003366]">Unitrade</h1>
+                </div>
+                <div className = "text-sm text-gray-500 font-medium">Student Help Support</div>
+            </nav>
+
+            {/* Hero Header Frame */}
+      <div className="max-w-5xl mx-auto px-6 mt-8 relative">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible">
+          
+          <div className="flex-1 w-full">
+            <h2 className="text-3xl font-extrabold text-[#003366] tracking-tight">Help Center</h2>
+            <p className="text-sm text-gray-500 mt-1 mb-6">Find answers, tutorials, and support resources</p>
+            
+            <div className="relative w-full max-w-lg">
+              <input
+                type="text"
+                placeholder="Search for help articles..."
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#003366] focus:bg-white transition-all"
+              />
+              <IconSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            </div>
+          </div>
+
+          <div className="w-full md:w-auto flex justify-center md:block pt-4 md:pt-0">
+            <AlexAvatar isThinking={searchQuery.length === 0} />
+          </div>
+
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 mt-10">
+        <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Quick Links</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {quickLinks.map((link, idx) => (
+            <div 
+              key={idx} 
+              className="bg-white border border-gray-100 p-5 rounded-xl shadow-xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center mb-3 group-hover:bg-[#dce9f7] transition-colors">
+                {link.icon}
+              </div>
+              <h4 className="text-sm font-bold text-gray-800 mb-1">{link.title}</h4>
+              <p className="text-xs text-gray-500 leading-relaxed">{link.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 mt-12">
+        <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Frequently Asked Questions</h3>
+        <div className="flex flex-col gap-3">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaq === index;
+            return (
+              <div 
+                key={index} 
+                className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
+              >
+                <button
+                  onClick={() => toogleFaq(index)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-800 hover:bg-gray-50 transition-colors"
+                >
+                  <span>{faq.question}</span>
+                  {isOpen ? (
+                    <IconChevronUp size={18} className="text-gray-500" />
+                  ) : (
+                    <IconChevronDown size={18} className="text-gray-500" />
+                  )}
+                </button>
+
+                {isOpen && (
+                  <div className="px-5 pb-5 pt-1 text-xs text-gray-600 leading-relaxed border-t border-gray-50 bg-slate-50/50">
+                    {faq.answer}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
