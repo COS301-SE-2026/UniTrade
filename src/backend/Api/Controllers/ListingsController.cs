@@ -21,6 +21,7 @@ public class ListingController : ControllerBase
         _images = images;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateListingDto request)
     {
@@ -31,37 +32,55 @@ public class ListingController : ControllerBase
         )
             return BadRequest("Field(s) missing.");
 
-        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return UnauthorizedAccessException(new { error = "unauthenticated" });
+        }
         var response = await _listings.CreateListings(request, callerId);
         return Ok(response);
     }
 
-    [HttpPut("{id}")]
     [Authorize]
+    [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         [FromBody] UpdateListingDto request,
         Guid id,
         CancellationToken ct
     )
     {
-        var callerId = Guid.Parse(User.FindFirstValue("sub")!);
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return UnauthorizedAccessException(new { error = "unauthenticated" });
+        }
+
         var updateL = await _listings.UpdateListings(request, id, callerId, ct);
         if (!updateL)
             return NotFound();
         return Ok("Listings updated successfully");
     }
 
-    [HttpDelete("{id}")]
     [Authorize]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var callerId = Guid.Parse(User.FindFirstValue("sub")!);
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return UnauthorizedAccessException(new { error = "unauthenticated" });
+        }
+
         var success = await _listings.DeleteListings(id, callerId);
         if (!success)
             return NotFound();
         return NoContent();
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] ListFilterDto filter)
     {
@@ -69,6 +88,7 @@ public class ListingController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -88,6 +108,18 @@ public class ListingController : ControllerBase
     {
         if (files is null || files.Count == 0)
             return BadRequest("no_files");
+
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return UnauthorizedAccessException(new { error = "unauthenticated" });
+        }
+
+        if (!await _listings.IsOwnerAsync(listingId, callerId))
+        {
+            return StatusCode(StatusCodes.Status403NotModified, new { error = "forbidden" });
+        }
 
         const long maxBytes = 10 * 1024 * 1024;
         string[] allowed = new string[] { "image/jpeg", "image/png", "image/webp" };
