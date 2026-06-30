@@ -58,7 +58,7 @@ interface FaqItem{
 }
 
 export default function HelpCenter() {
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     const [searchQuery,setSearchQuery] = useState<string>('');
     const [openFaq, setOpenFaq] = useState<number | null>(null);
