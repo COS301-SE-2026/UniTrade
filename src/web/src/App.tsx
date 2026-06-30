@@ -19,6 +19,7 @@ import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
+import HelpCenter from "./pages/auth/HelpCenter";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
@@ -57,6 +58,8 @@ export default function App() {
       <Route path="/auth/Signup" element={<Signup />} />
       <Route path="/auth/HomePage" element={<HomePage />} />
       <Route path="/verify-otp" element={<OTP_verification />} />
+      <Route path="/auth/help-center" element={<HelpCenter />} />
+
 
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
