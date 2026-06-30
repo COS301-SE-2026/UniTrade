@@ -242,7 +242,7 @@ function Firstpage() {
       preserveAspectRatio="none"
       >
         <path 
-        d="M0,o
+        d="M0,0
         L780,0
         C 820, 250 650, 500 620,1000
         L0,1000 Z"
