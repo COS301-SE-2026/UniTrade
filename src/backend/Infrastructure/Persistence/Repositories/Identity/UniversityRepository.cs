@@ -1,7 +1,9 @@
 
 using Microsoft.EntityFrameworkCore;
 using Modules.ReferenceData.University;
+using Modules.ReferenceData.University.Repositories;
 using Infrastructure.Persistence;
+using Modules.ReferenceData;
 
 namespace Infrastructure.Persistence.Repositories;
 
