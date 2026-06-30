@@ -19,7 +19,7 @@ public class Listing
     public string? Author { get; set; }
     public string? Edition { get; set; }
 
-    public string ListingStatus { get; set; } ="";
+    public string ListingStatus { get; set; } = "";
 
     // not in MVP
     public decimal? AiRiskScore { get; set; }
@@ -28,12 +28,13 @@ public class Listing
     public bool? isBundle { get; set; }
     public string? RejectionReason { get; set; }
     public int? ViewCount { get; set; }
+
     //===========
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
     [NotMapped]
     public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
-
 }
