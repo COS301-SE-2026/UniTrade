@@ -14,6 +14,8 @@ import logo from "../../assets/logo.jpeg"
 import Apple from "../../assets/Apple.png"
 import Play from "../../assets/Play.png"
 import { useNavigate } from 'react-router-dom';
+import { Reveal } from '../../components/layout/Reveal';
+
 
 interface StatProps {
   number: string;
@@ -284,16 +286,19 @@ function Firstpage() {
               <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
               MADE FOR SA UNIVERSITY STUDENTS
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto max-w-100">
+            <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
+               animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
               Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
             </h1>
 
-            <p className="mt-6 text-gray-400">
+            <p className="mt-6 text-gray-400
+              animate-fade-up [animation-delay:250ms] [animation-fill-mode:both]">
               UniTrade is the verified peer-to-peer marketplace for South African students.
               No shipping, no strangers - just your campus community.
             </p>
 
-            <div className="grid grid-cols-3 gap-6 mt-12">
+            <div className="grid grid-cols-3 gap-6 mt-12
+                animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <Stat number="+5" label="SA UNIVERSITIES" />
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
@@ -301,7 +306,7 @@ function Firstpage() {
           </div>
 
 
-          <div className="flex-1 flex justify-end pr-4 lg:pr-12">
+          <div className="flex-1 flex justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
             <div className="lg:translate-x-24">
               <AlexAvatar />
             </div>
@@ -327,20 +332,15 @@ function Theproblem() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <ProblemCard
-            icon={<IconShield size={28} className="text-red-600" />}
-            title="Safety concerns"
-            description="Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms." />
-
-          <ProblemCard
-            icon={<IconUsers size={28} className="text-amber-600" />}
-            title="Lack of accountability"
-            description="Anonymous sellers can disappear after a bad transaction. There is no community to hold people accountable." />
-
-          <ProblemCard
-            icon={<IconMapPin size={28} className="text-blue-600" />}
-            title="Inconvenience meetup locations"
-            description="Coordinating with people across a city or country is time consuming. Students need a marketplace that works within their daily campus routine." />
+          {[
+            { icon: <IconShield size={28} className="text-red-600" />, title: "Safety concerns", description: "Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms." },
+            { icon: <IconUsers size={28} className="text-amber-600" />, title: "Lack of accountability", description: "Anonymous sellers can disappear after a bad transaction. There is not community to hold people accountable." },
+            { icon: <IconMapPin size={28} className="text-blue-600" />, title: "Inconvenient meetup locations", description: "Coordinating with people across a city or country is time consuming. Students need a marketplace that works within there daily campus routine." },
+          ].map((p, i) => (
+            <Reveal key={p.title} delay={i * 120}>
+              <ProblemCard {...p} />
+            </Reveal>
+          ))}
         </div>
 
       </div>
