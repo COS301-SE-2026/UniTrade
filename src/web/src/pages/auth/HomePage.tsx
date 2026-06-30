@@ -137,8 +137,8 @@ function Navbar() {
           <a href="#problem" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The Problem</a>
           <a href="#solution" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The Solution</a>
           <a href="#how-it-works" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">How it works</a>
-          <a href="#for-buyers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">For buyers</a>
-          <a href="#for-sellers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The sellers</a>
+          <a href="#for-buyerssellers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">For buyers</a>
+          <a href="#for-buyerssellers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The sellers</a>
         </div>
 
         <div className="flex items-center gap-4">
@@ -263,51 +263,51 @@ function Firstpage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-white" />
       <div className="absolute inset-0 z-10">
-      <svg
-      className="absolute inset-0 w-full h-full"
-      viewBox="0 0 1000 1000"
-      preserveAspectRatio="none"
-      >
-        <path 
-        d="M0,0
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,0
         L780,0
         C 820, 250 650, 500 620,1000
         L0,1000 Z"
-        fill="#0d1f4e"
-        />
-      </svg>
+            fill="#0d1f4e"
+          />
+        </svg>
       </div>
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
             <div className="inline-flex items-center gap-2 bg-white/10 text-blue-40 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
-        <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
-        MADE FOR SA UNIVERSITY STUDENTS
+              <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
+              MADE FOR SA UNIVERSITY STUDENTS
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto max-w-100">
+              Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
+            </h1>
+
+            <p className="mt-6 text-gray-400">
+              UniTrade is the verified peer-to-peer marketplace for South African students.
+              No shipping, no strangers - just your campus community.
+            </p>
+
+            <div className="grid grid-cols-3 gap-6 mt-12">
+              <Stat number="+5" label="SA UNIVERSITIES" />
+              <Stat number="100%" label="VERIFIED STUDENTS" />
+              <Stat number="0" label="SHIPPING FEES" />
+            </div>
+          </div>
+
+
+          <div className="flex-1 flex justify-end pr-4 lg:pr-12">
+            <div className="lg:translate-x-24">
+              <AlexAvatar />
+            </div>
+          </div>
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto max-w-100">
-          Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
-        </h1>
-       
-       <p className="mt-6 text-gray-400">
-        UniTrade is the verified peer-to-peer marketplace for South African students.
-        No shipping, no strangers - just your campus community.
-       </p>
-
-       <div className="grid grid-cols-3 gap-6 mt-12">
-        <Stat number="+5" label="SA UNIVERSITIES" />
-        <Stat number="100%" label="VERIFIED STUDENTS" />
-        <Stat number="0" label="SHIPPING FEES" />
-       </div>
       </div>
-    
-
-    <div className="flex-1 flex justify-end pr-4 lg:pr-12">
-      <div className="lg:translate-x-24">
-        <AlexAvatar />
-      </div>
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -350,7 +350,7 @@ function Theproblem() {
 
 function Thesolution() {
   return (
-    <div id="for-buyerssellers" className="bg-white dark:bg-navy-950 py-20">
+    <div id="solution" className="bg-white dark:bg-navy-950 py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
@@ -443,7 +443,7 @@ function Howitworks() {
 
 function BuyersSellers() {
   return (
-    <div id="how-it-works" className="max-w-7xl mx-auto px-6 py-16 bg-white dark:bg-navy-900">
+    <div id="for-buyerssellers" className="max-w-7xl mx-auto px-6 py-16 bg-white dark:bg-navy-900">
       <div className="text-center mb-12">
         <span className="uppercase text-s tracking-widest font-mono text-blue-400">WHO IT'S FOR</span>
         <h2 className="text-4xl font-bold text-navy-700 dark:text-white">Built for both sides of the transaction</h2>
@@ -452,27 +452,27 @@ function BuyersSellers() {
 
       <div className="grid md:grid-cols-2 gap-8">
         <BenefitList
-        title="For buyers"
-        items={[
-          "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
-          "Browse by your course code or module.",
-          "Reserve items before someone else does.",
-          "Chat with the seller and schedule a meeting.",
-          "Inspect before paying.",
-          "Rate and review the seller"
-        ]}
+          title="For buyers"
+          items={[
+            "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
+            "Browse by your course code or module.",
+            "Reserve items before someone else does.",
+            "Chat with the seller and schedule a meeting.",
+            "Inspect before paying.",
+            "Rate and review the seller"
+          ]}
         />
-      
+
         <BenefitList
-        title="For sellers"
-        items={[
-          "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
-          "List under 2 minutes.",
-          "AI scans your photos automatically.",
-          "Get notified when a buyer is interested.",
-          "Chat with the buyer.",
-          "Rate and review the buyer"
-        ]}
+          title="For sellers"
+          items={[
+            "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
+            "List under 2 minutes.",
+            "AI scans your photos automatically.",
+            "Get notified when a buyer is interested.",
+            "Chat with the buyer.",
+            "Rate and review the buyer"
+          ]}
         />
       </div>
     </div>
@@ -482,27 +482,27 @@ function BuyersSellers() {
 function GetApp() {
   return (
     <div className="bg-navy-700 py-16">
-    <div className="max-w-4xl mx-auto px-6 text-center">
-      <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
-      <p className="text-blue-200 mt-3">Available on IOS and Android</p>
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
+        <p className="text-blue-200 mt-3">Available on IOS and Android</p>
 
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
-        <a href="#" className="block">
-          <img 
-          src={Apple}
-          alt="Download on the App Store"
-          className="h-14"
-          />
-        </a>
-        <a href="#" className="block">
-          <img 
-            src={Play}
-            alt="GET IT ON Google Play"
-            className="h-14"
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
+          <a href="#" className="block">
+            <img
+              src={Apple}
+              alt="Download on the App Store"
+              className="h-14"
             />
-        </a>
+          </a>
+          <a href="#" className="block">
+            <img
+              src={Play}
+              alt="GET IT ON Google Play"
+              className="h-14"
+            />
+          </a>
+        </div>
       </div>
-    </div>
     </div>
   )
 }
@@ -512,34 +512,34 @@ function Footer() {
     <footer className="bg-white text-gray">
       <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
         <div>
-        <div className="mt-8">
-          <p className="text-xs">CONTACT INFO</p>
-          <p className="text-sm mt-2">+27 123 456 789</p>
-          <p className="text-sm">devenexus28@gmail.com</p>
+          <div className="mt-8">
+            <p className="text-xs">CONTACT INFO</p>
+            <p className="text-sm mt-2">+27 123 456 789</p>
+            <p className="text-sm">devenexus28@gmail.com</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs mb-4">SUPPORT</p>
+          <div className="space-y-2 text-sm">
+            <p>Help Center</p>
+            <p>Safety Tips</p>
+            <p>Contact Us</p>
+          </div>
+        </div>
+        <div>
+          <p className="text-xs mb-4">SOCIAL MEDIA</p>
+          <div className="flex gap-6 text-2xl">
+            <a href="#" className="hover:text-white transition-colors">𝕏</a>
+            <a href="#" className="hover:text-white transition-colors">📸</a>
+            <a href="#" className="hover:text-white transition-colors">𝕗</a>
+          </div>
         </div>
       </div>
+      <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
+        © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
+      </div>
 
-      <div>
-        <p className="text-xs mb-4">SUPPORT</p>
-        <div className="space-y-2 text-sm">
-          <p>Help Center</p>
-          <p>Safety Tips</p>
-          <p>Contact Us</p>
-        </div>
-          </div>
-          <div>
-            <p className="text-xs mb-4">SOCIAL MEDIA</p>
-            <div className="flex gap-6 text-2xl">
-              <a href="#" className="hover:text-white transition-colors">𝕏</a>
-              <a href="#" className="hover:text-white transition-colors">📸</a>
-              <a href="#" className="hover:text-white transition-colors">𝕗</a>
-            </div>
-          </div>
-          </div>
-          <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
-          © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
-          </div>
-          
     </footer>
   )
 }
