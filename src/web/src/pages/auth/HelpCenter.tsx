@@ -13,6 +13,34 @@ import {
 } from '@tabler/icons-react';
 import { useNavigate} from 'react-router-dom';
 import AlexAvatar from './AlexAvatar.tsx';
+import logo from "../../assets/logo.jpeg"
+
+
+function Navbar() 
+{
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate()
+  return (
+    <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
+      <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+            <img
+              src={logo}
+              alt="UniTrade Logo"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src =
+                  "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+              }}
+            />
+          </div>
+          <h1 className="font-bold text-navy-700 dark:text-white text-3xl mb-2">UniTrade</h1>
+        </div>
+        </div>
+         </nav>
+  )
+}
 
 interface QuickLinkItem{
     icon: React.ReactNode;
@@ -81,7 +109,6 @@ export default function HelpCenter() {
                 <div className = "text-sm text-gray-500 font-medium">Student Help Support</div>
             </nav>
 
-            {/* Hero Header Frame */}
       <div className="max-w-5xl mx-auto px-6 mt-8 relative">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible">
           
