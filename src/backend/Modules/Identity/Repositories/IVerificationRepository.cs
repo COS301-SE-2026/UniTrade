@@ -1,5 +1,6 @@
-using Modules.Identity.Models;
 using Microsoft.EntityFrameworkCore;
+using Modules.Identity.Models;
+
 namespace Modules.Identity.Verification;
 
 public interface IVerificationRepository
@@ -7,5 +8,4 @@ public interface IVerificationRepository
     Task<VerificationRequest?> GetCurrentByUserIdAsync(Guid userId);
     Task CreateAsync(VerificationRequest request);
     Task UpdateAsync(VerificationRequest request);
-    
 }

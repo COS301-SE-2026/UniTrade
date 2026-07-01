@@ -1,6 +1,6 @@
-using Modules.Listings.Repositories;
 using Microsoft.Extensions.Configuration;
 using Modules.Listings.Models;
+using Modules.Listings.Repositories;
 using Modules.SharedKernel;
 
 namespace Infrastructure.Storage;
@@ -31,8 +31,10 @@ public class PostgresImageStorageService : IImageStorageService
         return _images.AddAsync(image, ct);
     }
 
-    public Task<(byte[] Data, string ContentType)?> GetAsync(int imageId, CancellationToken ct = default) =>
-        _images.GetDataAsync(imageId, ct);
+    public Task<(byte[] Data, string ContentType)?> GetAsync(
+        int imageId,
+        CancellationToken ct = default
+    ) => _images.GetDataAsync(imageId, ct);
 
     public Task DeleteAsync(int imageId, CancellationToken ct = default) =>
         _images.DeleteAsync(imageId, ct);

@@ -7,5 +7,4 @@ public class ListFilterDto
     public int? CourseId { get; set; }
     public Guid? SellerId { get; set; }
     public string? Search { get; set; }
-
 }

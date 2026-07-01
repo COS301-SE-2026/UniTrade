@@ -7,6 +7,7 @@ public class CreateListingDto
     public decimal Price { get; set; }
     public string Condition { get; set; } = string.Empty;
     public string ListingType { get; set; } = string.Empty;
+
     //public Guid SellerId { get; set; }
     public string ListingStatus { get; set; } = "live";
     public int? CourseId { get; set; }

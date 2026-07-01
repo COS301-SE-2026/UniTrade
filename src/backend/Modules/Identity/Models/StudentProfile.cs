@@ -12,6 +12,5 @@ public class StudentProfile
     public string VerificationStatus { get; set; } = "pending";
     public decimal ReputationScore { get; set; }
 
-    public User User {get; set;} = null!;
-
+    public User User { get; set; } = null!;
 }
