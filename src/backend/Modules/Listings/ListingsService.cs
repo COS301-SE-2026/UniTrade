@@ -58,6 +58,27 @@ public class ListingService : IListingService
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto,Guid callerId)
     {
+        //resolve category
+        var category= await _categoryService.ResolveByNameAsync(dto.CategoryName.Trim());
+        if(category==null)
+        {
+            throw new ArgumentException("invalid_category");
+        }
+
+        bool isBook=string.Equals(category.Name,"book",StringComparison.OrdinalIgnoreCase);
+
+        if(!isBook&& dto.BookDetails is not null)
+        {
+            throw new ArgumentException("book_fields_not_allowed_for_category");
+        }
+
+        //validate metadaata
+        string? metadataJ=null;
+        if(dto.Metadata.HasValue && dto.Metadata.Value.ValueKind != System.Text.Json.JsonValueKind.Null)
+        {
+            metadataJ=System.Text.Json.JsonSerializer.Serialize(dto.Metadata.Value);
+        }
+
         var newListing = new Listing
         {
             Title = dto.Title,
@@ -65,9 +86,7 @@ public class ListingService : IListingService
             Price = dto.Price,
             Condition = dto.Condition,
             ListingType = dto.ListingType,
-            Author = dto.Author,
-            Isbn = dto.Isbn,
-            Edition = dto.Edition,
+            
             SellerId = callerId,
             ListingStatus = dto.ListingStatus,
             ListingId = Guid.NewGuid(),
@@ -80,8 +99,27 @@ public class ListingService : IListingService
         };
 
         await _listings.AddAsync(newListing);
+
+        if(isBook && dto.BookDetails is not null)
+        {
+            //ValidateBookDetails()
+            var newbook= new BookDetails
+            {
+                ListingId=newListing.ListingId,
+                Author = dto.BookDetails.Author?,
+                Isbn = dto.BookDetails.Isbn?,
+                Edition = dto.BookDetails.Edition?.Trim()
+            };
+
+            newListing.BookDetails=book;
+            await _listings.SaveAsync();
+
+        }
+
         return MapToSummary(newListing);
     }
+
+    //!!!!!validations for the bookdetails!!!!
 
     public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id,Guid callerId, CancellationToken ct= default)
     {
