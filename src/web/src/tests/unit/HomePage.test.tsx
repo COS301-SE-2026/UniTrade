@@ -134,4 +134,22 @@ describe('Firstpage', () => {
         renderHomePage()
         expect(screen.getByText('on your campus')).toBeInTheDocument()
     })
+
+    it ('renders the University stats with correct number and label', async () => {
+        renderHomePage()
+        expect(screen.getByText('+5')).toBeInTheDocument()
+        expect(screen.getByText('SA UNIVERSITIES')).toBeInTheDocument()
+    })
+
+    it ('renders the verification stats with the correct number and label', async () => {
+        renderHomePage()
+        expect(screen.getByText('100%')).toBeInTheDocument()
+        expect(screen.getByText('VERIFIED STUDENTS')).toBeInTheDocument()
+    })
+
+    it ('renders the shipping fees stats with the correct number and label', async () => {
+        renderHomePage()
+        expect(screen.getByText('0')).toBeInTheDocument()
+        expect(screen.getByText('SHIPPING FEES')).toBeInTheDocument()
+    })
 })
