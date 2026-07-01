@@ -59,7 +59,7 @@ public class ListingService : IListingService
                 .ToList()
         );
 
-    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto,Guid callerId)
+    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
     {
         //resolve category
         var category= await _categoryService.ResolveByNameAsync(dto.CategoryName.Trim());
@@ -126,13 +126,12 @@ public class ListingService : IListingService
 
     public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id,Guid callerId, CancellationToken ct= default)
     {
-       
         // updates to text based fields
         var listingLookUp = await _listings.GetByIdTrackedAsync(id);
         if (listingLookUp == null)
             return false;
 
-        if(listingLookUp.SellerId!=callerId)
+        if (listingLookUp.SellerId != callerId)
         {
             throw new UnauthorizedAccessException("Only sellers can update listings");
         }
@@ -171,25 +170,24 @@ public class ListingService : IListingService
                 await _images.DeleteAsync(imageId, ct);
             }
         }
-    
 
         return true;
     }
 
-    public async Task<bool> DeleteListings(Guid id,Guid callerId)
+    public async Task<bool> DeleteListings(Guid id, Guid callerId)
     {
         var listing = await _listings.GetByIdAsync(id);
         if (listing == null)
             return false;
 
-        if(listing.SellerId!=callerId)
+        if (listing.SellerId != callerId)
         {
             throw new UnauthorizedAccessException("Only sellers can delete listings");
         }
 
-        foreach(var image in listing.Images)
+        foreach (var image in listing.Images)
         {
-            await _images.DeleteAsync(image.ImageId);//this delet only has an interface???
+            await _images.DeleteAsync(image.ImageId); //this delet only has an interface???
         }
 
         await _listings.DeleteByIdAsync(id);

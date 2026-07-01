@@ -20,6 +20,8 @@ public class AppDbContext : DbContext
     ///add listing model after resolving conflicts
     // Listings
     public DbSet<Listing> Listings => Set<Listing>();
+    public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
+    public DbSet<BookDetails> BookDetails => Set<BookDetails>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
     public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
     public DbSet<BookDetails> BookDetails => Set<BookDetails>();
@@ -241,6 +243,7 @@ public class AppDbContext : DbContext
             entity.HasKey(x => x.ListingId);
 
             entity.Property(x => x.SellerId).IsRequired();
+            entity.Property(x => x.CategoryId).IsRequired();
 
             entity.Property(x => x.Title).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Description).IsRequired();
@@ -249,7 +252,8 @@ public class AppDbContext : DbContext
             //entity.Property(x => x.ListingType).HasMaxLength(20).IsRequired();
 
             // book-specific
-
+            // course id is only ever meant to be used by the book category, but due to latency of serial joins.., it's best of it stays here
+            // since at its core unitrade is a textbook market place, a lot of queries around this
             entity.Property(x => x.CourseId);
             //entity.Property(x => x.Isbn).HasMaxLength(13);
             //entity.Property(x => x.Author).HasMaxLength(120);
@@ -297,79 +301,94 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity
+                .HasOne(x => x.Category)
+                .WithMany()
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(x => x.BookDetails)
+                .WithOne(b => b.Listing)
+                .HasForeignKey<BookDetails>(b => b.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(x => x.SellerId).HasDatabaseName("ix_listings_seller");
 
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_listings_course");
-
             entity.HasIndex(x => x.CategoryId).HasDatabaseName("ix_listings_category");
 
             entity
-                .HasIndex(x => new { x.ListingStatus, x.VisibilityScore })
-                .HasDatabaseName("ix_listings_visibility")
+                .HasIndex(x => new
+                {
+                    x.CourseId,
+                    x.ListingStatus,
+                    x.CreatedAt
+                })
+                .HasDatabaseName("ix_listings_course_browse")
                 .HasFilter("listing_status = 'live'")
-                .IsDescending(false, true);
+                .IsDescending(false, true, true)
+                .IncludeProperties(x => new
+                {
+                    x.Title,
+                    x.Price,
+                    x.SellerId,
+                    x.CategoryId
+                });
             entity
-                .HasIndex(x => x.CreatedAt)
-                .HasDatabaseName("ix_listings_created_at")
-                .IsDescending();
+                .HasIndex(x => new
+                {
+                    x.CategoryId,
+                    x.ListingStatus,
+                    x.CreatedAt
+                })
+                .HasDatabaseName("ix_listings_category_browse")
+                .HasFilter("listing_status = 'live'")
+                .IsDescending(false, false, true)
+                .IncludeProperties(x => new
+                {
+                    x.Title,
+                    x.Price,
+                    x.SellerId
+                });
+
             entity
                 .HasIndex(x => new
                 {
                     x.ListingStatus,
                     x.VisibilityScore,
-                    x.CreatedAt,
+                    x.CreatedAt
                 })
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
         });
 
-        //listings category
-
         modelBuilder.Entity<ListingCategory>(entity =>
         {
-            entity.ToTable("Listing_category");
 
             entity.HasKey(x => x.CategoryId);
-            entity.Property(x => x.CategoryId).ValueGeneratedOnAdd();
+
             entity.Property(x => x.Name).HasMaxLength(50).IsRequired();
+            entity.HasIndex(x => x.Name).IsUnique();
+
             entity.Property(x => x.IsActive).HasDefaultValue(true).IsRequired();
-
-            entity.HasOne(x =>x.RootCategory)
-                .WithMany(x=>x.ChildCategories)
-                .HasForeignKey(x=>x.RootCategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasIndex(x=> x.Name)
-                .IsUnique()
-                .HasDatabaseName("ux_listing_category_name");
         });
 
-        //bookdetails 
         modelBuilder.Entity<BookDetails>(entity =>
         {
-            entity.ToTable(tb =>
-            {
-                tb.HasCheckConstraint(
-                    "chk_isbn_validity",
-                    "isbn IS NULL OR length(isbn) IN  (10,13)"
-                );
-            });
-
-            entity.HasKey(x =>x.ListingId);
+            entity.HasKey(x => x.ListingId);
             entity.Property(x => x.ListingId).ValueGeneratedNever();
 
-            entity.Property(x=>x.Isbn).HasMaxLength(13);
-            entity.Property(x=>x.Author).HasMaxLength(120);
-            entity.Property(x=> x.Edition).HasMaxLength(50);
+            entity.Property(x => x.Isbn).HasMaxLength(13);
+            entity.Property(x => x.Author).HasMaxLength(120);
+            entity.Property(x => x.Edition).HasMaxLength(50);
 
-            entity.HasOne(x=>x.Listing)
-                .WithOne(x=> x.BookDetails)
-                .HasForeignKey<BookDetails>(x=> x.ListingId)
-                .OnDelete(DeleteBehavior.Cascade);
-
+            entity.HasCheckConstraint(
+                "chk_isbn_validity",
+                "isbn IS NULL OR length(isbn) IN  (10,13)"
+            );
         });
-
 
         //Listing Images
         modelBuilder.Entity<ListingImage>(entity =>
