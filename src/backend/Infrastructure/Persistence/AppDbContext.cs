@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
     // Listings
     public DbSet<Listing> Listings => Set<Listing>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
+    public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
+    public DbSet<BookDetails> BookDetails => Set<BookDetails>();
 
     // Reference data
     public DbSet<University> Universities => Set<University>();
@@ -255,16 +257,21 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Description).IsRequired();
             entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
             entity.Property(x => x.Condition).HasMaxLength(5).IsRequired();
-            entity.Property(x => x.ListingType).HasMaxLength(20).IsRequired();
+            //entity.Property(x => x.ListingType).HasMaxLength(20).IsRequired();
 
             // book-specific
 
             entity.Property(x => x.CourseId);
-            entity.Property(x => x.Isbn).HasMaxLength(13);
-            entity.Property(x => x.Author).HasMaxLength(120);
-            entity.Property(x => x.Edition).HasMaxLength(50);
+            //entity.Property(x => x.Isbn).HasMaxLength(13);
+            //entity.Property(x => x.Author).HasMaxLength(120);
+            //entity.Property(x => x.Edition).HasMaxLength(50);
 
             entity.Property(x => x.ListingStatus).HasMaxLength(20).IsRequired();
+
+            //categorizing listings
+            entity.Property(x=> x.CategoryId).IsRequired();
+
+            entity.Property(x=> x.Metadata).HasColumnType("JSONB");
 
             //AI mod
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
@@ -293,10 +300,20 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            //listing category update
+            entity
+                .HasOne(x =>x.Category)
+                .WithMany(c => c.Listings)
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.SellerId).HasDatabaseName("ix_listings_seller");
 
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_listings_course");
+
+            entity.HasIndex(x => x.CategoryId).HasDatabaseName("ix_listings_course");
+
             entity
                 .HasIndex(x => new { x.ListingStatus, x.VisibilityScore })
                 .HasDatabaseName("ix_listings_visibility")
@@ -317,6 +334,34 @@ public class AppDbContext : DbContext
                 .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
         });
+
+        //listings category
+
+        modelBuilder.Entity<ListingCategory>(entity =>
+        {
+            entity.ToTable("Listings_category");
+
+            entity.HasKey(x => x.CategoryId);
+            entity.Property(x => x.CategoryId).ValueGeneratedOnAdd();
+            entity.Property(x => x.Name).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.IsActive).HasDefaultValue(true).IsRequired();
+
+            entity.HasOne(x =>x.RootCategory)
+                .WithMany(x=>ChildCategories)
+                .HasForeignKey(x=>x.RootCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x=> x.Name)
+                .IsUnique()
+                .HasDatabaseName("ux_listing_category_name")
+        });
+
+        //bookdetails 
+        modelBuilder.Entity<BookDetails>(entity =>
+        {
+            
+        });
+
 
         //Listing Images
         modelBuilder.Entity<ListingImage>(entity =>
