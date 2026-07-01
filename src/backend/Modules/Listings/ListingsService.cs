@@ -11,10 +11,13 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
 
-    public ListingService(IListingRepository listings, IListingImageRepository images)
+    private readonly ICategoryService _categoryService;
+
+    public ListingService(IListingRepository listings, IListingImageRepository images,ICategoryService categoryService)
     {
         _listings = listings;
         _images = images;
+        _categoryService=categoryService;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -134,12 +137,30 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("Only sellers can update listings");
         }
 
+        bool isBook=string.Equals(category.Name,"book",StringComparison.OrdinalIgnoreCase);
+
+        if(!isBook&& listings.BookDetails is not null)
+        {
+            throw new ArgumentException("book_fields_not_allowed_for_category");
+        }
+
         listingLookUp.Title = listings.Title;
         listingLookUp.Description = listings.Description;
         listingLookUp.Price = listings.Price;
         listingLookUp.Condition = listings.Condition;
         listingLookUp.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
+
+        //update metadata
+        if(listings.Metadata.HasValue){
+
+        var metadat=listings.Metadata.Value;
+        if(metadat.ValueKind!=System.Text.Json.JsonValueKind.Object)
+        {
+            throw new ArgumentException("invalid_metadata");
+        }
+        listingLookUp.Metadata=System.Text.Json.JsonSerializer.Serialize(metadat);
+        }
 
         // updates to images
 
