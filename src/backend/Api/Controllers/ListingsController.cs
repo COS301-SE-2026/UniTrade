@@ -4,6 +4,7 @@ using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.SharedKernel;
+using System.Security.Claims;
 
 namespace Api.Controllers;
 
@@ -30,23 +31,28 @@ public class ListingController : ControllerBase
         )
             return BadRequest("Field(s) missing.");
 
-        var response = await _listings.CreateListings(request);
+        var callerId= Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var response = await _listings.CreateListings(request,callerId);
         return Ok(response);
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id, CancellationToken ct)
     {
-        var updateL = await _listings.UpdateListings(request, id, ct);
+        var callerId=Guid.Parse(User.FindFirstValue("sub")!);
+        var updateL = await _listings.UpdateListings(request, id,callerId, ct);
         if (!updateL)
             return NotFound();
         return Ok("Listings updated successfully");
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success = await _listings.DeleteListings(id);
+        var callerId=Guid.Parse(User.FindFirstValue("sub")!);
+        var success = await _listings.DeleteListings(id,callerId);
         if (!success)
             return NotFound();
         return NoContent();
