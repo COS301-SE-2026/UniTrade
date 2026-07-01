@@ -1,10 +1,19 @@
 import {render} from '@testing-library/react'
-//import screen from '@testing-library/react'
+import {screen} from '@testing-library/react'
+import {within} from '@testing-library/react'
 import {MemoryRouter} from 'react-router-dom'
-import { describe, it} from 'vitest'
-//import expect from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi} from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
+//import userEvent from '@testing-library/user-event'
 
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom')
+    return {
+        ...actual,
+        useNavigate: () => mockNavigate,
+    }
+})
 const renderHomePage = () => 
     render (
         <MemoryRouter>
@@ -16,45 +25,21 @@ describe('HomePage', () => {
     it('home page appears up without crashing or lagging', () => {
         renderHomePage()
     })
+})
 
-    /**it('shows the UniTrade logo in the navbar', () => {
-        renderHomePage()
-        expect(screen.getByText('UniTrade')).toBeInTheDocument()
-    } )
-
-    it('shows the login button in the navbar', () => {
-        renderHomePage()
-        expect(screen.getByText('LOGIN')).toBeInTheDocument()
-
+describe('Navbar', () => {
+    beforeEach(() => {
+        mockNavigate.mockClear()
     })
 
-    it('shows the signup button in the navbar', () => {
+    it ('renders logo, title, and Get Started button', () => {
         renderHomePage()
-        expect(screen.getByText('SignUp')).toBeInTheDocument()
+        const nav = screen.getByRole('navigation')
+        expect(within(nav).getByAltText('UniTrade Logo')).toBeInTheDocument()
+        expect(within(nav).getByText('UniTrade')).toBeInTheDocument()
+        expect(
+            within(nav).getByRole('button', {name: /get started/i})
+        ).toBeInTheDocument()
     })
-
-    it('shows the text over the image', () =>{
-        renderHomePage()
-        expect(screen.getByText(/university materials made accessible/i)).toBeInTheDocument()
-    })
-
-    it('shows the what we offer section', () => {
-        renderHomePage()
-        expect(screen.getByText(/what we offer/i)).toBeInTheDocument()
-    })
-
-    it('shows the footer section', () => {
-        renderHomePage()
-        expect(screen.getByText(/Contact Info/i)).toBeInTheDocument()
-        expect(screen.getByText(/Support/i)).toBeInTheDocument()
-        expect(screen.getByText(/Social Media/i)).toBeInTheDocument()
-    })
-
-    it('shows the get the app section', () => {
-        renderHomePage()
-        expect(screen.getByText('GET THE APP')).toBeInTheDocument()
-    })*/
-
-
 
 })
