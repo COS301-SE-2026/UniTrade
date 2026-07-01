@@ -2,8 +2,7 @@ using Modules.Listings.Models.Dto;
 
 namespace Modules.Listings.Models.Dto;
 
-public record ListingSummaryDto
-(
+public record ListingSummaryDto(
     Guid ListingId,
     Guid SellerId,
      //string SellerName,

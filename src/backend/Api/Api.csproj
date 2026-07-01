@@ -22,7 +22,10 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
 
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference
+      Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets"
+      Version="1.23.0"
+    />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.4" />

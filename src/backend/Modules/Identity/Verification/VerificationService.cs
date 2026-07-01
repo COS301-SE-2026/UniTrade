@@ -1,9 +1,9 @@
-
 using System.Security.Cryptography;
 using System.Text;
 using Modules.Identity.Models;
-using Modules.Notifications;
 using Modules.Identity.Repositories;
+using Modules.Notifications;
+
 namespace Modules.Identity.Verification;
 
 using System.Security.Cryptography.X509Certificates;
@@ -21,14 +21,19 @@ public class VerificationService : IVerificationService
     private const int MAX_RESENDS = 3;
     private const int RESEND_COOLDOWN_SECONDS = 60;
 
-    public VerificationService(IVerificationRepository verifications, IUserRepository users, INotificationsService notifications, IConfiguration config)
+    public VerificationService(
+        IVerificationRepository verifications,
+        IUserRepository users,
+        INotificationsService notifications,
+        IConfiguration config
+    )
     {
         _verifications = verifications;
         _users = users;
         _notifications = notifications;
         _config = config;
-
     }
+
     public async Task InitiateAsync(string email, Guid userId)
     {
         var user = await _users.GetByIdAsync(userId);
@@ -62,14 +67,12 @@ public class VerificationService : IVerificationService
             IsCurrent = true,
             Status = "otp_pending",
 
-            SubmittedAt = DateTime.UtcNow // considering removing this since otp sent at handles this
-
+            SubmittedAt = DateTime.UtcNow, // considering removing this since otp sent at handles this
         };
 
         await _verifications.CreateAsync(record);
 
         await _notifications.SendOtpEmailAsync(email, otp);
-
     }
 
     public async Task<bool> VerifyAsync(Guid userId, string otp)
@@ -86,7 +89,6 @@ public class VerificationService : IVerificationService
             throw new Exception("already_verified");
         }
 
-
         if (record.AttemptNumber >= MAX_ATTEMPTS)
         {
             throw new Exception("otp_invalidated_resend_required");
@@ -98,7 +100,7 @@ public class VerificationService : IVerificationService
 
         var hash = HashOtp(otp);
         var hashBytes = Convert.FromBase64String(hash);
-        var storedBytes = Convert.FromBase64String(record.OtpCodeHash);
+        var storedBytes = Convert.FromBase64String(record.OtpCodeHash!);
 
         if (!CryptographicOperations.FixedTimeEquals(hashBytes, storedBytes))
         {
@@ -110,7 +112,7 @@ public class VerificationService : IVerificationService
                 var elapsed = DateTime.UtcNow - record.LastAttemptAt.Value;
                 if (elapsed < requiredDelay)
                 {
-                    // if a user tries too soon since the last failure occurred, we reject it without counting it 
+                    // if a user tries too soon since the last failure occurred, we reject it without counting it
                     // as a new attempt
                     var waitSeconds = (int)(requiredDelay - elapsed).TotalSeconds;
                     throw new Exception($"too_many_attempts:{waitSeconds}");
@@ -128,7 +130,6 @@ public class VerificationService : IVerificationService
             }
 
             throw new Exception("invalid_otp");
-
         }
 
         record.Status = "por_pending";
@@ -141,11 +142,8 @@ public class VerificationService : IVerificationService
             User.StudentProfile.VerificationStatus = "verified";
             await _users.UpdateAsync(User);
             await _notifications.SendWelcomeEmailAsync(User.Email, User.FirstName);
-
         }
         return true;
-
-
     }
 
     public async Task ResendAsync(Guid userId, string email)
@@ -160,12 +158,12 @@ public class VerificationService : IVerificationService
         if (record.OtpVerifiedAt != null)
         {
             throw new Exception("already_verified");
-
         }
-        if (record.OtpSentAt != null &&
-        (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < RESEND_COOLDOWN_SECONDS)
+        if (
+            record.OtpSentAt != null
+            && (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < RESEND_COOLDOWN_SECONDS
+        )
             throw new Exception("cooldown_active");
-
 
         var otp = GenerateOtp();
         var hash = HashOtp(otp);
@@ -178,9 +176,7 @@ public class VerificationService : IVerificationService
 
         await _verifications.UpdateAsync(record);
         await _notifications.SendOtpEmailAsync(email, otp);
-
     }
-
 
     private static string GenerateOtp()
     {
@@ -191,7 +187,11 @@ public class VerificationService : IVerificationService
 
     private string HashOtp(string otp)
     {
-        var secret = _config["Otp:Secret"] ?? throw new InvalidOperationException("Otp:Secret environment variable is not configured");
+        var secret =
+            _config["Otp:Secret"]
+            ?? throw new InvalidOperationException(
+                "Otp:Secret environment variable is not configured"
+            );
 
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));
@@ -200,8 +200,9 @@ public class VerificationService : IVerificationService
 
     private static TimeSpan ComputeDelay(int count)
     {
-        // the delay grows exponentially till the 15 minute bound 
-        if (count == 0) return TimeSpan.Zero;
+        // the delay grows exponentially till the 15 minute bound
+        if (count == 0)
+            return TimeSpan.Zero;
         var seconds = Math.Min(Math.Pow(2, count), 900);
         return TimeSpan.FromSeconds(seconds);
     }
