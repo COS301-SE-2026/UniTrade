@@ -92,3 +92,29 @@ describe('Navbar', () => {
         expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
     })
 })
+
+describe('Firstpage', () => {
+    beforeEach(() => {
+        mockNavigate.mockClear()
+    })
+
+    it ('Navigate to /auth/SignUp when SignUp button is clicked', async () => {
+        const user = userEvent.setup()
+        renderHomePage()
+        const signUpbuton = screen.getByRole('button', {
+            name: /signup/i
+        })
+        await user.click(signUpbuton)
+        expect(mockNavigate).toHaveBeenCalledWith('/auth/Signup')
+    })
+
+    it ('Navigate to /auth/Login when the login button is clicked', async() => {
+        const user = userEvent.setup()
+        renderHomePage()
+        const loginbuton = screen.getByRole('button', {
+            name: /login/i
+        })
+        await user.click(loginbuton)
+        expect(mockNavigate).toHaveBeenCalledWith('/auth/Login')
+    })
+})
