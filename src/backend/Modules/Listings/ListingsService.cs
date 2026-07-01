@@ -109,9 +109,9 @@ public class ListingService : IListingService
             var newbook= new BookDetails
             {
                 ListingId=newListing.ListingId,
-                Author = dto.BookDetails.Author?,
-                Isbn = dto.BookDetails.Isbn?,
-                Edition = dto.BookDetails.Edition?.Trim()
+                Author = dto.BookDetails.Author,
+                Isbn = dto.BookDetails.Isbn,
+                Edition = dto.BookDetails.Edition.Trim()
             };
 
             newListing.BookDetails=book;
