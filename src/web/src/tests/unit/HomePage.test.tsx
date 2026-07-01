@@ -1,11 +1,12 @@
 import {render} from '@testing-library/react'
 import {screen} from '@testing-library/react'
+//import { fireEvent, act} from '@testing-library/react'
 import {within} from '@testing-library/react'
 import {MemoryRouter} from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi} from 'vitest'
+import { beforeEach, describe, expect, it, vi, afterEach} from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
 import userEvent from '@testing-library/user-event'
-//import userEvent from '@testing-library/user-event'
+import { AlexAvatar } from '../../pages/auth/HomePage'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -163,4 +164,22 @@ describe('Firstpage', () => {
         expect(screen.getByTestId('alex-avatar-wrapper')).toBeInTheDocument()
     })
 
+})
+
+describe ('AlexAvatar', () => {
+    beforeEach(() => {
+        vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+        vi.clearAllTimers()
+        vi.useRealTimers()
+    })
+
+    it('shows "AgileBridge + DevNexus" with bouncing dots on initial thinking', () => {
+        render(<AlexAvatar />)
+        const bubble = screen.getByText(/AgileBridge \+ DevNexus/)
+        expect(bubble).toBeInTheDocument()
+        expect(bubble.querySelectorAll('.animate-bounce')).toHaveLength(3)
+    })
 })
