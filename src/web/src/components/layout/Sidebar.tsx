@@ -117,7 +117,7 @@ function UserPopover({
     ref={ref}
     className="absolute bottom-16 left-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-end mb-4">
         
         <button
         onClick={onClose}
@@ -128,7 +128,7 @@ function UserPopover({
         </button>
       </div>
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-full bg-navy-799 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
           {initials}
         </div>
         <div>
