@@ -42,4 +42,20 @@ describe('Navbar', () => {
         ).toBeInTheDocument()
     })
 
+    it ('renders desktop navigation links with correct hrefs', () => {
+        renderHomePage()
+        const nav = screen.getByRole('navigation')
+
+        const expectedLinks = [
+            { name: 'The Problem', href: '#problem'},
+            { name: 'The Solution', href: '#solution'},
+            { name: 'How it works', href: '#how-it-works'},
+        ]
+
+        expectedLinks.forEach(({ name, href}) => {
+            const links = within(nav).getAllByRole('link', {name})
+            expect(links[0]).toHaveAttribute('href', href)
+        })
+    })
+
 })
