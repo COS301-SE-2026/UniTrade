@@ -169,12 +169,12 @@ function Navbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden border-t bg-white dark:bg-navy-800 py-4 px-6 space-y-4 text-sm">
-          <a href="#problem" className="block py-2">The Problem</a>
-          <a href="#solution" className="block py-2">The Solution</a>
-          <a href="#how-it-works" className="block py-2">How it works</a>
-          <a href="#for-buyerssellers" className="block py-2">For buyers</a>
-          <a href="#for-buyerssellers" className="block py-2">For sellers</a>
+        <div data-testid="mobile-menu" className="md:hidden border-t bg-white dark:bg-navy-800 py-4 px-6 space-y-4 text-sm">
+          <a href="#problem" className="block py-2" onClick={() => setIsMenuOpen(false)}>The Problem</a>
+          <a href="#solution" className="block py-2" onClick={() => setIsMenuOpen(false)}>The Solution</a>
+          <a href="#how-it-works" className="block py-2" onClick={() => setIsMenuOpen(false)}>How it works</a>
+          <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For buyers</a>
+          <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For sellers</a>
         </div>
       )}
     </nav>
