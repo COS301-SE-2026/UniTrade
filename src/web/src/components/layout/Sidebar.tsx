@@ -91,7 +91,6 @@ const adminNav: NavSection[] = [
 ]
 
 interface UserPopoverProps {
-  email: string
   name: string
   initials: string
   roleLabel: string
@@ -99,7 +98,7 @@ interface UserPopoverProps {
   onLogout: () => void 
 }
 function UserPopover({
-  email, name, initials, roleLabel, onClose, onLogout,
+  name, initials, roleLabel, onClose, onLogout,
 }: UserPopoverProps){
   const ref = useRef<HTMLDivElement>(null)
 
@@ -119,7 +118,7 @@ function UserPopover({
     className="absolute bottom-16 left-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50"
     >
       <div className="flex items-center justify-between mb-4">
-        <p className="text-navy-700 font-semibold text-base truncate">{email}</p>
+        
         <button
         onClick={onClose}
         className="text-gray-400 hover:text-gray-600"
@@ -293,8 +292,7 @@ export default function Sidebar() {
           </div>
           {ShowPopover && (
             <UserPopover 
-               email={user.email}
-               name={user.name}
+              name={user.name}
                initials={user.initials}
                roleLabel={
                 user.role === 'admin' ? 'Admin Account' : viewMode === 'buyer' ? 'Buyer Account' : 'Seller Account'
