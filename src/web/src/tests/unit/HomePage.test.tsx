@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {screen} from '@testing-library/react'
 //import { fireEvent, act} from '@testing-library/react'
 import {within} from '@testing-library/react'
@@ -205,5 +205,70 @@ describe ('AlexAvatar', () => {
         expect(screen.getByText('UniTrade')).toBeInTheDocument()
         const avatarWrapper = screen.getByAltText('Alex Avatar').parentElement
         expect(avatarWrapper).toHaveClass('animate-joy-bounce')
+    })
+
+    it('applies correct bubble color for each stage', () => {
+        render(<AlexAvatar />)
+        expect(screen.getByText(/AgileBridge/)).toHaveClass('bg-navy-700')
+
+        act(() => {vi.advanceTimersByTime(1800)})
+        expect(screen.getByText('UniTrade')).toHaveClass('bg-blue-400')
+
+        act(() => { vi.advanceTimersByTime(1800)})
+        expect(screen.getByText('UniTrade')).toHaveClass('bg-blue-400')
+    })
+
+    it('applies pulse animation class during thinking, joy bounce', () => {
+        render(<AlexAvatar />)
+
+        const wrapper = () => screen.getByAltText('Alex Avatar').parentElement
+
+        expect(wrapper()).toHaveClass('animate-pulse-slow')
+        expect(wrapper()).not.toHaveClass('animate-joy-bounce')
+
+        act(() => { vi.advanceTimersByTime(3600)})
+
+        expect(wrapper()).toHaveClass('animate-joy-bounce')
+        expect(wrapper()).not.toHaveClass('animate-pulse-slow')
+    })
+
+    it ('cycles through stages', () => {
+        render(<AlexAvatar />)
+
+        expect(screen.getByText(/AgileBridge/)).toBeInTheDocument()
+
+        act(() => { vi.advanceTimersByTime(1800) })
+        expect(screen.getByText('UniTrade')).toBeInTheDocument()
+
+        act(() => { vi.advanceTimersByTime(1800) })
+        expect(screen.getByAltText('Alex Avatar').parentElement).toHaveClass('animate-joy-bounce')
+
+        act(() => { vi.advanceTimersByTime(2600) })
+        expect(screen.getByText(/AgileBridge/)).toBeInTheDocument()
+    })
+
+    it('cycle change re-arms the timers', () => {
+        render(<AlexAvatar />)
+
+        act(() => { vi.advanceTimersByTime(6200) })
+        expect(screen.getByText(/AgileBridge/)).toBeInTheDocument()
+
+        act(() => { vi.advanceTimersByTime(1800) })
+        expect(screen.getByText('UniTrade')).toBeInTheDocument()
+    })
+
+    it('calls onClick when the avatar is clicked', () => {
+        const handleClick = vi.fn()
+        render (<AlexAvatar onClick={handleClick} />)
+
+        fireEvent.click(screen.getByTestId('alex-avatar-container'))
+
+        expect(handleClick).toHaveBeenCalledTimes(1)
+    })
+
+    it('applies the className proto the container', () => {
+        render(<AlexAvatar className="my-custom-class"/>)
+
+        expect(screen.getByTestId('alex-avatar-container')).toHaveClass('my-custom-class')
     })
 })
