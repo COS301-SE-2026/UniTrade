@@ -67,5 +67,28 @@ describe('Navbar', () => {
 
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Signup')
     })
+    it ('toggles the mobile menu open and closed on hamburger click', async () => {
+        const user = userEvent.setup()
+        renderHomePage()
 
+        expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
+
+        const toggle = screen.getByTestId('mobile-menu-toggle')
+        await user.click(toggle)
+
+        expect(screen.getByTestId('mobile-menu')).toBeInTheDocument()
+        await user.click(toggle)
+        expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
+    })
+    
+    it ('closes the mobile menu when a link is clicked', async () => {
+        const user = userEvent.setup()
+        renderHomePage()
+
+        await user.click(screen.getByTestId('mobile-menu-toggle'))
+        const mobileMenu = screen.getByTestId('mobile-menu')
+
+        await user.click(within(mobileMenu).getByText('The Problem'))
+        expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
+    })
 })
