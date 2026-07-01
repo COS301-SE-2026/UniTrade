@@ -8,6 +8,7 @@ interface User {
   name: string
   initials: string
   role: UserRole
+  email: string
   university?: string
 }
 

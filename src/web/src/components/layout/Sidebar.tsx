@@ -12,9 +12,11 @@ import {
   IconPackage,
   IconChevronLeft,
   IconChevronRight,
+  IconX,
 } from '@tabler/icons-react'
 import { useAuthStore } from '../../store/useAuthStore'
-import { useState } from 'react'
+import { authService } from '../../services/authService'
+import { useState, useEffect, useRef } from 'react'
 
 interface NavItem {
   label: string
@@ -88,10 +90,71 @@ const adminNav: NavSection[] = [
   },
 ]
 
+interface UserPopoverProps {
+  email: string
+  name: string
+  initials: string
+  roleLabel: string
+  onClose: () => void
+  onLogout: () => void 
+}
+function UserPopover({
+  email, name, initials, roleLabel, onClose, onLogout,
+}: UserPopoverProps){
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent){
+      if (ref.current && !ref.current.contains(e.target as Node)){
+        onClose()
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [onClose])
+
+  return (
+    <div 
+    ref={ref}
+    className="absolute bottom-16 left-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-navy-700 font-semibold text-base truncate">{email}</p>
+        <button
+        onClick={onClose}
+        className="text-gray-400 hover:text-gray-600"
+        aria-label="Close"
+        >
+          <IconX size={18} />
+        </button>
+      </div>
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-10 h-10 rounded-full bg-navy-799 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+          {initials}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-gray-900">{name}</p>
+          <p className="text-sm text-sky-400">{roleLabel}</p>
+        </div>
+      </div>
+      <button
+      onClick={onLogout}
+      className="w-full bg-navy-700 text-white font-semibold text-sm rounded-full py-2.5 hover:bg-navy-500 transition-colors"
+      >
+        LOGOUT
+      </button>
+      <p 
+      //onClick={auth/Terms-and-conditions}
+      className="text-center text-xs text-gray-400 mt-3">Terms and conditions</p>
+    </div>
+  )
+}
 export default function Sidebar() {
-  const { user, viewMode, toggleViewMode } = useAuthStore()
+  const { user, viewMode, toggleViewMode, clearUser } = useAuthStore()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
+  const [ShowPopover, setShowPopover] = useState(false)
+  
 
   let sections: NavSection[] = []
   if (user?.role === 'admin') {
@@ -107,6 +170,17 @@ export default function Sidebar() {
     navigate(newMode === 'buyer' ? '/buyer/listings' : '/seller/listings')
   }
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+    } catch {
+       //Inacase there is an api call frontend doesn't fail
+    } finally {
+      clearUser()
+      setShowPopover(false)
+      navigate('auth/login')
+    }
+  }
   return (
     <aside
       className={clsx(
@@ -197,21 +271,37 @@ export default function Sidebar() {
 
       {user && (
         <div
+          className="relative">
+          <div 
+          onClick={() => setShowPopover((prev) => !prev)}
           className={clsx(
-            'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden',
+            'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
             collapsed && 'justify-center'
           )}
-        >
-          <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
-            {user.initials}
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-[12px] font-semibold truncate">{user.name}</p>
-              <p className="text-[10px] text-white/50 capitalize">
-                {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'}
-              </p>
+          >
+            <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
+              {user.initials}
             </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold truncate">{user.name}</p>
+                <p className="text=[10px] text-white/50 capitalize">
+                {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'} 
+                </p>
+                </div>
+            )}
+          </div>
+          {ShowPopover && (
+            <UserPopover 
+               email={user.email}
+               name={user.name}
+               initials={user.initials}
+               roleLabel={
+                user.role === 'admin' ? 'Admin Account' : viewMode === 'buyer' ? 'Buyer Account' : 'Seller Account'
+               }
+               onClose={() => setShowPopover(false)}
+               onLogout={handleLogout}
+               />
           )}
         </div>
       )}
