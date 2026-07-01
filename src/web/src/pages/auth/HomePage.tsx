@@ -189,7 +189,7 @@ interface AlexAvatarProps {
   onClick?: () => void;
 }
 
-function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
+export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   const [stage, setStage] = useState<AvatarStage>('thinking');
   const [cycleKey, setCycleKey] = useState(0);
 
@@ -224,6 +224,7 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
         : 'bg-blue-400'
   return (
     <div
+     data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
