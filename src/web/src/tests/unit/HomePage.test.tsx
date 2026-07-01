@@ -4,6 +4,7 @@ import {within} from '@testing-library/react'
 import {MemoryRouter} from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi} from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
+import userEvent from '@testing-library/user-event'
 //import userEvent from '@testing-library/user-event'
 
 const mockNavigate = vi.fn()
@@ -56,6 +57,15 @@ describe('Navbar', () => {
             const links = within(nav).getAllByRole('link', {name})
             expect(links[0]).toHaveAttribute('href', href)
         })
+    })
+
+    it('navigates to /auth/Signup when Get Started is clicked', async () => {
+        const user = userEvent.setup()
+        renderHomePage()
+        const nav = screen.getByRole('navigation')
+        await user.click(within(nav).getByRole('button', {name: /get started/i}))
+
+        expect(mockNavigate).toHaveBeenCalledWith('/auth/Signup')
     })
 
 })
