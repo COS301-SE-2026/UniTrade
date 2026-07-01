@@ -117,4 +117,8 @@ describe('Firstpage', () => {
         await user.click(loginbuton)
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Login')
     })
+    it ('renders the badge text', async () => {
+        renderHomePage()
+        expect(screen.getByText('MADE FOR SA UNIVERSITY STUDENTS')).toBeInTheDocument()
+    })
 })
