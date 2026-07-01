@@ -230,21 +230,10 @@ public class AppDbContext : DbContext
                     "condition IN ('new', 'good', 'fair', 'poor')"
                 );
                 tb.HasCheckConstraint(
-                    "chk_listing_type",
-                    "listing_type IN ('book', 'laptop', 'stationery', 'electronics', 'clothing', 'furniture', 'other')"
-                );
-                tb.HasCheckConstraint(
                     "chk_listing_risk",
                     "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
                 );
-                tb.HasCheckConstraint(
-                    "chk_isbn_validity",
-                    "isbn IS NULL OR length(isbn) IN  (10,13)"
-                );
-                tb.HasCheckConstraint(
-                    "chk_listing_book_fields",
-                    "listing_type ='book'  OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)"
-                );
+                
             });
 
             //LISTING_ID
@@ -271,7 +260,7 @@ public class AppDbContext : DbContext
             //categorizing listings
             entity.Property(x=> x.CategoryId).IsRequired();
 
-            entity.Property(x=> x.Metadata).HasColumnType("JSONB");
+            entity.Property(x=> x.Metadata).HasColumnType("jsonb");
 
             //AI mod
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
@@ -312,7 +301,7 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_listings_course");
 
-            entity.HasIndex(x => x.CategoryId).HasDatabaseName("ix_listings_course");
+            entity.HasIndex(x => x.CategoryId).HasDatabaseName("ix_listings_category");
 
             entity
                 .HasIndex(x => new { x.ListingStatus, x.VisibilityScore })
@@ -339,7 +328,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ListingCategory>(entity =>
         {
-            entity.ToTable("Listings_category");
+            entity.ToTable("Listing_category");
 
             entity.HasKey(x => x.CategoryId);
             entity.Property(x => x.CategoryId).ValueGeneratedOnAdd();
@@ -347,19 +336,38 @@ public class AppDbContext : DbContext
             entity.Property(x => x.IsActive).HasDefaultValue(true).IsRequired();
 
             entity.HasOne(x =>x.RootCategory)
-                .WithMany(x=>ChildCategories)
+                .WithMany(x=>x.ChildCategories)
                 .HasForeignKey(x=>x.RootCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x=> x.Name)
                 .IsUnique()
-                .HasDatabaseName("ux_listing_category_name")
+                .HasDatabaseName("ux_listing_category_name");
         });
 
         //bookdetails 
         modelBuilder.Entity<BookDetails>(entity =>
         {
-            
+            entity.ToTable(tb =>
+            {
+                tb.HasCheckConstraint(
+                    "chk_isbn_validity",
+                    "isbn IS NULL OR length(isbn) IN  (10,13)"
+                );
+            });
+
+            entity.HasKey(x =>x.ListingId);
+            entity.Property(x => x.ListingId).ValueGeneratedNever();
+
+            entity.Property(x=>x.Isbn).HasMaxLength(13);
+            entity.Property(x=>x.Author).HasMaxLength(120);
+            entity.Property(x=> x.Edition).HasMaxLength(50);
+
+            entity.HasOne(x=>x.Listing)
+                .WithOne(x=> x.BookDetails)
+                .HasForeignKey<BookDetails>(x=> x.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         });
 
 
