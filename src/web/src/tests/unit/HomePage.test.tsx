@@ -121,4 +121,17 @@ describe('Firstpage', () => {
         renderHomePage()
         expect(screen.getByText('MADE FOR SA UNIVERSITY STUDENTS')).toBeInTheDocument()
     })
+    it ('renders the first page text', async () => {
+        renderHomePage()
+        expect(screen.getByText('UniTrade is the verified peer-to-peer marketplace for South African students. No shipping, no strangers - just your campus community.')).toBeInTheDocument()
+    })
+
+     it ('renders the first page text', async () => {
+        renderHomePage()
+        expect(screen.getByText('Buy and sell University materials')).toBeInTheDocument()
+    })
+    it ('renders the first page second text', async () => {
+        renderHomePage()
+        expect(screen.getByText('on your campus')).toBeInTheDocument()
+    })
 })
