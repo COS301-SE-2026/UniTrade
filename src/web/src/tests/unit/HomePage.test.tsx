@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi, afterEach} from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
 import userEvent from '@testing-library/user-event'
 import { AlexAvatar } from '../../pages/auth/HomePage'
+import { act } from 'react'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -181,5 +182,28 @@ describe ('AlexAvatar', () => {
         const bubble = screen.getByText(/AgileBridge \+ DevNexus/)
         expect(bubble).toBeInTheDocument()
         expect(bubble.querySelectorAll('.animate-bounce')).toHaveLength(3)
+    })
+
+    it ('shows "UniTrade" after transitioning to answer', () => {
+        render(<AlexAvatar />)
+
+        act(() => {
+            vi.advanceTimersByTime(1800)
+        })
+        expect(screen.getByText('UniTrade')).toBeInTheDocument()
+        expect(screen.queryByText(/AgileBridge/)).not.toBeInTheDocument()
+        expect(screen.getByText('UniTrade').querySelectorAll('.animate-bounce')).toHaveLength(0)
+    })
+
+    it ('shows "UniTrade" with joy animation after transitioning to joy', () => {
+        render(<AlexAvatar />)
+
+        act(() => {
+            vi.advanceTimersByTime(3600)
+        })
+
+        expect(screen.getByText('UniTrade')).toBeInTheDocument()
+        const avatarWrapper = screen.getByAltText('Alex Avatar').parentElement
+        expect(avatarWrapper).toHaveClass('animate-joy-bounce')
     })
 })
