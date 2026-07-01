@@ -152,4 +152,15 @@ describe('Firstpage', () => {
         expect(screen.getByText('0')).toBeInTheDocument()
         expect(screen.getByText('SHIPPING FEES')).toBeInTheDocument()
     })
+
+    it ('inlcudes the Alex Avatar alt text on the page', async () => { //another way for checking if the avatar is on the page
+        renderHomePage()
+        expect(screen.getByAltText(/Alex Avatar/i)).toBeInTheDocument()
+    })
+
+    it ('includes the Alex Avatar on the page', async () => { //also another way
+        renderHomePage ()
+        expect(screen.getByTestId('alex-avatar-wrapper')).toBeInTheDocument()
+    })
+
 })

@@ -329,7 +329,7 @@ function Firstpage() {
 
 
           <div className="flex-1 flex justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
-            <div className="lg:translate-x-24">
+            <div className="lg:translate-x-24" data-testid="alex-avatar-wrapper">
               <AlexAvatar />
             </div>
           </div>
