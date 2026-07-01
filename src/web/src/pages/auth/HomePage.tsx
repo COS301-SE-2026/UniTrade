@@ -263,6 +263,7 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   )
 }
 function Firstpage() {
+  const navigate = useNavigate()
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-white" />
@@ -305,6 +306,22 @@ function Firstpage() {
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
             </div>
+
+            <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+              <button
+              onClick={() => navigate('/auth/Signup')}
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                SIGNUP
+                <IconArrowRight size={18} />
+              </button>
+
+              <button
+              onClick={() => navigate('/auth/Login')}
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                LOGIN
+                <IconArrowRight size={18} />
+              </button>
+              </div>
           </div>
 
 
