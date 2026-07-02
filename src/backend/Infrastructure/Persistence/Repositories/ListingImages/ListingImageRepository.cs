@@ -1,7 +1,7 @@
 using Infrastructure.Persistence;
-using Modules.Listings.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Modules.Listings.Models;
+using Modules.Listings.Repositories;
 
 namespace Infrastructure.Persistence.Repositories.ListingImages;
 

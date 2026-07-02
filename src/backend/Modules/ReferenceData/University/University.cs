@@ -6,6 +6,4 @@ public class University
     public string Name { get; set; } = null!;
     public string EmailDomain { get; set; } = null!;
     public bool IsActive { get; set; } = true;
-
-
 }
