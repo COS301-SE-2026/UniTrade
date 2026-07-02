@@ -11,13 +11,11 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
 
-    private readonly ICategoryService _categoryService;
 
-    public ListingService(IListingRepository listings, IListingImageRepository images,ICategoryService categoryService)
+    public ListingService(IListingRepository listings, IListingImageRepository images)
     {
         _listings = listings;
         _images = images;
-        _categoryService=categoryService;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -62,7 +60,7 @@ public class ListingService : IListingService
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
     {
         //resolve category
-        var category= await _categoryService.ResolveByNameAsync(dto.CategoryName.Trim());
+        var category= await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
         if(category==null)
         {
             throw new ArgumentException("invalid_category");
