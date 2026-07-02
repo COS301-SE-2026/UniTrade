@@ -63,22 +63,6 @@ public class ListingController : ControllerBase
         return Ok("Listings updated successfully");
     }
 
-    [Authorize]
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var callerIdClaim =
-            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
-        if (!Guid.TryParse(callerIdClaim, out var callerId))
-        {
-            return Unauthorized(new { error = "unauthenticated" });
-        }
-
-        var success = await _listings.DeleteListings(id, callerId);
-        if (!success)
-            return NotFound();
-        return NoContent();
-    }
 
     [Authorize]
     [HttpGet]
