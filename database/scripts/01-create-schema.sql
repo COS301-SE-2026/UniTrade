@@ -127,7 +127,7 @@ CREATE TABLE Listings (
 CREATE TABLE Listing_category(
     category_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
-    root_category_id INT NULL REFERENCES Listing_category(category_id),
+    -- root_category_id INT NULL REFERENCES Listing_category(category_id), IN CASE WE WANT TO HAVE A HIERARCHY OF CATEGORIES IN THE FUTURE
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -354,12 +354,6 @@ CREATE INDEX ix_vr_status ON Verification_requests(status);
 CREATE INDEX ix_listings_seller ON Listings(seller_id);
 
 CREATE INDEX ix_listings_course ON Listings(course_id);
-
-CREATE INDEX ix_listings_feed ON Listings(listing_status, visibility_score DESC)
-WHERE
-    listing_status = 'live';
-
-CREATE INDEX ix_listings_created_at ON Listings (created_at DESC);
 
 CREATE INDEX ix_listing_images_listing ON Listing_images(listing_id);
 

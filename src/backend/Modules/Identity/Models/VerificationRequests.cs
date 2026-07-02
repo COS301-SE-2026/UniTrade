@@ -22,7 +22,6 @@ public class VerificationRequest
     public decimal? AiConfidenceScore { get; set; }
     public string? AiDecision { get; set; }
 
-
     public Guid? AdminId { get; set; }
     public string? AdminDecision { get; set; }
     public string? RejectionReason { get; set; }
@@ -31,5 +30,4 @@ public class VerificationRequest
 
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DecidedAt { get; set; }
-
 }
