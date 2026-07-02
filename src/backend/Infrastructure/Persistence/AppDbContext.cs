@@ -233,7 +233,10 @@ public class AppDbContext : DbContext
                     "chk_listing_risk",
                     "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
                 );
-                tb.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')");
+                tb.HasCheckConstraint(
+                    "chk_listing_status",
+                    "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')"
+                );
             });
 
             //LISTING_ID
@@ -253,9 +256,6 @@ public class AppDbContext : DbContext
             // course id is only ever meant to be used by the book category, but due to latency of serial joins.., it's best of it stays here
             // since at its core unitrade is a textbook market place, a lot of queries around this
             entity.Property(x => x.CourseId);
-            //entity.Property(x => x.Isbn).HasMaxLength(13);
-            //entity.Property(x => x.Author).HasMaxLength(120);
-            //entity.Property(x => x.Edition).HasMaxLength(50);
 
             entity.Property(x => x.ListingStatus).HasMaxLength(20).IsRequired();
 
@@ -321,7 +321,7 @@ public class AppDbContext : DbContext
                 {
                     x.CourseId,
                     x.ListingStatus,
-                    x.CreatedAt
+                    x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_course_browse")
                 .HasFilter("listing_status = 'live'")
@@ -331,14 +331,14 @@ public class AppDbContext : DbContext
                     x.Title,
                     x.Price,
                     x.SellerId,
-                    x.CategoryId
+                    x.CategoryId,
                 });
             entity
                 .HasIndex(x => new
                 {
                     x.CategoryId,
                     x.ListingStatus,
-                    x.CreatedAt
+                    x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_category_browse")
                 .HasFilter("listing_status = 'live'")
@@ -347,7 +347,7 @@ public class AppDbContext : DbContext
                 {
                     x.Title,
                     x.Price,
-                    x.SellerId
+                    x.SellerId,
                 });
 
             entity
@@ -355,7 +355,7 @@ public class AppDbContext : DbContext
                 {
                     x.ListingStatus,
                     x.VisibilityScore,
-                    x.CreatedAt
+                    x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
@@ -364,13 +364,51 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ListingCategory>(entity =>
         {
-
             entity.HasKey(x => x.CategoryId);
 
             entity.Property(x => x.Name).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => x.Name).IsUnique();
 
             entity.Property(x => x.IsActive).HasDefaultValue(true).IsRequired();
+
+            entity.HasData(
+                new ListingCategory
+                {
+                    CategoryId = 1,
+                    Name = "book",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 2,
+                    Name = "electronics",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 3,
+                    Name = "stationery",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 4,
+                    Name = "furniture",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 5,
+                    Name = "clothing",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 6,
+                    Name = "other",
+                    IsActive = true,
+                }
+            );
         });
 
         modelBuilder.Entity<BookDetails>(entity =>
