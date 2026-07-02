@@ -23,8 +23,6 @@ public class AppDbContext : DbContext
     public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
     public DbSet<BookDetails> BookDetails => Set<BookDetails>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
-    public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
-    public DbSet<BookDetails> BookDetails => Set<BookDetails>();
 
     // Reference data
     public DbSet<University> Universities => Set<University>();
@@ -309,7 +307,7 @@ public class AppDbContext : DbContext
 
             entity
                 .HasOne(x => x.BookDetails)
-                .WithOne(b => b.Listing)
+                .WithOne(b => b.listing)
                 .HasForeignKey<BookDetails>(b => b.ListingId)
                 .OnDelete(DeleteBehavior.Cascade);
 

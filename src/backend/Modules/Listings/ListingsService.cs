@@ -200,4 +200,10 @@ public class ListingService : IListingService
         await _listings.DeleteByIdAsync(id);
         return true;
     }
+
+    public async Task<bool> IsOwnerAsync(Guid listingId,Guid callerId)
+    {
+        var listing=await _listings.GetByIdAsync(listingId);
+        return listing is not null && listing.SellerId==callerId;
+    }
 }
