@@ -3,7 +3,7 @@ namespace Modules.Listings.Models;
 public class ListingCategory
 {
     public int CategoryId{get;set;}
-    public string Name {get;set;}
+    public string Name {get;set;}="";
     public int? RootCategoryId{get;set;}
     public ListingCategory? RootCategory{get;set;}
     public bool IsActive {get;set;}=true;

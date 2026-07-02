@@ -1,6 +1,10 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
 using Modules.ReferenceData.Course;
+using Modules.Identity.Models;
+using System.Collections.Generic;
+using System.Text.Json;
+
 
 namespace Modules.Listings.Models;
 

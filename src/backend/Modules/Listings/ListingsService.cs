@@ -2,6 +2,7 @@ using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
 using Modules.SharedKernel;
+using System.Text.Json;
 
 namespace Modules.Listings;
 
@@ -32,23 +33,32 @@ public class ListingService : IListingService
 
     private ListingSummaryDto MapToSummary(Listing l) =>
         new(
-            l.ListingId,
-            l.SellerId,
-            l.Title,
-            l.Description,
-            l.Price,
-            l.Condition,
-            l.ListingType,
-            l.CourseId,
-            l.Isbn,
-            l.Author,
-            l.Edition,
-            l.ListingStatus,
-            l.isBundle ?? false,
-            l.ViewCount ?? 0,
-            l.CreatedAt,
-            l.UpdatedAt,
-            l.Images.OrderByDescending(i => i.IsPrimary)
+            ListingId:l.ListingId,
+            SellerId:l.SellerId,
+            Title:l.Title,
+            Description:l.Description,
+            Price:l.Price,
+            Condition:l.Condition,
+            CourseId:l.CourseId,
+            CategoryId:l. CategoryId,
+            CategoryName:l.Category?.Name ?? string.Empty,
+            Metadata: string.IsNullOrEmpty(l.Metadata)
+                ?null
+                : JsonDocument.Parse(l.Metadata).RootElement,
+            BookDetails: l.BookDetails is null
+                ? null
+                : new BookDetailsDto
+                {
+                    Isbn=l.BookDetails.Isbn,
+                    Author=l.BookDetails.Author,
+                    Edition=l.BookDetails.Edition
+                },
+            ListingStatus:l.ListingStatus,
+            IsBundle:l.isBundle ?? false,
+            ViewCount:l.ViewCount ?? 0,
+            CreatedAt:l.CreatedAt,
+            UpdatedAt:l.UpdatedAt,
+            Images:l.Images.OrderByDescending(i => i.IsPrimary)
                 .Select(i => new ListingImageDto(
                     i.ImageId,
                     $"/api/listings/{l.ListingId}/images/{i.ImageId}",
@@ -86,7 +96,6 @@ public class ListingService : IListingService
             Description = dto.Description,
             Price = dto.Price,
             Condition = dto.Condition,
-            ListingType = dto.ListingType,
             
             SellerId = callerId,
             ListingStatus = dto.ListingStatus,
@@ -109,10 +118,10 @@ public class ListingService : IListingService
                 ListingId=newListing.ListingId,
                 Author = dto.BookDetails.Author,
                 Isbn = dto.BookDetails.Isbn,
-                Edition = dto.BookDetails.Edition.Trim()
+                Edition = dto.BookDetails.Edition?.Trim()
             };
 
-            newListing.BookDetails=book;
+            newListing.BookDetails=newbook;
             await _listings.SaveAsync();
 
         }
@@ -134,7 +143,7 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("Only sellers can update listings");
         }
 
-        bool isBook=string.Equals(category.Name,"book",StringComparison.OrdinalIgnoreCase);
+        bool isBook=listingLookUp.Category!=null && string.Equals(listingLookUp.Category.Name,"book",StringComparison.OrdinalIgnoreCase);
 
         if(!isBook&& listings.BookDetails is not null)
         {
