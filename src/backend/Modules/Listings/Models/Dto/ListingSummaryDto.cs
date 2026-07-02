@@ -1,9 +1,11 @@
 using Modules.Listings.Models.Dto;
+using System.Text.Json;
+using System.Collections.Generic;
+
 
 namespace Modules.Listings.Models.Dto;
 
-public record ListingSummaryDto
-(
+public record ListingSummaryDto(
     Guid ListingId,
     Guid SellerId,
      //string SellerName,
@@ -11,11 +13,11 @@ public record ListingSummaryDto
      string Description,
      decimal Price,
      string Condition,
-     string ListingType,
      int? CourseId,
-     string? Isbn,
-     string? Author,
-     string? Edition,
+     int CategoryId,
+     string CategoryName,
+     JsonElement? Metadata,
+     BookDetailsDto? BookDetails,
      string ListingStatus,  
     bool IsBundle, int ViewCount,
 

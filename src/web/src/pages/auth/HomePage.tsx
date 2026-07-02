@@ -154,6 +154,9 @@ function Navbar() {
 
           <button
             className="md:hidden"
+            data-testid="mobile-menu-toggle"
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24" stroke="currentColor">
@@ -166,12 +169,12 @@ function Navbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden border-t bg-white dark:bg-navy-800 py-4 px-6 space-y-4 text-sm">
-          <a href="#problem" className="block py-2">The Problem</a>
-          <a href="#solution" className="block py-2">The Solution</a>
-          <a href="#how-it-works" className="block py-2">How it works</a>
-          <a href="#for-buyerssellers" className="block py-2">For buyers</a>
-          <a href="#for-buyerssellers" className="block py-2">For sellers</a>
+        <div data-testid="mobile-menu" className="md:hidden border-t bg-white dark:bg-navy-800 py-4 px-6 space-y-4 text-sm">
+          <a href="#problem" className="block py-2" onClick={() => setIsMenuOpen(false)}>The Problem</a>
+          <a href="#solution" className="block py-2" onClick={() => setIsMenuOpen(false)}>The Solution</a>
+          <a href="#how-it-works" className="block py-2" onClick={() => setIsMenuOpen(false)}>How it works</a>
+          <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For buyers</a>
+          <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For sellers</a>
         </div>
       )}
     </nav>
@@ -263,6 +266,7 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   )
 }
 function Firstpage() {
+  const navigate = useNavigate()
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-white" />
@@ -304,6 +308,22 @@ function Firstpage() {
               <Stat number="+5" label="SA UNIVERSITIES" />
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
+            </div>
+
+            <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+              <button
+                onClick={() => navigate('/auth/Signup')}
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                SIGNUP
+                <IconArrowRight size={18} />
+              </button>
+
+              <button
+                onClick={() => navigate('/auth/Login')}
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                LOGIN
+                <IconArrowRight size={18} />
+              </button>
             </div>
           </div>
 
@@ -363,13 +383,13 @@ function Thesolution() {
           <p className="mt-3 text-gray-600 dark:text-gray-400">Built specifically for SA campus life</p>
         </div>
 
-         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             { icon: <IconShield size={28} />, title: "Verified students only", description: "Every user is verified against their university student email. No outsiders, no scammers - just you campus community." },
             { icon: <IconMapPin size={28} />, title: "Meet on campus", description: "Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS." },
             { icon: <IconLock size={28} />, title: "Secure payments via OZOW", description: "Pay instantly at the meetup using OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
-            { icon: <IconRobot size={28}  />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
-            { icon: <IconPackage size={28}  />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
+            { icon: <IconRobot size={28} />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
+            { icon: <IconPackage size={28} />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
             { icon: <IconStar size={28} />, title: "Trust and reputation", description: "Every buyer and seller builds a reputation score from real transactions. See ratings and reviews rates before you commit." },
           ].map((p, i) => (
             <Reveal key={p.title} delay={i * 120}>

@@ -85,7 +85,7 @@ public class IdentityServiceTests
     [InlineData("UPPERCASE123!")]
     public async Task RegisterAsync_ShouldThrowException_WhenPasswordIsWeak(string? weakPassword)
     {
-        var dto = new RegisterDto { Email = "test@uni.ac.za", Password = weakPassword };
+        var dto = new RegisterDto { Email = "test@uni.ac.za", Password = weakPassword! };
 
         var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
         Assert.Equal("weak_password", ex.Message);
@@ -99,7 +99,7 @@ public class IdentityServiceTests
     [InlineData("@nodisplayname.com")]
     public async Task RegisterAsync_ShouldThrowException_WhenEmailFormatIsInvalid(string? invalidEmail)
     {
-        var dto = new RegisterDto { Email = invalidEmail, Password = "ValidPassword123!" };
+        var dto = new RegisterDto { Email = invalidEmail!, Password = "ValidPassword123!" };
 
         var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
         Assert.Equal("invalid_email", ex.Message);

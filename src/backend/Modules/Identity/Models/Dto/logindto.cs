@@ -6,7 +6,8 @@ namespace Modules.Identity.Models.DTO
     {
         [Required]
         public string? Email { get; set; }
-        [Required]  
+
+        [Required]
         public string? Password { get; set; }
     }
 }
