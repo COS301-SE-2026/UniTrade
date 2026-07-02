@@ -10,7 +10,6 @@ public class UpdateListingDto
     public decimal Price { get; set; }
     public string Condition { get; set; } = string.Empty;
 
-    public string CategoryName{get;set;}="";
     public int? CourseId{get;set;}
     public JsonElement? Metadata {get;set;}
 
@@ -20,6 +19,5 @@ public class UpdateListingDto
 
     public bool? IsBundle {get;set;}
 
-    public List<CreateListingImageDto> Images { get; set; } 
 
 }
