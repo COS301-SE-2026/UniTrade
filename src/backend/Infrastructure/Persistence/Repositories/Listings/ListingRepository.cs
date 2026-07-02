@@ -153,4 +153,21 @@ public class ListingRepository : IListingRepository
             }
         }
     }
+
+    public async Task<ListingCategory?>  ResolveByNameAsync(string categoryName,CancellationToken ct = default)
+    {
+        if(string.IsNullOrWhiteSpace(categoryName))
+        {
+            return null;
+        }
+
+        var normalized=categoryName.Trim().ToLower();
+        return await _db.ListingCategories
+            .AsNoTracking()
+            .FirstOrDefaultAsync( c =>
+                c.IsActive &&
+                c.Name.ToLower()==normalized,
+                ct
+            );
+    }
 }
