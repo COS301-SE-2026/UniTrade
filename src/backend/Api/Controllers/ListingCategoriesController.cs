@@ -1,6 +1,7 @@
 using Modules.Listings.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Listings.Models;
 
 namespace Api.Controllers;
 
@@ -23,7 +24,7 @@ public class ListingCategoriesController: ControllerBase
         var categories=await _listingsrepo.GetActiveCategories();
         var result=categories.Select(category=>new
         {
-            id=category.ListingCategoryId,
+            id=category.CategoryId,
             name=category.Name,
         });
         return Ok(result);
