@@ -1,5 +1,3 @@
-
-
 namespace Modules.Identity.Models.Dto;
 
 public class ResendOtpDto
