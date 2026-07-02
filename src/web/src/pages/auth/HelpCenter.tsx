@@ -1,6 +1,6 @@
-import React, { useState} from 'react';
+import React, { useRef, useState, useEffect} from 'react';
 import {
-    IconChevronDown, 
+  IconChevronDown, 
   IconChevronUp, 
   IconSearch, 
   IconBookmark, 
@@ -9,11 +9,31 @@ import {
   IconShield, 
   IconStar, 
   IconAlertCircle,
-  IconArrowLeft
+  IconArrowLeft,
+  IconSend,
+  IconX,
 } from '@tabler/icons-react';
 import { useNavigate} from 'react-router-dom';
 import AlexAvatar from './AlexAvatar.tsx';
 import logo from "../../assets/logo.jpeg"
+
+interface QuickLinkItem{
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+}
+
+interface FaqItem{
+    question: string;
+    answer: string;
+}
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+const SYSTEM_PROMPT = `You are Alex, a friendly and helpful student support assistant for UniTrade - a university student marketplace. You help students with questions about reservations (last 24 hours, expire if there is no contact), listing products, payments (2-3 business days for seller payouts), buyer protection, reviews/ratings, and reporting problems. Keep answers concise, warm and practical. You speak like a helpful peer, not a corporate chatbot. Use short paragraphs and if asked about something outside UniTrade, gently redirect to UniTrade topics.`;
 
 
 function Navbar() 
@@ -46,22 +66,22 @@ function Navbar()
   );
 }
 
-interface QuickLinkItem{
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-}
-
-interface FaqItem{
-    question: string;
-    answer: string;
-}
-
 export default function HelpCenter() {
     const navigate = useNavigate();
 
-    const [searchQuery,setSearchQuery] = useState<string>('');
+    const [searchQuery,setSearchQuery] = useState('');
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [chatOpen, setChatOpen] = useState(false);
+    const [messages, setMessages] = useState<Message[]>([
+      {
+        role: 'assistant',
+        content: "Hey! I'n Alex, your UniTrade support assistant . What would you like to know?",
+      },
+    ]);
+    const [inputValue, setInputValue] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    
 
     const toogleFaq = (index: number): void => {
         setOpenFaq(openFaq == index ? null : index);
