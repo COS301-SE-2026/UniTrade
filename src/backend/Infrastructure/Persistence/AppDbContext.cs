@@ -307,7 +307,7 @@ public class AppDbContext : DbContext
 
             entity
                 .HasOne(x => x.BookDetails)
-                .WithOne(b => b.listing)
+                .WithOne(b => b.Listing)
                 .HasForeignKey<BookDetails>(b => b.ListingId)
                 .OnDelete(DeleteBehavior.Cascade);
 
