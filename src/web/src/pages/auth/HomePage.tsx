@@ -189,7 +189,7 @@ interface AlexAvatarProps {
   onClick?: () => void;
 }
 
-function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
+export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   const [stage, setStage] = useState<AvatarStage>('thinking');
   const [cycleKey, setCycleKey] = useState(0);
 
@@ -224,6 +224,7 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
         : 'bg-blue-400'
   return (
     <div
+     data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
@@ -329,7 +330,7 @@ function Firstpage() {
 
 
           <div className="flex-1 flex justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
-            <div className="lg:translate-x-24">
+            <div className="lg:translate-x-24" data-testid="alex-avatar-wrapper">
               <AlexAvatar />
             </div>
           </div>
