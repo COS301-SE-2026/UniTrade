@@ -16,4 +16,5 @@ public interface IListingService
     Task<bool> DeleteListings(Guid id, Guid callerId);
     Task<ListingSummaryDto?> GetByIdAsync(Guid listingId);
     Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter);
+    Task <bool> IsOwnerAsync(Guid listingId,Guid callerId);
 }

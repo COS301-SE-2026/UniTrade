@@ -25,7 +25,7 @@ public class ListingRepository : IListingRepository
             .Include(l => l.BookDetails)
             .Include(l => l.Images);
 
-        var listing = query.FirstOrDefaultAsync(l => l.ListingId == listingId);
+        var listing = await query.FirstOrDefaultAsync(l => l.ListingId == listingId);
 
         if (listing == null)
         {
@@ -50,29 +50,29 @@ public class ListingRepository : IListingRepository
     )
     
     {
-        var query = _db
+        IQueryable<Listing> query = _db
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images);
 
         if (listingFilterDto.CategoryId.HasValue)
-            query = query.Where(x => x.l.CategoryId == listingFilterDto.CategoryId);
+            query = query.Where(x => x.CategoryId == listingFilterDto.CategoryId);
 
         if (!string.IsNullOrWhiteSpace(listingFilterDto.ListingStatus))
-            query = query.Where(x => x.l.ListingStatus == listingFilterDto.ListingStatus);
+            query = query.Where(x => x.ListingStatus == listingFilterDto.ListingStatus);
 
         if (listingFilterDto.CourseId.HasValue)
-            query = query.Where(x => x.l.CourseId == listingFilterDto.CourseId);
+            query = query.Where(x => x.CourseId == listingFilterDto.CourseId);
 
         if (listingFilterDto.SellerId.HasValue)
-            query = query.Where(x => x.l.SellerId == listingFilterDto.SellerId);
+            query = query.Where(x => x.SellerId == listingFilterDto.SellerId);
 
         if (!string.IsNullOrWhiteSpace(listingFilterDto.Search))
         {
             var searchInput = listingFilterDto.Search.Trim();
             query = query.Where(x =>
-                x.l.Title.Contains(searchInput) || x.l.Description.Contains(searchInput)
+                x.Title.Contains(searchInput) || x.Description.Contains(searchInput)
             );
         }
 
@@ -152,5 +152,22 @@ public class ListingRepository : IListingRepository
                 listing.Seller = seller;
             }
         }
+    }
+
+    public async Task<ListingCategory?>  ResolveByNameAsync(string categoryName,CancellationToken ct = default)
+    {
+        if(string.IsNullOrWhiteSpace(categoryName))
+        {
+            return null;
+        }
+
+        var normalized=categoryName.Trim().ToLower();
+        return await _db.ListingCategories
+            .AsNoTracking()
+            .FirstOrDefaultAsync( c =>
+                c.IsActive &&
+                c.Name.ToLower()==normalized,
+                ct
+            );
     }
 }
