@@ -16,6 +16,7 @@ import {
 import { useNavigate} from 'react-router-dom';
 import AlexAvatar from './AlexAvatar.tsx';
 import logo from "../../assets/logo.jpeg"
+import { input } from '@testing-library/user-event/dist/cjs/event/input.js';
 
 interface QuickLinkItem{
     icon: React.ReactNode;
@@ -32,8 +33,6 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
-
-const SYSTEM_PROMPT = `You are Alex, a friendly and helpful student support assistant for UniTrade - a university student marketplace. You help students with questions about reservations (last 24 hours, expire if there is no contact), listing products, payments (2-3 business days for seller payouts), buyer protection, reviews/ratings, and reporting problems. Keep answers concise, warm and practical. You speak like a helpful peer, not a corporate chatbot. Use short paragraphs and if asked about something outside UniTrade, gently redirect to UniTrade topics.`;
 
 
 function Navbar() 
@@ -75,17 +74,74 @@ export default function HelpCenter() {
     const [messages, setMessages] = useState<Message[]>([
       {
         role: 'assistant',
-        content: "Hey! I'n Alex, your UniTrade support assistant . What would you like to know?",
+        content: "Hey! I'm Alex, your UniTrade support assistant . What would you like to know?",
       },
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    
+    const inputRef = useRef<HTMLInputElement>(null);
+
+
+    useEffect(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, [messages, isLoading]);
+
+    useEffect(() => {
+      if (chatOpen && inputRef.current) {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    }, [chatOpen]);
 
     const toogleFaq = (index: number): void => {
         setOpenFaq(openFaq == index ? null : index);
     };
+
+    const getResponse = (text: string ): { reply: string; faqIndex? : number} => {
+      const lower = text.toLowerCase();
+
+      const keywordMap : { keywords: string[]; reply: string; faqIndex: number }[] = [
+        {
+          keywords : ['reservation', 'reserve', 'reserved', '24 hour', 'collection'],
+          reply : 'Reservations last 24 hours by default. If there is no communication or a scheduled meeting between the buyer and seller within this window, the reservation expires and the item is re-listed automatically.',
+          faqIndex : 0,
+        },
+        {
+          keywords : ['payout', 'pay', 'paid', 'seller', 'receive money','business day'],
+          reply: 'Payours to sellers usually take about 2-3 business days after the buyers paymennt is confirmed.',
+          faqIndex : 1,
+        },
+        {
+          keywords : ['negotiate', 'negotiation', 'offer', 'price', 'bargain'],
+          reply: 'Yes, only if the products listed are negotiable. For negotiations use the in-app chat to message the seller and propose an offer. Any agreed price changes must be made by the seller before you complete payment.',
+          faqIndex : 2,
+        },
+        {
+          keywords : ['collect', 'collection', 'missed', 'late', 'expired'],
+          reply: "If you miss the collection window without communicating, the seller has the right to cancel the transaction and make the listing active for other university students again.",
+          faqIndex : 3,
+        },
+        {
+          keywords : ['unhappy', 'not satisfied', 'problem', 'issue', 'complaint'],
+          reply: "If an item does not match its description or has undisclosed damage, you can log a formal case file immediately via the 'Report a Problem' tile on this dashboard before marking the trade complete.",
+          faqIndex : 4,
+        },
+        
+      ];
+
+      for(const entry of keywordMap){
+        if(entry.keywords.some(keyword => lower.includes(keyword))){
+          return { reply: entry.reply, faqIndex: entry.faqIndex };
+        }
+    }
+
+    return {
+      reply: "Im here to help with reservations, listings, payments, buyer protection, reviews, or reporting issues. Could you tell me more about what you need?",
+    };
+    };
+
 
     const quickLinks: QuickLinkItem[] = [
         { icon: <IconBookmark size={22} className = "text-[#003366]" />, title: 'Reserving items', description: 'How reservations work and when they expire.' },
