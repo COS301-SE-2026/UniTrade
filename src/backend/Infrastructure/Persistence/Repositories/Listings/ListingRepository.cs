@@ -39,8 +39,7 @@ public class ListingRepository : IListingRepository
     // for updates
     public async Task<Listing?> GetByIdTrackedAsync(Guid id) =>
         await _db
-            .Listings.AsNoTracking()
-            .Include(l => l.Category)
+            .Listings.Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images)
             .FirstOrDefaultAsync(l => l.ListingId == id);
@@ -48,7 +47,6 @@ public class ListingRepository : IListingRepository
     public async Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(
         ListFilterDto listingFilterDto
     )
-    
     {
         IQueryable<Listing> query = _db
             .Listings.AsNoTracking()
@@ -154,20 +152,35 @@ public class ListingRepository : IListingRepository
         }
     }
 
-    public async Task<ListingCategory?>  ResolveByNameAsync(string categoryName,CancellationToken ct = default)
+    public async Task<ListingCategory?> ResolveByNameAsync(
+        string categoryName,
+        CancellationToken ct = default
+    )
     {
-        if(string.IsNullOrWhiteSpace(categoryName))
+        if (string.IsNullOrWhiteSpace(categoryName))
         {
             return null;
         }
 
-        var normalized=categoryName.Trim().ToLower();
-        return await _db.ListingCategories
-            .AsNoTracking()
-            .FirstOrDefaultAsync( c =>
-                c.IsActive &&
-                c.Name.ToLower()==normalized,
-                ct
-            );
+        var normalized = categoryName.Trim().ToLower();
+        return await _db
+            .ListingCategories.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.IsActive && c.Name.ToLower() == normalized, ct);
+    }
+
+    public async Task<bool> IsOwnerAsync(Guid listingId, Guid sellerId)
+    {
+        return await _db
+            .Listings.AsNoTracking()
+            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId);
+    }
+
+    public async Task<List<ListingCategory>> GetActiveCategories()
+    {
+        return await _db
+            .ListingCategories.AsNoTracking()
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
     }
 }
