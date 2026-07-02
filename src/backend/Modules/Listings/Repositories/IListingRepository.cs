@@ -13,4 +13,7 @@ public interface IListingRepository
     Task SaveAsync();
     Task UpdateAsync(Listing listings, Guid id);
     Task DeleteByIdAsync(Guid id);
+
+    Task<ListingCategory?> ResolveByNameAsync(string categoryName, CancellationToken ct=default);
+
 }

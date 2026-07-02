@@ -2,6 +2,7 @@ using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
 using Modules.SharedKernel;
+using System.Text.Json;
 
 namespace Modules.Listings;
 
@@ -10,6 +11,7 @@ public class ListingService : IListingService
     private readonly IListingRepository _listings;
 
     private readonly IListingImageRepository _images;
+
 
     public ListingService(IListingRepository listings, IListingImageRepository images)
     {
@@ -31,23 +33,32 @@ public class ListingService : IListingService
 
     private ListingSummaryDto MapToSummary(Listing l) =>
         new(
-            l.ListingId,
-            l.SellerId,
-            l.Title,
-            l.Description,
-            l.Price,
-            l.Condition,
-            l.ListingType,
-            l.CourseId,
-            l.Isbn,
-            l.Author,
-            l.Edition,
-            l.ListingStatus,
-            l.isBundle ?? false,
-            l.ViewCount ?? 0,
-            l.CreatedAt,
-            l.UpdatedAt,
-            l.Images.OrderByDescending(i => i.IsPrimary)
+            ListingId:l.ListingId,
+            SellerId:l.SellerId,
+            Title:l.Title,
+            Description:l.Description,
+            Price:l.Price,
+            Condition:l.Condition,
+            CourseId:l.CourseId,
+            CategoryId:l. CategoryId,
+            CategoryName:l.Category?.Name ?? string.Empty,
+            Metadata: string.IsNullOrEmpty(l.Metadata)
+                ?null
+                : JsonDocument.Parse(l.Metadata).RootElement,
+            BookDetails: l.BookDetails is null
+                ? null
+                : new BookDetailsDto
+                {
+                    Isbn=l.BookDetails.Isbn,
+                    Author=l.BookDetails.Author,
+                    Edition=l.BookDetails.Edition
+                },
+            ListingStatus:l.ListingStatus,
+            IsBundle:l.isBundle ?? false,
+            ViewCount:l.ViewCount ?? 0,
+            CreatedAt:l.CreatedAt,
+            UpdatedAt:l.UpdatedAt,
+            Images:l.Images.OrderByDescending(i => i.IsPrimary)
                 .Select(i => new ListingImageDto(
                     i.ImageId,
                     $"/api/listings/{l.ListingId}/images/{i.ImageId}",
@@ -58,16 +69,34 @@ public class ListingService : IListingService
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
     {
+        //resolve category
+        var category= await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
+        if(category==null)
+        {
+            throw new ArgumentException("invalid_category");
+        }
+
+        bool isBook=string.Equals(category.Name,"book",StringComparison.OrdinalIgnoreCase);
+
+        if(!isBook&& dto.BookDetails is not null)
+        {
+            throw new ArgumentException("book_fields_not_allowed_for_category");
+        }
+
+        //validate metadaata
+        string? metadataJ=null;
+        if(dto.Metadata.HasValue && dto.Metadata.Value.ValueKind != System.Text.Json.JsonValueKind.Null)
+        {
+            metadataJ=System.Text.Json.JsonSerializer.Serialize(dto.Metadata.Value);
+        }
+
         var newListing = new Listing
         {
             Title = dto.Title,
             Description = dto.Description,
             Price = dto.Price,
             Condition = dto.Condition,
-            ListingType = dto.ListingType,
-            Author = dto.Author,
-            Isbn = dto.Isbn,
-            Edition = dto.Edition,
+            
             SellerId = callerId,
             ListingStatus = dto.ListingStatus,
             ListingId = Guid.NewGuid(),
@@ -80,15 +109,29 @@ public class ListingService : IListingService
         };
 
         await _listings.AddAsync(newListing);
+
+        if(isBook && dto.BookDetails is not null)
+        {
+            //ValidateBookDetails()
+            var newbook= new BookDetails
+            {
+                ListingId=newListing.ListingId,
+                Author = dto.BookDetails.Author,
+                Isbn = dto.BookDetails.Isbn,
+                Edition = dto.BookDetails.Edition?.Trim()
+            };
+
+            newListing.BookDetails=newbook;
+            await _listings.SaveAsync();
+
+        }
+
         return MapToSummary(newListing);
     }
 
-    public async Task<bool> UpdateListings(
-        UpdateListingDto listings,
-        Guid id,
-        Guid callerId,
-        CancellationToken ct = default
-    )
+    //!!!!!validations for the bookdetails!!!!
+
+    public async Task<bool> UpdateListings(UpdateListingDto listings, Guid id,Guid callerId, CancellationToken ct= default)
     {
         // updates to text based fields
         var listingLookUp = await _listings.GetByIdTrackedAsync(id);
@@ -100,12 +143,30 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("Only sellers can update listings");
         }
 
+        bool isBook=listingLookUp.Category!=null && string.Equals(listingLookUp.Category.Name,"book",StringComparison.OrdinalIgnoreCase);
+
+        if(!isBook&& listings.BookDetails is not null)
+        {
+            throw new ArgumentException("book_fields_not_allowed_for_category");
+        }
+
         listingLookUp.Title = listings.Title;
         listingLookUp.Description = listings.Description;
         listingLookUp.Price = listings.Price;
         listingLookUp.Condition = listings.Condition;
         listingLookUp.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
+
+        //update metadata
+        if(listings.Metadata.HasValue){
+
+        var metadat=listings.Metadata.Value;
+        if(metadat.ValueKind!=System.Text.Json.JsonValueKind.Object)
+        {
+            throw new ArgumentException("invalid_metadata");
+        }
+        listingLookUp.Metadata=System.Text.Json.JsonSerializer.Serialize(metadat);
+        }
 
         // updates to images
 
@@ -138,5 +199,11 @@ public class ListingService : IListingService
 
         await _listings.DeleteByIdAsync(id);
         return true;
+    }
+
+    public async Task<bool> IsOwnerAsync(Guid listingId,Guid callerId)
+    {
+        var listing=await _listings.GetByIdAsync(listingId);
+        return listing is not null && listing.SellerId==callerId;
     }
 }
