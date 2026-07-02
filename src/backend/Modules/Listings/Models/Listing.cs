@@ -13,7 +13,7 @@ public class Listing
     public Guid ListingId { get; set; }
     public Guid SellerId { get; set; }
 
-    public User? Seller{get;set;}
+    //public User? Seller{get;set;}
     //introducing category concept (replces listingType)
     public int CategoryId{get;set;}
     public ListingCategory? Category{get;set;}
@@ -45,6 +45,6 @@ public class Listing
     public DateTime UpdatedAt { get; set; }
 
     [NotMapped]
-    //public SellerInfo? Seller { get; set; }
+    public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 }
