@@ -67,7 +67,7 @@ function Navbar()
 }
 
 export default function HelpCenter() {
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     const [searchQuery,setSearchQuery] = useState('');
     const [openFaq, setOpenFaq] = useState<number | null>(null);
