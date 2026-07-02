@@ -1,7 +1,11 @@
+using Modules.Listings.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
 namespace Api.Controllers;
 
 [ApiController]
-[Route(api/listing-categories)]
+[Route("api/listing-categories")]
 
 public class ListingCategoriesController: ControllerBase
 {
@@ -13,5 +17,15 @@ public class ListingCategoriesController: ControllerBase
     }
 
     [AllowAnonymous]
-    public async Task<
+    [HttpGet]
+    public async Task<IActionResult> GetActiveCategoriesAsync()
+    {
+        var categories=await _listingsrepo.GetActiveCategories();
+        var result=categories.Select(category=>new
+        {
+            id=category.ListingCategoryId,
+            name=category.Name,
+        });
+        return Ok(result);
+    }
 }
