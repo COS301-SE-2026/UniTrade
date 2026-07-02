@@ -1,4 +1,7 @@
 using Modules.Listings.Models.Dto;
+using System.Text.Json;
+using System.Collections.Generic;
+
 
 namespace Modules.Listings.Models.Dto;
 

@@ -1,6 +1,6 @@
 namespace Modules.Listings.Models.Dto;
 
-using System.text.Json;
+using System.Text.Json;
 using System.Collections.Generic;
 
 public class CreateListingDto
