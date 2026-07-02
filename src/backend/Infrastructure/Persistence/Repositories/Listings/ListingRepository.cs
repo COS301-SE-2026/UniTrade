@@ -174,4 +174,13 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId);
     }
+
+    public async Task<List<ListingCategory>> GetActiveCategories()
+    {
+        return await _db
+            .ListingCategories.AsNoTracking()
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+    }
 }

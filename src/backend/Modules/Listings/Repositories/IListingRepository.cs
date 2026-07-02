@@ -17,4 +17,6 @@ public interface IListingRepository
     Task<ListingCategory?> ResolveByNameAsync(string categoryName, CancellationToken ct = default);
 
     Task<bool> IsOwnerAsync(Guid listingId, Guid sellerId);
+
+    Task<List<ListingCategory>> GetActiveCategories();
 }
