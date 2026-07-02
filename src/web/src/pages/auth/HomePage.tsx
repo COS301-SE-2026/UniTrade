@@ -371,6 +371,40 @@ function Theproblem() {
   )
 }
 
+function Footer() {
+  const navigate = useNavigate();
+  return (
+    <footer className = "bg-white border-t border-gray-200 px-12 py-8">
+      <div className = "grid grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
+
+        <div>
+          <div className = "flex items-center gap-2 mb-3">
+            <div className = "w-8 h-8 bg-[#003366] rounded-full flex items-center justify-center">
+              <span className = "text-white bold text-xs font-bold">U</span>
+              </div>
+              <p className = "text-xs font bold text-gray-700 uppercase tracking-wide">Contact Info</p>
+            </div>
+            <p className="text-xs text-gray-500">+123 456 789</p>
+            <p className="text-xs text-gray-500">DevNexus28@gmail.com</p>
+          </div>
+
+          <div>
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">Support</p>
+          <ul className="flex flex-col gap-1">
+            <li
+               onClick={() => navigate('/help-center')}
+               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+               >
+                Help Center
+               </li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
+          </ul>
+          </div>
+          </div>
+          </footer>
+  );
+}
 
 function Thesolution() {
   return (
@@ -564,7 +598,6 @@ export default function HomePage() {
       <Howitworks />
       <BuyersSellers />
       <GetApp />
-      <Footer />
     </div>
   )
 }
