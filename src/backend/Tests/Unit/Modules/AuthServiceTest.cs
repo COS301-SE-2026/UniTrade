@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Modules.ReferenceData.University.Repositories;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
