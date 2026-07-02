@@ -11,27 +11,43 @@ const UploadListing: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [category, setCategory] = useState<
-    "Textbook" | "Electronics" | "Furniture" | "Other"
-  >("Textbook");
-  const [condition, setCondition] = useState<
-    "Like_New" | "Good" | "Fair" | "Worn"
-  >("Like_New");
-  const [title, setTitle] = useState("");
-  const [moduleTag, setModuleTag] = useState("");
-  const [customField, setCustomField] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  const [category, setCategory] = useState<'Textbook' | 'Electronics' | 'Furniture' | 'Other'>('Textbook')
+  const [condition, setCondition] = useState<'Like_New' | 'Good' | 'Fair' | 'Worn'>('Like_New')
+  const [title, setTitle] = useState('')
+  const [moduleTag, setModuleTag] = useState('')
+  const [customField, setCustomField] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+ 
+  const MAX_SIZE_MB = 10
+  const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
+  const totalSizeBytes = files.reduce((sum, f) => sum + f.size, 0)
+  const totalSizeMB = (totalSizeBytes / (1024 * 1024)).toFixed(1)
+  const usedPercent = Math.min((totalSizeBytes / (4 * MAX_SIZE_BYTES)) * 100, 100)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files ?? []).slice(0, 4);
-    setFiles(selected);
-    setPreviews(selected.map((f) => URL.createObjectURL(f)));
-  };
+   const incoming = Array.from(e.target.files ?? [])
+   
+
+   const oversized = incoming.filter(f => f.size > MAX_SIZE_BYTES)
+   if (oversized.length > 0){
+    setError(`Some files exceed the 10MB limit: ${oversized.map(f => f.name).join(', ')}`)
+    if (fileInputRef.current) fileInputRef.current.value=''
+    return
+   }
+    setFiles(prev => {
+      const merged = [...prev,...incoming].slice(0, 4)
+      setPreviews(merged.map((f,i) =>
+      i < prev.length ? previews[i] : URL.createObjectURL(f)
+    ))
+      return merged
+    })
+    
+   if (fileInputRef.current) fileInputRef.current.value=''
+  }
 
   const removeFile = (idx: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
@@ -287,9 +303,25 @@ const UploadListing: React.FC = () => {
                   ),
                 )}
               </div>
-              <p className="text-[10px] text-slate-400">
-                Up to 4 photos, max 10MB each.
-              </p>
+              <div className="space-y-1.5 mt-1">
+                <div className="flex justify-between items-center text-[10px] text-slate-400">
+                  <span>Up to 4 photos, max 10MB each</span>
+                  {files.length > 0 && (
+                    <span className={totalSizeBytes > 35 * 1024 *1024 ? 'text-amber-500 font-semibold' : ''}>
+                      {totalSizeMB} MB used ({files.length}/4 photos)
+                    </span>
+                  )}
+                </div>
+                {files.length > 0 && (
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full transition-all duration-300 ${
+                      usedPercent > 87 ? 'bg-amber-400' : 'bg-sky-500'
+                    }`}
+                    style={{ width: `${usedPercent}%`}}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
