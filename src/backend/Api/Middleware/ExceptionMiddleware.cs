@@ -20,7 +20,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         }
     }
 
-    private  async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var response = context.Response;
         response.ContentType = "application/json";
@@ -70,7 +70,10 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             "invalid_category" => (HttpStatusCode.UnprocessableEntity, "invalid_category"),
             "invalid_metadata" => (HttpStatusCode.UnprocessableEntity, "invalid_metadata"),
             "metadata_not_allowed" => (HttpStatusCode.UnprocessableEntity, "metadata_not_allowed"),
-            "book_fields_not_allowed" => (HttpStatusCode.UnprocessableEntity, "book_fields_not_allowed"),
+            "book_fields_not_allowed" => (
+                HttpStatusCode.UnprocessableEntity,
+                "book_fields_not_allowed"
+            ),
             "unauthenticated" => (HttpStatusCode.Unauthorized, "unauthenticated"),
 
             // unmapped -> ultra generic
