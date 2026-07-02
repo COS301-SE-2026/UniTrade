@@ -135,7 +135,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
-builder.Services.AddScoped<IUniversityService,UniversityService>();
+builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<INotificationsService, AcsEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
@@ -143,7 +143,7 @@ builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
 builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 
-builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"]?? throw new InvalidOperationException("Acs:ConnectionString is not confugured")));
+builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"] ?? throw new InvalidOperationException("Acs:ConnectionString is not confugured")));
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
