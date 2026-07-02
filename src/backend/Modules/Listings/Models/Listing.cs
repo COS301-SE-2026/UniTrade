@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
+using Modules.ReferenceData.Course;
 
 namespace Modules.Listings.Models;
 
