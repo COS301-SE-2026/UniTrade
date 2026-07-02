@@ -59,6 +59,8 @@ services:
       context: ../../src/web
       dockerfile: Dockerfile
     container_name: unitrade-web
+    environment:
+        VITE_API_URL: ${VITE_API_URL}
     ports:
     - "3000:3000"
     depends_on:
