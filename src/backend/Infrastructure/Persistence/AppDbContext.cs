@@ -233,7 +233,7 @@ public class AppDbContext : DbContext
                     "chk_listing_risk",
                     "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
                 );
-                
+                tb.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')");
             });
 
             //LISTING_ID
@@ -260,9 +260,9 @@ public class AppDbContext : DbContext
             entity.Property(x => x.ListingStatus).HasMaxLength(20).IsRequired();
 
             //categorizing listings
-            entity.Property(x=> x.CategoryId).IsRequired();
+            entity.Property(x => x.CategoryId).IsRequired();
 
-            entity.Property(x=> x.Metadata).HasColumnType("jsonb");
+            entity.Property(x => x.Metadata).HasColumnType("jsonb");
 
             //AI mod
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
@@ -291,10 +291,10 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             //listing category update
             entity
-                .HasOne(x =>x.Category)
+                .HasOne(x => x.Category)
                 .WithMany(c => c.Listings)
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
