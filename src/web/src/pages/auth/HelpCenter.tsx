@@ -33,8 +33,6 @@ interface Message {
   content: string;
 }
 
-const SYSTEM_PROMPT = `You are Alex, a friendly and helpful student support assistant for UniTrade - a university student marketplace. You help students with questions about reservations (last 24 hours, expire if there is no contact), listing products, payments (2-3 business days for seller payouts), buyer protection, reviews/ratings, and reporting problems. Keep answers concise, warm and practical. You speak like a helpful peer, not a corporate chatbot. Use short paragraphs and if asked about something outside UniTrade, gently redirect to UniTrade topics.`;
-
 
 function Navbar() 
 {
@@ -68,23 +66,116 @@ function Navbar()
 
 export default function HelpCenter() {
     //const navigate = useNavigate();
-
     const [searchQuery,setSearchQuery] = useState('');
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [chatOpen, setChatOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
       {
         role: 'assistant',
-        content: "Hey! I'n Alex, your UniTrade support assistant . What would you like to know?",
+        content: "Hey! I'm Alex, your UniTrade support assistant . What would you like to know?",
       },
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+
+    useEffect(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, [messages, isLoading]);
+
+    useEffect(() => {
+      if (chatOpen && inputRef.current) {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    }, [chatOpen]);
 
     const toogleFaq = (index: number): void => {
         setOpenFaq(openFaq == index ? null : index);
+    };
+
+    const getResponse = (text: string ): { reply: string; faqIndex? : number} => {
+      const lower = text.toLowerCase();
+
+      const keywordMap : { keywords: string[]; reply: string; faqIndex: number }[] = [
+        {
+          keywords : ['reservation', 'reserve', 'reserved', '24 hour', 'collection'],
+          reply : 'Reservations last 24 hours by default. If there is no communication or a scheduled meeting between the buyer and seller within this window, the reservation expires and the item is re-listed automatically.',
+          faqIndex : 0,
+        },
+        {
+          keywords : ['payout', 'pay', 'paid', 'seller', 'receive money','business day'],
+          reply: 'Payours to sellers usually take about 2-3 business days after the buyers paymennt is confirmed.',
+          faqIndex : 1,
+        },
+        {
+          keywords : ['negotiate', 'negotiation', 'offer', 'price', 'bargain'],
+          reply: 'Yes, only if the products listed are negotiable. For negotiations use the in-app chat to message the seller and propose an offer. Any agreed price changes must be made by the seller before you complete payment.',
+          faqIndex : 2,
+        },
+        {
+          keywords : ['collect', 'collection', 'missed', 'late', 'expired'],
+          reply: "If you miss the collection window without communicating, the seller has the right to cancel the transaction and make the listing active for other university students again.",
+          faqIndex : 3,
+        },
+        {
+          keywords : ['unhappy', 'not satisfied', 'problem', 'issue', 'complaint'],
+          reply: "If an item does not match its description or has undisclosed damage, you can log a formal case file immediately via the 'Report a Problem' tile on this dashboard before marking the trade complete.",
+          faqIndex : 4,
+        },
+        
+      ];
+
+      for(const entry of keywordMap){
+        if(entry.keywords.some(keyword => lower.includes(keyword))){
+          return { reply: entry.reply, faqIndex: entry.faqIndex };
+        }
+    }
+
+    return {
+      reply: "Im here to help with reservations, listings, payments, buyer protection, reviews, or reporting issues. Could you tell me more about what you need?",
+    };
+    };
+
+    const sendMessage = async () => {
+      const text = inputValue.trim();
+      if(!text || isLoading) return;
+
+
+      const userMessage: Message = { role: 'user', content: text };
+      setMessages(prev => [...prev, userMessage]);
+      setInputValue('');
+      setIsLoading(true);
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const { reply, faqIndex } = getResponse(text);
+      const assistantMessage: Message = { role: 'assistant', content: reply };
+      setMessages(prev => [...prev, assistantMessage]);
+      
+
+      if(faqIndex !== undefined){
+        setOpenFaq(faqIndex);
+        setTimeout(() => {
+          const faqElement = document.getElementById(`faq-${faqIndex}`);
+          if(faqElement){
+            faqElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+
+      setIsLoading(false);
+
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
     };
 
     const quickLinks: QuickLinkItem[] = [
@@ -144,9 +235,11 @@ export default function HelpCenter() {
           </div>
 
           <div className="w-full md:w-auto flex justify-center md:block pt-4 md:pt-0">
-            <AlexAvatar isThinking={searchQuery.length === 0} />
+            <AlexAvatar
+            isThinking={searchQuery.length === 0}
+            onClick={() => setChatOpen(!chatOpen)}
+             />
           </div>
-
         </div>
       </div>
 
@@ -176,6 +269,7 @@ export default function HelpCenter() {
             return (
               <div 
                 key={index} 
+                id = {`faq-${index} `}
                 className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
               >
                 <button
@@ -200,6 +294,81 @@ export default function HelpCenter() {
           })}
         </div>
       </div>
+
+
+      {chatOpen && (
+        <div className = "fixed inset-0 bg-black/40 z-50 flex items-end justify-center"
+         onClick = {(e) => {
+          if (e.target === e.currentTarget) setChatOpen(false);
+         }}
+         >
+
+         <div className = "bg-white rounded-t-2xl w-full max-w-lg flex flex-col" style={{ height: '70vh'}}>
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+              <div>
+                <div className="font-bold text-[#003366] text-sm">Alex</div>
+                <div className="text-xs text-gray-400">Unitrade Help Assistant</div>
+              </div>
+              <button
+                onClick={() => setChatOpen(false)}
+                className="ml-auto w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
+              >
+                <IconX size={16} />
+              </button>
+         </div>
+
+         <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-[#003366] text-white rounded-br-sm'
+                        : 'bg-[#eef4fa] text-[#003366] rounded-bl-sm'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-[#eef4fa] rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5">
+                    {[0, 0.2, 0.4].map((delay, i) => (
+                      <span
+                        key={i}
+                        style={{ animationDelay: `${delay}s` }}
+                        className="w-2 h-2 bg-[#003366] rounded-full opacity-40 animate-bounce"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="px-4 py-3 border-t border-gray-100 flex gap-3 items-end">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Ask Alex anything..."
+                rows={1}
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none outline-none focus:border-[#003366] bg-gray-50 focus:bg-white transition-all font-sans"
+                style={{ maxHeight: 80 }}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={isLoading || !inputValue.trim()}
+                className="w-10 h-10 bg-[#003366] text-white rounded-xl flex items-center justify-center disabled:opacity-40 hover:bg-[#004080] transition-colors flex-shrink-0"
+              >
+                <IconSend size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
