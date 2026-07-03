@@ -46,3 +46,7 @@ jobs:
       - name: Run unit tests
         working-directory: src/web
         run: npm run test:run 
+
+      -name: Validate Frontend docker image
+       working-directory: src/web
+       run: docker build -f src/web/Dockerfile -t unitrade-web-ci .
