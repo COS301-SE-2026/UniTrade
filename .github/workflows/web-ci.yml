@@ -38,15 +38,24 @@ jobs:
       - name: Lint code
         working-directory: src/web
         run: npm run lint
+      
+      - name: Validate frontend env
+        working-directory: src/web
+        env: 
+          VITE_API_URL: ${{secrets.VITE_API_URL}}
+        run: |
+         : "${VITE_API_URL:?VITE_API_URL is required for frontend build}"
         
       - name: Build application
         working-directory: src/web
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL}}
         run: npm run build
 
       - name: Run unit tests
         working-directory: src/web
         run: npm run test:run 
 
-      -name: Validate Frontend docker image
-       working-directory: src/web
-       run: docker build -f src/web/Dockerfile -t unitrade-web-ci .
+      - name: Validate Frontend docker image
+        working-directory: src/web
+        run: docker build -f src/web/Dockerfile -t unitrade-web-ci .
