@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
-import type { BrowseListing, BrowseCategory, BrowseCondition } from '../../types/listing'
+import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
 
 
 function CategoryCard({
@@ -17,7 +17,7 @@ function CategoryCard({
   return (
     <button
       onClick={onClick}
-      className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
+      className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors ${
         active
           ? 'bg-navy-700 text-white border-navy-700'
           : 'bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700'
@@ -59,7 +59,7 @@ function ListingCard({
         </div>
 
         <p className="text-xs text-gray-400">{listing.module} · UP</p>
-        <p className="text-xs text-gray-400">{listing.category}</p>
+        <p className="text-xs text-gray-400 capitalize">{listing.category}</p>
         <p className="text-sm font-bold text-gray-800 dark:text-white">
           {formatPrice(listing.price)}
         </p>
@@ -78,7 +78,7 @@ function ListingCard({
 }
 
 
-type CategoryFilter = 'All' | BrowseCategory
+type CategoryFilter = 'All' | string
 type ConditionFilter = 'All conditions' | BrowseCondition
 type SortOption = 'Newest' | 'Oldest' | 'Price Low' | 'Price High'
 
@@ -88,12 +88,11 @@ export default function BrowseAllListing() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All')
   const [conditionFilter, setConditionFilter] = useState<ConditionFilter>('All conditions')
   const [sortOption, setSortOption] = useState<SortOption>('Newest')
   const [currentPage, setCurrentPage] = useState(1)
-
-  const categories: CategoryFilter[] = ['All', 'Textbooks', 'Electronics', 'Lab Equipment', 'Stationary']
 
   useEffect(() => {
     listingsService.getBrowseListings()
@@ -103,19 +102,25 @@ export default function BrowseAllListing() {
       })
       .catch(() => setError('Failed to load listings'))
       .finally(() => setLoading(false))
+
+    listingsService.getListingsCategories()
+      .then(setCategories)
+      .catch(() => {
+        // category chips are non-critical; leave the list empty (just "All") on failure
+      })
   }, [])
 
- 
+
   const afterCategory = activeCategory === 'All'
     ? listings
     : listings.filter(l => l.category === activeCategory)
 
-  
+
   const afterCondition = conditionFilter === 'All conditions'
     ? afterCategory
     : afterCategory.filter(l => l.condition === conditionFilter)
 
-  
+
   const filtered = [...afterCondition].sort((a, b) => {
     if (sortOption === 'Price Low')  return a.price - b.price
     if (sortOption === 'Price High') return b.price - a.price
@@ -137,7 +142,7 @@ export default function BrowseAllListing() {
   return (
     <div className="flex flex-col gap-6">
 
-     
+
       <div>
         <h1 className="text-2xl font-extrabold text-gray-800 dark:text-white">
           Browse All Listings
@@ -150,12 +155,18 @@ export default function BrowseAllListing() {
 
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex gap-2 flex-wrap">
+          <CategoryCard
+            key="All"
+            title="All"
+            active={activeCategory === 'All'}
+            onClick={() => { setActiveCategory('All'); setCurrentPage(1) }}
+          />
           {categories.map(cat => (
             <CategoryCard
-              key={cat}
-              title={cat}
-              active={activeCategory === cat}
-              onClick={() => { setActiveCategory(cat); setCurrentPage(1) }}
+              key={cat.id}
+              title={cat.name}
+              active={activeCategory === cat.name}
+              onClick={() => { setActiveCategory(cat.name); setCurrentPage(1) }}
             />
           ))}
         </div>
@@ -183,7 +194,7 @@ export default function BrowseAllListing() {
         </div>
       </div>
 
-      
+
       <div className="grid grid-cols-4 gap-4">
         {filtered.map(listing => (
           <ListingCard
@@ -194,7 +205,7 @@ export default function BrowseAllListing() {
         ))}
       </div>
 
-      
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">
           Showing {filtered.length} of {total} listings
