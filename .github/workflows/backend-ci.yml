@@ -46,7 +46,21 @@ jobs:
       - name: Run Integration Tests
         working-directory: src/backend/Tests
         run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" 
-    
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: cipass
+          POSTGRES_USER: ciuser
+          POSTGRES_DB: unitrade_test_ci
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
 
   code-quality:
     runs-on: ubuntu-latest
