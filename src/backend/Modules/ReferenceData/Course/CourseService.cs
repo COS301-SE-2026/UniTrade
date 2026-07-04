@@ -15,9 +15,9 @@ public class CourseService(ICourseRepository courses) : ICourseService
     )
     {
         limit = Math.Clamp(limit, 1, 100);
-        var courses = await _courses.SearchAsync(search, universityId, limit, ct);
+        var Courses = await _courses.SearchAsync(search, universityId, limit, ct);
 
-        return courses.Select(c => new CourseDto(c.CourseId, c.CourseCode, c.CourseName, c.Faculty)).ToList();
+        return [.. Courses.Select(c => new CourseDto(c.CourseId, c.CourseCode, c.CourseName, c.Faculty))];
     }
 
     public async Task<CourseDto?> GetByIdAsync(int courseId, CancellationToken ct = default)

@@ -434,7 +434,7 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">Pricing</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">
+                  <label htmlFor="price" className="block text-xs font-semibold text-slate-500 mb-1">
                     Price (ZAR)
                   </label>
                   <div className="relative rounded-xl shadow-xs">

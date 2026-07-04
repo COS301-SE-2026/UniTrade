@@ -58,7 +58,6 @@ jobs:
           dotnet sonarscanner begin \
           /k:"COS301-SE-2026_UniTrade" \
           /o:"cos301-se-2026" \
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
          
@@ -76,7 +75,7 @@ jobs:
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end
 
   code-quality:
     runs-on: ubuntu-latest

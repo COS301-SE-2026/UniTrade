@@ -38,6 +38,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+const string UnknownKey = "unknown";
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
@@ -46,7 +47,7 @@ builder.Services.AddRateLimiter(options =>
         "register",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -60,7 +61,7 @@ builder.Services.AddRateLimiter(options =>
         "login",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 10,
@@ -74,7 +75,7 @@ builder.Services.AddRateLimiter(options =>
         "verify-otp",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -88,7 +89,7 @@ builder.Services.AddRateLimiter(options =>
         "resend-otp",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -219,4 +220,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
