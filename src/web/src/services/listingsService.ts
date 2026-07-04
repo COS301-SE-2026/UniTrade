@@ -348,21 +348,14 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
   },
 
   updateListing: async (
-  id: string,
-  payload: {
-    title: string;
-    description: string;
-    price: number;
-    condition: string;
-    categoryName: string;
-    courseId: number | null;
-    removedImageIds?: number[];
     id: string,
     payload: {
       title: string;
       description: string;
       price: number;
       condition: string;
+      categoryName: string;
+      courseId: number | null;
       removedImageIds?: number[];
     },
   ): Promise<void> => {
@@ -375,28 +368,13 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
         description: payload.description,
         price: payload.price,
         condition: payload.condition,
+        categoryName: payload.categoryName,
+        courseId: payload.courseId,
         removedImageIds: payload.removedImageIds ?? [],
       }),
     });
     if (!res.ok) throw new Error("Failed to update listing");
   },
-): Promise<void> => {
-  const res = await fetch(`${BASE_URL}/listings/${id}`, {
-    method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: payload.title,
-      description: payload.description,
-      price: payload.price,
-      condition: payload.condition,
-      categoryName: payload.categoryName,
-      courseId: payload.courseId,
-      removedImageIds: payload.removedImageIds ?? [],
-    }),
-  });
-  if (!res.ok) throw new Error("Failed to update listing");
-},
 
   deleteListing: async (id: string): Promise<void> => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, {
