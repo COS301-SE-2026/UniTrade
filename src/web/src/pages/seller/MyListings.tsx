@@ -6,6 +6,7 @@ import {
   IconBoxPadding,
   IconPlus,
   IconTrash,
+  IconLivePhoto
 } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
@@ -187,7 +188,7 @@ export default function MyListings() {
             label: "Total Listings",
           },
           {
-            icon: <span className="text-base">((·))</span>,
+            icon: <IconLivePhoto size={20} />,
             value: count("live"),
             label: "Live",
           },
@@ -248,10 +249,10 @@ export default function MyListings() {
           <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
             Status
           </div>
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-10 text-right">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-16 text-center">
             Views
           </div>
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-44 text-right">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-44 text-center">
             Actions
           </div>
         </div>
@@ -282,7 +283,7 @@ export default function MyListings() {
             <div className="w-32 flex justify-center">
               <StatusPill status={listing.status} />
             </div>
-            <p className="text-sm text-gray-400 w-10 text-right">
+            <p className="text-sm text-gray-400 w-16 text-center">
               {listing.views}
             </p>
             <div className="w-44 flex justify-end">
