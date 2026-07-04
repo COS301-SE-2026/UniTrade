@@ -155,6 +155,8 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.CourseName).IsRequired();
 
+            entity.Property(x => x.Faculty).IsRequired();
+
             entity
                 .HasOne<University>()
                 .WithMany()
