@@ -91,6 +91,8 @@ function ActionButtons({
 
 type Tab = "all" | ListingStatus;
 
+const PAGE_SIZE = 6;
+
 export default function MyListings() {
   const navigate = useNavigate();
   const [listings, setListings] = useState<ListingSummary[]>([]);
@@ -126,6 +128,12 @@ export default function MyListings() {
     activeTab === "all"
       ? listings
       : listings.filter((l) => l.status === activeTab);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const count = (status: ListingStatus) =>
     listings.filter((l) => l.status === status).length;
@@ -248,11 +256,11 @@ export default function MyListings() {
           </div>
         </div>
 
-        {filtered.map((listing, i) => (
+        {paginated.map((listing, i) => (
           <div
             key={listing.id}
             className={`flex items-center gap-4 px-5 py-4 ${
-              i < filtered.length - 1
+              i < paginated.length - 1
                 ? "border-b border-gray-100 dark:border-white/5"
                 : ""
             }`}
@@ -292,22 +300,29 @@ export default function MyListings() {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">
-          Showing {filtered.length} of {total} listings
+          Showing{" "}
+          {paginated.length === 0
+            ? 0
+            : (currentPage - 1) * PAGE_SIZE + 1}
+          –{Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
+          {filtered.length} listings
         </p>
         <div className="flex gap-2">
-          {[1, 2, 3, 4].map((page) => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
-                currentPage === page
-                  ? "bg-navy-700 text-white border-navy-700"
-                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+            (page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
+                  currentPage === page
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                }`}
+              >
+                {page}
+              </button>
+            ),
+          )}
         </div>
       </div>
     </div>
