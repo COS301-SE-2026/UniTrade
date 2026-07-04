@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
-import type { Category, Course } from "../../types/listing";
+import type { Category, Course, ListingCondition } from "../../types/listing";
 
 interface ApiError {
   message: string;
@@ -14,9 +14,9 @@ const UploadListing: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<string>("");
-  const [condition, setCondition] = useState<
-    "Like_New" | "Good" | "Fair" | "Worn"
-  >("Like_New");
+ type ListingConditionUi = "Like_New" | "Good" | "Fair" | "Worn";
+
+const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
   const [title, setTitle] = useState("");
   const [customField, setCustomField] = useState("");
   const [description, setDescription] = useState("");
@@ -29,6 +29,14 @@ const UploadListing: React.FC = () => {
   const [courseQuery, setCourseQuery] = useState("");
   const [courseResults, setCourseResults] = useState<Course[]>([]);
   const [courseLoading, setCourseLoading] = useState(false);
+
+  const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
+    Like_New: "new",
+    Good: "good",
+    Fair: "fair",
+    Worn: "poor",
+  };
+
 
   useEffect(() => {
     listingsService
@@ -133,7 +141,7 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price),
-        condition: condition.toLowerCase(),
+        condition: CONDITION_TO_API[condition],
         categoryName: category,
         courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "live",
@@ -162,7 +170,7 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price) || 0,
-        condition: condition.toLowerCase(),
+        condition: CONDITION_TO_API[condition],
         categoryName: category,
         courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "draft",

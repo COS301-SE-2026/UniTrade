@@ -183,7 +183,18 @@ public class ListingService : IListingService
             }
             listingLookUp.Metadata = JsonSerializer.Serialize(metadata);
         }
+        
+        if (!string.IsNullOrWhiteSpace(listings.CategoryName))
+{
+    var category = await _listings.ResolveByNameAsync(listings.CategoryName.Trim());
+    if (category == null)
+    {
+        throw new ArgumentException("invalid_category");
+    }
 
+    isBook = string.Equals(category.Name, "book", StringComparison.OrdinalIgnoreCase);
+    listingLookUp.CategoryId = category.CategoryId;
+}
         await _listings.SaveAsync();
         // updates to images
 
