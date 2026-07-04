@@ -96,9 +96,10 @@ interface UserPopoverProps {
   roleLabel: string
   onClose: () => void
   onLogout: () => void 
+  onViewProfile: () => void
 }
 function UserPopover({
-  name, initials, roleLabel, onClose, onLogout,
+  name, initials, roleLabel, onClose, onLogout, onViewProfile,
 }: UserPopoverProps){
   const ref = useRef<HTMLDivElement>(null)
 
@@ -128,9 +129,14 @@ function UserPopover({
         </button>
       </div>
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+        <button
+          onClick={onViewProfile}
+          title="View Profile"
+          className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+        >
           {initials}
-        </div>
+        </button>
+        
         <div>
           <p className="text-sm font-semibold text-gray-900">{name}</p>
           <p className="text-sm text-sky-400">{roleLabel}</p>
@@ -299,6 +305,10 @@ export default function Sidebar() {
                }
                onClose={() => setShowPopover(false)}
                onLogout={handleLogout}
+               onViewProfile={() => {
+                setShowPopover(false)
+                navigate('/auth/profile')
+               }}
                />
           )}
         </div>
