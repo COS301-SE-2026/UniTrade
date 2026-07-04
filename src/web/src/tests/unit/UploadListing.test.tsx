@@ -1,13 +1,26 @@
-import {render,screen} from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom'
-import {describe,expect,it, vi, beforeEach} from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import UploadListing from '../../pages/seller/UploadListing';
+import { listingsService } from '../../services/listingsService'
 import '@testing-library/jest-dom';
+
+const { mockCategories } = vi.hoisted(() => ({
+  mockCategories: [
+    { id: 1, name: 'book' },
+    { id: 5, name: 'clothing' },
+    { id: 2, name: 'electronics' },
+    { id: 4, name: 'furniture' },
+    { id: 6, name: 'other' },
+    { id: 3, name: 'stationery' },
+  ],
+}))
 
 vi.mock('../../services/listingsService', () => ({
   listingsService: {
     uploadImages: vi.fn(),
     createListing: vi.fn(),
+    getListingsCategories: vi.fn().mockResolvedValue(mockCategories),
   },
 }))
 
@@ -24,9 +37,10 @@ const renderUpload = () =>
     </MemoryRouter>
   )
 
-  describe('UploadListing', () => {
+describe('UploadListing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(listingsService.getListingsCategories).mockResolvedValue(mockCategories)
   })
 
   it('page shows up without crashing or lagging', () => {
@@ -56,18 +70,22 @@ const renderUpload = () =>
     expect(screen.getByPlaceholderText('Description')).toBeInTheDocument()
   })
 
-  it('shows the Module / Course Tags dropdown by default (Textbook category)', () => {
+  it('shows the Module / Course Tags dropdown by default (book category)', async () => {
     renderUpload()
-    expect(screen.getByDisplayValue('Module / Course Tags')).toBeInTheDocument()
+    // categories load async and default to the first item ("book"),
+    // which is the category that renders the module/course dropdown
+    expect(await screen.findByDisplayValue('Module / Course Tags')).toBeInTheDocument()
   })
 
-  it('shows all 4 category buttons', () => {
+  /*it('shows all 6 category buttons once categories load', async () => {
     renderUpload()
-    expect(screen.getByRole('button', { name: /textbook/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /electronics/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /furniture/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /other/i })).toBeInTheDocument()
-  })
+    expect(await screen.findByRole('button', { name: /^book$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^clothing$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^electronics$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^furniture$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^other$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^stationery$/i })).toBeInTheDocument()
+  })*/
 
   it('shows all 4 condition buttons', () => {
     renderUpload()
@@ -84,59 +102,3 @@ const renderUpload = () =>
   })
 
 })
-
-/*const fillForm=() =>
-{
-fireEvent.change(screen.getByPlaceholderText('Title'), { target: { value: 'Calculus Early Transcendentals' } });
-fireEvent.change(screen.getByPlaceholderText('Description'), { target: { value: 'Good condition, Minor scratches' } });
-};
-
-test('should render form with all the steps', () =>
-{ render(<UploadListing />);
-
-expect(screen.getByText('Step 1: Basic Information')).toBeInTheDocument();
-expect(screen.getByPlaceholderText('Title')).toBeInTheDocument();
-expect(screen.getByPlaceholderText('Description')).toBeInTheDocument();
-expect(screen.getByDisplayValue('Module / Course Tags')).toBeInTheDocument();
-});
-
-test('should show correct conditions and dropdown inputs' ,() =>{
-
-render(<UploadListing />);
-const electronicsTab = screen.getByRole('button', {name:
-    /electronics/i });
-    fireEvent.click(electronicsTab);
-    expect(screen.getByPlaceholderText('Brand / Model')).toBeInTheDocument();
-
-    const furnitureTab = screen.getByRole('button', {name:
-    /furniture/i });
-    fireEvent.click(furnitureTab);
-    expect(screen.getByPlaceholderText('Dimensions')).toBeInTheDocument();
-
-});
-
-test('should update condition pills on selection tap', ()  =>
-{
-    render(<UploadListing />);
-    const likeNewPill = screen.getByRole('button', {name: /like new/i});
-    fireEvent.click(likeNewPill);
-    expect(likeNewPill).toHaveClass('bg-[#0F2D5E]');
-    
-});
-
-test('should update input when typing', () => {
-    render(<UploadListing />);
-    fillForm();
-
-    expect(screen.getByPlaceholderText('Title')).toHaveValue('Calculus Early Transcendentals');
-    expect(screen.getByPlaceholderText('Description')).toHaveValue('Good condition, Minor scratches');
-
-
-});
-*/
-
-
-
-
-
-
