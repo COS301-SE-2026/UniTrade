@@ -6,8 +6,10 @@ IconStar, IconCheck, IconChevronRight,
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
-import type { ListingDetail as ListingDetailType } from '../../types/listing'
+import type { ListingDetail as ListingDetailType} from '../../types/listing'
 
+
+ 
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
