@@ -1,11 +1,11 @@
-import type { ListingDetail, ListingCategory } from "../types/listing";
-import type { ListingSummary, MyListingsResponse } from "../types/listing";
+import type { ListingDetail} from "../types/listing";
+import type { ListingSummary, MyListingsResponse, Category } from "../types/listing";
 import type { SellerListingDetail } from "../types/listing";
 import type {
   BrowseListing,
   BrowseListingsResponse,
   BrowseCondition,
-  BrowseCategory,
+  
 } from "../types/listing";
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
@@ -26,27 +26,6 @@ function mapCondition(condition: string): BrowseCondition {
   return map[condition] ?? "Fair";
 }
 
-function mapCategory(listingType: string): ListingCategory {
-  const map: Record<string, ListingCategory> = {
-    textbook: "textbook",
-    electronics: "electronics",
-    lab_equipment: "lab_equipment",
-    stationery: "stationery",
-    laptop: "electronics",
-  };
-  return map[listingType] ?? "other";
-}
-
-function mapBrowseCategory(listingType: string): BrowseCategory {
-  const map: Record<string, BrowseCategory> = {
-    textbook: "Textbooks",
-    electronics: "Electronics",
-    lab_equipment: "Lab Equipment",
-    stationery: "Stationary",
-    laptop: "Electronics",
-  };
-  return map[listingType] ?? "Textbooks";
-}
 
 const mockMyListings: ListingSummary[] = [
   {
@@ -103,7 +82,7 @@ const mockListingDetail: ListingDetail = {
     "Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP.",
   price: 280,
   condition: "like_new",
-  category: "textbook",
+  category: "book",
   status: "live",
   courseCode: "WTW114",
   university: "University of Pretoria",
@@ -163,7 +142,7 @@ const mockSellerListingDetail: SellerListingDetail = {
   title: "Calculus - Early Transcendentals",
   price: 4500,
   condition: "good",
-  category: "textbook",
+  category: "book",
   courseCode: "WTW114",
   listedAt: "2026-05-07T09:15:00Z",
   views: 42,
@@ -192,7 +171,7 @@ export interface CreateListingPayload {
   description: string;
   price: number;
   condition: string;
-  listingType: string;
+  categoryName: string;
   courseId: number | null;
   listingStatus: string;
 }
@@ -216,7 +195,7 @@ export const listingsService = {
       sellerId: item.sellerId,
       listedAt: item.createdAt,
       courseCode: item.courseId?.toString() ?? mockListingDetail.courseCode,
-      category: mapCategory(item.listingType),
+      category: item.categoryName,
       images: item.images.map((i: unknown) => {
         const img = i as { imageId: number; path: string; isPrimary: boolean };
         return {
@@ -243,7 +222,7 @@ export const listingsService = {
       const l = item as {
         listingId: string;
         title: string;
-        listingType: string;
+        categoryName: string;
         createdAt: string;
         price: number;
         listingStatus: string;
@@ -255,7 +234,7 @@ export const listingsService = {
       return {
         id: l.listingId,
         title: l.title,
-        meta: `${l.listingType} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+        meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
         price: l.price,
         status: l.listingStatus,
         views: l.viewCount,
@@ -283,9 +262,7 @@ export const listingsService = {
       description: item.description,
       courseCode:
         item.courseId?.toString() ?? mockSellerListingDetail.courseCode,
-      category: mapCategory(
-        item.listingType,
-      ) as SellerListingDetail["category"],
+      category: item.categoryName,
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
@@ -307,7 +284,7 @@ export const listingsService = {
         title: string;
         price: number;
         courseId?: number;
-        listingType: string;
+        categoryName: string;
         condition: string;
         images: { isPrimary: boolean; path: string }[];
       };
@@ -318,7 +295,7 @@ export const listingsService = {
         title: l.title,
         price: l.price,
         module: l.courseId?.toString() ?? "General",
-        category: mapBrowseCategory(l.listingType),
+        category: l.categoryName,
         condition: mapCondition(l.condition),
         image: primary ? imageUrl(primary) : biologyTextbook,
       };
@@ -340,33 +317,25 @@ export const listingsService = {
   },
 
   createListing: async (payload: CreateListingPayload): Promise<string> => {
-    const user = useAuthStore.getState().user;
-    const res = await fetch(`${BASE_URL}/listings`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: payload.title,
-        description: payload.description,
-        price: payload.price,
-        condition: payload.condition,
-        listingType: payload.listingType,
-        sellerId: user?.id,
-        listingStatus: payload.listingStatus,
-        courseId: payload.courseId,
-        isBundle: false,
-        viewCount: 0,
-        isbn: null,
-        author: null,
-        edition: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }),
-    });
-    if (!res.ok) throw new Error("Failed to create listing");
-    const createdListing = await res.json();
-    return createdListing.listingId;
-  },
+  const res = await fetch(`${BASE_URL}/listings`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: payload.title,
+      description: payload.description,
+      price: payload.price,
+      condition: payload.condition,
+      categoryName: payload.categoryName, 
+      listingStatus: payload.listingStatus,
+      courseId: payload.courseId,
+      isBundle: false,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to create listing");
+  const createdListing = await res.json();
+  return createdListing.listingId;
+},
 
   updateListing: async (
     id: string,
@@ -400,4 +369,14 @@ export const listingsService = {
     });
     if (!res.ok) throw new Error("Failed to delete listing");
   },
+
+  getListingsCategories: async(): Promise<Category[]> => {
+    const res = await fetch(`${BASE_URL}/listing-categories`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch categories")
+    const data: Category[] = await res.json();
+  return data;
+  }
 };

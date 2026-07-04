@@ -120,5 +120,4 @@ export const authService = {
     const json = await res.json();
     return json.data || [];
   },
-
 }

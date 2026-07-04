@@ -67,6 +67,11 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             "listing_not_found" => (HttpStatusCode.NotFound, "listing_not_found"),
             "not_found" => (HttpStatusCode.NotFound, "not_found"),
             "forbidden" => (HttpStatusCode.Forbidden, "forbidden"),
+            "invalid_category" => (HttpStatusCode.UnprocessableEntity, "invalid_category"),
+            "invalid_metadata" => (HttpStatusCode.UnprocessableEntity, "invalid_metadata"),
+            "metadata_not_allowed" => (HttpStatusCode.UnprocessableEntity, "metadata_not_allowed"),
+            "book_fields_not_allowed" => (HttpStatusCode.UnprocessableEntity, "book_fields_not_allowed"),
+            "unauthenticated" => (HttpStatusCode.Unauthorized, "unauthenticated"),
 
             // unmapped -> ultra generic
             _ => (HttpStatusCode.InternalServerError, "server_error"),
