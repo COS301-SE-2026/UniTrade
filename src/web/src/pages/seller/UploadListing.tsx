@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, use } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
@@ -18,7 +18,6 @@ const UploadListing: React.FC = () => {
     "Like_New" | "Good" | "Fair" | "Worn"
   >("Like_New");
   const [title, setTitle] = useState("");
-  const [moduleTag, setModuleTag] = useState("");
   const [customField, setCustomField] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -45,11 +44,11 @@ const UploadListing: React.FC = () => {
     if (category !== "book") return;
     const term = courseQuery.trim();
     if (term.length < 2) {
-      setCourseResults([]);
       return;
     }
-    setCourseLoading(true);
+
     const handle = setTimeout(() => {
+      setCourseLoading(true);
       listingsService
         .searchCourses(term)
         .then(setCourseResults)
@@ -59,13 +58,19 @@ const UploadListing: React.FC = () => {
     return () => clearTimeout(handle);
   }, [courseQuery, category]);
 
-  useEffect(() => {
-    const match = courseResults.find(
+  const ActiveCourseResults = useMemo(
+    () => (courseQuery.trim().length >= 2 ? courseResults : []),
+    [courseQuery, courseResults],
+  );
+
+  const moduleTag = useMemo(() => {
+    const match = ActiveCourseResults.find(
       (c) =>
-        c.courseCode.toLowerCase() === courseQuery.trim().toLocaleLowerCase(),
+        c.courseCode.toLocaleLowerCase() ===
+        courseQuery.trim().toLocaleLowerCase(),
     );
-    setModuleTag(match ? String(match.courseId) : "");
-  }, [courseQuery, courseResults]);
+    return match ? String(match.courseId) : "";
+  }, [courseQuery, ActiveCourseResults]);
 
   const MAX_SIZE_MB = 10;
   const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
@@ -252,7 +257,7 @@ const UploadListing: React.FC = () => {
                       className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 "
                     />
                     <datalist id="course-options">
-                      {courseResults.map((c) => (
+                      {ActiveCourseResults.map((c) => (
                         <option key={c.courseId} value={c.courseCode}>
                           {c.courseName}
                         </option>
