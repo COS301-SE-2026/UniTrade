@@ -1,6 +1,6 @@
 import { Link , useNavigate} from "react-router-dom";
 import { useState } from "react";
-import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash, IconLogout } from "@tabler/icons-react";
+import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash, IconLogout, IconAlertTriangle, IconX } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
 
@@ -33,6 +33,8 @@ export default function Profile() {
 const {user, clearUser} = useAuthStore();
 const navigate = useNavigate();
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+const [deleting, setDeleting] = useState(false);
+const [deleteError, setDeleteError] = useState<string | null>(null);
 
 if(!user) return null;
 
@@ -44,6 +46,17 @@ const handleLogout = async () => {
     clearUser();
     navigate("/auth/login");}
   };
+
+const handleDeleteAccount = async () => {
+  setDeleting(true);
+  setDeleteError(null);
+  try {
+    clearUser();
+    navigate("/auth/login");
+  } catch {
+    setDeleteError("Failed to delete account. Please try again.");
+    setDeleting(false);
+  }};
 
 
 return (
@@ -84,9 +97,8 @@ label="Privacy & Security"
 onClick={() => navigate("/profile/privacy")}
 />
 
-</div>
 
-<div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 pb-6 pt-4 -mt-10 mx-4">
+
   <ProfileRow
 icon={<IconTrash size={18} />}
 label="Delete Account"
@@ -97,11 +109,51 @@ danger
 <ProfileRow
 icon={<IconLogout size={18} />}
 label="Logout"
-onClick={() => handleLogout()}
+onClick={handleLogout}
 />
 </div>
 
-</div>
 
-);
+{showDeleteConfirm && (
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex items-center gap-2 text-red-500">
+        <IconAlertTriangle size={20} />
+        <h3 className="font-bold text-navy-900">Delete Account </h3>
+        </div>
+      <button
+      onClick={() => setShowDeleteConfirm(false)}
+      className="text-gray-400 hover:text-gray-600 transition-colors"
+      aria-label="Close">
+
+      <IconX size={18} />
+      </button>
+    </div>
+    <p className="text-sm text-gray-600 mb-6">
+      Are you sure you want to delete your account? This action cannot be undone.
+    </p>
+    {deleteError && (
+      <p className="text-sm text-red-500 mb-4">{deleteError}</p>
+    )}
+    <div className="flex gap-3">
+      <button
+      onClick={() => setShowDeleteConfirm(false)}
+      className="flex-1 rounded-full bore border-gray-200 text-gray-600 font-semibold text-sm py-2.5 hover:bg-gray-50 transition-colors">
+        Cancel
+      </button>
+      <button
+      onClick={handleDeleteAccount}
+      disabled={deleting}
+      className="flex-1 rounded-full bg-red-500 text-white font-semibold text-sm py-2.5 hover:bg-red-600 transition-colors disabled:opacity-50">
+        {deleting ? "Deleting..." : "Delete Account"}
+      </button>
+    </div>
+  </div>
+
+ </div>
+)
+}
+
+</div>);
 }
