@@ -1,4 +1,5 @@
-namespace Modules.ReferenceData.Course.Models;
+using Modules.ReferenceData.Course.Models;
+namespace Modules.ReferenceData.Course;
 
 public interface ICourseService
 {

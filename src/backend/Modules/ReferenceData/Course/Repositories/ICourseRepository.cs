@@ -5,9 +5,9 @@ public interface ICourseRepository
     /// <summary>
     /// Searches for courses by optional search term and university, returning up to a specific limit
     /// </summary>
-    Task<IReadOnlyDictionary<Course>> SearchAsync(
+    Task<IReadOnlyList<Course>> SearchAsync(
         string? search,
-        int universityId,
+        int? universityId,
         int limit,
         CancellationToken ct = default
     );
