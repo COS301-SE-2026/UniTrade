@@ -72,6 +72,12 @@ const UploadListing: React.FC = () => {
     return match ? String(match.courseId) : "";
   }, [courseQuery, ActiveCourseResults]);
 
+  let courseTextStatus = "Pick a module from the list";
+  if (courseLoading) {
+    courseTextStatus = "Searching...";
+  } else if (moduleTag) {
+    courseTextStatus = "Module selected";
+  }
   const MAX_SIZE_MB = 10;
   const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
   const totalSizeBytes = files.reduce((sum, f) => sum + f.size, 0);
@@ -129,7 +135,7 @@ const UploadListing: React.FC = () => {
         price: Number(price),
         condition: condition.toLowerCase(),
         categoryName: category,
-        courseId: moduleTag ? parseInt(moduleTag) : null,
+        courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "live",
       });
       await listingsService.uploadImages(listingId, files);
@@ -158,7 +164,7 @@ const UploadListing: React.FC = () => {
         price: Number(price) || 0,
         condition: condition.toLowerCase(),
         categoryName: category,
-        courseId: moduleTag ? parseInt(moduleTag) : null,
+        courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "draft",
       });
       if (files.length > 0) {
@@ -210,9 +216,9 @@ const UploadListing: React.FC = () => {
               </h4>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">
+                <span className="block text-xs font-semibold text-slate-500 mb-2">
                   Category
-                </label>
+                </span>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((cat) => (
                     <button
@@ -234,7 +240,7 @@ const UploadListing: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                   className={
-                    category !== "other" ? "md:col-span-2" : "md:col-span-3"
+                    category === "other" ? "md:col-span-3" : "md:col-span-2"
                   }
                 >
                   <input
@@ -265,11 +271,7 @@ const UploadListing: React.FC = () => {
                     </datalist>
                     {courseQuery.trim().length >= 2 && (
                       <p className="mt-1 text-[10px] text-slate-400">
-                        {courseLoading
-                          ? "Searching..."
-                          : moduleTag
-                            ? "Module selected"
-                            : "Pick a module from the list"}
+                        {courseTextStatus}
                       </p>
                     )}
                   </div>
@@ -342,7 +344,7 @@ const UploadListing: React.FC = () => {
               <div className="grid grid-cols-4 gap-4">
                 {previews.map((url, idx) => (
                   <div
-                    key={idx}
+                    key={url}
                     className="aspect-square rounded-xl border border-slate-200 overflow-hidden relative"
                   >
                     <img
@@ -359,20 +361,24 @@ const UploadListing: React.FC = () => {
                     </button>
                   </div>
                 ))}
+
                 {Array.from({ length: Math.max(0, 4 - previews.length) }).map(
-                  (_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-400 transition-colors group"
-                    >
-                      <IconUpload
-                        size={20}
-                        className="mb-1 group-hover:scale-110 transition-transform"
-                      />
-                    </button>
-                  ),
+                  (_, idx) => {
+                    const slot = previews.length + idx;
+                    return (
+                      <button
+                        key={`upload-slot-${slot}`}
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-400 transition-colors group"
+                      >
+                        <IconUpload
+                          size={20}
+                          className="mb-1 group-hover:scale-110 transition-transform"
+                        />
+                      </button>
+                    );
+                  },
                 )}
               </div>
               <div className="space-y-1.5 mt-1">
@@ -436,9 +442,9 @@ const UploadListing: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">
+                  <span className="block text-xs font-semibold text-slate-500 mb-2">
                     Condition
-                  </label>
+                  </span>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {(["Like_New", "Good", "Fair", "Worn"] as const).map(
                       (item) => (

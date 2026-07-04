@@ -1,16 +1,10 @@
-import type { ListingDetail } from "../types/listing";
 import type {
+  ListingDetail,
   ListingSummary,
   MyListingsResponse,
-  Category,
+  Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
 } from "../types/listing";
-import type { SellerListingDetail } from "../types/listing";
-import type {
-  BrowseListing,
-  BrowseListingsResponse,
-  BrowseCondition,
-  Course,
-} from "../types/listing";
+
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 
