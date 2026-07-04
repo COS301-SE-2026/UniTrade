@@ -371,6 +371,7 @@ function Theproblem() {
   )
 }
 
+
 function Thesolution() {
   return (
     <div id="solution" className="bg-white dark:bg-navy-950 py-20">
@@ -508,6 +509,7 @@ function GetApp() {
 }
 
 function Footer() {
+  const navigate = useNavigate();
   return (
     <footer className="bg-white text-gray">
       <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
@@ -522,9 +524,17 @@ function Footer() {
         <div>
           <p className="text-xs mb-4">SUPPORT</p>
           <div className="space-y-2 text-sm">
-            <p>Help Center</p>
-            <p>Safety Tips</p>
-            <p>Contact Us</p>
+            
+            <ul className="flex flex-col gap-1">
+            <li
+               onClick={() => navigate('/auth/help-center')}
+               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+               >
+                Help Center
+               </li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
+            </ul>
           </div>
         </div>
         <div>

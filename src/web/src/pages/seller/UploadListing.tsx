@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
+import type { Category } from "../../types/listing";
 
 interface ApiError {
   message: string;
@@ -11,7 +12,8 @@ const UploadListing: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [category, setCategory] = useState<'Textbook' | 'Electronics' | 'Furniture' | 'Other'>('Textbook')
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [category, setCategory] = useState<string>("");
   const [condition, setCondition] = useState<'Like_New' | 'Good' | 'Fair' | 'Worn'>('Like_New')
   const [title, setTitle] = useState('')
   const [moduleTag, setModuleTag] = useState('')
@@ -22,7 +24,16 @@ const UploadListing: React.FC = () => {
   const [previews, setPreviews] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
- 
+
+  useEffect(() => {
+    listingsService.getListingsCategories()
+      .then((cats) => {
+        setCategories(cats);
+        if (cats.length > 0) setCategory(cats[0].name);
+      })
+      .catch(() => setError("Failed to load categories"));
+  }, []);
+
   const MAX_SIZE_MB = 10
   const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
   const totalSizeBytes = files.reduce((sum, f) => sum + f.size, 0)
@@ -30,7 +41,7 @@ const UploadListing: React.FC = () => {
   const usedPercent = Math.min((totalSizeBytes / (4 * MAX_SIZE_BYTES)) * 100, 100)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
    const incoming = Array.from(e.target.files ?? [])
-   
+
 
    const oversized = incoming.filter(f => f.size > MAX_SIZE_BYTES)
    if (oversized.length > 0){
@@ -45,7 +56,7 @@ const UploadListing: React.FC = () => {
     ))
       return merged
     })
-    
+
    if (fileInputRef.current) fileInputRef.current.value=''
   }
 
@@ -68,8 +79,8 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price),
-        condition: condition.toLowerCase().replace("_", ""),
-        listingType: category.toLowerCase(),
+        condition: condition.toLowerCase(),
+        categoryName: category,
         courseId: moduleTag ? parseInt(moduleTag) : null,
         listingStatus: "live",
       });
@@ -97,8 +108,8 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price) || 0,
-        condition: condition.toLowerCase().replace("_", ""),
-        listingType: category.toLowerCase(),
+        condition: condition.toLowerCase(),
+        categoryName: category,
         courseId: moduleTag ? parseInt(moduleTag) : null,
         listingStatus: "draft",
       });
@@ -155,20 +166,18 @@ const UploadListing: React.FC = () => {
                   Category
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    ["Textbook", "Electronics", "Furniture", "Other"] as const
-                  ).map((cat) => (
+                  {categories.map((cat) => (
                     <button
-                      key={cat}
+                      key={cat.id}
                       type="button"
-                      onClick={() => setCategory(cat)}
+                      onClick={() => setCategory(cat.name)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        category === cat
+                        category === cat.name
                           ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
-                      {cat}
+                      {cat.name}
                     </button>
                   ))}
                 </div>
@@ -177,7 +186,7 @@ const UploadListing: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                   className={
-                    category !== "Other" ? "md:col-span-2" : "md:col-span-3"
+                    category !== "other" ? "md:col-span-2" : "md:col-span-3"
                   }
                 >
                   <input
@@ -189,7 +198,7 @@ const UploadListing: React.FC = () => {
                   />
                 </div>
 
-                {category === "Textbook" && (
+                {category === "book" && (
                   <div>
                     <select
                       value={moduleTag}
@@ -203,7 +212,7 @@ const UploadListing: React.FC = () => {
                   </div>
                 )}
 
-                {category === "Electronics" && (
+                {category === "electronics" && (
                   <div>
                     <input
                       type="text"
@@ -215,7 +224,7 @@ const UploadListing: React.FC = () => {
                   </div>
                 )}
 
-                {category === "Furniture" && (
+                {category === "furniture" && (
                   <div>
                     <input
                       type="text"
@@ -415,7 +424,7 @@ const UploadListing: React.FC = () => {
                   <h5 className="text-sm font-bold text-slate-800">
                     {title || "Untitled Listing"}
                   </h5>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-400 capitalize">
                     {category} · R{price || "0"} · {condition.replace("_", " ")}
                   </p>
                 </div>
