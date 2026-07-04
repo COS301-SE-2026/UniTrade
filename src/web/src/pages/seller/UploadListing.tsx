@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
+import type { Category, ListingCondition } from "../../types/listing";
 import type { Category, Course } from "../../types/listing";
 
 interface ApiError {
@@ -14,6 +15,22 @@ const UploadListing: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<string>("");
+  const [condition, setCondition] = useState<'Like_New' | 'Good' | 'Fair' | 'Worn'>('Like_New')
+  const [title, setTitle] = useState('')
+  const [moduleTag, setModuleTag] = useState('')
+  const [customField, setCustomField] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
+  Like_New: "new",
+  Good: "good",
+  Fair: "fair",
+  Worn: "poor",
+};
   const [condition, setCondition] = useState<
     "Like_New" | "Good" | "Fair" | "Worn"
   >("Like_New");
@@ -127,7 +144,7 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price),
-        condition: condition.toLowerCase(),
+        condition: CONDITION_TO_API[condition],
         categoryName: category,
         courseId: moduleTag ? parseInt(moduleTag) : null,
         listingStatus: "live",
@@ -156,7 +173,7 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price) || 0,
-        condition: condition.toLowerCase(),
+        condition: CONDITION_TO_API[condition],
         categoryName: category,
         courseId: moduleTag ? parseInt(moduleTag) : null,
         listingStatus: "draft",
