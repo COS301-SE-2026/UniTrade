@@ -14,5 +14,18 @@ export default defineConfig({
     setupFiles: "./src/tests/setup.ts",
 
     exclude: ["src/tests/e2e/**", "node_modules/**"],
-  },
+    coverage: {
+      provider: "v8",
+      reporter: ["lcov", "text", "html"],
+      exclude: [
+        "**/tests/**",
+        "node_modules/**",
+        "dist/**",
+        "src/vite-env.d.ts",
+        "src/main.tsx",
+        "**/*.test.ts",
+        "**/*.spec.ts",
+      ],
+    }
+  }
 });
