@@ -1,12 +1,10 @@
-import type { ListingDetail} from "../types/listing";
-import type { ListingSummary, MyListingsResponse, Category } from "../types/listing";
-import type { SellerListingDetail } from "../types/listing";
 import type {
-  BrowseListing,
-  BrowseListingsResponse,
-  BrowseCondition,
-  
+  ListingDetail,
+  ListingSummary,
+  MyListingsResponse,
+  Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
 } from "../types/listing";
+
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -18,14 +16,22 @@ export function imageUrl(path: string): string {
 }
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
-    like_new: "Good",
+    new: "like_new",
     good: "Good",
     fair: "Fair",
-    worn: "Poor",
+    poor: "Poor",
   };
   return map[condition] ?? "Fair";
 }
 
+function getFirstUploadedImagePath(
+  images: { imageId: number; isPrimary: boolean; path: string }[],
+): string | undefined {
+  if (images.length === 0) return undefined;
+  return images.reduce((earliest, img) =>
+    img.imageId < earliest.imageId ? img : earliest,
+  ).path;
+}
 
 const mockMyListings: ListingSummary[] = [
   {
@@ -81,7 +87,7 @@ const mockListingDetail: ListingDetail = {
   description:
     "Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP.",
   price: 280,
-  condition: "like_new",
+  condition: "new",
   category: "book",
   status: "live",
   courseCode: "WTW114",
@@ -218,29 +224,28 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch listings");
 
     const data = await res.json();
-    const listings: ListingSummary[] = data.items.map((item: unknown) => {
-      const l = item as {
-        listingId: string;
-        title: string;
-        categoryName: string;
-        createdAt: string;
-        price: number;
-        listingStatus: string;
-        viewCount: number;
-        images: { isPrimary: boolean; path: string }[];
-      };
-      const primary =
-        l.images.find((i) => i.isPrimary)?.path ?? l.images[0]?.path;
-      return {
-        id: l.listingId,
-        title: l.title,
-        meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
-        price: l.price,
-        status: l.listingStatus,
-        views: l.viewCount,
-        imageUrl: primary ? imageUrl(primary) : biologyTextbook,
-      };
-    });
+const listings: ListingSummary[] = data.items.map((item: unknown) => {
+  const l = item as {
+    listingId: string;
+    title: string;
+    categoryName: string;
+    createdAt: string;
+    price: number;
+    listingStatus: string;
+    viewCount: number;
+    images: { imageId: number; isPrimary: boolean; path: string }[];
+  };
+  const primary = getFirstUploadedImagePath(l.images);
+  return {
+    id: l.listingId,
+    title: l.title,
+    meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+    price: l.price,
+    status: l.listingStatus,
+    views: l.viewCount,
+    imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+  };
+});
     return { listings, total: data.total };
   },
 
@@ -279,27 +284,26 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch listings");
     const data = await res.json();
     const listings: BrowseListing[] = data.items.map((item: unknown) => {
-      const l = item as {
-        listingId: string;
-        title: string;
-        price: number;
-        courseId?: number;
-        categoryName: string;
-        condition: string;
-        images: { isPrimary: boolean; path: string }[];
-      };
-      const primary =
-        l.images.find((i) => i.isPrimary)?.path ?? l.images[0]?.path;
-      return {
-        id: l.listingId,
-        title: l.title,
-        price: l.price,
-        module: l.courseId?.toString() ?? "General",
-        category: l.categoryName,
-        condition: mapCondition(l.condition),
-        image: primary ? imageUrl(primary) : biologyTextbook,
-      };
-    });
+  const l = item as {
+    listingId: string;
+    title: string;
+    price: number;
+    courseId?: number;
+    categoryName: string;
+    condition: string;
+    images: { imageId: number; isPrimary: boolean; path: string }[];
+  };
+  const primary = getFirstUploadedImagePath(l.images);
+  return {
+    id: l.listingId,
+    title: l.title,
+    price: l.price,
+    module: l.courseId?.toString() ?? "General",
+    category: l.categoryName,
+    condition: mapCondition(l.condition),
+    image: primary ? imageUrl(primary) : biologyTextbook,
+  };
+});
     return { listings, total: data.total };
   },
 
@@ -317,25 +321,25 @@ export const listingsService = {
   },
 
   createListing: async (payload: CreateListingPayload): Promise<string> => {
-  const res = await fetch(`${BASE_URL}/listings`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: payload.title,
-      description: payload.description,
-      price: payload.price,
-      condition: payload.condition,
-      categoryName: payload.categoryName, 
-      listingStatus: payload.listingStatus,
-      courseId: payload.courseId,
-      isBundle: false,
-    }),
-  });
-  if (!res.ok) throw new Error("Failed to create listing");
-  const createdListing = await res.json();
-  return createdListing.listingId;
-},
+    const res = await fetch(`${BASE_URL}/listings`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: payload.title,
+        description: payload.description,
+        price: payload.price,
+        condition: payload.condition,
+        categoryName: payload.categoryName,
+        listingStatus: payload.listingStatus,
+        courseId: payload.courseId,
+        isBundle: false,
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to create listing");
+    const createdListing = await res.json();
+    return createdListing.listingId;
+  },
 
   updateListing: async (
     id: string,
@@ -344,6 +348,8 @@ export const listingsService = {
       description: string;
       price: number;
       condition: string;
+      categoryName: string;
+      courseId: number | null;
       removedImageIds?: number[];
     },
   ): Promise<void> => {
@@ -356,7 +362,9 @@ export const listingsService = {
         description: payload.description,
         price: payload.price,
         condition: payload.condition,
-        removedImageIds: payload.removedImageIds?? []
+        categoryName: payload.categoryName,
+        courseId: payload.courseId,
+        removedImageIds: payload.removedImageIds ?? [],
       }),
     });
     if (!res.ok) throw new Error("Failed to update listing");
@@ -370,13 +378,30 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to delete listing");
   },
 
-  getListingsCategories: async(): Promise<Category[]> => {
+  getListingsCategories: async (): Promise<Category[]> => {
     const res = await fetch(`${BASE_URL}/listing-categories`, {
       method: "GET",
       credentials: "include",
     });
-    if (!res.ok) throw new Error("Failed to fetch categories")
+    if (!res.ok) throw new Error("Failed to fetch categories");
     const data: Category[] = await res.json();
-  return data;
-  }
+    return data;
+  },
+
+  searchCourses: async (search: string): Promise<Course[]> => {
+    const params = new URLSearchParams();
+
+    if (search.trim()) {
+      params.set("search", search);
+    }
+    params.set("universityId", "2"); // this has the UP courses only
+    params.set("limit", "50");
+    const res = await fetch(`${BASE_URL}/courses?${params}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch courses");
+    return await res.json();
+  },
 };

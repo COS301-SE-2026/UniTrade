@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
-import type { Category } from "../../types/listing";
+import type { Category, Course, ListingCondition } from "../../types/listing";
 
 interface ApiError {
   message: string;
@@ -14,19 +14,33 @@ const UploadListing: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<string>("");
-  const [condition, setCondition] = useState<'Like_New' | 'Good' | 'Fair' | 'Worn'>('Like_New')
-  const [title, setTitle] = useState('')
-  const [moduleTag, setModuleTag] = useState('')
-  const [customField, setCustomField] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
-  const [files, setFiles] = useState<File[]>([])
-  const [previews, setPreviews] = useState<string[]>([])
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+ type ListingConditionUi = "Like_New" | "Good" | "Fair" | "Worn";
+
+const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
+  const [title, setTitle] = useState("");
+  const [customField, setCustomField] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [courseQuery, setCourseQuery] = useState("");
+  const [courseResults, setCourseResults] = useState<Course[]>([]);
+  const [courseLoading, setCourseLoading] = useState(false);
+
+  const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
+    Like_New: "new",
+    Good: "good",
+    Fair: "fair",
+    Worn: "poor",
+  };
+
 
   useEffect(() => {
-    listingsService.getListingsCategories()
+    listingsService
+      .getListingsCategories()
       .then((cats) => {
         setCategories(cats);
         if (cats.length > 0) setCategory(cats[0].name);
@@ -34,31 +48,75 @@ const UploadListing: React.FC = () => {
       .catch(() => setError("Failed to load categories"));
   }, []);
 
-  const MAX_SIZE_MB = 10
-  const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
-  const totalSizeBytes = files.reduce((sum, f) => sum + f.size, 0)
-  const totalSizeMB = (totalSizeBytes / (1024 * 1024)).toFixed(1)
-  const usedPercent = Math.min((totalSizeBytes / (4 * MAX_SIZE_BYTES)) * 100, 100)
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-   const incoming = Array.from(e.target.files ?? [])
+  useEffect(() => {
+    if (category !== "book") return;
+    const term = courseQuery.trim();
+    if (term.length < 2) {
+      return;
+    }
 
+    const handle = setTimeout(() => {
+      setCourseLoading(true);
+      listingsService
+        .searchCourses(term)
+        .then(setCourseResults)
+        .catch(() => setCourseResults([]))
+        .finally(() => setCourseLoading(false));
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [courseQuery, category]);
 
-   const oversized = incoming.filter(f => f.size > MAX_SIZE_BYTES)
-   if (oversized.length > 0){
-    setError(`Some files exceed the 10MB limit: ${oversized.map(f => f.name).join(', ')}`)
-    if (fileInputRef.current) fileInputRef.current.value=''
-    return
-   }
-    setFiles(prev => {
-      const merged = [...prev,...incoming].slice(0, 4)
-      setPreviews(merged.map((f,i) =>
-      i < prev.length ? previews[i] : URL.createObjectURL(f)
-    ))
-      return merged
-    })
+  const ActiveCourseResults = useMemo(
+    () => (courseQuery.trim().length >= 2 ? courseResults : []),
+    [courseQuery, courseResults],
+  );
 
-   if (fileInputRef.current) fileInputRef.current.value=''
+  const moduleTag = useMemo(() => {
+    const match = ActiveCourseResults.find(
+      (c) =>
+        c.courseCode.toLocaleLowerCase() ===
+        courseQuery.trim().toLocaleLowerCase(),
+    );
+    return match ? String(match.courseId) : "";
+  }, [courseQuery, ActiveCourseResults]);
+
+  let courseTextStatus = "Pick a module from the list";
+  if (courseLoading) {
+    courseTextStatus = "Searching...";
+  } else if (moduleTag) {
+    courseTextStatus = "Module selected";
   }
+  const MAX_SIZE_MB = 10;
+  const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+  const totalSizeBytes = files.reduce((sum, f) => sum + f.size, 0);
+  const totalSizeMB = (totalSizeBytes / (1024 * 1024)).toFixed(1);
+  const usedPercent = Math.min(
+    (totalSizeBytes / (4 * MAX_SIZE_BYTES)) * 100,
+    100,
+  );
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const incoming = Array.from(e.target.files ?? []);
+
+    const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
+    if (oversized.length > 0) {
+      setError(
+        `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`,
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    setFiles((prev) => {
+      const merged = [...prev, ...incoming].slice(0, 4);
+      setPreviews(
+        merged.map((f, i) =>
+          i < prev.length ? previews[i] : URL.createObjectURL(f),
+        ),
+      );
+      return merged;
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const removeFile = (idx: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
@@ -71,6 +129,10 @@ const UploadListing: React.FC = () => {
       return;
     }
 
+    if (category === "book" && courseQuery.trim() && !moduleTag) {
+      setError("Please pick a module from the list");
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -79,9 +141,9 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price),
-        condition: condition.toLowerCase(),
+        condition: CONDITION_TO_API[condition],
         categoryName: category,
-        courseId: moduleTag ? parseInt(moduleTag) : null,
+        courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "live",
       });
       await listingsService.uploadImages(listingId, files);
@@ -108,9 +170,9 @@ const UploadListing: React.FC = () => {
         title,
         description,
         price: Number(price) || 0,
-        condition: condition.toLowerCase(),
+        condition: CONDITION_TO_API[condition],
         categoryName: category,
-        courseId: moduleTag ? parseInt(moduleTag) : null,
+        courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "draft",
       });
       if (files.length > 0) {
@@ -162,9 +224,9 @@ const UploadListing: React.FC = () => {
               </h4>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">
+                <span className="block text-xs font-semibold text-slate-500 mb-2">
                   Category
-                </label>
+                </span>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((cat) => (
                     <button
@@ -186,7 +248,7 @@ const UploadListing: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                   className={
-                    category !== "other" ? "md:col-span-2" : "md:col-span-3"
+                    category === "other" ? "md:col-span-3" : "md:col-span-2"
                   }
                 >
                   <input
@@ -200,15 +262,26 @@ const UploadListing: React.FC = () => {
 
                 {category === "book" && (
                   <div>
-                    <select
-                      value={moduleTag}
-                      onChange={(e) => setModuleTag(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
-                    >
-                      <option value="">Module / Course Tags</option>
-                      <option value="114">WTW114</option>
-                      <option value="301">ECN301</option>
-                    </select>
+                    <input
+                      type="text"
+                      list="course-options"
+                      placeholder="Module (e.g. COS110)"
+                      value={courseQuery}
+                      onChange={(e) => setCourseQuery(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 "
+                    />
+                    <datalist id="course-options">
+                      {ActiveCourseResults.map((c) => (
+                        <option key={c.courseId} value={c.courseCode}>
+                          {c.courseName}
+                        </option>
+                      ))}
+                    </datalist>
+                    {courseQuery.trim().length >= 2 && (
+                      <p className="mt-1 text-[10px] text-slate-400">
+                        {courseTextStatus}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -279,7 +352,7 @@ const UploadListing: React.FC = () => {
               <div className="grid grid-cols-4 gap-4">
                 {previews.map((url, idx) => (
                   <div
-                    key={idx}
+                    key={url}
                     className="aspect-square rounded-xl border border-slate-200 overflow-hidden relative"
                   >
                     <img
@@ -296,37 +369,48 @@ const UploadListing: React.FC = () => {
                     </button>
                   </div>
                 ))}
+
                 {Array.from({ length: Math.max(0, 4 - previews.length) }).map(
-                  (_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-400 transition-colors group"
-                    >
-                      <IconUpload
-                        size={20}
-                        className="mb-1 group-hover:scale-110 transition-transform"
-                      />
-                    </button>
-                  ),
+                  (_, idx) => {
+                    const slot = previews.length + idx;
+                    return (
+                      <button
+                        key={`upload-slot-${slot}`}
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-400 transition-colors group"
+                      >
+                        <IconUpload
+                          size={20}
+                          className="mb-1 group-hover:scale-110 transition-transform"
+                        />
+                      </button>
+                    );
+                  },
                 )}
               </div>
               <div className="space-y-1.5 mt-1">
                 <div className="flex justify-between items-center text-[10px] text-slate-400">
                   <span>Up to 4 photos, max 10MB each</span>
                   {files.length > 0 && (
-                    <span className={totalSizeBytes > 35 * 1024 *1024 ? 'text-amber-500 font-semibold' : ''}>
+                    <span
+                      className={
+                        totalSizeBytes > 35 * 1024 * 1024
+                          ? "text-amber-500 font-semibold"
+                          : ""
+                      }
+                    >
                       {totalSizeMB} MB used ({files.length}/4 photos)
                     </span>
                   )}
                 </div>
                 {files.length > 0 && (
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-300 ${
-                      usedPercent > 87 ? 'bg-amber-400' : 'bg-sky-500'
-                    }`}
-                    style={{ width: `${usedPercent}%`}}
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
+                      }`}
+                      style={{ width: `${usedPercent}%` }}
                     />
                   </div>
                 )}
@@ -366,9 +450,9 @@ const UploadListing: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">
+                  <span className="block text-xs font-semibold text-slate-500 mb-2">
                     Condition
-                  </label>
+                  </span>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {(["Like_New", "Good", "Fair", "Worn"] as const).map(
                       (item) => (
