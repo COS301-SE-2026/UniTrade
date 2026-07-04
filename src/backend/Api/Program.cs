@@ -24,6 +24,9 @@ using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Azure.Communication.Email;
 using Modules.ReferenceData;
+using Modules.ReferenceData.Course;
+using Modules.ReferenceData.Course.Repositories;
+using Infrastructure.Persistence.Repositories.Courses;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -142,6 +145,8 @@ builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
 builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 
 builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"] ?? throw new InvalidOperationException("Acs:ConnectionString is not confugured")));
 var jwtSecret =

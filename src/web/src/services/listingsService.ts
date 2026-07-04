@@ -1,11 +1,15 @@
-import type { ListingDetail} from "../types/listing";
-import type { ListingSummary, MyListingsResponse, Category } from "../types/listing";
+import type { ListingDetail } from "../types/listing";
+import type {
+  ListingSummary,
+  MyListingsResponse,
+  Category,
+} from "../types/listing";
 import type { SellerListingDetail } from "../types/listing";
 import type {
   BrowseListing,
   BrowseListingsResponse,
   BrowseCondition,
-  
+  Course,
 } from "../types/listing";
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
@@ -25,7 +29,6 @@ function mapCondition(condition: string): BrowseCondition {
   };
   return map[condition] ?? "Fair";
 }
-
 
 const mockMyListings: ListingSummary[] = [
   {
@@ -317,25 +320,25 @@ export const listingsService = {
   },
 
   createListing: async (payload: CreateListingPayload): Promise<string> => {
-  const res = await fetch(`${BASE_URL}/listings`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: payload.title,
-      description: payload.description,
-      price: payload.price,
-      condition: payload.condition,
-      categoryName: payload.categoryName, 
-      listingStatus: payload.listingStatus,
-      courseId: payload.courseId,
-      isBundle: false,
-    }),
-  });
-  if (!res.ok) throw new Error("Failed to create listing");
-  const createdListing = await res.json();
-  return createdListing.listingId;
-},
+    const res = await fetch(`${BASE_URL}/listings`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: payload.title,
+        description: payload.description,
+        price: payload.price,
+        condition: payload.condition,
+        categoryName: payload.categoryName,
+        listingStatus: payload.listingStatus,
+        courseId: payload.courseId,
+        isBundle: false,
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to create listing");
+    const createdListing = await res.json();
+    return createdListing.listingId;
+  },
 
   updateListing: async (
     id: string,
@@ -356,7 +359,7 @@ export const listingsService = {
         description: payload.description,
         price: payload.price,
         condition: payload.condition,
-        removedImageIds: payload.removedImageIds?? []
+        removedImageIds: payload.removedImageIds ?? [],
       }),
     });
     if (!res.ok) throw new Error("Failed to update listing");
@@ -370,13 +373,30 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to delete listing");
   },
 
-  getListingsCategories: async(): Promise<Category[]> => {
+  getListingsCategories: async (): Promise<Category[]> => {
     const res = await fetch(`${BASE_URL}/listing-categories`, {
       method: "GET",
       credentials: "include",
     });
-    if (!res.ok) throw new Error("Failed to fetch categories")
+    if (!res.ok) throw new Error("Failed to fetch categories");
     const data: Category[] = await res.json();
-  return data;
-  }
+    return data;
+  },
+
+  searchCourses: async (search: string): Promise<Course[]> => {
+    const params = new URLSearchParams();
+
+    if (search.trim()) {
+      params.set("search", search);
+    }
+    params.set("universityId", "2"); // this has the UP courses only
+    params.set("limit", "50");
+    const res = await fetch(`${BASE_URL}/courses?${params}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch courses");
+    return await res.json();
+  },
 };
