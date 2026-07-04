@@ -16,36 +16,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Restore API
-        run: dotnet restore src/backend/Api/Api.csproj
-      
-      - name: Restore Tests
-        run: dotnet restore src/backend/Tests/UniTrade.Tests.csproj
-        
-      - name: Build API
-        working-directory: src/backend/Api
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Build Tests
-        working-directory: src/backend/Tests
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Run Unit Tests
-        working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit" 
-
-      - name: Run Integration Tests
-        working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" 
     services:
       postgres:
         image: postgres:18
@@ -60,7 +30,55 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore src/backend/Api/Api.csproj
+          dotnet restore src/backend/Tests/UniTrade.Tests.csproj
+      
+      - name: Start SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+          /k:"COS301-SE-2026_UniTrade" \
+          /o:"cos301-se-2026" \
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
+      
+      - name: Build API
+        working-directory: src/backend/Api
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Build Tests
+        working-directory: src/backend/Tests
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run Unit Tests with Coverage
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Unit" 
+
+      - name: Run Integration Tests
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" 
+      
+      - name: End SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   code-quality:
     runs-on: ubuntu-latest

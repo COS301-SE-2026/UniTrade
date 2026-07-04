@@ -43,6 +43,15 @@ jobs:
         working-directory: src/web
         run: npm run build
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         working-directory: src/web
-        run: npm run test:run 
+        run: npm run test:run -- --coverage --coverageReporters=lcov
+      
+      - name: Install SonarScanner
+        run: npm install -g sonarqube-scanner
+        
+      - name: Run SonarCloud analysis
+        working-directory: src/web
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
