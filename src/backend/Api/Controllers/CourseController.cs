@@ -6,7 +6,7 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/courses")]
-public class ListingController(ICourseService courses) : ControllerBase
+public class CourseController(ICourseService courses) : ControllerBase
 {
     private readonly ICourseService _courses = courses;
 
