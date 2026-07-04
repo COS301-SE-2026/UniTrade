@@ -18,7 +18,7 @@ export function imageUrl(path: string): string {
 }
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
-    like_new: "Good",
+    like_new: "like_new",
     good: "Good",
     fair: "Fair",
     worn: "Poor",
@@ -81,7 +81,7 @@ const mockListingDetail: ListingDetail = {
   description:
     "Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP.",
   price: 280,
-  condition: "like_new",
+  condition: "new",
   category: "book",
   status: "live",
   courseCode: "WTW114",
