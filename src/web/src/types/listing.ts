@@ -1,5 +1,5 @@
 export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
-export type ListingCondition = 'new' | 'good' | 'fair' | 'worn'
+export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 
 
 export interface ListingImage {

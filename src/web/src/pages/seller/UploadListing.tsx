@@ -28,7 +28,7 @@ const UploadListing: React.FC = () => {
   Like_New: "new",
   Good: "good",
   Fair: "fair",
-  Worn: "worn",
+  Worn: "poor",
 };
 
   useEffect(() => {
