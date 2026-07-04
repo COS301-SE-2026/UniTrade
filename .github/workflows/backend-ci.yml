@@ -39,6 +39,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
           cache: true
+          cache-dependency-path: |
+            src/backend/Api/packages.lock.json
+            src/backend/Infrastructure/packages.lock.json
+            src/backend/Modules/packages.lock.json
+            src/backend/Tests/packages.lock.json
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -91,6 +96,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: |
+            src/backend/Api/packages.lock.json
+            src/backend/Infrastructure/packages.lock.json
+            src/backend/Modules/packages.lock.json
+            src/backend/Tests/packages.lock.json
 
       - name: Restore API
         run: dotnet restore src/backend/Api/Api.csproj
