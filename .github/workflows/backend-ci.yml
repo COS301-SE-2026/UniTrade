@@ -49,9 +49,7 @@ jobs:
         run: dotnet tool install --global dotnet-sonarscanner
 
       - name: Restore dependencies
-        run: |
-          dotnet restore src/backend/Api/Api.csproj
-          dotnet restore src/backend/Tests/UniTrade.Tests.csproj
+        run: dotnet restore UniTrade.sln
       
       - name: Start SonarCloud analysis
         env:
@@ -63,14 +61,9 @@ jobs:
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
-      
-      - name: Build API
-        working-directory: src/backend/Api
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Build Tests
-        working-directory: src/backend/Tests
-        run: dotnet build --configuration Release --no-restore
+         
+      - name: Build solution
+        run: dotnet build UniTrade.sln --configuration Release --no-restore
 
       - name: Run Unit Tests with Coverage
         working-directory: src/backend/Tests
