@@ -1,7 +1,31 @@
 import { Link , useNavigate} from "react-router-dom";
-import { IconSettings,IconHistory } from "@tabler/icons-react";
+import { IconSettings,IconHistory, IconChevronRight } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
+
+interface ProfileRowProps{
+icon: React.ReactNode;
+label: string;
+onClick: () => void;
+danger?: boolean;
+}
+
+function ProfileRow({icon,label,onClick,danger}:ProfileRowProps){
+  return (
+    <button
+    onClick={onClick}
+    className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text left">
+
+<span className={'flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}'}>
+  <span className={danger ? "text-red-400" : "text-gray-400"}>
+    {icon}
+  </span>
+  {label}
+</span>
+<IconChevronRight size={16} className={"text-gray-300"} />
+</button>
+  );
+}
 export default function Profile() {
 const {user, clearUser} = useAuthStore();
 const navigate = useNavigate();
