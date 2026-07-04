@@ -1,5 +1,5 @@
 export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
-export type ListingCondition = 'like_new' | 'good' | 'fair' | 'worn'
+export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 
 
 export interface ListingImage {
@@ -91,7 +91,7 @@ export interface SellerListingDetail {
   timeline: TimelineStep[]
 }
 
-export type BrowseCondition = 'Good' | 'Fair' | 'Poor'
+export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
 
 
 export interface BrowseListing {
