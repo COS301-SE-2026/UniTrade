@@ -1,5 +1,6 @@
 import { Link , useNavigate} from "react-router-dom";
-import { IconSettings,IconHistory, IconChevronRight } from "@tabler/icons-react";
+import { useState } from "react";
+import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash, IconLogout } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
 
@@ -26,9 +27,12 @@ function ProfileRow({icon,label,onClick,danger}:ProfileRowProps){
 </button>
   );
 }
+
+
 export default function Profile() {
 const {user, clearUser} = useAuthStore();
 const navigate = useNavigate();
+const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 if(!user) return null;
 
@@ -68,28 +72,36 @@ return (
 </div>
 
 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 pb-6 pt-4 -mt-10 mx-4">
+<ProfileRow
+icon={<IconHistory size={18} />}
+label="View Activity History"
+onClick={() => navigate("/activity")}
+/>
 
-<a href="/activity"
-onClick={(e) => {
-  e.preventDefault();
-  navigate("/activity");
-}}
-className="flex items-center justifiy-center gap-2 text-sm font-medium text-navy-700 hover:text-navy-900">
-
-<IconHistory size={16} />
-<span>View Activity History</span>
-</a>
-<button
-onClick={handleLogout}
-className="w-full mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
-
-
-
->
-LOGOUT
-</button>
+<ProfileRow
+icon={<IconShieldLock size={18} />}
+label="Privacy & Security"
+onClick={() => navigate("/profile/privacy")}
+/>
 
 </div>
+
+<div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 pb-6 pt-4 -mt-10 mx-4">
+  <ProfileRow
+icon={<IconTrash size={18} />}
+label="Delete Account"
+onClick={() => setShowDeleteConfirm(true)}
+danger
+/>
+
+<ProfileRow
+icon={<IconLogout size={18} />}
+label="Logout"
+onClick={() => handleLogout()}
+/>
 </div>
+
+</div>
+
 );
 }
