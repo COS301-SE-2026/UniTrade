@@ -114,3 +114,10 @@ export interface Category {
   id: number;
   name: string;
 }
+
+export interface Course{
+  courseId: number;
+  courseCode: string;
+  courseName: string;
+  faculty: string;
+}

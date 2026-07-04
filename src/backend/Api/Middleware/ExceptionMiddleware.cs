@@ -76,6 +76,8 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             ),
             "unauthenticated" => (HttpStatusCode.Unauthorized, "unauthenticated"),
 
+            // for courses
+            "course_not_found" => (HttpStatusCode.NotFound, "course_not_found"),
             // unmapped -> ultra generic
             _ => (HttpStatusCode.InternalServerError, "server_error"),
         };

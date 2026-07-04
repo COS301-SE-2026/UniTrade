@@ -9,5 +9,5 @@ public class ListFilterDto
     public Guid? SellerId { get; set; }
     public string? Search { get; set; }
     public int Skip {get;set;}=0;
-    public int Take{get;set;}=20;
+    public int Take{get;set;}=50;
 }
