@@ -7,9 +7,6 @@ public class CourseRepository(AppDbContext db) : ICourseRepository
 {
     private readonly AppDbContext _db = db;
 
-    /// <summary>
-    /// Searches for courses by optional search term and university, returning up to a specific limit
-    /// </summary>
     public async Task<IReadOnlyList<Course>> SearchAsync(
         string? search,
         int universityId,
@@ -30,22 +27,16 @@ public class CourseRepository(AppDbContext db) : ICourseRepository
             query = query.Where(c =>
                 EF.Functions.ILike(
                     c.CourseCode,
-                    $"%{term}%" || EF.Functions.ILike(c.CourseName, $"%{term}%")
+                    $"%{searchInput}%" || EF.Functions.ILike(c.CourseName, $"%{searchInput}%")
                 )
             );
         }
         return await query.OrderBy(c => c.CourseCode).Take(limit).ToListAsync(ct);
     }
 
-    /// <summary>
-    /// Retrieves a course by its identifier
-    /// </summary>
     public async Task<Course?> GetByIdAsync(int courseId, CancellationToken ct = default) =>
         await _db.Courses.AsNoTracking().FirstOrDefaultAsync(c => c.CourseId == courseId, ct);
 
-    /// <summary>
-    /// Determines whether a course exists
-    /// </summary>
     public async Task<bool> ExistsAsync(int courseId, CancellationToken ct = default) =>
         await _db.Courses.AsNoTracking().AnyAsync(c => c.CourseId == courseId, ct);
 }
