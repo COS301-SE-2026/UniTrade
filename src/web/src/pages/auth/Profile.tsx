@@ -1,6 +1,6 @@
-import { Link , useNavigate} from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { useState } from "react";
-import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash, IconLogout, IconAlertTriangle, IconX } from "@tabler/icons-react";
+import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash, IconLogout, IconAlertTriangle, IconX, IconSchool} from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
 
@@ -15,7 +15,7 @@ function ProfileRow({icon,label,onClick,danger}:ProfileRowProps){
   return (
     <button
     onClick={onClick}
-    className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text left">
+    className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text-left">
 
 <span className={'flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}'}>
   <span className={danger ? "text-red-400" : "text-gray-400"}>
@@ -23,7 +23,7 @@ function ProfileRow({icon,label,onClick,danger}:ProfileRowProps){
   </span>
   {label}
 </span>
-<IconChevronRight size={16} className={"text-gray-300"} />
+<IconChevronRight size={16} className="text-gray-300" />
 </button>
   );
 }
@@ -61,18 +61,18 @@ const handleDeleteAccount = async () => {
 
 return (
 <div className="max-w-xl mx-auto">
-<div className="bg-navy-700 round-t-2xl px-6 pt-10 pb-6 pb-8">
-  <div className="flex item-center justify-between mb-6">
-    <h1 className="text-xl font-bold text-white">Profile</h1>
+<div className="bg-navy-700 rounded-t-3xl px-6 pt-8 pb-10">
+  <div className="flex item-center justify-between mb-8">
+    <h1 className="text-2xl font-bold text-white">Profile</h1>
     <button 
     onClick={() => navigate("/profile/settings")}
     className="text-white/70 hover:text-white transition-colors"
     aria-label="Settings">
-      <IconSettings size={20} />
+      <IconSettings size={22} />
       </button>
   </div>
-  <div className="flex items-center gap-4">
-<div className="w-16 h-16 rounded-full bg-white text-navy-700 flex items-center justify-center text-xl font-bold shadow-lg">
+  <div className="flex items-center gap-5">
+<div className="w-20 h-20 rounded-full bg-white text-navy-700 flex items-center justify-center text-2xl font-bold shadow-lg flex-shrink-0">
 {user.initials}
 </div>
 <div>
@@ -84,15 +84,29 @@ return (
 </div>
 </div>
 
-<div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 pb-6 pt-4 -mt-10 mx-4">
+<div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 px-5 py-4 flex items-center gap-3">
+  <div className="w-9 h-9 rounded-full bg-sky-50 text-sky-500 flex item-center justify-center flex-shirnk-0">
+  <IconSchool size={18}/>
+  </div>
+  <div>
+    <p className="text-sm font-semibold text-navy-900">
+      {user.course ?? "Course not set"}
+      </p>
+      {user.year && (
+        <p className="text-xs text-gray-400">Year {user.year}</p>
+      )}
+      </div>
+      </div>
+
+<div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
 <ProfileRow
-icon={<IconHistory size={18} />}
+icon={<IconHistory size={19} />}
 label="View Activity History"
 onClick={() => navigate("/activity")}
 />
 
 <ProfileRow
-icon={<IconShieldLock size={18} />}
+icon={<IconShieldLock size={19} />}
 label="Privacy & Security"
 onClick={() => navigate("/profile/privacy")}
 />
@@ -100,14 +114,14 @@ onClick={() => navigate("/profile/privacy")}
 
 
   <ProfileRow
-icon={<IconTrash size={18} />}
+icon={<IconTrash size={19} />}
 label="Delete Account"
 onClick={() => setShowDeleteConfirm(true)}
 danger
 />
 
 <ProfileRow
-icon={<IconLogout size={18} />}
+icon={<IconLogout size={19} />}
 label="Logout"
 onClick={handleLogout}
 />
@@ -115,7 +129,7 @@ onClick={handleLogout}
 
 
 {showDeleteConfirm && (
-<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
   <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-2 text-red-500">
@@ -139,13 +153,14 @@ onClick={handleLogout}
     <div className="flex gap-3">
       <button
       onClick={() => setShowDeleteConfirm(false)}
-      className="flex-1 rounded-full bore border-gray-200 text-gray-600 font-semibold text-sm py-2.5 hover:bg-gray-50 transition-colors">
+      className="flex-1 rounded-full border border-gray-200 text-gray-600 font-semibold text-sm py-2.5 hover:bg-gray-50 transition-colors">
         Cancel
       </button>
       <button
       onClick={handleDeleteAccount}
       disabled={deleting}
-      className="flex-1 rounded-full bg-red-500 text-white font-semibold text-sm py-2.5 hover:bg-red-600 transition-colors disabled:opacity-50">
+      className="flex-1 rounded-full bg-red-500 text-white font-semibold text-sm py-2.5 hover:bg-red-600 transition-colors disabled:opacity-50"
+      >
         {deleting ? "Deleting..." : "Delete Account"}
       </button>
     </div>
@@ -155,5 +170,6 @@ onClick={handleLogout}
 )
 }
 
-</div>);
+</div>
+);
 }
