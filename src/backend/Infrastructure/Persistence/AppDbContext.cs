@@ -51,7 +51,10 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CreatedAt);
             entity.Property(x => x.UpdatedAt);
 
-            entity.HasCheckConstraint("chk_user_role", "role IN ('student', 'admin')");
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_user_role", "role IN ('student', 'admin')");
+            });
 
             entity.HasIndex(x => x.Email).IsUnique();
             entity.HasIndex(x => x.Role).HasDatabaseName("ix_users_role");
@@ -79,11 +82,14 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.ReputationScore).HasPrecision(4, 2).HasDefaultValue(0);
 
-            entity.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
-            entity.HasCheckConstraint(
-                "chk_student_verification",
-                "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
-            );
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
+                t.HasCheckConstraint(
+                    "chk_student_verification",
+                    "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
+                );
+            });
 
             entity
                 .HasOne(x => x.User)
@@ -422,10 +428,13 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Author).HasMaxLength(120);
             entity.Property(x => x.Edition).HasMaxLength(50);
 
-            entity.HasCheckConstraint(
-                "chk_isbn_validity",
-                "isbn IS NULL OR length(isbn) IN  (10,13)"
-            );
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_isbn_validity",
+                    "isbn IS NULL OR length(isbn) IN  (10,13)"
+                );
+            });
         });
 
         //Listing Images
