@@ -74,7 +74,7 @@ describe('UploadListing', () => {
     renderUpload()
     // categories load async and default to the first item ("book"),
     // which is the category that renders the module/course dropdown
-    expect(await screen.findByDisplayValue('Module / Course Tags')).toBeInTheDocument()
+    expect(await screen.findByPlaceholderText('Module (e.g. COS110)')).toBeInTheDocument()
   })
 
   /*it('shows all 6 category buttons once categories load', async () => {
