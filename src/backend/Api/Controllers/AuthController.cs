@@ -16,14 +16,17 @@ public class AuthController : ControllerBase
 {
     private readonly IIdentityService _identityService;
     private readonly IVerificationService _verificationService;
+    private readonly IWebHostEnvironment _env;
 
     public AuthController(
         IIdentityService identityService,
-        IVerificationService verificationService
+        IVerificationService verificationService,
+        IWebHostEnvironment env
     )
     {
         _identityService = identityService;
         _verificationService = verificationService;
+        _env = env;
     }
 
     [HttpPost("register")]
@@ -110,7 +113,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     [EnableRateLimiting("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDTO request)
+    public async Task<IActionResult> Login([FromBody] LoginDto request)
     {
         try
         {
@@ -122,7 +125,7 @@ public class AuthController : ControllerBase
                 new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = false,
+                    Secure = !_env.IsDevelopment(),
                     SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddHours(24),
                     Path = "/",
@@ -142,6 +145,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
+    [ProducesResponseType<object>(StatusCodes.Status200OK)]
     public IActionResult Logout()
     {
         Response.Cookies.Delete(
@@ -149,7 +153,7 @@ public class AuthController : ControllerBase
             new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = !_env.IsDevelopment(),
                 SameSite = SameSiteMode.Lax,
             }
         );
@@ -163,8 +167,6 @@ public class AuthController : ControllerBase
         try
         {
             //'USer' here is built in. .net puts all jwt claims in this Object when client requests
-            var claims = User.Claims.ToList();
-
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))

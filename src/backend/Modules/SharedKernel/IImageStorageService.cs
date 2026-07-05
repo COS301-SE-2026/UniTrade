@@ -6,7 +6,7 @@ public interface IImageStorageService
         Guid listingId,
         byte[] data,
         string contentType,
-        bool IsPrimary,
+        bool isPrimary,
         CancellationToken ct = default
     );
     Task<(byte[] Data, string ContentType)?> GetAsync(int imageId, CancellationToken ct = default);

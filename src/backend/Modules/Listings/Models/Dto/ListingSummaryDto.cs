@@ -18,7 +18,7 @@ public record ListingSummaryDto(
      string CategoryName,
      JsonElement? Metadata,
      BookDetailsDto? BookDetails,
-     string ListingStatus,  
+     string ListingStatus,
     bool IsBundle, int ViewCount,
 
      DateTime CreatedAt,

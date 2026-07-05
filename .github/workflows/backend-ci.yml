@@ -59,7 +59,9 @@ jobs:
           /k:"COS301-SE-2026_UniTrade" \
           /o:"cos301-se-2026" \
           /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
+        
          
       - name: Build solution
         run: dotnet build UniTrade.sln --configuration Release --no-restore
