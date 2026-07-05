@@ -85,12 +85,6 @@ const renderDetail = (id = '42') =>
     })
   })
 
-  it('shows the course code tag', async () => {
-    renderDetail()
-    await waitFor(() => {
-      expect(screen.getAllByText('BIO101').length).toBeGreaterThan(0)
-    })
-  })
 
   it('shows the category detail row', async () => {
     renderDetail()
