@@ -550,52 +550,6 @@ export function GetApp() {
   )
 }
 
-export function Footer() {
-  const navigate = useNavigate();
-  return (
-    <footer className="bg-white text-gray">
-      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
-        <div>
-          <div className="mt-8">
-            <p className="text-xs">CONTACT INFO</p>
-            <p className="text-sm mt-2">+27 123 456 789</p>
-            <p className="text-sm">devenexus28@gmail.com</p>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs mb-4">SUPPORT</p>
-          <div className="space-y-2 text-sm">
-            
-            <ul className="flex flex-col gap-1">
-            <li
-               onClick={() => navigate('/auth/help-center')}
-               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-               >
-                Help Center
-               </li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
-            </ul>
-          </div>
-        </div>
-        <div>
-          <p className="text-xs mb-4">SOCIAL MEDIA</p>
-          <div className="flex gap-6 text-2xl">
-            <a href="#" className="hover:text-white transition-colors">𝕏</a>
-            <a href="#" className="hover:text-white transition-colors">📸</a>
-            <a href="#" className="hover:text-white transition-colors">𝕗</a>
-          </div>
-        </div>
-      </div>
-      <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
-        © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
-      </div>
-
-    </footer>
-  )
-}
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
