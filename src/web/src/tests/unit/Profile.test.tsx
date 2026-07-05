@@ -42,17 +42,30 @@ const renderProfile = () => {
 }
 
 describe('Profile', () => {
+     beforeEach(() => {
+        mockNavigate.mockClear()
+        mockClearUser.mockClear()
+        vi.clearAllMocks()
+        mockStore()
+    })
+
+     it('should render nothing when user is null', () => {
+        mockStore(null)
+        const { container } = renderProfile()
+        expect(container).toBeEmptyDOMElement()
+    })
+
   
     
 
 
-    describe('Logout', () => {
+    /*describe('Logout', () => {
 
 
     })
 
     describe('Delete Account', () => {
        
-    })
+    })*/
         
 })
