@@ -37,6 +37,7 @@ public class AppDbContext : DbContext
         // FOR User
         modelBuilder.Entity<User>(entity =>
         {
+            entity.HasQueryFilter(u => !u.IsDeleted); // note in phase 3, for admin purposes
             entity.ToTable(tb => tb.HasTrigger("tr_users_updated_at"));
 
             entity.HasKey(x => x.UserId);
@@ -73,6 +74,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CourseId);
 
             entity.Property(x => x.YearOfStudy).IsRequired();
+            entity.Property(x => x.DegreeProgram).HasMaxLength(100).IsRequired();
 
             entity
                 .Property(x => x.VerificationStatus)
@@ -98,7 +100,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
-                .HasOne<University>()
+                .HasOne(s => s.University)
                 .WithMany()
                 .HasForeignKey(x => x.UniversityId)
                 .OnDelete(DeleteBehavior.Restrict);

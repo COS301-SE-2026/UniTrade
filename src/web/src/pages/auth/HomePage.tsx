@@ -35,10 +35,10 @@ interface ProblemCardProps {
   description: string;
 }
 
-function ProblemCard({ icon, title, description }: ProblemCardProps) {
+export function ProblemCard({ icon, title, description }: ProblemCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
-      <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+      <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white text-lg mb-2">{title}</h3>
@@ -53,10 +53,10 @@ interface SolutionCardProps {
   description: string;
 }
 
-function SolutionCard({ icon, title, description }: SolutionCardProps) {
+export function SolutionCard({ icon, title, description }: SolutionCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
-      <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+      <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white mb-2">{title}</h3>
@@ -71,7 +71,7 @@ interface StepProps {
   description: string;
 }
 
-function Step({ number, title, description }: StepProps) {
+export function Step({ number, title, description }: StepProps) {
   return (
     <div className="flex-1 relative">
       <div className="flex items-center gap-4">
@@ -92,7 +92,7 @@ interface BenefitListProps {
   items: string[];
 }
 
-function BenefitList({ title, items }: BenefitListProps) {
+export function BenefitList({ title, items }: BenefitListProps) {
   return (
     <div className="bg-white dark:bg-navy-800 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
       <h3 className="font-semibold text-navy-700 dark:text-white mb-6 flex items-center gap-2">
@@ -312,7 +312,7 @@ function Firstpage() {
   );
 }
 
-function Theproblem() {
+export function Theproblem() {
   return (
     <div id="problem" className="bg-white mx-auto px-6 py-20">
       <div className="max-w-7xl mx-auto px-6">
@@ -391,7 +391,7 @@ function Footer() {
   );
 }
 
-function Thesolution() {
+export function Thesolution() {
   return (
     <div id="for-buyerssellers" className="bg-white dark:bg-navy-950 py-20">
       <div className="max-w-7xl mx-auto px-6">
@@ -440,7 +440,14 @@ function Thesolution() {
   )
 }
 
-function Howitworks() {
+export function Howitworks() {
+  const steps = [
+    { number: 1, title: "Browse listings", description: "Search by course code, university or category. Filter by condition and price" },
+    { number: 2, title: "Reserve the item", description: "Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup." },
+    { number: 3, title: "Meet on Campus", description: "Agree on a campus location. Both parties check in on arrival for accountability." },
+    { number: 4, title: "Inspect and pay", description: "Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done." },
+  ];
+
   return (
     <div id="how-it-works" className="bg-white mx-auto px-6 py-20">
       <div className="text-center mb-12">
@@ -450,79 +457,65 @@ function Howitworks() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start relative">
-        <Step
-          number={1}
-          title="Browse listings"
-          description="Search by course code, university or category. Filter by condition and price"
-        />
-        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-
-
-        <div className="hidden md:block  absolute " />
-        <Step
-          number={2}
-          title="Reserve the item"
-          description="Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup."
-        />
-        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-        <div className="hidden md:block absolute" />
-        <Step
-          number={3}
-          title="Meet on Campus"
-          description="Agree on a campus location. Both parties check in on arrival for accountability."
-
-        />
-        <div className="my-8 text-blue-500"> {<IconArrowRight size={26} />} </div>
-        <div className="hidden md:block absolute" />
-        <Step
-          number={4}
-          title="Inspect and pay"
-          description="Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done."
-        />
+        {steps.map((s, i) => (
+          <>
+            <Reveal key={s.title} delay={i * 150} className="flex-1">
+              <Step {...s} />
+            </Reveal>
+            {i < steps.length - 1 && (
+              <div data-testid="step-arrow" className="my-8 text-blue-500 hidden md:block">
+                <IconArrowRight size={26} />
+              </div>
+            )}
+          </>
+        ))}
       </div>
     </div>
   )
 }
 
-function BuyersSellers() {
+export function BuyersSellers() {
+  const buyerItems = [
+    "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
+    "Browse by your course code or module.",
+    "Reserve items before someone else does.",
+    "Chat with the seller and schedule a meeting.",
+    "Inspect before paying.",
+    "Rate and review the seller",
+  ];
+
+  const sellerItems = [
+    "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
+    "List under 2 minutes.",
+    "AI scans your photos automatically.",
+    "Get notified when a buyer is interested.",
+    "Chat with the buyer.",
+    "Rate and review the buyer",
+  ];
+
   return (
-    <div id="how-it-works" className="max-w-7xl mx-auto px-6 py-16 bg-white dark:bg-navy-900">
-      <div className="text-center mb-12">
-        <span className="uppercase text-s tracking-widest font-mono text-blue-400">WHO IT'S FOR</span>
-        <h2 className="text-4xl font-bold text-navy-700 dark:text-white">Built for both sides of the transaction</h2>
-        <p className="mt-3 text-gray-600 dark:text-gray-400">Whether you're buying ofr next semester or clearing out last year's books.</p>
-      </div>
+    <div id="for-buyerssellers" className="max-w-7xl mx-auto px-6 py-16 bg-white dark:bg-navy-900">
+      <Reveal>
+        <div className="text-center mb-12">
+          <span className="uppercase text-s tracking-widest font-mono text-blue-400">WHO IT'S FOR</span>
+          <h2 className="text-4xl font-bold text-navy-700 dark:text-white">Built for both sides of the transaction</h2>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">Whether you're buying for next semester or clearing out last year's books.</p>
+        </div>
+      </Reveal>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <BenefitList
-        title="For buyers"
-        items={[
-          "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
-          "Browse by your course code or module.",
-          "Reserve items before someone else does.",
-          "Chat with the seller and schedule a meeting.",
-          "Inspect before paying.",
-          "Rate and review the seller"
-        ]}
-        />
-      
-        <BenefitList
-        title="For sellers"
-        items={[
-          "Turn last year's textbook into cash. List in minutes and reach verified students at your own university who actually need what you are selling.",
-          "List under 2 minutes.",
-          "AI scans your photos automatically.",
-          "Get notified when a buyer is interested.",
-          "Chat with the buyer.",
-          "Rate and review the buyer"
-        ]}
-        />
+        <Reveal delay={0}>
+          <BenefitList title="For buyers" items={buyerItems} />
+        </Reveal>
+        <Reveal delay={150}>
+          <BenefitList title="For sellers" items={sellerItems} />
+        </Reveal>
       </div>
     </div>
   )
 }
 
-function GetApp() {
+export function GetApp() {
   return (
     <div className="bg-navy-700 py-16">
     <div className="max-w-4xl mx-auto px-6 text-center">
