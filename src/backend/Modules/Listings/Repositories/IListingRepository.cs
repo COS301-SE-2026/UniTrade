@@ -19,4 +19,7 @@ public interface IListingRepository
     Task<bool> IsOwnerAsync(Guid listingId, Guid sellerId);
 
     Task<List<ListingCategory>> GetActiveCategories();
+
+    Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason);
+    
 }
