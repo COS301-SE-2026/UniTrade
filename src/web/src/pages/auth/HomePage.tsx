@@ -371,6 +371,48 @@ export function Theproblem() {
   )
 }
 
+function Footer() {
+  const navigate = useNavigate();
+  return (
+    <footer className = "bg-white border-t border-gray-100 px-6 md:px-12 py-12">
+      <div className = "max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10 md:gap-6">
+
+          <div className = "flex items-center gap-3">
+            <div className = "w-10 h-10 rounded-full overflow-hidden bg-navy-700 ring-1 ring-gray-100 flex items-center justify-center flex-shrink-0">
+              <img
+                src={logo}
+                alt="UniTrade logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                  "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+                }}
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-navy-700">UniTrade</p>
+                <p className="text-xs text-gray-500">DevNexus28@gmail.com</p>
+              </div>
+          </div>
+
+          <button
+          onClick={() => navigate('/auth/help-center')}
+          className="text-sm text-gray-500 hover:text-navy-700 transition-colors cursor-pointer"
+        >
+          Help Center
+        </button>
+
+      </div>
+
+      <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-50">
+        <p className="text-xs text-gray-400 text-center md:text-left">
+          © {new Date().getFullYear()} UniTrade. All rights reserved.
+        </p>
+      </div>
+    </footer>
+          
+  );
+}
 
 export function Thesolution() {
   return (
@@ -508,52 +550,6 @@ export function GetApp() {
   )
 }
 
-export function Footer() {
-  const navigate = useNavigate();
-  return (
-    <footer className="bg-white text-gray">
-      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
-        <div>
-          <div className="mt-8">
-            <p className="text-xs">CONTACT INFO</p>
-            <p className="text-sm mt-2">+27 123 456 789</p>
-            <p className="text-sm">devenexus28@gmail.com</p>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs mb-4">SUPPORT</p>
-          <div className="space-y-2 text-sm">
-            
-            <ul className="flex flex-col gap-1">
-            <li
-               onClick={() => navigate('/auth/help-center')}
-               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-               >
-                Help Center
-               </li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
-            </ul>
-          </div>
-        </div>
-        <div>
-          <p className="text-xs mb-4">SOCIAL MEDIA</p>
-          <div className="flex gap-6 text-2xl">
-            <a href="#" className="hover:text-white transition-colors">𝕏</a>
-            <a href="#" className="hover:text-white transition-colors">📸</a>
-            <a href="#" className="hover:text-white transition-colors">𝕗</a>
-          </div>
-        </div>
-      </div>
-      <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
-        © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
-      </div>
-
-    </footer>
-  )
-}
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
@@ -565,6 +561,7 @@ export default function HomePage() {
       <BuyersSellers />
       <GetApp />
       <Footer />
+
     </div>
   )
 }
