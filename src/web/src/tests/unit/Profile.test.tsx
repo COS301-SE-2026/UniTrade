@@ -106,9 +106,21 @@ describe('Profile', () => {
     
 
 
+    }) 
+    
+    describe('Delete Account', () => {
+       it('opens the confirm popup when Delete Account is clicked',
+            async () => {
+                const user = userEvent.setup()
+                renderProfile()
+               
+                expect(screen.queryByText(/are you sure you want to delete/i)).not.toBeInTheDocument()
+
+                await user.click(screen.getByText('Delete Account'))
+                expect(screen.getByText(/are you sure you want to delete/i)).toBeInTheDocument()
+            }
+        )
+
     })
-   /* describe('Delete Account', () => {
-       
-    })*/
         
 })
