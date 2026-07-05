@@ -8,6 +8,11 @@ import HomePage from '../../pages/auth/HomePage'
 import userEvent from '@testing-library/user-event'
 import { AlexAvatar } from '../../pages/auth/HomePage'
 import { act } from 'react'
+import { ProblemCard, Theproblem, Thesolution } from '../../pages/auth/HomePage'
+import { IconShield } from '@tabler/icons-react'
+import { BenefitList, BuyersSellers } from '../../pages/auth/HomePage'
+import { GetApp } from '../../pages/auth/HomePage'
+import { Footer } from '../../pages/auth/HomePage'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -271,4 +276,152 @@ describe ('AlexAvatar', () => {
 
         expect(screen.getByTestId('alex-avatar-container')).toHaveClass('my-custom-class')
     })
+})
+describe('ProblemCard (unit)', () => {
+  it('renders the icon, title, and description passed to it', () => {
+    render(
+      <ProblemCard
+        icon={<IconShield data-testid="mock-icon" />}
+        title="Safety concerns"
+        description="Some description text"
+      />
+    )
+
+    expect(screen.getByTestId('card-icon')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'Safety concerns' })).toBeInTheDocument()
+    expect(screen.getByText('Some description text')).toBeInTheDocument()
+  })
+})
+
+describe('Theproblem', () => {
+  it('renders exactly three problem cards', () => {
+    render(<Theproblem />)
+    expect(screen.getAllByTestId('card-icon')).toHaveLength(3)
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3)
+  })
+
+  it('each card shows the correct title and description', () => {
+    render(<Theproblem />)
+
+    const expected = [
+      { title: 'Safety concerns', description: /meeting strangers/i },
+      { title: 'Lack of accountability', description: /anonymous sellers/i },
+      { title: 'Inconvenient meetup locations', description: /coordinating with people/i },
+    ]
+
+    expected.forEach(({ title, description }) => {
+      const heading = screen.getByRole('heading', { level: 3, name: title })
+      const card = heading.closest('div')!
+      expect(within(card).getByText(description)).toBeInTheDocument()
+    })
+  })
+})
+
+describe('Thesolution', () => {
+  it('renders exactly six solution cards', () => {
+    render(<Thesolution />)
+    expect(screen.getAllByTestId('card-icon')).toHaveLength(6)
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(6)
+  })
+
+  it('each card shows the correct title and description', () => {
+    render(<Thesolution />)
+
+    const expected = [
+      'Verified students only',
+      'Meet on campus',
+      'Secure payments via OZOW',
+      'AI listing verification',
+      'Bundle packs',
+      'Trust and reputation',
+    ]
+
+    expected.forEach((title) => {
+      expect(screen.getByRole('heading', { level: 3, name: title })).toBeInTheDocument()
+    })
+  })
+})
+describe('BenefitList (unit)', () => {
+  it('renders title and all items', () => {
+    render(<BenefitList title="For buyers" items={['Item one', 'Item two']} />)
+
+    expect(screen.getByRole('heading', { level: 3, name: 'For buyers' })).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByText('Item one')).toBeInTheDocument()
+    expect(screen.getByText('Item two')).toBeInTheDocument()
+  })
+})
+
+describe('BuyersSellers', () => {
+  it('renders "For buyers" and "For sellers" lists', () => {
+    render(<BuyersSellers />)
+
+    expect(screen.getByRole('heading', { level: 3, name: 'For buyers' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'For sellers' })).toBeInTheDocument()
+  })
+
+  it('each list shows all six of its items', () => {
+    render(<BuyersSellers />)
+
+    const buyersHeading = screen.getByRole('heading', { level: 3, name: 'For buyers' })
+    const buyersList = buyersHeading.parentElement!
+    expect(within(buyersList).getAllByRole('listitem')).toHaveLength(6)
+    expect(within(buyersList).getByText(/reserve items before someone else/i)).toBeInTheDocument()
+
+    const sellersHeading = screen.getByRole('heading', { level: 3, name: 'For sellers' })
+    const sellersList = sellersHeading.parentElement!
+    expect(within(sellersList).getAllByRole('listitem')).toHaveLength(6)
+    expect(within(sellersList).getByText(/AI scans your photos/i)).toBeInTheDocument()
+  })
+})
+
+describe('GetApp', () => {
+  it('renders Apple and Play store images', () => {
+    render(<GetApp />)
+
+    const appleImg = screen.getByAltText('Download on the App Store')
+    const playImg = screen.getByAltText('GET IT ON Google Play')
+
+    expect(appleImg).toBeInTheDocument()
+    expect(playImg).toBeInTheDocument()
+
+    expect(appleImg).toHaveAttribute('src', expect.stringMatching(/.+/))
+    expect(playImg).toHaveAttribute('src', expect.stringMatching(/.+/))
+  })
+
+  it('store badges link to their respective placeholder href', () => {
+    render(<GetApp />)
+
+    const appleLink = screen.getByAltText('Download on the App Store').closest('a')
+    const playLink = screen.getByAltText('GET IT ON Google Play').closest('a')
+
+    expect(appleLink).toHaveAttribute('href', '#')
+    expect(playLink).toHaveAttribute('href', '#')
+  })
+})
+
+describe('Footer', () => {
+  it('displays contact info', () => {
+    render(<Footer />)
+
+    expect(screen.getByText('+27 123 456 789')).toBeInTheDocument()
+    expect(screen.getByText('devenexus28@gmail.com')).toBeInTheDocument()
+  })
+
+  it('displays support links text', () => {
+    render(<Footer />)
+    expect(screen.getByText('Help Center')).toBeInTheDocument()
+    expect(screen.getByText('Safety Tips')).toBeInTheDocument()
+    expect(screen.getByText('Contact Us')).toBeInTheDocument()
+  })
+
+  it('renders social media links with placeholder hrefs', () => {
+    render(<Footer />)
+
+    const socialLinks = screen.getAllByRole('link', { name: /𝕏|📸|𝕗/ })
+    expect(socialLinks).toHaveLength(3)
+    socialLinks.forEach((link) => {
+      expect(link).toHaveAttribute('href', '#')
+    })
+  })
 })
