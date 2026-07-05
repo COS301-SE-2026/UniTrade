@@ -42,6 +42,7 @@ const handleLogout = async () => {
   try {
     await authService.logout();
   }catch {
+    //Empty
   }finally{
     clearUser();
     navigate("/auth/login");}
