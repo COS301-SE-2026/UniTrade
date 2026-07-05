@@ -68,16 +68,33 @@ describe('Profile', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/profile/settings')
     })
 
-  
-    
-
-
-    /*describe('Logout', () => {
-
-
+     it('navigates to activity through view activity tab', async () => {
+        const user = userEvent.setup()
+        renderProfile()
+        await user.click(screen.getByText('View Activity History'))
+        expect(mockNavigate).toHaveBeenCalledWith('/activity')
     })
 
-    describe('Delete Account', () => {
+   it('navigates to privacy and security', async () => {
+        const user = userEvent.setup()
+        renderProfile()
+        await user.click(screen.getByText('Privacy & Security'))
+        expect(mockNavigate).toHaveBeenCalledWith('/profile/privacy')
+    })
+
+    describe('Logout', () => {
+
+    
+        it('calls logout and clears user when logout is clicked', async () => {
+            const user = userEvent.setup()
+            ;(authService.logout as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined)
+            renderProfile()
+            await user.click(screen.getByText('Logout'))
+
+    })
+})
+
+   /* describe('Delete Account', () => {
        
     })*/
         
