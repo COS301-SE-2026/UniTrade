@@ -144,3 +144,6 @@ jobs:
 
       - name: Analyze code style
         run: dotnet build src/backend/Api/Api.csproj --configuration Release --no-restore /p:EnforceCodeStyleInBuild=true
+
+      - name: Validate backend docker image
+        run: docker build -f src/backend/Api/Dockerfile -t unitrade-backend-ci .
