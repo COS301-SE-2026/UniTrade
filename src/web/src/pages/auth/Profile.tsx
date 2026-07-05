@@ -157,6 +157,8 @@ onClick={handleLogout}
         Cancel
       </button>
       <button
+      data-testid="confirm-delete-button"
+
       onClick={handleDeleteAccount}
       disabled={deleting}
       className="flex-1 rounded-full bg-red-500 text-white font-semibold text-sm py-2.5 hover:bg-red-600 transition-colors disabled:opacity-50"
