@@ -127,6 +127,15 @@ describe('Profile', () => {
             expect(screen.queryByText("Are you sure you want to delete your account? This action cannot be undone.")).not.toBeInTheDocument()
         })
 
+        
+        it ('clears user and navigates to login when delete is confirmed', async () => {
+            const user = userEvent.setup()
+            renderProfile()
+            await user.click(screen.getByRole('button', { name: 'Delete Account' } ))
+            await user.click(screen.getByTestId('confirm-delete-button'))
+            expect(mockClearUser).toHaveBeenCalledTimes(1)
+            expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+        })
     })
         
     })
