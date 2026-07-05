@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Signup from '../../pages/auth/Signup'
+import type { University } from '../../services/authService'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -223,7 +224,7 @@ describe('Signup page', () => {
 
   describe('University loading', () => {
     it('shows "Loading universities..." before the request is resolved', async () => {
-      let resolveUnis: (value: any) => void
+      let resolveUnis: (value: University[]) => void
       vi.mocked(authService.getUniversities).mockImplementationOnce(
         () => new Promise((resolve) => { resolveUnis = resolve })
 
