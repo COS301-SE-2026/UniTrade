@@ -7,33 +7,37 @@ using System.Text; //for encoding
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
-using Modules.Notifications;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 
+namespace Modules.Identity;
+
+public sealed class IdentityException(string code) : Exception(code) { }
+
 public class IdentityService : IIdentityService
 {
     private readonly IUserRepository _users;
-    private readonly INotificationsService _notifications;
     private readonly IUniversityRepository _universities;
     private readonly IConfiguration _config;
 
+    private const string StudentRole = "student";
+    private const string PendingStatus = "pending";
+
     public IdentityService(
         IUserRepository users,
-        INotificationsService notifications,
         IUniversityRepository universities,
         IConfiguration config
     )
     {
         _users = users;
-        _notifications = notifications;
         _universities = universities;
         _config = config;
     }
@@ -43,13 +47,13 @@ public class IdentityService : IIdentityService
         //check password strength
         if (!IsPasswordStrong(dto.Password))
         {
-            throw new Exception("weak_password");
+            throw new IdentityException("weak_password");
         }
 
         // check email format
         if (!IsValidEmailFormat(dto.Email))
         {
-            throw new Exception("invalid_email");
+            throw new IdentityException("invalid_email");
         }
 
         var normalisedEmail = NormaliseEmail(dto.Email.Trim().ToLowerInvariant());
@@ -63,20 +67,20 @@ public class IdentityService : IIdentityService
 
         if (emailParts.Length != 2)
         {
-            throw new Exception("invalid_email");
+            throw new IdentityException("invalid_email");
         }
         var studentNumber = emailParts[0];
         var domain = emailParts[1].ToLower();
 
         if (dto.YearOfStudy < 1 || dto.YearOfStudy > 10)
         {
-            throw new Exception("invalid_year_of_study");
+            throw new IdentityException("invalid_year_of_study");
         }
 
         var university = await _universities.GetByDomainAsync(domain);
         if (university == null)
         {
-            throw new Exception("invalid_domain");
+            throw new IdentityException("invalid_domain");
         }
         // Check if user already exists
         var existingUser = await _users.GetByEmailAsync(normalisedEmail);
@@ -87,9 +91,9 @@ public class IdentityService : IIdentityService
 
             throw currentStatus switch
             {
-                "verified" => new Exception("email_taken"),
-                "pending" => new Exception("otp_already_sent"),
-                _ => new Exception("email_taken"),
+                "verified" => new IdentityException("email_taken"),
+                PendingStatus => new IdentityException("otp_already_sent"),
+                _ => new IdentityException("email_taken"),
             };
         }
 
@@ -104,7 +108,7 @@ public class IdentityService : IIdentityService
             Email = normalisedEmail,
             PhoneNumber = dto.PhoneNumber ?? "",
             PasswordHash = passwordHash,
-            Role = "student",
+            Role = StudentRole,
 
             StudentProfile = new StudentProfile
             {
@@ -122,7 +126,7 @@ public class IdentityService : IIdentityService
         }
         catch (DbUpdateException)
         {
-            throw new Exception("email_taken");
+            throw new IdentityException("email_taken");
         }
 
         return user;
@@ -147,20 +151,45 @@ public class IdentityService : IIdentityService
 
     private static bool IsValidEmailFormat(string? email)
     {
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            return false;
-        }
-        if (email.Length > 254)
+        if (string.IsNullOrWhiteSpace(email) || email.Length > 254)
         {
             return false;
         }
 
         email = NormaliseEmail(email);
 
+        if (!TryParseEmail(email, out string? local, out string? domain))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(local) || string.IsNullOrWhiteSpace(domain))
+        {
+            return false;
+        }
+
+        //ip literal support
+        if (!IsValidDomain(domain))
+        {
+            return false;
+        }
+
+        if (!IsValidLocalPart(local))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool TryParseEmail(string email, out string? local, out string? domain)
+    {
+        local = null;
+        domain = null;
+
         try
         {
-            var address = new System.Net.Mail.MailAddress(email);
+            var address = new MailAddress(email);
 
             if (address.Address != email.Trim())
             {
@@ -178,62 +207,70 @@ public class IdentityService : IIdentityService
             return false;
         }
 
-        var local = parts[0];
-        var domain = NormaliseDomain(parts[1]);
+        local = parts[0];
+        domain = NormaliseDomain(parts[1]);
+        return true;
+    }
 
-        if (string.IsNullOrWhiteSpace(local) || string.IsNullOrWhiteSpace(domain))
-        {
-            return false;
-        }
-
-        //ip literal support
-        if (domain.StartsWith("[") && domain.EndsWith("]"))
-        {
-            var inner = domain[1..^1];
-
-            if (inner.StartsWith("IPv6", StringComparison.OrdinalIgnoreCase))
-            {
-                return IPAddress.TryParse(inner[5..], out var addr)
-                    && addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6;
-            }
-
-            return IPAddress.TryParse(inner, out var ipv4)
-                && ipv4.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
-        }
-
-        if (System.Text.Encoding.UTF8.GetByteCount(local) > 64)
-        {
-            return false;
-        }
-
-        if (System.Text.Encoding.UTF8.GetByteCount(domain) > 255)
-        {
-            return false;
-        }
-
-        var labels = domain.Split('.');
-        if (labels.Last().All(char.IsDigit))
-        {
-            return false;
-        }
-
-        if (!local.StartsWith("\"") && local.Contains(".."))
-        {
-            return false;
-        }
-
-        //idna validation
+    private static bool IsValidIdnaDomain(string domain)
+    {
         var idn = new IdnMapping();
         try
         {
             idn.GetAscii(domain);
+            return true;
         }
         catch
         {
             return false;
         }
+    }
 
+    private static bool IsValidLocalPart(string local)
+    {
+        if (Encoding.UTF8.GetByteCount(local) > 64)
+        {
+            return false;
+        }
+        if (!local.StartsWith('\"') && local.Contains(".."))
+        {
+            return false;
+        }
         return true;
+    }
+
+    private static bool IsValidIpLiteral(string domain)
+    {
+        var inner = domain[1..^1];
+
+        if (inner.StartsWith("IPv6", StringComparison.OrdinalIgnoreCase))
+        {
+            return IPAddress.TryParse(inner[5..], out var addr)
+                && addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6;
+        }
+
+        return IPAddress.TryParse(inner, out var ipv4)
+            && ipv4.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
+    }
+
+    private static bool IsValidDomain(string domain)
+    {
+        if (domain.StartsWith('[') && domain.EndsWith(']'))
+        {
+            return IsValidIpLiteral(domain);
+        }
+
+        if (Encoding.UTF8.GetByteCount(domain) > 255)
+        {
+            return false;
+        }
+        var labels = domain.Split('.');
+        if (labels[^1].All(char.IsDigit))
+        {
+            return false;
+        }
+
+        return IsValidIdnaDomain(domain);
     }
 
     public static string NormaliseEmail(string email)
@@ -257,20 +294,15 @@ public class IdentityService : IIdentityService
     }
 
     //main method
-    public async Task<string> LoginAsync(LoginDTO loginDto)
+    public async Task<string> LoginAsync(LoginDto loginDto)
     {
         if (
             string.IsNullOrWhiteSpace(loginDto.Email)
             || string.IsNullOrWhiteSpace(loginDto.Password)
         )
         {
-            /*return new LoginResponse
-            {
-                Message = "Email and password are required",
-                User = null
-            };*/
             // BecauseMiddle ware throws exceptions
-            throw new Exception("invalid_credentials");
+            throw new IdentityException("invalid_credentials");
         }
 
         //*user here follows User Model not schema
@@ -278,35 +310,29 @@ public class IdentityService : IIdentityService
         //tasks: query db, verify password and get email, gen. token, then return a response
         if (user == null)
         {
-            /* return new LoginResponse
-             {
-                 Message = "Invalid credentials",
-                 User = null
-             };
-             */
-            throw new Exception("invalid_credentials");
+            throw new IdentityException("invalid_credentials");
         }
 
         if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
         {
-            throw new Exception("invalid_credentials");
+            throw new IdentityException("invalid_credentials");
         }
-        string verificationStatus = "n/a";
+        string verificationStatus;
 
-        if (user.Role == "student")
+        if (user.Role == StudentRole)
         {
             if (user.StudentProfile != null)
             {
-                verificationStatus = user.StudentProfile.VerificationStatus ?? "pending";
+                verificationStatus = user.StudentProfile.VerificationStatus ?? PendingStatus;
             }
             else
             {
-                verificationStatus = "pending";
+                verificationStatus = PendingStatus;
             }
         }
         else
         {
-            verificationStatus = "pending";
+            verificationStatus = PendingStatus;
         }
 
         return TokenGenerator(user, verificationStatus);
@@ -330,7 +356,7 @@ public class IdentityService : IIdentityService
             new Claim("role", user.Role),
         };
 
-        if (user.Role == "student")
+        if (user.Role == StudentRole)
         {
             claims.Add(new Claim("verification_status"!, verificationStatus!));
         }
@@ -350,10 +376,10 @@ public class IdentityService : IIdentityService
 
         if (getUser == null)
         {
-            throw new Exception("not_found");
+            throw new IdentityException("not_found");
         }
 
-        if (getUser.Role == "student")
+        if (getUser.Role == StudentRole)
         {
             //make a student dto
             return new
@@ -369,7 +395,8 @@ public class IdentityService : IIdentityService
                 //I didn't follow the response you wanted zee, i made it nested instead. hopefully not a problem
                 Std = new StudentDto
                 {
-                    VerificationStatus = getUser.StudentProfile?.VerificationStatus ?? "pending",
+                    VerificationStatus =
+                        getUser.StudentProfile?.VerificationStatus ?? PendingStatus,
                 },
             };
         }

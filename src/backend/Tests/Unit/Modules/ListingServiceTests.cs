@@ -15,7 +15,7 @@ namespace Modules.Listings.Tests;
 [Trait("Category", "Unit")]
 public class ListingServiceTests
 {
-    private readonly Mock<IListingRepository> _repo = new(MockBehavior.Strict);
+    private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly ListingService _sut;
 
@@ -53,15 +53,7 @@ public class ListingServiceTests
         Assert.Equal("Calculus Textbook", result.Title);
         Assert.Equal(250m, result.Price);
     }
-    [Fact]
-    public async Task GetByIdAsync_CallsBlobGetReadUrl_ForEachImage()
-    {
-        var images = new List<ListingImage> { AnImage(url: "a.jpg"), AnImage(url: "b.jpg") };
-        var listing = AListing(images: images);
-        _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
 
-        await _sut.GetByIdAsync(listing.ListingId);
-    }
 
     // ListAsync
 
@@ -103,15 +95,6 @@ public class ListingServiceTests
         Assert.Equal(0, result.Total);
     }
     // CreateListings
-    [Fact]
-    public async Task CreateListings_StampsCreatedAt_WithUtcNow()
-    {
-        var before = DateTime.UtcNow;
-        Listing? captured = null;
-        _repo.Setup(r => r.AddAsync(It.IsAny<Listing>()))
-             .Callback<Listing>(l => captured = l)
-             .Returns(Task.CompletedTask);
-    }
 
     [Fact]
     public async Task GetByIdAsync_MapsIsBundle_AsTrue_WhenSet()
@@ -210,35 +193,5 @@ public class ListingServiceTests
             Images = images ?? new List<ListingImage>()
         };
 
-    private static ListingImage AnImage(bool isPrimary = false, string url = "img.jpg") => new()
-    {
-        IsPrimary = isPrimary
-    };
-    private static UpdateListingDto AnUpdateDto(
-        string title = "Updated Entity",
-        string description = "updated entity",
-        decimal price = 200m, string condition = "good")
-        => new()
-        {
-            Title = title,
-            Description = description,
-            Price = price,
-            Condition = condition
-        };
-    private static CreateListingDto ACreateDto(
-        string title = "Sample",
-        string description = "desc",
-        decimal price = 100m,
-        string condition = "good", List<CreateListingImageDto>? images = null) => new()
-        {
-            Title = title,
-            Description = description,
-            Price = price,
-            Condition = condition,
-            CourseId = null,
-            ListingStatus = "live",
-            IsBundle = false,
-            Images = images ?? new List<CreateListingImageDto>()
-        };
 
 }
