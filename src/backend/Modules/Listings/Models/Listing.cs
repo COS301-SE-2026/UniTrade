@@ -13,23 +13,22 @@ public class Listing
     public Guid ListingId { get; set; }
     public Guid SellerId { get; set; }
 
-    //public User? Seller{get;set;}
-    //introducing category concept (replces listingType)
-    public int CategoryId{get;set;}
-    public ListingCategory? Category{get;set;}
-    
+    //introducing category concept (replaces listingType)
+    public int CategoryId { get; set; }
+    public ListingCategory? Category { get; set; }
+
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
     public decimal Price { get; set; }
     public string Condition { get; set; } = "good";
 
     public int? CourseId { get; set; }
-    public Course? Course{get;set;}
-    public string? Metadata{get;set;}
+    public Course? Course { get; set; }
+    public string? Metadata { get; set; }
 
-    public BookDetails? BookDetails{get;set;}
-    
-    public string ListingStatus { get; set; } ="";
+    public BookDetails? BookDetails { get; set; }
+
+    public string ListingStatus { get; set; } = "";
 
     // not in MVP
     public decimal? AiRiskScore { get; set; }

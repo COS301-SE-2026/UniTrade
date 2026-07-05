@@ -1,54 +1,79 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { IconUpload, IconCheck } from "@tabler/icons-react";
+import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
+import type { Category } from "../../types/listing";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 
 interface ListingData {
   title: string;
-  category: "Textbook" | "Electronics" | "Furniture" | "Other";
+  category: string;
   moduleTag: string;
   customField: string;
   description: string;
   condition: "Like_New" | "Good" | "Fair" | "Worn";
   price: number;
-  images: string[];
 }
 
-const conditionMap: Record<string, "Like_New" | "Good" | "Fair" | "Worn"> = {
-  like_new: "Like_New",
+interface ExistingImage {
+  imageId: number;
+  url: string;
+}
+
+
+const CONDITION_TO_API: Record<ListingData["condition"], string> = {
+  Like_New: "new",
+  Good: "good",
+  Fair: "fair",
+  Worn: "poor",
+};
+
+const API_TO_CONDITION: Record<string, ListingData["condition"]> = {
+  new: "Like_New",
   good: "Good",
   fair: "Fair",
-  worn: "Worn",
+  poor: "Worn",
 };
+
+const MAX_SIZE_MB = 10;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+const MAX_IMAGES = 4;
 
 const EditListing: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+
   const [formData, setFormData] = useState<ListingData>({
     title: "",
-    category: "Other",
+    category: "",
     moduleTag: "",
     customField: "",
     description: "",
     condition: "Good",
     price: 0,
-    images: [],
   });
 
-  const [existingImages, setExistingImages] = useState<
-    { imageId: number; url: string }[]
-  >([]);
+ const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
-  const [newFiles] = useState<File[]>([]);// set new files
-  const removeExisting = (imageId: number) => {
-    setRemovedImageIds((prev) => [...prev, imageId]);
-    setExistingImages((prev) => prev.filter((img) => img.imageId !== imageId));
-  };
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
+
+  const totalImageCount = existingImages.length + newFiles.length;
+
+  useEffect(() => {
+    listingsService
+      .getListingsCategories()
+      .then(setCategories)
+      .catch(() => setError("Failed to load categories"));
+  }, []);
+
   useEffect(() => {
     if (!id) return;
     listingsService
@@ -56,13 +81,12 @@ const EditListing: React.FC = () => {
       .then((data) => {
         setFormData({
           title: data.title,
-          category: "Other",
+          category: data.category,
           moduleTag: data.courseCode ?? "",
           customField: "",
           description: data.description,
-          condition: conditionMap[data.condition] ?? "Good",
+          condition: API_TO_CONDITION[data.condition] ?? "Good",
           price: data.price,
-          images: [],
         });
 
         setExistingImages(
@@ -77,17 +101,58 @@ const EditListing: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const removeExisting = (imageId: number) => {
+    setRemovedImageIds((prev) => [...prev, imageId]);
+    setExistingImages((prev) => prev.filter((img) => img.imageId !== imageId));
+  };
+
+  const removeNewFile = (idx: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== idx));
+    setNewPreviews((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const incoming = Array.from(e.target.files ?? []);
+
+    const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
+    if (oversized.length > 0) {
+      setError(
+        `Some files exceed the ${MAX_SIZE_MB}MB limit: ${oversized
+          .map((f) => f.name)
+          .join(", ")}`,
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const remainingSlots = MAX_IMAGES - totalImageCount;
+    const accepted = incoming.slice(0, Math.max(0, remainingSlots));
+
+    setNewFiles((prev) => [...prev, ...accepted]);
+    setNewPreviews((prev) => [
+      ...prev,
+      ...accepted.map((f) => URL.createObjectURL(f)),
+    ]);
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
+    setError(null);
     try {
-      await listingsService.updateListing(id, {
-        title: formData.title,
-        description: formData.description,
-        price: Number(formData.price),
-        condition: formData.condition.toLowerCase().replace("_", ""),
-        removedImageIds,
-      });
+await listingsService.updateListing(id, {
+  title: formData.title,
+  description: formData.description,
+  price: Number(formData.price),
+  condition: CONDITION_TO_API[formData.condition],
+  categoryName: formData.category,
+  courseId: formData.category === "book" && formData.moduleTag
+    ? parseInt(formData.moduleTag)
+    : null,
+  removedImageIds,
+});
       if (newFiles.length > 0) {
         await listingsService.uploadImages(id, newFiles);
       }
@@ -147,20 +212,18 @@ const EditListing: React.FC = () => {
                   Category
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    ["Textbook", "Electronics", "Furniture", "Other"] as const
-                  ).map((cat) => (
+                  {categories.map((cat) => (
                     <button
-                      key={cat}
+                      key={cat.id}
                       type="button"
-                      onClick={() => handleChange("category", cat)}
+                      onClick={() => handleChange("category", cat.name)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        formData.category === cat
+                        formData.category === cat.name
                           ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
-                      {cat}
+                      {cat.name}
                     </button>
                   ))}
                 </div>
@@ -169,7 +232,7 @@ const EditListing: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                   className={
-                    formData.category !== "Other"
+                    formData.category !== "other"
                       ? "md:col-span-2"
                       : "md:col-span-3"
                   }
@@ -182,7 +245,7 @@ const EditListing: React.FC = () => {
                   />
                 </div>
 
-                {formData.category === "Textbook" && (
+                {formData.category === "book" && (
                   <div>
                     <select
                       value={formData.moduleTag}
@@ -191,14 +254,14 @@ const EditListing: React.FC = () => {
                       }
                       className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
                     >
-                      <option>Module / Course Tags</option>
-                      <option value="WTW114">WTW114</option>
-                      <option value="ECN301">ECN301</option>
+                      <option value="">Module / Course Tags</option>
+                      <option value="114">WTW114</option>
+                      <option value="301">ECN301</option>
                     </select>
                   </div>
                 )}
 
-                {formData.category === "Electronics" && (
+                {formData.category === "electronics" && (
                   <div>
                     <input
                       type="text"
@@ -212,7 +275,7 @@ const EditListing: React.FC = () => {
                   </div>
                 )}
 
-                {formData.category === "Furniture" && (
+                {formData.category === "furniture" && (
                   <div>
                     <input
                       type="text"
@@ -258,12 +321,22 @@ const EditListing: React.FC = () => {
                   (Drag & Drop or Upload)
                 </span>
               </h4>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="hidden"
+                onChange={handleFileChange}
+              />
+
               <div className="grid grid-cols-4 gap-4">
                 {/* Existing images from API */}
                 {existingImages.map((img) => (
                   <div
                     key={img.imageId}
-                    className="aspect-square bg-slate-50 rounded-xl border border-slate-200 overflow-hidden"
+                    className="relative group aspect-square bg-slate-50 rounded-xl border border-slate-200 overflow-hidden"
                   >
                     <img
                       src={img.url || biologyTextbook}
@@ -274,21 +347,43 @@ const EditListing: React.FC = () => {
                       type="button"
                       onClick={() => removeExisting(img.imageId)}
                       aria-label="Remove image"
-                      className="absolute top-1 right-1 bg-red-500 text-white
-                      rounded-full w-5 h-5 text-xs opacity-0
-                      group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      x
+                      <IconX size={10} />
                     </button>
                   </div>
                 ))}
-                {/* Upload slots for remaining spots */}
+
+                {/* New files staged for upload */}
+                {newPreviews.map((url, idx) => (
+                  <div
+                    key={`new-${idx}`}
+                    className="relative group aspect-square bg-slate-50 rounded-xl border border-slate-200 overflow-hidden"
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeNewFile(idx)}
+                      aria-label="Remove new image"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <IconX size={10} />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Remaining upload slots */}
                 {Array.from({
-                  length: Math.max(0, 4 - formData.images.length),
+                  length: Math.max(0, MAX_IMAGES - totalImageCount),
                 }).map((_, idx) => (
                   <button
-                    key={idx}
+                    key={`slot-${idx}`}
                     type="button"
+                    onClick={() => fileInputRef.current?.click()}
                     className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-sky-500 hover:border-sky-400 transition-colors group"
                   >
                     <IconUpload
@@ -299,7 +394,8 @@ const EditListing: React.FC = () => {
                 ))}
               </div>
               <p className="text-[10px] text-slate-400">
-                Up to 5 photos, max 10MB each.
+                Up to {MAX_IMAGES} photos, max {MAX_SIZE_MB}MB each. (
+                {totalImageCount}/{MAX_IMAGES})
               </p>
             </div>
           </div>
@@ -381,11 +477,9 @@ const EditListing: React.FC = () => {
                 Summary Overview
               </h4>
               <div className="flex gap-4 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <div className="w-10 h-12 rounded overflow-hidden flex-shrink-0">
+                <div className="w-10 h-12 rounded overflow-hidden flex-shrink-0 bg-slate-200">
                   <img
-                    src={
-                      existingImages[0]?.url || URL.createObjectURL(newFiles[0])
-                    }
+                    src={existingImages[0]?.url || newPreviews[0] || ""}
                     alt={formData.title}
                     className="w-full h-full object-cover"
                   />

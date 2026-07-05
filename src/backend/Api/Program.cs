@@ -24,6 +24,9 @@ using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Azure.Communication.Email;
 using Modules.ReferenceData;
+using Modules.ReferenceData.Course;
+using Modules.ReferenceData.Course.Repositories;
+using Infrastructure.Persistence.Repositories.Courses;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -35,6 +38,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+const string UnknownKey = "unknown";
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
@@ -43,7 +47,7 @@ builder.Services.AddRateLimiter(options =>
         "register",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -57,7 +61,7 @@ builder.Services.AddRateLimiter(options =>
         "login",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 10,
@@ -71,7 +75,7 @@ builder.Services.AddRateLimiter(options =>
         "verify-otp",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -85,7 +89,7 @@ builder.Services.AddRateLimiter(options =>
         "resend-otp",
         httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -135,15 +139,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
 builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
-builder.Services.AddScoped<IUniversityService,UniversityService>();
+builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<INotificationsService, AcsEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
 builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 
-builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"]?? throw new InvalidOperationException("Acs:ConnectionString is not confugured")));
+builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"] ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")));
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
@@ -214,4 +220,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

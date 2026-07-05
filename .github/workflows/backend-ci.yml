@@ -104,6 +104,20 @@ jobs:
     needs: gitleaks
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: cipass
+          POSTGRES_USER: ciuser
+          POSTGRES_DB: unitrade_test_ci
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -119,8 +133,11 @@ jobs:
             src/backend/Modules/packages.lock.json
             src/backend/Tests/packages.lock.json
 
-      - name: Restore API
-        run: dotnet restore src/backend/Api/Api.csproj
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restore dependencies
+        run: dotnet restore UniTrade.sln
       
       - name: Check code formatting
         run: dotnet format --verify-no-changes --no-restore src/backend/Api/Api.csproj
