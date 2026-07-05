@@ -9,6 +9,8 @@ interface User {
   initials: string
   role: UserRole
   university?: string
+  course?: string
+  year?: string
 }
 
 interface AuthStore {
