@@ -55,6 +55,19 @@ describe('Profile', () => {
         expect(container).toBeEmptyDOMElement()
     })
 
+     it('should render user name and initials', () => {
+        renderProfile()
+        expect(screen.getByText(mockUser.name)).toBeInTheDocument()
+        expect(screen.getByText(mockUser.initials)).toBeInTheDocument()
+    })
+
+        it('navigates to profile settings through settings icon', async () => {
+        const user = userEvent.setup()
+        renderProfile()
+        await user.click(screen.getByLabelText('Settings'))
+        expect(mockNavigate).toHaveBeenCalledWith('/profile/settings')
+    })
+
   
     
 
