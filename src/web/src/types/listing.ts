@@ -1,6 +1,6 @@
 export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
-export type ListingCondition = 'like_new' | 'good' | 'fair' | 'worn'
-export type ListingCategory = 'textbook' | 'electronics' | 'lab_equipment' | 'stationery' | 'other'
+export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
+
 
 export interface ListingImage {
   id: string
@@ -30,7 +30,7 @@ export interface ListingDetail {
   description: string
   price: number
   condition: ListingCondition
-  category: ListingCategory
+  category: string
   status: ListingStatus
   courseCode: string
   university: string
@@ -77,7 +77,7 @@ export interface SellerListingDetail {
   title: string
   price: number
   condition: ListingCondition
-  category: ListingCategory
+  category: string
   courseCode: string
   listedAt: string
   views: number
@@ -91,15 +91,15 @@ export interface SellerListingDetail {
   timeline: TimelineStep[]
 }
 
-export type BrowseCondition = 'Good' | 'Fair' | 'Poor'
-export type BrowseCategory = 'Textbooks' | 'Electronics' | 'Lab Equipment' | 'Stationary'
+export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
+
 
 export interface BrowseListing {
   id: string
   image: string
   title: string
   module: string
-  category: BrowseCategory
+  category: string
   price: number
   condition: BrowseCondition
 }
@@ -107,4 +107,17 @@ export interface BrowseListing {
 export interface BrowseListingsResponse {
   listings: BrowseListing[]
   total: number
+}
+
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface Course{
+  courseId: number;
+  courseCode: string;
+  courseName: string;
+  faculty: string;
 }

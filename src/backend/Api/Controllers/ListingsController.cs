@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Listings;
@@ -20,6 +21,7 @@ public class ListingController : ControllerBase
         _images = images;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateListingDto request)
     {
@@ -30,28 +32,39 @@ public class ListingController : ControllerBase
         )
             return BadRequest("Field(s) missing.");
 
-        var response = await _listings.CreateListings(request);
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+        var response = await _listings.CreateListings(request, callerId);
         return Ok(response);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromBody] UpdateListingDto request, Guid id, CancellationToken ct)
+    [Authorize]
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        [FromBody] UpdateListingDto request,
+        Guid id,
+        CancellationToken ct
+    )
     {
-        var updateL = await _listings.UpdateListings(request, id, ct);
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        var updateL = await _listings.UpdateListings(request, id, callerId, ct);
         if (!updateL)
             return NotFound();
         return Ok("Listings updated successfully");
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var success = await _listings.DeleteListings(id);
-        if (!success)
-            return NotFound();
-        return NoContent();
-    }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] ListFilterDto filter)
     {
@@ -59,6 +72,7 @@ public class ListingController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -79,8 +93,20 @@ public class ListingController : ControllerBase
         if (files is null || files.Count == 0)
             return BadRequest("no_files");
 
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        if (!await _listings.IsOwnerAsync(listingId, callerId))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+        }
+
         const long maxBytes = 10 * 1024 * 1024;
-        string[] allowed = ["image/jpeg", "image/png", "image/webp"];
+        string[] allowed = new string[] { "image/jpeg", "image/png", "image/webp" };
 
         var imageIds = new List<int>();
         foreach (var file in files)
@@ -119,9 +145,12 @@ public class ListingController : ControllerBase
 
         var (data, contentType) = res.Value;
 
-        var etag = "\"" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]+ "\"";
+        var etag =
+            "\""
+            + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data))[..16]
+            + "\"";
 
-        if(Request.Headers.IfNoneMatch == etag)
+        if (Request.Headers.IfNoneMatch == etag)
         {
             return StatusCode(StatusCodes.Status304NotModified);
         }

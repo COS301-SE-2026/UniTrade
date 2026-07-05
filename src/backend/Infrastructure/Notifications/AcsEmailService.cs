@@ -6,6 +6,8 @@ using Modules.Notifications;
 
 namespace Infrastructure.Notifications;
 
+public sealed class NotificationException(string code) : Exception(code) { }
+
 public class AcsEmailService : INotificationsService
 {
     private readonly EmailClient _emailClient;
@@ -68,13 +70,13 @@ public class AcsEmailService : INotificationsService
                     recipient,
                     operation.Value.Status
                 );
-                throw new Exception("email_send_failed");
+                throw new NotificationException("email_send_failed");
             }
         }
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, "Email to {Recipient} failed to send", recipient);
-            throw new Exception("email_send_failed");
+            throw new NotificationException("email_send_failed");
         }
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Controllers;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Identity;
@@ -23,14 +24,21 @@ public class AuthControllerTests
     private readonly Mock<HttpContext> _httpContextMock;
     private readonly Mock<HttpResponse> _httpResponseMock;
     private readonly Mock<IResponseCookies> _responseCookiesMock;
+    private readonly Mock<IWebHostEnvironment> _envMock;
 
     public AuthControllerTests()
     {
         _identityServiceMock = new Mock<IIdentityService>();
         _verificationServiceMock = new Mock<IVerificationService>();
-        
+        _envMock = new Mock<IWebHostEnvironment>();
+        _envMock.Setup(e => e.EnvironmentName).Returns("Production");
+
         // Setup controller instance
-        _controller = new AuthController(_identityServiceMock.Object, _verificationServiceMock.Object);
+        _controller = new AuthController(
+            _identityServiceMock.Object,
+            _verificationServiceMock.Object,
+            _envMock.Object
+        );
 
         // Setup common HTTP Context structures for Cookie/User access
         _httpContextMock = new Mock<HttpContext>();
@@ -41,7 +49,7 @@ public class AuthControllerTests
         _httpContextMock.Setup(c => c.Response).Returns(_httpResponseMock.Object);
         _controller.ControllerContext = new ControllerContext
         {
-            HttpContext = _httpContextMock.Object
+            HttpContext = _httpContextMock.Object,
         };
     }
 
@@ -54,9 +62,7 @@ public class AuthControllerTests
         var dto = new RegisterDto { Email = "test@uni.ac.za", Password = "StrongPassword1!" };
         var createdUser = new User { UserId = Guid.NewGuid(), Email = dto.Email };
 
-        _identityServiceMock
-            .Setup(s => s.RegisterAsync(dto))
-            .ReturnsAsync(createdUser);
+        _identityServiceMock.Setup(s => s.RegisterAsync(dto)).ReturnsAsync(createdUser);
 
         _verificationServiceMock
             .Setup(s => s.InitiateAsync(createdUser.Email, createdUser.UserId))
@@ -67,12 +73,15 @@ public class AuthControllerTests
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
-        
+
         var resultData = okResult.Value;
         var messageProp = resultData?.GetType().GetProperty("message")?.GetValue(resultData, null);
         Assert.Equal("OTP sent to your email.", messageProp);
-        
-        _verificationServiceMock.Verify(s => s.InitiateAsync(createdUser.Email, createdUser.UserId), Times.Once);
+
+        _verificationServiceMock.Verify(
+            s => s.InitiateAsync(createdUser.Email, createdUser.UserId),
+            Times.Once
+        );
     }
 
     [Theory]
@@ -81,7 +90,10 @@ public class AuthControllerTests
     [InlineData("otp_already_sent", 429, "otp_already_sent")]
     [InlineData("unknown_error", 500, "server_error")]
     public async Task Register_ShouldReturnCorrectStatusCode_WhenServiceThrowsException(
-        string serviceExceptionMessage, int expectedStatusCode, string expectedErrorProp)
+        string serviceExceptionMessage,
+        int expectedStatusCode,
+        string expectedErrorProp
+    )
     {
         // Arrange
         var dto = new RegisterDto { Email = "test@uni.ac.za" };
@@ -95,7 +107,7 @@ public class AuthControllerTests
         // Assert
         // Safe check using pattern matching to avoid strict class hierarchies causing xUnit validation errors
         Assert.NotNull(result);
-        var objectResult = Assert.IsAssignableFrom<ObjectResult>(result);
+        var objectResult = Assert.IsType<ObjectResult>(result, exactMatch: false);
         Assert.Equal(expectedStatusCode, objectResult.StatusCode);
 
         var resultData = objectResult.Value;
@@ -112,10 +124,8 @@ public class AuthControllerTests
     {
         // Arrange
         var dto = new VerifyOtpDto { Email = "notfound@uni.ac.za", Otp = "123456" };
-        
-        _identityServiceMock
-            .Setup(s => s.GetUserByEmailAsync(dto.Email))
-            .ReturnsAsync((User?)null);
+
+        _identityServiceMock.Setup(s => s.GetUserByEmailAsync(dto.Email)).ReturnsAsync((User?)null);
 
         // Act
         var result = await _controller.VerifyOtp(dto);
@@ -135,7 +145,9 @@ public class AuthControllerTests
         var mockUser = new User { UserId = Guid.NewGuid(), Email = dto.Email };
 
         _identityServiceMock.Setup(s => s.GetUserByEmailAsync(dto.Email)).ReturnsAsync(mockUser);
-        _verificationServiceMock.Setup(s => s.VerifyAsync(mockUser.UserId, dto.Otp)).ReturnsAsync(true);
+        _verificationServiceMock
+            .Setup(s => s.VerifyAsync(mockUser.UserId, dto.Otp))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _controller.VerifyOtp(dto);
@@ -156,7 +168,7 @@ public class AuthControllerTests
     {
         // Arrange
         var dto = new ResendOtpDto { Email = "ghost@uni.ac.za" };
-        
+
         _identityServiceMock.Setup(s => s.GetUserByEmailAsync(dto.Email)).ReturnsAsync((User?)null);
 
         // Act
@@ -165,8 +177,12 @@ public class AuthControllerTests
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         var resultData = okResult.Value;
-        var messageProp = resultData?.GetType().GetProperty("message")?.GetValue(resultData, null)?.ToString();
-        
+        var messageProp = resultData
+            ?.GetType()
+            .GetProperty("message")
+            ?.GetValue(resultData, null)
+            ?.ToString();
+
         Assert.NotNull(messageProp);
         Assert.Contains("If this email is registered", messageProp);
     }
@@ -179,7 +195,7 @@ public class AuthControllerTests
     public async Task Login_ShouldSetCookieAndReturnOk_WhenCredentialsAreValid()
     {
         // Arrange
-        var request = new LoginDTO { Email = "test@uni.ac.za", Password = "ValidPassword1!" };
+        var request = new LoginDto { Email = "test@uni.ac.za", Password = "ValidPassword1!" };
         var fakeJwtToken = "fake.jwt.token";
 
         _identityServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync(fakeJwtToken);
@@ -193,11 +209,15 @@ public class AuthControllerTests
         var messageProp = resultData?.GetType().GetProperty("message")?.GetValue(resultData, null);
         Assert.Equal("Login successful", messageProp);
 
-        _responseCookiesMock.Verify(c => c.Append(
-            "authToken", 
-            fakeJwtToken, 
-            It.Is<CookieOptions>(opts => opts.HttpOnly && opts.Path == "/")), 
-            Times.Once);
+        _responseCookiesMock.Verify(
+            c =>
+                c.Append(
+                    "authToken",
+                    fakeJwtToken,
+                    It.Is<CookieOptions>(opts => opts.HttpOnly && opts.Path == "/")
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -211,8 +231,11 @@ public class AuthControllerTests
         var resultData = okResult.Value;
         var messageProp = resultData?.GetType().GetProperty("message")?.GetValue(resultData, null);
         Assert.Equal("Logged out successfully", messageProp);
-        
-        _responseCookiesMock.Verify(c => c.Delete("authToken", It.IsAny<CookieOptions>()), Times.Once);
+
+        _responseCookiesMock.Verify(
+            c => c.Delete("authToken", It.IsAny<CookieOptions>()),
+            Times.Once
+        );
     }
 
     #endregion
@@ -229,9 +252,11 @@ public class AuthControllerTests
         var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, targetUserId) };
         var identity = new ClaimsIdentity(claims, "TestAuthType");
         var claimsPrincipal = new ClaimsPrincipal(identity);
-        
+
         _httpContextMock.Setup(c => c.User).Returns(claimsPrincipal);
-        _identityServiceMock.Setup(s => s.GetMeAsync(targetUserId)).ReturnsAsync(mockProfileResponse);
+        _identityServiceMock
+            .Setup(s => s.GetMeAsync(targetUserId))
+            .ReturnsAsync(mockProfileResponse);
 
         // Act
         var result = await _controller.GetMe();
@@ -245,7 +270,7 @@ public class AuthControllerTests
     public async Task GetMe_ShouldReturnUnauthorized_WhenNameIdentifierClaimIsMissing()
     {
         // Arrange an empty principal setup
-        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity()); 
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity());
         _httpContextMock.Setup(c => c.User).Returns(claimsPrincipal);
 
         // Act

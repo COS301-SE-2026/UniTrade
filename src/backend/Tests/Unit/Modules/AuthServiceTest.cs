@@ -8,36 +8,43 @@ using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
+using Modules.Listings;
+using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
+using Modules.ReferenceData.University.Repositories;
 using Moq;
 using Xunit;
 
 namespace Api.Tests.Services;
-[Trait("Category", "Unit")]
 
+[Trait("Category", "Unit")]
 public class IdentityServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<INotificationsService> _notificationsServiceMock;
     private readonly Mock<IUniversityRepository> _universityRepositoryMock;
+
+    private readonly Mock<IListingRepository> _listingRepositoryMock;
+
     private readonly Mock<IConfiguration> _configMock;
     private readonly IdentityService _service;
 
     public IdentityServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _notificationsServiceMock = new Mock<INotificationsService>();
         _universityRepositoryMock = new Mock<IUniversityRepository>();
         _configMock = new Mock<IConfiguration>();
+        _listingRepositoryMock = new Mock<IListingRepository>();
 
-        _configMock.Setup(c => c["Jwt:Secret"]).Returns("super_secret_key_that_is_at_least_32_bytes_long_12345!!");
+        _configMock
+            .Setup(c => c["Jwt:Secret"])
+            .Returns("super_secret_key_that_is_at_least_32_bytes_long_12345!!");
 
         _service = new IdentityService(
             _userRepositoryMock.Object,
-            _notificationsServiceMock.Object,
             _universityRepositoryMock.Object,
+            _listingRepositoryMock.Object,
             _configMock.Object
         );
     }
@@ -52,13 +59,17 @@ public class IdentityServiceTests
             YearOfStudy = 3,
             FirstName = "John",
             LastName = "Doe",
-            PhoneNumber = "0123456789"
+            PhoneNumber = "0123456789",
         };
 
         var mockUniversity = new Modules.ReferenceData.University.University();
 
-        _universityRepositoryMock.Setup(r => r.GetByDomainAsync("uni.ac.za")).ReturnsAsync(mockUniversity);
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("uni.ac.za"))
+            .ReturnsAsync(mockUniversity);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((User?)null);
         _userRepositoryMock.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
 
         var result = await _service.RegisterAsync(dto);
@@ -69,7 +80,7 @@ public class IdentityServiceTests
         Assert.NotNull(result.StudentProfile);
         Assert.Equal("219001234", result.StudentProfile.StudentNumber);
         Assert.Equal(3, result.StudentProfile.YearOfStudy);
-        
+
         _userRepositoryMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
     }
 
@@ -84,9 +95,9 @@ public class IdentityServiceTests
     [InlineData("UPPERCASE123!")]
     public async Task RegisterAsync_ShouldThrowException_WhenPasswordIsWeak(string? weakPassword)
     {
-        var dto = new RegisterDto { Email = "test@uni.ac.za", Password = weakPassword };
+        var dto = new RegisterDto { Email = "test@uni.ac.za", Password = weakPassword! };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal("weak_password", ex.Message);
     }
 
@@ -96,32 +107,48 @@ public class IdentityServiceTests
     [InlineData("plainTextNoAtSign")]
     [InlineData("double@@signs.com")]
     [InlineData("@nodisplayname.com")]
-    public async Task RegisterAsync_ShouldThrowException_WhenEmailFormatIsInvalid(string? invalidEmail)
+    public async Task RegisterAsync_ShouldThrowException_WhenEmailFormatIsInvalid(
+        string? invalidEmail
+    )
     {
-        var dto = new RegisterDto { Email = invalidEmail, Password = "ValidPassword123!" };
+        var dto = new RegisterDto { Email = invalidEmail!, Password = "ValidPassword123!" };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal("invalid_email", ex.Message);
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(11)]
-    public async Task RegisterAsync_ShouldThrowException_WhenYearOfStudyIsOutOfBounds(int invalidYear)
+    public async Task RegisterAsync_ShouldThrowException_WhenYearOfStudyIsOutOfBounds(
+        int invalidYear
+    )
     {
-        var dto = new RegisterDto { Email = "dev@uni.ac.za", Password = "ValidPassword123!", YearOfStudy = invalidYear };
+        var dto = new RegisterDto
+        {
+            Email = "dev@uni.ac.za",
+            Password = "ValidPassword123!",
+            YearOfStudy = invalidYear,
+        };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal("invalid_year_of_study", ex.Message);
     }
 
     [Fact]
     public async Task RegisterAsync_ShouldThrowException_WhenUniversityDomainIsUnsupported()
     {
-        var dto = new RegisterDto { Email = "user@unsupported.com", Password = "ValidPassword123!", YearOfStudy = 2 };
-        _universityRepositoryMock.Setup(r => r.GetByDomainAsync("unsupported.com")).ReturnsAsync((Modules.ReferenceData.University.University?)null);
+        var dto = new RegisterDto
+        {
+            Email = "user@unsupported.com",
+            Password = "ValidPassword123!",
+            YearOfStudy = 2,
+        };
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("unsupported.com"))
+            .ReturnsAsync((Modules.ReferenceData.University.University?)null);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal("invalid_domain", ex.Message);
     }
 
@@ -129,35 +156,58 @@ public class IdentityServiceTests
     [InlineData("verified", "email_taken")]
     [InlineData("pending", "otp_already_sent")]
     [InlineData("unknown_status", "email_taken")]
-    public async Task RegisterAsync_ShouldThrowCorrectException_WhenEmailIsAlreadyTaken(string verificationStatus, string expectedMsg)
+    public async Task RegisterAsync_ShouldThrowCorrectException_WhenEmailIsAlreadyTaken(
+        string verificationStatus,
+        string expectedMsg
+    )
     {
-        var dto = new RegisterDto { Email = "existing@uni.ac.za", Password = "ValidPassword123!", YearOfStudy = 1 };
-        
-        var mockUniversity = new Modules.ReferenceData.University.University();
-        var existingUser = new User 
-        { 
+        var dto = new RegisterDto
+        {
             Email = "existing@uni.ac.za",
-            StudentProfile = new StudentProfile { VerificationStatus = verificationStatus }
+            Password = "ValidPassword123!",
+            YearOfStudy = 1,
         };
 
-        _universityRepositoryMock.Setup(r => r.GetByDomainAsync("uni.ac.za")).ReturnsAsync(mockUniversity);
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync("existing@uni.ac.za")).ReturnsAsync(existingUser);
+        var mockUniversity = new Modules.ReferenceData.University.University();
+        var existingUser = new User
+        {
+            Email = "existing@uni.ac.za",
+            StudentProfile = new StudentProfile { VerificationStatus = verificationStatus },
+        };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("uni.ac.za"))
+            .ReturnsAsync(mockUniversity);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("existing@uni.ac.za"))
+            .ReturnsAsync(existingUser);
+
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal(expectedMsg, ex.Message);
     }
 
     [Fact]
     public async Task RegisterAsync_ShouldThrowEmailTakenException_WhenDbUpdateExceptionOccurs()
     {
-        var dto = new RegisterDto { Email = "conflict@uni.ac.za", Password = "ValidPassword123!", YearOfStudy = 1 };
+        var dto = new RegisterDto
+        {
+            Email = "conflict@uni.ac.za",
+            Password = "ValidPassword123!",
+            YearOfStudy = 1,
+        };
         var mockUniversity = new Modules.ReferenceData.University.University();
 
-        _universityRepositoryMock.Setup(r => r.GetByDomainAsync("uni.ac.za")).ReturnsAsync(mockUniversity);
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
-        _userRepositoryMock.Setup(r => r.AddAsync(It.IsAny<User>())).ThrowsAsync(new DbUpdateException());
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("uni.ac.za"))
+            .ReturnsAsync(mockUniversity);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((User?)null);
+        _userRepositoryMock
+            .Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ThrowsAsync(new DbUpdateException());
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.RegisterAsync(dto));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal("email_taken", ex.Message);
     }
 
@@ -165,52 +215,65 @@ public class IdentityServiceTests
     [InlineData(null, "ValidPassword123!")]
     [InlineData("user@uni.ac.za", null)]
     [InlineData("   ", "ValidPassword123!")]
-    public async Task LoginAsync_ShouldThrowException_WhenInputsAreMissing(string? email, string? password)
+    public async Task LoginAsync_ShouldThrowException_WhenInputsAreMissing(
+        string? email,
+        string? password
+    )
     {
-        var request = new LoginDTO { Email = email, Password = password };
+        var request = new LoginDto { Email = email, Password = password };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.LoginAsync(request));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.LoginAsync(request));
         Assert.Equal("invalid_credentials", ex.Message);
     }
 
     [Fact]
     public async Task LoginAsync_ShouldThrowException_WhenUserDoesNotExist()
     {
-        var request = new LoginDTO { Email = "missing@uni.ac.za", Password = "ValidPassword123!" };
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync("missing@uni.ac.za")).ReturnsAsync((User?)null);
+        var request = new LoginDto { Email = "missing@uni.ac.za", Password = "ValidPassword123!" };
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("missing@uni.ac.za"))
+            .ReturnsAsync((User?)null);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.LoginAsync(request));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.LoginAsync(request));
         Assert.Equal("invalid_credentials", ex.Message);
     }
 
     [Fact]
     public async Task LoginAsync_ShouldThrowException_WhenPasswordVerificationFails()
     {
-        var request = new LoginDTO { Email = "test@uni.ac.za", Password = "WrongPassword123!" };
+        var request = new LoginDto { Email = "test@uni.ac.za", Password = "WrongPassword123!" };
         var existingUser = new User
         {
             Email = "test@uni.ac.za",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!")
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!"),
         };
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync("test@uni.ac.za")).ReturnsAsync(existingUser);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("test@uni.ac.za"))
+            .ReturnsAsync(existingUser);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.LoginAsync(request));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.LoginAsync(request));
         Assert.Equal("invalid_credentials", ex.Message);
     }
 
     [Fact]
     public async Task LoginAsync_ShouldReturnJwtToken_WhenStudentCredentialsAreValid()
     {
-        var request = new LoginDTO { Email = "student@uni.ac.za", Password = "CorrectPassword123!" };
+        var request = new LoginDto
+        {
+            Email = "student@uni.ac.za",
+            Password = "CorrectPassword123!",
+        };
         var existingUser = new User
         {
             UserId = Guid.NewGuid(),
             Email = "student@uni.ac.za",
             Role = "student",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!"),
-            StudentProfile = new StudentProfile { VerificationStatus = "verified" }
+            StudentProfile = new StudentProfile { VerificationStatus = "verified" },
         };
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync("student@uni.ac.za")).ReturnsAsync(existingUser);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("student@uni.ac.za"))
+            .ReturnsAsync(existingUser);
 
         var token = await _service.LoginAsync(request);
 
@@ -221,15 +284,17 @@ public class IdentityServiceTests
     [Fact]
     public async Task LoginAsync_ShouldReturnJwtToken_WhenAdminCredentialsAreValid()
     {
-        var request = new LoginDTO { Email = "admin@uni.ac.za", Password = "CorrectPassword123!" };
+        var request = new LoginDto { Email = "admin@uni.ac.za", Password = "CorrectPassword123!" };
         var existingUser = new User
         {
             UserId = Guid.NewGuid(),
             Email = "admin@uni.ac.za",
             Role = "admin",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!")
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!"),
         };
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync("admin@uni.ac.za")).ReturnsAsync(existingUser);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("admin@uni.ac.za"))
+            .ReturnsAsync(existingUser);
 
         var token = await _service.LoginAsync(request);
 
@@ -244,17 +309,23 @@ public class IdentityServiceTests
         configMock.Setup(c => c["Jwt:Secret"]).Returns((string?)null);
 
         var testService = new IdentityService(
-            _userRepositoryMock.Object, _notificationsServiceMock.Object, _universityRepositoryMock.Object, configMock.Object);
+            _userRepositoryMock.Object,
+            _universityRepositoryMock.Object,
+            _listingRepositoryMock.Object,
+            configMock.Object
+        );
 
-        var request = new LoginDTO { Email = "admin@uni.ac.za", Password = "CorrectPassword123!" };
+        var request = new LoginDto { Email = "admin@uni.ac.za", Password = "CorrectPassword123!" };
         var existingUser = new User
         {
             UserId = Guid.NewGuid(),
             Email = "admin@uni.ac.za",
             Role = "admin",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!")
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword123!"),
         };
-        _userRepositoryMock.Setup(r => r.GetByEmailAsync("admin@uni.ac.za")).ReturnsAsync(existingUser);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("admin@uni.ac.za"))
+            .ReturnsAsync(existingUser);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => testService.LoginAsync(request));
     }
@@ -280,7 +351,7 @@ public class IdentityServiceTests
         var id = Guid.NewGuid().ToString();
         _userRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((User?)null);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() => _service.GetMeAsync(id));
+        var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.GetMeAsync(id));
         Assert.Equal("not_found", ex.Message);
     }
 
@@ -295,7 +366,7 @@ public class IdentityServiceTests
             LastName = "Smith",
             Email = "alice@uni.ac.za",
             Role = "student",
-            StudentProfile = new StudentProfile { VerificationStatus = "verified" }
+            StudentProfile = new StudentProfile { VerificationStatus = "verified" },
         };
 
         _userRepositoryMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(student);
@@ -303,7 +374,7 @@ public class IdentityServiceTests
         var result = await _service.GetMeAsync(userId.ToString());
 
         Assert.NotNull(result);
-        
+
         var userProp = result.GetType().GetProperty("User")?.GetValue(result, null) as UserDto;
         var stdProp = result.GetType().GetProperty("Std")?.GetValue(result, null) as StudentDto;
 
@@ -324,7 +395,7 @@ public class IdentityServiceTests
             FirstName = "Bob",
             LastName = "Manager",
             Email = "bob@uni.ac.za",
-            Role = "admin"
+            Role = "admin",
         };
 
         _userRepositoryMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(admin);

@@ -37,10 +37,10 @@ interface ProblemCardProps {
   description: string;
 }
 
-function ProblemCard({ icon, title, description }: ProblemCardProps) {
+export function ProblemCard({ icon, title, description }: ProblemCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
-      <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+      <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white text-lg mb-2">{title}</h3>
@@ -55,10 +55,10 @@ interface SolutionCardProps {
   description: string;
 }
 
-function SolutionCard({ icon, title, description }: SolutionCardProps) {
+export function SolutionCard({ icon, title, description }: SolutionCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
-      <div className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+      <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white mb-2">{title}</h3>
@@ -73,7 +73,7 @@ interface StepProps {
   description: string;
 }
 
-function Step({ number, title, description }: StepProps) {
+export function Step({ number, title, description }: StepProps) {
   return (
     <div className="flex-1 relative">
       <div className="flex items-center gap-4">
@@ -94,7 +94,7 @@ interface BenefitListProps {
   items: string[];
 }
 
-function BenefitList({ title, items }: BenefitListProps) {
+export function BenefitList({ title, items }: BenefitListProps) {
   return (
     <div className="bg-white dark:bg-navy-800 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
       <h3 className="font-semibold text-navy-700 dark:text-white mb-6 flex items-center gap-2">
@@ -340,7 +340,7 @@ function Firstpage() {
   );
 }
 
-function Theproblem() {
+export function Theproblem() {
   return (
     <div id="problem" className="bg-white mx-auto px-6 py-20">
       <div className="max-w-7xl mx-auto px-6">
@@ -414,7 +414,7 @@ function Footer() {
   );
 }
 
-function Thesolution() {
+export function Thesolution() {
   return (
     <div id="solution" className="bg-white dark:bg-navy-950 py-20">
       <div className="max-w-7xl mx-auto px-6">
@@ -445,7 +445,7 @@ function Thesolution() {
   )
 }
 
-function Howitworks() {
+export function Howitworks() {
   const steps = [
     { number: 1, title: "Browse listings", description: "Search by course code, university or category. Filter by condition and price" },
     { number: 2, title: "Reserve the item", description: "Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup." },
@@ -470,7 +470,7 @@ function Howitworks() {
               <Step {...s} />
             </Reveal>
             {i < steps.length - 1 && (
-              <div className="my-8 text-blue-500 hidden md:block">
+              <div data-testid="step-arrow" className="my-8 text-blue-500 hidden md:block">
                 <IconArrowRight size={26} />
               </div>
             )}
@@ -481,7 +481,7 @@ function Howitworks() {
   )
 }
 
-function BuyersSellers() {
+export function BuyersSellers() {
   const buyerItems = [
     "Stop overpaying for brand new degree materials you will only use for one semester. Find affordable second hand materials from your fellow students.",
     "Browse by your course code or module.",
@@ -522,7 +522,7 @@ function BuyersSellers() {
   )
 }
 
-function GetApp() {
+export function GetApp() {
   return (
     <div className="bg-navy-700 py-16">
       <div className="max-w-4xl mx-auto px-6 text-center">
@@ -547,6 +547,52 @@ function GetApp() {
         </div>
       </div>
     </div>
+  )
+}
+
+export function Footer() {
+  const navigate = useNavigate();
+  return (
+    <footer className="bg-white text-gray">
+      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
+        <div>
+          <div className="mt-8">
+            <p className="text-xs">CONTACT INFO</p>
+            <p className="text-sm mt-2">+27 123 456 789</p>
+            <p className="text-sm">devenexus28@gmail.com</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs mb-4">SUPPORT</p>
+          <div className="space-y-2 text-sm">
+            
+            <ul className="flex flex-col gap-1">
+            <li
+               onClick={() => navigate('/auth/help-center')}
+               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+               >
+                Help Center
+               </li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <p className="text-xs mb-4">SOCIAL MEDIA</p>
+          <div className="flex gap-6 text-2xl">
+            <a href="#" className="hover:text-white transition-colors">𝕏</a>
+            <a href="#" className="hover:text-white transition-colors">📸</a>
+            <a href="#" className="hover:text-white transition-colors">𝕗</a>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
+        © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
+      </div>
+
+    </footer>
   )
 }
 
