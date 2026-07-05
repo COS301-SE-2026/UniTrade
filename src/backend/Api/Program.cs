@@ -149,7 +149,7 @@ builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 
-builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"] ?? throw new InvalidOperationException("Acs:ConnectionString is not confugured")));
+builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"] ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")));
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");

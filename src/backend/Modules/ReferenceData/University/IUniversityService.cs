@@ -4,7 +4,5 @@ namespace Modules.ReferenceData.University;
 
 public interface IUniversityService
 {
-    //Task<University?> GetByDomainAsync(string domain);
-
     Task<List<Modules.Identity.Models.DTO.University>> GetActiveUniversitiesAsync();
 }

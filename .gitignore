@@ -44,3 +44,5 @@ coveragereport/
 #Helper scripts 
 convenienceScript.sh
 
+#SonarQube
+.sonarqube/
