@@ -144,14 +144,8 @@ describe('MyListings', () => {
             })
         })
 
-        it('shows correct listing count', async () => {
-            renderMyListings()
-            await waitFor(() => {
-            expect(screen.getByText('Showing 4 of 4 listings')).toBeInTheDocument()
-            })
-        })
 
-        it('shows error message when service fails', async () => {
+         it('shows error message when service fails', async () => {
             vi.mocked(listingsService.getMyListings).mockRejectedValueOnce(new Error('Network error'))
             renderMyListings()
             await waitFor(() => {

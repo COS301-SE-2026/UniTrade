@@ -10,4 +10,6 @@ public interface IIdentityService
     Task<User?> GetUserByEmailAsync(string email);
     Task<string> LoginAsync(LoginDto loginDto);
     Task<object> GetMeAsync(string userId);
+    Task<object> UpdateProfileAsync(string userId, UpdateProfileDto dto);
+    Task DeleteAccountAsync(string userId);
 }

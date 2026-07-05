@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Repositories;
+using Modules.ReferenceData.University;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -27,6 +28,7 @@ public class UserRepository : IUserRepository
     {
         return await _db
             .Users.Include(u => u.StudentProfile)
+                .ThenInclude(s => s != null ? s.University : null)
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
