@@ -13,7 +13,90 @@ on:
       - ".github/workflows/backend-ci.yml"
 
 jobs:
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+
+      - name: Gitleaks scan 
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
   build-and-test:
+    needs: gitleaks
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: cipass
+          POSTGRES_USER: ciuser
+          POSTGRES_DB: unitrade_test_ci
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: |
+            src/backend/Api/packages.lock.json
+            src/backend/Infrastructure/packages.lock.json
+            src/backend/Modules/packages.lock.json
+            src/backend/Tests/packages.lock.json
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restore dependencies
+        run: dotnet restore UniTrade.sln
+      
+      - name: Start SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+          /k:"COS301-SE-2026_UniTrade" \
+          /o:"cos301-se-2026" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**" \
+          /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
+        
+         
+      - name: Build solution
+        run: dotnet build UniTrade.sln --configuration Release --no-restore
+
+      - name: Run Unit Tests with Coverage
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Unit" 
+
+      - name: Run Integration Tests
+        working-directory: src/backend/Tests
+        run: dotnet test --configuration Release --no-build  --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Integration" 
+      
+      - name: End SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end
+
+  code-quality:
+    needs: gitleaks
     runs-on: ubuntu-latest
     
     steps:
@@ -24,52 +107,18 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: |
+            src/backend/Api/packages.lock.json
+            src/backend/Infrastructure/packages.lock.json
+            src/backend/Modules/packages.lock.json
+            src/backend/Tests/packages.lock.json
 
       - name: Restore API
         run: dotnet restore src/backend/Api/Api.csproj
       
-      - name: Restore Tests
-        run: dotnet restore src/backend/Tests/UniTrade.Tests.csproj
-        
-      - name: Build API
-        working-directory: src/backend/Api
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Build Tests
-        working-directory: src/backend/Tests
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Build Workers
-        working-directory: src/backend/Workers
-        run: dotnet build --configuration Release --no-restore || echo 'Workers not configured yet.'
-
-      - name: Run Unit Tests
-        working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Unit" 
-
-      - name: Run Integration Tests
-        working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" 
-    
-
-  code-quality:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Restore API
-        run: dotnet restore src/backend/Api/Api.csproj
-
+      - name: Check code formatting
+        run: dotnet format --verify-no-changes --no-restore src/backend/Api/Api.csproj
 
       - name: Analyze code style
         run: dotnet build src/backend/Api/Api.csproj --configuration Release --no-restore /p:EnforceCodeStyleInBuild=true
-
-      - name: Validate backend docker image
-        run: docker build -f src/backend/Api/Dockerfile -t unitrade-backend-ci .

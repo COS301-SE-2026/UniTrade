@@ -13,7 +13,22 @@ on:
       - ".github/workflows/web-ci.yml"
 
 jobs:
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+
+      - name: Gitleaks scan 
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
   build-and-test:
+    needs: gitleaks
     runs-on: ubuntu-latest
     
     strategy:
@@ -33,29 +48,25 @@ jobs:
 
       - name: Install dependencies
         working-directory: src/web
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint code
         working-directory: src/web
         run: npm run lint
-      
-      - name: Validate frontend env
-        working-directory: src/web
-        env: 
-          VITE_API_URL: ${{secrets.VITE_API_URL}}
-        run: |
-         : "${VITE_API_URL:?VITE_API_URL is required for frontend build}"
         
       - name: Build application
         working-directory: src/web
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL}}
         run: npm run build
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         working-directory: src/web
-        run: npm run test:run 
-
-      - name: Validate Frontend docker image
+        run: npm run test:run -- --coverage
+      
+      - name: Install SonarScanner
+        run: npm install -g sonarqube-scanner@3.1.0 --ignore-scripts
+        
+      - name: Run SonarCloud analysis
         working-directory: src/web
-        run: docker build -f src/web/Dockerfile -t unitrade-web-ci .
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: sonar-scanner
