@@ -58,9 +58,10 @@ jobs:
           dotnet sonarscanner begin \
           /k:"COS301-SE-2026_UniTrade" \
           /o:"cos301-se-2026" \
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
+        
          
       - name: Build solution
         run: dotnet build UniTrade.sln --configuration Release --no-restore
@@ -71,12 +72,12 @@ jobs:
 
       - name: Run Integration Tests
         working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal" --filter "Category=Integration" 
+        run: dotnet test --configuration Release --no-build  --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Integration" 
       
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end
 
   code-quality:
     runs-on: ubuntu-latest

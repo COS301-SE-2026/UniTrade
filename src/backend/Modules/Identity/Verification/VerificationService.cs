@@ -3,11 +3,12 @@ using System.Text;
 using Modules.Identity.Models;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
+using Microsoft.Extensions.Configuration;
 
 namespace Modules.Identity.Verification;
 
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.Configuration;
+
+public sealed class VerificationException(string code) : Exception(code) { }
 
 public class VerificationService : IVerificationService
 {
@@ -18,7 +19,6 @@ public class VerificationService : IVerificationService
     private readonly IConfiguration _config;
     private const int OTP_EXPIRY_MINUTES = 5;
     private const int MAX_ATTEMPTS = 3;
-    private const int MAX_RESENDS = 3;
     private const int RESEND_COOLDOWN_SECONDS = 60;
 
     public VerificationService(
@@ -39,7 +39,7 @@ public class VerificationService : IVerificationService
         var user = await _users.GetByIdAsync(userId);
         if (user == null)
         {
-            throw new Exception("user_not_found");
+            throw new VerificationException("user_not_found");
         }
 
         // invalidate previous otp
@@ -81,21 +81,21 @@ public class VerificationService : IVerificationService
 
         if (record == null)
         {
-            throw new Exception("invalid_otp");
+            throw new VerificationException("invalid_otp");
         }
 
         if (record.OtpVerifiedAt != null)
         {
-            throw new Exception("already_verified");
+            throw new VerificationException("already_verified");
         }
 
         if (record.AttemptNumber >= MAX_ATTEMPTS)
         {
-            throw new Exception("otp_invalidated_resend_required");
+            throw new VerificationException("otp_invalidated_resend_required");
         }
         if (record.OtpExpiresAt < DateTime.UtcNow)
         {
-            throw new Exception("otp_expired");
+            throw new VerificationException("otp_expired");
         }
 
         var hash = HashOtp(otp);
@@ -115,7 +115,7 @@ public class VerificationService : IVerificationService
                     // if a user tries too soon since the last failure occurred, we reject it without counting it
                     // as a new attempt
                     var waitSeconds = (int)(requiredDelay - elapsed).TotalSeconds;
-                    throw new Exception($"too_many_attempts:{waitSeconds}");
+                    throw new VerificationException($"too_many_attempts:{waitSeconds}");
                 }
             }
             //but a guess genuinely cleared the delay window is counted
@@ -126,10 +126,10 @@ public class VerificationService : IVerificationService
 
             if (record.AttemptNumber >= MAX_ATTEMPTS)
             {
-                throw new Exception("otp_invalidated_resend_required");
+                throw new VerificationException("otp_invalidated_resend_required");
             }
 
-            throw new Exception("invalid_otp");
+            throw new VerificationException("invalid_otp");
         }
 
         record.Status = "por_pending";
@@ -152,18 +152,18 @@ public class VerificationService : IVerificationService
 
         if (record == null)
         {
-            throw new Exception("invalid_request");
+            throw new VerificationException("invalid_request");
         }
 
         if (record.OtpVerifiedAt != null)
         {
-            throw new Exception("already_verified");
+            throw new VerificationException("already_verified");
         }
         if (
             record.OtpSentAt != null
             && (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < RESEND_COOLDOWN_SECONDS
         )
-            throw new Exception("cooldown_active");
+            throw new VerificationException("cooldown_active");
 
         var otp = GenerateOtp();
         var hash = HashOtp(otp);

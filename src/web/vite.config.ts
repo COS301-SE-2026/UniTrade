@@ -25,7 +25,10 @@ export default defineConfig({
         "src/main.tsx",
         "**/*.test.ts",
         "**/*.spec.ts",
+        "**/assets/**",
+        '**/types/**',
+        '**/*/d.ts'
       ],
-    }
-  }
+    },
+  },
 });

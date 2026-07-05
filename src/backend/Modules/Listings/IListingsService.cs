@@ -6,7 +6,7 @@ namespace Modules.Listings;
 
 public interface IListingService
 {
-    Task<ListingSummaryDto> CreateListings(CreateListingDto listings, Guid callerId);
+    Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId);
     Task<bool> UpdateListings(
         UpdateListingDto listings,
         Guid id,
@@ -16,5 +16,5 @@ public interface IListingService
     Task<bool> DeleteListings(Guid id, Guid callerId);
     Task<ListingSummaryDto?> GetByIdAsync(Guid listingId);
     Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter);
-    Task <bool> IsOwnerAsync(Guid listingId,Guid callerId);
+    Task<bool> IsOwnerAsync(Guid listingId, Guid callerId);
 }

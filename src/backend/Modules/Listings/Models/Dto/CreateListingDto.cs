@@ -9,12 +9,9 @@ public class CreateListingDto
     public string Description { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public string Condition { get; set; } = string.Empty;
-    // string ListingType { get; set; } = string.Empty;
-    //public Guid SellerId { get; set; }
-
-    public string CategoryName{get;set;}="";
-    public JsonElement? Metadata{get;set;}
-    public BookDetailsDto? BookDetails{get;set;}
+    public string CategoryName { get; set; } = "";
+    public JsonElement? Metadata { get; set; }
+    public BookDetailsDto? BookDetails { get; set; }
 
     public string ListingStatus { get; set; } = "live";
     public int? CourseId { get; set; }

@@ -100,7 +100,7 @@ public class ListingService : IListingService
             Price = dto.Price,
             CategoryId = category.CategoryId,
             Condition = dto.Condition,
-
+            Metadata = metadataJ,
             SellerId = callerId,
             ListingStatus = "live",
             ListingId = Guid.NewGuid(),
@@ -183,19 +183,7 @@ public class ListingService : IListingService
             }
             listingLookUp.Metadata = JsonSerializer.Serialize(metadata);
         }
-        
-        if (!string.IsNullOrWhiteSpace(listings.CategoryName))
-{
-    var category = await _listings.ResolveByNameAsync(listings.CategoryName.Trim());
-    if (category == null)
-    {
-        throw new ArgumentException("invalid_category");
-    }
-
-    isBook = string.Equals(category.Name, "book", StringComparison.OrdinalIgnoreCase);
-    listingLookUp.CategoryId = category.CategoryId;
-}
-        await _listings.SaveAsync();
+await ApplyCategoryChangeAsync(listings, listingLookUp);
         // updates to images
 
         if (listings.RemovedImageIds is { Count: > 0 })
@@ -207,6 +195,31 @@ public class ListingService : IListingService
         }
 
         return true;
+    }
+
+    private async Task ApplyCategoryChangeAsync(UpdateListingDto listings, Listing listingLookUp)
+    {
+        if (!string.IsNullOrWhiteSpace(listings.CategoryName))
+        {
+            return;
+        }
+
+        var category = await _listings.ResolveByNameAsync(listings.CategoryName!.Trim());
+        if (category == null)
+        {
+            throw new ArgumentException("invalid_category");
+        }
+
+        bool isBook = string.Equals(category.Name, "book", StringComparison.OrdinalIgnoreCase);
+        if (!isBook && listings.BookDetails is not null)
+        {
+            throw new ArgumentException("book_fields_not_allowed");
+        }
+        if (!isBook)
+        {
+            listingLookUp.CourseId = null;
+        }
+        listingLookUp.CategoryId = category.CategoryId;
     }
 
     public async Task<bool> DeleteListings(Guid id, Guid callerId)
