@@ -10,6 +10,7 @@ namespace Infrastructure.Persistence.Repositories.Listings;
 public class ListingRepository : IListingRepository
 {
     private readonly AppDbContext _db;
+    private readonly string RemovedStatus = "removed";
 
     public ListingRepository(AppDbContext db)
     {
@@ -23,7 +24,9 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
-            .Include(l => l.Images);
+            .Include(l => l.Images)
+            .Where(l => l.ListingStatus != RemovedStatus)
+            .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         var listing = await query.FirstOrDefaultAsync(l => l.ListingId == listingId);
 
@@ -42,6 +45,8 @@ public class ListingRepository : IListingRepository
             .Listings.Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images)
+            .Where(l => l.ListingStatus != RemovedStatus)
+            .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted))
             .FirstOrDefaultAsync(l => l.ListingId == id);
 
     public async Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(
@@ -53,6 +58,8 @@ public class ListingRepository : IListingRepository
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images);
+        query = query.Where(l => l.ListingStatus != RemovedStatus);
+        query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         if (listingFilterDto.CategoryId.HasValue)
             query = query.Where(x => x.CategoryId == listingFilterDto.CategoryId);
@@ -112,7 +119,9 @@ public class ListingRepository : IListingRepository
         var listing = await _db.Listings.FindAsync(id);
         if (listing != null)
         {
-            _db.Listings.Remove(listing);
+            listing.ListingStatus = RemovedStatus;
+            listing.UpdatedAt = DateTime.UtcNow;
+            listing.RejectionReason = "Listing deleted by owner";
             await _db.SaveChangesAsync();
         }
     }
@@ -172,7 +181,7 @@ public class ListingRepository : IListingRepository
     {
         return await _db
             .Listings.AsNoTracking()
-            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId);
+            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId && l.ListingStatus != RemovedStatus);
     }
 
     public async Task<List<ListingCategory>> GetActiveCategories()
@@ -183,4 +192,22 @@ public class ListingRepository : IListingRepository
             .OrderBy(c => c.Name)
             .ToListAsync();
     }
+
+    public async Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
+    {
+        var listings = await _db.Listings.Where(l => l.SellerId == sellerId && (l.ListingStatus == "live" || l.ListingStatus == "pending")).ToListAsync();
+        if (!listings.Any())
+        {
+            return;
+        }
+        foreach (var listing in listings)
+        {
+            listing.ListingStatus = RemovedStatus;
+            listing.UpdatedAt = DateTime.UtcNow;
+            listing.RejectionReason = reason;
+        }
+
+        await _db.SaveChangesAsync();
+    }
 }
+

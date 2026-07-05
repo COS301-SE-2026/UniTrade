@@ -14,6 +14,7 @@ using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
+using Modules.Listings.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
@@ -26,6 +27,8 @@ public class IdentityService : IIdentityService
 {
     private readonly IUserRepository _users;
     private readonly IUniversityRepository _universities;
+
+    private readonly IListingRepository _listings;
     private readonly IConfiguration _config;
 
     private const string StudentRole = "student";
@@ -33,12 +36,13 @@ public class IdentityService : IIdentityService
 
     public IdentityService(
         IUserRepository users,
-        IUniversityRepository universities,
+        IUniversityRepository universities, IListingRepository listing,
         IConfiguration config
     )
     {
         _users = users;
         _universities = universities;
+        _listings =listing;
         _config = config;
     }
 
@@ -115,6 +119,7 @@ public class IdentityService : IIdentityService
                 UniversityId = university.UniversityId,
                 StudentNumber = studentNumber,
                 YearOfStudy = dto.YearOfStudy,
+                DegreeProgram = dto.DegreeProgram,
                 VerificationStatus = "pending",
                 ReputationScore = 0,
             },
@@ -308,7 +313,7 @@ public class IdentityService : IIdentityService
         //*user here follows User Model not schema
         var user = await _users.GetByEmailAsync(loginDto.Email.Trim().ToLowerInvariant());
         //tasks: query db, verify password and get email, gen. token, then return a response
-        if (user == null)
+        if (user == null || user.IsDeleted)
         {
             throw new IdentityException("invalid_credentials");
         }
@@ -397,6 +402,9 @@ public class IdentityService : IIdentityService
                 {
                     VerificationStatus =
                         getUser.StudentProfile?.VerificationStatus ?? PendingStatus,
+                    DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
+                    YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
+                    University = getUser.StudentProfile?.University?.Name ?? string.Empty,
                 },
             };
         }
@@ -408,5 +416,69 @@ public class IdentityService : IIdentityService
             LastName = getUser.LastName,
             Email = getUser.Email,
         };
+    }
+
+    public async Task<object> UpdateProfileAsync(string userId, UpdateProfileDto dto)
+    {
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+
+        if (user == null)
+        {
+            throw new IdentityException("not_found");
+        }
+        if (dto.YearOfStudy < 1 || dto.YearOfStudy > 8)
+        {
+            throw new IdentityException("invalid_year_of_study");
+        }
+        if (string.IsNullOrWhiteSpace(dto.DegreeProgram))
+        {
+            throw new IdentityException("degree_program_required");
+        }
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        if (user.StudentProfile != null)
+        {
+            user.StudentProfile.YearOfStudy = dto.YearOfStudy;
+            user.StudentProfile.DegreeProgram = dto.DegreeProgram;
+        }
+        await _users.UpdateAsync(user);
+
+        return new
+        {
+            message = "Profile updated successfully",
+            user = new
+            {
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                user.UserId,
+            },
+            profile = new
+            {
+                user.StudentProfile?.YearOfStudy,
+                user.StudentProfile?.DegreeProgram,
+                user.StudentProfile?.VerificationStatus,
+            },
+        };
+    }
+
+    public async Task DeleteAccountAsync(string userId)
+    {
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+        if(user == null)
+        {
+            throw new IdentityException("not_found");
+
+        }
+
+        user.IsDeleted = true;
+        user.DeletedAt = DateTime.UtcNow;
+        user.Email = $"deleted_{user.UserId}@unitrade.com";
+        await _users.UpdateAsync(user);
+
+        await _listings.MarkAllBySellerAsRemovedAsync(Guid.Parse(userId), "User deleted their account");
+
     }
 }
