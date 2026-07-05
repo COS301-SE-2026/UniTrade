@@ -17,7 +17,7 @@ namespace Api.Tests;
 [Trait("Category", "Unit")]
 public class ListingControllerTests
 {
-    private readonly Mock<IListingService> _service = new(MockBehavior.Strict);
+    private readonly Mock<IListingService> _service;
     private readonly Mock<IImageStorageService> _imageStorage;
 
     private readonly ListingController _sut;
@@ -69,29 +69,9 @@ public class ListingControllerTests
             Images: new List<ListingImageDto>()
         );
 
-    [Fact]
-    public async Task Create_ReturnsOkWithCreatedListing_WhenInputValid()
-    {
-        var dto = ACreateDto(title: "Valid", condition: "good", price: 50m);
-        var summary = ASummaryDto();
-    }
-
     // PUT /api/listings/{id} Update
 
-    private static UpdateListingDto AnUpdateDto(
-        string title = "Updated",
-        string description = "desc",
-        decimal price = 100m,
-        string condition = "good"
-    ) =>
-        new()
-        {
-            Title = title,
-            Description = description,
-            Price = price,
-            Condition = condition,
-        };
-
+ 
     // DELETE /api/listings/{id} Delete
 
     // GET /api/listings GetAll
@@ -132,20 +112,7 @@ public class ListingControllerTests
 
     // POST /api/listings/images UploadImages
 
-    // Helpers
-    private static IFormFile AFormFile(
-        string contentType = "image/jpeg",
-        long length = 1024,
-        string name = "testImage.jpg"
-    )
-    {
-        var mock = new Mock<IFormFile>();
-        mock.Setup(f => f.ContentType).Returns(contentType);
-        mock.Setup(f => f.Length).Returns(length);
-        mock.Setup(f => f.FileName).Returns(name);
-        mock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(new byte[length]));
-        return mock.Object;
-    }
+    // Helper
 
     private static CreateListingDto ACreateDto(
         string title = "Product",
