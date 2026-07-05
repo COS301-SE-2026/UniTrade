@@ -12,7 +12,7 @@ namespace Api.Controllers;
 public class UserController(IIdentityService identityService) : ControllerBase
 {
     private readonly IIdentityService _identityService = identityService;
-    private const string ServerErrorMessage = "server_error" ;
+    private const string ServerErrorMessage = "server_error";
 
     [HttpGet("me")]
     [Authorize]
@@ -42,7 +42,6 @@ public class UserController(IIdentityService identityService) : ControllerBase
     }
 
     [HttpPut("profile")]
-    [EnableRateLimiting("verify-otp")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
         try
@@ -96,7 +95,7 @@ public class UserController(IIdentityService identityService) : ControllerBase
                 SameSite = SameSiteMode.Lax,
             });
 
-            return Ok(new {message ="Account deleted successfully"});
+            return Ok(new { message = "Account deleted successfully" });
         }
         catch (IdentityException ex)
         {
