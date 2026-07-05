@@ -472,6 +472,8 @@ namespace Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("chk_listing_price", "price > 0");
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
+
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')");
                         });
                 });
 
@@ -496,10 +498,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("name");
 
-                    b.Property<int?>("RootCategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("root_category_id");
-
                     b.HasKey("CategoryId")
                         .HasName("pk_listing_categories");
 
@@ -507,10 +505,45 @@ namespace Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_listing_categories_name");
 
-                    b.HasIndex("RootCategoryId")
-                        .HasDatabaseName("ix_listing_categories_root_category_id");
-
                     b.ToTable("listing_categories", "unitrade");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            IsActive = true,
+                            Name = "book"
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            IsActive = true,
+                            Name = "electronics"
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            IsActive = true,
+                            Name = "stationery"
+                        },
+                        new
+                        {
+                            CategoryId = 4,
+                            IsActive = true,
+                            Name = "furniture"
+                        },
+                        new
+                        {
+                            CategoryId = 5,
+                            IsActive = true,
+                            Name = "clothing"
+                        },
+                        new
+                        {
+                            CategoryId = 6,
+                            IsActive = true,
+                            Name = "other"
+                        });
                 });
 
             modelBuilder.Entity("Modules.Listings.Models.ListingImage", b =>
@@ -582,6 +615,7 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("course_name");
 
                     b.Property<string>("Faculty")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("faculty");
 
@@ -693,14 +727,14 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Listings.Models.BookDetails", b =>
                 {
-                    b.HasOne("Modules.Listings.Models.Listing", "listing")
+                    b.HasOne("Modules.Listings.Models.Listing", "Listing")
                         .WithOne("BookDetails")
                         .HasForeignKey("Modules.Listings.Models.BookDetails", "ListingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_book_details_listings_listing_id");
 
-                    b.Navigation("listing");
+                    b.Navigation("Listing");
                 });
 
             modelBuilder.Entity("Modules.Listings.Models.Listing", b =>
@@ -738,16 +772,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("Modules.Listings.Models.ListingCategory", b =>
-                {
-                    b.HasOne("Modules.Listings.Models.ListingCategory", "RootCategory")
-                        .WithMany("ChildCategories")
-                        .HasForeignKey("RootCategoryId")
-                        .HasConstraintName("fk_listing_categories_listing_categories_root_category_id");
-
-                    b.Navigation("RootCategory");
                 });
 
             modelBuilder.Entity("Modules.Listings.Models.ListingImage", b =>
@@ -788,8 +812,6 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Listings.Models.ListingCategory", b =>
                 {
-                    b.Navigation("ChildCategories");
-
                     b.Navigation("Listings");
                 });
 #pragma warning restore 612, 618

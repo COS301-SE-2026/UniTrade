@@ -162,10 +162,10 @@ public class ListingRepository : IListingRepository
             return null;
         }
 
-        var normalized = categoryName.Trim().ToLower();
+        var normalized = categoryName.Trim();
         return await _db
             .ListingCategories.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.IsActive && c.Name.ToLower() == normalized, ct);
+            .FirstOrDefaultAsync(c => c.IsActive && EF.Functions.ILike(c.Name, normalized), ct);
     }
 
     public async Task<bool> IsOwnerAsync(Guid listingId, Guid sellerId)

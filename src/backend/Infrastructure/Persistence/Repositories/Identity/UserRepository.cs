@@ -5,6 +5,8 @@ using Modules.Identity.Repositories;
 
 namespace Infrastructure.Persistence.Repositories;
 
+public sealed class PersistenceException(string code) : Exception(code) { }
+
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _db;
@@ -38,7 +40,7 @@ public class UserRepository : IUserRepository
         catch (DbUpdateException ex)
         {
             var sqlError = ex.InnerException?.Message;
-            throw new Exception(sqlError ?? ex.Message);
+            throw new PersistenceException(sqlError ?? ex.Message);
         }
     }
 

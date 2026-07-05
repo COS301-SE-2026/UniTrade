@@ -51,7 +51,10 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CreatedAt);
             entity.Property(x => x.UpdatedAt);
 
-            entity.HasCheckConstraint("chk_user_role", "role IN ('student', 'admin')");
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_user_role", "role IN ('student', 'admin')");
+            });
 
             entity.HasIndex(x => x.Email).IsUnique();
             entity.HasIndex(x => x.Role).HasDatabaseName("ix_users_role");
@@ -79,11 +82,14 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.ReputationScore).HasPrecision(4, 2).HasDefaultValue(0);
 
-            entity.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
-            entity.HasCheckConstraint(
-                "chk_student_verification",
-                "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
-            );
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
+                t.HasCheckConstraint(
+                    "chk_student_verification",
+                    "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
+                );
+            });
 
             entity
                 .HasOne(x => x.User)
@@ -155,6 +161,8 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.CourseName).IsRequired();
 
+            entity.Property(x => x.Faculty).IsRequired();
+
             entity
                 .HasOne<University>()
                 .WithMany()
@@ -170,7 +178,6 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_verification_set_current");
-                // tb.HasTrigger("tr_audit_verification_decision");
 
                 // NOTE: When we implement the AI Verification subsystem, add the missing constraints
                 tb.HasCheckConstraint(
@@ -221,7 +228,6 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_listings_updated_at");
-                //tb.HasTrigger("tr_audit_listing_status");
 
                 tb.HasCheckConstraint("chk_listing_price", "price > 0");
 
@@ -233,7 +239,10 @@ public class AppDbContext : DbContext
                     "chk_listing_risk",
                     "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')"
                 );
-                
+                tb.HasCheckConstraint(
+                    "chk_listing_status",
+                    "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')"
+                );
             });
 
             //LISTING_ID
@@ -247,22 +256,18 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Description).IsRequired();
             entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
             entity.Property(x => x.Condition).HasMaxLength(5).IsRequired();
-            //entity.Property(x => x.ListingType).HasMaxLength(20).IsRequired();
 
             // book-specific
             // course id is only ever meant to be used by the book category, but due to latency of serial joins.., it's best of it stays here
             // since at its core unitrade is a textbook market place, a lot of queries around this
             entity.Property(x => x.CourseId);
-            //entity.Property(x => x.Isbn).HasMaxLength(13);
-            //entity.Property(x => x.Author).HasMaxLength(120);
-            //entity.Property(x => x.Edition).HasMaxLength(50);
 
             entity.Property(x => x.ListingStatus).HasMaxLength(20).IsRequired();
 
             //categorizing listings
-            entity.Property(x=> x.CategoryId).IsRequired();
+            entity.Property(x => x.CategoryId).IsRequired();
 
-            entity.Property(x=> x.Metadata).HasColumnType("jsonb");
+            entity.Property(x => x.Metadata).HasColumnType("jsonb");
 
             //AI mod
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
@@ -291,10 +296,10 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             //listing category update
             entity
-                .HasOne(x =>x.Category)
+                .HasOne(x => x.Category)
                 .WithMany(c => c.Listings)
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -321,7 +326,7 @@ public class AppDbContext : DbContext
                 {
                     x.CourseId,
                     x.ListingStatus,
-                    x.CreatedAt
+                    x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_course_browse")
                 .HasFilter("listing_status = 'live'")
@@ -331,14 +336,14 @@ public class AppDbContext : DbContext
                     x.Title,
                     x.Price,
                     x.SellerId,
-                    x.CategoryId
+                    x.CategoryId,
                 });
             entity
                 .HasIndex(x => new
                 {
                     x.CategoryId,
                     x.ListingStatus,
-                    x.CreatedAt
+                    x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_category_browse")
                 .HasFilter("listing_status = 'live'")
@@ -347,7 +352,7 @@ public class AppDbContext : DbContext
                 {
                     x.Title,
                     x.Price,
-                    x.SellerId
+                    x.SellerId,
                 });
 
             entity
@@ -355,7 +360,7 @@ public class AppDbContext : DbContext
                 {
                     x.ListingStatus,
                     x.VisibilityScore,
-                    x.CreatedAt
+                    x.CreatedAt,
                 })
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
@@ -364,13 +369,51 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ListingCategory>(entity =>
         {
-
             entity.HasKey(x => x.CategoryId);
 
             entity.Property(x => x.Name).HasMaxLength(50).IsRequired();
             entity.HasIndex(x => x.Name).IsUnique();
 
             entity.Property(x => x.IsActive).HasDefaultValue(true).IsRequired();
+
+            entity.HasData(
+                new ListingCategory
+                {
+                    CategoryId = 1,
+                    Name = "book",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 2,
+                    Name = "electronics",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 3,
+                    Name = "stationery",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 4,
+                    Name = "furniture",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 5,
+                    Name = "clothing",
+                    IsActive = true,
+                },
+                new ListingCategory
+                {
+                    CategoryId = 6,
+                    Name = "other",
+                    IsActive = true,
+                }
+            );
         });
 
         modelBuilder.Entity<BookDetails>(entity =>
@@ -382,10 +425,13 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Author).HasMaxLength(120);
             entity.Property(x => x.Edition).HasMaxLength(50);
 
-            entity.HasCheckConstraint(
-                "chk_isbn_validity",
-                "isbn IS NULL OR length(isbn) IN  (10,13)"
-            );
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_isbn_validity",
+                    "isbn IS NULL OR length(isbn) IN  (10,13)"
+                );
+            });
         });
 
         //Listing Images
