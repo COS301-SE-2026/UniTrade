@@ -120,14 +120,14 @@ export default function SellerListingDetail() {
               <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 <IconCheck size={10} /> {formatCondition(listing.condition)}
               </span>
-              {listing.tags.map((tag) => (
+              {/*{listing.tags.map((tag) => (
                 <span
                   key={tag}
                   className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70"
                 >
                   {tag}
                 </span>
-              ))}
+              ))}*/}
             </div>
 
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">
@@ -149,9 +149,9 @@ export default function SellerListingDetail() {
                 </span>
               }
             />
-            {listing.courseCode && (
+            {/*{listing.courseCode && (
               <DetailRow label="Course Code" value={listing.courseCode} />
-            )}
+            )}*/}
             <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
           </div>

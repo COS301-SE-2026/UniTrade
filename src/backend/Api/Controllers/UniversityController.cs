@@ -1,41 +1,28 @@
 using Infrastructure.Persistence;
-using Modules.Identity.Models;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Identity.Models;
+using Modules.ReferenceData;
+using Modules.ReferenceData.University;
 
 namespace Api.Controllers
 {
     [Route("api/universities")]
     [ApiController]
-    public class UniversityController: ControllerBase
+    public class UniversityController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public UniversityController(AppDbContext context)
+        private readonly IUniversityService _uni;
+
+        public UniversityController(IUniversityService uni)
         {
-            _context = context;
+            _uni = uni;
         }
 
         [HttpGet]
-        public IActionResult GetActiveUniversities()
+        public async Task<IActionResult> GetActiveUniversities()
         {
-            try
-            {
-                var universities = _context.Universities.Where(u=> u.IsActive).Select(u=> new
-                {
-                    u.UniversityId,
-                    u.Name,
-                    u.EmailDomain
-                }).ToList();
+            var universities = await _uni.GetActiveUniversitiesAsync();
 
-                return Ok(new
-                {
-                    count = universities.Count,
-                    data = universities
-                });
-            }
-            catch
-            {
-                return StatusCode(500, new { message = "An error occurred while fetching universities" });
-            }
+            return Ok(new { count = universities.Count, data = universities });
         }
     }
 }

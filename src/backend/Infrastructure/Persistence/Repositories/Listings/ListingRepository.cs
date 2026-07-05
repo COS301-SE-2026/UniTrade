@@ -10,187 +10,88 @@ namespace Infrastructure.Persistence.Repositories.Listings;
 public class ListingRepository : IListingRepository
 {
     private readonly AppDbContext _db;
+    private readonly string RemovedStatus = "removed";
 
     public ListingRepository(AppDbContext db)
     {
         _db = db;
     }
 
+    // for read only purposes
     public async Task<Listing?> GetByIdAsync(Guid listingId)
     {
-        var row = await _db
+        var query = _db
             .Listings.AsNoTracking()
-            .Where(l => l.ListingId == listingId)
-            .Join(
-                _db.Users,
-                l => l.SellerId,
-                u => u.UserId,
-                (l, u) =>
-                    new
-                    {
-                        l.ListingId,
-                        l.SellerId,
-                        l.Title,
-                        l.Description,
-                        l.Price,
-                        l.Condition,
-                        l.ListingType,
-                        l.ListingStatus,
-                        l.CourseId,
-                        l.Isbn,
-                        l.Author,
-                        l.Edition,
-                        l.isBundle,
-                        l.ViewCount,
-                        l.CreatedAt,
-                        l.UpdatedAt,
-                        SellerUserId = u.UserId,
-                        u.FirstName,
-                        u.LastName,
-                    }
-            )
-            .FirstOrDefaultAsync();
+            .Include(l => l.Category)
+            .Include(l => l.BookDetails)
+            .Include(l => l.Images)
+            .Where(l => l.ListingStatus != RemovedStatus)
+            .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
-        if (row == null)
-            return null;
+        var listing = await query.FirstOrDefaultAsync(l => l.ListingId == listingId);
 
-        var listing = new Listing
+        if (listing == null)
         {
-            ListingId = row.ListingId,
-            SellerId = row.SellerId,
-            Title = row.Title,
-            Description = row.Description,
-            Price = row.Price,
-            Condition = row.Condition,
-            ListingType = row.ListingType,
-            ListingStatus = row.ListingStatus,
-            CourseId = row.CourseId,
-            Isbn = row.Isbn,
-            Author = row.Author,
-            Edition = row.Edition,
-            isBundle = row.isBundle,
-            ViewCount = row.ViewCount,
-            CreatedAt = row.CreatedAt,
-            UpdatedAt = row.UpdatedAt,
-            Seller = new SellerInfo(row.SellerUserId, row.FirstName, row.LastName),
-        };
-
-        listing.Images = await _db
-            .ListingImages.AsNoTracking()
-            .Where(i => i.ListingId == listing.ListingId)
-            .Select(i => new ListingImage
-            {
-                ImageId = i.ImageId,
-                ListingId = i.ListingId,
-                ContentType = i.ContentType,
-                FileSize = i.FileSize,
-                IsPrimary = i.IsPrimary,
-                UploadedAt = i.UploadedAt,
-            })
-            .ToListAsync();
+            return null;
+        }
+        await AttachSellerInfoAsync(new[] { listing });
 
         return listing;
     }
 
+    // for updates
     public async Task<Listing?> GetByIdTrackedAsync(Guid id) =>
-        await _db.Listings.FirstOrDefaultAsync(l => l.ListingId == id);
+        await _db
+            .Listings.Include(l => l.Category)
+            .Include(l => l.BookDetails)
+            .Include(l => l.Images)
+            .Where(l => l.ListingStatus != RemovedStatus)
+            .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted))
+            .FirstOrDefaultAsync(l => l.ListingId == id);
 
     public async Task<(IReadOnlyList<Listing> listings, int Total)> ListAsync(
         ListFilterDto listingFilterDto
     )
     {
-        var query = _db
+        IQueryable<Listing> query = _db
             .Listings.AsNoTracking()
-            .Join(_db.Users, l => l.SellerId, u => u.UserId, (l, u) => new { l, u });
+            .Include(l => l.Category)
+            .Include(l => l.BookDetails)
+            .Include(l => l.Images);
+        query = query.Where(l => l.ListingStatus != RemovedStatus);
+        query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
-        if (!string.IsNullOrWhiteSpace(listingFilterDto.ListingType))
-            query = query.Where(x => x.l.ListingType == listingFilterDto.ListingType);
+        if (listingFilterDto.CategoryId.HasValue)
+            query = query.Where(x => x.CategoryId == listingFilterDto.CategoryId);
 
         if (!string.IsNullOrWhiteSpace(listingFilterDto.ListingStatus))
-            query = query.Where(x => x.l.ListingStatus == listingFilterDto.ListingStatus);
+            query = query.Where(x => x.ListingStatus == listingFilterDto.ListingStatus);
 
         if (listingFilterDto.CourseId.HasValue)
-            query = query.Where(x => x.l.CourseId == listingFilterDto.CourseId);
+            query = query.Where(x => x.CourseId == listingFilterDto.CourseId);
 
         if (listingFilterDto.SellerId.HasValue)
-            query = query.Where(x => x.l.SellerId == listingFilterDto.SellerId);
+            query = query.Where(x => x.SellerId == listingFilterDto.SellerId);
 
         if (!string.IsNullOrWhiteSpace(listingFilterDto.Search))
         {
             var searchInput = listingFilterDto.Search.Trim();
             query = query.Where(x =>
-                x.l.Title.Contains(searchInput) || x.l.Description.Contains(searchInput)
+                x.Title.Contains(searchInput) || x.Description.Contains(searchInput)
             );
         }
 
         var total = await query.CountAsync();
 
-        var rows = await query
-            .OrderByDescending(x => x.l.CreatedAt)
-            .Select(x => new
-            {
-                x.l.ListingId,
-                x.l.SellerId,
-                x.l.Title,
-                x.l.Description,
-                x.l.Price,
-                x.l.Condition,
-                x.l.ListingType,
-                x.l.ListingStatus,
-                x.l.CourseId,
-                x.l.Isbn,
-                x.l.Author,
-                x.l.Edition,
-                x.l.isBundle,
-                x.l.ViewCount,
-                x.l.CreatedAt,
-                x.l.UpdatedAt,
-                SellerUserId = x.u.UserId,
-                x.u.FirstName,
-                x.u.LastName,
-            })
-            .ToListAsync();
-
         // Map to entity
-        var items = rows.Select(r => new Listing
-            {
-                ListingId = r.ListingId,
-                SellerId = r.SellerId,
-                Title = r.Title,
-                Description = r.Description,
-                Price = r.Price,
-                Condition = r.Condition,
-                ListingType = r.ListingType,
-                ListingStatus = r.ListingStatus,
-                CourseId = r.CourseId,
-                Isbn = r.Isbn,
-                Author = r.Author,
-                Edition = r.Edition,
-                isBundle = r.isBundle,
-                ViewCount = r.ViewCount,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt,
-                Seller = new SellerInfo(r.SellerUserId, r.FirstName, r.LastName),
-            })
-            .ToList();
-
-        var listingIds = items.Select(l => l.ListingId).ToList();
-        var images = await _db
-            .ListingImages.AsNoTracking()
-            .Where(i => listingIds.Contains(i.ListingId))
-            .Select(i => new ListingImage
-            {
-                ImageId = i.ImageId,
-                ListingId = i.ListingId,
-                ContentType = i.ContentType,
-                FileSize = i.FileSize,
-                IsPrimary = i.IsPrimary,
-                UploadedAt = i.UploadedAt,
-            })
+        var items = await query
+            .OrderByDescending(l => l.CreatedAt)
+            .Skip(listingFilterDto.Skip)
+            .Take(listingFilterDto.Take)
+            .AsSplitQuery()
             .ToListAsync();
 
-        foreach (var item in items)
-            item.Images = images.Where(i => i.ListingId == item.ListingId).ToList();
+        await AttachSellerInfoAsync(items);
 
         return (items, total);
     }
@@ -218,8 +119,95 @@ public class ListingRepository : IListingRepository
         var listing = await _db.Listings.FindAsync(id);
         if (listing != null)
         {
-            _db.Listings.Remove(listing);
+            listing.ListingStatus = RemovedStatus;
+            listing.UpdatedAt = DateTime.UtcNow;
+            listing.RejectionReason = "Listing deleted by owner";
             await _db.SaveChangesAsync();
         }
     }
+
+    // helper function to attach a seller (with their information) to a listing
+    private async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
+    {
+        if (listings.Count == 0)
+        {
+            return;
+        }
+
+        var sellerIds = listings.Select(l => l.SellerId).Distinct().ToList();
+
+        var sellers = await _db
+            .Users.AsNoTracking()
+            .Where(u => sellerIds.Contains(u.UserId))
+            .Select(u => new
+            {
+                u.UserId,
+                u.FirstName,
+                u.LastName,
+            })
+            .ToListAsync();
+
+        var byId = sellers.ToDictionary(
+            u => u.UserId,
+            u => new SellerInfo(u.UserId, u.FirstName, u.LastName)
+        );
+
+        foreach (var listing in listings)
+        {
+            if (byId.TryGetValue(listing.SellerId, out var seller))
+            {
+                listing.Seller = seller;
+            }
+        }
+    }
+
+    public async Task<ListingCategory?> ResolveByNameAsync(
+        string categoryName,
+        CancellationToken ct = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(categoryName))
+        {
+            return null;
+        }
+
+        var normalized = categoryName.Trim();
+        return await _db
+            .ListingCategories.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.IsActive && EF.Functions.ILike(c.Name, normalized), ct);
+    }
+
+    public async Task<bool> IsOwnerAsync(Guid listingId, Guid sellerId)
+    {
+        return await _db
+            .Listings.AsNoTracking()
+            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId && l.ListingStatus != RemovedStatus);
+    }
+
+    public async Task<List<ListingCategory>> GetActiveCategories()
+    {
+        return await _db
+            .ListingCategories.AsNoTracking()
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+    }
+
+    public async Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
+    {
+        var listings = await _db.Listings.Where(l => l.SellerId == sellerId && (l.ListingStatus == "live" || l.ListingStatus == "pending")).ToListAsync();
+        if (!listings.Any())
+        {
+            return;
+        }
+        foreach (var listing in listings)
+        {
+            listing.ListingStatus = RemovedStatus;
+            listing.UpdatedAt = DateTime.UtcNow;
+            listing.RejectionReason = reason;
+        }
+
+        await _db.SaveChangesAsync();
+    }
 }
+

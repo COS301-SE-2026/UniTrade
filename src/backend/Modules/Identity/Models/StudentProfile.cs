@@ -1,5 +1,5 @@
 using System.Reflection.Metadata;
-
+using Modules.ReferenceData.University;
 namespace Modules.Identity.Models;
 
 public class StudentProfile
@@ -11,7 +11,7 @@ public class StudentProfile
     public int YearOfStudy { get; set; }
     public string VerificationStatus { get; set; } = "pending";
     public decimal ReputationScore { get; set; }
-
-    public User User {get; set;} = null!;
-
+    public string? DegreeProgram {get; set;}
+    public University University {get; set; }= null!;
+    public User User { get; set; } = null!;
 }

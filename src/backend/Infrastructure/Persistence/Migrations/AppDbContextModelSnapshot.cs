@@ -61,6 +61,12 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("course_id");
 
+                    b.Property<string>("DegreeProgram")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("degree_program");
+
                     b.Property<decimal>("ReputationScore")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(4, 2)
@@ -120,6 +126,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -131,6 +141,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("first_name");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -292,6 +306,36 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Modules.Listings.Models.BookDetails", b =>
+                {
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("author");
+
+                    b.Property<string>("Edition")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("edition");
+
+                    b.Property<string>("Isbn")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("isbn");
+
+                    b.HasKey("ListingId")
+                        .HasName("pk_book_details");
+
+                    b.ToTable("book_details", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_isbn_validity", "isbn IS NULL OR length(isbn) IN  (10,13)");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Listings.Models.Listing", b =>
                 {
                     b.Property<Guid>("ListingId")
@@ -310,10 +354,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("ai_risk_score");
 
-                    b.Property<string>("Author")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("author");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
 
                     b.Property<string>("Condition")
                         .IsRequired()
@@ -324,6 +367,10 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<int?>("CourseId")
                         .HasColumnType("integer")
                         .HasColumnName("course_id");
+
+                    b.Property<int?>("CourseId1")
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id1");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -336,15 +383,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<string>("Edition")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("edition");
-
-                    b.Property<string>("Isbn")
-                        .HasMaxLength(13)
-                        .HasColumnType("character varying(13)")
-                        .HasColumnName("isbn");
+                    b.Property<int?>("ListingCategoryCategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("listing_category_category_id");
 
                     b.Property<string>("ListingStatus")
                         .IsRequired()
@@ -352,11 +393,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("listing_status");
 
-                    b.Property<string>("ListingType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("listing_type");
+                    b.Property<string>("Metadata")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("metadata");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
@@ -404,20 +443,34 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("ListingId")
                         .HasName("pk_listings");
 
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_listings_category");
+
                     b.HasIndex("CourseId")
                         .HasDatabaseName("ix_listings_course");
 
-                    b.HasIndex("CreatedAt")
-                        .IsDescending()
-                        .HasDatabaseName("ix_listings_created_at");
+                    b.HasIndex("CourseId1")
+                        .HasDatabaseName("ix_listings_course_id1");
+
+                    b.HasIndex("ListingCategoryCategoryId")
+                        .HasDatabaseName("ix_listings_listing_category_category_id");
 
                     b.HasIndex("SellerId")
                         .HasDatabaseName("ix_listings_seller");
 
-                    b.HasIndex("ListingStatus", "VisibilityScore")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_listings_visibility")
+                    b.HasIndex("CategoryId", "ListingStatus", "CreatedAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_listings_category_browse")
                         .HasFilter("listing_status = 'live'");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("CategoryId", "ListingStatus", "CreatedAt"), new[] { "Title", "Price", "SellerId" });
+
+                    b.HasIndex("CourseId", "ListingStatus", "CreatedAt")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_listings_course_browse")
+                        .HasFilter("listing_status = 'live'");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("CourseId", "ListingStatus", "CreatedAt"), new[] { "Title", "Price", "SellerId", "CategoryId" });
 
                     b.HasIndex("ListingStatus", "VisibilityScore", "CreatedAt")
                         .IsDescending(false, true, true)
@@ -428,17 +481,82 @@ namespace Infrastructure.Persistence.Migrations
                         {
                             t.HasTrigger("tr_listings_updated_at");
 
-                            t.HasCheckConstraint("chk_isbn_validity", "isbn IS NULL OR length(isbn) IN  (10,13)");
-
-                            t.HasCheckConstraint("chk_listing_book_fields", "listing_type ='book'  OR (course_id IS NULL AND isbn IS NULL AND author IS NULL AND edition IS NULL)");
-
                             t.HasCheckConstraint("chk_listing_condition", "condition IN ('new', 'good', 'fair', 'poor')");
 
                             t.HasCheckConstraint("chk_listing_price", "price > 0");
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_type", "listing_type IN ('book', 'laptop', 'stationery', 'electronics', 'clothing', 'furniture', 'other')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')");
+                        });
+                });
+
+            modelBuilder.Entity("Modules.Listings.Models.ListingCategory", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name");
+
+                    b.HasKey("CategoryId")
+                        .HasName("pk_listing_categories");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_listing_categories_name");
+
+                    b.ToTable("listing_categories", "unitrade");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            IsActive = true,
+                            Name = "book"
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            IsActive = true,
+                            Name = "electronics"
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            IsActive = true,
+                            Name = "stationery"
+                        },
+                        new
+                        {
+                            CategoryId = 4,
+                            IsActive = true,
+                            Name = "furniture"
+                        },
+                        new
+                        {
+                            CategoryId = 5,
+                            IsActive = true,
+                            Name = "clothing"
+                        },
+                        new
+                        {
+                            CategoryId = 6,
+                            IsActive = true,
+                            Name = "other"
                         });
                 });
 
@@ -511,6 +629,7 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("course_name");
 
                     b.Property<string>("Faculty")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("faculty");
 
@@ -600,12 +719,14 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_student_profiles_users_student_id");
 
-                    b.HasOne("Modules.ReferenceData.University.University", null)
+                    b.HasOne("Modules.ReferenceData.University.University", "University")
                         .WithMany()
                         .HasForeignKey("UniversityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_student_profiles_universities_university_id");
+
+                    b.Navigation("University");
 
                     b.Navigation("User");
                 });
@@ -620,13 +741,42 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_verification_requests_users_user_id");
                 });
 
+            modelBuilder.Entity("Modules.Listings.Models.BookDetails", b =>
+                {
+                    b.HasOne("Modules.Listings.Models.Listing", "Listing")
+                        .WithOne("BookDetails")
+                        .HasForeignKey("Modules.Listings.Models.BookDetails", "ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_book_details_listings_listing_id");
+
+                    b.Navigation("Listing");
+                });
+
             modelBuilder.Entity("Modules.Listings.Models.Listing", b =>
                 {
+                    b.HasOne("Modules.Listings.Models.ListingCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_listings_listing_categories_category_id");
+
                     b.HasOne("Modules.ReferenceData.Course.Course", null)
                         .WithMany()
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_listings_courses_course_id");
+
+                    b.HasOne("Modules.ReferenceData.Course.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId1")
+                        .HasConstraintName("fk_listings_courses_course_id1");
+
+                    b.HasOne("Modules.Listings.Models.ListingCategory", null)
+                        .WithMany("Listings")
+                        .HasForeignKey("ListingCategoryCategoryId")
+                        .HasConstraintName("fk_listings_listing_categories_listing_category_category_id");
 
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
@@ -634,6 +784,10 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_listings_users_seller_id");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("Modules.Listings.Models.ListingImage", b =>
@@ -667,7 +821,14 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Listings.Models.Listing", b =>
                 {
+                    b.Navigation("BookDetails");
+
                     b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("Modules.Listings.Models.ListingCategory", b =>
+                {
+                    b.Navigation("Listings");
                 });
 #pragma warning restore 612, 618
         }

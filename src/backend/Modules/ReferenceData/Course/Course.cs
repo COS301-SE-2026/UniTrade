@@ -7,6 +7,5 @@ public class Course
     public string CourseCode { get; set; } = null!;
     public string CourseName { get; set; } = null!;
 
-    public string? Faculty { get; set; }
-
+    public string Faculty { get; set; } = null!;
 }
