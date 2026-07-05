@@ -8,6 +8,6 @@ public interface IIdentityService
 {
     Task<User> RegisterAsync(RegisterDto dto);
     Task<User?> GetUserByEmailAsync(string email);
-    Task<string> LoginAsync(LoginDTO loginDto);
+    Task<string> LoginAsync(LoginDto loginDto);
     Task<object> GetMeAsync(string userId);
 }

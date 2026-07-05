@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Modules.Identity.Models.DTO
 {
-    public class LoginDTO
+    public class LoginDto
     {
         [Required]
         public string? Email { get; set; }

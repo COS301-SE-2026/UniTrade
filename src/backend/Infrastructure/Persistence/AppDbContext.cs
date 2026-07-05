@@ -178,7 +178,6 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_verification_set_current");
-                // tb.HasTrigger("tr_audit_verification_decision");
 
                 // NOTE: When we implement the AI Verification subsystem, add the missing constraints
                 tb.HasCheckConstraint(
@@ -229,7 +228,6 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_listings_updated_at");
-                //tb.HasTrigger("tr_audit_listing_status");
 
                 tb.HasCheckConstraint("chk_listing_price", "price > 0");
 
@@ -258,7 +256,6 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Description).IsRequired();
             entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
             entity.Property(x => x.Condition).HasMaxLength(5).IsRequired();
-            //entity.Property(x => x.ListingType).HasMaxLength(20).IsRequired();
 
             // book-specific
             // course id is only ever meant to be used by the book category, but due to latency of serial joins.., it's best of it stays here

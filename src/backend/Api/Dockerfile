@@ -22,4 +22,5 @@ EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
 COPY --from=build /app/publish .
+USER app
 ENTRYPOINT ["dotnet", "Api.dll"]
