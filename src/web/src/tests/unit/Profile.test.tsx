@@ -103,8 +103,6 @@ describe('Profile', () => {
             expect(mockClearUser).toHaveBeenCalledTimes(1)
             expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
         })
-    
-
 
     }) 
     
@@ -121,6 +119,15 @@ describe('Profile', () => {
             }
         )
 
+        it('closes the popup when cancel is clicked', async () => {
+            const user = userEvent.setup()
+            renderProfile()
+            await user.click(screen.getByText('Delete Account'))
+            await user.click(screen.getByLabelText('Close'))
+            expect(screen.queryByText("Are you sure you want to delete your account? This action cannot be undone.")).not.toBeInTheDocument()
+        })
+
     })
         
-})
+    })
+        
