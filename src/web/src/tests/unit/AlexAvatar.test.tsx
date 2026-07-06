@@ -5,6 +5,7 @@ import AlexAvatar from '../../pages/auth/AlexAvatar'
 describe('AlexAvatar', () => {
     it('pages renders without crashing or lagging', () => {
         render(<AlexAvatar />)
+        expect(screen.getByRole('button', {name: 'Chat with Alex'})).toBeInTheDocument()
     })
 
 
@@ -29,6 +30,27 @@ describe('AlexAvatar', () => {
         const handleClick = vi.fn()
         render(<AlexAvatar onClick={handleClick} />)
         fireEvent.click(screen.getByRole('button', { name: 'Chat with Alex' }))
+        expect(handleClick).toHaveBeenCalledTimes(1)
+    })
+
+     it('calls onClick when Space key is pressed', () => {
+        const handleClick = vi.fn()
+        render(<AlexAvatar onClick={handleClick} />)
+        fireEvent.click(screen.getByRole('button', { name: 'Chat with Alex' }))
+        expect(handleClick).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not call onClick for other keys', () => {
+        const handleClick = vi.fn()
+        render(<AlexAvatar onClick={handleClick} />)
+        fireEvent.keyDown(screen.getByRole('button', { name: 'Chat with Alex' }), { key: 'Tab' })
+        expect(handleClick).not.toHaveBeenCalled()
+    })
+
+    it('calls onClick when Enter key is pressed', () => {
+        const handleClick = vi.fn()
+        render(<AlexAvatar onClick={handleClick} />)
+        fireEvent.keyDown(screen.getByRole('button', { name: 'Chat with Alex' }), { key: 'Enter' })
         expect(handleClick).toHaveBeenCalledTimes(1)
     })
 
