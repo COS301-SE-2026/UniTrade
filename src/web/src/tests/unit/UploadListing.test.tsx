@@ -97,6 +97,8 @@ describe('UploadListing', () => {
 
   it('shows all 6 category buttons once categories load', async () => {
     renderUpload()
+    await screen.findByText('book')
+    
     expect(await screen.findByRole('button', { name: /^book$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^clothing$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^electronics$/i })).toBeInTheDocument()
