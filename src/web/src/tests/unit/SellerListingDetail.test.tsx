@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SellerListingDetail from '../../pages/seller/SellerListingDetail'
@@ -149,4 +149,87 @@ const renderDetail = (id = '42') =>
   expect(listingsService.getSellerListingById).not.toHaveBeenCalled()
   })
 
+ it('changes main image when thumbnail is clicked', async () => {
+    const { container } =renderDetail()
+
+    await waitFor(() => {
+      expect(screen.getByAltText('Biology Textbook 3rd Edition')).toBeInTheDocument()
+    })
+    const thumbnail = screen.getByAltText('thumbnail 2') 
+   await vi.importActual('@testing-library/react').then(async () => {
+      const { fireEvent } = await import('@testing-library/react')
+      fireEvent.click(thumbnail)
+    })
+
+    const mainImg= screen.getByAltText('Biology Textbook 3rd Edition')
+    expect(mainImg).toHaveAttribute('src', 'https://example.com/bio2.jpg')
+
+    expect(thumbnail).toHaveClass('border-navy-700')})
+
+    it('navigates back to the summary index when clicking the My Listings breadcrum link' ,async () => {
+      const {fireEvent} = await import('@testing-library/react')
+      renderDetail()
+      await waitFor(() => {
+        expect(screen.getByText('My Listings')).toBeInTheDocument()
+      })
+     
+      fireEvent.click(screen.getByText('My Listings'))
+      expect(mockNavigate).toHaveBeenCalledWith('/seller/listings')
+    })
+
+    it('navigates to the edit page when edit listing button is clicked', async () => {
+      const {fireEvent} = await import('@testing-library/react')
+      renderDetail()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /edit listing/i })).toBeInTheDocument()
+      })
+     
+      fireEvent.click(screen.getByRole('button', { name: /edit listing/i }))
+      expect(mockNavigate).toHaveBeenCalledWith('/seller/editListing/42')
+    })
+
+    it('aborts deletion silently if window popup rejected', async () => {
+      const {fireEvent} = await import('@testing-library/react')
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+      renderDetail()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /delete listing/i })).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: /delete listing/i }))
+      expect(confirmSpy).toHaveBeenCalled()
+      expect(listingsService.deleteListing).not.toHaveBeenCalled()
+    })
+
+    it('deleltes item record and forwards user back on successful deletion confirmation', async () => {
+      const {fireEvent} = await import('@testing-library/react')
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+      vi.mocked(listingsService.deleteListing).mockResolvedValue({} as any)
+      renderDetail()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /delete listing/i })).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: /delete listing/i }))
+      expect(confirmSpy).toHaveBeenCalled()
+      expect(listingsService.deleteListing).toHaveBeenCalledWith('42')
+      await waitFor(() => {
+        
+        expect(mockNavigate).toHaveBeenCalledWith('/seller/listings')
+      })})
+ 
+    it('displays error message if delete API request fails ', async () => {
+      const {fireEvent} = await import('@testing-library/react')
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      vi.mocked(listingsService.deleteListing).mockRejectedValue(new Error('API Error delete failed'))
+      renderDetail()
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /delete listing/i })).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: /delete listing/i }))
+      await waitFor(() => {
+        expect(screen.getByText(/failed to delete listing/i)).toBeInTheDocument()
+      })
+    })
   })
