@@ -31,6 +31,7 @@ describe('HelpCenter', () => {
 
     it('page renders without crashing or lagging ', () => {
         renderHelpCenter()
+        expect(screen.getByText('Help Center')).toBeInTheDocument()
     })
 
     it('shows the Help Center heading and the title', () => {
