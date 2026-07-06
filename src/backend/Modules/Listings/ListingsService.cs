@@ -198,29 +198,27 @@ await ApplyCategoryChangeAsync(listings, listingLookUp);
     }
 
     private async Task ApplyCategoryChangeAsync(UpdateListingDto listings, Listing listingLookUp)
+{
+    if (string.IsNullOrWhiteSpace(listings.CategoryName))
     {
-        if (!string.IsNullOrWhiteSpace(listings.CategoryName))
-        {
-            return;
-        }
-
-        var category = await _listings.ResolveByNameAsync(listings.CategoryName!.Trim());
-        if (category == null)
-        {
-            throw new ArgumentException("invalid_category");
-        }
-
-        bool isBook = string.Equals(category.Name, "book", StringComparison.OrdinalIgnoreCase);
-        if (!isBook && listings.BookDetails is not null)
-        {
-            throw new ArgumentException("book_fields_not_allowed");
-        }
-        if (!isBook)
-        {
-            listingLookUp.CourseId = null;
-        }
-        listingLookUp.CategoryId = category.CategoryId;
+        return; // no category change requested
     }
+
+    var category = await _listings.ResolveByNameAsync(listings.CategoryName!.Trim());
+    if (category == null)
+    {
+        throw new ArgumentException("invalid_category");
+    }
+
+    bool isBook = string.Equals(category.Name, "book", StringComparison.OrdinalIgnoreCase);
+    if (!isBook && listings.BookDetails is not null)
+    {
+        throw new ArgumentException("book_fields_not_allowed");
+    }
+
+    listingLookUp.CourseId = isBook ? listings.CourseId : null;
+    listingLookUp.CategoryId = category.CategoryId;
+}
 
     public async Task<bool> DeleteListings(Guid id, Guid callerId)
     {
