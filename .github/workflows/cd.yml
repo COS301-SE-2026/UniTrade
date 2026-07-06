@@ -1,39 +1,39 @@
-name: CD deploy to Azure
+name: CD - Deploy to Azure
 
-on: 
+on:
   push:
-    branches: ["dev","main"]
+    branches: ["feature/backend/unitTesting_p1"]
     paths:
       - "src/backend/**"
-      - "src/web"
+      - "src/web/**"
   workflow_dispatch:
-    
+
 permissions:
   id-token: write
-  contents: read 
+  contents: read
 
 concurrency:
-  group: cd-deploy-${{github.ref}}
+  group: cd-deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  deploy: 
+  build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      image-tag: ${{steps.set_tag.outputs.image_tag}}
+      image_tag: ${{ steps.set_tag.outputs.image_tag }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: login to Azure
+      - name: Login to Azure
         uses: azure/login@v2
-        with: 
+        with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: login to acr 
+      - name: Login to ACR
         env:
           ACR: ${{ secrets.ACR_REGISTRY }}
         run: az acr login --name "${ACR%%.*}"
@@ -42,10 +42,217 @@ jobs:
         id: set_tag
         run: echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
 
-      - name: build and push backend image
+      - name: Build and push Backend image
         run: |
-          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{ github.sha}} -f src/backend/Api/Dockerfile .
-          docker push ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{ github.sha }}
+          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{github.sha}} -f src/backend/Api/Dockerfile .
+          docker push ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{github.sha}}
 
+      - name: Build and push Frontend image
+        run: |
+          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}} -f src/web/Dockerfile .
+          docker push ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}}
 
-      
+  deploy-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+      RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      BACKEND_APP: unitrade-backend-staging
+      FRONTEND_APP: unitrade-frontend-staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Instal EF tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Run migrations (staging)
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+        run: dotnet ef database update --project ../Infrastructure --startup-project .
+
+      - name: Deploy backend green revision
+        id: backend_rev
+        run: |
+          SUFFIX="g${IMAGE_TAG:0:7}"
+          az containerapp update \
+              --name "$BACKEND_APP" --resource-group "$RG" \
+              --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
+              --revision-suffix "$SUFFIX"
+          echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy frontend green revision
+        id: front_rev
+        run: |
+          SUFFIX="g${IMAGE_TAG:0:7}"
+          az containerapp update \
+              --name "$FRONTEND_APP" --resource-group "$RG" \
+              --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
+              --revision-suffix "$SUFFIX"
+          echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+      - name: Wait for backend revision to be Running
+        run: |
+          az containerapp revision show \
+          --name "$BACKEND_APP" --resource-group "$RG" \
+          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}"\
+          --query "properties.healthState" -o tsv
+      - name: Health check staging backend (green)
+        run: |
+          FQDN=$(az containerapp revision show \
+          --name "$BACKEND_APP" --resource-group "$RG" \
+          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}"\
+           --query "properties.fqdn" -o tsv)
+          for i in $(seq 1 10); do
+             if curl -fsS "https://$FQDN/health"; then exit 0; fi
+             sleep 7
+          done
+          echo "Health check failed" && exit 1
+      - name: Shift traffic to green (backend)
+        run: |
+          az containerapp ingress traffic set\
+          --name "$BACKEND_APP" --resource-group "$RG" \
+          --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
+
+      - name: Shift traffic to green (frontend)
+        run: |
+          az containerapp ingress traffic set\
+          --name "$FRONTEND_APP" --resource-group "$RG" \
+          --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
+
+      - name: Smoke test staging
+        run: |
+          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+
+      - name: Deactivate old backend revisions
+        run: |
+          az containerapp revision list --name "$BACKEND_APP" --resource-group "$RG" \
+          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          while read -r rev; do
+            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$RG" --revision "$rev"
+          done
+      - name: Deactivate old frontend revisions
+        run: |
+          az containerapp revision list --name "$FRONTEND_APP" --resource-group "$RG" \
+          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          while read -r rev; do
+            az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$RG" --revision "$rev"
+          done
+
+  approval-gate:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production-approval
+    steps:
+      - run: echo "Approved for production deploy"
+
+  deploy-prod:
+    needs: [build-and-push, approval-gate]
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+      RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      BACKEND_APP: unitrade-backend
+      FRONTEND_APP: unitrade-frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Instal EF tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Run migrations (prod)
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING_PROD }}
+        run: dotnet ef database update --project ../Infrastructure --startup-project .
+
+      - name: Deploy backend green revision
+        id: backend_rev
+        run: |
+          SUFFIX="g${IMAGE_TAG:0:7}"
+          az containerapp update \
+              --name "$BACKEND_APP" --resource-group "$RG" \
+              --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
+              --revision-suffix "$SUFFIX"
+          echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy frontend green revision
+        id: front_rev
+        run: |
+          SUFFIX="g${IMAGE_TAG:0:7}"
+          az containerapp update \
+              --name "$FRONTEND_APP" --resource-group "$RG" \
+              --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
+              --revision-suffix "$SUFFIX"
+          echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+
+      - name: Health check staging backend (green)
+        run: |
+          FQDN=$(az containerapp revision show \
+          --name "$BACKEND_APP" --resource-group "$RG" \
+          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
+            --query "properties.fqdn" -o tsv)
+          for i in $(seq 1 10); do
+              if curl -fsS "https://$FQDN/health"; then exit 0; fi
+              sleep 7
+          done
+          echo "Health check failed" && exit 1
+      - name: Shift traffic to green (backend)
+        run: |
+          az containerapp ingress traffic set\
+          --name "$BACKEND_APP" --resource-group "$RG" \
+          --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
+
+      - name: Shift traffic to green (frontend)
+        run: |
+          az containerapp ingress traffic set\
+          --name "$FRONTEND_APP" --resource-group "$RG" \
+          --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
+
+      - name: Smoke test prod
+        run: |
+          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+
+      - name: Deactivate old backend revisions
+        run: |
+          az containerapp revision list --name "$BACKEND_APP" --resource-group "$RG" \
+          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          while read -r rev; do
+            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$RG" --revision "$rev"
+          done
+      - name: Deactivate old frontend revisions
+        run: |
+          az containerapp revision list --name "$FRONTEND_APP" --resource-group "$RG" \
+            --query "[?properties.trafficWeight=='0']name" -o tsv | \
+            while read -r rev; do
+              az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$RG" --revision "$rev"
+            done
