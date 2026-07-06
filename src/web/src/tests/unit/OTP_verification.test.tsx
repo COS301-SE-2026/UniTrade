@@ -318,7 +318,7 @@ it('enables Resend once the countdown reaches zero', () => {
 
 it('calls resendOtp, resets the timer, and clears the OTP boxes when Resend is clicked', async () => {
   vi.useFakeTimers()
-  vi.mocked(authService.resendOtp).mockResolvedValue(undefined as any)
+  vi.mocked(authService.resendOtp).mockResolvedValue(undefined)
   renderOTP()
   fillOtp('123456')
 
