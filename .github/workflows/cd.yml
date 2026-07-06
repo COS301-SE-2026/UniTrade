@@ -6,45 +6,46 @@ on:
     paths:
       - "src/backend/**"
       - "src/web"
-    workflow_dispatch:
+  workflow_dispatch:
     
-    permissions:
-      id-token: write
-      contents: read 
+permissions:
+  id-token: write
+  contents: read 
 
-    concurrency:
-      group: cd-deploy-${{github.ref}}
-      cancel-in-progress: false
+concurrency:
+  group: cd-deploy-${{github.ref}}
+  cancel-in-progress: false
 
 jobs:
-  runs-on: ubuntu-latest
-  outputs:
-    image-tag: ${{steps.set_tag.outputs.image_tag}}
+  deploy: 
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{steps.set_tag.outputs.image_tag}}
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: login to Azure
-      uses: azure/login@v2
-      with: 
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: login to Azure
+        uses: azure/login@v2
+        with: 
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: login to acr 
-      env:
-        ACR: ${{ secrets.ACR_REGISTRY }}
-      run: az acr login --name "${ACR%%.*}"
+      - name: login to acr 
+        env:
+          ACR: ${{ secrets.ACR_REGISTRY }}
+        run: az acr login --name "${ACR%%.*}"
 
-    - name: Set image tag
-      id: set_tag
-      run: echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+      - name: Set image tag
+        id: set_tag
+        run: echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
 
-    - name: build and push backend image
-      run: |
-        docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{ github.sha}} -f src/backend/Api/Dockerfile .
-        docker push ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{ github.sha }}
+      - name: build and push backend image
+        run: |
+          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{ github.sha}} -f src/backend/Api/Dockerfile .
+          docker push ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{ github.sha }}
 
 
       
