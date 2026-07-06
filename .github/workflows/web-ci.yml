@@ -59,7 +59,7 @@ jobs:
         working-directory: src/web
         run: npm run lint
 
-       - name: Validate frontend env
+      - name: Validate frontend env
         working-directory: src/web
         env: 
           VITE_API_URL: ${{secrets.VITE_API_URL}}
