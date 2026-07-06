@@ -79,6 +79,9 @@ jobs:
 
       - name: Instal EF tool
         run: dotnet tool install --global dotnet-ef
+      
+      - name: restore dependencies
+        run: dotnet restore Unitrade.sln
 
       - name: Run migrations (staging)
         working-directory: src/backend/Api
