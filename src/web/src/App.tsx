@@ -17,6 +17,7 @@ import AdminVerifications from "./pages/admin/AdminVerifications";
 import AdminListingQueue from "./pages/admin/AdminListingQueue";
 import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
+import Wishlist from "./pages/buyer/Wishlist";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
@@ -69,6 +70,7 @@ export default function App() {
         {/*the id can be anything for now since the data is hardcoded*/}
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings" element={<BrowseListings />} />
+        <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
