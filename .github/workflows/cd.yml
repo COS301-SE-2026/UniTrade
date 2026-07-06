@@ -87,6 +87,7 @@ jobs:
         working-directory: src/backend/Api
         env:
           ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+          Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
 
       - name: Deploy backend green revision
