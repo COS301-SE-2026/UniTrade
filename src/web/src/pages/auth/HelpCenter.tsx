@@ -311,6 +311,7 @@ export default function HelpCenter() {
               </div>
               <button
                 onClick={() => setChatOpen(false)}
+                aria-label="Close chat"
                 className="ml-auto w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
               >
                 <IconX size={16} />
@@ -361,6 +362,7 @@ export default function HelpCenter() {
               <button
                 onClick={sendMessage}
                 disabled={isLoading || !inputValue.trim()}
+                aria-label="Send message"
                 className="w-10 h-10 bg-[#003366] text-white rounded-xl flex items-center justify-center disabled:opacity-40 hover:bg-[#004080] transition-colors flex-shrink-0"
               >
                 <IconSend size={16} />
