@@ -42,7 +42,9 @@ if(!user) return null;
 const handleLogout = async () => {
   try {
     await authService.logout();
-  }catch { }finally{
+  }catch {
+    //Empty
+  }finally{
     clearUser();
     navigate("/auth/login");}
   };

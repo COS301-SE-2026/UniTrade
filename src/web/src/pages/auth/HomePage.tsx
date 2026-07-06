@@ -16,6 +16,7 @@ import Play from "../../assets/Play.png"
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../../components/layout/Reveal';
 
+
 interface StatProps {
   number: string;
   label: string;
@@ -101,12 +102,14 @@ export function BenefitList({ title, items }: BenefitListProps) {
       </h3>
       <ul className="space-y-4">
         {items.map((item, index) => (
-          <li key={index} className="flex items-start gap-3 text-sm">
-            <div className="mt-1 text-green-500">
-              <IconPoint size={18} />
-            </div>
-            <span className="text-gray-700 dark:text-gray-300">{item}</span>
-          </li>
+          <Reveal key={index} delay={index * 80}>
+            <li className="flex items-start gap-3 text-sm">
+              <div className="mt-1 text-green-500">
+                <IconPoint size={18} />
+              </div>
+              <span className="text-gray-700 dark:text-gray-300">{item}</span>
+            </li>
+          </Reveal>
         ))}
       </ul>
     </div>
@@ -138,8 +141,8 @@ function Navbar() {
           <a href="#problem" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The Problem</a>
           <a href="#solution" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The Solution</a>
           <a href="#how-it-works" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">How it works</a>
-          <a href="#for-buyers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">For buyers</a>
-          <a href="#for-sellers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The sellers</a>
+          <a href="#for-buyerssellers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">For buyers</a>
+          <a href="#for-buyerssellers" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">The sellers</a>
         </div>
 
         <div className="flex items-center gap-4">
@@ -151,6 +154,9 @@ function Navbar() {
 
           <button
             className="md:hidden"
+            data-testid="mobile-menu-toggle"
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24" stroke="currentColor">
@@ -163,12 +169,12 @@ function Navbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden border-t bg-white dark:bg-navy-800 py-4 px-6 space-y-4 text-sm">
-          <a href="#problem" className="block py-2">The Problem</a>
-          <a href="#solution" className="block py-2">The Solution</a>
-          <a href="#how-it-works" className="block py-2">How it works</a>
-          <a href="#for-buyerssellers" className="block py-2">For buyers</a>
-          <a href="#for-buyerssellers" className="block py-2">For sellers</a>
+        <div data-testid="mobile-menu" className="md:hidden border-t bg-white dark:bg-navy-800 py-4 px-6 space-y-4 text-sm">
+          <a href="#problem" className="block py-2" onClick={() => setIsMenuOpen(false)}>The Problem</a>
+          <a href="#solution" className="block py-2" onClick={() => setIsMenuOpen(false)}>The Solution</a>
+          <a href="#how-it-works" className="block py-2" onClick={() => setIsMenuOpen(false)}>How it works</a>
+          <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For buyers</a>
+          <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For sellers</a>
         </div>
       )}
     </nav>
@@ -183,7 +189,7 @@ interface AlexAvatarProps {
   onClick?: () => void;
 }
 
-function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
+export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   const [stage, setStage] = useState<AvatarStage>('thinking');
   const [cycleKey, setCycleKey] = useState(0);
 
@@ -218,6 +224,7 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
         : 'bg-blue-400'
   return (
     <div
+     data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
@@ -260,55 +267,75 @@ function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
   )
 }
 function Firstpage() {
+  const navigate = useNavigate()
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-white" />
       <div className="absolute inset-0 z-10">
-      <svg
-      className="absolute inset-0 w-full h-full"
-      viewBox="0 0 1000 1000"
-      preserveAspectRatio="none"
-      >
-        <path 
-        d="M0,0
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1000 1000"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,0
         L780,0
         C 820, 250 650, 500 620,1000
         L0,1000 Z"
-        fill="#0d1f4e"
-        />
-      </svg>
+            fill="#0d1f4e"
+          />
+        </svg>
       </div>
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
             <div className="inline-flex items-center gap-2 bg-white/10 text-blue-40 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
-        <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
-        MADE FOR SA UNIVERSITY STUDENTS
+              <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
+              MADE FOR SA UNIVERSITY STUDENTS
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
+               animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
+              Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
+            </h1>
+
+            <p className="mt-6 text-gray-400
+              animate-fade-up [animation-delay:250ms] [animation-fill-mode:both]">
+              UniTrade is the verified peer-to-peer marketplace for South African students.
+              No shipping, no strangers - just your campus community.
+            </p>
+
+            <div className="grid grid-cols-3 gap-6 mt-12
+                animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+              <Stat number="+5" label="SA UNIVERSITIES" />
+              <Stat number="100%" label="VERIFIED STUDENTS" />
+              <Stat number="0" label="SHIPPING FEES" />
+            </div>
+
+            <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+              <button
+                onClick={() => navigate('/auth/Signup')}
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                SIGNUP
+                <IconArrowRight size={18} />
+              </button>
+
+              <button
+                onClick={() => navigate('/auth/Login')}
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                LOGIN
+                <IconArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+
+
+          <div className="flex-1 flex justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+            <div className="lg:translate-x-24" data-testid="alex-avatar-wrapper">
+              <AlexAvatar />
+            </div>
+          </div>
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto max-w-100">
-          Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
-        </h1>
-       
-       <p className="mt-6 text-gray-400">
-        UniTrade is the verified peer-to-peer marketplace for South African students.
-        No shipping, no strangers - just your campus community.
-       </p>
-
-       <div className="grid grid-cols-3 gap-6 mt-12">
-        <Stat number="+5" label="SA UNIVERSITIES" />
-        <Stat number="100%" label="VERIFIED STUDENTS" />
-        <Stat number="0" label="SHIPPING FEES" />
-       </div>
       </div>
-    
-
-    <div className="flex-1 flex justify-end pr-4 lg:pr-12">
-      <div className="lg:translate-x-24">
-        <AlexAvatar />
-      </div>
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
@@ -328,20 +355,15 @@ export function Theproblem() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <ProblemCard
-            icon={<IconShield size={28} className="text-red-600" />}
-            title="Safety concerns"
-            description="Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms." />
-
-          <ProblemCard
-            icon={<IconUsers size={28} className="text-amber-600" />}
-            title="Lack of accountability"
-            description="Anonymous sellers can disappear after a bad transaction. There is no community to hold people accountable." />
-
-          <ProblemCard
-            icon={<IconMapPin size={28} className="text-blue-600" />}
-            title="Inconvenience meetup locations"
-            description="Coordinating with people across a city or country is time consuming. Students need a marketplace that works within their daily campus routine." />
+          {[
+            { icon: <IconShield size={28} className="text-red-600" />, title: "Safety concerns", description: "Meeting strangers from the internet creates real risks and major safety concerns. Students have been scammed, robbed, or worse through anonymous platforms." },
+            { icon: <IconUsers size={28} className="text-amber-600" />, title: "Lack of accountability", description: "Anonymous sellers can disappear after a bad transaction. There is not community to hold people accountable." },
+            { icon: <IconMapPin size={28} className="text-blue-600" />, title: "Inconvenient meetup locations", description: "Coordinating with people across a city or country is time consuming. Students need a marketplace that works within there daily campus routine." },
+          ].map((p, i) => (
+            <Reveal key={p.title} delay={i * 120}>
+              <ProblemCard {...p} />
+            </Reveal>
+          ))}
         </div>
 
       </div>
@@ -349,52 +371,10 @@ export function Theproblem() {
   )
 }
 
-function Footer() {
-  const navigate = useNavigate();
-  return (
-    <footer className = "bg-white border-t border-gray-100 px-6 md:px-12 py-12">
-      <div className = "max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10 md:gap-6">
-
-          <div className = "flex items-center gap-3">
-            <div className = "w-10 h-10 rounded-full overflow-hidden bg-navy-700 ring-1 ring-gray-100 flex items-center justify-center flex-shrink-0">
-              <img
-                src={logo}
-                alt="UniTrade logo"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src =
-                  "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
-                }}
-                />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-navy-700">UniTrade</p>
-                <p className="text-xs text-gray-500">DevNexus28@gmail.com</p>
-              </div>
-          </div>
-
-          <button
-          onClick={() => navigate('/auth/help-center')}
-          className="text-sm text-gray-500 hover:text-navy-700 transition-colors cursor-pointer"
-        >
-          Help Center
-        </button>
-
-      </div>
-
-      <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-50">
-        <p className="text-xs text-gray-400 text-center md:text-left">
-          © {new Date().getFullYear()} UniTrade. All rights reserved.
-        </p>
-      </div>
-    </footer>
-          
-  );
-}
 
 export function Thesolution() {
   return (
-    <div id="for-buyerssellers" className="bg-white dark:bg-navy-950 py-20">
+    <div id="solution" className="bg-white dark:bg-navy-950 py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
@@ -405,36 +385,18 @@ export function Thesolution() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <SolutionCard
-            icon={<IconUsers size={26} />}
-            title="Verified students only"
-            description="Every use is verified against their university student email. No outsiders, no scammers - just you campus community."
-          />
-          <SolutionCard
-            icon={<IconMapPin size={26} />}
-            title="Meet on campus"
-            description="Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS."
-          />
-          <SolutionCard
-            icon={<IconLock size={26} />}
-            title="Secure payments via OZOW"
-            description="Pay instantly via OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation."
-          />
-          <SolutionCard
-            icon={<IconRobot size={26} />}
-            title="AI listing verification"
-            description="Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them."
-          />
-          <SolutionCard
-            icon={<IconPackage size={26} />}
-            title="Bundle packs"
-            description="First year? Reserve a full set of textbooks from one seller is a single transaction. No need to meet 10 different people."
-          />
-          <SolutionCard
-            icon={<IconStar size={26} />}
-            title="Trust and reputation"
-            description="Every buyer and seller builds a reputation score from real transactions. See ratings and reviews before you commit."
-          />
+          {[
+            { icon: <IconShield size={28} />, title: "Verified students only", description: "Every user is verified against their university student email. No outsiders, no scammers - just you campus community." },
+            { icon: <IconMapPin size={28} />, title: "Meet on campus", description: "Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS." },
+            { icon: <IconLock size={28} />, title: "Secure payments via OZOW", description: "Pay instantly at the meetup using OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
+            { icon: <IconRobot size={28} />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
+            { icon: <IconPackage size={28} />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
+            { icon: <IconStar size={28} />, title: "Trust and reputation", description: "Every buyer and seller builds a reputation score from real transactions. See ratings and reviews rates before you commit." },
+          ].map((p, i) => (
+            <Reveal key={p.title} delay={i * 120}>
+              <SolutionCard {...p} />
+            </Reveal>
+          ))}
         </div>
       </div>
     </div>
@@ -451,11 +413,13 @@ export function Howitworks() {
 
   return (
     <div id="how-it-works" className="bg-white mx-auto px-6 py-20">
-      <div className="text-center mb-12">
-        <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
-        <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
-        <p className="mt-3 text-gray-600 dark:text-gray-400">The whole process is designed around campus life fast, safe, and simple.</p>
-      </div>
+      <Reveal>
+        <div className="text-center mb-12">
+          <span className="uppercase text-s tracking-widest font-mono text-blue-400">HOW IT WORKS</span>
+          <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">From listing to handover in 4 steps</h2>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">The whole process is designed around campus life fast, safe, and simple.</p>
+        </div>
+      </Reveal>
 
       <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-start relative">
         {steps.map((s, i) => (
@@ -519,28 +483,74 @@ export function BuyersSellers() {
 export function GetApp() {
   return (
     <div className="bg-navy-700 py-16">
-    <div className="max-w-4xl mx-auto px-6 text-center">
-      <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
-      <p className="text-blue-200 mt-3">Available on IOS and Android</p>
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
+        <p className="text-blue-200 mt-3">Available on IOS and Android</p>
 
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
-        <a href="#" className="block">
-          <img 
-          src={Apple}
-          alt="Download on the App Store"
-          className="h-14"
-          />
-        </a>
-        <a href="#" className="block">
-          <img 
-            src={Play}
-            alt="GET IT ON Google Play"
-            className="h-14"
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
+          <a href="#" className="block">
+            <img
+              src={Apple}
+              alt="Download on the App Store"
+              className="h-14"
             />
-        </a>
+          </a>
+          <a href="#" className="block">
+            <img
+              src={Play}
+              alt="GET IT ON Google Play"
+              className="h-14"
+            />
+          </a>
+        </div>
       </div>
     </div>
-    </div>
+  )
+}
+
+export function Footer() {
+  const navigate = useNavigate();
+  return (
+    <footer className="bg-white text-gray">
+      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
+        <div>
+          <div className="mt-8">
+            <p className="text-xs">CONTACT INFO</p>
+            <p className="text-sm mt-2">+27 123 456 789</p>
+            <p className="text-sm">devenexus28@gmail.com</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs mb-4">SUPPORT</p>
+          <div className="space-y-2 text-sm">
+            
+            <ul className="flex flex-col gap-1">
+            <li
+               onClick={() => navigate('/auth/help-center')}
+               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+               >
+                Help Center
+               </li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <p className="text-xs mb-4">SOCIAL MEDIA</p>
+          <div className="flex gap-6 text-2xl">
+            <a href="#" className="hover:text-white transition-colors">𝕏</a>
+            <a href="#" className="hover:text-white transition-colors">📸</a>
+            <a href="#" className="hover:text-white transition-colors">𝕗</a>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
+        © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
+      </div>
+
+    </footer>
   )
 }
 
@@ -555,7 +565,6 @@ export default function HomePage() {
       <BuyersSellers />
       <GetApp />
       <Footer />
-
     </div>
   )
 }
