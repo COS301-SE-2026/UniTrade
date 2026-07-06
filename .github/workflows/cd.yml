@@ -81,7 +81,7 @@ jobs:
         run: dotnet tool install --global dotnet-ef
       
       - name: restore dependencies
-        run: dotnet restore Unitrade.sln
+        run: dotnet restore UniTrade.sln
 
       - name: Run migrations (staging)
         working-directory: src/backend/Api
