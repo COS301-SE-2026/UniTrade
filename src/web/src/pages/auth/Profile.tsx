@@ -18,7 +18,7 @@ function ProfileRow({icon,label,onClick,danger}:ProfileRowProps){
     onClick={onClick}
     className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text-left">
 
-<span className={'flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}'}>
+<span className={`flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}`}>
   <span className={danger ? "text-red-400" : "text-gray-400"}>
     {icon}
   </span>
@@ -64,8 +64,8 @@ const handleDeleteAccount = async () => {
 return (
 <div className="max-w-xl mx-auto min-h-screen bg-gray-50 pb-6">
 <div className="bg-navy-700 rounded-t-3xl px-6 pt-6 pb-6 shadow-md transition-all">
-
-  <div className="flex flex-col item-start mb-4">
+<div className="flex items-center justify-between mb-6">
+  <div className="flex flex-col items-start mb-4">
     <button
     onClick={() => navigate(-1)}
     className="text-white/70 hover:text-white transition-colors mb-2"
@@ -74,8 +74,17 @@ return (
       </button>
     <h1 className="text-2xl font-bold text-white">Profile</h1>
     </div>
+     
+   <button 
+   onClick={() => navigate("/profile/settings")}
+  className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all mt-4"
+   aria-label="Settings">
+    <IconSettings size={20} />
+    </button>
+    </div>
 
-    <div className="flex items-center gap-5 mb-5 mb-6">
+
+    <div className="flex items-center gap-5 mb-6">
       <div className="relative flex-shrink-0">
         <div className="w-20 h-20 rounded-full bg-white text-navy-700 flex item-center justify-center text-2xl font-bold shadow-lg">
           {user.initials}
@@ -95,23 +104,17 @@ Student
 </div>
 </div>
 
-<div className="flex items-strart gap-4 pt-4 border-t border-white/10 mt-2">
+<div className="flex items-start gap-4 pt-4 border-t border-white/10 mt-2">
 <div className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center flex-shrink-0">
   <IconSchool size={18} />
 </div>
-
-
-
-
-
-
 <div className="flex flex-col justify-center">
 
     <p className="text-sm font-semibold text-white">
       {user.course ?? "Course not set"}
       </p>
       <p className="text-xs text-white/60 mt-0.5">
-      {user.year ? 'Year ${user.year}': "Year not set" }
+      {user.year ? `Year ${user.year}`: "Year not set" }
       </p>
       </div>
       </div>
