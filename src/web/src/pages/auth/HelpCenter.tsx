@@ -108,7 +108,7 @@ export default function HelpCenter() {
         },
         {
           keywords : ['payout', 'pay', 'paid', 'seller', 'receive money','business day'],
-          reply: 'Payours to sellers usually take about 2-3 business days after the buyers paymennt is confirmed.',
+          reply: 'Payouts to sellers usually take about 2-3 business days after the buyers paymennt is confirmed.',
           faqIndex : 1,
         },
         {
