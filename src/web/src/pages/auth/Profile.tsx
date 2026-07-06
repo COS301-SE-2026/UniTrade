@@ -1,6 +1,7 @@
 import { useNavigate} from "react-router-dom";
 import { useState } from "react";
-import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash, IconLogout, IconAlertTriangle, IconX, IconSchool} from "@tabler/icons-react";
+import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash,
+   IconLogout, IconAlertTriangle, IconX, IconSchool,IconArrowLeft, IconPencil} from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
 
@@ -41,8 +42,7 @@ if(!user) return null;
 const handleLogout = async () => {
   try {
     await authService.logout();
-  }catch {
-  }finally{
+  }catch { }finally{
     clearUser();
     navigate("/auth/login");}
   };
@@ -60,41 +60,58 @@ const handleDeleteAccount = async () => {
 
 
 return (
-<div className="max-w-xl mx-auto">
-<div className="bg-navy-700 rounded-t-3xl px-6 pt-8 pb-10">
-  <div className="flex item-center justify-between mb-8">
-    <h1 className="text-2xl font-bold text-white">Profile</h1>
-    <button 
-    onClick={() => navigate("/profile/settings")}
-    className="text-white/70 hover:text-white transition-colors"
-    aria-label="Settings">
-      <IconSettings size={22} />
+<div className="max-w-xl mx-auto min-h-screen bg-gray-50 pb-6">
+<div className="bg-navy-700 rounded-t-3xl px-6 pt-6 pb-6 shadow-md transition-all">
+
+  <div className="flex flex-col item-start mb-4">
+    <button
+    onClick={() => navigate(-1)}
+    className="text-white/70 hover:text-white transition-colors mb-2"
+    aria-label="Back">
+      <IconArrowLeft size={22} />
       </button>
-  </div>
-  <div className="flex items-center gap-5">
-<div className="w-20 h-20 rounded-full bg-white text-navy-700 flex items-center justify-center text-2xl font-bold shadow-lg flex-shrink-0">
-{user.initials}
-</div>
-<div>
+    <h1 className="text-2xl font-bold text-white">Profile</h1>
+    </div>
 
-<p className="text-base font-bold text-white">
-  {user.name}
-</p>
-</div>
+    <div className="flex items-center gap-5 mb-5 mb-6">
+      <div className="relative flex-shrink-0">
+        <div className="w-20 h-20 rounded-full bg-white text-navy-700 flex item-center justify-center text-2xl font-bold shadow-lg">
+          {user.initials}
+        </div>
+    
+    </div>
+
+    <div>
+
+      <p className="text-base font-bold text-white">
+        {user.name}
+      </p>
+
+      <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold mt-1">
+Student
+</span>
 </div>
 </div>
 
-<div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 px-5 py-4 flex items-center gap-3">
-  <div className="w-9 h-9 rounded-full bg-sky-50 text-sky-500 flex item-center justify-center flex-shirnk-0">
-  <IconSchool size={18}/>
-  </div>
-  <div>
-    <p className="text-sm font-semibold text-navy-900">
+<div className="flex items-strart gap-4 pt-4 border-t border-white/10 mt-2">
+<div className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center flex-shrink-0">
+  <IconSchool size={18} />
+</div>
+
+
+
+
+
+
+<div className="flex flex-col justify-center">
+
+    <p className="text-sm font-semibold text-white">
       {user.course ?? "Course not set"}
       </p>
-      {user.year && (
-        <p className="text-xs text-gray-400">Year {user.year}</p>
-      )}
+      <p className="text-xs text-white/60 mt-0.5">
+      {user.year ? 'Year ${user.year}': "Year not set" }
+      </p>
+      </div>
       </div>
       </div>
 
