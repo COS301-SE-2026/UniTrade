@@ -24,6 +24,7 @@ const renderSellerDashboard = () =>
 
     it('the seller dashboard appears up without lagging or crashing', () => {
         renderSellerDashboard()
+        expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
     })
 
     it('shows the Total Orders card', () => {

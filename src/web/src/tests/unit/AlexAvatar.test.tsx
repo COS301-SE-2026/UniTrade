@@ -5,6 +5,7 @@ import AlexAvatar from '../../pages/auth/AlexAvatar'
 describe('AlexAvatar', () => {
     it('pages renders without crashing or lagging', () => {
         render(<AlexAvatar />)
+        expect(screen.getByRole('button', {name: 'Chat with Alex'})).toBeInTheDocument()
     })
 
 

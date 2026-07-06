@@ -16,7 +16,7 @@ export default function AlexAvatar({ isThinking = true, className = "", onClick,
       tabIndex = {0}
       aria-label = "Chat with Alex"
       onKeyDown = {(e) => {
-        if (e.key === 'Enter' || e.key === '') onClick?.(); 
+        if (e.key === 'Enter' || e.key === ' ') onClick?.(); 
       }}
       {... props}
       >
