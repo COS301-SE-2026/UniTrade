@@ -38,6 +38,7 @@ describe('BuyerDashboard', () => {
 
     it('student dashboard appears up without crashing or lagging', () => {
         renderBuyerDashboard()
+        expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
     })
 
     it('shows the welcome message with the users name', () => {

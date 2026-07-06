@@ -32,6 +32,7 @@ const renderHomePage = () =>
 describe('HomePage', () => {
     it('home page appears up without crashing or lagging', () => {
         renderHomePage()
+        expect(screen.getByRole('navigation')).toBeInTheDocument()
     })
 })
 
