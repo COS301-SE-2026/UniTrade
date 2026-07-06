@@ -25,12 +25,12 @@ namespace Infrastructure.Persistence.Migrations
             migrationBuilder.Sql(
                 @"INSERT INTO unitrade.universities(university_id,name,email_domain,is_active)
                     VALUES
-                        (1,'University of Cape Town', 'uct.ac.za'), 
-                        (2,'University of Pretoria', 'tuks.co.za'), 
-                        (3,'University of the Witwatersrand', 'wits.ac.za'), 
-                        (4,'Stellenbosch University', 'sun.ac.za'), 
-                        (5,'University of Johannesburg', 'uj.ac.za'), 
-                        (6,'Walter Sisulu University', 'mywsu.ac.za');
+                        (1,'University of Cape Town', 'uct.ac.za',true), 
+                        (2,'University of Pretoria', 'tuks.co.za',true), 
+                        (3,'University of the Witwatersrand', 'wits.ac.za',true), 
+                        (4,'Stellenbosch University', 'sun.ac.za',true), 
+                        (5,'University of Johannesburg', 'uj.ac.za',true), 
+                        (6,'Walter Sisulu University', 'mywsu.ac.za',true);
                     ON CONFLICT DO NOTHING;
                     
 
