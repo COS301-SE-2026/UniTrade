@@ -131,4 +131,22 @@ const renderDetail = (id = '42') =>
     })
   })
 
+  it('renders error state when the API call fails',async () => {
+    vi.mocked(listingsService.getSellerListingById).mockRejectedValue(new Error('API Error'))
+    renderDetail()
+    await waitFor(() => {
+      expect(screen.getByText(/failed to load listing/i)).toBeInTheDocument()
+    })
+  })
+
+  it('does not fetch listing details when id is missing',() => 
+  {
+    render(<MemoryRouter initialEntries={['/seller/listings/']}>
+      <Routes>
+        <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
+      </Routes>
+    </MemoryRouter>)
+  expect(listingsService.getSellerListingById).not.toHaveBeenCalled()
+  })
+
   })

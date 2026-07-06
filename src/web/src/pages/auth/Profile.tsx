@@ -1,7 +1,7 @@
 import { useNavigate} from "react-router-dom";
 import { useState } from "react";
 import { IconSettings,IconHistory, IconChevronRight, IconShieldLock, IconTrash,
-   IconLogout, IconAlertTriangle, IconX, IconSchool,IconArrowLeft, IconPencil} from "@tabler/icons-react";
+   IconLogout, IconAlertTriangle, IconX, IconSchool,IconArrowLeft,} from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
 
