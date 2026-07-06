@@ -13,6 +13,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconX,
+  IconShoppingBag,IconHeart, IconBookmark, IconMessage, IconUser
 } from '@tabler/icons-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
@@ -36,19 +37,19 @@ const buyerNav: NavSection[] = [
     items: [
       { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      /*{ label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
+      { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
       { label: 'My Wishlist', to: '/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'Reserved', to: '/reserved', icon: <IconBookmark size={18} />, badge: 2 },*/
+      { label: 'Reserved', to: '/reserved', icon: <IconBookmark size={18} />, badge: 2 },
     ],
   },
-  /*{
+  {
     heading: 'Account',
     items: [
       { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
-      { label: 'Profile', to: '/profile', icon: <IconUser size={18} /> },
-      { label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      //{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
-  },*/
+  },
 ]
 
 const sellerNav: NavSection[] = [
@@ -58,16 +59,17 @@ const sellerNav: NavSection[] = [
       { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
+      { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} />},
     ],
   },
-  /*{
+  {
     heading: 'Account',
     items: [
       { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
-      { label: 'Profile', to: '/profile', icon: <IconUser size={18} /> },
-      { label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      //{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
-  },*/
+  },
 ]
 
 const adminNav: NavSection[] = [
@@ -96,10 +98,10 @@ interface UserPopoverProps {
   roleLabel: string
   onClose: () => void
   onLogout: () => void 
-  onViewProfile: () => void
+  
 }
 function UserPopover({
-  name, initials, roleLabel, onClose, onLogout, onViewProfile,
+  name, initials, roleLabel, onClose, onLogout,
 }: UserPopoverProps){
   const ref = useRef<HTMLDivElement>(null)
 
@@ -130,8 +132,7 @@ function UserPopover({
       </div>
       <div className="flex items-center gap-3 mb-5">
         <button
-          onClick={onViewProfile}
-          title="View Profile"
+
           className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
         >
           {initials}
@@ -305,10 +306,6 @@ export default function Sidebar() {
                }
                onClose={() => setShowPopover(false)}
                onLogout={handleLogout}
-               onViewProfile={() => {
-                setShowPopover(false)
-                navigate('/auth/profile')
-               }}
                />
           )}
         </div>
