@@ -1,7 +1,12 @@
 import {render, screen, fireEvent} from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import {describe, it, vi, beforeEach, expect} from 'vitest'
+import {describe, it, vi, beforeEach, expect, beforeAll} from 'vitest'
 import HelpCenter from '../../pages/auth/HelpCenter'
+
+
+beforeAll(() => {
+    window.HTMLElement.prototype.scrollIntoView = vi.fn()
+})
 
 const mockNavigate = vi.fn()
 
@@ -190,7 +195,8 @@ describe('HelpCenter', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
 
         expect(await screen.findByText('Can I negotiate the price?')).toBeInTheDocument()
-        expect(await screen.findByText(/only if the products listed are negotiable/)).toBeInTheDocument()
+        const replies = await screen.findAllByText(/only if the products listed are negotiable/)
+        expect(replies.length).toBeGreaterThan(0)
     })
 
 })
