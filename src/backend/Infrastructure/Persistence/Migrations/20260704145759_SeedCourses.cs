@@ -30,7 +30,7 @@ namespace Infrastructure.Persistence.Migrations
                         (3,'University of the Witwatersrand', 'wits.ac.za',true), 
                         (4,'Stellenbosch University', 'sun.ac.za',true), 
                         (5,'University of Johannesburg', 'uj.ac.za',true), 
-                        (6,'Walter Sisulu University', 'mywsu.ac.za',true);
+                        (6,'Walter Sisulu University', 'mywsu.ac.za',true)
                     ON CONFLICT DO NOTHING;
                     
 
