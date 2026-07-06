@@ -150,8 +150,7 @@ const renderDetail = (id = '42') =>
   })
 
  it('changes main image when thumbnail is clicked', async () => {
-    
-
+    renderDetail()
     await waitFor(() => {
       expect(screen.getByAltText('Biology Textbook 3rd Edition')).toBeInTheDocument()
     })
@@ -204,8 +203,7 @@ const renderDetail = (id = '42') =>
     it('deleltes item record and forwards user back on successful deletion confirmation', async () => {
       const {fireEvent} = await import('@testing-library/react')
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(listingsService.deleteListing).mockResolvedValue({} as any)
+      vi.mocked(listingsService.deleteListing).mockResolvedValue(undefined)
       renderDetail()
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /delete listing/i })).toBeInTheDocument()
