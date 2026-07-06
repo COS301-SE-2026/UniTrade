@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SellerListingDetail from '../../pages/seller/SellerListingDetail'
@@ -150,7 +150,7 @@ const renderDetail = (id = '42') =>
   })
 
  it('changes main image when thumbnail is clicked', async () => {
-    const { container } =renderDetail()
+    
 
     await waitFor(() => {
       expect(screen.getByAltText('Biology Textbook 3rd Edition')).toBeInTheDocument()
@@ -204,6 +204,7 @@ const renderDetail = (id = '42') =>
     it('deleltes item record and forwards user back on successful deletion confirmation', async () => {
       const {fireEvent} = await import('@testing-library/react')
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(listingsService.deleteListing).mockResolvedValue({} as any)
       renderDetail()
       await waitFor(() => {
