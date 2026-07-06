@@ -2,7 +2,7 @@ name: CD deploy to Azure
 
 on: 
   push:
-    branches: ["dev","main","feature/backend/unitTesting_p1"]
+    branches: ["dev","main"]
     paths:
       - "src/backend/**"
       - "src/web"
