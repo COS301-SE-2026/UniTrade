@@ -90,6 +90,7 @@ jobs:
         working-directory: src/backend/Api
         env:
           ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+          #do it the longer way after deploying!
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
 
@@ -116,13 +117,13 @@ jobs:
         run: |
           az containerapp revision show \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}"\
+          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
           --query "properties.healthState" -o tsv
       - name: Health check staging backend (green)
         run: |
           FQDN=$(az containerapp revision show \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}"\
+          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
            --query "properties.fqdn" -o tsv)
           for i in $(seq 1 10); do
              if curl -fsS "https://$FQDN/health"; then exit 0; fi
@@ -131,13 +132,13 @@ jobs:
           echo "Health check failed" && exit 1
       - name: Shift traffic to green (backend)
         run: |
-          az containerapp ingress traffic set\
+          az containerapp ingress traffic set \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
 
       - name: Shift traffic to green (frontend)
         run: |
-          az containerapp ingress traffic set\
+          az containerapp ingress traffic set \
           --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
           --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
 
@@ -174,9 +175,10 @@ jobs:
     environment: production
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
-      BACKEND_APP: unitrade-backend
-      FRONTEND_APP: unitrade-frontend
+      BACKEND_RG: unitrade-BackEnd
+      FRONTEND_RG: unitrade-FrontEnd
+      BACKEND_APP: unitrade-backend-staging
+      FRONTEND_APP: unitrade-frontend-staging
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -195,10 +197,14 @@ jobs:
       - name: Instal EF tool
         run: dotnet tool install --global dotnet-ef
 
+      - name: restore dependencies
+        run: dotnet restore UniTrade.sln
+
       - name: Run migrations (prod)
         working-directory: src/backend/Api
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING_PROD }}
+          Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
 
       - name: Deploy backend green revision
@@ -234,13 +240,13 @@ jobs:
           echo "Health check failed" && exit 1
       - name: Shift traffic to green (backend)
         run: |
-          az containerapp ingress traffic set\
+          az containerapp ingress traffic set \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
 
       - name: Shift traffic to green (frontend)
         run: |
-          az containerapp ingress traffic set\
+          az containerapp ingress traffic set \
           --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
           --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
 
