@@ -116,7 +116,7 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddControllers();
 
-var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | SpringSplitOptions.TrimEntries?? new [] {"http://localhost:3000", "http://localhost:8080"};
+var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | SpringSplitOptions.TrimEntries)?? new [] {"http://localhost:3000", "http://localhost:8080"};
 
 builder.Services.AddCors(options =>
 {
