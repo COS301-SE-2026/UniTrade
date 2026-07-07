@@ -14,9 +14,9 @@ const UploadListing: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<string>("");
- type ListingConditionUi = "Like_New" | "Good" | "Fair" | "Worn";
+  type ListingConditionUi = "Like_New" | "Good" | "Fair" | "Worn";
 
-const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
+  const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
   const [title, setTitle] = useState("");
   const [customField, setCustomField] = useState("");
   const [description, setDescription] = useState("");
@@ -233,11 +233,10 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                       key={cat.id}
                       type="button"
                       onClick={() => setCategory(cat.name)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        category === cat.name
+                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${category === cat.name
                           ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       {cat.name}
                     </button>
@@ -407,9 +406,8 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                 {files.length > 0 && (
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
-                      }`}
+                      className={`h-full rounded-full transition-all duration-300 ${usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
+                        }`}
                       style={{ width: `${usedPercent}%` }}
                     />
                   </div>
@@ -460,11 +458,10 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                           key={item}
                           type="button"
                           onClick={() => setCondition(item)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                            condition === item
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${condition === item
                               ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                               : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                          }`}
+                            }`}
                         >
                           {item.replace("_", " ")}
                         </button>

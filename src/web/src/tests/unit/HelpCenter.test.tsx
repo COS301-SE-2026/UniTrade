@@ -1,6 +1,6 @@
-import {render, screen, fireEvent} from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import {describe, it, vi, beforeEach, expect, beforeAll} from 'vitest'
+import { describe, it, vi, beforeEach, expect, beforeAll } from 'vitest'
 import HelpCenter from '../../pages/auth/HelpCenter'
 
 
@@ -22,12 +22,12 @@ vi.mock('../../assests/logo.png', () => ({
     default: 'logo.png',
 }))
 
-const renderHelpCenter = () => 
-render(
-    <MemoryRouter>
-        <HelpCenter />
-    </MemoryRouter>
-)
+const renderHelpCenter = () =>
+    render(
+        <MemoryRouter>
+            <HelpCenter />
+        </MemoryRouter>
+    )
 
 describe('HelpCenter', () => {
     beforeEach(() => {
@@ -47,7 +47,7 @@ describe('HelpCenter', () => {
 
     it('navigates back to the home page when the back button is clicked', () => {
         renderHelpCenter()
-        fireEvent.click(screen.getByRole('button', {name:'' }))
+        fireEvent.click(screen.getByRole('button', { name: '' }))
         expect(mockNavigate).toHaveBeenCalledWith(-1)
     })
 
@@ -64,7 +64,7 @@ describe('HelpCenter', () => {
 
     it('shows the initial greeting by Alex when the chat is opened', () => {
         renderHelpCenter()
-        fireEvent.click(screen.getByRole('button', { name : 'Chat with Alex'}))
+        fireEvent.click(screen.getByRole('button', { name: 'Chat with Alex' }))
         expect(
             screen.getByText("Hey! I'm Alex, your UniTrade support assistant . What would you like to know?")
 
@@ -96,7 +96,7 @@ describe('HelpCenter', () => {
         const searchInput = screen.getByPlaceholderText('Search for help articles...')
         fireEvent.change(searchInput, { target: { value: 'reservation' } })
         expect(searchInput).toHaveValue('reservation')
-    })  
+    })
 
     it('collapses an FAQ answer when its question is clicked again', () => {
         renderHelpCenter()

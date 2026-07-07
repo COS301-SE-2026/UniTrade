@@ -18,8 +18,8 @@ function CategoryCard({
     <button
       onClick={onClick}
       className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors ${active
-          ? 'bg-navy-700 text-white border-navy-700'
-          : 'bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700'
+        ? 'bg-navy-700 text-white border-navy-700'
+        : 'bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700'
         }`}
     >
       {title}
@@ -58,7 +58,7 @@ function ListingCard({
           </span>
         </div>
 
-       
+
         <p className="text-xs text-gray-400 capitalize">{listing.category}</p>
         <p className="text-sm font-bold text-gray-800 dark:text-white">
           {formatPrice(listing.price)}
@@ -233,8 +233,8 @@ export default function BrowseAllListing() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page
-                    ? 'bg-navy-700 text-white'
-                    : 'bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700'
+                  ? 'bg-navy-700 text-white'
+                  : 'bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700'
                   }`}
               >
                 {page}

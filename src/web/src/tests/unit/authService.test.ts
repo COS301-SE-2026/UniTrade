@@ -22,7 +22,7 @@ describe("authService", () => {
     };
 
     it("should resolve when registration succeeds", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
       await expect(authService.register(payload)).resolves.toBeUndefined();
@@ -39,7 +39,7 @@ describe("authService", () => {
     });
 
     it("should throw the server error message when registration fails", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => ({ error: "email_taken" }),
@@ -49,7 +49,7 @@ describe("authService", () => {
     });
 
     it("should throw a default error when registration fails without an error body", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => ({}),
@@ -61,7 +61,7 @@ describe("authService", () => {
 
   describe("verifyOtp", () => {
     it("should resolve when OTP verification succeeds", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
       await expect(
@@ -78,7 +78,7 @@ describe("authService", () => {
     });
 
     it("should throw the server error message when OTP verification fails", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => ({ error: "invalid_otp" }),
@@ -92,7 +92,7 @@ describe("authService", () => {
 
   describe("resendOtp", () => {
     it("should resolve when resending OTP succeeds", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
       await expect(authService.resendOtp("tafadzwa@up.ac.za")).resolves.toBeUndefined();
@@ -107,7 +107,7 @@ describe("authService", () => {
     });
 
     it("should throw the server error message when resending OTP fails", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => ({ error: "too_many_requests" }),
@@ -123,7 +123,7 @@ describe("authService", () => {
     const payload = { Email: "tafadzwa@up.ac.za", Password: "Password123!" };
 
     it("should resolve when login succeeds", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
       await expect(authService.login(payload)).resolves.toBeUndefined();
@@ -138,7 +138,7 @@ describe("authService", () => {
     });
 
     it("should throw the server error message when login fails", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => ({ error: "invalid_credentials" }),
@@ -175,7 +175,7 @@ describe("authService", () => {
     });
 
     it("should throw 'unauthenticated' when the session is invalid", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: false });
 
       await expect(authService.getMe()).rejects.toThrow("unauthenticated");
@@ -184,7 +184,7 @@ describe("authService", () => {
 
   describe("logout", () => {
     it("should call the logout endpoint", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
       await authService.logout();
@@ -199,7 +199,7 @@ describe("authService", () => {
     });
 
     it("should not throw even if the logout response is not ok", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: false });
 
       await expect(authService.logout()).resolves.toBeUndefined();
@@ -211,7 +211,7 @@ describe("authService", () => {
       const mockUniversities = [
         { universityId: "1", name: "University of Pretoria", emailDomain: "up.ac.za" },
       ];
-     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ data: mockUniversities }),
@@ -226,7 +226,7 @@ describe("authService", () => {
     });
 
     it("should return an empty array when data is missing from the response", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({}),
@@ -236,7 +236,7 @@ describe("authService", () => {
     });
 
     it("should throw the error message when the request fails", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => ({ message: "Failed to load Universities" }),
@@ -248,7 +248,7 @@ describe("authService", () => {
     });
 
     it("should throw a default error when the failure response body can't be parsed", async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
         ok: false,
         json: async () => {

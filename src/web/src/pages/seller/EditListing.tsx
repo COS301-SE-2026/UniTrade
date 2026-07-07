@@ -60,7 +60,7 @@ const EditListing: React.FC = () => {
     price: 0,
   });
 
- const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
@@ -142,17 +142,17 @@ const EditListing: React.FC = () => {
     setSaving(true);
     setError(null);
     try {
-await listingsService.updateListing(id, {
-  title: formData.title,
-  description: formData.description,
-  price: Number(formData.price),
-  condition: CONDITION_TO_API[formData.condition],
-  categoryName: formData.category,
-  courseId: formData.category === "book" && formData.moduleTag
-    ? parseInt(formData.moduleTag)
-    : null,
-  removedImageIds,
-});
+      await listingsService.updateListing(id, {
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        condition: CONDITION_TO_API[formData.condition],
+        categoryName: formData.category,
+        courseId: formData.category === "book" && formData.moduleTag
+          ? parseInt(formData.moduleTag)
+          : null,
+        removedImageIds,
+      });
       if (newFiles.length > 0) {
         await listingsService.uploadImages(id, newFiles);
       }
@@ -217,11 +217,10 @@ await listingsService.updateListing(id, {
                       key={cat.id}
                       type="button"
                       onClick={() => handleChange("category", cat.name)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        formData.category === cat.name
+                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
                           ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       {cat.name}
                     </button>
@@ -444,11 +443,10 @@ await listingsService.updateListing(id, {
                           key={item}
                           type="button"
                           onClick={() => handleChange("condition", item)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                            formData.condition === item
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${formData.condition === item
                               ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                               : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                          }`}
+                            }`}
                         >
                           {item.replace("_", " ")}
                         </button>
