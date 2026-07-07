@@ -69,7 +69,6 @@ const EditListing: React.FC = () => {
   const [courseQuery, setCourseQuery] = useState("");
   const [courseResults, setCourseResults] = useState<Course[]>([]);
   const [courseLoading, setCourseLoading] = useState(false);
-  const [hasFocused, setHasFocused] = useState(false)
   const totalImageCount = existingImages.length + newFiles.length;
 
   useEffect(() => {
@@ -102,7 +101,7 @@ const EditListing: React.FC = () => {
           listingsService
             .getCourse(data.courseId)
             .then((course) => {
-              setCourseQuery(course.courseCode);
+              setCourseQuery(course.courseCode ?? "");
             })
             .catch(() => {
               setCourseQuery(data.courseCode ?? "");
