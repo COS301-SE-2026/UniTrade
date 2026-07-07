@@ -58,7 +58,10 @@ jobs:
     environment: staging
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      #RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      #PUT rgs into secrets
+      BACKEND_RG: unitrade-BackEnd
+      FRONTEND_RG: unitrade-FrontEnd
       BACKEND_APP: unitrade-backend-staging
       FRONTEND_APP: unitrade-frontend-staging
     steps:
@@ -95,7 +98,7 @@ jobs:
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}"
           az containerapp update \
-              --name "$BACKEND_APP" --resource-group "$RG" \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
@@ -105,20 +108,20 @@ jobs:
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}"
           az containerapp update \
-              --name "$FRONTEND_APP" --resource-group "$RG" \
+              --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
       - name: Wait for backend revision to be Running
         run: |
           az containerapp revision show \
-          --name "$BACKEND_APP" --resource-group "$RG" \
+          --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}"\
           --query "properties.healthState" -o tsv
       - name: Health check staging backend (green)
         run: |
           FQDN=$(az containerapp revision show \
-          --name "$BACKEND_APP" --resource-group "$RG" \
+          --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}"\
            --query "properties.fqdn" -o tsv)
           for i in $(seq 1 10); do
@@ -129,13 +132,13 @@ jobs:
       - name: Shift traffic to green (backend)
         run: |
           az containerapp ingress traffic set\
-          --name "$BACKEND_APP" --resource-group "$RG" \
+          --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
 
       - name: Shift traffic to green (frontend)
         run: |
           az containerapp ingress traffic set\
-          --name "$FRONTEND_APP" --resource-group "$RG" \
+          --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
           --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
 
       - name: Smoke test staging
@@ -145,17 +148,17 @@ jobs:
 
       - name: Deactivate old backend revisions
         run: |
-          az containerapp revision list --name "$BACKEND_APP" --resource-group "$RG" \
+          az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --query "[?properties.trafficWeight=='0']name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$RG" --revision "$rev"
+            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
-          az containerapp revision list --name "$FRONTEND_APP" --resource-group "$RG" \
+          az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
           --query "[?properties.trafficWeight=='0']name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$RG" --revision "$rev"
+            az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
           done
 
   approval-gate:
@@ -203,7 +206,7 @@ jobs:
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}"
           az containerapp update \
-              --name "$BACKEND_APP" --resource-group "$RG" \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
@@ -213,7 +216,7 @@ jobs:
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}"
           az containerapp update \
-              --name "$FRONTEND_APP" --resource-group "$RG" \
+              --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
@@ -221,7 +224,7 @@ jobs:
       - name: Health check staging backend (green)
         run: |
           FQDN=$(az containerapp revision show \
-          --name "$BACKEND_APP" --resource-group "$RG" \
+          --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
             --query "properties.fqdn" -o tsv)
           for i in $(seq 1 10); do
@@ -232,13 +235,13 @@ jobs:
       - name: Shift traffic to green (backend)
         run: |
           az containerapp ingress traffic set\
-          --name "$BACKEND_APP" --resource-group "$RG" \
+          --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
 
       - name: Shift traffic to green (frontend)
         run: |
           az containerapp ingress traffic set\
-          --name "$FRONTEND_APP" --resource-group "$RG" \
+          --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
           --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
 
       - name: Smoke test prod
@@ -248,15 +251,15 @@ jobs:
 
       - name: Deactivate old backend revisions
         run: |
-          az containerapp revision list --name "$BACKEND_APP" --resource-group "$RG" \
+          az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --query "[?properties.trafficWeight=='0']name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$RG" --revision "$rev"
+            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
-          az containerapp revision list --name "$FRONTEND_APP" --resource-group "$RG" \
+          az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
             --query "[?properties.trafficWeight=='0']name" -o tsv | \
             while read -r rev; do
-              az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$RG" --revision "$rev"
+              az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
             done
