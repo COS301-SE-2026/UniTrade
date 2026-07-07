@@ -2,17 +2,22 @@ import type {
   ListingDetail,
   ListingSummary,
   MyListingsResponse,
-  Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
+  Category,
+  SellerListingDetail,
+  BrowseListing,
+  BrowseListingsResponse,
+  BrowseCondition,
+  Course,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
-
-const BASE_URL = import.meta.env.VITE_API_URL;
-const API_ORIGIN = new URL(BASE_URL).origin;
+import { getApiUrl } from "../config";
 
 export function imageUrl(path: string): string {
-  return `${API_ORIGIN}${path}`;
+  const origin = new URL(getApiUrl()).origin;
+
+  return `${origin}${path}`;
 }
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
@@ -184,7 +189,7 @@ export interface CreateListingPayload {
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch listing");
@@ -218,39 +223,39 @@ export const listingsService = {
     if (!user)
       return { listings: mockMyListings, total: mockMyListings.length };
 
-    const res = await fetch(`${BASE_URL}/listings?sellerId=${user.id}`, {
+    const res = await fetch(`${getApiUrl()}/listings?sellerId=${user.id}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch listings");
 
     const data = await res.json();
-const listings: ListingSummary[] = data.items.map((item: unknown) => {
-  const l = item as {
-    listingId: string;
-    title: string;
-    categoryName: string;
-    createdAt: string;
-    price: number;
-    listingStatus: string;
-    viewCount: number;
-    images: { imageId: number; isPrimary: boolean; path: string }[];
-  };
-  const primary = getFirstUploadedImagePath(l.images);
-  return {
-    id: l.listingId,
-    title: l.title,
-    meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
-    price: l.price,
-    status: l.listingStatus,
-    views: l.viewCount,
-    imageUrl: primary ? imageUrl(primary) : biologyTextbook,
-  };
-});
+    const listings: ListingSummary[] = data.items.map((item: unknown) => {
+      const l = item as {
+        listingId: string;
+        title: string;
+        categoryName: string;
+        createdAt: string;
+        price: number;
+        listingStatus: string;
+        viewCount: number;
+        images: { imageId: number; isPrimary: boolean; path: string }[];
+      };
+      const primary = getFirstUploadedImagePath(l.images);
+      return {
+        id: l.listingId,
+        title: l.title,
+        meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+        price: l.price,
+        status: l.listingStatus,
+        views: l.viewCount,
+        imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
     return { listings, total: data.total };
   },
 
   getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch listing");
@@ -278,39 +283,39 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
-    const res = await fetch(`${BASE_URL}/listings`, {
+    const res = await fetch(`${getApiUrl()}/listings`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch listings");
     const data = await res.json();
     const listings: BrowseListing[] = data.items.map((item: unknown) => {
-  const l = item as {
-    listingId: string;
-    title: string;
-    price: number;
-    courseId?: number;
-    categoryName: string;
-    condition: string;
-    images: { imageId: number; isPrimary: boolean; path: string }[];
-  };
-  const primary = getFirstUploadedImagePath(l.images);
-  return {
-    id: l.listingId,
-    title: l.title,
-    price: l.price,
-    module: l.courseId?.toString() ?? "General",
-    category: l.categoryName,
-    condition: mapCondition(l.condition),
-    image: primary ? imageUrl(primary) : biologyTextbook,
-  };
-});
+      const l = item as {
+        listingId: string;
+        title: string;
+        price: number;
+        courseId?: number;
+        categoryName: string;
+        condition: string;
+        images: { imageId: number; isPrimary: boolean; path: string }[];
+      };
+      const primary = getFirstUploadedImagePath(l.images);
+      return {
+        id: l.listingId,
+        title: l.title,
+        price: l.price,
+        module: l.courseId?.toString() ?? "General",
+        category: l.categoryName,
+        condition: mapCondition(l.condition),
+        image: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
     return { listings, total: data.total };
   },
 
   uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
     files.forEach((f) => fd.append("files", f));
-    const res = await fetch(`${BASE_URL}/listings/${listingId}/images`, {
+    const res = await fetch(`${getApiUrl()}/listings/${listingId}/images`, {
       method: "POST",
       credentials: "include",
       body: fd,
@@ -321,7 +326,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
   },
 
   createListing: async (payload: CreateListingPayload): Promise<string> => {
-    const res = await fetch(`${BASE_URL}/listings`, {
+    const res = await fetch(`${getApiUrl()}/listings`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -353,7 +358,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
       removedImageIds?: number[];
     },
   ): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -371,7 +376,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
   },
 
   deleteListing: async (id: string): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -379,7 +384,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
   },
 
   getListingsCategories: async (): Promise<Category[]> => {
-    const res = await fetch(`${BASE_URL}/listing-categories`, {
+    const res = await fetch(`${getApiUrl()}/listing-categories`, {
       method: "GET",
       credentials: "include",
     });
@@ -396,7 +401,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
     }
     params.set("universityId", "2"); // this has the UP courses only
     params.set("limit", "50");
-    const res = await fetch(`${BASE_URL}/courses?${params}`, {
+    const res = await fetch(`${getApiUrl()}/courses?${params}`, {
       method: "GET",
       credentials: "include",
     });

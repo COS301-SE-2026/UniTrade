@@ -116,6 +116,8 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddControllers();
 
+var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | SpringSplitOptions.TrimEntries?? new [] {"http://localhost:3000", "http://localhost:8080"};
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -123,7 +125,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:3000", "http://localhost:8080")
+                .WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
