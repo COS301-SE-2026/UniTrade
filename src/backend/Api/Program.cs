@@ -1,10 +1,13 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Api.Middleware;
+using Azure.Communication.Email;
 using dotenv.net;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,16 +20,12 @@ using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
-using Modules.ReferenceData.University;
-using Modules.ReferenceData.University.Repositories;
-
-using Modules.SharedKernel;
-using Infrastructure.Persistence.Repositories.ListingImages;
-using Azure.Communication.Email;
 using Modules.ReferenceData;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
-using Infrastructure.Persistence.Repositories.Courses;
+using Modules.ReferenceData.University;
+using Modules.ReferenceData.University.Repositories;
+using Modules.SharedKernel;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -39,6 +38,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 const string UnknownKey = "unknown";
+
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
@@ -102,7 +102,6 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
-
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options
@@ -149,7 +148,12 @@ builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 
-builder.Services.AddSingleton(new EmailClient(builder.Configuration["Acs:ConnectionString"] ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")));
+builder.Services.AddSingleton(
+    new EmailClient(
+        builder.Configuration["Acs:ConnectionString"]
+            ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
+    )
+);
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
@@ -218,7 +222,7 @@ app.UseRateLimiter();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapGet("/health", ()=> Results.Ok("healthy"));
+app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapControllers();
 
 await app.RunAsync();
