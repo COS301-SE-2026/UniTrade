@@ -218,6 +218,7 @@ app.UseRateLimiter();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/health", ()=> Results.Ok("healthy"));
 app.MapControllers();
 
 await app.RunAsync();
