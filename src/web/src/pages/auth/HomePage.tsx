@@ -270,8 +270,8 @@ function Firstpage() {
   const navigate = useNavigate()
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 bg-white" />
-      <div className="absolute inset-0 z-10">
+      <div className="absolute inset-0 bg-navy-700 lg:bg-white" />
+      <div className="absolute inset-0 z-10 hidden lg:block">
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1000 1000"
@@ -329,7 +329,7 @@ function Firstpage() {
           </div>
 
 
-          <div className="flex-1 flex justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+          <div className="hidden lg:flex flex-1 justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
             <div className="lg:translate-x-24" data-testid="alex-avatar-wrapper">
               <AlexAvatar />
             </div>
