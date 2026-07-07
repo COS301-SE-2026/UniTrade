@@ -11,8 +11,10 @@ export async function loadConfig(): Promise<AppConfig> {
 
   const res = await fetch("/config.json", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load runtime config");
-  config = await res.json();
-  return config;
+  const loaded: AppConfig = await res.json();
+
+  config = loaded;
+  return loaded;
 }
 
 export function getApiUrl(): string {
