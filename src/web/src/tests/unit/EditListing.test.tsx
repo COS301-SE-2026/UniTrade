@@ -1,29 +1,36 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent} from "@testing-library/react";
 import userEvent from "@testing-library/user-event"
 
+
 const {
-  getListingsCategories,
-  getById,
-  updateListing,
-  uploadImages,
-  mockNavigate,
-  routeParams,
+    getListingsCategories,
+    getById,
+    getCourse,
+    updateListing,
+    uploadImages,
+    searchCourses,
+    mockNavigate,
+    routeParams,
 } = vi.hoisted(() => ({
-  getListingsCategories: vi.fn(),
-  getById: vi.fn(),
-  updateListing: vi.fn(),
-  uploadImages: vi.fn(),
-  mockNavigate: vi.fn(),
-  routeParams: {
-    id: "123" as string | undefined
-  },
+    getListingsCategories: vi.fn(),
+    getCourse: vi.fn(),
+    getById: vi.fn(),
+    updateListing: vi.fn(),
+    uploadImages: vi.fn(),
+    searchCourses: vi.fn(),
+    mockNavigate: vi.fn(),
+    routeParams: {
+        id: "123" as string | undefined
+    },
 }));
 
 vi.mock("../../services/listingsService", () => ({
   listingsService: {
     getListingsCategories,
     getById,
+    getCourse,
+    searchCourses,
     updateListing,
     uploadImages,
   },
@@ -39,13 +46,13 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 vi.mock("@tabler/icons-react", () => ({
-  IconUpload: () => <svg data-testid="icon-upload" />,
-  IconCheck: () => <svg data-testid="icon-check" />,
-  IconX: () => <svg data-testid="icon-x" />,
+    IconUpload: () => <svg data-testid="icon-upload" />,
+    IconCheck: () => <svg data-testid="icon-check" />,
+    IconX: () => <svg data-testid="icon-x" />,
 }));
 
 vi.mock("../../assets/bio-textbook.jpg", () => ({
-  default: "bio-textbook-fallback.jpg",
+    default: "bio-textbook-fallback.jpg",
 }));
 
 import EditListing from "../../pages/seller/EditListing";
@@ -63,6 +70,7 @@ const baseListing = {
   description: "Barely used, no highlights.",
   price: 250,
   condition: "new",
+  courseId: "1",
   courseCode: "301",
   images: [
     { id: "1", url: "https://example.com/img1.jpg" },
@@ -70,59 +78,75 @@ const baseListing = {
   ],
 };
 
-function makeFile(name: string, sizeBytes: number, type = "image/png") {
-  const file = new File(["a"], name, { type });
-  Object.defineProperty(file, "size", { value: sizeBytes });
-  return file;
+function makeFile(name: string, sizeBytes: number, type="image/png") {
+    const file = new File(["a"], name, { type });
+    Object.defineProperty(file, "size", {value: sizeBytes});
+    return file;
 }
 
 function getImageGrid(container: HTMLElement) {
-  const grid = container.querySelector("div.grid.grid-cols-4");
-  if (!grid) throw new Error("Image grid not found - check componet markup");
-  return grid;
+    const grid = container.querySelector("div.grid.grid-cols-4");
+    if (!grid) throw new Error("Image grid not found - check componet markup");
+    return grid;
 }
 
 async function renderAndLoad(listingOverrides: Partial<typeof baseListing> = {}) {
-  getListingsCategories.mockResolvedValue(mockCategories);
-  getById.mockResolvedValue({ ...baseListing, ...listingOverrides });
+    getListingsCategories.mockResolvedValue(mockCategories);
 
-  const rendered = render(<EditListing />);
-  await waitFor(() =>
+    const listing = { ...baseListing, ...listingOverrides};
+    getById.mockResolvedValue(listing);
+
+    getCourse.mockResolvedValue({
+       courseId: listing.courseId,
+       courseCode: listing.courseCode,
+       courseName: "Mock Course",
+       faculty: "Mock Faculty",
+    })
+    const rendered = render(<EditListing />);
+    await waitFor(() =>
     expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
-  );
+);
 
-  return rendered;
+return rendered;
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  routeParams.id = "123";
-  globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
-  globalThis.URL.revokeObjectURL = vi.fn();
+    vi.clearAllMocks();
+    routeParams.id = "123";
+    globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
+    globalThis.URL.revokeObjectURL = vi.fn();
+
+    getCourse.mockResolvedValue({
+      courseId: 0,
+      courseCode: "",
+      courseName: "",
+      faculty: "",
+    });
+    searchCourses.mockResolvedValue([]);
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();
+    vi.restoreAllMocks();
 })
 
 describe("Initial loding, data fethcing", () => {
-  it("shows a loading indicator while the api calls are pedning", async () => {
-    let resolveGetById: (v: unknown) => void;
-    getListingsCategories.mockResolvedValue(mockCategories);
-    getById.mockImplementation(
-      () => new Promise((res) => (resolveGetById = res)),
+    it ("shows a loading indicator while the api calls are pedning", async () =>  {
+        let resolveGetById: (v: unknown) => void;
+        getListingsCategories.mockResolvedValue(mockCategories);
+        getById.mockImplementation(
+            () => new Promise((res) => (resolveGetById = res)),
+        );
+
+        render(<EditListing />);
+
+        expect(screen.getByText(/loading/i)).toBeInTheDocument();
+        resolveGetById!(baseListing);
+        await waitFor(() => 
+        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
     );
+    });
 
-    render(<EditListing />);
-
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    resolveGetById!(baseListing);
-    await waitFor(() =>
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
-    );
-  });
-
-  it("renders the form pre-filled once both calls resolve", async () => {
+it("renders the form pre-filled once both calls resolve", async () => {
     await renderAndLoad();
 
     expect(screen.getByDisplayValue(baseListing.title)).toBeInTheDocument();
@@ -163,17 +187,18 @@ describe("Initial loding, data fethcing", () => {
     expect(goodButton.className).toMatch(/bg-\[#0F2D5E\]/);
   });
 
-  it("populates moduleTag from courseCode regardless of category", async () => {
-    // category is "book" in baseListing, so the select is visible and pre-filled
-    await renderAndLoad();
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe(baseListing.courseCode);
+  it("populates the course input from the resolved course code on load", async () => {
+   
+    await renderAndLoad()
+
+    const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
+    await waitFor(() => expect(courseInput).toHaveValue(baseListing.courseCode));
   });
 
-  it("defaults moduleTag to empty string when courseCode is missing", async () => {
+  it("defaults the course input to empty string when courseCode is missing", async () => {
     await renderAndLoad({ courseCode: undefined as unknown as string });
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("");
+    const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
+    await waitFor(() => expect(courseInput).toHaveValue(""));
   });
 });
 describe("Category-dependent fields", () => {
@@ -266,14 +291,20 @@ describe("Form field bindings", () => {
     expect(screen.getByPlaceholderText(/dimensions/i)).toBeInTheDocument();
   });
 
-  it("updates moduleTag when a module option is selected", async () => {
+  it("updates the course input value when the user types a new module code", async () => {
     const user = userEvent.setup();
-    await renderAndLoad({ category: "book", courseCode: "" });
+    searchCourses.mockResolvedValue([
+      { courseId: 114, courseCode: "WTW114", courseName: "Calculus", faculty: "Science"},
+    ]);
 
-    const select = screen.getByRole("combobox");
-    await user.selectOptions(select, "114");
 
-    expect((select as HTMLSelectElement).value).toBe("114");
+    await renderAndLoad({ category: "book", courseCode: ""});
+    const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
+
+    await user.clear(courseInput)
+    await user.type(courseInput, "WTW114");
+
+    await waitFor(() => expect(courseInput).toHaveValue("WTW114"))
   });
 
   it("updates customField when typing in Brand/Model", async () => {
@@ -464,8 +495,14 @@ describe("Save flow", () => {
   it("calls updateListing with the correctly mapped payload", async () => {
     const user = userEvent.setup();
     updateListing.mockResolvedValue(undefined);
+      searchCourses.mockResolvedValue([
+    { courseId: 301, courseCode: "301", courseName: "Mock Course 301", faculty: "Mock" },
+  ]);
+
     await renderAndLoad({ category: "book", courseCode: "301" });
 
+    await waitFor(() => 
+    expect(screen.getByText(/module selected/i)).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalledTimes(1));
@@ -519,8 +556,16 @@ describe("Save flow", () => {
   it("parses courseId to an integer when moduleTag is a numeric string", async () => {
     const user = userEvent.setup();
     updateListing.mockResolvedValue(undefined);
-    await renderAndLoad({ category: "book", courseCode: "114" });
 
+    searchCourses.mockResolvedValue([
+      { courseId: 114, courseCode: "114", courseName: "Mock Course 114", faculty: "Mock"},
+    ]);
+
+    await renderAndLoad({ category: "book", courseCode: "114" });
+    
+    await waitFor(() =>
+    expect(screen.getByText(/module selected/i)).toBeInTheDocument(),
+  );
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalled());
@@ -680,7 +725,7 @@ describe("Confirmation summary", () => {
     fireEvent.change(fileInput, { target: { files: [makeFile("x.png", 1000)] } });
 
     await waitFor(() => {
-
+     
       const grid = getImageGrid(container);
       const allImgs = Array.from(container.querySelectorAll("img"));
       const summaryImgs = allImgs.filter(
