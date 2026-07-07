@@ -26,7 +26,7 @@ function Stat({ number, label }: StatProps) {
   return (
     <div className="text-center">
       <p className="text-2xl font-bold text-white mx-5">{number}</p>
-      <p className="text--[10px] sm:text-sm text-gray-400 mt-1 mx-2 sm:mx-5 sm:whitespace-nowrap">{label}</p>
+      <p className="text-sm text-gray-400 mt-1 mx-5 whitespace-nowrap">{label}</p>
     </div>
   );
 }
@@ -224,7 +224,7 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
         : 'bg-blue-400'
   return (
     <div
-      data-testid="alex-avatar-container"
+     data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
@@ -232,8 +232,8 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
     >
       <div className="relative mb-6 flex flex-col items-center">
         <div
-          className={`px-4 sm:px-6 py-3 sm:py-4 rounded-[2rem] text-white text-xs font-medium
-                        transition-all duration-500 max-w-[180px] sm:max-w-[220px] text-center
+          className={`px-6 py-4 rounded-[2rem] text-white text-sm font-medium
+                        transition-all duration-500 max-w-[220px] text-center
                         ${bubbleColor}
                         ${stage === 'answer' ? 'scale-105' : 'scale-100'}`}>
           {bubbleText}
@@ -245,7 +245,7 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
       <div
         key={cycleKey}
         className={
-          `w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 overflow-hidden
+          `w-56 h-56 md:w-72 md:h-72 overflow-hidden
           transition-transform duration-500
           ${stage === 'thinking' ? 'animate-pulse-slow' : ''}
           ${stage === 'joy' ? 'animate-joy-bounce' : ''}`
@@ -270,12 +270,12 @@ function Firstpage() {
   const navigate = useNavigate()
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 bg-white" />
-      <div className="absolute inset-0 z-10">
+      <div className="absolute inset-0 bg-navy-700 lg:bg-white" />
+      <div className="absolute inset-0 z-10 hidden lg:block">
         <svg
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 1000 1000"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="none"
         >
           <path
             d="M0,0
@@ -287,13 +287,13 @@ function Firstpage() {
         </svg>
       </div>
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
-        <div className="flex-1 flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-shrink-0 text-center md:text-left md:max-w-[40%]">
+        <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
             <div className="inline-flex items-center gap-2 bg-white/10 text-blue-40 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
               <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
               MADE FOR SA UNIVERSITY STUDENTS
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
+            <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
                animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
               Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
             </h1>
@@ -304,24 +304,24 @@ function Firstpage() {
               No shipping, no strangers - just your campus community.
             </p>
 
-            <div className="grid grid-cols-3 gap-2 sm:gap-6 mt-12
+            <div className="grid grid-cols-3 gap-6 mt-12
                 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <Stat number="+5" label="SA UNIVERSITIES" />
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+            <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <button
                 onClick={() => navigate('/auth/Signup')}
-                className="w-full sm:w-auto bg-white hover:bg-navy-600 text-navy-700 px-8 sm:px-12 md:px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 SIGNUP
                 <IconArrowRight size={18} />
               </button>
 
               <button
                 onClick={() => navigate('/auth/Login')}
-                className="w-full sm:w-auto bg-white hover:bg-navy-600 text-navy-700 px-8 sm:px-12 md:px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 LOGIN
                 <IconArrowRight size={18} />
               </button>
@@ -329,7 +329,7 @@ function Firstpage() {
           </div>
 
 
-          <div className="flex-1 flex justify-center md:justify-end pr-0 md:pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+          <div className="hidden lg:flex flex-1 justify-end pr-4 lg:pr-12 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
             <div className="lg:translate-x-24" data-testid="alex-avatar-wrapper">
               <AlexAvatar />
             </div>
@@ -512,7 +512,7 @@ export function Footer() {
   const navigate = useNavigate();
   return (
     <footer className="bg-white text-gray">
-      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-10 md:gap-20 lg:gap-40">
+      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
         <div>
           <div className="mt-8">
             <p className="text-xs">CONTACT INFO</p>
@@ -524,16 +524,16 @@ export function Footer() {
         <div>
           <p className="text-xs mb-4">SUPPORT</p>
           <div className="space-y-2 text-sm">
-
+            
             <ul className="flex flex-col gap-1">
-              <li
-                onClick={() => navigate('/auth/help-center')}
-                className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-              >
+            <li
+               onClick={() => navigate('/auth/help-center')}
+               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+               >
                 Help Center
-              </li>
-              <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
-              <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
+               </li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
+            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
             </ul>
           </div>
         </div>
@@ -556,7 +556,7 @@ export function Footer() {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-navy-900 text-navy-700 dark:text-white">
       <Navbar />
       <Firstpage />
       <Theproblem />
