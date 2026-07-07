@@ -148,8 +148,8 @@ jobs:
 
       - name: Smoke test staging
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
-          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL_STAGING }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL_STAGING}}" > /dev/null
 
       - name: Deactivate old backend revisions
         run: |
