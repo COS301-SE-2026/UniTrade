@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export type UserRole = 'student' | 'admin'
 export type ViewMode = 'buyer' | 'seller'
@@ -24,7 +25,9 @@ interface AuthStore {
   toggleViewMode: () => void   
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>()(
+  persist(
+  (set, get) => ({
   user: null,
   pendingEmail: null,
   viewMode: 'buyer',                     
@@ -38,4 +41,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (user?.role !== 'student') return
     set({ viewMode: viewMode === 'buyer' ? 'seller' : 'buyer' })
   },
-}))
+}),
+{
+  name: 'unitrade-auth',
+  partialize: (state) => ({ viewMode: state.viewMode}),
+}
+  )
+)

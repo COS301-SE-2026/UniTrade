@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
-import type { Category } from "../../types/listing";
+import type { Category, Course } from "../../types/listing";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
+
+
 
 interface ListingData {
   title: string;
@@ -60,11 +62,13 @@ const EditListing: React.FC = () => {
     price: 0,
   });
 
- const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
-
+  const [courseQuery, setCourseQuery] = useState("");
+  const [courseResults, setCourseResults] = useState<Course[]>([]);
+  const [courseLoading, setCourseLoading] = useState(false);
   const totalImageCount = existingImages.length + newFiles.length;
 
   useEffect(() => {
@@ -92,15 +96,62 @@ const EditListing: React.FC = () => {
         setExistingImages(
           data.images.map((i) => ({ imageId: Number(i.id), url: i.url })),
         );
+
+        if (data.courseId) {
+          listingsService
+            .getCourse(data.courseId)
+            .then((course) => {
+              setCourseQuery(course.courseCode ?? "");
+            })
+            .catch(() => {
+              setCourseQuery(data.courseCode ?? "");
+            });
+        }
       })
       .catch(() => setError("Failed to load listing"))
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (formData.category !== "book") return;
+    const term = courseQuery.trim();
+    if (term.length < 2) return;
+
+    const handle = setTimeout(() => {
+      setCourseLoading(true);
+      listingsService
+        .searchCourses(term)
+        .then(setCourseResults)
+        .catch(() => setCourseResults([]))
+        .finally(() => setCourseLoading(false))
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [courseQuery, formData.category]);
+
   const handleChange = (field: keyof ListingData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const ActiveCourseResults = useMemo(
+    () => (courseQuery.trim().length >= 2 ? courseResults : []),
+    [courseQuery, courseResults]
+  );
+
+  const moduleTag = useMemo(() => {
+    const match = ActiveCourseResults.find(
+      (c) =>
+        c.courseCode.toLocaleLowerCase() ===
+        courseQuery.trim().toLocaleLowerCase()
+    );
+    return match ? String(match.courseId) : "";
+  }, [courseQuery, ActiveCourseResults]);
+
+  let courseTextStatus = "Pick a module from the list";
+  if (courseLoading) {
+    courseTextStatus = "Searching...";
+  } else if (moduleTag) {
+    courseTextStatus = "Module selected";
+  }
   const removeExisting = (imageId: number) => {
     setRemovedImageIds((prev) => [...prev, imageId]);
     setExistingImages((prev) => prev.filter((img) => img.imageId !== imageId));
@@ -138,31 +189,40 @@ const EditListing: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!id) return;
-    setSaving(true);
-    setError(null);
-    try {
-await listingsService.updateListing(id, {
-  title: formData.title,
-  description: formData.description,
-  price: Number(formData.price),
-  condition: CONDITION_TO_API[formData.condition],
-  categoryName: formData.category,
-  courseId: formData.category === "book" && formData.moduleTag
-    ? parseInt(formData.moduleTag)
-    : null,
-  removedImageIds,
-});
-      if (newFiles.length > 0) {
-        await listingsService.uploadImages(id, newFiles);
-      }
-      navigate("/seller/listings");
-    } catch {
-      setError("Failed to save changes");
-    } finally {
-      setSaving(false);
+  if (!id) return;
+  setSaving(true);
+  setError(null);
+  try {
+    let resolvedCourseId: number | null = null;
+
+    if (formData.category === "book" && courseQuery.trim()) {
+      const results = await listingsService.searchCourses(courseQuery.trim());
+      const match = results.find(
+        (c) => c.courseCode.toLowerCase() === courseQuery.trim().toLowerCase()
+      );
+      resolvedCourseId = match ? match.courseId : null;
     }
-  };
+
+    await listingsService.updateListing(id, {
+      title: formData.title,
+      description: formData.description,
+      price: Number(formData.price),
+      condition: CONDITION_TO_API[formData.condition],
+      categoryName: formData.category,
+      courseId: resolvedCourseId,   // <-- use the freshly-resolved value, not moduleTag
+      removedImageIds,
+    });
+
+    if (newFiles.length > 0) {
+      await listingsService.uploadImages(id, newFiles);
+    }
+    navigate("/seller/listings");
+  } catch {
+    setError("Failed to save changes");
+  } finally {
+    setSaving(false);
+  }
+};
 
   if (loading)
     return (
@@ -191,7 +251,6 @@ await listingsService.updateListing(id, {
       <div className="relative pl-12 space-y-8 mt-6">
         <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200"></div>
 
-        {/* Step 1: Basic Information */}
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
@@ -217,11 +276,10 @@ await listingsService.updateListing(id, {
                       key={cat.id}
                       type="button"
                       onClick={() => handleChange("category", cat.name)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        formData.category === cat.name
+                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
                           ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       {cat.name}
                     </button>
@@ -247,17 +305,24 @@ await listingsService.updateListing(id, {
 
                 {formData.category === "book" && (
                   <div>
-                    <select
-                      value={formData.moduleTag}
-                      onChange={(e) =>
-                        handleChange("moduleTag", e.target.value)
-                      }
+                    <input
+                      type="text"
+                      list="course-options"
+                      placeholder="Module (e.g. COS110)"
+                      value={courseQuery}
+                      onChange={(e) => setCourseQuery(e.target.value)}
                       className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
-                    >
-                      <option value="">Module / Course Tags</option>
-                      <option value="114">WTW114</option>
-                      <option value="301">ECN301</option>
-                    </select>
+                    />
+                    <datalist id="course-options">
+                      {ActiveCourseResults.map((c) => (
+                        <option key={c.courseId} value={c.courseCode}>
+                          {c.courseName}
+                        </option>
+                      ))}
+                    </datalist>
+                    {courseQuery.trim().length >= 2 && (
+                      <p className="mt-1 text-[10px] text-slate-400">{courseTextStatus}</p>
+                    )}
                   </div>
                 )}
 
@@ -303,7 +368,6 @@ await listingsService.updateListing(id, {
           </div>
         </div>
 
-        {/* Step 2: Pictures */}
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
@@ -332,7 +396,7 @@ await listingsService.updateListing(id, {
               />
 
               <div className="grid grid-cols-4 gap-4">
-                {/* Existing images from API */}
+
                 {existingImages.map((img) => (
                   <div
                     key={img.imageId}
@@ -354,7 +418,7 @@ await listingsService.updateListing(id, {
                   </div>
                 ))}
 
-                {/* New files staged for upload */}
+
                 {newPreviews.map((url, idx) => (
                   <div
                     key={`new-${idx}`}
@@ -376,7 +440,7 @@ await listingsService.updateListing(id, {
                   </div>
                 ))}
 
-                {/* Remaining upload slots */}
+
                 {Array.from({
                   length: Math.max(0, MAX_IMAGES - totalImageCount),
                 }).map((_, idx) => (
@@ -401,7 +465,7 @@ await listingsService.updateListing(id, {
           </div>
         </div>
 
-        {/* Step 3: Price */}
+
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
@@ -444,11 +508,10 @@ await listingsService.updateListing(id, {
                           key={item}
                           type="button"
                           onClick={() => handleChange("condition", item)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                            formData.condition === item
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${formData.condition === item
                               ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                               : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                          }`}
+                            }`}
                         >
                           {item.replace("_", " ")}
                         </button>
@@ -461,7 +524,7 @@ await listingsService.updateListing(id, {
           </div>
         </div>
 
-        {/* Step 4: Confirmation */}
+
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-sm font-bold">
             4
