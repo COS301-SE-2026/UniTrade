@@ -55,9 +55,9 @@ const sellerNav: NavSection[] = [
   {
     heading: 'Main',
     items: [
-      { label: 'Sabiras please work!!!!! Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'Deployment testing!!! Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
+      { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
     ],
   },
   /*{
