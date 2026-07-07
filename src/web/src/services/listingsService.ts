@@ -224,28 +224,28 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch listings");
 
     const data = await res.json();
-const listings: ListingSummary[] = data.items.map((item: unknown) => {
-  const l = item as {
-    listingId: string;
-    title: string;
-    categoryName: string;
-    createdAt: string;
-    price: number;
-    listingStatus: string;
-    viewCount: number;
-    images: { imageId: number; isPrimary: boolean; path: string }[];
-  };
-  const primary = getFirstUploadedImagePath(l.images);
-  return {
-    id: l.listingId,
-    title: l.title,
-    meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
-    price: l.price,
-    status: l.listingStatus,
-    views: l.viewCount,
-    imageUrl: primary ? imageUrl(primary) : biologyTextbook,
-  };
-});
+    const listings: ListingSummary[] = data.items.map((item: unknown) => {
+      const l = item as {
+        listingId: string;
+        title: string;
+        categoryName: string;
+        createdAt: string;
+        price: number;
+        listingStatus: string;
+        viewCount: number;
+        images: { imageId: number; isPrimary: boolean; path: string }[];
+      };
+      const primary = getFirstUploadedImagePath(l.images);
+      return {
+        id: l.listingId,
+        title: l.title,
+        meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+        price: l.price,
+        status: l.listingStatus,
+        views: l.viewCount,
+        imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
     return { listings, total: data.total };
   },
 
@@ -271,8 +271,8 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -284,26 +284,26 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
     if (!res.ok) throw new Error("Failed to fetch listings");
     const data = await res.json();
     const listings: BrowseListing[] = data.items.map((item: unknown) => {
-  const l = item as {
-    listingId: string;
-    title: string;
-    price: number;
-    courseId?: number;
-    categoryName: string;
-    condition: string;
-    images: { imageId: number; isPrimary: boolean; path: string }[];
-  };
-  const primary = getFirstUploadedImagePath(l.images);
-  return {
-    id: l.listingId,
-    title: l.title,
-    price: l.price,
-    module: l.courseId?.toString() ?? "General",
-    category: l.categoryName,
-    condition: mapCondition(l.condition),
-    image: primary ? imageUrl(primary) : biologyTextbook,
-  };
-});
+      const l = item as {
+        listingId: string;
+        title: string;
+        price: number;
+        courseId?: number;
+        categoryName: string;
+        condition: string;
+        images: { imageId: number; isPrimary: boolean; path: string }[];
+      };
+      const primary = getFirstUploadedImagePath(l.images);
+      return {
+        id: l.listingId,
+        title: l.title,
+        price: l.price,
+        module: l.courseId?.toString() ?? "General",
+        category: l.categoryName,
+        condition: mapCondition(l.condition),
+        image: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
     return { listings, total: data.total };
   },
 

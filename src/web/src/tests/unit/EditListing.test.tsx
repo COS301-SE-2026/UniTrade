@@ -1,23 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent} from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event"
 
 const {
-    getListingsCategories,
-    getById,
-    updateListing,
-    uploadImages,
-    mockNavigate,
-    routeParams,
+  getListingsCategories,
+  getById,
+  updateListing,
+  uploadImages,
+  mockNavigate,
+  routeParams,
 } = vi.hoisted(() => ({
-    getListingsCategories: vi.fn(),
-    getById: vi.fn(),
-    updateListing: vi.fn(),
-    uploadImages: vi.fn(),
-    mockNavigate: vi.fn(),
-    routeParams: {
-        id: "123" as string | undefined
-    },
+  getListingsCategories: vi.fn(),
+  getById: vi.fn(),
+  updateListing: vi.fn(),
+  uploadImages: vi.fn(),
+  mockNavigate: vi.fn(),
+  routeParams: {
+    id: "123" as string | undefined
+  },
 }));
 
 vi.mock("../../services/listingsService", () => ({
@@ -39,13 +39,13 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 vi.mock("@tabler/icons-react", () => ({
-    IconUpload: () => <svg data-testid="icon-upload" />,
-    IconCheck: () => <svg data-testid="icon-check" />,
-    IconX: () => <svg data-testid="icon-x" />,
+  IconUpload: () => <svg data-testid="icon-upload" />,
+  IconCheck: () => <svg data-testid="icon-check" />,
+  IconX: () => <svg data-testid="icon-x" />,
 }));
 
 vi.mock("../../assets/bio-textbook.jpg", () => ({
-    default: "bio-textbook-fallback.jpg",
+  default: "bio-textbook-fallback.jpg",
 }));
 
 import EditListing from "../../pages/seller/EditListing";
@@ -70,59 +70,59 @@ const baseListing = {
   ],
 };
 
-function makeFile(name: string, sizeBytes: number, type="image/png") {
-    const file = new File(["a"], name, { type });
-    Object.defineProperty(file, "size", {value: sizeBytes});
-    return file;
+function makeFile(name: string, sizeBytes: number, type = "image/png") {
+  const file = new File(["a"], name, { type });
+  Object.defineProperty(file, "size", { value: sizeBytes });
+  return file;
 }
 
 function getImageGrid(container: HTMLElement) {
-    const grid = container.querySelector("div.grid.grid-cols-4");
-    if (!grid) throw new Error("Image grid not found - check componet markup");
-    return grid;
+  const grid = container.querySelector("div.grid.grid-cols-4");
+  if (!grid) throw new Error("Image grid not found - check componet markup");
+  return grid;
 }
 
 async function renderAndLoad(listingOverrides: Partial<typeof baseListing> = {}) {
-    getListingsCategories.mockResolvedValue(mockCategories);
-    getById.mockResolvedValue({ ...baseListing, ...listingOverrides });
+  getListingsCategories.mockResolvedValue(mockCategories);
+  getById.mockResolvedValue({ ...baseListing, ...listingOverrides });
 
-    const rendered = render(<EditListing />);
-    await waitFor(() =>
+  const rendered = render(<EditListing />);
+  await waitFor(() =>
     expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
-);
+  );
 
-return rendered;
+  return rendered;
 }
 
 beforeEach(() => {
-    vi.clearAllMocks();
-    routeParams.id = "123";
-    globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
-    globalThis.URL.revokeObjectURL = vi.fn();
+  vi.clearAllMocks();
+  routeParams.id = "123";
+  globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
+  globalThis.URL.revokeObjectURL = vi.fn();
 });
 
 afterEach(() => {
-    vi.restoreAllMocks();
+  vi.restoreAllMocks();
 })
 
 describe("Initial loding, data fethcing", () => {
-    it ("shows a loading indicator while the api calls are pedning", async () =>  {
-        let resolveGetById: (v: unknown) => void;
-        getListingsCategories.mockResolvedValue(mockCategories);
-        getById.mockImplementation(
-            () => new Promise((res) => (resolveGetById = res)),
-        );
-
-        render(<EditListing />);
-
-        expect(screen.getByText(/loading/i)).toBeInTheDocument();
-        resolveGetById!(baseListing);
-        await waitFor(() => 
-        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+  it("shows a loading indicator while the api calls are pedning", async () => {
+    let resolveGetById: (v: unknown) => void;
+    getListingsCategories.mockResolvedValue(mockCategories);
+    getById.mockImplementation(
+      () => new Promise((res) => (resolveGetById = res)),
     );
-    });
 
-it("renders the form pre-filled once both calls resolve", async () => {
+    render(<EditListing />);
+
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    resolveGetById!(baseListing);
+    await waitFor(() =>
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+    );
+  });
+
+  it("renders the form pre-filled once both calls resolve", async () => {
     await renderAndLoad();
 
     expect(screen.getByDisplayValue(baseListing.title)).toBeInTheDocument();
@@ -680,7 +680,7 @@ describe("Confirmation summary", () => {
     fireEvent.change(fileInput, { target: { files: [makeFile("x.png", 1000)] } });
 
     await waitFor(() => {
-     
+
       const grid = getImageGrid(container);
       const allImgs = Array.from(container.querySelectorAll("img"));
       const summaryImgs = allImgs.filter(

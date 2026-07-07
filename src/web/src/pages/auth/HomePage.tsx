@@ -224,7 +224,7 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
         : 'bg-blue-400'
   return (
     <div
-     data-testid="alex-avatar-container"
+      data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
@@ -524,16 +524,16 @@ export function Footer() {
         <div>
           <p className="text-xs mb-4">SUPPORT</p>
           <div className="space-y-2 text-sm">
-            
+
             <ul className="flex flex-col gap-1">
-            <li
-               onClick={() => navigate('/auth/help-center')}
-               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-               >
+              <li
+                onClick={() => navigate('/auth/help-center')}
+                className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+              >
                 Help Center
-               </li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
+              </li>
+              <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
+              <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
             </ul>
           </div>
         </div>

@@ -1,17 +1,17 @@
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import {useAuthStore} from '../../store/useAuthStore'
+import { useAuthStore } from '../../store/useAuthStore'
 import { listingsService } from '../../services/listingsService'
-import { formatPrice} from '../../utils/formatters'
-import type { BrowseListing} from '../../types/listing'
-import{
+import { formatPrice } from '../../utils/formatters'
+import type { BrowseListing } from '../../types/listing'
+import {
   IconShoppingBag,
   IconCurrencyDollar,
   IconClock,
   IconHeart,
   IconArrowUpRight,
   IconChevronDown,
-}from '@tabler/icons-react'
+} from '@tabler/icons-react'
 
 
 function StatCard({
@@ -26,15 +26,15 @@ function StatCard({
   subText: string
   subColour: string
   icon: React.ReactNode
-}){
-  return(
+}) {
+  return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      
+
       <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
         <p className="text-white text-sm font-bold">{title}</p>
         <span className="text-white/70">{icon}</span>
       </div>
-    
+
       <div className="px-4 py-3">
         <p className="text-2xl font-bold text-gray-800">{value}</p>
         <p className={`text-xs mt-1 ${subColour}`}>{subText}</p>
@@ -53,17 +53,17 @@ function ProductCard({
   image: string
 }) {
   return (
-    <div className = "border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
+    <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
 
-       <img
+      <img
         src={image}
         alt={title}
         className="w-full h-36 rounded-lg object-cover"
       />
-      <p className = "text-sm font-semibold text-gray-800">{title}</p>
-      <p className = "text-sm text-gray-500">{formatPrice(price)}</p>
+      <p className="text-sm font-semibold text-gray-800">{title}</p>
+      <p className="text-sm text-gray-500">{formatPrice(price)}</p>
 
-      <button className = "w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
+      <button className="w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
         Reserve
       </button>
       <button className="w-full py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
@@ -86,7 +86,7 @@ function OrderRow({
   status: 'Collected' | 'Pending' | 'Cancelled'
   image: string
 }) {
-  
+
   const statusStyles = {
     Collected: 'bg-green-100 text-green-700',
     Pending: 'bg-yellow-100 text-yellow-700',
@@ -95,18 +95,18 @@ function OrderRow({
 
   return (
     <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
-      
+
       <img
         src={image}
         alt={title}
         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
       />
-      
+
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-800 truncate">{title}</p>
         <p className="text-xs text-gray-400">{date}</p>
       </div>
-      
+
       <div className="text-right">
         <p className="text-sm font-bold text-gray-800">{formatPrice(price)}</p>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyles[status]}`}>
@@ -125,12 +125,12 @@ export default function BuyerDashboard() {
 
   const [products, setProducts] = useState<BrowseListing[]>([])
   const [, setLoading] = useState(true)
-  
+
   useEffect(() => {
     listingsService.getBrowseListings().then(data => setProducts(data.listings.slice(0, 3)))
-    .finally(() => setLoading(false))
+      .finally(() => setLoading(false))
   }, [])
-  
+
   const stats = [
     {
       title: 'Total Orders',
@@ -162,14 +162,14 @@ export default function BuyerDashboard() {
     },
 
   ]
-  
+
   const recentOrders = [
     { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '' },
     { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '' },
     { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '' },
   ]
   return (
-   <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
 
       <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
         Welcome {user?.name?.split(' ')[0] ?? 'Back'}
@@ -182,10 +182,10 @@ export default function BuyerDashboard() {
         ))}
       </div>
 
-    
+
       <div className="grid grid-cols-3 gap-4">
 
-  
+
         <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-gray-800">Suggested For You</h2>
@@ -207,13 +207,13 @@ export default function BuyerDashboard() {
 
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
-              <ProductCard key={p.id} {...p} 
+              <ProductCard key={p.id} {...p}
               />
             ))}
           </div>
         </div>
 
-        
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <h2 className="text-sm font-bold text-gray-800 mb-2">Recent Orders</h2>
           {recentOrders.map((order) => (
