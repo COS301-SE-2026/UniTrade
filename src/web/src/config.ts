@@ -1,0 +1,22 @@
+interface AppConfig {
+  apiUrl: string;
+}
+
+let config: AppConfig | null = null;
+
+export async function loadConfig(): Promise<AppConfig> {
+  if (config) {
+    return config;
+  }
+
+  const res = await fetch("/config.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load runtime config");
+  config = await res.json();
+  return config;
+}
+
+export function getApiUrl(): string {
+  if (!config)
+    throw new Error("Config not loaded, call the loadConfig() first");
+  return config.apiUrl;
+}

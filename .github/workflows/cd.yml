@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push Frontend image
         run: |
-          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}} -f src/web/Dockerfile .
+          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}} src/web
           docker push ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}}
 
   deploy-staging:
@@ -115,7 +115,9 @@ jobs:
           az containerapp update \
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
-              --revision-suffix "$SUFFIX"
+              --revision-suffix "$SUFFIX" \
+              --set-env-vars \
+              "VITE_API_URL=${{ secrets.VITE_API_URL_STAGING }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
       - name: Wait for backend revision to be Running
         run: |
@@ -231,7 +233,9 @@ jobs:
           az containerapp update \
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
-              --revision-suffix "$SUFFIX"
+              --revision-suffix "$SUFFIX" \
+              --set-env-vars \
+              "VITE_API_URL=${{ secrets.VITE_API_URL }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Health check staging backend (green)
