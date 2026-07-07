@@ -97,7 +97,7 @@ jobs:
       - name: Deploy backend green revision
         id: backend_rev
         run: |
-          SUFFIX="g${IMAGE_TAG:0:7}"
+          SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
@@ -111,7 +111,7 @@ jobs:
       - name: Deploy frontend green revision
         id: front_rev
         run: |
-          SUFFIX="g${IMAGE_TAG:0:7}"
+          SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
           az containerapp update \
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
@@ -149,7 +149,6 @@ jobs:
       - name: Smoke test staging
         run: |
           curl -fsS "${{ secrets.VITE_API_URL_STAGING }}" > /dev/null
-          curl -fsS "${{ secrets.VITE_API_URL_STAGING}}" > /dev/null
 
       - name: Deactivate old backend revisions
         run: |
@@ -181,8 +180,8 @@ jobs:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
       BACKEND_RG: unitrade-BackEnd
       FRONTEND_RG: unitrade-FrontEnd
-      BACKEND_APP: unitrade-backend-staging
-      FRONTEND_APP: unitrade-frontend-staging
+      BACKEND_APP: unitrade-backend
+      FRONTEND_APP: unitrade-frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -214,7 +213,7 @@ jobs:
       - name: Deploy backend green revision
         id: backend_rev
         run: |
-          SUFFIX="g${IMAGE_TAG:0:7}"
+          SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
@@ -228,7 +227,7 @@ jobs:
       - name: Deploy frontend green revision
         id: front_rev
         run: |
-          SUFFIX="g${IMAGE_TAG:0:7}"
+          SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
           az containerapp update \
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
@@ -260,7 +259,6 @@ jobs:
 
       - name: Smoke test prod
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
           curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
 
       - name: Deactivate old backend revisions
