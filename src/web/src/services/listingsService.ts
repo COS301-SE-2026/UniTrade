@@ -91,6 +91,7 @@ const mockListingDetail: ListingDetail = {
   category: "book",
   status: "live",
   courseCode: "WTW114",
+  courseId: 1076,
   university: "University of Pretoria",
   tags: ["WTW114", "First Year", "University of Pretoria"],
   images: [
@@ -184,34 +185,33 @@ export interface CreateListingPayload {
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Failed to fetch listing");
-    const item = await res.json();
-    return {
-      ...mockListingDetail,
-      id: item.listingId,
-      title: item.title,
-      description: item.description,
-      price: item.price,
-      condition: item.condition,
-      status: item.listingStatus,
-      views: item.viewCount,
-      sellerId: item.sellerId,
-      listedAt: item.createdAt,
-      courseCode: item.courseId?.toString() ?? mockListingDetail.courseCode,
-      category: item.categoryName,
-      images: item.images.map((i: unknown) => {
-        const img = i as { imageId: number; path: string; isPrimary: boolean };
-        return {
-          id: img.imageId.toString(),
-          url: imageUrl(img.path),
-          isPrimary: img.isPrimary,
-        };
-      }),
-    };
-  },
+  const res = await fetch(`${BASE_URL}/listings/${id}`, { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch listing");
+  const item = await res.json();
+  return {
+    ...mockListingDetail,
+    id: item.listingId,
+    title: item.title,
+    description: item.description,
+    price: item.price,
+    condition: item.condition,
+    status: item.listingStatus,
+    views: item.viewCount,
+    sellerId: item.sellerId,
+    listedAt: item.createdAt,
+    courseId: item.courseId ?? null,          // <-- add this
+    courseCode: item.courseCode ?? "",        // <-- use the real code if backend sends one, else leave blank
+    category: item.categoryName,
+    images: item.images.map((i: unknown) => {
+      const img = i as { imageId: number; path: string; isPrimary: boolean };
+      return {
+        id: img.imageId.toString(),
+        url: imageUrl(img.path),
+        isPrimary: img.isPrimary,
+      };
+    }),
+  };
+},
 
   getMyListings: async (): Promise<MyListingsResponse> => {
     const user = useAuthStore.getState().user;
@@ -404,4 +404,14 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
     if (!res.ok) throw new Error("Failed to fetch courses");
     return await res.json();
   },
+
+  getCourse: async (id: number): Promise<Course> => {
+     const res = await fetch(`${BASE_URL}/courses/${id}`, {
+     method: "GET",
+      credentials: "include",
+     });
+
+     if (!res.ok) throw new Error("Failed to fetch the courses")
+      return await res.json();
+  }
 };

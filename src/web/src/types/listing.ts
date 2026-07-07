@@ -33,6 +33,7 @@ export interface ListingDetail {
   category: string
   status: ListingStatus
   courseCode: string
+  courseId: number
   university: string
   tags: string[]
   images: ListingImage[]
