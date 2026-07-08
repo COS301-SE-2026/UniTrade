@@ -215,10 +215,6 @@ else
 
 app.UseForwardedHeaders();
 
-// if (!app.Environment.IsDevelopment())
-// {
-//     app.UseHttpsRedirection();
-// }
 app.UseRouting();
 app.UseCors("AllowReactApp");
 app.UseRateLimiter();
