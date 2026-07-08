@@ -164,9 +164,9 @@ export default function BuyerDashboard() {
   ]
 
   const recentOrders = [
-    { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '' },
-    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '' },
-    { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '' },
+    { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '',reservationId: 'r1' },
+    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '',reservationId: 'r2' },
+    { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '',reservationId: 'r3'},
   ]
   return (
     <div className="flex flex-col gap-6">
@@ -217,7 +217,14 @@ export default function BuyerDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <h2 className="text-sm font-bold text-gray-800 mb-2">Recent Orders</h2>
           {recentOrders.map((order) => (
+            <div 
+            key={order.title}
+            className="cursor-pointer"
+            onClick={() => navigate(`/buer/reservations/$(order.reservationsId}/chat)`)}
+            >
+
             <OrderRow key={order.title} {...order} />
+            </div>
           ))}
         </div>
 
