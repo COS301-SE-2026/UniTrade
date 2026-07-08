@@ -194,12 +194,13 @@ await ApplyCategoryChangeAsync(listings, listingLookUp);
             }
         }
 
+        await _listings.SaveAsync();
         return true;
     }
 
     private async Task ApplyCategoryChangeAsync(UpdateListingDto listings, Listing listingLookUp)
     {
-        if (!string.IsNullOrWhiteSpace(listings.CategoryName))
+        if (string.IsNullOrWhiteSpace(listings.CategoryName))
         {
             return;
         }
