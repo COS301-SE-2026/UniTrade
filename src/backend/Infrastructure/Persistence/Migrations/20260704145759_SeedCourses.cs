@@ -13,7 +13,7 @@ namespace Infrastructure.Persistence.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "faculty",
                 schema: "unitrade",
-                table: "courses",
+                table: "courses", 
                 type: "text",
                 nullable: false,
                 defaultValue: "",
@@ -21,6 +21,22 @@ namespace Infrastructure.Persistence.Migrations
                 oldType: "text",
                 oldNullable: true
             );
+
+            migrationBuilder.Sql(
+                @"INSERT INTO unitrade.universities(university_id,name,email_domain,is_active)
+                    VALUES
+                        (1,'University of Cape Town', 'uct.ac.za',true), 
+                        (2,'University of Pretoria', 'tuks.co.za',true), 
+                        (3,'University of the Witwatersrand', 'wits.ac.za',true), 
+                        (4,'Stellenbosch University', 'sun.ac.za',true), 
+                        (5,'University of Johannesburg', 'uj.ac.za',true), 
+                        (6,'Walter Sisulu University', 'mywsu.ac.za',true)
+                    ON CONFLICT DO NOTHING;
+                    
+
+                    SELECT setval(pg_get_serial_sequence('unitrade.universities','university_id'),(SELECT MAX(university_id) FROM unitrade.universities));"
+            );
+
 
             migrationBuilder.Sql(
                 @"INSERT INTO unitrade.courses (university_id, course_code, course_name, faculty)
@@ -608,6 +624,8 @@ namespace Infrastructure.Persistence.Migrations
                 oldType: "text"
             );
             migrationBuilder.Sql(@"DELETE FROM unitrade.courses WHERE university_id = 2;");
+
+            migrationBuilder.Sql(@"DELETE FROM unitrade.universities WHERE university_id BETWEEN 1 AND 6;");
         }
     }
 }
