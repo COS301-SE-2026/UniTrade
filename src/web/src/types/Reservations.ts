@@ -36,3 +36,80 @@ export interface ReservationListResponse {
     nextCursor?: string | null;
     hasMore: boolean;
 }
+
+interface ChatMessageBase {
+    messageId: string;
+    senderId: string;
+    sentAt: string;
+    readAt: string | null;
+}
+
+export interface TextMessage extends ChatMessageBase {
+  messageType: 'text';
+  content: string;
+  payload: null;
+}
+
+export interface SystemMessage extends ChatMessageBase {
+  messageType: 'system';
+  content: string;
+  payload: null;
+}
+
+export interface MeetupProposalPayload {
+    proposedTime: string;
+    proposedLocation: string;
+}
+
+export interface MeetupProposalMessage extends ChatMessageBase {
+  messageType: 'meetup_proposal';
+  content: string;
+  payload: MeetupProposalPayload;
+}
+
+export interface MeetupResponsePayload {
+  accepted: boolean;
+}
+
+export interface MeetupResponseMessage extends ChatMessageBase {
+  messageType: 'meetup_response';
+  content: string;
+  payload: MeetupResponsePayload;
+}
+
+export type ChatMessage =
+  | TextMessage
+  | SystemMessage
+  | MeetupProposalMessage
+  | MeetupResponseMessage;
+
+export interface ChatHistoryResponse {
+    items: ChatMessage[];
+    hasMore: boolean;
+    oldestMessageId: string | null;
+}
+export interface CreateReservationRequest {
+    listingId: string;
+}
+
+export interface GetReservationParams {
+   role: 'buyer' | 'seller';
+}
+
+export interface GetMessagesParams {
+    reservationId: string;
+    before?: string;
+    limit?: number;
+}
+export type ApiErrorCode = 'already_reserved' | string;
+
+export interface ApiError {
+    code: ApiErrorCode;
+    message?: string;
+    status: number;
+}
+
+export type Result<T> = 
+ | { success: true; data: T}
+ | { success: false; error: ApiError };
+
