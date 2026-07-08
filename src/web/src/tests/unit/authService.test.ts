@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-vi.mock("../../../config", () => ({
+vi.mock("../../config", () => ({
   getApiUrl: vi.fn(() => "http://localhost:300/api"),
   loadConfig: vi.fn(() => Promise.resolve()),
 }));
