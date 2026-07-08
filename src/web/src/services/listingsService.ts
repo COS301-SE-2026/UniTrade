@@ -199,8 +199,8 @@ export const listingsService = {
     views: item.viewCount,
     sellerId: item.sellerId,
     listedAt: item.createdAt,
-    courseId: item.courseId ?? null,          // <-- add this
-    courseCode: item.courseCode ?? "",        // <-- use the real code if backend sends one, else leave blank
+    courseId: item.courseId ?? null,          
+    courseCode: item.courseCode ?? "",        
     category: item.categoryName,
     images: item.images.map((i: unknown) => {
       const img = i as { imageId: number; path: string; isPrimary: boolean };
