@@ -1,15 +1,15 @@
-import React, {useStae, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { useNavigate, useParams} from 'react-router-dom';
 import {
     IconArrowLeft,
-    IconCalenderPlus,
+    IconCalendarPlus,
     IconSend,
     IconCheck,
     IconX,
     IconMapPin,
-    IconCalender,
+    IconCalendar,
 } from '@tabler/icons-react';
-import { useAuthStore} from '../../store/authStore';
+import { useAuthStore } from '../../store/useAuthStore'
 
 
 type ReservationsStatus = 'active' | 'expired' | 'cancelled' | 'completed';
@@ -131,3 +131,73 @@ const mockMessages: ChatMessage[] = [
     },
 ];
 
+const mockReservation: Reservation = {
+    reservationId: 'r1',
+    otherperson: {
+        userId: 'seller-1',
+        name: 'Sabira Kaire',
+        initials: 'SK'
+    },
+    listing: {
+        title: 'Textbook',
+        price: 800,
+        imagePath: '/book,jpg'
+    },
+    unreadCount: 0,
+    reservationStatus: 'active',
+    timerStage: 'co-ordinating'
+}
+
+const textMessageBubble: React.FC<{message: TextMessage; isOwnMessage: boolean}>=({
+    message,
+    isOwnMessage,
+}) => {
+    const time = new Date(message.sentAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    return (
+        <div className= {`flex  $(isOwnMessage? 'justify-end' " 'justify-start'}`}>
+            <div
+            className={`max-w-[75%] px-3 py-2 text-sm shadow-sm ${
+                isOwnMessage
+                ? 'bg-[#003366] text-white rounded 2xl rounded-br-sm'
+                : 'bg-gray-100 text-gray-800 rounded 2xl rounded-bl-sm'
+
+            }`}
+            >
+                <p className= "whitespace-pre-wrap break-words">{message.content}</p>
+                <div
+                className = {`mt-1 flex items-center gap-1 text-[10px] ${
+                    isOwnMessage ? 'text-white/60 justify-end' : 'text-gray-400 justify-end'
+
+                }`}
+                >
+                    <span>{time}</span>
+                    {isOwnMessage &&
+                    (message.readAt ? (
+                        <IconCheck size = {13} className= "text-sky-300" />
+                    ) : (
+                        <IconCheck size={13} />
+
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SystemMessage: React.FC<{message: SystemMessageType}> = ({message}) => {
+    return (
+        <div className = "flex justify-center">
+            <span className = "bg-gray-100 text-gray-500 text-[11px] font-medium px-3 py-1 rounded-full uppercase tracking-wide">
+                {message.content}
+            </span>
+        </div>
+    );
+};
+
+export default function ChatPage() {
+    
+}
