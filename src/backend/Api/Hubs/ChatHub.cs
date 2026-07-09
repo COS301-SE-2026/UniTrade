@@ -28,8 +28,28 @@ public class ChatHub : Hubs
     }
 
     //joining of reservation rooms 
-    public async JoinReservationRm(Guid reservationId)
+    public async JoinRoom(Guid reservationId)
     {
-        
+        var userId=GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
+
+        var isAuthorised=await _reservation.IsUserReservedAsync(userId,reservationId);//stub for now!!
+        if(!isAuthorised)
+        {
+            throw new HubException("Forbidden: you are not a participant in this reservation.");
+        }
+
+        await.Groups.AddToGroupAsync(Context.ConnectionId,GroupName(reservationId));
+        await.Client.Caller.SendAsync("Joined room", reservationId);
+    }
+
+    public string? GetUserId()
+    {
+    
+    }
+    
+    //signalR mechanism of referencing a user to the same room
+    private static string GroupName(Guid reservationId)
+    {
+        return $"reservation-{reservationId}";
     }
 }
