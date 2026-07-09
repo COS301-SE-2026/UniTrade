@@ -233,6 +233,217 @@ public class ListingServiceTests
     }
 
     [Fact]
+    public async Task UpdateListings_UpdatesCategory_WhenCategoryNameProvided()
+    {
+        var sellerId = Guid.NewGuid();
+        var oldCategory = new ListingCategory { CategoryId = 1, Name = "book" };
+        var newCategory = new ListingCategory { CategoryId = 2, Name = "electronics" };
+
+        var listing = AListing(sellerId: sellerId, category: oldCategory);
+
+        var dto = new UpdateListingDto
+        {
+            Title = "Title updated",
+            Description = "Updated",
+            Price = 21m,
+            Condition = "fair",
+            CategoryName = "electronics",
+        };
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+        _repo
+            .Setup(r => r.ResolveByNameAsync("electronics", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((newCategory));
+
+        var result = await _sut.UpdateListings(
+            dto,
+            listing.ListingId,
+            sellerId,
+            CancellationToken.None
+        );
+
+        Assert.True(result);
+        Assert.Equal(newCategory.CategoryId, listing.CategoryId);
+    }
+
+    [Fact]
+    public async Task UpdateListings_ThrowsArgumentException_WhenChangingToNonBookCategoryWithBookDetails()
+    {
+        var sellerId = Guid.NewGuid();
+        var oldCategory = new ListingCategory { CategoryId = 1, Name = "book" };
+        var newCategory = new ListingCategory { CategoryId = 2, Name = "electronics" };
+
+        var listing = AListing(sellerId: sellerId, category: oldCategory);
+        listing.BookDetails = new BookDetails
+        {
+            ListingId = listing.ListingId,
+            Isbn = "268384627283",
+            Author = "Some. Auth",
+            Edition = "2nd",
+        };
+        var dto = new UpdateListingDto
+        {
+            Title = "Title updated",
+            Description = "Updated",
+            Price = 21m,
+            Condition = "fair",
+            CategoryName = "electronics",
+            BookDetails = new BookDetailsDto
+            {
+                Isbn = "268384627283",
+                Author = "Some_New. Auth",
+                Edition = "2nd",
+            },
+        };
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+        _repo
+            .Setup(r => r.ResolveByNameAsync("electronics", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((newCategory));
+
+        var e = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut.UpdateListings(dto, listing.ListingId, sellerId, CancellationToken.None)
+        );
+
+        Assert.Equal("book_fields_not_allowed", e.Message);
+    }
+
+    [Fact]
+    public async Task UpdateListings_UpdatesMetadata_WhenValidMetadataProvided()
+    {
+        var sellerId = Guid.NewGuid();
+        var listing = AListing(sellerId: sellerId);
+        var metadata = JsonDocument.Parse("{\"key\": \"value\"}").RootElement;
+
+        var dto = new UpdateListingDto
+        {
+            Title = "Title updated",
+            Description = "Updated",
+            Price = 21m,
+            Condition = "fair",
+            Metadata = metadata,
+        };
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var result = await _sut.UpdateListings(
+            dto,
+            listing.ListingId,
+            sellerId,
+            CancellationToken.None
+        );
+
+        Assert.True(result);
+        Assert.NotNull(listing.Metadata);
+        Assert.Contains("\"key\":\"value\"", listing.Metadata);
+    }
+
+    [Fact]
+    public async Task UpdateListings_DeletesImages_WhenRemovedImageIdsProvided()
+    {
+        var sellerId = Guid.NewGuid();
+        var listing = AListing(sellerId: sellerId);
+        var imageIds = new List<int> { 1, 2 };
+
+        var dto = new UpdateListingDto
+        {
+            Title = "Title now updated",
+            Description = "Updated",
+            Price = 21m,
+            Condition = "fair",
+            RemovedImageIds = imageIds,
+        };
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var result = await _sut.UpdateListings(
+            dto,
+            listing.ListingId,
+            sellerId,
+            CancellationToken.None
+        );
+
+        Assert.True(result);
+        foreach (var imageId in imageIds)
+        {
+            _imageRepo.Verify(
+                x => x.DeleteAsync(imageId, It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+        }
+    }
+
+    [Fact]
+    public async Task UpdateListings_ThrowsArgumentException_WhenValidMetadataIsInvalid()
+    {
+        var sellerId = Guid.NewGuid();
+        var listing = AListing(sellerId: sellerId);
+        var malformedMetadata = JsonDocument.Parse("[9]").RootElement;
+
+        var dto = new UpdateListingDto
+        {
+            Title = "Title updated",
+            Description = "Updated",
+            Price = 21m,
+            Condition = "fair",
+            Metadata = malformedMetadata,
+        };
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var e = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut.UpdateListings(dto, listing.ListingId, sellerId, CancellationToken.None)
+        );
+
+        Assert.Equal("invalid_metadata", e.Message);
+    }
+
+    [Fact]
+    public async Task UpdateListings_ThrowsArgumentException_WhenCategoryNameNotFound()
+    {
+        var sellerId = Guid.NewGuid();
+        var listing = AListing(sellerId: sellerId);
+
+        var dto = new UpdateListingDto
+        {
+            Title = "Title updated",
+            Description = "Updated",
+            Price = 21m,
+            Condition = "fair",
+            CategoryName = "electronics-a",
+        };
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+        _repo
+            .Setup(r => r.ResolveByNameAsync("electronics-a", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ListingCategory?)null);
+
+        var e = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut.UpdateListings(dto, listing.ListingId, sellerId, CancellationToken.None)
+        );
+
+        Assert.Equal("invalid_category", e.Message);
+    }
+
+    [Fact]
+    public async Task UpdateListings_ThrowsArgumentException_WhenMetadataIsInvalid()
+    {
+        var sellerId = Guid.NewGuid();
+        var listing = AListing(sellerId: sellerId);
+        var malformedMetadata = JsonDocument.Parse("[9]").RootElement;
+        var dto = new UpdateListingDto
+        {
+            Title = "TestListing ipad",
+            Description = "Good TestListing ipad description",
+            Price = 212m,
+            Condition = "good",
+            Metadata = malformedMetadata,
+        };
+
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync(listing);
+
+        var e = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut.UpdateListings(dto, listing.ListingId, sellerId, CancellationToken.None)
+        );
+
+        Assert.Equal("invalid_metadata", e.Message);
+    }
+
+    [Fact]
     public async Task UpdateListings_ThrowsArgumentException_WhenBookFieldsOnNonBook()
     {
         var sellerId = Guid.NewGuid();
@@ -535,7 +746,7 @@ public class ListingServiceTests
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync((listing));
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
-        Assert.Equal(2, result!.Images.First().ImageId);
+        Assert.Equal(2, result!.Images[0].ImageId);
         Assert.Equal(2, result.Images.Count(i => !i.IsPrimary));
     }
 
