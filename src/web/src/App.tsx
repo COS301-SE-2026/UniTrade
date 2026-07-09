@@ -23,6 +23,7 @@ import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
+import SellerReservations from "./pages/seller/SellerReservation";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
@@ -73,6 +74,8 @@ export default function App() {
         <Route path="/buyer/listings" element={<BrowseListings />} />
         <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/buyer/reservations" element={<Reservations />} />
+        <Route path="seller/reservations" element={<SellerReservations />} />
+
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
