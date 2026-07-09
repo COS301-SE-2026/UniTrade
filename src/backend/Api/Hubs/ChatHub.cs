@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Modules.Chat;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 
