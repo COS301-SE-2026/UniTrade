@@ -18,10 +18,12 @@ import AdminListingQueue from "./pages/admin/AdminListingQueue";
 import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
 import Wishlist from "./pages/buyer/Wishlist";
+import Reservations from "./pages/buyer/Reservation";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
+import SellerReservations from "./pages/seller/SellerReservation";
 import { getApiUrl } from "./config";
 
 export default function App() {
@@ -71,6 +73,9 @@ export default function App() {
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings" element={<BrowseListings />} />
         <Route path="/buyer/wishlist" element={<Wishlist />} />
+        <Route path="/buyer/reservations" element={<Reservations />} />
+        <Route path="seller/reservations" element={<SellerReservations />} />
+
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
