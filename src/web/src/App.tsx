@@ -23,6 +23,8 @@ import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
+import ChatPage from "./pages/chat/ChatPage";
+const BASE_URL = import.meta.env.VITE_API_URL;
 import SellerReservations from "./pages/seller/SellerReservation";
 import { getApiUrl } from "./config";
 
@@ -64,6 +66,9 @@ export default function App() {
       <Route path="/verify-otp" element={<OTP_verification />} />
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
+      <Route path = "/buyer/reservations/:reservationId/chat" element={<ChatPage />} />
+      <Route path = "/seller/reservations/:reservationId/chat" element={<ChatPage />} />
+
 
 
       <Route element={<AppLayout />}>
