@@ -1,5 +1,5 @@
 using Modules.Identity.Models;
-
+using Modules.Chat.Models;
 namespace Modules.Reservations.Models;
 
 public class Reservation

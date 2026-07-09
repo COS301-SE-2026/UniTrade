@@ -1,7 +1,7 @@
 using Modules.Identity.Models;
 using Modules.Listings.Models;
-
-namespace Modules.Reservations.Models;
+using Modules.Reservations.Models;
+namespace Modules.Chat.Models;
 
 public class ChatMessage
 {

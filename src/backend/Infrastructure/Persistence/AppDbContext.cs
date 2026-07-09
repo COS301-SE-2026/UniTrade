@@ -4,7 +4,7 @@ using Modules.Listings.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
-
+using Modules.Chat.Models;
 namespace Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
