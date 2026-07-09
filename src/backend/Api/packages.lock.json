@@ -35,6 +35,12 @@
           "Microsoft.OpenApi": "2.0.0"
         }
       },
+      "Microsoft.AspNetCore.SignalR.Common": {
+        "type": "Direct",
+        "requested": "[10.0.9, )",
+        "resolved": "10.0.9",
+        "contentHash": "01IMA9xAM0YmRKXqwhpwXZWPxUHNxLisbeY4YCXLhqmyMigk7+Dw0PMYTcg0Zxakq1xPJbULgnT+r9bwBnka1w=="
+      },
       "Microsoft.EntityFrameworkCore.Design": {
         "type": "Direct",
         "requested": "[10.0.4, )",

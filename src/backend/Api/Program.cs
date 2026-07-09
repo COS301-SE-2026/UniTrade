@@ -25,6 +25,7 @@ using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.Reservations;
 using Modules.SharedKernel;
 
 DotEnv.Load(
@@ -116,7 +117,11 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddControllers();
 
-var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)?? new [] {"http://localhost:3000", "http://localhost:8080"};
+var allowedOrigins =
+    builder
+        .Configuration["Cors:AllowedOrigins"]
+        ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://localhost:3000", "http://localhost:8080" };
 
 builder.Services.AddCors(options =>
 {
@@ -124,17 +129,15 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy
-                .WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
         }
     );
 });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
@@ -149,6 +152,7 @@ builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
 builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<IReservationsService, ReservationsService>();
 
 builder.Services.AddSingleton(
     new EmailClient(
@@ -214,6 +218,7 @@ else
 }
 
 app.UseForwardedHeaders();
+
 // if (!app.Environment.IsDevelopment())
 // {
 //     app.UseHttpsRedirection();
