@@ -14,7 +14,7 @@ export default function OTPVerification() {
   const navigate = useNavigate()
   const { isDark, toggle } = useThemeStore()
   const { pendingEmail, clearPendingEmail } = useAuthStore()
-  const [otp, setOtp] = useState(['', '', '', '','',''])
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timeLeft, setTimeLeft] = useState(60)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -44,7 +44,7 @@ export default function OTPVerification() {
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    const newOtp = ['', '', '', '','','']
+    const newOtp = ['', '', '', '', '', '']
     pasted.split('').forEach((char, i) => { newOtp[i] = char })
     setOtp(newOtp)
     inputRefs.current[Math.min(pasted.length, 5)]?.focus()
@@ -55,7 +55,7 @@ export default function OTPVerification() {
     try {
       await authService.resendOtp(pendingEmail)
       setTimeLeft(60)
-      setOtp(['', '', '', '','',''])
+      setOtp(['', '', '', '', '', ''])
       setError(null)
       inputRefs.current[0]?.focus()
     } catch (err: unknown) {
@@ -75,7 +75,7 @@ export default function OTPVerification() {
     } catch (err: unknown) {
       const error = err as ApiError
       setError(getAuthErrorMessage(error.message))
-      setOtp(['', '', '', '','',''])
+      setOtp(['', '', '', '', '', ''])
       inputRefs.current[0]?.focus()
     } finally {
       setLoading(false)
@@ -145,11 +145,10 @@ export default function OTPVerification() {
                   type="button"
                   onClick={handleResend}
                   disabled={!resendActive}
-                  className={`font-semibold mt-0.5 transition-colors ${
-                    resendActive
+                  className={`font-semibold mt-0.5 transition-colors ${resendActive
                       ? 'text-navy-700 dark:text-white cursor-pointer hover:text-[#00aaff]'
                       : 'text-gray-300 dark:text-white/20 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   Resend
                 </button>
@@ -159,11 +158,10 @@ export default function OTPVerification() {
             <button
               onClick={handleVerify}
               disabled={!isComplete || loading}
-              className={`w-full py-4 rounded-2xl text-white font-bold text-sm tracking-wide transition-all ${
-                isComplete && !loading
+              className={`w-full py-4 rounded-2xl text-white font-bold text-sm tracking-wide transition-all ${isComplete && !loading
                   ? 'bg-navy-700 hover:bg-navy-600 cursor-pointer active:scale-[0.99]'
                   : 'bg-navy-700/40 cursor-not-allowed'
-              }`}
+                }`}
             >
               {loading ? 'Verifying...' : 'Verify OTP'}
             </button>

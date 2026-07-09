@@ -226,11 +226,10 @@ export default function MyListings() {
               setActiveTab(tab.key);
               setCurrentPage(1);
             }}
-            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${
-              activeTab === tab.key
+            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${activeTab === tab.key
                 ? "bg-navy-700 text-white border-navy-700"
                 : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
-            }`}
+              }`}
           >
             {tab.label}
           </button>
@@ -260,11 +259,10 @@ export default function MyListings() {
         {paginated.map((listing, i) => (
           <div
             key={listing.id}
-            className={`flex items-center gap-4 px-5 py-4 ${
-              i < paginated.length - 1
+            className={`flex items-center gap-4 px-5 py-4 ${i < paginated.length - 1
                 ? "border-b border-gray-100 dark:border-white/5"
                 : ""
-            }`}
+              }`}
           >
             <img
               src={listing.imageUrl || biologyTextbook}
@@ -314,11 +312,10 @@ export default function MyListings() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
-                  currentPage === page
+                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
                     ? "bg-navy-700 text-white border-navy-700"
                     : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {page}
               </button>

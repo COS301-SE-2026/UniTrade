@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import girl from '../../assets/girl.png'
-import { authService} from '../../services/authService'
+import { authService } from '../../services/authService'
 import type { University } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
-import { IconEye, IconEyeOff} from "@tabler/icons-react";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 interface ApiError {
   message: string
@@ -37,7 +37,7 @@ const Signup: React.FC = () => {
       try {
         const data = await authService.getUniversities();
         setUniversities(data);
-      } catch (err: unknown){
+      } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Could not load universities';
         setUniError(message);
       } finally {
@@ -112,7 +112,7 @@ const Signup: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
-                <select 
+              <select
                 name="university"
                 value={formData.university}
                 onChange={handleChange}
@@ -120,22 +120,22 @@ const Signup: React.FC = () => {
                 disabled={uniLoading}
                 className="w-full rounded-xl border border-sky-300 py-3 focus: border-sky-500 focus:outline-none
                  focus:ring-sky-500 transition-all disabled:opacity-60">
-                  <option value="">
-                    {uniLoading
-                    ?'Loading universities...'
-                  : uniError || 'Select University'}
-                  </option>
-                  {!uniLoading &&
+                <option value="">
+                  {uniLoading
+                    ? 'Loading universities...'
+                    : uniError || 'Select University'}
+                </option>
+                {!uniLoading &&
                   !uniError &&
-                  universities.map((uni)=> (
+                  universities.map((uni) => (
                     <option key={uni.universityId} value={uni.name}>
                       {uni.name}
                     </option>
                   ))}
-                 </select>
-                 {uniError && (
-                  <p className="text-xs text-red-500 mt-1">{uniError}</p>
-                 )}
+              </select>
+              {uniError && (
+                <p className="text-xs text-red-500 mt-1">{uniError}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -155,23 +155,23 @@ const Signup: React.FC = () => {
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
               <div className="relative">
                 <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
-                <button 
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                tabIndex={-1}
-                aria-label={showPassword ? "Hide password" : "Show password"} >
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"} >
                   {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                 </button>
               </div>
-             </div>
+            </div>
 
             <button type="submit" disabled={loading}
               className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50">

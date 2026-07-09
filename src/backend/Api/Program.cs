@@ -116,7 +116,11 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddControllers();
 
-var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)?? new [] {"http://localhost:3000", "http://localhost:8080"};
+var allowedOrigins =
+    builder
+        .Configuration["Cors:AllowedOrigins"]
+        ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://localhost:3000", "http://localhost:8080" };
 
 builder.Services.AddCors(options =>
 {
@@ -124,11 +128,7 @@ builder.Services.AddCors(options =>
         "AllowReactApp",
         policy =>
         {
-            policy
-                .WithOrigins(allowedOrigins)
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
         }
     );
 });
@@ -214,10 +214,7 @@ else
 }
 
 app.UseForwardedHeaders();
-// if (!app.Environment.IsDevelopment())
-// {
-//     app.UseHttpsRedirection();
-// }
+
 app.UseRouting();
 app.UseCors("AllowReactApp");
 app.UseRateLimiter();
