@@ -68,7 +68,6 @@ public class ListingService : IListingService
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
     {
-        //resolve category
         var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
         if (category == null)
         {
@@ -82,7 +81,6 @@ public class ListingService : IListingService
             throw new ArgumentException("book_fields_not_allowed");
         }
 
-        //validate metadata
         string? metadataJ = null;
         if (dto.Metadata.HasValue && dto.Metadata.Value.ValueKind != JsonValueKind.Null)
         {
@@ -104,7 +102,7 @@ public class ListingService : IListingService
             SellerId = callerId,
             ListingStatus = "live",
             ListingId = Guid.NewGuid(),
-            CourseId = isBook ? dto.CourseId : null, // the course is only relevant for books only
+            CourseId = isBook ? dto.CourseId : null,
             isBundle = dto.IsBundle,
             ViewCount = 0,
             Images = new List<ListingImage>(),
@@ -114,7 +112,6 @@ public class ListingService : IListingService
 
         if (isBook && dto.BookDetails is not null)
         {
-            //ValidateBookDetails()
             var newBook = new BookDetails
             {
                 ListingId = newListing.ListingId,
@@ -129,8 +126,6 @@ public class ListingService : IListingService
         return MapToSummary(newListing);
     }
 
-    //!!!!!validations for the book details!!!!
-
     public async Task<bool> UpdateListings(
         UpdateListingDto listings,
         Guid id,
@@ -138,7 +133,6 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
-        // updates to text based fields
         var listingLookUp = await _listings.GetByIdTrackedAsync(id);
         if (listingLookUp == null)
             return false;
@@ -173,7 +167,7 @@ public class ListingService : IListingService
             listingLookUp.BookDetails.Author = listings.BookDetails.Author;
             listingLookUp.BookDetails.Edition = listings.BookDetails.Edition;
         }
-        //update metadata
+
         if (listings.Metadata.HasValue && listings.Metadata.Value.ValueKind != JsonValueKind.Null)
         {
             var metadata = listings.Metadata.Value;
@@ -183,8 +177,7 @@ public class ListingService : IListingService
             }
             listingLookUp.Metadata = JsonSerializer.Serialize(metadata);
         }
-await ApplyCategoryChangeAsync(listings, listingLookUp);
-        // updates to images
+        await ApplyCategoryChangeAsync(listings, listingLookUp);
 
         if (listings.RemovedImageIds is { Count: > 0 })
         {
@@ -216,10 +209,8 @@ await ApplyCategoryChangeAsync(listings, listingLookUp);
         {
             throw new ArgumentException("book_fields_not_allowed");
         }
-        if (!isBook)
-        {
-            listingLookUp.CourseId = null;
-        }
+
+        listingLookUp.CourseId = isBook ? listings.CourseId : null;
         listingLookUp.CategoryId = category.CategoryId;
     }
 

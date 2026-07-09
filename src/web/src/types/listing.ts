@@ -33,6 +33,7 @@ export interface ListingDetail {
   category: string
   status: ListingStatus
   courseCode: string
+  courseId: number
   university: string
   tags: string[]
   images: ListingImage[]
@@ -115,7 +116,7 @@ export interface Category {
   name: string;
 }
 
-export interface Course{
+export interface Course {
   courseId: number;
   courseCode: string;
   courseName: string;

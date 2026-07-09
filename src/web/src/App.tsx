@@ -17,9 +17,11 @@ import AdminVerifications from "./pages/admin/AdminVerifications";
 import AdminListingQueue from "./pages/admin/AdminListingQueue";
 import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
+import Wishlist from "./pages/buyer/Wishlist";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
+import Profile from "./pages/auth/Profile";
 import { getApiUrl } from "./config";
 
 export default function App() {
@@ -37,12 +39,12 @@ export default function App() {
           setUser({
             id: u.userId,
             name: u.firstName,
-            initials: `${u.firstName?.[0]?? ""}${u.lastName?.[0]?? ""}`,
+            initials: `${u.firstName?.[0] ?? ""}${u.lastName?.[0] ?? ""}`,
             role: u.userRole,
           });
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setAuthChecked(true));
   }, [setUser]);
   if (!authChecked) {
@@ -59,6 +61,7 @@ export default function App() {
       <Route path="/auth/HomePage" element={<HomePage />} />
       <Route path="/verify-otp" element={<OTP_verification />} />
       <Route path="/auth/help-center" element={<HelpCenter />} />
+      <Route path="/auth/profile" element={<Profile />} />
 
 
       <Route element={<AppLayout />}>
@@ -67,6 +70,7 @@ export default function App() {
         {/*the id can be anything for now since the data is hardcoded*/}
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings" element={<BrowseListings />} />
+        <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
