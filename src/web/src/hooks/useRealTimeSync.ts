@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { connectionManager } from '../services/realtime/connectionManager';
-import { queryKeys } from '../queryClient';
+import { queryKeys } from '../lib/queryKeys';
 
 
 export function useRealtimeSync(): void {
