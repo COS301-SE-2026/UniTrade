@@ -34,16 +34,18 @@ public interface IReservationService
         CancellationToken ct = default
     );
 
-     Task<ReservationDto?> GetByIdAsync(
-        Guid reservationId,
-        Guid callerId,
-        CancellationToken ct = default
-    );
+    Task<ReservationDto?> GetByIdAsync(
+       Guid reservationId,
+       Guid callerId,
+       CancellationToken ct = default
+   );
 
     Task<bool> IsPartyToAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
 
-      Task<IReadOnlyList<ReservationDto>> ExpireDueAsync(
-        DateTime sOf,
-        CancellationToken ct = default
-    );
+    Task<IReadOnlyList<ReservationDto>> ExpireDueAsync(
+      DateTime sOf,
+      CancellationToken ct = default
+  );
+
+    Task<bool> IsUserReserved(Guid userId, Guid reservationId);
 }
