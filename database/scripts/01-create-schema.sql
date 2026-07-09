@@ -238,8 +238,8 @@ CREATE TABLE Chat_messages(
         message_type IN (
             'text',
             'system',
-            'meeting_proposal',
-            'meeting_response'
+            'meetup_proposal',
+            'meetup_response'
         )
     ),
     content TEXT NOT NULL,

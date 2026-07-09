@@ -34,6 +34,9 @@ public class AppDbContext : DbContext
     public DbSet<ReservationListing> ReservationListings => Set<ReservationListing>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
+    //constants - sonarqube
+    private readonly string NowString = "now()";
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -249,7 +252,7 @@ public class AppDbContext : DbContext
                 );
                 tb.HasCheckConstraint(
                     "chk_listing_status",
-                    "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')"
+                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')"
                 );
             });
 
@@ -286,11 +289,11 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.isBundle).HasDefaultValue(false);
             entity.Property(x => x.ViewCount).HasDefaultValue(0);
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity
                 .Property(x => x.UpdatedAt)
-                .HasDefaultValueSql("now()")
+                .HasDefaultValueSql(NowString)
                 .ValueGeneratedOnAddOrUpdate();
 
             entity
@@ -312,11 +315,6 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity
-                .HasOne(x => x.Category)
-                .WithMany()
-                .HasForeignKey(x => x.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             entity
                 .HasOne(x => x.BookDetails)
@@ -456,7 +454,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.IsPrimary).HasDefaultValue(false).IsRequired();
 
-            entity.Property(x => x.UploadedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity
                 .HasOne(x => x.Listing)
@@ -482,7 +480,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.SellerAcknowledgedAt);
             entity.Property(x => x.BuyerRespondedAt);
             entity.Property(x => x.ExpiresAt).IsRequired();
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity.ToTable(t =>
             {
@@ -493,13 +491,13 @@ public class AppDbContext : DbContext
             });
 
             entity
-                .HasOne<User>()
+                .HasOne<User>(x => x.Buyer)
                 .WithMany()
                 .HasForeignKey(x => x.BuyerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity
-                .HasOne<User>()
+                .HasOne<User>(x => x.Seller)
                 .WithMany()
                 .HasForeignKey(x => x.SellerId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -537,7 +535,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ChatMessage>(entity =>
         {
             entity.HasKey(x => x.MessageId);
-            entity.Property(x => x.MessageId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.MessageId).ValueGeneratedOnAdd();
 
             entity.Property(x => x.ReservationId).IsRequired();
             entity.Property(x => x.SenderId);
@@ -550,14 +548,14 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.Content).IsRequired();
             entity.Property(x => x.Payload).HasColumnType("jsonb");
-            entity.Property(x => x.SentAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.SentAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
             entity.Property(x => x.ReadAt);
 
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint(
                     "chk_message_type",
-                    "message_type IN ('text', 'system', 'meeting_proposal',  'meeting_response')"
+                    "message_type IN ('text', 'system', 'meetup_proposal',  'meetup_response')"
                 );
 
                 t.HasCheckConstraint(
@@ -572,13 +570,13 @@ public class AppDbContext : DbContext
             });
 
             entity
-                .HasOne<User>()
+                .HasOne<User>(x => x.Sender)
                 .WithMany()
                 .HasForeignKey(x => x.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity
-                .HasOne<Reservation>()
+                .HasOne<Reservation>(x => x.Reservation)
                 .WithMany(r => r.Messages)
                 .HasForeignKey(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
