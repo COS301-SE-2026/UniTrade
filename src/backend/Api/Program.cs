@@ -26,6 +26,7 @@ using Modules.ReferenceData.Course.Repositories;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
+using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
 
 DotEnv.Load(
@@ -153,6 +154,7 @@ builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IReservationsService, ReservationsService>();
+builder.Services.AddScoped<IReservationsRepository, ReservationsRepository>();
 
 builder.Services.AddSingleton(
     new EmailClient(
