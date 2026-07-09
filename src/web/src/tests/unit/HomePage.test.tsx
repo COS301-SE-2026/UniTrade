@@ -1,9 +1,9 @@
-import {fireEvent, render} from '@testing-library/react'
-import {screen} from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 //import { fireEvent, act} from '@testing-library/react'
-import {within} from '@testing-library/react'
-import {MemoryRouter} from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi, afterEach} from 'vitest'
+import { within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
 import userEvent from '@testing-library/user-event'
 import { AlexAvatar } from '../../pages/auth/HomePage'
@@ -22,8 +22,8 @@ vi.mock('react-router-dom', async () => {
         useNavigate: () => mockNavigate,
     }
 })
-const renderHomePage = () => 
-    render (
+const renderHomePage = () =>
+    render(
         <MemoryRouter>
             <HomePage />
         </MemoryRouter>
@@ -32,6 +32,7 @@ const renderHomePage = () =>
 describe('HomePage', () => {
     it('home page appears up without crashing or lagging', () => {
         renderHomePage()
+        expect(screen.getByRole('navigation')).toBeInTheDocument()
     })
 })
 
@@ -40,28 +41,28 @@ describe('Navbar', () => {
         mockNavigate.mockClear()
     })
 
-    it ('renders logo, title, and Get Started button', () => {
+    it('renders logo, title, and Get Started button', () => {
         renderHomePage()
         const nav = screen.getByRole('navigation')
         expect(within(nav).getByAltText('UniTrade Logo')).toBeInTheDocument()
         expect(within(nav).getByText('UniTrade')).toBeInTheDocument()
         expect(
-            within(nav).getByRole('button', {name: /get started/i})
+            within(nav).getByRole('button', { name: /get started/i })
         ).toBeInTheDocument()
     })
 
-    it ('renders desktop navigation links with correct hrefs', () => {
+    it('renders desktop navigation links with correct hrefs', () => {
         renderHomePage()
         const nav = screen.getByRole('navigation')
 
         const expectedLinks = [
-            { name: 'The Problem', href: '#problem'},
-            { name: 'The Solution', href: '#solution'},
-            { name: 'How it works', href: '#how-it-works'},
+            { name: 'The Problem', href: '#problem' },
+            { name: 'The Solution', href: '#solution' },
+            { name: 'How it works', href: '#how-it-works' },
         ]
 
-        expectedLinks.forEach(({ name, href}) => {
-            const links = within(nav).getAllByRole('link', {name})
+        expectedLinks.forEach(({ name, href }) => {
+            const links = within(nav).getAllByRole('link', { name })
             expect(links[0]).toHaveAttribute('href', href)
         })
     })
@@ -70,11 +71,11 @@ describe('Navbar', () => {
         const user = userEvent.setup()
         renderHomePage()
         const nav = screen.getByRole('navigation')
-        await user.click(within(nav).getByRole('button', {name: /get started/i}))
+        await user.click(within(nav).getByRole('button', { name: /get started/i }))
 
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Signup')
     })
-    it ('toggles the mobile menu open and closed on hamburger click', async () => {
+    it('toggles the mobile menu open and closed on hamburger click', async () => {
         const user = userEvent.setup()
         renderHomePage()
 
@@ -87,8 +88,13 @@ describe('Navbar', () => {
         await user.click(toggle)
         expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
     })
-    
-    it ('closes the mobile menu when a link is clicked', async () => {
+
+    it.each([
+        ['The Solution'],
+        ['How it works'],
+        ['For buyers'],
+        ['For sellers'],
+    ])('closes the mobile menu when a link is clicked', async () => {
         const user = userEvent.setup()
         renderHomePage()
 
@@ -98,6 +104,51 @@ describe('Navbar', () => {
         await user.click(within(mobileMenu).getByText('The Problem'))
         expect(screen.queryByTestId('mobile-menu')).not.toBeInTheDocument()
     })
+    it('falls back to the placeholder image if the logo fails to load', () => {
+        renderHomePage()
+        const nav = screen.getByRole('navigation')
+        const logoImg = within(nav).getByAltText('UniTrade Logo')
+
+        fireEvent.error(logoImg)
+        expect(logoImg).toHaveAttribute(
+            'src',
+            'https://placehold.co/120x40/0d1f4e/white?text=UniTrade'
+        )
+    })
+
+    it('toggled aria-expanded on the mobile menu toggle button', async () => {
+        const user = userEvent.setup()
+        renderHomePage()
+        const toggle = screen.getByTestId('mobile-menu-toggle')
+
+        expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+        await user.click(toggle);
+        expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+        await user.click(toggle);
+        expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('renders all mobile menu links with correct hrefs', async () => {
+        const user = userEvent.setup();
+        renderHomePage();
+        await user.click(screen.getByTestId('mobile-menu-toggle'));
+
+        const menu = screen.getByTestId('mobile-menu');
+        const expected = [
+            { name: 'The Problem', href: '#problem' },
+            { name: 'The Solution', href: '#solution' },
+            { name: 'How it works', href: '#how-it-works' },
+            { name: 'For buyers', href: '#for-buyerssellers' },
+            { name: 'For sellers', href: '#for-buyerssellers' },
+        ];
+
+        expected.forEach(({ name, href }) => {
+            const link = within(menu).getByRole('link', { name });
+            expect(link).toHaveAttribute('href', href);
+        });
+    });
 })
 
 describe('Firstpage', () => {
@@ -105,7 +156,7 @@ describe('Firstpage', () => {
         mockNavigate.mockClear()
     })
 
-    it ('Navigate to /auth/SignUp when SignUp button is clicked', async () => {
+    it('Navigate to /auth/SignUp when SignUp button is clicked', async () => {
         const user = userEvent.setup()
         renderHomePage()
         const signUpbuton = screen.getByRole('button', {
@@ -115,7 +166,7 @@ describe('Firstpage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Signup')
     })
 
-    it ('Navigate to /auth/Login when the login button is clicked', async() => {
+    it('Navigate to /auth/Login when the login button is clicked', async () => {
         const user = userEvent.setup()
         renderHomePage()
         const loginbuton = screen.getByRole('button', {
@@ -124,55 +175,55 @@ describe('Firstpage', () => {
         await user.click(loginbuton)
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Login')
     })
-    it ('renders the badge text', async () => {
+    it('renders the badge text', async () => {
         renderHomePage()
         expect(screen.getByText('MADE FOR SA UNIVERSITY STUDENTS')).toBeInTheDocument()
     })
-    it ('renders the first page text', async () => {
+    it('renders the first page text', async () => {
         renderHomePage()
         expect(screen.getByText('UniTrade is the verified peer-to-peer marketplace for South African students. No shipping, no strangers - just your campus community.')).toBeInTheDocument()
     })
 
-     it ('renders the first page text', async () => {
+    it('renders the first page text', async () => {
         renderHomePage()
         expect(screen.getByText('Buy and sell University materials')).toBeInTheDocument()
     })
-    it ('renders the first page second text', async () => {
+    it('renders the first page second text', async () => {
         renderHomePage()
         expect(screen.getByText('on your campus')).toBeInTheDocument()
     })
 
-    it ('renders the University stats with correct number and label', async () => {
+    it('renders the University stats with correct number and label', async () => {
         renderHomePage()
         expect(screen.getByText('+5')).toBeInTheDocument()
         expect(screen.getByText('SA UNIVERSITIES')).toBeInTheDocument()
     })
 
-    it ('renders the verification stats with the correct number and label', async () => {
+    it('renders the verification stats with the correct number and label', async () => {
         renderHomePage()
         expect(screen.getByText('100%')).toBeInTheDocument()
         expect(screen.getByText('VERIFIED STUDENTS')).toBeInTheDocument()
     })
 
-    it ('renders the shipping fees stats with the correct number and label', async () => {
+    it('renders the shipping fees stats with the correct number and label', async () => {
         renderHomePage()
         expect(screen.getByText('0')).toBeInTheDocument()
         expect(screen.getByText('SHIPPING FEES')).toBeInTheDocument()
     })
 
-    it ('inlcudes the Alex Avatar alt text on the page', async () => { //another way for checking if the avatar is on the page
+    it('inlcudes the Alex Avatar alt text on the page', async () => { //another way for checking if the avatar is on the page
         renderHomePage()
         expect(screen.getByAltText(/Alex Avatar/i)).toBeInTheDocument()
     })
 
-    it ('includes the Alex Avatar on the page', async () => { //also another way
-        renderHomePage ()
+    it('includes the Alex Avatar on the page', async () => { //also another way
+        renderHomePage()
         expect(screen.getByTestId('alex-avatar-wrapper')).toBeInTheDocument()
     })
 
 })
 
-describe ('AlexAvatar', () => {
+describe('AlexAvatar', () => {
     beforeEach(() => {
         vi.useFakeTimers()
     })
@@ -189,7 +240,7 @@ describe ('AlexAvatar', () => {
         expect(bubble.querySelectorAll('.animate-bounce')).toHaveLength(3)
     })
 
-    it ('shows "UniTrade" after transitioning to answer', () => {
+    it('shows "UniTrade" after transitioning to answer', () => {
         render(<AlexAvatar />)
 
         act(() => {
@@ -200,7 +251,7 @@ describe ('AlexAvatar', () => {
         expect(screen.getByText('UniTrade').querySelectorAll('.animate-bounce')).toHaveLength(0)
     })
 
-    it ('shows "UniTrade" with joy animation after transitioning to joy', () => {
+    it('shows "UniTrade" with joy animation after transitioning to joy', () => {
         render(<AlexAvatar />)
 
         act(() => {
@@ -216,10 +267,10 @@ describe ('AlexAvatar', () => {
         render(<AlexAvatar />)
         expect(screen.getByText(/AgileBridge/)).toHaveClass('bg-navy-700')
 
-        act(() => {vi.advanceTimersByTime(1800)})
+        act(() => { vi.advanceTimersByTime(1800) })
         expect(screen.getByText('UniTrade')).toHaveClass('bg-blue-400')
 
-        act(() => { vi.advanceTimersByTime(1800)})
+        act(() => { vi.advanceTimersByTime(1800) })
         expect(screen.getByText('UniTrade')).toHaveClass('bg-blue-400')
     })
 
@@ -231,13 +282,13 @@ describe ('AlexAvatar', () => {
         expect(wrapper()).toHaveClass('animate-pulse-slow')
         expect(wrapper()).not.toHaveClass('animate-joy-bounce')
 
-        act(() => { vi.advanceTimersByTime(3600)})
+        act(() => { vi.advanceTimersByTime(3600) })
 
         expect(wrapper()).toHaveClass('animate-joy-bounce')
         expect(wrapper()).not.toHaveClass('animate-pulse-slow')
     })
 
-    it ('cycles through stages', () => {
+    it('cycles through stages', () => {
         render(<AlexAvatar />)
 
         expect(screen.getByText(/AgileBridge/)).toBeInTheDocument()
@@ -264,7 +315,7 @@ describe ('AlexAvatar', () => {
 
     it('calls onClick when the avatar is clicked', () => {
         const handleClick = vi.fn()
-        render (<AlexAvatar onClick={handleClick} />)
+        render(<AlexAvatar onClick={handleClick} />)
 
         fireEvent.click(screen.getByTestId('alex-avatar-container'))
 
@@ -272,156 +323,168 @@ describe ('AlexAvatar', () => {
     })
 
     it('applies the className proto the container', () => {
-        render(<AlexAvatar className="my-custom-class"/>)
+        render(<AlexAvatar className="my-custom-class" />)
 
         expect(screen.getByTestId('alex-avatar-container')).toHaveClass('my-custom-class')
     })
 })
 describe('ProblemCard (unit)', () => {
-  it('renders the icon, title, and description passed to it', () => {
-    render(
-      <ProblemCard
-        icon={<IconShield data-testid="mock-icon" />}
-        title="Safety concerns"
-        description="Some description text"
-      />
-    )
+    it('renders the icon, title, and description passed to it', () => {
+        render(
+            <ProblemCard
+                icon={<IconShield data-testid="mock-icon" />}
+                title="Safety concerns"
+                description="Some description text"
+            />
+        )
 
-    expect(screen.getByTestId('card-icon')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 3, name: 'Safety concerns' })).toBeInTheDocument()
-    expect(screen.getByText('Some description text')).toBeInTheDocument()
-  })
+        expect(screen.getByTestId('card-icon')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { level: 3, name: 'Safety concerns' })).toBeInTheDocument()
+        expect(screen.getByText('Some description text')).toBeInTheDocument()
+    })
 })
 
 describe('Theproblem', () => {
-  it('renders exactly three problem cards', () => {
-    render(<Theproblem />)
-    expect(screen.getAllByTestId('card-icon')).toHaveLength(3)
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3)
-  })
-
-  it('each card shows the correct title and description', () => {
-    render(<Theproblem />)
-
-    const expected = [
-      { title: 'Safety concerns', description: /meeting strangers/i },
-      { title: 'Lack of accountability', description: /anonymous sellers/i },
-      { title: 'Inconvenient meetup locations', description: /coordinating with people/i },
-    ]
-
-    expected.forEach(({ title, description }) => {
-      const heading = screen.getByRole('heading', { level: 3, name: title })
-      const card = heading.closest('div')!
-      expect(within(card).getByText(description)).toBeInTheDocument()
+    it('renders exactly three problem cards', () => {
+        render(<Theproblem />)
+        expect(screen.getAllByTestId('card-icon')).toHaveLength(3)
+        expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3)
     })
-  })
+
+    it('each card shows the correct title and description', () => {
+        render(<Theproblem />)
+
+        const expected = [
+            { title: 'Safety concerns', description: /meeting strangers/i },
+            { title: 'Lack of accountability', description: /anonymous sellers/i },
+            { title: 'Inconvenient meetup locations', description: /coordinating with people/i },
+        ]
+
+        expected.forEach(({ title, description }) => {
+            const heading = screen.getByRole('heading', { level: 3, name: title })
+            const card = heading.closest('div')!
+            expect(within(card).getByText(description)).toBeInTheDocument()
+        })
+    })
 })
 
 describe('Thesolution', () => {
-  it('renders exactly six solution cards', () => {
-    render(<Thesolution />)
-    expect(screen.getAllByTestId('card-icon')).toHaveLength(6)
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(6)
-  })
-
-  it('each card shows the correct title and description', () => {
-    render(<Thesolution />)
-
-    const expected = [
-      'Verified students only',
-      'Meet on campus',
-      'Secure payments via OZOW',
-      'AI listing verification',
-      'Bundle packs',
-      'Trust and reputation',
-    ]
-
-    expected.forEach((title) => {
-      expect(screen.getByRole('heading', { level: 3, name: title })).toBeInTheDocument()
+    it('renders exactly six solution cards', () => {
+        render(<Thesolution />)
+        expect(screen.getAllByTestId('card-icon')).toHaveLength(6)
+        expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(6)
     })
-  })
+
+    it('each card shows the correct title and description', () => {
+        render(<Thesolution />)
+
+        const expected = [
+            'Verified students only',
+            'Meet on campus',
+            'Secure payments via OZOW',
+            'AI listing verification',
+            'Bundle packs',
+            'Trust and reputation',
+        ]
+
+        expected.forEach((title) => {
+            expect(screen.getByRole('heading', { level: 3, name: title })).toBeInTheDocument()
+        })
+    })
 })
 describe('BenefitList (unit)', () => {
-  it('renders title and all items', () => {
-    render(<BenefitList title="For buyers" items={['Item one', 'Item two']} />)
+    it('renders title and all items', () => {
+        render(<BenefitList title="For buyers" items={['Item one', 'Item two']} />)
 
-    expect(screen.getByRole('heading', { level: 3, name: 'For buyers' })).toBeInTheDocument()
-    expect(screen.getAllByRole('listitem')).toHaveLength(2)
-    expect(screen.getByText('Item one')).toBeInTheDocument()
-    expect(screen.getByText('Item two')).toBeInTheDocument()
-  })
+        expect(screen.getByRole('heading', { level: 3, name: 'For buyers' })).toBeInTheDocument()
+        expect(screen.getAllByRole('listitem')).toHaveLength(2)
+        expect(screen.getByText('Item one')).toBeInTheDocument()
+        expect(screen.getByText('Item two')).toBeInTheDocument()
+    })
 })
 
 describe('BuyersSellers', () => {
-  it('renders "For buyers" and "For sellers" lists', () => {
-    render(<BuyersSellers />)
+    it('renders "For buyers" and "For sellers" lists', () => {
+        render(<BuyersSellers />)
 
-    expect(screen.getByRole('heading', { level: 3, name: 'For buyers' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 3, name: 'For sellers' })).toBeInTheDocument()
-  })
+        expect(screen.getByRole('heading', { level: 3, name: 'For buyers' })).toBeInTheDocument()
+        expect(screen.getByRole('heading', { level: 3, name: 'For sellers' })).toBeInTheDocument()
+    })
 
-  it('each list shows all six of its items', () => {
-    render(<BuyersSellers />)
+    it('each list shows all six of its items', () => {
+        render(<BuyersSellers />)
 
-    const buyersHeading = screen.getByRole('heading', { level: 3, name: 'For buyers' })
-    const buyersList = buyersHeading.parentElement!
-    expect(within(buyersList).getAllByRole('listitem')).toHaveLength(6)
-    expect(within(buyersList).getByText(/reserve items before someone else/i)).toBeInTheDocument()
+        const buyersHeading = screen.getByRole('heading', { level: 3, name: 'For buyers' })
+        const buyersList = buyersHeading.parentElement!
+        expect(within(buyersList).getAllByRole('listitem')).toHaveLength(6)
+        expect(within(buyersList).getByText(/reserve items before someone else/i)).toBeInTheDocument()
 
-    const sellersHeading = screen.getByRole('heading', { level: 3, name: 'For sellers' })
-    const sellersList = sellersHeading.parentElement!
-    expect(within(sellersList).getAllByRole('listitem')).toHaveLength(6)
-    expect(within(sellersList).getByText(/AI scans your photos/i)).toBeInTheDocument()
-  })
+        const sellersHeading = screen.getByRole('heading', { level: 3, name: 'For sellers' })
+        const sellersList = sellersHeading.parentElement!
+        expect(within(sellersList).getAllByRole('listitem')).toHaveLength(6)
+        expect(within(sellersList).getByText(/AI scans your photos/i)).toBeInTheDocument()
+    })
 })
 
 describe('GetApp', () => {
-  it('renders Apple and Play store images', () => {
-    render(<GetApp />)
+    it('renders Apple and Play store images', () => {
+        render(<GetApp />)
 
-    const appleImg = screen.getByAltText('Download on the App Store')
-    const playImg = screen.getByAltText('GET IT ON Google Play')
+        const appleImg = screen.getByAltText('Download on the App Store')
+        const playImg = screen.getByAltText('GET IT ON Google Play')
 
-    expect(appleImg).toBeInTheDocument()
-    expect(playImg).toBeInTheDocument()
+        expect(appleImg).toBeInTheDocument()
+        expect(playImg).toBeInTheDocument()
 
-    expect(appleImg).toHaveAttribute('src', expect.stringMatching(/.+/))
-    expect(playImg).toHaveAttribute('src', expect.stringMatching(/.+/))
-  })
+        expect(appleImg).toHaveAttribute('src', expect.stringMatching(/.+/))
+        expect(playImg).toHaveAttribute('src', expect.stringMatching(/.+/))
+    })
 
-  it('store badges link to their respective placeholder href', () => {
-    render(<GetApp />)
+    it('store badges link to their respective placeholder href', () => {
+        render(<GetApp />)
 
-    const appleLink = screen.getByAltText('Download on the App Store').closest('a')
-    const playLink = screen.getByAltText('GET IT ON Google Play').closest('a')
+        const appleLink = screen.getByAltText('Download on the App Store').closest('a')
+        const playLink = screen.getByAltText('GET IT ON Google Play').closest('a')
 
-    expect(appleLink).toHaveAttribute('href', '#')
-    expect(playLink).toHaveAttribute('href', '#')
-  })
+        expect(appleLink).toHaveAttribute('href', '#')
+        expect(playLink).toHaveAttribute('href', '#')
+    })
 })
 
 describe('Footer', () => {
-  it('displays contact info', () => {
-    render(<Footer />)
+    it('displays contact info', () => {
+        render(<Footer />)
 
-    expect(screen.getByText('+27 123 456 789')).toBeInTheDocument()
-    expect(screen.getByText('devenexus28@gmail.com')).toBeInTheDocument()
-  })
-
-  it('displays support links text', () => {
-    render(<Footer />)
-    expect(screen.getByText('Help Center')).toBeInTheDocument()
-    expect(screen.getByText('Safety Tips')).toBeInTheDocument()
-    expect(screen.getByText('Contact Us')).toBeInTheDocument()
-  })
-
-  it('renders social media links with placeholder hrefs', () => {
-    render(<Footer />)
-
-    const socialLinks = screen.getAllByRole('link', { name: /𝕏|📸|𝕗/ })
-    expect(socialLinks).toHaveLength(3)
-    socialLinks.forEach((link) => {
-      expect(link).toHaveAttribute('href', '#')
+        expect(screen.getByText('+27 123 456 789')).toBeInTheDocument()
+        expect(screen.getByText('devenexus28@gmail.com')).toBeInTheDocument()
     })
-  })
+
+    it('displays support links text', () => {
+        render(<Footer />)
+        expect(screen.getByText('Help Center')).toBeInTheDocument()
+        expect(screen.getByText('Safety Tips')).toBeInTheDocument()
+        expect(screen.getByText('Contact Us')).toBeInTheDocument()
+    })
+
+    it('renders social media links with placeholder hrefs', () => {
+        render(<Footer />)
+
+        const socialLinks = screen.getAllByRole('link', { name: /𝕏|📸|𝕗/ })
+        expect(socialLinks).toHaveLength(3)
+        socialLinks.forEach((link) => {
+            expect(link).toHaveAttribute('href', '#')
+        })
+    })
+
+    beforeEach(() => {
+        mockNavigate.mockClear()
+    })
+
+    it('navigates to the help center page when the text is clicked', async () => {
+        const user = userEvent.setup()
+        render(<Footer />)
+
+        await user.click(screen.getByText('Help Center'))
+        expect(mockNavigate).toHaveBeenCalledWith('/auth/help-center')
+    })
 })

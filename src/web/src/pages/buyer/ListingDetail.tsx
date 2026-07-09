@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-IconStar, IconCheck, IconChevronRight,
+  IconStar, IconCheck, IconChevronRight,
 } from '@tabler/icons-react'
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
-import type { ListingDetail as ListingDetailType} from '../../types/listing'
+import type { ListingDetail as ListingDetailType } from '../../types/listing'
 
 
- 
+
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -113,8 +113,8 @@ export default function ListingDetail() {
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
                   className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
-                      ? 'border-navy-700 dark:border-white'
-                      : 'border-transparent'
+                    ? 'border-navy-700 dark:border-white'
+                    : 'border-transparent'
                     }`}
                 >
                   {img.url ? (
@@ -182,44 +182,44 @@ export default function ListingDetail() {
           </div>
         </div>
 
-       
+
         <div className="col-span-1 space-y-4">
 
-          
-            <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">Seller</h3>
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-navy-600 animate-pulse" />
-                <div className="space-y-2">
-                  <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                  <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                  <div className="h-2.5 w-16 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                </div>
-                <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
-                  Coming soon
-                </span>
+
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">Seller</h3>
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-navy-600 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                <div className="h-2.5 w-16 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
               </div>
+              <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
+                Coming soon
+              </span>
             </div>
+          </div>
 
 
-            <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-navy-600 animate-pulse" />
-                <div className="space-y-2">
-                  <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                  <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                </div>
-                <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
-                  Coming soon
-                </span>
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+              <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-navy-600 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
               </div>
+              <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
+                Coming soon
+              </span>
             </div>
-
           </div>
 
         </div>
+
       </div>
-  
+    </div>
+
   )
 }

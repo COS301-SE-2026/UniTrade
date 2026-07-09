@@ -98,11 +98,10 @@ export default function SellerListingDetail() {
                   src={img}
                   alt={`thumbnail ${i + 2}`}
                   onClick={() => setSelectedImg(i + 1)}
-                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${
-                    selectedImg === i + 1
+                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${selectedImg === i + 1
                       ? "border-navy-700 dark:border-white"
                       : "border-transparent"
-                  }`}
+                    }`}
                 />
               ))}
             </div>

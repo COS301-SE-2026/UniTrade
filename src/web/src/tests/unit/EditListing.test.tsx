@@ -2,18 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, fireEvent} from "@testing-library/react";
 import userEvent from "@testing-library/user-event"
 
+
 const {
     getListingsCategories,
     getById,
+    getCourse,
     updateListing,
     uploadImages,
+    searchCourses,
     mockNavigate,
     routeParams,
 } = vi.hoisted(() => ({
     getListingsCategories: vi.fn(),
+    getCourse: vi.fn(),
     getById: vi.fn(),
     updateListing: vi.fn(),
     uploadImages: vi.fn(),
+    searchCourses: vi.fn(),
     mockNavigate: vi.fn(),
     routeParams: {
         id: "123" as string | undefined
@@ -24,6 +29,8 @@ vi.mock("../../services/listingsService", () => ({
   listingsService: {
     getListingsCategories,
     getById,
+    getCourse,
+    searchCourses,
     updateListing,
     uploadImages,
   },
@@ -63,6 +70,7 @@ const baseListing = {
   description: "Barely used, no highlights.",
   price: 250,
   condition: "new",
+  courseId: "1",
   courseCode: "301",
   images: [
     { id: "1", url: "https://example.com/img1.jpg" },
@@ -84,8 +92,16 @@ function getImageGrid(container: HTMLElement) {
 
 async function renderAndLoad(listingOverrides: Partial<typeof baseListing> = {}) {
     getListingsCategories.mockResolvedValue(mockCategories);
-    getById.mockResolvedValue({ ...baseListing, ...listingOverrides });
 
+    const listing = { ...baseListing, ...listingOverrides};
+    getById.mockResolvedValue(listing);
+
+    getCourse.mockResolvedValue({
+       courseId: listing.courseId,
+       courseCode: listing.courseCode,
+       courseName: "Mock Course",
+       faculty: "Mock Faculty",
+    })
     const rendered = render(<EditListing />);
     await waitFor(() =>
     expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
@@ -99,6 +115,14 @@ beforeEach(() => {
     routeParams.id = "123";
     globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
     globalThis.URL.revokeObjectURL = vi.fn();
+
+    getCourse.mockResolvedValue({
+      courseId: 0,
+      courseCode: "",
+      courseName: "",
+      faculty: "",
+    });
+    searchCourses.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -163,17 +187,18 @@ it("renders the form pre-filled once both calls resolve", async () => {
     expect(goodButton.className).toMatch(/bg-\[#0F2D5E\]/);
   });
 
-  it("populates moduleTag from courseCode regardless of category", async () => {
-    // category is "book" in baseListing, so the select is visible and pre-filled
-    await renderAndLoad();
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe(baseListing.courseCode);
+  it("populates the course input from the resolved course code on load", async () => {
+   
+    await renderAndLoad()
+
+    const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
+    await waitFor(() => expect(courseInput).toHaveValue(baseListing.courseCode));
   });
 
-  it("defaults moduleTag to empty string when courseCode is missing", async () => {
+  it("defaults the course input to empty string when courseCode is missing", async () => {
     await renderAndLoad({ courseCode: undefined as unknown as string });
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("");
+    const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
+    await waitFor(() => expect(courseInput).toHaveValue(""));
   });
 });
 describe("Category-dependent fields", () => {
@@ -266,14 +291,20 @@ describe("Form field bindings", () => {
     expect(screen.getByPlaceholderText(/dimensions/i)).toBeInTheDocument();
   });
 
-  it("updates moduleTag when a module option is selected", async () => {
+  it("updates the course input value when the user types a new module code", async () => {
     const user = userEvent.setup();
-    await renderAndLoad({ category: "book", courseCode: "" });
+    searchCourses.mockResolvedValue([
+      { courseId: 114, courseCode: "WTW114", courseName: "Calculus", faculty: "Science"},
+    ]);
 
-    const select = screen.getByRole("combobox");
-    await user.selectOptions(select, "114");
 
-    expect((select as HTMLSelectElement).value).toBe("114");
+    await renderAndLoad({ category: "book", courseCode: ""});
+    const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
+
+    await user.clear(courseInput)
+    await user.type(courseInput, "WTW114");
+
+    await waitFor(() => expect(courseInput).toHaveValue("WTW114"))
   });
 
   it("updates customField when typing in Brand/Model", async () => {
@@ -464,8 +495,14 @@ describe("Save flow", () => {
   it("calls updateListing with the correctly mapped payload", async () => {
     const user = userEvent.setup();
     updateListing.mockResolvedValue(undefined);
+      searchCourses.mockResolvedValue([
+    { courseId: 301, courseCode: "301", courseName: "Mock Course 301", faculty: "Mock" },
+  ]);
+
     await renderAndLoad({ category: "book", courseCode: "301" });
 
+    await waitFor(() => 
+    expect(screen.getByText(/module selected/i)).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalledTimes(1));
@@ -519,8 +556,16 @@ describe("Save flow", () => {
   it("parses courseId to an integer when moduleTag is a numeric string", async () => {
     const user = userEvent.setup();
     updateListing.mockResolvedValue(undefined);
-    await renderAndLoad({ category: "book", courseCode: "114" });
 
+    searchCourses.mockResolvedValue([
+      { courseId: 114, courseCode: "114", courseName: "Mock Course 114", faculty: "Mock"},
+    ]);
+
+    await renderAndLoad({ category: "book", courseCode: "114" });
+    
+    await waitFor(() =>
+    expect(screen.getByText(/module selected/i)).toBeInTheDocument(),
+  );
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalled());
