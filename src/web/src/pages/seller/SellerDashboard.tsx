@@ -12,11 +12,11 @@ const SellerDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const recentOrders = [
-    { id: '11001', date: '2026-04-22', customer: 'Sabira', status: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
-    { id: '11002', date: '2026-04-20', customer: 'Mahadio', status: 'Delivered', color: 'bg-green-100 text-green-700' },
-    { id: '11003', date: '2026-03-11', customer: 'Tafadzwa', status: 'Delivered', color: 'bg-green-100 text-green-700' },
-    { id: '111004', date: '2026-03-07', customer: 'Zelemane', status: 'Delivered', color: 'bg-green-100 text-green-700' },
-    { id: '11005', date: '2025-09-26', customer: 'Langa', status: 'Cancelled', color: 'bg-red-100 text-red-600' },
+    { id: '11001', date: '2026-04-22', customer: 'Sabira', status: 'Pending', color: 'bg-yellow-100 text-yellow-700', reservationId: 'r1' },
+    { id: '11002', date: '2026-04-20', customer: 'Mahadio', status: 'Delivered', color: 'bg-green-100 text-green-700', reservationId: 'r2'},
+    { id: '11003', date: '2026-03-11', customer: 'Tafadzwa', status: 'Delivered', color: 'bg-green-100 text-green-700', reservationId: 'r3'},
+    { id: '111004', date: '2026-03-07', customer: 'Zelemane', status: 'Delivered', color: 'bg-green-100 text-green-700', reservationId: 'r4'},
+    { id: '11005', date: '2025-09-26', customer: 'Langa', status: 'Cancelled', color: 'bg-red-100 text-red-600',reservationId: 'r5'},
   ];
 
   const salesDays = [
@@ -107,7 +107,8 @@ const SellerDashboard: React.FC = () => {
             </thead>
             <tbody className="text-sm">
               {recentOrders.map((order) => (
-                <tr key={order.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                <tr key={order.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/seller/reservations/${order.reservationId}/chat`)}>
                   <td className="py-3 font-semibold text-gray-800">{order.id}</td>
                   <td className="py-3 text-gray-400 text-xs">{order.date}</td>
                   <td className="py-3 text-gray-600">{order.customer}</td>
