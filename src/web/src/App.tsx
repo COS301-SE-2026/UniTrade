@@ -24,14 +24,14 @@ import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
 import SellerReservations from "./pages/seller/SellerReservation";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { getApiUrl } from "./config";
 
 export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const { setUser } = useAuthStore();
 
   useEffect(() => {
-    fetch(`${BASE_URL}/auth/me`, {
+    fetch(`${getApiUrl()}/auth/me`, {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
