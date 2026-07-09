@@ -230,6 +230,7 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok("healthy"));
+app.MapHub<ChatHub>("/chathub");
 app.MapControllers();
 
 await app.RunAsync();
