@@ -516,17 +516,80 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ReservationListing>(entity =>
         {
-            entity.HasKey(x => new { x.ReservationId, x.ListingId }).HasName("pk_reservation_listings");
+            entity
+                .HasKey(x => new { x.ReservationId, x.ListingId })
+                .HasName("pk_reservation_listings");
 
-            entity.HasOne(x => x.Reservation)
-            .WithMany(r => r.ReservationListings)
-            .HasForeignKey(x => x.ReservationId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasOne(x => x.Reservation)
+                .WithMany(r => r.ReservationListings)
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(x => x.Listing)
-           .WithMany()
-           .HasForeignKey(x => x.ListingId)
-           .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(x => x.Listing)
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Chat messages
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(x => x.MessageId);
+            entity.Property(x => x.MessageId).HasDefaultValueSql("gen_random_uuid()");
+
+            entity.Property(x => x.ReservationId).IsRequired();
+            entity.Property(x => x.SenderId);
+
+            entity
+                .Property(x => x.MessageType)
+                .HasMaxLength(20)
+                .IsRequired()
+                .HasDefaultValue("text");
+
+            entity.Property(x => x.Content).IsRequired();
+            entity.Property(x => x.Payload).HasColumnType("jsonb");
+            entity.Property(x => x.SentAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.ReadAt);
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_message_type",
+                    "message_type IN ('text', 'system', 'meeting_proposal',  'meeting_response')"
+                );
+
+                t.HasCheckConstraint(
+                    "chk_system_sender",
+                    "(message_type = 'system' AND sender_id IS NULL) OR (message_type <> 'system' AND sender_id IS NOT NULL)"
+                );
+
+                t.HasCheckConstraint(
+                    "chk_payload_type",
+                    "(message_type IN ('meetup_proposal', 'meetup_response') AND payload IS NOT NULL ) OR( message_type IN ('text', 'system')  AND payload IS NULL )"
+                );
+            });
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne<Reservation>()
+                .WithMany(r => r.Messages)
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasIndex(x => new { x.ReservationId, x.SentAt })
+                .HasDatabaseName("ix_chat_reservation");
+            entity
+                .HasIndex(x => new { x.ReservationId, x.ReadAt })
+                .HasDatabaseName("ix_chat_unread")
+                .HasFilter("read_at IS NULL");
         });
     }
 }
