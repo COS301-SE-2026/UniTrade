@@ -149,11 +149,72 @@ function ReservationCard({
 }
 export default function Reservations()
 {
-    return (
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">My reservations</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
-    </div>
-  )
+const [reservations, setReservations] = useState<ReservationListItem[]>([])
+const [loading, setLoading] = useState(true)
+const [error, setError] = useState<string | null>(null)
 
+useEffect(() => {
+    getReservations({ role: 'buyer' }).then((result) =>{
+        if (result.success)
+        {
+            setReservations(result.data.items.filter((r) => r.reservationStatus === 'active'))
+        }else {
+            setError(result.error.message ?? 'Could not load your reservations.')}
+        }).finally(() => setLoading(false))}
+        , [])
+
+        const handleCancel = async (reservationId: string) => {
+            const previous = reservations
+            setReservations((prev) => prev.filter((r)=> r.reservationId !== reservationId))
+            const result = await cancelReservation(reservationId)
+            if (!result.success){
+                setReservations(previous)
+        }
+        }
+
+        const summary = useMemo(() => {
+            const activeCount = reservations.length
+            const expiringCount =  reservations.filter(
+                (r) => getUrgency(getMsRemaining(r.expiresAt)) == 'expiring').length
+                const totalValue = reservations.reduce((sum, r) => sum + r.listing.price, 0)
+
+                return{ activeCount, expiringCount, totalValue }} , [reservations]
+            )
+
+            return (
+                <div className="flex flex-col gap-6">
+                    <h1 className="text-2xl font extrabold text-gray-800 uppercase">
+                        My Reservations</h1> 
+
+                <div className="flex gap-4">
+                    <SummaryCard label="Active reservations"
+                    value={String(summary.activeCount)} />
+                    <SummaryCard label="Expiring soon" value={String(summary.expiringCount)}/>
+
+                <SummaryCard label="Total reserved value"
+                value={formatPrice(summary.totalValue)} />
+                </div>
+                <div className="flex flex-col gap-4">
+                    {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
+
+                    {!loading && error && (
+                        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+                            <p className="text-sm font-semibold text-rose-600">{error}</p>
+                            </div>
+                    )}
+                     {!loading && !error && reservations.length===0 && (
+                        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                            <p className="text-sm font-semibold text-gray-700">No Acive reservations</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                            </p>
+                            </div>
+                    )}
+                    {reservations.map((reservation) => (
+                        <ReservationCard key ={reservation.reservationId}
+                        reservation={reservation} onCancel={handleCancel} />
+                    ))}
+                </div>
+
+                </div>
+            )
     }
