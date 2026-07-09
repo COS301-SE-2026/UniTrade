@@ -1,10 +1,12 @@
 import type { IHubConnection, ConnectionState } from '../../types/hubConnection.ts';
 import type { ChatMessage, MessagesReadEvent } from '../../types/Reservations';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Listener = (...args: any[]) => void;
 
 interface BroadcastPayload {
   event: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[];
 }
 
@@ -65,7 +67,7 @@ export class FakeHubConnection implements IHubConnection {
     }
     this.listeners.get(eventName)?.delete(callback);
   }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   async invoke<T = void>(methodName: string, ...args: any[]): Promise<T> {
     await delay(150); // simulate round-trip
 
@@ -110,11 +112,11 @@ export class FakeHubConnection implements IHubConnection {
       this.reconnectedCallbacks.forEach((cb) => cb('fake-connection-id'));
     }, 1000);
   }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   private dispatch(event: string, args: any[]): void {
     this.listeners.get(event)?.forEach((cb) => cb(...args));
   }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   private broadcast(event: string, args: any[]): void {
     this.dispatch(event, args); // fire locally too
     this.channel.postMessage({ event, args } satisfies BroadcastPayload);

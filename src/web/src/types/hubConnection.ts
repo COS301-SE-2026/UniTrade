@@ -11,10 +11,11 @@ export interface IHubConnection {
 
   start(): Promise<void>;
   stop(): Promise<void>;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(eventName: string, callback: (...args: any[]) => void): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   off(eventName: string, callback?: (...args: any[]) => void): void;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   invoke<T = void>(methodName: string, ...args: any[]): Promise<T>;
 
   onreconnecting(callback: (error?: Error) => void): void;
