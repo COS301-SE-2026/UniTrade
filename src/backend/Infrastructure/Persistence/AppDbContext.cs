@@ -3,7 +3,8 @@ using Modules.Identity.Models;
 using Modules.Listings.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
-
+using Modules.Reservations.Models;
+using Modules.Chat.Models;
 namespace Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
@@ -27,6 +28,14 @@ public class AppDbContext : DbContext
     // Reference data
     public DbSet<University> Universities => Set<University>();
     public DbSet<Course> Courses => Set<Course>();
+
+    // Reservations and chat messages
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<ReservationListing> ReservationListings => Set<ReservationListing>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+
+    //constants - sonarqube
+    private readonly string NowString = "now()";
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -243,7 +252,7 @@ public class AppDbContext : DbContext
                 );
                 tb.HasCheckConstraint(
                     "chk_listing_status",
-                    "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')"
+                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')"
                 );
             });
 
@@ -280,11 +289,11 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.isBundle).HasDefaultValue(false);
             entity.Property(x => x.ViewCount).HasDefaultValue(0);
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity
                 .Property(x => x.UpdatedAt)
-                .HasDefaultValueSql("now()")
+                .HasDefaultValueSql(NowString)
                 .ValueGeneratedOnAddOrUpdate();
 
             entity
@@ -306,11 +315,6 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity
-                .HasOne(x => x.Category)
-                .WithMany()
-                .HasForeignKey(x => x.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             entity
                 .HasOne(x => x.BookDetails)
@@ -450,7 +454,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.IsPrimary).HasDefaultValue(false).IsRequired();
 
-            entity.Property(x => x.UploadedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity
                 .HasOne(x => x.Listing)
@@ -459,6 +463,131 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
+        });
+
+        // Reservations
+        modelBuilder.Entity<Reservation>(entity =>
+        {
+            entity.HasKey(x => x.ReservationId);
+            entity.Property(x => x.ReservationId).HasDefaultValueSql("gen_random_uuid()");
+
+            entity.Property(x => x.BuyerId).IsRequired();
+            entity.Property(x => x.SellerId).IsRequired();
+
+            entity.Property(x => x.IsBundle).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.ReservationStatus).HasMaxLength(20).IsRequired();
+
+            entity.Property(x => x.SellerAcknowledgedAt);
+            entity.Property(x => x.BuyerRespondedAt);
+            entity.Property(x => x.ExpiresAt).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_res_status",
+                    "reservation_status IN ('active', 'expired', 'cancelled', 'completed')"
+                );
+            });
+
+            entity
+                .HasOne<User>(x => x.Buyer)
+                .WithMany()
+                .HasForeignKey(x => x.BuyerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne<User>(x => x.Seller)
+                .WithMany()
+                .HasForeignKey(x => x.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.BuyerId).HasDatabaseName("ix_res_buyer");
+            entity.HasIndex(x => x.SellerId).HasDatabaseName("ix_res_seller");
+            entity.HasIndex(x => x.ReservationStatus).HasDatabaseName("ix_res_status");
+
+            entity
+                .HasIndex(x => x.ExpiresAt)
+                .HasDatabaseName("ix_res_expires")
+                .HasFilter("reservation_status = 'active'");
+        });
+
+        modelBuilder.Entity<ReservationListing>(entity =>
+        {
+            entity
+                .HasKey(x => new { x.ReservationId, x.ListingId })
+                .HasName("pk_reservation_listings");
+
+            entity
+                .HasOne(x => x.Reservation)
+                .WithMany(r => r.ReservationListings)
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(x => x.Listing)
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Chat messages
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(x => x.MessageId);
+            entity.Property(x => x.MessageId).ValueGeneratedOnAdd();
+
+            entity.Property(x => x.ReservationId).IsRequired();
+            entity.Property(x => x.SenderId);
+
+            entity
+                .Property(x => x.MessageType)
+                .HasMaxLength(20)
+                .IsRequired()
+                .HasDefaultValue("text");
+
+            entity.Property(x => x.Content).IsRequired();
+            entity.Property(x => x.Payload).HasColumnType("jsonb");
+            entity.Property(x => x.SentAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.ReadAt);
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_message_type",
+                    "message_type IN ('text', 'system', 'meetup_proposal',  'meetup_response')"
+                );
+
+                t.HasCheckConstraint(
+                    "chk_system_sender",
+                    "(message_type = 'system' AND sender_id IS NULL) OR (message_type <> 'system' AND sender_id IS NOT NULL)"
+                );
+
+                t.HasCheckConstraint(
+                    "chk_payload_type",
+                    "(message_type IN ('meetup_proposal', 'meetup_response') AND payload IS NOT NULL ) OR( message_type IN ('text', 'system')  AND payload IS NULL )"
+                );
+            });
+
+            entity
+                .HasOne<User>(x => x.Sender)
+                .WithMany()
+                .HasForeignKey(x => x.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne<Reservation>(x => x.Reservation)
+                .WithMany(r => r.Messages)
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasIndex(x => new { x.ReservationId, x.SentAt })
+                .HasDatabaseName("ix_chat_reservation");
+            entity
+                .HasIndex(x => new { x.ReservationId, x.ReadAt })
+                .HasDatabaseName("ix_chat_unread")
+                .HasFilter("read_at IS NULL");
         });
     }
 }
