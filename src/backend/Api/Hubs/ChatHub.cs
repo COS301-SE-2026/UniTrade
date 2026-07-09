@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Modules.Chat;
 using Modules.Reservations;
+using Modules.Reservations.Repositories;
 
 namespace Api.Hubs;
 
@@ -13,5 +14,22 @@ public class ChatHub : Hubs
     private ChatHub(IReservationsRepository reservations)
     {
         _reservation = reservations;
+    }
+
+    //standard func acc to signalR rules
+    public override Task OnConnectedAsync()
+    {
+        if(string.IsNullOrEmpty(GetUserId()))
+        {
+            //abort
+        }
+
+        return base.OnConnectedAsync();
+    }
+
+    //joining of reservation rooms 
+    public async JoinReservationRm(Guid reservationId)
+    {
+        
     }
 }
