@@ -1,6 +1,4 @@
-using Modules.Chat.Models;
-using Modules.Reservations.Models.Dto;
-
+using Modules.Chat.Models.Dto;
 namespace Modules.Chat;
 
 public interface IChatService
