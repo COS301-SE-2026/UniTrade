@@ -22,51 +22,51 @@ const Login: React.FC = () => {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [ showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  
-  e.preventDefault()
-  setLoading(true)
-  setError(null)
+  const handleSubmit = async (e: React.FormEvent) => {
 
-  try {
-    await authService.login({
-      Email: formData.email,
-      Password: formData.password,
-    })
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
-    const me = await authService.getMe()
-    
+    try {
+      await authService.login({
+        Email: formData.email,
+        Password: formData.password,
+      })
 
-   setUser({
-  id: me.user.userId,
-  name: `${me.user.firstName} ${me.user.lastName}`,
-  initials: `${me.user.firstName[0]}${me.user.lastName[0]}`.toUpperCase(),
-  role: me.user.userRole as UserRole,
-  university: me.user.university,
-})
-if (me.user.userRole === 'admin') navigate('/admin/dashboard')
-else navigate('/buyer/listings')
+      const me = await authService.getMe()
 
-  } catch (err: unknown) {
-    const error = err as ApiError
-    setError(getAuthErrorMessage(error.message))
-  } finally {
-    setLoading(false)
+
+      setUser({
+        id: me.user.userId,
+        name: `${me.user.firstName} ${me.user.lastName}`,
+        initials: `${me.user.firstName[0]}${me.user.lastName[0]}`.toUpperCase(),
+        role: me.user.userRole as UserRole,
+        university: me.user.university,
+      })
+      if (me.user.userRole === 'admin') navigate('/admin/dashboard')
+      else navigate('/buyer/listings')
+
+    } catch (err: unknown) {
+      const error = err as ApiError
+      setError(getAuthErrorMessage(error.message))
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
       <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
 
-        
+
         <div className="flex w-full flex-col justify-center px-12 py-16 md:w-1/2 lg:px-20">
           <div className="mb-10">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 uppercase">Welcome Back!</h1>
@@ -90,18 +90,18 @@ else navigate('/buyer/listings')
               <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
               <div className="relative">
                 <input type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className = "w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-none focus:ring-sky-500 transition-all" />
-                <button 
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                tabIndex={-1}
-                aria-label={showPassword ? "Hide password" : "Show password"} >
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-none focus:ring-sky-500 transition-all" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"} >
                   {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                 </button>
               </div>

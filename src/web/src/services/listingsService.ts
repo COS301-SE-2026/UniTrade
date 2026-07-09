@@ -96,6 +96,7 @@ const mockListingDetail: ListingDetail = {
   category: "book",
   status: "live",
   courseCode: "WTW114",
+  courseId: 1076,
   university: "University of Pretoria",
   tags: ["WTW114", "First Year", "University of Pretoria"],
   images: [
@@ -276,8 +277,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -409,4 +410,14 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch courses");
     return await res.json();
   },
+
+  getCourse: async (id: number): Promise<Course> => {
+     const res = await fetch(`${getApiUrl()}/courses/${id}`, {
+     method: "GET",
+      credentials: "include",
+     });
+
+     if (!res.ok) throw new Error("Failed to fetch the courses")
+      return await res.json();
+  }
 };
