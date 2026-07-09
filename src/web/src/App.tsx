@@ -24,7 +24,7 @@ import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
 import ChatPage from "./pages/chat/ChatPage";
-const BASE_URL = import.meta.env.VITE_API_URL;
+//const BASE_URL = import.meta.env.VITE_API_URL;
 import SellerReservations from "./pages/seller/SellerReservation";
 import { getApiUrl } from "./config";
 
@@ -90,6 +90,7 @@ export default function App() {
         <Route path="/admin/verifications" element={<AdminVerifications />} />
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
+        <Route path="/orders" element={<Navigate to="/buyer/dashboard" replace />} />
       </Route>
     </Routes>
   );
