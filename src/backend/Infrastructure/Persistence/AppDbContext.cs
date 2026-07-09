@@ -3,6 +3,7 @@ using Modules.Identity.Models;
 using Modules.Listings.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
+using Modules.Reservations.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -27,6 +28,11 @@ public class AppDbContext : DbContext
     // Reference data
     public DbSet<University> Universities => Set<University>();
     public DbSet<Course> Courses => Set<Course>();
+
+    // Reservations and chat messages
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<ReservationListing> ReservationListings => Set<ReservationListing>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -459,6 +465,68 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
+        });
+
+        // Reservations
+        modelBuilder.Entity<Reservation>(entity =>
+        {
+            entity.HasKey(x => x.ReservationId);
+            entity.Property(x => x.ReservationId).HasDefaultValueSql("gen_random_uuid()");
+
+            entity.Property(x => x.BuyerId).IsRequired();
+            entity.Property(x => x.SellerId).IsRequired();
+
+            entity.Property(x => x.IsBundle).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.ReservationStatus).HasMaxLength(20).IsRequired();
+
+            entity.Property(x => x.SellerAcknowledgedAt);
+            entity.Property(x => x.BuyerRespondedAt);
+            entity.Property(x => x.ExpiresAt).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_res_status",
+                    "reservation_status IN ('active', 'expired', 'cancelled', 'completed')"
+                );
+            });
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.BuyerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.BuyerId).HasDatabaseName("ix_res_buyer");
+            entity.HasIndex(x => x.SellerId).HasDatabaseName("ix_res_seller");
+            entity.HasIndex(x => x.ReservationStatus).HasDatabaseName("ix_res_status");
+
+            entity
+                .HasIndex(x => x.ExpiresAt)
+                .HasDatabaseName("ix_res_expires")
+                .HasFilter("reservation_status = 'active'");
+        });
+
+        modelBuilder.Entity<ReservationListing>(entity =>
+        {
+            entity.HasKey(x => new { x.ReservationId, x.ListingId }).HasName("pk_reservation_listings");
+
+            entity.HasOne(x => x.Reservation)
+            .WithMany(r => r.ReservationListings)
+            .HasForeignKey(x => x.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.Listing)
+           .WithMany()
+           .HasForeignKey(x => x.ListingId)
+           .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
