@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+vi.mock("../../config", () => ({
+  getApiUrl: vi.fn(() => "http://localhost:300/api"),
+  loadConfig: vi.fn(() => Promise.resolve()),
+}));
 import { authService } from "../../services/authService";
 
 describe("authService", () => {
@@ -34,7 +38,7 @@ describe("authService", () => {
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        })
+        }),
       );
     });
 
@@ -45,7 +49,9 @@ describe("authService", () => {
         json: async () => ({ error: "email_taken" }),
       });
 
-      await expect(authService.register(payload)).rejects.toThrow("email_taken");
+      await expect(authService.register(payload)).rejects.toThrow(
+        "email_taken",
+      );
     });
 
     it("should throw a default error when registration fails without an error body", async () => {
@@ -55,7 +61,9 @@ describe("authService", () => {
         json: async () => ({}),
       });
 
-      await expect(authService.register(payload)).rejects.toThrow("server_error");
+      await expect(authService.register(payload)).rejects.toThrow(
+        "server_error",
+      );
     });
   });
 
@@ -65,7 +73,7 @@ describe("authService", () => {
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
       await expect(
-        authService.verifyOtp("tafadzwa@up.ac.za", "123456")
+        authService.verifyOtp("tafadzwa@up.ac.za", "123456"),
       ).resolves.toBeUndefined();
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -73,7 +81,7 @@ describe("authService", () => {
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ email: "tafadzwa@up.ac.za", otp: "123456" }),
-        })
+        }),
       );
     });
 
@@ -85,7 +93,7 @@ describe("authService", () => {
       });
 
       await expect(
-        authService.verifyOtp("tafadzwa@up.ac.za", "000000")
+        authService.verifyOtp("tafadzwa@up.ac.za", "000000"),
       ).rejects.toThrow("invalid_otp");
     });
   });
@@ -95,14 +103,16 @@ describe("authService", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
-      await expect(authService.resendOtp("tafadzwa@up.ac.za")).resolves.toBeUndefined();
+      await expect(
+        authService.resendOtp("tafadzwa@up.ac.za"),
+      ).resolves.toBeUndefined();
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/auth/resend-otp"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ email: "tafadzwa@up.ac.za" }),
-        })
+        }),
       );
     });
 
@@ -114,7 +124,7 @@ describe("authService", () => {
       });
 
       await expect(authService.resendOtp("tafadzwa@up.ac.za")).rejects.toThrow(
-        "too_many_requests"
+        "too_many_requests",
       );
     });
   });
@@ -133,7 +143,7 @@ describe("authService", () => {
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify(payload),
-        })
+        }),
       );
     });
 
@@ -144,7 +154,9 @@ describe("authService", () => {
         json: async () => ({ error: "invalid_credentials" }),
       });
 
-      await expect(authService.login(payload)).rejects.toThrow("invalid_credentials");
+      await expect(authService.login(payload)).rejects.toThrow(
+        "invalid_credentials",
+      );
     });
   });
 
@@ -170,7 +182,7 @@ describe("authService", () => {
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/auth/me"),
-        expect.objectContaining({ credentials: "include" })
+        expect.objectContaining({ credentials: "include" }),
       );
     });
 
@@ -194,7 +206,7 @@ describe("authService", () => {
         expect.objectContaining({
           method: "POST",
           credentials: "include",
-        })
+        }),
       );
     });
 
@@ -209,7 +221,11 @@ describe("authService", () => {
   describe("getUniversities", () => {
     it("should return the universities list on success", async () => {
       const mockUniversities = [
-        { universityId: "1", name: "University of Pretoria", emailDomain: "up.ac.za" },
+        {
+          universityId: "1",
+          name: "University of Pretoria",
+          emailDomain: "up.ac.za",
+        },
       ];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({
@@ -217,11 +233,13 @@ describe("authService", () => {
         json: async () => ({ data: mockUniversities }),
       });
 
-      await expect(authService.getUniversities()).resolves.toEqual(mockUniversities);
+      await expect(authService.getUniversities()).resolves.toEqual(
+        mockUniversities,
+      );
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/universities"),
-        expect.objectContaining({ method: "GET", credentials: "include" })
+        expect.objectContaining({ method: "GET", credentials: "include" }),
       );
     });
 
@@ -243,7 +261,7 @@ describe("authService", () => {
       });
 
       await expect(authService.getUniversities()).rejects.toThrow(
-        "Failed to load Universities"
+        "Failed to load Universities",
       );
     });
 
@@ -257,7 +275,7 @@ describe("authService", () => {
       });
 
       await expect(authService.getUniversities()).rejects.toThrow(
-        "Failed to load Universities"
+        "Failed to load Universities",
       );
     });
   });
