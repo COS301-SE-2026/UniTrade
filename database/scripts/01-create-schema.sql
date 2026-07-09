@@ -103,6 +103,7 @@ CREATE TABLE Listings (
             'draft',
             'pending',
             'live',
+            'reserved'
             'low_visibility',
             'rejected',
             'sold',
