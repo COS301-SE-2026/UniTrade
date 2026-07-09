@@ -28,7 +28,8 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
-
+using Infrastructure.Persistence.Repositories.Reservations;
+using Api.Hubs;
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -153,8 +154,8 @@ builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
 builder.Services.AddScoped<IImageStorageService, PostgresImageStorageService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
-builder.Services.AddScoped<IReservationsService, ReservationsService>();
-builder.Services.AddScoped<IReservationsRepository, ReservationsRepository>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 
 builder.Services.AddSingleton(
     new EmailClient(

@@ -8,9 +8,9 @@ namespace Api.Hubs;
 [Authorize]
 public class ChatHub : Hub
 {
-    private readonly IReservationsRepository _reservation; //add this mdoule.reserv folder+ using
+    private readonly IReservationRepository _reservation; //add this mdoule.reserv folder+ using
 
-    public ChatHub(IReservationsRepository reservations)
+    public ChatHub(IReservationRepository reservations)
     {
         _reservation = reservations;
     }
