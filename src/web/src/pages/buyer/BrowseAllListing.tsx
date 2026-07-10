@@ -4,6 +4,7 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
+import { useAuthStore } from '../../store/useAuthStore'
 
 
 function CategoryCard({
@@ -38,6 +39,7 @@ function ListingCard({
 }) {
 
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
@@ -55,8 +57,12 @@ function ListingCard({
     setReserving(true)
     setReserveError(null)
 
-    const result = await createReservation({ listingId: String(listing.id )})
+    const result = await createReservation(
+      { listingId: String(listing.id) },
 
+    { title: listing.title, price: listing.price, imagePath: listing.image },
+    user ? { userId: user.id, name: user.name, initials: user.initials } : undefined)
+   
     if(result.success) 
     {
       setReserved(true)
@@ -65,6 +71,9 @@ function ListingCard({
     else if(result.error.code === 'already_reserved')
       {
         setReserveError('Item was just reserved by someone else!')
+      }
+      else{
+        setReserveError(result.error.message ?? 'Counld not reserve this item.')
       }
       setReserving(false)
   }
@@ -95,16 +104,7 @@ function ListingCard({
           <p className="text-xs text-rose-600">{reserveError}</p>
         )}
 
-        {reserveError && (
-          <p className="text-xs text-rose-600">{reserveError}</p>
-        )}
-
         <div className="flex flex-col gap-2 mt-auto pt-2">
-          <button 
-          onClick={handleReserve}
-          disabled={reserving || reserved}
-          className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-           {reserved ? 'Reserved' : reserving? 'Reserving...' : 'Reserve'}
           <button 
           onClick={handleReserve}
           disabled={reserving || reserved}

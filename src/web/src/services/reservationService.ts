@@ -6,6 +6,7 @@ import type {
     GetReservationParams,
     //GetMessagesParams,
     Result,
+    ReservationListItem,
     //ApiError,
     
 } from '../types/Reservations'
@@ -34,10 +35,32 @@ import type {
      return { success: false, error};
 }*/
 
+let mockReservations:ReservationListItem[] = []
+let idCounter = 0
+function toBareReservation(item: ReservationListItem): Reservation {
+const { reservationId, listingId, buyerId, sellerId, reservationStatus, timerStage, expiresAt, createdAt} = item
+return { reservationId, listingId,buyerId,sellerId,reservationStatus, timerStage,expiresAt,createdAt}
+
+}
+
+export interface MockListingInfo {
+  title: string
+  price: number
+  imagePath: string
+
+}
+
+export interface MockCounterparty {
+  userId: string
+  name: string
+  initials: string
+}
 export async function createReservation(
-    payload: CreateReservationRequest
+    payload: CreateReservationRequest,
+    mockListing?: MockListingInfo,
+    mockCounterparty?: MockCounterparty    
 ): Promise<Result<Reservation>> {
-    //Mock 
+    //Mock for now
     if (payload.listingId === 'already-reserved-mock-id') {
         return {
             success: false,
