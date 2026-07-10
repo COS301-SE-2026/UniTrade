@@ -3,6 +3,7 @@ import type {
   ListingSummary,
   MyListingsResponse,
   Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
+  ListingMetadata,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
@@ -94,6 +95,7 @@ const mockListingDetail: ListingDetail = {
   courseId: 1076,
   university: "University of Pretoria",
   tags: ["WTW114", "First Year", "University of Pretoria"],
+  metadata: null,
   images: [
     { id: "1", url: biologyTextbook, isPrimary: true },
     { id: "2", url: biologyTextbook, isPrimary: false },
@@ -150,11 +152,13 @@ const mockSellerListingDetail: SellerListingDetail = {
   price: 4500,
   condition: "good",
   category: "book",
+  courseId: 1,
   courseCode: "WTW114",
   listedAt: "2026-05-07T09:15:00Z",
   views: 42,
   description: "Good condition with minor highlighting on pages 3-5.",
   tags: ["WTW114", "First Year", "UP"],
+  metadata: null,
   images: [
     "https://placehold.co/540x300/1a3a7a/ffffff?text=Calculus",
     "https://placehold.co/80x70/1a3a7a/ffffff?text=img2",
@@ -181,6 +185,7 @@ export interface CreateListingPayload {
   categoryName: string;
   courseId: number | null;
   listingStatus: string;
+  metadata?: ListingMetadata;
 }
 
 export const listingsService = {
@@ -202,6 +207,7 @@ export const listingsService = {
     courseId: item.courseId ?? null,          
     courseCode: item.courseCode ?? "",        
     category: item.categoryName,
+    metadata: item.metadata ?? null,
     images: item.images.map((i: unknown) => {
       const img = i as { imageId: number; path: string; isPrimary: boolean };
       return {
@@ -265,9 +271,10 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
       views: item.viewCount,
       listedAt: item.createdAt,
       description: item.description,
-      courseCode:
-        item.courseId?.toString() ?? mockSellerListingDetail.courseCode,
+      courseId: item.courseId ?? null, 
+      courseCode: "",
       category: item.categoryName,
+       metadata: item.metadata ?? null, 
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
@@ -334,6 +341,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
         listingStatus: payload.listingStatus,
         courseId: payload.courseId,
         isBundle: false,
+        metadata: payload.metadata ?? null,
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
@@ -351,6 +359,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
       categoryName: string;
       courseId: number | null;
       removedImageIds?: number[];
+      metadata?: ListingMetadata;
     },
   ): Promise<void> => {
     const res = await fetch(`${BASE_URL}/listings/${id}`, {
@@ -365,6 +374,7 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
         categoryName: payload.categoryName,
         courseId: payload.courseId,
         removedImageIds: payload.removedImageIds ?? [],
+        metadata: payload.metadata ?? null,
       }),
     });
     if (!res.ok) throw new Error("Failed to update listing");
