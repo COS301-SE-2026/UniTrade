@@ -122,14 +122,14 @@ describe('UploadListing', () => {
     expect(screen.getByRole('button', { name: /save draft/i })).toBeInTheDocument()
   })
 
-  
+
   it('shows an error if categories fail to load', async () => {
     vi.mocked(listingsService.getListingsCategories).mockRejectedValueOnce(new Error('network error'))
     renderUpload()
     expect(await screen.findByText('Failed to load categories')).toBeInTheDocument()
   })
 
- 
+
   it('switches to electronics and shows Brand / Model field', async () => {
     const user = userEvent.setup()
     renderUpload()
@@ -177,7 +177,7 @@ describe('UploadListing', () => {
   })
 
   it('shows "Searching..." while a course search is in flight', async () => {
-    let resolveSearch: (value: Course[] | PromiseLike<Course[]>) => void = () => {};
+    let resolveSearch: (value: Course[] | PromiseLike<Course[]>) => void = () => { };
     vi.mocked(listingsService.searchCourses).mockImplementationOnce(
       () => new Promise((resolve) => { resolveSearch = resolve })
     )
@@ -321,7 +321,7 @@ describe('UploadListing', () => {
         })
       )
     })
-    
+
     expect(listingsService.uploadImages).toHaveBeenCalledWith('42', [expect.any(File)])
     expect(mockNavigate).toHaveBeenCalledWith('/seller/listings')
   })
@@ -405,7 +405,7 @@ describe('UploadListing', () => {
     await user.click(screen.getByRole('button', { name: /save draft/i }))
 
     await waitFor(() => {
-     
+
       expect(listingsService.uploadImages).toHaveBeenCalledWith('8', [expect.any(File)])
     })
     expect(mockNavigate).toHaveBeenCalledWith('/seller/listings')

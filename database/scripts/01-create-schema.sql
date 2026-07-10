@@ -103,6 +103,7 @@ CREATE TABLE Listings (
             'draft',
             'pending',
             'live',
+            'reserved'
             'low_visibility',
             'rejected',
             'sold',
@@ -232,11 +233,41 @@ CREATE TABLE Transactions(
 CREATE TABLE Chat_messages(
     message_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     reservation_id UUID NOT NULL REFERENCES Reservations(reservation_id),
-    sender_id UUID NOT NULL REFERENCES Users(user_id),
+    sender_id UUID NULL REFERENCES Users(user_id),
+    message_type VARCHAR(20) NOT NULL DEFAULT 'text' CONSTRAINT chk_message_type CHECK (
+        message_type IN (
+            'text',
+            'system',
+            'meetup_proposal',
+            'meetup_response'
+        )
+    ),
     content TEXT NOT NULL,
-    is_automated BOOLEAN NOT NULL DEFAULT FALSE,
+    payload JSONB NULL,
     sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    read_at TIMESTAMPTZ
+    read_at TIMESTAMPTZ,
+    CONSTRAINT chk_system_sender CHECK (
+        (
+            message_type = 'system'
+            AND sender_id IS NULL
+        )
+        OR (
+            message_type <> 'system'
+            AND sender_id IS NOT NULL
+        )
+    ),
+    CONSTRAINT chk_payload_type CHECK (
+        (
+            (
+                message_type IN ('meetup_proposal', 'meetup_response')
+                AND payload IS NOT NULL
+            )
+            OR(
+                message_type IN ('text', 'system')
+                AND payload IS NULL
+            )
+        )
+    )
 );
 
 --14. Disputes 

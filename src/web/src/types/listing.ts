@@ -122,7 +122,7 @@ export interface Category {
   name: string;
 }
 
-export interface Course{
+export interface Course {
   courseId: number;
   courseCode: string;
   courseName: string;

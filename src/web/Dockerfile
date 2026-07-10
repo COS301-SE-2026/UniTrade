@@ -1,18 +1,18 @@
-FROM node:20-alpine
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-RUN chown node:node /app
-
-USER node
-
-COPY --chown=node:node package*.json ./
+COPY package*.json ./
 
 RUN npm ci --ignore-scripts
  
-COPY --chown=node:node . .
+COPY  . .
+RUN npm run build
 
-
-EXPOSE 3000
-
-CMD ["npm", "run", "dev", "--", "--host", "--port", "3000"]
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+EXPOSE 80
+ENTRYPOINT [ "/entrypoint.sh" ]

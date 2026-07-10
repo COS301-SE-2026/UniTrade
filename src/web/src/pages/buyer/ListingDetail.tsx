@@ -11,7 +11,6 @@ import type { ListingDetail as ListingDetailType, SimilarListing } from '../../t
 
 
 
-
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-white/5 last:border-0">

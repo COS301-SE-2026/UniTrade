@@ -6,8 +6,8 @@ describe('formatPrice', () => {
         expect(formatPrice(280)).toBe('R280')
     })
 
-     it('formats large numbers with thousand separators', () => {
-    expect(formatPrice(4500)).toBe('R4\u00A0500')
+    it('formats large numbers with thousand separators', () => {
+        expect(formatPrice(4500)).toBe('R4\u00A0500')
     })
 
     it('formats zero correctly', () => {
