@@ -209,7 +209,7 @@ describe("Category-dependent fields", () => {
 
   it("shows the Brand/Model field when category is 'electronics'", async () => {
     await renderAndLoad({ category: "electronics" });
-    expect(screen.getByPlaceholderText(/brand\/model/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/brand/i)).toBeInTheDocument();
   });
 
   it("shows the Dimensions field when category is 'furniture'", async () => {
@@ -233,7 +233,7 @@ describe("Category-dependent fields", () => {
     await user.click(screen.getByRole("button", { name: /^electronics$/i }));
 
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/brand\/model/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/brand/i)).toBeInTheDocument();
   });
 });
 describe("Form field bindings", () => {
@@ -311,7 +311,7 @@ describe("Form field bindings", () => {
     const user = userEvent.setup();
     await renderAndLoad({ category: "electronics" });
 
-    const customField = screen.getByPlaceholderText(/brand\/model/i);
+    const customField = screen.getByPlaceholderText(/brand/i);
     await user.type(customField, "Samsung Galaxy");
 
     expect(screen.getByDisplayValue("Samsung Galaxy")).toBeInTheDocument();
