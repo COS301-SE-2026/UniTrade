@@ -20,6 +20,7 @@ import { useChatMessages } from '../../hooks/useChatMessages';
 import { useReservationRealtime } from '../../hooks/useReservationRealtime';
 import { useSendMessage } from '../../hooks/useSendMessage';
 import type { ClientChatMessage } from '../../types/chat';
+import { connectionManager } from '../../services/realtime/connectionManager';
 
 
 const TextMessageBubble: React.FC<{
@@ -208,6 +209,14 @@ export default function ChatPage() {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    useEffect(() => {
+        if(!reservationId || messages.length === 0 ) return;
+        const readable = messages.filter((m) => m.status !== 'sending' && m.status !== 'failed');
+        const lastMessage = readable[readable.length - 1];
+        connectionManager.markRead(reservationId, lastMessage.messageId).catch(() => {});
+
+    }, [reservationId, messages]);
 
     const handleSend = () => {
     if (!draft.trim()) return;
