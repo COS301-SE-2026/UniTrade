@@ -95,7 +95,16 @@ function ListingCard({
           <p className="text-xs text-rose-600">{reserveError}</p>
         )}
 
+        {reserveError && (
+          <p className="text-xs text-rose-600">{reserveError}</p>
+        )}
+
         <div className="flex flex-col gap-2 mt-auto pt-2">
+          <button 
+          onClick={handleReserve}
+          disabled={reserving || reserved}
+          className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+           {reserved ? 'Reserved' : reserving? 'Reserving...' : 'Reserve'}
           <button 
           onClick={handleReserve}
           disabled={reserving || reserved}

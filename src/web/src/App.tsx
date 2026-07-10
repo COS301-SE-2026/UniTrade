@@ -65,7 +65,7 @@ export default function App() {
       <Route path="/verify-otp" element={<OTP_verification />} />
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
-      <Route path = "/buyer/reservations/:reservationId/chat" element={<ChatPage />} />
+      
       <Route path = "/seller/reservations/:reservationId/chat" element={<ChatPage />} />
 
 
@@ -89,6 +89,7 @@ export default function App() {
         <Route path="/admin/verifications" element={<AdminVerifications />} />
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
+      
       </Route>
     </Routes>
   );
