@@ -31,7 +31,7 @@ public class ChatService: IChatService
             throw new UnauthorisedAccessException("You are not a participant of this reservation");
         }
 
-        var result=new ChatMessageDto{
+        var result=new ChatMessage{
             ReservationId=reservationId,
             SenderId=senderId,
             MessageType="text",
@@ -41,8 +41,36 @@ public class ChatService: IChatService
 
         _context.ChatMessages.Add(result);
 
-        await _context.SaveChanges.Async(ct);
+        await _context.SaveChangesAsync(ct);
 
         return ToDoto(result);
     }
+
+    public async Task<ChatMessageDto> SendSystemAsync( Guid reservationId,string content,CancellationToken ct = default)
+    {
+        var result=new ChatMessage
+        {
+            ReservationId=reservationId,
+            SenderId=senderId,
+            MessageType="system",
+            Content=content,
+            SentAt=DateTime.UtcNow
+        }
+        _context.ChatMessages.Add(result);
+
+        await _context.SaveChangesAsync(ct);
+
+        return ToDoto(result);
+    }
+
+    public async Task<ChatHistoryDto> GetHistoryAsync(
+        Guid reservationId,
+        Guid callerId,
+        int? before,
+        int limit = 50,
+        CancellationToken ct = default)
+
+        {
+            
+        }
 }
