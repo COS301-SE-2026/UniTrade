@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import {useNavigate } from 'react-router-dom'
-import { getReservations, cancelReservation } from '../../services/reservationService'
+import { cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import {formatPrice} from '../../utils/formatters'
 import { IconClock } from '@tabler/icons-react'
+import { useReservationsList } from '../../hooks/useReservationsList'
+import { queryKeys } from '../../lib/queryKeys'
+import { useQueryClient } from '@tanstack/react-query';
 type UrgencyLevel = 'normal' | 'expiring'
 
 function getMsRemaining(expiresAt: string): number{
@@ -61,7 +64,7 @@ function CountdownBadge({ msRemaining, urgency }: {msRemaining: number; urgency:
     const style = urgency === 'expiring' ? 'bg-rose-50 text-rose 600 border border-rose-200'
 : 'bg-sky-50 text-sky-700 border border-sky-200'
 return(
-    <div className={`flex itens-center gap-1 text-xs font-semibold px-3 py-1 roundedlg ${style}`}>
+    <div className={`flex items-center gap-1 text-xs font-semibold px-3 py-1 roundedlg ${style}`}>
         <IconClock size={14} />
         {formatCountdown(msRemaining)}
     </div>
@@ -94,7 +97,7 @@ function ReservationCard({
         className="w-20 h-20 rounded-lg object-cover flex shrink-0"
         />
         <div className ="flex-1 min-w-0">
-            <div className="flex items-start justifiy-between gap-4">
+            <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     <p className="text-sm font-bold text-gray-800 truncate">
                         {reservation.listing.title}
@@ -122,16 +125,16 @@ function ReservationCard({
             <div className="flex gap-2 mt-3">
                 <button
                 onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/pay`)}
-                className="flex-1 py-2 bg-[#003366] text-white text-xs font-semibold rpunded-lg hover:bg-[#002244] transition colors">
+                className="flex-1 py-2 bg-[#003366] text-white text-xs font-semibold rounded-lg hover:bg-[#002244] transition colors">
                     Complete Payment
                 </button>
                 <button
-                onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/messages`)}
+                onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/chat`)}
                 className="relative flex-1 py-2 border border-gray-300 text-gray-700 text xs font-semibold rounded-lg hover:bg-gray-50 transition colors">
                     Message seller
                 
                     {reservation.unreadCount >0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flext items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold">
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold">
                             {reservation.unreadCount}
                         </span>
                     )}   
@@ -139,7 +142,7 @@ function ReservationCard({
                 <button
                 onClick={() => onCancel(reservation.reservationId)}
                 className="flex-1 py-2 border border-gray-300 text-gray-700 text-xs
-                font-semibold rounded-lg hpver:bg-gray-50 transition-colors" >
+                font-semibold rounded-lg hover:bg-gray-50 transition-colors" >
                     Cancel</button>  
                                 </div>
         </div>
@@ -149,11 +152,16 @@ function ReservationCard({
 }
 export default function SellerReservations()
 {
-const [reservations, setReservations] = useState<ReservationListItem[]>([])
+    const queryClient = useQueryClient()
+    const {data: reservations = [], isLoading: loading, isError, error: queryError} = useReservationsList('seller')
+/*const [reservations, setReservations] = useState<ReservationListItem[]>([])
 const [loading, setLoading] = useState(true)
-const [error, setError] = useState<string | null>(null)
+const [error, setError] = useState<string | null>(null)*/
+    const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
+    const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
 
-useEffect(() => {
+
+/*useEffect(() => {
     getReservations({ role: 'seller' }).then((result) =>{
         if (result.success)
         {
@@ -162,21 +170,22 @@ useEffect(() => {
             setError(result.error.message ?? 'Could not load your reservations.')}
         }).finally(() => setLoading(false))}
         , [])
+        */
 
         const handleCancel = async (reservationId: string) => {
-            const previous = reservations
-            setReservations((prev) => prev.filter((r)=> r.reservationId !== reservationId))
+            //const previous = reservations
+            //setReservations((prev) => prev.filter((r)=> r.reservationId !== reservationId))
             const result = await cancelReservation(reservationId)
-            if (!result.success){
-                setReservations(previous)
+            if (result.success){
+                queryClient.invalidateQueries({queryKey: queryKeys.reservations('seller')})
         }
         }
 
         const summary = useMemo(() => {
             const activeCount = reservations.length
             const expiringCount =  reservations.filter(
-                (r) => getUrgency(getMsRemaining(r.expiresAt)) == 'expiring').length
-                const totalValue = reservations.reduce((sum, r) => sum + r.listing.price, 0)
+                (r: ReservationListItem) => getUrgency(getMsRemaining(r.expiresAt)) == 'expiring').length
+                const totalValue = reservations.reduce((sum: number, r: ReservationListItem) => sum + r.listing.price, 0)
 
                 return{ activeCount, expiringCount, totalValue }} , [reservations]
             )
@@ -205,12 +214,12 @@ useEffect(() => {
                     )}
                      {!loading && !error && reservations.length===0 && (
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                            <p className="text-sm font-semibold text-gray-700">No Acive reservations</p>
+                            <p className="text-sm font-semibold text-gray-700">No Active reservations</p>
                             <p className="text-xs text-gray-400 mt-1">
                             </p>
                             </div>
                     )}
-                    {reservations.map((reservation) => (
+                    {activeReservations.map((reservation: ReservationListItem) => (
                         <ReservationCard key ={reservation.reservationId}
                         reservation={reservation} onCancel={handleCancel} />
                     ))}
