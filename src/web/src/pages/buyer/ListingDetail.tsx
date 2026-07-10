@@ -42,7 +42,6 @@ function ReviewRow({ initials, name, stars, text, date }: {
   )
 }
 
-const ACADEMIC_CATEGORIES: string[] = ['textbook', 'lab_equipment']
 
 export default function ListingDetail() {
   const navigate = useNavigate()
@@ -51,14 +50,22 @@ export default function ListingDetail() {
   const [activeImage, setActiveImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [courseCode, setCourseCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return
     listingsService.getById(id)
       .then(data => {
-        setListing(data)
+        setListing(data);
+        if (data.courseId) {
+          listingsService
+            .getCourse(data.courseId)
+            .then((course) => setCourseCode(course.courseCode))
+            .catch(() => setCourseCode(null))
+        }
         setActiveImage(data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null)
       })
+
       .catch(() => setError('Failed to load listing'))
       .finally(() => setLoading(false))
   }, [id])
@@ -75,7 +82,6 @@ export default function ListingDetail() {
     </div>
   )
 
-  const isAcademic = ACADEMIC_CATEGORIES.includes(listing.category)
 
   return (
     <div className="space-y-4">
@@ -93,8 +99,6 @@ export default function ListingDetail() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-
-        {/* Left column */}
         <div className="col-span-2 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
@@ -140,11 +144,22 @@ export default function ListingDetail() {
               <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 <IconCheck size={11} /> {formatCondition(listing.condition)}
               </span>
-              {isAcademic && listing.tags.map(tag => (
-                <span key={tag} className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full">
-                  {tag}
+              {listing.category === 'book' && courseCode && (
+                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                  {courseCode}
                 </span>
-              ))}
+              )}
+              {listing.category === 'electronics' && listing.metadata?.brand && (
+                <span className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full font-medium">
+                  {listing.metadata.brand}
+                </span>
+              )}
+              {listing.category === 'furniture' && listing.metadata?.dimensions && (
+                <span className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full font-medium">
+                  {listing.metadata.dimensions}
+                </span>
+              )}
+
             </div>
 
             <hr className="border-gray-100 dark:border-white/5 mb-4" />
@@ -163,8 +178,14 @@ export default function ListingDetail() {
                 </span>
               }
             />
-            {isAcademic && listing.courseCode && (
-              <DetailRow label="Course code" value={listing.courseCode} />
+            {listing.category === 'book' && courseCode && (
+              <DetailRow label="Course Code" value={courseCode} />
+            )}
+            {listing.category === 'electronics' && listing.metadata?.brand && (
+              <DetailRow label="Brand" value={listing.metadata.brand} />
+            )}
+            {listing.category === 'furniture' && listing.metadata?.dimensions && (
+              <DetailRow label="Dimensions" value={listing.metadata.dimensions} />
             )}
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />

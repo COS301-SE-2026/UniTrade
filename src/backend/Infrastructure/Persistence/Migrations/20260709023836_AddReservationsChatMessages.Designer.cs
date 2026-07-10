@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709023836_AddReservationsChatMessages")]
+    partial class AddReservationsChatMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,73 +25,6 @@ namespace Infrastructure.Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Modules.Chat.Models.ChatMessage", b =>
-                {
-                    b.Property<int>("MessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("message_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MessageId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("text")
-                        .HasColumnName("message_type");
-
-                    b.Property<string>("Payload")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("payload");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("read_at");
-
-                    b.Property<Guid>("ReservationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("reservation_id");
-
-                    b.Property<Guid?>("SenderId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("sender_id");
-
-                    b.Property<DateTime>("SentAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sent_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("MessageId")
-                        .HasName("pk_chat_messages");
-
-                    b.HasIndex("SenderId")
-                        .HasDatabaseName("ix_chat_messages_sender_id");
-
-                    b.HasIndex("ReservationId", "ReadAt")
-                        .HasDatabaseName("ix_chat_unread")
-                        .HasFilter("read_at IS NULL");
-
-                    b.HasIndex("ReservationId", "SentAt")
-                        .HasDatabaseName("ix_chat_reservation");
-
-                    b.ToTable("chat_messages", "unitrade", t =>
-                        {
-                            t.HasCheckConstraint("chk_message_type", "message_type IN ('text', 'system', 'meetup_proposal',  'meetup_response')");
-
-                            t.HasCheckConstraint("chk_payload_type", "(message_type IN ('meetup_proposal', 'meetup_response') AND payload IS NOT NULL ) OR( message_type IN ('text', 'system')  AND payload IS NULL )");
-
-                            t.HasCheckConstraint("chk_system_sender", "(message_type = 'system' AND sender_id IS NULL) OR (message_type <> 'system' AND sender_id IS NOT NULL)");
-                        });
-                });
 
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
                 {
@@ -745,6 +681,73 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("universities", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Reservations.Models.ChatMessage", b =>
+                {
+                    b.Property<int>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("message_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MessageId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("text")
+                        .HasColumnName("message_type");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<Guid?>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTime>("SentAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("MessageId")
+                        .HasName("pk_chat_messages");
+
+                    b.HasIndex("SenderId")
+                        .HasDatabaseName("ix_chat_messages_sender_id");
+
+                    b.HasIndex("ReservationId", "ReadAt")
+                        .HasDatabaseName("ix_chat_unread")
+                        .HasFilter("read_at IS NULL");
+
+                    b.HasIndex("ReservationId", "SentAt")
+                        .HasDatabaseName("ix_chat_reservation");
+
+                    b.ToTable("chat_messages", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_message_type", "message_type IN ('text', 'system', 'meetup_proposal',  'meetup_response')");
+
+                            t.HasCheckConstraint("chk_payload_type", "(message_type IN ('meetup_proposal', 'meetup_response') AND payload IS NOT NULL ) OR( message_type IN ('text', 'system')  AND payload IS NULL )");
+
+                            t.HasCheckConstraint("chk_system_sender", "(message_type = 'system' AND sender_id IS NULL) OR (message_type <> 'system' AND sender_id IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
                     b.Property<Guid>("ReservationId")
@@ -830,26 +833,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_reservation_listings_listing_id");
 
                     b.ToTable("reservation_listings", "unitrade");
-                });
-
-            modelBuilder.Entity("Modules.Chat.Models.ChatMessage", b =>
-                {
-                    b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ReservationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_chat_messages_reservations_reservation_id");
-
-                    b.HasOne("Modules.Identity.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_chat_messages_users_sender_id");
-
-                    b.Navigation("Reservation");
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
@@ -972,6 +955,26 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_courses_universities_university_id");
+                });
+
+            modelBuilder.Entity("Modules.Reservations.Models.ChatMessage", b =>
+                {
+                    b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_messages_reservations_reservation_id");
+
+                    b.HasOne("Modules.Identity.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_chat_messages_users_sender_id");
+
+                    b.Navigation("Reservation");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
