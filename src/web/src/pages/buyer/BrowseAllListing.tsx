@@ -60,7 +60,7 @@ function ListingCard({
     if(result.success) 
     {
       setReserved(true)
-      //navigate('buyer/reservations') - actually dont nav yet, show button change
+      navigate('/buyer/reservations')
     }
     else if(result.error.code === 'already_reserved')
       {
