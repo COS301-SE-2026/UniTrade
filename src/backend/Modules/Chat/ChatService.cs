@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
+using Modules.Chat.Models.Repository;
 using Modules.Reservations;
 
 namespace Modules.Chat;
@@ -9,11 +10,10 @@ namespace Modules.Chat;
 public class ChatService: IChatService
 {
     private readonly IReservationService _reservationService;//using Isuserpat of reseravtion func
-    private readonly AppDbContext _context; ///swap out for repo
-
-    public ChatService(AppDbContext context, IReservationService reservationSerice)
+    private readonly IChatRepository _chatRepo; 
+    public ChatService(IChatRepository chatRepo, IReservationService reservationSerice)
     {
-        _context=context;
+        _chatRepo=chatRepo;
         _reservationService=reservationSerice;
     }
 
@@ -39,9 +39,7 @@ public class ChatService: IChatService
             SentAt=DateTime.UtcNow
         };
 
-        _context.ChatMessages.Add(result);
-
-        await _context.SaveChangesAsync(ct);
+        await _chatRepo.AddSync(result);
 
         return ToDoto(result);
     }
@@ -56,9 +54,7 @@ public class ChatService: IChatService
             Content=content,
             SentAt=DateTime.UtcNow
         }
-        _context.ChatMessages.Add(result);
-
-        await _context.SaveChangesAsync(ct);
+        await _chatRepo.AddSync(result);
 
         return ToDoto(result);
     }
@@ -73,7 +69,7 @@ public class ChatService: IChatService
         }
 
         //create repo func for this
-        // var query=_context.ChatMessages.Where()
+        // var query=_chatRepo.ChatMessages.Where()
     }
 
     private static ChatMessageDto ToDto(ChatMessage m)
