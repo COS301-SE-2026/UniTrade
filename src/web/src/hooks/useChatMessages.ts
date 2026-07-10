@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { getMessages } from '../services/reservationService'
-import { queryKeys } from '../lib/queryKeys'
+import { useQuery } from '@tanstack/react-query';
+import { getMessages } from '../services/reservationService';
+import { queryKeys } from '../lib/queryKeys';
 
 export function useChatMessages(reservationId: string) {
     return useQuery({
