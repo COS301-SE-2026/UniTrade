@@ -11,7 +11,7 @@ export function useReservationRealtime(reservationId: string) {
     useEffect(() => {
         connectionManager.connect();
 
-        const unsubscribe = connectionManager.onMessageReceived((message: ChatMessage) => {
+        const unsubscribeMessage = connectionManager.onMessageReceived((message: ChatMessage) => {
         queryClient.setQueryData<ClientChatMessage[]>(
             queryKeys.reservationMessages(reservationId),
             (old: ClientChatMessage[] = []) => {
@@ -19,8 +19,22 @@ export function useReservationRealtime(reservationId: string) {
                 return [...old, {...message , status: 'sent'as const}];
             }
         );
-            });
-            return unsubscribe;
+    });
+
+        const unsubscribeReconnected = connectionManager.onReconnected(() => {
+            queryClient.invalidateQueries({queryKey: queryKeys.reservationMessages(reservationId)});
+
+        });
+
+        const unsubscribeRead = connectionManager.onMessagesRead(() => {
+            queryClient.invalidateQueries({querKey: queryKeys.reservations('buyer')});
+            queryClient.invalidateQueries({queryKey: queryKeys.reservations('seller')});
+        });
+            return () => {
+                 unsubscribeMessage();
+                 unsubscribeReconnected();
+                 unsubscribeRead();
+            };
         }, [reservationId, queryClient]);
         
     }

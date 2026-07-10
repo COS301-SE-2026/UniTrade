@@ -154,7 +154,7 @@ const [loading, setLoading] = useState(true)
 const [error, setError] = useState<string | null>(null)
 
 useEffect(() => {
-    getReservations({ role: 'buyer' }).then((result) =>{
+    getReservations({ role: 'seller' }).then((result) =>{
         if (result.success)
         {
             setReservations(result.data.items.filter((r) => r.reservationStatus === 'active'))
