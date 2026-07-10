@@ -58,10 +58,10 @@ function StageTag({stage }: {stage: TimerStage}){
 
 function CountdownBadge({ msRemaining, urgency }: {msRemaining: number; urgency: UrgencyLevel }
 ){
-    const style = urgency === 'expiring' ? 'bg-rose-50 text-rose 600 border border-rose-200'
+    const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
 : 'bg-sky-50 text-sky-700 border border-sky-200'
 return(
-    <div className={`flex itens-center gap-1 text-xs font-semibold px-3 py-1 roundedlg ${style}`}>
+    <div className={`flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-lg ${style}`}>
         <IconClock size={14} />
         {formatCountdown(msRemaining)}
     </div>
@@ -94,7 +94,7 @@ function ReservationCard({
         className="w-20 h-20 rounded-lg object-cover flex shrink-0"
         />
         <div className ="flex-1 min-w-0">
-            <div className="flex items-start justifiy-between gap-4">
+            <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     <p className="text-sm font-bold text-gray-800 truncate">
                         {reservation.listing.title}
@@ -106,7 +106,7 @@ function ReservationCard({
                     </p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                    <p className="text-[10px] text-gray-400 uppercase track-wide">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide">
                         Expires in
                     </p>
                     <div className ="mt-1">
@@ -122,16 +122,16 @@ function ReservationCard({
             <div className="flex gap-2 mt-3">
                 <button
                 onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/pay`)}
-                className="flex-1 py-2 bg-[#003366] text-white text-xs font-semibold rpunded-lg hover:bg-[#002244] transition colors">
+                className="flex-1 py-2 bg-[#003366] text-white text-xs font-semibold rounded-lg hover:bg-[#002244] transition-colors">
                     Complete Payment
                 </button>
                 <button
                 onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/messages`)}
-                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text xs font-semibold rounded-lg hover:bg-gray-50 transition colors">
+                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors">
                     Message seller
                 
                     {reservation.unreadCount >0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flext items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold">
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold">
                             {reservation.unreadCount}
                         </span>
                     )}   
@@ -139,7 +139,7 @@ function ReservationCard({
                 <button
                 onClick={() => onCancel(reservation.reservationId)}
                 className="flex-1 py-2 border border-gray-300 text-gray-700 text-xs
-                font-semibold rounded-lg hpver:bg-gray-50 transition-colors" >
+                font-semibold rounded-lg hover:bg-gray-50 transition-colors" >
                     Cancel</button>  
                                 </div>
         </div>
@@ -175,7 +175,7 @@ useEffect(() => {
         const summary = useMemo(() => {
             const activeCount = reservations.length
             const expiringCount =  reservations.filter(
-                (r) => getUrgency(getMsRemaining(r.expiresAt)) == 'expiring').length
+                (r) => getUrgency(getMsRemaining(r.expiresAt)) === 'expiring').length
                 const totalValue = reservations.reduce((sum, r) => sum + r.listing.price, 0)
 
                 return{ activeCount, expiringCount, totalValue }} , [reservations]
@@ -183,7 +183,7 @@ useEffect(() => {
 
             return (
                 <div className="flex flex-col gap-6">
-                    <h1 className="text-2xl font extrabold text-gray-800 uppercase">
+                    <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
                         My Reservations</h1> 
 
                 <div className="flex gap-4">
