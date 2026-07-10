@@ -27,7 +27,7 @@ export function useReservationRealtime(reservationId: string) {
         });
 
         const unsubscribeRead = connectionManager.onMessagesRead(() => {
-            queryClient.invalidateQueries({querKey: queryKeys.reservations('buyer')});
+            queryClient.invalidateQueries({queryKey: queryKeys.reservations('buyer')});
             queryClient.invalidateQueries({queryKey: queryKeys.reservations('seller')});
         });
             return () => {
