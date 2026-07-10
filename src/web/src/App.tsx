@@ -22,6 +22,8 @@ import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
+import MyReservationsPage from "./pages/buyer/Reserved"
+import ReservationDetailPage from "./pages/buyer/ReservationDetail";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
@@ -80,6 +82,8 @@ export default function App() {
         <Route path="/admin/verifications" element={<AdminVerifications />} />
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
+        <Route path="/buyer/Reserved" element={<MyReservationsPage />} />
+       <Route path="/buyer/Reserved/:reservationId" element={<ReservationDetailPage />} />
       </Route>
     </Routes>
   );
