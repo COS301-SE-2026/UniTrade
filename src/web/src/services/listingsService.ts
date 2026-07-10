@@ -4,10 +4,15 @@ import type {
   MyListingsResponse,
   Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
   ListingMetadata,
+  SimilarListing,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
+import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 import { getApiUrl } from "../config";
 
 export function imageUrl(path: string): string {
@@ -82,7 +87,7 @@ const mockMyListings: ListingSummary[] = [
   },
 ];
 
-const mockListingDetail: ListingDetail = {
+/*const mockListingDetail: ListingDetail = {
   id: "1",
   title: "Calculus - Early Transcendentals",
   description:
@@ -140,11 +145,11 @@ const mockListingDetail: ListingDetail = {
     {
       id: "3",
       title: "Linear Algebra - 6th Ed",
-      meta: "UP · R310",
+      meta: "UP · R120",
       condition: "fair",
     },
   ],
-};
+};*/
 
 const mockSellerListingDetail: SellerListingDetail = {
   id: "4",
@@ -194,7 +199,6 @@ export const listingsService = {
   if (!res.ok) throw new Error("Failed to fetch listing");
   const item = await res.json();
   return {
-    ...mockListingDetail,
     id: item.listingId,
     title: item.title,
     description: item.description,
@@ -285,34 +289,41 @@ export const listingsService = {
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
-    const res = await fetch(`${getApiUrl()}/listings`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Failed to fetch listings");
-    const data = await res.json();
-    const listings: BrowseListing[] = data.items.map((item: unknown) => {
-      const l = item as {
-        listingId: string;
-        title: string;
-        price: number;
-        courseId?: number;
-        categoryName: string;
-        condition: string;
-        images: { imageId: number; isPrimary: boolean; path: string }[];
-      };
-      const primary = getFirstUploadedImagePath(l.images);
-      return {
-        id: l.listingId,
-        title: l.title,
-        price: l.price,
-        module: l.courseId?.toString() ?? "General",
-        category: l.categoryName,
-        condition: mapCondition(l.condition),
-        image: primary ? imageUrl(primary) : biologyTextbook,
-      };
-    });
-    return { listings, total: data.total };
-  },
+  const res = await fetch(`${BASE_URL}/listings`, { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch listings");
+  const data = await res.json();
+  const listings: BrowseListing[] = data.items.map((item: unknown) => {
+    const l = item as {
+      listingId: string;
+      title: string;
+      price: number;
+      courseId?: number;
+      categoryName: string;
+      condition: string;
+      metadata?: ListingMetadata;
+      images: { imageId: number; isPrimary: boolean; path: string }[];
+    };
+    const primary = getFirstUploadedImagePath(l.images);
+    return {
+      id: l.listingId,
+      title: l.title,
+      price: l.price,
+      module: l.courseId?.toString() ?? "General",
+      courseId: l.courseId ?? null,
+      category: l.categoryName,
+      condition: mapCondition(l.condition),
+      image: primary ? imageUrl(primary) : biologyTextbook,
+      metadata: l.metadata ?? null,
+    };
+  });
+  return { listings, total: data.total };
+},
+
+getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarListing[]> => {
+  const { listings } = await listingsService.getBrowseListings();
+  return computeSimilarListings(listing, listings, limit);
+},
+
 
   uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
