@@ -5,19 +5,19 @@ import AlexAvatar from '../../pages/auth/AlexAvatar'
 describe('AlexAvatar', () => {
     it('pages renders without crashing or lagging', () => {
         render(<AlexAvatar />)
-        expect(screen.getByRole('button', {name: 'Chat with Alex'})).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Chat with Alex' })).toBeInTheDocument()
     })
 
 
     it('has the correct accessible role and label', () => {
         render(<AlexAvatar />)
-        const avatar = screen.getByRole('button', {name: 'Chat with Alex'})
+        const avatar = screen.getByRole('button', { name: 'Chat with Alex' })
         expect(avatar).toBeInTheDocument()
     })
 
     it('is keyboard accessible', () => {
         render(<AlexAvatar />)
-        const avatar = screen.getByRole('button', {name: 'Chat with Alex'})
+        const avatar = screen.getByRole('button', { name: 'Chat with Alex' })
         expect(avatar).toHaveAttribute('tabindex', '0')
     })
 
@@ -33,7 +33,7 @@ describe('AlexAvatar', () => {
         expect(handleClick).toHaveBeenCalledTimes(1)
     })
 
-     it('calls onClick when Space key is pressed', () => {
+    it('calls onClick when Space key is pressed', () => {
         const handleClick = vi.fn()
         render(<AlexAvatar onClick={handleClick} />)
         fireEvent.click(screen.getByRole('button', { name: 'Chat with Alex' }))
@@ -55,4 +55,4 @@ describe('AlexAvatar', () => {
     })
 
 
-    })
+})

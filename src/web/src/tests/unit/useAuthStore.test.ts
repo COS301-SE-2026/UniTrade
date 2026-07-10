@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useAuthStore } from "../../store/useAuthStore";
 
 describe("useAuthStore", () => {
-beforeEach(() => {
-  useAuthStore.setState({ user: null, pendingEmail: null, viewMode: "buyer" });
-});
+  beforeEach(() => {
+    useAuthStore.setState({ user: null, pendingEmail: null, viewMode: "buyer" });
+  });
 
   it("should start with no user", () => {
     expect(useAuthStore.getState().user).toBeNull();
@@ -88,7 +88,7 @@ describe('pedingEmail actions', () => {
     expect(useAuthStore.getState().pendingEmail).toBe("test@up.ac.za");
   });
 
-  it('should clear a pending email',() => {
+  it('should clear a pending email', () => {
     useAuthStore.getState().setPendingEmail("test@up.ac.za");
     useAuthStore.getState().clearPendingEmail();
     expect(useAuthStore.getState().pendingEmail).toBeNull();
@@ -97,7 +97,7 @@ describe('pedingEmail actions', () => {
 
 describe('viewMode / toggleViewMode', () => {
   beforeEach(() => {
-    useAuthStore.setState({ user: null, viewMode: "buyer"});
+    useAuthStore.setState({ user: null, viewMode: "buyer" });
   });
 
   it('should start with viewMode buyer', () => {

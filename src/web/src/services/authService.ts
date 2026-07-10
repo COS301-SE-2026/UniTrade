@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { getApiUrl } from "../config";
 
 export interface RegisterPayload {
   firstName: string
@@ -6,7 +6,7 @@ export interface RegisterPayload {
   email: string
   university: string
   degreeProgram: string
-  yearOfStudy: string  
+  yearOfStudy: string
   password: string
 }
 
@@ -37,7 +37,7 @@ export interface University { //defines the exact shape of the university data c
 
 export const authService = {
   register: async (payload: RegisterPayload): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/auth/register`, {
+    const res = await fetch(`${getApiUrl()}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -50,7 +50,7 @@ export const authService = {
   },
 
   verifyOtp: async (email: string, otp: string): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/auth/verify-otp`, {
+    const res = await fetch(`${getApiUrl()}/auth/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -63,7 +63,7 @@ export const authService = {
   },
 
   resendOtp: async (email: string): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/auth/resend-otp`, {
+    const res = await fetch(`${getApiUrl()}/auth/resend-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -76,7 +76,7 @@ export const authService = {
   },
 
   login: async (payload: LoginPayload): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
+    const res = await fetch(`${getApiUrl()}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -84,13 +84,13 @@ export const authService = {
     })
     if (!res.ok) {
       const data = await res.json()
-      
+
       throw new Error(data.error ?? 'server_error')
     }
   },
 
   getMe: async (): Promise<MeResponse> => {
-    const res = await fetch(`${BASE_URL}/auth/me`, {
+    const res = await fetch(`${getApiUrl()}/auth/me`, {
       credentials: 'include',
     })
     if (!res.ok) {
@@ -100,7 +100,7 @@ export const authService = {
   },
 
   logout: async (): Promise<void> => {
-    await fetch(`${BASE_URL}/auth/logout`, {
+    await fetch(`${getApiUrl()}/auth/logout`, {
       method: 'POST',
       credentials: 'include',
     })
@@ -108,12 +108,12 @@ export const authService = {
 
   getUniversities: async(): Promise<University[]> => {
     
-    const res = await fetch(`${BASE_URL}/universities`, {
+    const res = await fetch(`${getApiUrl()}/universities`, {
       method: 'GET',
       //headers: { 'Content-Type': 'application/json'},
       credentials: 'include'
     });
-    if (!res.ok){
+    if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to load Universities');
     }
