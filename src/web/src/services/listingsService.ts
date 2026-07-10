@@ -11,7 +11,6 @@ import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
 
 import { getApiUrl } from "../config";
 
@@ -195,7 +194,7 @@ export interface CreateListingPayload {
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-  const res = await fetch(`${BASE_URL}/listings/${id}`, { credentials: "include" });
+  const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" }); 
   if (!res.ok) throw new Error("Failed to fetch listing");
   const item = await res.json();
   return {
@@ -289,7 +288,7 @@ export const listingsService = {
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
-  const res = await fetch(`${BASE_URL}/listings`, { credentials: "include" });
+  const res = await fetch(`${getApiUrl()}/listings`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch listings");
   const data = await res.json();
   const listings: BrowseListing[] = data.items.map((item: unknown) => {
