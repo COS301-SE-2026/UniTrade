@@ -132,8 +132,8 @@ public class ExceptionMiddlewareTests
     }
 
     [Theory]
-    [InlineData("too_many_attempts:20", 20)]
-    [InlineData("too_many_attempts:invalid", null)]
+    [InlineData("too_many_attempts:20")]
+    [InlineData("too_many_attempts:invalid")]
     public async Task HandleExceptionAsync_Handles_TooManyAttemptsWithRetryAfter(
         string errorMessage
     )
