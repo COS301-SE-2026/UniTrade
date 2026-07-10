@@ -1,6 +1,6 @@
 export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
-
+export type ListingMetadata = Record<string, string> | null
 
 export interface ListingImage {
   id: string
@@ -50,6 +50,7 @@ export interface ListingDetail {
   aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
   reviews: SellerReview[]
   similarListings: SimilarListing[]
+  metadata: ListingMetadata
 }
 
 export interface ListingSummary {
@@ -79,6 +80,7 @@ export interface SellerListingDetail {
   price: number
   condition: ListingCondition
   category: string
+  courseId: number | null
   courseCode: string
   listedAt: string
   views: number
@@ -90,6 +92,7 @@ export interface SellerListingDetail {
   aiLabel: 'Low Risk' | 'Medium Risk' | 'High Risk' | null
   isReserved: boolean
   timeline: TimelineStep[]
+  metadata: ListingMetadata
 }
 
 export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
