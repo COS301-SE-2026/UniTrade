@@ -1,5 +1,5 @@
-import React, {useState, useRef, useEffect} from 'react';
-import { useNavigate} from 'react-router-dom';
+import React, { useRef, useEffect} from 'react';
+import { useNavigate, useParams} from 'react-router-dom';
 import {
     IconArrowLeft,
     IconCalendarPlus,
@@ -10,147 +10,24 @@ import {
     IconCalendar,
 } from '@tabler/icons-react';
 import { useAuthStore } from '../../store/useAuthStore'
+import type {
+    TextMessage,
+    SystemMessage,
+    MeetupProposalMessage,
+    MeetupResponseMessage,
+}from '../../types/Reservations'
+import { useChatMessages } from '../../hooks/useChatMessages';
+import { useReservationRealtime } from '../../hooks/useReservationRealtime';
+import { useSendMessage } from '../../hooks/useSendMessage';
+import type { ClientChatMessage } from '../../types/chat';
 
 
-type ReservationsStatus = 'active' | 'expired' | 'cancelled' | 'completed';
-type TimerStage = 'awaiting_seller' | 'awaiting_buyer' | 'co-ordinating';
+const TextMessageBubble: React.FC<{
+    message: TextMessage & {status?: 'sending'| 'sent' | 'failed'};
+    isOwnMessage: boolean;
+    onRetry? : () => void;
+}> = ({message, isOwnMessage, onRetry}) => {
 
-interface Message {
-    messageId: string;
-    senderId: string;
-    sentAt: string;
-    readAt?: string | null;
-}
-
-interface TextMessage extends Message {
-    messageType : 'text';
-    content : string;
-}
-
-interface SystemMessageType extends Message {
-    messageType: 'system';
-    content: string;
-}
-
-interface MeetUpProposal{
-    location: string;
-    proposedDate: string;
-    proposedTime: string;
-    note?: string;
-}
-
-interface MeetUpProposalMessage extends Message {
-    messageType: 'meetup_proposal';
-    content: string;
-    payload: MeetUpProposal;
-}
-
-type ChatMessage = TextMessage | SystemMessageType | MeetUpProposalMessage;
-
-interface Reservation {
-    reservationId: string;
-    otherperson: {
-        userId: string;
-        name: string;
-        initials: string;
-    };
-    listing: { 
-        title: string;
-        price: number;
-        imagePath: string
-    };
-    unreadCount: number;
-    reservationStatus: ReservationsStatus;
-    timerStage: TimerStage;
-}
-
-const mockMessages: ChatMessage[] = [
-    {
-        messageId: 'm1',
-        senderId: 'seller-1',
-        messageType: 'text',
-        content: 'Hi Mahadio, I hope you are doing well , i wanted to ask if you are still interested in the textbook?',
-        sentAt: '2024-06-01T10:00:00Z',
-        readAt: '2024-06-01T10:05:00Z',
-    },
-    {
-        messageId: 'm2',
-        senderId: 'buyer-1',
-        messageType: 'text',
-        content: 'Yes, I am still intertested!',
-        sentAt: '2024-06-01T10:07:00Z',
-        readAt: '2024-06-01T10:08:00Z',
-
-    },
-    {
-        messageId: 'm3',
-        senderId: 'seller-1',
-        messageType: 'system',
-        content: 'Reservation has been created.',
-        sentAt: '2024-06-01T10:10:00Z',
-
-    },
-    {
-        messageId: 'm4',
-        senderId: 'seller-1',
-        messageType: 'text',
-        content: "Great! When would you like to meet up to exchange the textbook?",
-        sentAt: '2024-06-01T10:12:00Z',
-        readAt: '2024-06-01T10:13:00Z',
-    },
-    {
-        messageId: 'm5',
-        senderId: 'buyer-1',
-        messageType: 'meetup_proposal',
-        content: "I propose we meet at the library on June 5th at 3 PM.",
-        sentAt: '2024-06-01T10:15:00Z',
-        payload: {
-            location: 'Library',
-            proposedDate: '2024-06-05',
-            proposedTime: '15:00',
-            note: 'Please let me know if this works for you.',
-        },
-    },
-    {
-        messageId: 'm6',
-        senderId: 'seller-1',
-        messageType: 'text',
-        content: "That works for me!",
-        sentAt: '2024-06-01T10:16:00Z',
-        readAt: '2024-06-01T10:17:00Z',
-
-    },
-    {
-        messageId: 'm7',
-        senderId: 'buyer-1',
-        messageType: 'text',
-        content: "Great! See you then.",
-        sentAt: '2024-06-01T10:18:00Z',
-        readAt: '2024-06-01T10:19:00Z',
-    },
-];
-
-const mockReservation: Reservation = {
-    reservationId: 'r1',
-    otherperson: {
-        userId: 'seller-1',
-        name: 'Sabira Kaire',
-        initials: 'SK'
-    },
-    listing: {
-        title: 'Textbook',
-        price: 800,
-        imagePath: '/book.jpg'
-    },
-    unreadCount: 0,
-    reservationStatus: 'active',
-    timerStage: 'co-ordinating'
-}
-
-const TextMessageBubble: React.FC<{message: TextMessage; isOwnMessage: boolean}>=({
-    message,
-    isOwnMessage,
-}) => {
     const time = new Date(message.sentAt).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -182,8 +59,19 @@ const TextMessageBubble: React.FC<{message: TextMessage; isOwnMessage: boolean}>
                 }`}
                 >
                     <span>{time}</span>
-                    {isOwnMessage &&
-                    (message.readAt ? (
+                    {isOwnMessage && message.status === 'sending' && (
+                        <span className="italic">sending...</span>
+                    )}
+                    {isOwnMessage && message.status === 'failed' && (
+                        <button
+                        onClick = {onRetry}
+                        className="text-red-300 hover:text-red-100 underline"
+                        >
+                            failed . retry
+                        </button>
+                    )}
+                    {isOwnMessage && (!message.status || message.status === 'sent') &&
+                      (message.readAt ? (
                         <IconCheck 
                         size = {13} 
                         className= "text-sky-300" />
@@ -197,7 +85,7 @@ const TextMessageBubble: React.FC<{message: TextMessage; isOwnMessage: boolean}>
     );
 };
 
-const SystemMessage: React.FC<{message: SystemMessageType}> = ({message}) => {
+const SystemMessageBubble: React.FC<{message: SystemMessage}> = ({message}) => {
     return (
         <div className = "flex justify-center">
             <span className = "bg-gray-100 text-gray-500 text-[11px] font-medium px-3 py-1 rounded-full uppercase tracking-wide">
@@ -208,10 +96,11 @@ const SystemMessage: React.FC<{message: SystemMessageType}> = ({message}) => {
 };
 
 const MeetupProposalCard: React.FC<{
-    message: MeetUpProposalMessage;
+    message: MeetupProposalMessage;
     isOwnMessage: boolean;
 }> = ({message, isOwnMessage}) => {
-    const { location, proposedDate, proposedTime, note} = message.payload;
+    const { proposedLocation,proposedTime} = message.payload;
+    const date = new Date(proposedTime)
 
     return(
         <div className = {`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} gap-1`}>
@@ -223,15 +112,14 @@ const MeetupProposalCard: React.FC<{
                     </p>
                     <div className = "mt-2 flex items-center gap-2 text-white">
                         <IconMapPin size = {16} className="shrink-0" />
-                        <p className = "text-sm font-semibold">{location}</p>
+                        <p className = "text-sm font-semibold">{proposedLocation}</p>
                     </div>
                     <div className = "mt-1 flex items-center gap-2 text-white">
                         <IconCalendar size={16} className="shrink-0" />
                         <p className = "text-sm font-semibold">
-                            {proposedDate} . {proposedTime}
+                            {date.toLocaleDateString()} . {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})}
                         </p>
                     </div>
-                    {note && <p className = "mt-1 text-xs text-white/70">{note}</p>}
                 </div>
                 <div className = "flex border-t border-white/15">
                 <button 
@@ -255,40 +143,65 @@ const MeetupProposalCard: React.FC<{
     );
 };
 
-const MessageBubble: React.FC<{
-    message: ChatMessage;
-    currentUserId: string
-}> = ({ message, currentUserId }) => {
+const MeetupResponseBubble: React.FC<{
+    message: MeetupResponseMessage;
+}> = ({ message}) => (
+    <div className= "flex justify-center">
+        <span className = {`text-[11px] font-semibold px-3 py-1 rounded-full ${
+            message.payload.accepted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+        }`}>
+            {message.content}
+        </span>
+    </div>
+);
+
+function MessageBubble({
+    message, currentUserId, onRetry,
+} : {
+    message: ClientChatMessage;
+    currentUserId: string;
+    onRetry: (clientId: string, content: string) => void;
+}) {
     const isOwnMessage = message.senderId === currentUserId;
 
-    switch (message.messageType) {
+    switch(message.messageType) {
         case 'text':
-            return <TextMessageBubble  message={message} isOwnMessage={isOwnMessage} />;
-        case 'system':
-            return <SystemMessage message={message} />;
-        case 'meetup_proposal':
-            return <MeetupProposalCard message={message} isOwnMessage={isOwnMessage} />;
-        default:
             return (
-                <div className="flex justify-center">
-                    <span className="text-[11px] text-gray-400 italic">Unsupported message type</span>
-                </div>
+                <TextMessageBubble
+                message={message}
+                isOwnMessage={isOwnMessage}
+                onRetry={() => message.clientId && onRetry(message.clientId,message.content)}
+                />
             );
 
+            case 'system' :
+                return <SystemMessageBubble message = {message} />;
+            case 'meetup_proposal' :
+                return <MeetupProposalCard message={message} isOwnMessage= {isOwnMessage} />;
+            case 'meetup_response':
+                return <MeetupResponseBubble message={message} />;
+            default:
+                return <div className="flex justify-center">
+                    <span className = "text-[11px] text-gray-400 italic">
+                        Unsupported message type
+                    </span>
+                </div>
     }
-};
+}
 
 
 
 export default function ChatPage() {
     const navigate = useNavigate();
-    const [reservation] = useState<Reservation>(mockReservation);
+    const {reservationId}= useParams<{reservationId: string}>();
     const{ user } = useAuthStore();
-    const currentUserId = user?.id ?? 'buyer-1';
+    const currentUserId = user?.id ?? 'me';
 
-    const [ messages, setMessages] = useState<ChatMessage[]>(mockMessages);
-    const [draft, setDraft] = useState('');
+    const {data: messages =[], isLoading, isError} = useChatMessages(reservationId!);
+    useReservationRealtime(reservationId!);
+    const {mutate: send, retry} = useSendMessage(reservationId!);
 
+    const [draft, setDraft] = React.useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -298,38 +211,30 @@ export default function ChatPage() {
 
     const handleSend = () => {
     if (!draft.trim()) return;
-    
-    const newMessage: TextMessage = {
-      messageId: `m${Date.now()}`,
-      senderId: currentUserId,
-      messageType: 'text',
-      content: draft.trim(),
-      sentAt: new Date().toISOString(),
-      readAt: null,
-    };
-    setMessages((prev) => [...prev, newMessage]);
+    send(draft.trim());
     setDraft('');
-};
+    inputRef.current?.focus();
+    };
+    
+    if (!reservationId) return <div>No reservation specified.</div>;
 
     return (
         <div className = "flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className = "bg-[#003366] px-4 py-3 flex items-center gap-3">
                 <button onClick={() => navigate(-1)} className = "text-white/80 hover:text-white">
                     <IconArrowLeft size = {20} />
-
                 </button>
-                <div className = "w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {reservation.otherperson.initials}
-                </div>
                 <div>
-                    <p className = "text-white text-sm font-bold">{reservation.otherperson.name}</p>
-                    <p className = "text-white/50 text-[11px]">Online</p>
+                    <p className = "text-white text-sm font-bold">Chat</p>
+                    <p className = "text-white/50 text-[11px]">Reservation {reservationId}</p>
                 </div>
             </div>
 
             <div className = "flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
+                {isLoading && <p className="text-center text-xs text-gray-400">Loading messages…</p>}
+                {isError && <p className="text-center text-xs text-red-500">Couldn't load messages.</p>}
                 {messages.map((msg) => (
-                    <MessageBubble key = {msg.messageId} message={msg} currentUserId = {currentUserId} />
+                    <MessageBubble key = {msg.clientId ?? msg.messageId} message={msg} currentUserId = {currentUserId} onRetry={retry} />
 
                 ))}
                 <div ref = {messagesEndRef} />

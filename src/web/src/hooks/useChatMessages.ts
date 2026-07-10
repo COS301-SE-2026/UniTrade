@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { getMessages } from '../services/reservationService';
 import { queryKeys } from '../lib/queryKeys';
+import type { ClientChatMessage } from '../types/chat';
 
 export function useChatMessages(reservationId: string) {
-    return useQuery({
+    return useQuery<ClientChatMessage[]>({
         queryKey: queryKeys.reservationMessages(reservationId),
         queryFn : async () => {
             const result = await getMessages({ reservationId});
@@ -12,6 +13,6 @@ export function useChatMessages(reservationId: string) {
             }
             return result.data.items;
         },
-        enables: !!reservationId,
+        enabled: !!reservationId,
     });
 }
