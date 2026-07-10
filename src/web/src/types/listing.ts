@@ -20,7 +20,8 @@ export interface SellerReview {
 export interface SimilarListing {
   id: string
   title: string
-  meta: string
+  price: number
+  image: string
   condition: ListingCondition
 }
 
@@ -34,22 +35,22 @@ export interface ListingDetail {
   status: ListingStatus
   courseCode: string
   courseId: number
-  university: string
-  tags: string[]
+  //university: string
+  //tags: string[]
   images: ListingImage[]
   views: number
   listedAt: string
   sellerId: string
-  sellerName: string
-  sellerInitials: string
-  sellerRating: number
-  sellerResponseRate: number
-  sellerTotalListings: number
-  isReserved: boolean
-  aiScore: number | null
-  aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
-  reviews: SellerReview[]
-  similarListings: SimilarListing[]
+  //sellerName: string
+  //sellerInitials: string
+  //sellerRating: number
+  //sellerResponseRate: number
+  //sellerTotalListings: number
+  //isReserved: boolean
+  //aiScore: number | null
+  //aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
+  //reviews: SellerReview[]
+  //similarListings: SimilarListing[]
   metadata: ListingMetadata
 }
 
@@ -103,9 +104,11 @@ export interface BrowseListing {
   image: string
   title: string
   module: string
+  courseId: number | null
   category: string
   price: number
   condition: BrowseCondition
+  metadata: ListingMetadata
 }
 
 export interface BrowseListingsResponse {

@@ -185,7 +185,7 @@ export default function Sidebar() {
     } finally {
       clearUser()
       setShowPopover(false)
-      navigate('auth/login')
+      navigate('/auth/login')
     }
   }
   return (
