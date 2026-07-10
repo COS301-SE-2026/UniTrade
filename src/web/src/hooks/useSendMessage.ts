@@ -41,9 +41,29 @@ export function useSendMessage(reservationId: string) {
 
         onSuccess: (serverMessage: ChatMessage, _content: string, context?: MutationContext) => {
             if (!context) return;
-            queryClient.setQueryData<ClientChatMessage[]>(key, (old: ClientChatMessage[] = []) =>
-                old.map((m) => (m.clientId === context.clientId ? { ...serverMessage, status: 'sent' as const } : m))
-            );
+            queryClient.setQueryData<ClientChatMessage[]>(key, (old: ClientChatMessage[] = []) => {
+                const alreadyReceivedViaSocket = old.some(
+                    (m) => m.messageId === serverMessage.messageId && m.clientId !== context.clientId
+                );
+
+                if (alreadyReceivedViaSocket) {
+                    return old
+                    .filter((m) => m.clientId !== context.clientId)
+                    .map((m) =>
+                        m.messageId === serverMessage.messageId
+                            ? {...m, senderId: user?.id ?? 'me', status: 'sent' as const}
+                            : m
+                        );
+
+                }
+
+                return old.map((m) => 
+                m.clientId === context.clientId
+                        ? {...serverMessage, senderId: user?.id ?? 'me', status: 'sent' as const}
+                        : m
+                    );
+            });
+                
         },
 
         onError: (_err: Error, _content: string, context?: MutationContext) => {
