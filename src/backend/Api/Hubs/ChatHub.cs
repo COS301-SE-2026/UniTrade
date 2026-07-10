@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Modules.Chat;
+using Modules.Chat.Models;
+using Modules.Chat.Models.Dto;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
-using Modules.Chat.Models.Dto;
-using Modules.Chat.Models;
-using Modules.Chat;
 
 namespace Api.Hubs;
 
@@ -14,10 +14,11 @@ public class ChatHub : Hub
     private readonly IReservationRepository _reservation; //add this mdoule.reserv folder+ using
 
     private readonly IChatService _chatService;
-    public ChatHub(IReservationRepository reservations,IChatService chatService)
+
+    public ChatHub(IReservationRepository reservations, IChatService chatService)
     {
         _reservation = reservations;
-        _chatService=chatService;
+        _chatService = chatService;
     }
 
     //standard func acc to signalR rules
@@ -58,23 +59,24 @@ public class ChatHub : Hub
         return $"reservation-{reservationId}";
     }
 
-    public async Task SendMessage(Guid reservationId,string content)
+    public async Task SendMessage(Guid reservationId, string content)
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
 
-        try{
-            message=await _chatService.SendAsync(reservationId,Guid.Parse(userId),content);
-        }catch(UnauthorisedAccessException)
+        try
+        {
+            message = await _chatService.SendAsync(reservationId, Guid.Parse(userId), content);
+        }
+        catch (UnauthorisedAccessException)
         {
             throw new HubException("Forbidden: you are not a participant in this reservation.");
         }
-        catch(ArgumentException ex)
+        catch (ArgumentException ex)
         {
             throw new HubException(ex.Message);
         }
 
-        await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage",message);
-
+        await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
     }
 }
