@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
+import { createReservation } from '../../services/reservationService'
 
 
 function CategoryCard({
@@ -35,11 +36,37 @@ function ListingCard({
   listing: BrowseListing
   onClick: () => void
 }) {
+
+  const navigate = useNavigate()
+  const [reserving, setReserving] = useState(false)
+  const [reserved, setReserved] = useState(false)
+  const[reserveError, setReserveError] = useState<string |null>(null)
+
   const conditionColours: Record<BrowseCondition, string> = {
     like_new: 'bg-green-100 text-green-700',
     Good: 'bg-green-100 text-green-700',
     Fair: 'bg-yellow-100 text-yellow-700',
     Poor: 'bg-red-100 text-red-700',
+  }
+
+  const handleReserve = async (e: React.MouseEvent) => {
+    e.stopPropagation() 
+
+    setReserving(true)
+    setReserveError(null)
+
+    const result = await createReservation({ listingId: String(listing.id )})
+
+    if(result.success) 
+    {
+      setReserved(true)
+      //navigate('buyer/reservations') - actually dont nav yet, show button change
+    }
+    else if(result.error.code === 'already_reserved')
+      {
+        setReserveError('Item was just reserved by someone else!')
+      }
+      setReserving(false)
   }
 
   return (
@@ -64,9 +91,16 @@ function ListingCard({
           {formatPrice(listing.price)}
         </p>
 
+        {reserveError && (
+          <p className="text-xs text-rose-600">{reserveError}</p>
+        )}
+
         <div className="flex flex-col gap-2 mt-auto pt-2">
-          <button className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors">
-            Reserve
+          <button 
+          onClick={handleReserve}
+          disabled={reserving || reserved}
+          className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+           {reserved ? 'Reserved' : reserving? 'Reserving...' : 'Reserve'}
           </button>
           <button className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
             Add to Wishlist
