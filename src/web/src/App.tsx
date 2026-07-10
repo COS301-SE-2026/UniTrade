@@ -18,18 +18,21 @@ import AdminListingQueue from "./pages/admin/AdminListingQueue";
 import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
 import Wishlist from "./pages/buyer/Wishlist";
+import Reservations from "./pages/buyer/Reservation";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import ChatPage from "./pages/chat/ChatPage";
+import SellerReservations from "./pages/seller/SellerReservation";
+import { getApiUrl } from "./config";
 
 export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const { setUser } = useAuthStore();
 
   useEffect(() => {
-    fetch(`${BASE_URL}/auth/me`, {
+    fetch(`${getApiUrl()}/auth/me`, {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -39,12 +42,12 @@ export default function App() {
           setUser({
             id: u.userId,
             name: u.firstName,
-            initials: `${u.firstName?.[0]?? ""}${u.lastName?.[0]?? ""}`,
+            initials: `${u.firstName?.[0] ?? ""}${u.lastName?.[0] ?? ""}`,
             role: u.userRole,
           });
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setAuthChecked(true));
   }, [setUser]);
   if (!authChecked) {
@@ -62,6 +65,9 @@ export default function App() {
       <Route path="/verify-otp" element={<OTP_verification />} />
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
+      <Route path = "/buyer/reservations/:reservationId/chat" element={<ChatPage />} />
+      <Route path = "/seller/reservations/:reservationId/chat" element={<ChatPage />} />
+
 
 
       <Route element={<AppLayout />}>
@@ -71,6 +77,9 @@ export default function App() {
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings" element={<BrowseListings />} />
         <Route path="/buyer/wishlist" element={<Wishlist />} />
+        <Route path="/buyer/reservations" element={<Reservations />} />
+        <Route path="seller/reservations" element={<SellerReservations />} />
+
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />

@@ -39,7 +39,7 @@ const buyerNav: NavSection[] = [
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
       { label: 'My Wishlist', to: '/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'Reserved', to: '/reserved', icon: <IconBookmark size={18} />, badge: 2 },
+      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} />, badge: 2 },
     ],
   },
   {
@@ -60,6 +60,7 @@ const sellerNav: NavSection[] = [
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
       { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} />},
+      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} />, badge: 2 },
     ],
   },
   {
