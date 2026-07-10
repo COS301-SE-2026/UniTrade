@@ -63,14 +63,23 @@ public class ChatService: IChatService
         return ToDoto(result);
     }
 
-    public async Task<ChatHistoryDto> GetHistoryAsync(
-        Guid reservationId,
-        Guid callerId,
-        int? before,
-        int limit = 50,
-        CancellationToken ct = default)
+    public async Task<ChatHistoryDto> GetHistoryAsync(Guid reservationId,Guid callerId,int? before,int limit = 50,CancellationToken ct = default)
+    {
+        var isAuthorised= await _reservationService.IsUserReservedAsync(senderId,reservationId);
 
+        if(!isAuthorised)
         {
-            
+            throw new UnauthorisedAccessException("You are not a participant of this reservation");
         }
+
+        //create repo func for this
+        // var query=_context.ChatMessages.Where()
+    }
+
+    private static ChatMessageDto ToDto(ChatMessage m)
+    {
+        JsonElement? payload=m.Payload is not null ? JsonDocument.Parse(m.Payload).RootElement:null;
+
+        return new ChatMessageDto(m.MessageId,m.ReservationId,m.SenderId,m.MessageType,m.Content,payload,m.SentAt,m.ReadAt);
+    }
 }
