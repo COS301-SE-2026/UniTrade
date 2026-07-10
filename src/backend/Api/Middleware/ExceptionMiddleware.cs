@@ -8,8 +8,6 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
     private readonly RequestDelegate _next = next;
     private readonly ILogger<ExceptionMiddleware> _logger = logger;
 
-    
-
     public async Task InvokeAsync(HttpContext context)
     {
         try
