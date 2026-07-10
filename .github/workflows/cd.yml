@@ -155,14 +155,14 @@ jobs:
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
           while read -r rev; do
             az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
           az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
           while read -r rev; do
             az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
           done
@@ -268,14 +268,14 @@ jobs:
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
           while read -r rev; do
             az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
           az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-            --query "[?properties.trafficWeight=='0']name" -o tsv | \
+            --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
             while read -r rev; do
               az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
             done
