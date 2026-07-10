@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
-import type { Category, Course, ListingCondition } from "../../types/listing";
+import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
 
 interface ApiError {
   message: string;
@@ -14,11 +14,10 @@ const UploadListing: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<string>("");
- type ListingConditionUi = "Like_New" | "Good" | "Fair" | "Worn";
+  type ListingConditionUi = "Like_New" | "Good" | "Fair" | "Worn";
 
-const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
+  const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
   const [title, setTitle] = useState("");
-  const [customField, setCustomField] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -29,6 +28,8 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
   const [courseQuery, setCourseQuery] = useState("");
   const [courseResults, setCourseResults] = useState<Course[]>([]);
   const [courseLoading, setCourseLoading] = useState(false);
+  const [brand, setBrand] = useState("");
+  const [dimensions, setDimensions] = useState("");
 
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
@@ -135,7 +136,12 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
     }
     setSubmitting(true);
     setError(null);
-
+    const metadata: ListingMetadata =
+      category === "electronics"
+        ? { brand: brand }
+        : category === "furniture"
+          ? { dimensions: dimensions }
+          : null;
     try {
       const listingId = await listingsService.createListing({
         title,
@@ -145,6 +151,7 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
         categoryName: category,
         courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "live",
+        metadata,
       });
       await listingsService.uploadImages(listingId, files);
       navigate("/seller/listings");
@@ -164,7 +171,12 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
 
     setSubmitting(true);
     setError(null);
-
+    const metadata: ListingMetadata =
+      category === "electronics"
+        ? { brand: brand }
+        : category === "furniture"
+          ? { dimensions: dimensions }
+          : null;
     try {
       const listingId = await listingsService.createListing({
         title,
@@ -174,6 +186,7 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
         categoryName: category,
         courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "draft",
+        metadata,
       });
       if (files.length > 0) {
         await listingsService.uploadImages(listingId, files);
@@ -207,7 +220,7 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
       <div className="relative pl-12 space-y-8 mt-6">
         <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200" />
 
-        {/* Step 1: Basic Information */}
+
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
@@ -232,12 +245,15 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => setCategory(cat.name)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                        category === cat.name
-                          ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                      }`}
+                      onClick={() => {
+                        setCategory(cat.name);
+                        setBrand("");
+                        setDimensions("");
+                      }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${category === cat.name
+                        ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                        }`}
                     >
                       {cat.name}
                     </button>
@@ -284,14 +300,13 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                     )}
                   </div>
                 )}
-
                 {category === "electronics" && (
                   <div>
                     <input
                       type="text"
-                      placeholder="Brand / Model"
-                      value={customField}
-                      onChange={(e) => setCustomField(e.target.value)}
+                      placeholder="Brand"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
                       className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
@@ -302,8 +317,8 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                     <input
                       type="text"
                       placeholder="Dimensions"
-                      value={customField}
-                      onChange={(e) => setCustomField(e.target.value)}
+                      value={dimensions}
+                      onChange={(e) => setDimensions(e.target.value)}
                       className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
@@ -407,9 +422,8 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                 {files.length > 0 && (
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
-                      }`}
+                      className={`h-full rounded-full transition-all duration-300 ${usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
+                        }`}
                       style={{ width: `${usedPercent}%` }}
                     />
                   </div>
@@ -460,11 +474,10 @@ const [condition, setCondition] = useState<ListingConditionUi>("Like_New");
                           key={item}
                           type="button"
                           onClick={() => setCondition(item)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                            condition === item
-                              ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                              : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                          }`}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${condition === item
+                            ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                            }`}
                         >
                           {item.replace("_", " ")}
                         </button>
