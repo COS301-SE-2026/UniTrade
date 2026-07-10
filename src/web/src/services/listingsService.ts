@@ -12,10 +12,13 @@ import { useAuthStore } from "../store/useAuthStore";
 import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
-const API_ORIGIN = new URL(BASE_URL).origin;
+
+import { getApiUrl } from "../config";
 
 export function imageUrl(path: string): string {
-  return `${API_ORIGIN}${path}`;
+  const origin = new URL(getApiUrl()).origin;
+
+  return `${origin}${path}`;
 }
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
@@ -225,39 +228,39 @@ export const listingsService = {
     if (!user)
       return { listings: mockMyListings, total: mockMyListings.length };
 
-    const res = await fetch(`${BASE_URL}/listings?sellerId=${user.id}`, {
+    const res = await fetch(`${getApiUrl()}/listings?sellerId=${user.id}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch listings");
 
     const data = await res.json();
-const listings: ListingSummary[] = data.items.map((item: unknown) => {
-  const l = item as {
-    listingId: string;
-    title: string;
-    categoryName: string;
-    createdAt: string;
-    price: number;
-    listingStatus: string;
-    viewCount: number;
-    images: { imageId: number; isPrimary: boolean; path: string }[];
-  };
-  const primary = getFirstUploadedImagePath(l.images);
-  return {
-    id: l.listingId,
-    title: l.title,
-    meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
-    price: l.price,
-    status: l.listingStatus,
-    views: l.viewCount,
-    imageUrl: primary ? imageUrl(primary) : biologyTextbook,
-  };
-});
+    const listings: ListingSummary[] = data.items.map((item: unknown) => {
+      const l = item as {
+        listingId: string;
+        title: string;
+        categoryName: string;
+        createdAt: string;
+        price: number;
+        listingStatus: string;
+        viewCount: number;
+        images: { imageId: number; isPrimary: boolean; path: string }[];
+      };
+      const primary = getFirstUploadedImagePath(l.images);
+      return {
+        id: l.listingId,
+        title: l.title,
+        meta: `${l.categoryName} · Listed ${new Date(l.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}`,
+        price: l.price,
+        status: l.listingStatus,
+        views: l.viewCount,
+        imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+      };
+    });
     return { listings, total: data.total };
   },
 
   getSellerListingById: async (id: string): Promise<SellerListingDetail> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch listing");
@@ -279,8 +282,8 @@ const listings: ListingSummary[] = data.items.map((item: unknown) => {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -325,7 +328,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
     files.forEach((f) => fd.append("files", f));
-    const res = await fetch(`${BASE_URL}/listings/${listingId}/images`, {
+    const res = await fetch(`${getApiUrl()}/listings/${listingId}/images`, {
       method: "POST",
       credentials: "include",
       body: fd,
@@ -336,7 +339,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   createListing: async (payload: CreateListingPayload): Promise<string> => {
-    const res = await fetch(`${BASE_URL}/listings`, {
+    const res = await fetch(`${getApiUrl()}/listings`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -370,7 +373,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
       metadata?: ListingMetadata;
     },
   ): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -389,7 +392,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   deleteListing: async (id: string): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/listings/${id}`, {
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -397,7 +400,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   getListingsCategories: async (): Promise<Category[]> => {
-    const res = await fetch(`${BASE_URL}/listing-categories`, {
+    const res = await fetch(`${getApiUrl()}/listing-categories`, {
       method: "GET",
       credentials: "include",
     });
@@ -414,7 +417,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     }
     params.set("universityId", "2"); // this has the UP courses only
     params.set("limit", "50");
-    const res = await fetch(`${BASE_URL}/courses?${params}`, {
+    const res = await fetch(`${getApiUrl()}/courses?${params}`, {
       method: "GET",
       credentials: "include",
     });
@@ -424,7 +427,7 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   getCourse: async (id: number): Promise<Course> => {
-     const res = await fetch(`${BASE_URL}/courses/${id}`, {
+     const res = await fetch(`${getApiUrl()}/courses/${id}`, {
      method: "GET",
       credentials: "include",
      });

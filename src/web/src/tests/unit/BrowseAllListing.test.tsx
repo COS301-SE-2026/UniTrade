@@ -91,7 +91,7 @@ describe('BrowseAllListing', () => {
   describe('Loading state', () => {
     it('shows a loading indicator while fetching', () => {
       vi.mocked(listingsService.getBrowseListings).mockImplementation(
-        () => new Promise(() => {}) // never resolves
+        () => new Promise(() => { }) // never resolves
       )
       renderComponent()
       expect(screen.getByText(/loading/i)).toBeInTheDocument()
@@ -99,7 +99,7 @@ describe('BrowseAllListing', () => {
 
     it('hides the listing grid while loading', () => {
       vi.mocked(listingsService.getBrowseListings).mockImplementation(
-        () => new Promise(() => {})
+        () => new Promise(() => { })
       )
       renderComponent()
       expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
