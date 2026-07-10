@@ -229,7 +229,7 @@ function mockListItem(
     listing: {
       title: 'Calculus: Early Transcendentals (8th Ed)',
       price: 350,
-      imagePath: '/mock/textbook.jpg',
+      imagePath: '/assets/textbook.jpg',
     },
     unreadCount,
   }; 

@@ -6,7 +6,7 @@ import {
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
-import type { ListingDetail as ListingDetailType } from '../../types/listing'
+import type { ListingDetail as ListingDetailType, SimilarListing } from '../../types/listing'
 
 
 
@@ -20,7 +20,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   )
 }
 
-function ReviewRow({ initials, name, stars, text, date }: {
+/*function ReviewRow({ initials, name, stars, text, date }: {
   initials: string; name: string; stars: number; text: string; date: string
 }) {
   return (
@@ -40,9 +40,8 @@ function ReviewRow({ initials, name, stars, text, date }: {
       </div>
     </div>
   )
-}
+}*/
 
-const ACADEMIC_CATEGORIES: string[] = ['textbook', 'lab_equipment']
 
 export default function ListingDetail() {
   const navigate = useNavigate()
@@ -51,14 +50,26 @@ export default function ListingDetail() {
   const [activeImage, setActiveImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [courseCode, setCourseCode] = useState<string | null>(null);
+  const [similarListings, setSimilarListings] = useState<SimilarListing[] | null>(null)
 
   useEffect(() => {
     if (!id) return
     listingsService.getById(id)
       .then(data => {
-        setListing(data)
+        setListing(data);
+        if (data.courseId) {
+          listingsService
+            .getCourse(data.courseId)
+            .then((course) => setCourseCode(course.courseCode))
+            .catch(() => setCourseCode(null))
+        }
+        listingsService.getSimilarListings(data)
+          .then(setSimilarListings)
+          .catch(() => setSimilarListings([]))
         setActiveImage(data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null)
       })
+
       .catch(() => setError('Failed to load listing'))
       .finally(() => setLoading(false))
   }, [id])
@@ -75,7 +86,6 @@ export default function ListingDetail() {
     </div>
   )
 
-  const isAcademic = ACADEMIC_CATEGORIES.includes(listing.category)
 
   return (
     <div className="space-y-4">
@@ -93,8 +103,6 @@ export default function ListingDetail() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-
-        {/* Left column */}
         <div className="col-span-2 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
@@ -133,18 +141,29 @@ export default function ListingDetail() {
               <span className="text-2xl font-bold text-navy-700 dark:text-white">
                 {formatPrice(listing.price)}
               </span>
-              <span className="text-sm text-gray-400">· negotiable</span>
+
             </div>
 
             <div className="flex flex-wrap gap-2 mb-4">
               <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 <IconCheck size={11} /> {formatCondition(listing.condition)}
               </span>
-              {isAcademic && listing.tags.map(tag => (
-                <span key={tag} className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full">
-                  {tag}
+              {listing.category === 'book' && courseCode && (
+                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                  {courseCode}
                 </span>
-              ))}
+              )}
+              {listing.category === 'electronics' && listing.metadata?.brand && (
+                <span className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full font-medium">
+                  {listing.metadata.brand}
+                </span>
+              )}
+              {listing.category === 'furniture' && listing.metadata?.dimensions && (
+                <span className="text-xs bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70 px-3 py-1 rounded-full font-medium">
+                  {listing.metadata.dimensions}
+                </span>
+              )}
+
             </div>
 
             <hr className="border-gray-100 dark:border-white/5 mb-4" />
@@ -163,14 +182,20 @@ export default function ListingDetail() {
                 </span>
               }
             />
-            {isAcademic && listing.courseCode && (
-              <DetailRow label="Course code" value={listing.courseCode} />
+            {listing.category === 'book' && courseCode && (
+              <DetailRow label="Course Code" value={courseCode} />
+            )}
+            {listing.category === 'electronics' && listing.metadata?.brand && (
+              <DetailRow label="Brand" value={listing.metadata.brand} />
+            )}
+            {listing.category === 'furniture' && listing.metadata?.dimensions && (
+              <DetailRow label="Dimensions" value={listing.metadata.dimensions} />
             )}
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
           </div>
 
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          {/*<div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller reviews</h3>
             {listing.reviews.length > 0 ? (
               listing.reviews.map(review => (
@@ -179,7 +204,7 @@ export default function ListingDetail() {
             ) : (
               <p className="text-xs text-gray-400">No reviews yet.</p>
             )}
-          </div>
+          </div>*/}
         </div>
 
 
@@ -204,16 +229,42 @@ export default function ListingDetail() {
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-              <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-navy-600 animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+            {similarListings === null ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-navy-600 animate-pulse" />
+                <div className="space-y-2">
+                  <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                  <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                </div>
               </div>
-              <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
-                Coming soon
-              </span>
-            </div>
+            ) : similarListings.length === 0 ? (
+              <p className="text-xs text-gray-400">No similar listings found.</p>
+            ) : (
+              <div className="space-y-3">
+                {similarListings.map(item => (
+                  <div
+                    key={item.id}
+                    onClick={() => navigate(`/listings/${item.id}`)}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-navy-700 rounded-lg p-2 -m-2"
+                  >
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex-shrink-0">
+                      {item.image ? (
+                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-lg">📚</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-navy-700 dark:text-white truncate">{item.title}</p>
+                      <p className="text-[11px] text-gray-400">{formatPrice(item.price)}</p>
+                    </div>
+                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                      {formatCondition(item.condition)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
