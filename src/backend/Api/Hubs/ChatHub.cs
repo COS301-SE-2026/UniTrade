@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
+using Modules.Chat.Models.Dto;
+using Modules.Chat.Models;
+using Modules.Chat;
 
 namespace Api.Hubs;
 
@@ -10,9 +13,11 @@ public class ChatHub : Hub
 {
     private readonly IReservationRepository _reservation; //add this mdoule.reserv folder+ using
 
-    public ChatHub(IReservationRepository reservations)
+    private readonly IChatService _chatService;
+    public ChatHub(IReservationRepository reservations,IChatService chatService)
     {
         _reservation = reservations;
+        _chatService=chatService;
     }
 
     //standard func acc to signalR rules
@@ -51,5 +56,25 @@ public class ChatHub : Hub
     private static string GroupName(Guid reservationId)
     {
         return $"reservation-{reservationId}";
+    }
+
+    public async Task SendMessage(Guid reservationId,string content)
+    {
+        var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
+        ChatMessageDto message;
+
+        try{
+            message=await _chatService.SendAsync(reservationId,Guid.Parse(userId),content);
+        }catch(UnauthorisedAccessException)
+        {
+            throw new HubException("Forbidden: you are not a participant in this reservation.");
+        }
+        catch(ArgumentException ex)
+        {
+            throw new HubException(ex.Message);
+        }
+
+        await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage",message);
+
     }
 }
