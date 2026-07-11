@@ -1,12 +1,38 @@
 import { useEffect, useMemo, useState } from 'react'
 import {useNavigate } from 'react-router-dom'
-import {useQueryClient} from '@tanstack/react-query'
-import { cancelReservation } from '../../services/reservationService'
+//import {useQueryClient} from '@tanstack/react-query'
+import {getReservations,cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import {formatPrice} from '../../utils/formatters'
 import { IconClock } from '@tabler/icons-react'
-import { queryKeys } from '../../lib/queryKeys'
-import { useReservationsList } from '../../hooks/useReservationsList'
+//import { queryKeys } from '../../lib/queryKeys'
+//import { useReservationsList } from '../../hooks/useReservationsList'
+
+type ItemStatus = 'Active' | 'Expired'| 'Cancelled'| 'Completed'| 'Reserved';
+function StatusBadge({ status }: { status: string }){
+    if (!status) return null;
+    const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
+
+    const config: Record<ItemStatus, {bg: string; text: string; dot: string; label: string }> =
+    {
+        Active: {bg: 'bg-emerald-50' , text:' text-emerald-700 border-emerald-200',dot:'bg-emerald-500',label:'Active'},
+Completed: {bg: 'bg-blue-50' , text:'text-blue-700 border-blue-200',dot:'bg-blue-500',label:'Completed'},
+Expired: {bg: 'bg-gray-50', text:' text-gray-700 border-gray-200',dot:'bg-gray-500',label:'Expired'},
+Cancelled:{bg: 'bg-rose-50', text:' text-rose-700 border-rose-200',dot:'bg-rose-500',label:'Cancelled'},
+Reserved: {bg: 'bg-amber-50', text:' text-amber-700 border-amber-200',dot:'bg-amber-500',label:'Reserved'},
+};
+const currentConfig = config[normalizedStatus] || config['Expired'];
+
+return (
+<span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${currentConfig.bg} ${currentConfig.text}`}>
+    <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.dot} ${normalizedStatus === 'Active' ? 'animate-pulse': ''}`}/>
+    {currentConfig.label}
+</span>
+);
+
+
+}
+
 type UrgencyLevel = 'normal' | 'expiring'
 
 function getMsRemaining(expiresAt: string): number{
@@ -47,7 +73,7 @@ return(
         <p className="text-2xl font-extrabold text-gray-800">{value}</p>
         <p className="text-xs text-gray-500 mt-1">{label}</p>
     </div>
-)
+);
 }
 
 function StageTag({stage }: {stage: TimerStage}){
@@ -61,10 +87,12 @@ function StageTag({stage }: {stage: TimerStage}){
 
 function CountdownBadge({ msRemaining, urgency }: {msRemaining: number; urgency: UrgencyLevel }
 ){
-    const style = urgency === 'expiring' ? 'bg-rose-50 text-rose 600 border border-rose-200'
+
+    if(msRemaining <= 0) return null;
+    const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
 : 'bg-sky-50 text-sky-700 border border-sky-200'
 return(
-    <div className={`flex itens-center gap-1 text-xs font-semibold px-3 py-1 roundedlg ${style}`}>
+    <div className={`flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-lg ${style}`}>
         <IconClock size={14} />
         {formatCountdown(msRemaining)}
     </div>
@@ -88,6 +116,7 @@ function ReservationCard({
 
     const msRemaining = getMsRemaining(reservation.expiresAt)
     const urgency = getUrgency(msRemaining)
+    const isActive = reservation.reservationStatus === 'active'
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
@@ -97,40 +126,49 @@ function ReservationCard({
         className="w-20 h-20 rounded-lg object-cover flex shrink-0"
         />
         <div className ="flex-1 min-w-0">
-            <div className="flex items-start justifiy-between gap-4">
+            <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
+                    <div className="flexi items-center gap-2 flex-wrap">
                     <p className="text-sm font-bold text-gray-800 truncate">
                         {reservation.listing.title}
                     </p>
+                    <StatusBadge status={reservation.reservationStatus} />
+                    </div>
                     <p className="text-xs text-gray-400 mt-0.5">
                     List by <span className="font-semibold text-gray-500">
                         {reservation.counterparty.name}
                     </span>
                     </p>
                 </div>
+                {isActive && msRemaining > 0 &&(
                 <div className="text-right flex-shrink-0">
-                    <p className="text-[10px] text-gray-400 uppercase track-wide">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide">
                         Expires in
                     </p>
                     <div className ="mt-1">
                         <CountdownBadge msRemaining= {msRemaining} urgency={urgency} />
                         </div> 
-                </div>
+                </div>)}
+
             </div>
+
             <div className="flex items-center gap-2 mt-2">
-                <StageTag stage={reservation.timerStage} />
+                {isActive &&
+                <StageTag stage={reservation.timerStage} />}
                 <span className="text-sm font-bold text-gray-800">
                 {formatPrice(reservation.listing.price)}</span>
             </div>
+
+            {isActive && (
             <div className="flex gap-2 mt-3">
                 <button
                 onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/pay`)}
-                className="flex-1 py-2 bg-[#003366] text-white text-xs font-semibold rounded-lg hover:bg-[#002244] transition colors">
+                className="flex-1 py-2 bg-[#003366] text-white text-xs font-semibold rounded-lg hover:bg-[#002244] transition-colors">
                     Complete Payment
                 </button>
                 <button
                 onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/chat`)}
-                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text xs font-semibold rounded-lg hover:bg-gray-50 transition colors">
+                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition colors">
                     Message seller
                 
                     {reservation.unreadCount >0 && (
@@ -144,15 +182,16 @@ function ReservationCard({
                 className="flex-1 py-2 border border-gray-300 text-gray-700 text-xs
                 font-semibold rounded-lg hover:bg-gray-50 transition-colors" >
                     Cancel</button>  
-                                </div>
+                                </div>)}
         </div>
         </div>
     )
 
 }
+
 export default function Reservations()
 {
-    const queryClient = useQueryClient()
+   /* const queryClient = useQueryClient()
     const {data: reservations = [], isLoading: loading, isError, error: queryError} = useReservationsList('buyer');
     const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
     const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
@@ -172,17 +211,17 @@ export default function Reservations()
         const totalValue = activeReservations.reduce((sum: number, r: ReservationListItem) => sum + r.listing.price, 0)
         return { activeCount, expiringCount, totalValue }
     }, [activeReservations])
-
-/*const [reservations, setReservations] = useState<ReservationListItem[]>([])
+*/
+const [reservations, setReservations] = useState<ReservationListItem[]>([])
 const [loading, setLoading] = useState(true)
 const [error, setError] = useState<string | null>(null)
-*/
 
-/*useEffect(() => {
+
+useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) =>{
         if (result.success)
         {
-            setReservations(result.data.items.filter((r) => r.reservationStatus === 'active'))
+            setReservations(result.data.items)
         }else {
             setError(result.error.message ?? 'Could not load your reservations.')}
         }).finally(() => setLoading(false))}
@@ -190,7 +229,7 @@ const [error, setError] = useState<string | null>(null)
 
         const handleCancel = async (reservationId: string) => {
             const previous = reservations
-            setReservations((prev) => prev.filter((r)=> r.reservationId !== reservationId))
+            setReservations((prev) => prev.map((r) => (r.reservationId=== reservationId ? {...r, reservationStatus : 'cancelled'} : r )))
             const result = await cancelReservation(reservationId)
             if (!result.success){
                 setReservations(previous)
@@ -198,18 +237,18 @@ const [error, setError] = useState<string | null>(null)
         }
 
         const summary = useMemo(() => {
-            const activeCount = reservations.length
+            const activeCount = reservations.filter((r) => r.reservationStatus === 'active').length
             const expiringCount =  reservations.filter(
-                (r) => getUrgency(getMsRemaining(r.expiresAt)) == 'expiring').length
-                const totalValue = reservations.reduce((sum, r) => sum + r.listing.price, 0)
+                (r) => r.reservationStatus === 'active' && getUrgency(getMsRemaining(r.expiresAt)) === 'expiring').length
+            const totalValue = reservations.filter((r) => r.reservationStatus === 'active').reduce((sum,r) => sum + r.listing.price,0)
 
                 return{ activeCount, expiringCount, totalValue }} , [reservations]
             )
-                */
+                
 
             return (
                 <div className="flex flex-col gap-6">
-                    <h1 className="text-2xl font extrabold text-gray-800 uppercase">
+                    <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
                         My Reservations</h1> 
 
                 <div className="flex gap-4">
@@ -228,14 +267,14 @@ const [error, setError] = useState<string | null>(null)
                             <p className="text-sm font-semibold text-rose-600">{error}</p>
                             </div>
                     )}
-                     {!loading && !error && activeReservations.length===0 && (
+                     {!loading && !error && reservations.length===0 && (
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                            <p className="text-sm font-semibold text-gray-700">No Acive reservations</p>
+                            <p className="text-sm font-semibold text-gray-700">No reservations found</p>
                             <p className="text-xs text-gray-400 mt-1">
                             </p>
                             </div>
                     )}
-                    {activeReservations.map((reservation: ReservationListItem) => (
+                    {reservations.map((reservation: ReservationListItem) => (
                         <ReservationCard key ={reservation.reservationId}
                         reservation={reservation} onCancel={handleCancel} />
                     ))}
