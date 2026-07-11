@@ -19,6 +19,7 @@ import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
 import Wishlist from "./pages/buyer/Wishlist";
 import Reservations from "./pages/buyer/Reservation";
+import ReservationDetails from "./pages/buyer/ReservationDetails";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
@@ -82,6 +83,7 @@ export default function App() {
       <Route path = ":reservationId" element={<ChatPage />} />
       </Route>
 
+      <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
       <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
       <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
       
