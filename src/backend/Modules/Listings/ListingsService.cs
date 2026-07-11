@@ -12,6 +12,13 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
 
+    private static readonly HashSet<string> SellerAllowedStatuses = new()
+    {
+        "live",
+        "draft",
+        "removed",
+    }; // as in removed form the platform because you sold it outside it
+
     public ListingService(IListingRepository listings, IListingImageRepository images)
     {
         _listings = listings;
@@ -63,7 +70,17 @@ public class ListingService : IListingService
                     $"/api/listings/{l.ListingId}/images/{i.ImageId}",
                     i.IsPrimary
                 ))
-                .ToList()
+                .ToList(),
+            Seller: l.Seller is null
+                ? null
+                : new SellerInfoDto(
+                    l.Seller.SellerId,
+                    l.Seller.FirstName,
+                    l.Seller.LastName,
+                    l.Seller.FullName,
+                    l.Seller.University,
+                    l.Seller.ActiveListingCount
+                )
         );
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
@@ -232,5 +249,38 @@ public class ListingService : IListingService
     public async Task<bool> IsOwnerAsync(Guid listingId, Guid callerId)
     {
         return await _listings.IsOwnerAsync(listingId, callerId);
+    }
+
+    public async Task<bool> UpdateStatusAsync(
+        Guid listingId,
+        Guid callerId,
+        string newStatus,
+        CancellationToken ct = default
+    )
+    {
+        if (!SellerAllowedStatuses.Contains(newStatus))
+        {
+            throw new ArgumentException("invalid_status");
+        }
+
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+        {
+            return false;
+        }
+
+        if (listing.SellerId != callerId)
+        {
+            throw new UnauthorizedAccessException("forbidden");
+        }
+        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected")
+        {
+            throw new InvalidOperationException("status_locked");
+        }
+
+        listing.ListingStatus = newStatus;
+        listing.UpdatedAt = DateTime.Now;
+        await _listings.SaveAsync();
+        return true;
     }
 }
