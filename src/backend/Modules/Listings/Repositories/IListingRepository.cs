@@ -26,4 +26,5 @@ public interface IListingRepository
 
     Task<bool> ReleaseAsync(Guid listingId, CancellationToken ct = default);
 
+    Task<Dictionary<Guid, int>> GetActiveListingCountsAsync(IEnumerable<Guid> sellerIds, CancellationToken ct = default);
 }
