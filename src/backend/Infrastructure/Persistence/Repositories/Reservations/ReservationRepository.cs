@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Modules.Reservations.Models;
 using Modules.Reservations.Repositories;
+using Modules.Reservations.StateMachine;
+using Modules.SharedKernel;
 
 namespace Infrastructure.Persistence.Repositories.Reservations;
 
-public class ReservationRepository : IReservationRepository
+public class ReservationRepository : IReservationRepository, IReservationMembership
 {
     private readonly AppDbContext _db;
 
@@ -62,4 +64,16 @@ public class ReservationRepository : IReservationRepository
     }
 
     public Task SaveAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
+
+    public async Task<IReadOnlyList<Reservation>> GetDueForExpiryAsync(
+        DateTime asOf,
+        int batchSize = 100,
+        CancellationToken ct = default
+    ) =>
+        await _db
+            .Reservations.Include(r => r.ReservationListings)
+            .Where(r => r.ReservationStatus == ReservationState.Active && r.ExpiresAt <= asOf)
+            .OrderBy(r => r.ExpiresAt)
+            .Take(batchSize)
+            .ToListAsync(ct);
 }

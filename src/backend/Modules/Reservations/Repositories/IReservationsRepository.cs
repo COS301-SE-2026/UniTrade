@@ -19,4 +19,6 @@ public interface IReservationRepository
 
     Task AddAsync(Reservation reservation, CancellationToken ct = default);
     Task SaveAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<Reservation>> GetDueForExpiryAsync(DateTime asOf, int batchSize = 100, CancellationToken ct = default);
 }
