@@ -1,4 +1,5 @@
 using Modules.Chat.Models.Dto;
+
 namespace Modules.Chat;
 
 public interface IChatService
@@ -31,5 +32,9 @@ public interface IChatService
     );
     Task<int> GetUnreadCountAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
 
-    Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(IEnumerable<Guid> reservationIds, Guid userId, CancellationToken ct = default);
+    Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(
+        IEnumerable<Guid> reservationIds,
+        Guid userId,
+        CancellationToken ct = default
+    );
 }

@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Modules.Chat.Models;
 using Modules.Identity.Models;
 using Modules.Listings.Models;
+using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
-using Modules.Chat.Models;
-using Modules.Notifications.Models;
+
 namespace Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
@@ -319,7 +320,6 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
             entity
                 .HasOne(x => x.BookDetails)
                 .WithOne(b => b.Listing)
@@ -596,42 +596,36 @@ public class AppDbContext : DbContext
 
         // Notification
         modelBuilder.Entity<Notification>(entity =>
-  {
-      entity.HasKey(x => x.NotificationId);
-      entity.Property(x => x.NotificationId).ValueGeneratedOnAdd();
+        {
+            entity.HasKey(x => x.NotificationId);
+            entity.Property(x => x.NotificationId).ValueGeneratedOnAdd();
 
-      entity.Property(x => x.UserId).IsRequired();
-      entity.Property(x => x.Type).HasMaxLength(30).IsRequired();
-      entity.Property(x => x.Message).IsRequired();
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.Type).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.Message).IsRequired();
 
-      entity
-          .Property(x => x.IsRead)
-          .HasDefaultValue(false)
-          .IsRequired();
+            entity.Property(x => x.IsRead).HasDefaultValue(false).IsRequired();
 
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
-      entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_notif_type",
+                    "type IN ('listing_status', 'reservation_status', 'meetup_reminder',  'chat', 'dispute', 'verification')"
+                );
+            });
 
-      entity.ToTable(t =>
-      {
-          t.HasCheckConstraint(
-              "chk_notif_type",
-              "type IN ('listing_status', 'reservation_status', 'meetup_reminder',  'chat', 'dispute', 'verification')"
-          );
-      });
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-      entity
-          .HasOne<User>()
-          .WithMany()
-          .HasForeignKey(x => x.UserId)
-          .OnDelete(DeleteBehavior.Cascade);
-
-      entity
-          .HasIndex(x => new { x.UserId, x.IsRead })
-          .HasDatabaseName("ix_notif_user_unread")
-          .HasFilter("is_read = false");
-  });
-
-
+            entity
+                .HasIndex(x => new { x.UserId, x.IsRead })
+                .HasDatabaseName("ix_notif_user_unread")
+                .HasFilter("is_read = false");
+        });
     }
 }
