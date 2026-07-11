@@ -1,6 +1,7 @@
 using Modules.Identity.Models;
 using Modules.Listings.Models;
 using Modules.Reservations.Models;
+
 namespace Modules.Chat.Models;
 
 public class ChatMessage
