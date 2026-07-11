@@ -17,4 +17,5 @@ public interface IListingService
     Task<ListingSummaryDto?> GetByIdAsync(Guid listingId);
     Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter);
     Task<bool> IsOwnerAsync(Guid listingId, Guid callerId);
+    Task<bool> UpdateStatusAsync(Guid listingId, Guid callerId, string newStatus, CancellationToken ct = default);
 }

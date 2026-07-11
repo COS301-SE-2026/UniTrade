@@ -66,7 +66,8 @@ public class ListingControllerTests
             ViewCount: 0,
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: DateTime.UtcNow,
-            Images: new List<ListingImageDto>()
+            Images: new List<ListingImageDto>(),
+            Seller: null
         );
 
     // PUT /api/listings/{id} Update
