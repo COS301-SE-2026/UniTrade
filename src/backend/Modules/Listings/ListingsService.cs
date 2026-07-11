@@ -251,7 +251,7 @@ public class ListingService : IListingService
         return await _listings.IsOwnerAsync(listingId, callerId);
     }
 
-    public async Task<bool> UpdateStatus(
+    public async Task<bool> UpdateStatusAsync(
         Guid listingId,
         Guid callerId,
         string newStatus,
