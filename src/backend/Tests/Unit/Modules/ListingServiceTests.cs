@@ -818,7 +818,7 @@ public class ListingServiceTests
         var userName = "Thandah";
         var lastName = "Cawe";
 
-        var sellerInfo = new SellerInfo(userId, userName, lastName);
+        var sellerInfo = new SellerInfo(userId, userName, lastName, null, 0);
         Assert.Equal(userName + " " + lastName, sellerInfo.FullName);
     }
 
@@ -826,7 +826,7 @@ public class ListingServiceTests
     public void SellerInfo_HandlesNullNames()
     {
         var userId = Guid.NewGuid();
-        var sellerInfo = new SellerInfo(userId, string.Empty, string.Empty);
+        var sellerInfo = new SellerInfo(userId, string.Empty, string.Empty, null, 0);
 
         Assert.Empty(sellerInfo.FullName);
     }
@@ -860,7 +860,8 @@ public class ListingServiceTests
             CourseId: 110,
             BookDetails: null,
             Metadata: null,
-            Images: images
+            Images: images,
+            Seller: null
         );
 
         Assert.Equal(listingId, dto.ListingId);
