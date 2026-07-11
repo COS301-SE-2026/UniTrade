@@ -4,6 +4,7 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
+import { useAuthStore } from '../../store/useAuthStore'
 
 
 function CategoryCard({
@@ -38,6 +39,7 @@ function ListingCard({
 }) {
 
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
@@ -55,8 +57,12 @@ function ListingCard({
     setReserving(true)
     setReserveError(null)
 
-    const result = await createReservation({ listingId: String(listing.id )})
+    const result = await createReservation(
+      { listingId: String(listing.id) },
 
+    { title: listing.title, price: listing.price, imagePath: listing.image },
+    user ? { userId: user.id, name: user.name, initials: user.initials } : undefined)
+   
     if(result.success) 
     {
       setReserved(true)
@@ -65,6 +71,9 @@ function ListingCard({
     else if(result.error.code === 'already_reserved')
       {
         setReserveError('Item was just reserved by someone else!')
+      }
+      else{
+        setReserveError(result.error.message ?? 'Counld not reserve this item.')
       }
       setReserving(false)
   }
