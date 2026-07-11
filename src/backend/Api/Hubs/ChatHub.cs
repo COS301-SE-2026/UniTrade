@@ -93,8 +93,8 @@ public class ChatHub : Hub
         int conuter;
 
         try{
-            conuter=await _chatService.MarkasRead(reservationId,Guid.Parse(userId),upToMessageId);
-        }catch(UnauthorisedAccessException){
+            conuter=await _chatService.MarkReadAsync(reservationId,Guid.Parse(userId),upToMessageId);
+        }catch(UnauthorizedAccessException){
             throw new HubException("Forbidden: you are not a participant in this reservation.");
         }
 
