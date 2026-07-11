@@ -36,8 +36,11 @@ public class ChatHub : Hub
     public async Task JoinRoom(Guid reservationId)
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
-
-        var isAuthorised = await _reservation.IsUserReservedAsync(userId, reservationId); //stub for now, needs tp be from ireservation!!
+        if(!Guid.TryParse(userId, out var userGuid))
+        {
+            throw new HubException("Unauthorised: invalid user identifier");
+        }
+        var isAuthorised = await _reservation.IsPartyToAsync(reservationId, userGuid, Context.ConnectionAborted); //stub for now, needs tp be from ireservation!!
         if (!isAuthorised)
         {
             throw new HubException("Forbidden: you are not a participant in this reservation.");
