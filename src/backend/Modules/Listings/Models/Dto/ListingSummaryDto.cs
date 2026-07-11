@@ -24,5 +24,6 @@ public record ListingSummaryDto(
      DateTime CreatedAt,
      DateTime UpdatedAt,
 
-     IReadOnlyList<ListingImageDto> Images
+     IReadOnlyList<ListingImageDto> Images,
+     SellerInfoDto? Seller
 );
