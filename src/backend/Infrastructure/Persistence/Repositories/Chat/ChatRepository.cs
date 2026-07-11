@@ -16,7 +16,7 @@ public class ChatRepository : IChatRepository
 
     public async Task AddAsync(ChatMessage message, CancellationToken ct = default)
     {
-        await _db.ChatMessage.AddAsync(message, ct);
+        await _db.ChatMessages.AddAsync(message, ct);
     }
 
     public async Task<IReadOnlyList<ChatMessage>> GetHistoryAsync(
@@ -33,7 +33,7 @@ public class ChatRepository : IChatRepository
             query = query.Where(m => m.MessageId < before.Value);
         }
 
-        return await query.OrderByDescending(m => MessageId).Take(limit).ToListAsync(ct);
+        return await query.OrderByDescending(m => m.MessageId).Take(limit).ToListAsync(ct);
     }
 
     public async Task<int> MarkReadAsync(
@@ -62,7 +62,7 @@ public class ChatRepository : IChatRepository
         return await _db
             .ChatMessages.AsNoTracking()
             .CountAsync(
-                m => m.ReservationId == reseravtionId && m.ReadAt == null && m.SenderId != userId,
+                m => m.ReservationId == reservationId && m.ReadAt == null && m.SenderId != userId,
                 ct
             );
     }
