@@ -4,7 +4,7 @@ import type {
     ChatHistoryResponse,
     CreateReservationRequest,
     GetReservationParams,
-    //GetMessagesParams,
+    GetMessagesParams,
     Result,
     //ApiError,
     
@@ -155,7 +155,7 @@ export async function getReservations(
 }
 
 export async function getMessages(
-    //params: GetMessagesParams
+    _params: GetMessagesParams
 ): Promise<Result<ChatHistoryResponse>> {
     //mock
     return {
