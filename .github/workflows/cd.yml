@@ -58,8 +58,6 @@ jobs:
     environment: staging
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      #RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
-      #PUT rgs into secrets
       BACKEND_RG: unitrade-BackEnd
       FRONTEND_RG: unitrade-FrontEnd
       BACKEND_APP: unitrade-backend-staging
@@ -102,6 +100,8 @@ jobs:
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
+              --secrets \
+                "db-conn=${{secrets.DB_CONNECTION_STRING_PROD}}"
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
