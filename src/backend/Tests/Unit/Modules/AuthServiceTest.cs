@@ -16,8 +16,9 @@ using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 using Moq;
 using Xunit;
-
-namespace Api.Tests.Services;
+using UniversityDto = Modules.Identity.Models.DTO.University;
+using UniversityEntity = Modules.ReferenceData.University.University;
+namespace UniTrade.Tests.Unit.Modules;
 
 [Trait("Category", "Unit")]
 public class IdentityServiceTests
@@ -62,7 +63,7 @@ public class IdentityServiceTests
             PhoneNumber = "0123456789",
         };
 
-        var mockUniversity = new Modules.ReferenceData.University.University();
+        var mockUniversity = new UniversityEntity();
 
         _universityRepositoryMock
             .Setup(r => r.GetByDomainAsync("uni.ac.za"))
@@ -146,7 +147,7 @@ public class IdentityServiceTests
         };
         _universityRepositoryMock
             .Setup(r => r.GetByDomainAsync("unsupported.com"))
-            .ReturnsAsync((Modules.ReferenceData.University.University?)null);
+            .ReturnsAsync((UniversityEntity?)null);
 
         var ex = await Assert.ThrowsAsync<IdentityException>(() => _service.RegisterAsync(dto));
         Assert.Equal("invalid_domain", ex.Message);
@@ -168,7 +169,7 @@ public class IdentityServiceTests
             YearOfStudy = 1,
         };
 
-        var mockUniversity = new Modules.ReferenceData.University.University();
+        var mockUniversity = new UniversityEntity();
         var existingUser = new User
         {
             Email = "existing@uni.ac.za",
@@ -195,7 +196,7 @@ public class IdentityServiceTests
             Password = "ValidPassword123!",
             YearOfStudy = 1,
         };
-        var mockUniversity = new Modules.ReferenceData.University.University();
+        var mockUniversity = new UniversityEntity();
 
         _universityRepositoryMock
             .Setup(r => r.GetByDomainAsync("uni.ac.za"))
