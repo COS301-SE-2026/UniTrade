@@ -62,6 +62,7 @@ public class ListingController : ControllerBase
             return NotFound();
         return Ok("Listings updated successfully");
     }
+    
 
 
     [Authorize]
@@ -81,6 +82,31 @@ public class ListingController : ControllerBase
             return NotFound(new { error = "listing_not_found" });
         return Ok(listing);
     }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var callerIdClaim = User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated"});
+        }
+
+        try {
+
+            var deleted = await _listings.DeleteListings(id, callerId);
+            if (!deleted)
+              return NotFound(new { error = "listing_not_found"});
+
+              return NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden"});
+        }
+    } 
 
     [Authorize]
     [HttpPost("{listingId:guid}/images")]
