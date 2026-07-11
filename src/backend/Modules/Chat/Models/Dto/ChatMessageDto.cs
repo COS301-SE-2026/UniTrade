@@ -7,8 +7,8 @@ public record ChatMessageDto(
     Guid ReservationId,
     Guid? SenderId,
     string MessageType,
-    string content,
-    JsonElement? PayLoad,
+    string Content,
+    JsonElement? Payload,
     DateTime SentAt,
     DateTime? ReadAt
 );
