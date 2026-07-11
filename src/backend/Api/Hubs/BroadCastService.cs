@@ -1,9 +1,7 @@
 using Modules.Reservations;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Api.Hubs;
 
-namespace Modules.Chat;
+namespace Api.Hubs;
 
 public class BroadCastService: IBroadCastService
 {

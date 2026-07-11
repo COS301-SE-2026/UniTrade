@@ -30,4 +30,6 @@ public interface IChatService
         CancellationToken ct = default
     );
     Task<int> GetUnreadCountAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
+
+    Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(IEnumerable<Guid> reservationIds, Guid userId, CancellationToken ct = default);
 }

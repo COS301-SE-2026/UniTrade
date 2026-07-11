@@ -1,10 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Forms.Mapping;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Chat;
-using Modules.Listings.Models;
-using Modules.Listings.Models.Dto;
 using Modules.Reservations;
 
 namespace Api.Controllers;
@@ -99,7 +96,7 @@ public class ReservationsController : ControllerBase
 
     // get /api/reservations/{id}
 
-    [HttpGet]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var dto = await _reservations.GetByIdAsync(id, CallerId, ct);
