@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Modules.Chat;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
@@ -30,6 +31,9 @@ using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Api.Hubs;
+using Api.BackgroundServices;
+using Infrastructure.Persistence.Repositories.Chat;
+using Modules.Chat.Repository;
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -156,6 +160,15 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IReservationMembership, ReservationRepository>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddHostedService<ReservationExpiryWorker>();
+builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IBroadCastService,BroadCastService>();
+builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
+
 
 builder.Services.AddSingleton(
     new EmailClient(

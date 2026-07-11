@@ -209,5 +209,18 @@ public class ListingRepository : IListingRepository
 
         await _db.SaveChangesAsync();
     }
+
+    public async Task<bool> TryReserveAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var rows = await _db.Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live").ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "reserved"), ct);
+        return rows == 1;
+    }
+
+    public async Task<bool> ReleaseAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var rows = await _db.Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "reserved").ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
+        return rows == 1;
+
+    }
 }
 

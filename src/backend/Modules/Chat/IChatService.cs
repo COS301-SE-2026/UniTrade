@@ -15,7 +15,7 @@ public interface IChatService
         string content,
         CancellationToken ct = default
     );
-    Task<ChatMessageDto> GetHistoryAsync(
+    Task<ChatHistoryDto> GetHistoryAsync(
         Guid reservationId,
         Guid callerId,
         int? before,
@@ -30,4 +30,6 @@ public interface IChatService
         CancellationToken ct = default
     );
     Task<int> GetUnreadCountAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
+
+    Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(IEnumerable<Guid> reservationIds, Guid userId, CancellationToken ct = default);
 }
