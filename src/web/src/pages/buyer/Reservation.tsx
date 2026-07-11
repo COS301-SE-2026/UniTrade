@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import {useNavigate } from 'react-router-dom'
-import { getReservations, cancelReservation } from '../../services/reservationService'
+//import {useQueryClient} from '@tanstack/react-query'
+import {getReservations, cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import {formatPrice} from '../../utils/formatters'
 import { IconClock } from '@tabler/icons-react'
+import { queryKeys } from '../../lib/queryKeys'
+import { useReservationsList } from '../../hooks/useReservationsList'
 
 type ItemStatus = 'Active' | 'Expired'| 'Cancelled'| 'Completed'| 'Reserved';
 function StatusBadge({ status }: { status: string }){
@@ -29,6 +32,7 @@ return (
 
 
 }
+
 type UrgencyLevel = 'normal' | 'expiring'
 
 function getMsRemaining(expiresAt: string): number{
@@ -163,8 +167,8 @@ function ReservationCard({
                     Complete Payment
                 </button>
                 <button
-                onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/messages`)}
-                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+                onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/chat`)}
+                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition colors">
                     Message seller
                 
                     {reservation.unreadCount >0 && (
@@ -187,11 +191,33 @@ function ReservationCard({
 
 export default function Reservations()
 {
-const [reservations, setReservations] = useState<ReservationListItem[]>([])
+    const queryClient = useQueryClient()
+    const {data: reservations = [], isLoading: loading, isError, error: queryError} = useReservationsList('buyer');
+    const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
+    const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
+
+    const handleCancel = async (reservationId: string) => {
+        const result = await cancelReservation(reservationId)
+        if (result.success) {
+            queryClient.invalidateQueries({ queryKey: queryKeys.reservations('buyer') })
+        }
+    }
+
+    const summary = useMemo(() => {
+        const activeCount = activeReservations.length
+        const expiringCount = activeReservations.filter(
+            (r: ReservationListItem) => getUrgency(getMsRemaining(r.expiresAt)) === 'expiring'
+        ).length
+        const totalValue = activeReservations.reduce((sum: number, r: ReservationListItem) => sum + r.listing.price, 0)
+        return { activeCount, expiringCount, totalValue }
+    }, [activeReservations])
+
+/*const [reservations, setReservations] = useState<ReservationListItem[]>([])
 const [loading, setLoading] = useState(true)
 const [error, setError] = useState<string | null>(null)
+*/
 
-useEffect(() => {
+/*useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) =>{
         if (result.success)
         {
@@ -218,6 +244,7 @@ useEffect(() => {
 
                 return{ activeCount, expiringCount, totalValue }} , [reservations]
             )
+                */
 
             return (
                 <div className="flex flex-col gap-6">
@@ -240,14 +267,14 @@ useEffect(() => {
                             <p className="text-sm font-semibold text-rose-600">{error}</p>
                             </div>
                     )}
-                     {!loading && !error && reservations.length===0 && (
+                     {!loading && !error && activeReservations.length===0 && (
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
                             <p className="text-sm font-semibold text-gray-700">No Acive reservations</p>
                             <p className="text-xs text-gray-400 mt-1">
                             </p>
                             </div>
                     )}
-                    {reservations.map((reservation) => (
+                    {activeReservations.map((reservation: ReservationListItem) => (
                         <ReservationCard key ={reservation.reservationId}
                         reservation={reservation} onCancel={handleCancel} />
                     ))}

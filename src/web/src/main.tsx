@@ -15,13 +15,16 @@ import { BrowserRouter } from "react-router-dom";
 import { loadConfig } from "./config.ts";
 import "./index.css";
 import App from "./App.tsx";
+import { AppQueryProvider } from "./queryClient.tsx";
 
 loadConfig().then(() => {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
+      <AppQueryProvider>
       <BrowserRouter>
         <App />
       </BrowserRouter>
+      </AppQueryProvider>
     </StrictMode>,
   );
 });
