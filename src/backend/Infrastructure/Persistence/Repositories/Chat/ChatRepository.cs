@@ -44,7 +44,7 @@ public class ChatRepository : IChatRepository
     )
     {
         return await _db
-            .ChatMessage.Where(m =>
+            .ChatMessages.Where(m =>
                 m.ReservationId == reservationId
                 && m.MessageId <= upToMessageId
                 && m.ReadAt == null
