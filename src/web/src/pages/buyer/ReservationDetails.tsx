@@ -79,6 +79,8 @@ function formatTime(iso: string): string {
   });
 }
 
+
+
 export default function ReservationDetails()
 { return (
     <div>
@@ -86,3 +88,69 @@ export default function ReservationDetails()
       <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
     </div>
   )}
+
+  function SectionCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 dark:border-navy-700 bg-white dark:bg-navy-800 overflow-hidden">
+      <h2 className="px-6 py-4 text-base font-bold text-navy-900 dark:text-white border-b border-gray-200 dark:border-navy-700">
+        {title}
+      </h2>
+      <div className="p-6">{children}</div>
+    </div>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-navy-700 last:border-b-0">
+      <span className="text-sm text-gray-500 dark:text-navy-100">{label}</span>
+      <span className="text-sm font-semibold text-navy-900 dark:text-white">
+        {value}
+      </span>
+    </div>
+  );
+}
+function ActionButton({
+  icon,
+  label,
+  onClick,
+  disabled,
+  variant = "default",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: "primary" | "danger" | "default";
+}) {
+  const variantClasses =
+    variant === "primary"
+      ? "bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500"
+      : variant === "danger"
+        ? "border-gray-300 dark:border-navy-600 text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20"
+        : "border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantClasses}`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
