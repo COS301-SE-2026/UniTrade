@@ -10,7 +10,7 @@ import {
 } from "@tabler/icons-react";
 import type { ReservationListItem } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
-import { cancelReservation, getReservationById, getReservations } from "../../services/reservationService";
+import { cancelReservation, getReservationById} from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
 
 //type ReservationListItem = ReservationListResponse["items"][number];
