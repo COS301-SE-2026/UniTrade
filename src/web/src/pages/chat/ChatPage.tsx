@@ -196,6 +196,7 @@ export default function ChatPage() {
     const navigate = useNavigate();
     const {reservationId}= useParams<{reservationId: string}>();
     const{ user } = useAuthStore();
+    const isSeller = window.location.pathname.startsWith('/seller');
     const currentUserId = user?.id ?? 'me';
 
     const {data: messages =[], isLoading, isError} = useChatMessages(reservationId!);
@@ -213,6 +214,7 @@ export default function ChatPage() {
     useEffect(() => {
         if(!reservationId || messages.length === 0 ) return;
         const readable = messages.filter((m) => m.status !== 'sending' && m.status !== 'failed');
+        if (readable.length === 0 ) return;
         const lastMessage = readable[readable.length - 1];
         connectionManager.markRead(reservationId, lastMessage.messageId).catch(() => {});
 
@@ -230,7 +232,7 @@ export default function ChatPage() {
     return (
         <div className = "flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className = "bg-[#003366] px-4 py-3 flex items-center gap-3">
-                <button onClick={() => navigate(-1)} className = "text-white/80 hover:text-white">
+                <button onClick={() => navigate(isSeller ? '/seller/messages' : '/buyer/messages')} className = "text-white/80 hover:text-white">
                     <IconArrowLeft size = {20} />
                 </button>
                 <div>
