@@ -79,4 +79,25 @@ public class ChatHub : Hub
 
         await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
     }
+
+    //read receipts -markAsread func
+    //automatic messages
+    //braodcast messages to reservation
+    public async Task ReadReceipts(Guid reservationId,int upToMessageId)
+    {
+        var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
+
+        int conuter;
+
+        try{
+            conuter=await _chatService.MarkasRead(reservationId,Guid.Parse(userId),upToMessageId);
+        }catch(UnauthorisedAccessException){
+            throw new HubException("Forbidden: you are not a participant in this reservation.");
+        }
+
+        if(conuter>0)
+        {
+            await Clients.OthersInGroup(GroupName(reservationId)).SendAsync("Messages Read",new{reservationId,upToMessageId,readBy=userId});
+        }
+    }
 }
