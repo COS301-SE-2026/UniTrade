@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Modules.Chat;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
@@ -164,6 +165,7 @@ builder.Services.AddHostedService<ReservationExpiryWorker>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 builder.Services.AddScoped<IChatService, ChatService>();
 
+builder.Services.AddScoped<IBroadCastService,BroadCastService>();
 
 builder.Services.AddSingleton(
     new EmailClient(

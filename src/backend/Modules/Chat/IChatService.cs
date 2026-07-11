@@ -15,7 +15,7 @@ public interface IChatService
         string content,
         CancellationToken ct = default
     );
-    Task<ChatMessageDto> GetHistoryAsync(
+    Task<ChatHistoryDto> GetHistoryAsync(
         Guid reservationId,
         Guid callerId,
         int? before,
