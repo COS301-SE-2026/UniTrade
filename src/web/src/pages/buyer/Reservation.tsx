@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import {useNavigate } from 'react-router-dom'
 //import {useQueryClient} from '@tanstack/react-query'
-import {getReservations, cancelReservation } from '../../services/reservationService'
+import {getReservations,cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import {formatPrice} from '../../utils/formatters'
 import { IconClock } from '@tabler/icons-react'
-import { queryKeys } from '../../lib/queryKeys'
-import { useReservationsList } from '../../hooks/useReservationsList'
+//import { queryKeys } from '../../lib/queryKeys'
+//import { useReservationsList } from '../../hooks/useReservationsList'
 
 type ItemStatus = 'Active' | 'Expired'| 'Cancelled'| 'Completed'| 'Reserved';
 function StatusBadge({ status }: { status: string }){
@@ -191,7 +191,7 @@ function ReservationCard({
 
 export default function Reservations()
 {
-    const queryClient = useQueryClient()
+   /* const queryClient = useQueryClient()
     const {data: reservations = [], isLoading: loading, isError, error: queryError} = useReservationsList('buyer');
     const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
     const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
@@ -211,13 +211,13 @@ export default function Reservations()
         const totalValue = activeReservations.reduce((sum: number, r: ReservationListItem) => sum + r.listing.price, 0)
         return { activeCount, expiringCount, totalValue }
     }, [activeReservations])
-
-/*const [reservations, setReservations] = useState<ReservationListItem[]>([])
+*/
+const [reservations, setReservations] = useState<ReservationListItem[]>([])
 const [loading, setLoading] = useState(true)
 const [error, setError] = useState<string | null>(null)
-*/
 
-/*useEffect(() => {
+
+useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) =>{
         if (result.success)
         {
@@ -244,7 +244,7 @@ const [error, setError] = useState<string | null>(null)
 
                 return{ activeCount, expiringCount, totalValue }} , [reservations]
             )
-                */
+                
 
             return (
                 <div className="flex flex-col gap-6">
@@ -267,14 +267,14 @@ const [error, setError] = useState<string | null>(null)
                             <p className="text-sm font-semibold text-rose-600">{error}</p>
                             </div>
                     )}
-                     {!loading && !error && activeReservations.length===0 && (
+                     {!loading && !error && reservations.length===0 && (
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                            <p className="text-sm font-semibold text-gray-700">No Acive reservations</p>
+                            <p className="text-sm font-semibold text-gray-700">No reservations found</p>
                             <p className="text-xs text-gray-400 mt-1">
                             </p>
                             </div>
                     )}
-                    {activeReservations.map((reservation: ReservationListItem) => (
+                    {reservations.map((reservation: ReservationListItem) => (
                         <ReservationCard key ={reservation.reservationId}
                         reservation={reservation} onCancel={handleCancel} />
                     ))}
