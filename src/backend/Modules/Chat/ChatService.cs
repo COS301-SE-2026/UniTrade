@@ -1,20 +1,20 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Reservations;
+using Modules.Reservations.Repositories;
 
 namespace Modules.Chat;
 
 public class ChatService : IChatService
 {
-    private readonly IReservationService _reservationService;//using Isuserpat of reseravtion func
+    private readonly IReservationRepository _reservations;//using Isuserpat of reseravtion func
     private readonly IChatRepository _chatRepo;
-    public ChatService(IChatRepository chatRepo, IReservationService reservationSerice)
+    public ChatService(IChatRepository chatRepo, IReservationRepository reservations)
     {
         _chatRepo = chatRepo;
-        _reservationService = reservationSerice;
+        _reservations = reservations;
     }
 
     public async Task<ChatMessageDto> SendAsync(Guid reservationId, Guid senderId, string content, CancellationToken ct = default)
@@ -24,11 +24,11 @@ public class ChatService : IChatService
             throw new ArgumentException("Message content cannot be empty");
         }
 
-        var isAuthorised = await _reservationService.IsUserReservedAsync(senderId, reservationId);
+        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, senderId, ct);
 
         if (!isAuthorised)
         {
-            throw new UnauthorisedAccessException("You are not a participant of this reservation");
+            throw new ChatException(ChatErrors.Forbidden); // i change dit because of sonarqube 
         }
 
         var result = new ChatMessage
@@ -41,7 +41,7 @@ public class ChatService : IChatService
         };
 
         await _chatRepo.AddAsync(result);
-
+        await _chatRepo.SaveAsync(ct);
         return ToDto(result);
     }
 
@@ -50,7 +50,7 @@ public class ChatService : IChatService
         var result = new ChatMessage
         {
             ReservationId = reservationId,
-            SenderId = null,
+            SenderId = null, // nulled because system messages don't technically have a sender
             MessageType = "system",
             Content = content,
             SentAt = DateTime.UtcNow
@@ -62,17 +62,43 @@ public class ChatService : IChatService
 
     public async Task<ChatHistoryDto> GetHistoryAsync(Guid reservationId, Guid callerId, int? before, int limit = 50, CancellationToken ct = default)
     {
-        var isAuthorised = await _reservationService.IsUserReservedAsync(callerId, reservationId);
+        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, callerId, ct);
 
         if (!isAuthorised)
         {
-            throw new UnauthorisedAccessException("You are not a participant of this reservation");
+            throw new ChatException(ChatErrors.Forbidden);
         }
 
         //create repo func for this
         // var query=_chatRepo.ChatMessages.Where()
+
+        var rows = await _chatRepo.GetHistoryAsync(reservationId, before, limit + 1, ct); // to check whether theres oldies remaining
+
+        var hasMore = rows.Count > limit;
+
+        var messages = rows.Take(limit).Select(ToDto).Reverse().ToList();
+        return new ChatHistoryDto(messages, hasMore);
     }
 
+    public async Task<int> MarkReadAsync(
+        Guid reservationId,
+        Guid readerId,
+        int upToMessageId,
+        CancellationToken ct = default
+    )
+    {
+        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, readerId, ct);
+
+        if (!isAuthorised)
+        {
+            throw new ChatException(ChatErrors.Forbidden);
+        }
+        return await _chatRepo.MarkReadAsync(reservationId, readerId, upToMessageId);
+
+    }
+
+    public Task<int> GetUnreadCountAsync(Guid reservationId, Guid userId, CancellationToken ct = default) => _chatRepo.GetUnreadCountAsync(reservationId, userId, ct);
+    public Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(IEnumerable<Guid> reservationIds, Guid userId, CancellationToken ct = default) => _chatRepo.GetUnreadCountsAsync(reservationIds, userId, ct);
     private static ChatMessageDto ToDto(ChatMessage m)
     {
         JsonElement? payload = m.Payload is not null ? JsonDocument.Parse(m.Payload).RootElement : null;

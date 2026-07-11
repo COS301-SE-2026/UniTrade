@@ -218,7 +218,7 @@ public class ListingRepository : IListingRepository
 
     public async Task<bool> ReleaseAsync(Guid listingId, CancellationToken ct = default)
     {
-        var rows = await _db.Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live").ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
+        var rows = await _db.Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "reserved").ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
         return rows == 1;
 
     }

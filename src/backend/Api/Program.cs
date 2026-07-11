@@ -32,7 +32,8 @@ using Modules.SharedKernel;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Api.Hubs;
 using Api.BackgroundServices;
-using Modules.Chat;
+using Infrastructure.Persistence.Repositories.Chat;
+using Modules.Chat.Repository;
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -163,9 +164,11 @@ builder.Services.AddScoped<IReservationMembership, ReservationRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHostedService<ReservationExpiryWorker>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
-
 builder.Services.AddScoped<IBroadCastService,BroadCastService>();
+builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
+
 
 builder.Services.AddSingleton(
     new EmailClient(
