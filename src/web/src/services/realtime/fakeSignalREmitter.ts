@@ -72,7 +72,7 @@ export class FakeHubConnection implements IHubConnection {
     await delay(150); // simulate round-trip
 
     if (methodName === 'SendMessage') {
-      const [content] = args as [string, string];
+      const [, content] = args as [string, string];
       const message = buildFakeMessage(content);
       this.broadcast('ReceiveMessage', [message]);
       return message as unknown as T;

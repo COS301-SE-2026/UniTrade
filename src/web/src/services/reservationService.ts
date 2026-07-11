@@ -4,8 +4,9 @@ import type {
     ChatHistoryResponse,
     CreateReservationRequest,
     GetReservationParams,
-    //GetMessagesParams,
+    GetMessagesParams,
     Result,
+    ReservationListItem,
     //ApiError,
     
 } from '../types/Reservations'
@@ -34,11 +35,64 @@ import type {
      return { success: false, error};
 }*/
 
+let mockReservations:ReservationListItem[] = []
+let idCounter = 0
+function toBareReservation(item: ReservationListItem): Reservation {
+const { reservationId, listingId, buyerId, sellerId, reservationStatus, timerStage, expiresAt, createdAt} = item
+return { reservationId, listingId,buyerId,sellerId,reservationStatus, timerStage,expiresAt,createdAt}
+
+}
+
+export interface MockListingInfo {
+  title: string
+  price: number
+  imagePath: string
+
+}
+
+export interface MockCounterparty {
+  userId: string
+  name: string
+  initials: string
+}
 export async function createReservation(
-    payload: CreateReservationRequest
+    payload: CreateReservationRequest,
+    mockListing?: MockListingInfo,
+    mockCounterparty?: MockCounterparty    
 ): Promise<Result<Reservation>> {
-    //Mock 
-    if (payload.listingId === 'already-reserved-mock-id') {
+  const alreadyActive = mockReservations.some(
+    (r) => r.listingId === payload.listingId && r.reservationStatus === 'active'
+  )
+
+  if(alreadyActive)
+  {
+    return{ success: false, error: { code: 'already_reserved', status: 409 } }
+  }
+    idCounter +=1
+    const newItem: ReservationListItem = {
+      reservationId: 'res-'+ idCounter,
+      listingId: payload.listingId,
+      buyerId: 'mock-buyer-1',
+      sellerId: 'mock-seller-1',
+      reservationStatus: 'active',
+      timerStage: 'awaiting_seller',
+      expiresAt: new Date(Date.now() + 1000 * 60 *60).toISOString(),
+      createdAt: new Date().toISOString(),
+      counterparty: mockCounterparty ?? {
+        userId: 'mock-counterparty-1',
+        name: 'Seller',
+        initials: 'S',
+      } ,
+      listing: mockListing ?? { title: 'Reserved item', price:0, imagePath: ''},
+      unreadCount: 0,
+    
+    } 
+
+    mockReservations = [newItem, ...mockReservations]
+    return { success: true, data: toBareReservation(newItem) }
+    
+    //Mock
+   /* if (payload.listingId === 'already-reserved-mock-id') {
         return {
             success: false,
             error: {code: 'already_reserved', status: 409}
@@ -64,52 +118,50 @@ export async function createReservation(
     // headers: { 'Content-Type': 'application/json'},
     // body: JSON.stringify(payload),
     // });
-    // return handleResponse<Reservation>(res);
+    // return handleResponse<Reservation>(res);    */
 }
 
 export async function acknowledgeReservatioin(
     reservationId: string
 ): Promise<Result<Reservation>> {
     //mock 
+    const existing= mockReservations.find((r) => r.reservationId == reservationId)
+    if(!existing){
+      return {success: false, error: {code: 'not_found', status: 404 } }
+    }
+
+    const updated:ReservationListItem = {...existing, timerStage: 'awaiting_buyer'}
+    mockReservations = mockReservations.map((r) => (r.reservationId === reservationId ? updated : r))
+
     return {
         success: true,
-        data: {
-            reservationId,
-            listingId: 'mock-listing-1',
-            buyerId: 'mock-buyer-1',
-            sellerId: 'mock-seller-1',
-            reservationStatus: 'active',
-            timerStage: 'awaiting_buyer',
-            expiresAt: new Date(Date.now() + 1000 * 60 *60).toISOString(),
-            createdAt: new Date().toISOString(),
-        },
-    };
-
+        data: 
+           toBareReservation(updated)
+  
     // const res = await fetch(`${BASE_URL}/reservations/${reservationId}/acknowledge`, {
     // method: 'POST',
     // credentials: 'include',
     // headers: { 'Content-Type': 'application/json'},
     //});
     // return handleResponse<Reservation>(res)
-}
+}}
 
 export async function cancelReservation(
     reservationId: string
 ): Promise<Result<Reservation>> {
     //mock 
+     const existing= mockReservations.find((r) => r.reservationId == reservationId)
+    if(!existing){
+      return {success: false, error: {code: 'not_found', status: 404 } }
+    }
+
+    const updated:ReservationListItem = {...existing, reservationStatus: 'cancelled'}
+    mockReservations = mockReservations.map((r) => (r.reservationId === reservationId ? updated : r))
+
     return {
         success: true,
-        data: {
-            reservationId,
-            listingId: 'mock-listing-1',
-            buyerId: 'mock-seller-1',
-            sellerId: 'mock-seller-1',
-            reservationStatus: 'cancelled',
-            timerStage: 'awaiting_seller',
-            expiresAt: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-        },
-    };
+        data: toBareReservation(updated)}
+    
 
     // const res = await fetch(`${BASE_URL}/reservations/${reservationId}/cancel`, {
     // method: 'POST',
@@ -120,10 +172,10 @@ export async function cancelReservation(
 }
 
 export async function getReservations(
-    params: GetReservationParams
+  _params: GetReservationParams
 ): Promise<Result<ReservationListResponse>> {
     //mock
-    if (params.role === 'buyer') {
+  /*  if (params.role === 'buyer') {
             return {
       success: true,
       data: {
@@ -132,22 +184,24 @@ export async function getReservations(
           mockListItem('res-b2', 'awaiting_buyer', 2),
           mockListItem('res-b3', 'coordinating', 0),
         ],
+       mockReservations,
         hasMore: false,
         nextCursor: null,
       },
     };
-  }
+  }*/
   return {
     success: true,
     data: {
-      items: [
-        mockListItem('res-s1', 'awaiting_seller', 1),
-        mockListItem('res-s2', 'coordinating', 0),
-      ],
-      hasMore: false,
-      nextCursor: null,
+      items: //[
+        //mockListItem('res-s1', 'awaiting_seller', 1),
+       // mockListItem('res-s2', 'coordinating', 0),
+     // ],
+      mockReservations,
+        hasMore: false,
+        nextCursor: null,
     },
-    };
+    }
 
     // const query = new URLSearchParams({ role: params.role });
     // const res = await fetch(`${BASE_URL}/reservations/?${query}`);
@@ -155,7 +209,7 @@ export async function getReservations(
 }
 
 export async function getMessages(
-    //params: GetMessagesParams
+    _params: GetMessagesParams
 ): Promise<Result<ChatHistoryResponse>> {
     //mock
     return {
@@ -207,7 +261,7 @@ export async function getMessages(
   // return handleResponse<ChatHistoryResponse>(res);
 }
 
-function mockListItem(
+/*function mockListItem(
     id: string,
     timerStage: Reservation['timerStage'],
     unreadCount: number
@@ -233,4 +287,4 @@ function mockListItem(
     },
     unreadCount,
   }; 
-}
+}*/

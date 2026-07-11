@@ -25,6 +25,10 @@ class ConnectionManager {
 
       this.connection.onreconnected(() => {
         this.notifyState('Connected');
+
+        this.connection?.invoke(JOIN_GROUPS_METHOD).catch(() => {
+
+        });
   
         this.reconnectedListeners.forEach((cb) => cb());
       });
