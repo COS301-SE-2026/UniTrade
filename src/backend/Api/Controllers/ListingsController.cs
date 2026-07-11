@@ -62,8 +62,6 @@ public class ListingController : ControllerBase
             return NotFound();
         return Ok("Listings updated successfully");
     }
-    
-
 
     [Authorize]
     [HttpGet]
@@ -87,26 +85,27 @@ public class ListingController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var callerIdClaim = User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated"});
+            return Unauthorized(new { error = "unauthenticated" });
         }
 
-        try {
-
+        try
+        {
             var deleted = await _listings.DeleteListings(id, callerId);
             if (!deleted)
-              return NotFound(new { error = "listing_not_found"});
+                return NotFound(new { error = "listing_not_found" });
 
-              return NoContent();
+            return NoContent();
         }
         catch (UnauthorizedAccessException)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden"});
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
         }
-    } 
+    }
 
     [Authorize]
     [HttpPost("{listingId:guid}/images")]
