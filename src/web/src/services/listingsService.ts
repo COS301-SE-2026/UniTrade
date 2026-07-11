@@ -194,7 +194,8 @@ export interface CreateListingPayload {
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-  const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" }); 
+  const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
+  //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" }); 
   if (!res.ok) throw new Error("Failed to fetch listing");
   const item = await res.json();
   return {
