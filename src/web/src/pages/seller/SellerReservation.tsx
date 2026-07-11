@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {useNavigate } from 'react-router-dom'
 import {useQueryClient} from '@tanstack/react-query'
-
+import {acknowledgeReservatioin,cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import {formatPrice} from '../../utils/formatters'
 import { IconClock } from '@tabler/icons-react'
-
+import { queryKeys } from '../../lib/queryKeys'
 import { useReservationsList } from '../../hooks/useReservationsList'
 
 type ItemStatus = 'Active' | 'Expired'| 'Cancelled'| 'Completed'| 'Reserved';
@@ -102,10 +102,12 @@ return(
 
 function ReservationCard({ 
     reservation,
-   
+    onAcknowledge,
+    onCancel,
 }: {
     reservation: ReservationListItem
-   
+    onAcknowledge: (id: string) => void
+    onCancel: (id : string) => void
 })
 {
     const navigate = useNavigate()
@@ -160,7 +162,37 @@ function ReservationCard({
                 {formatPrice(reservation.listing.price)}</span>
             </div>
 
+            {isActive && (
+            <div className="flex gap-2 mt-3">
+                {reservation.timerStage == 'awaiting_seller' ? (
+                <button
+                onClick={() => onAcknowledge(reservation.reservationId)}
+                className="flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+                  Accept Reservation
+                </button>
+                ):
+                (<div className="flex-1 text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg flex items-center justify-center bg-gray-50 py-2 font-medium">
+Awaiting Payment Completion
 
+                </div>)}
+
+                <button
+                onClick={() => navigate(`/seller/reservations/${reservation.reservationId}/chat`)}
+                className="relative flex-1 py-2 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition colors">
+                    Message Buyer
+                
+                    {reservation.unreadCount >0 && (
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold">
+                            {reservation.unreadCount}
+                        </span>
+                    )}   
+                </button>
+                <button
+                onClick={() => onCancel(reservation.reservationId)}
+                className=" py-2 px-3 border border-gray-300 text-rose-600 text-xs
+                font-semibold rounded-lg hover:bg-rose-50 transition-colors" >
+                    Reject</button>  
+                                </div>)}
         </div>
         </div>
     )
@@ -169,9 +201,25 @@ function ReservationCard({
 
 export default function Reservations()
 {
-   //const queryClient = useQueryClient()
+   const queryClient = useQueryClient()
     const {data: reservations = [], isLoading: loading, isError, error: queryError} = useReservationsList('seller');
-  
+    const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
+    const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reserved listings.') : null
+
+    const handleAcknowledge = async (reservationId: string) => {
+        const result = await acknowledgeReservatioin(reservationId)
+        if (result.success) {
+            queryClient.invalidateQueries({ queryKey: queryKeys.reservations('seller') })
+        }
+    }
+
+    const handleCancel = async (reservationId: string) => {
+        const result = await cancelReservation(reservationId)
+        if (result.success) {
+            queryClient.invalidateQueries({ queryKey: queryKeys.reservations('seller') })
+        }
+    }
+
         const summary = useMemo(() => {
             const activeItems = reservations.filter((r) => r.reservationStatus === 'active')
             const activeCount =activeItems.length
@@ -197,8 +245,12 @@ export default function Reservations()
                 <div className="flex flex-col gap-4">
                     {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
 
-
-                     {!loading && reservations.length===0 && (
+                    {!loading && error && (
+                        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+                            <p className="text-sm font-semibold text-rose-600">{error}</p>
+                            </div>
+                    )}
+                     {!loading && !error && reservations.length===0 && (
                         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
                             <p className="text-sm font-semibold text-gray-700">No reservations found</p>
                             <p className="text-xs text-gray-400 mt-1">
@@ -207,7 +259,8 @@ export default function Reservations()
                     )}
                     {reservations.map((reservation: ReservationListItem) => (
                         <ReservationCard key ={reservation.reservationId}
-                        reservation={reservation}  />
+                        reservation={reservation} onAcknowledge={handleAcknowledge}
+                         onCancel={handleCancel} />
                     ))}
                 </div>
 
