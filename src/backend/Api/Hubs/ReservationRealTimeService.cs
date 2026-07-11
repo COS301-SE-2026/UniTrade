@@ -6,7 +6,6 @@ namespace Api.Hubs;
 
 public class ReservationRealTimeService : IReservationRealTime
 {
-
     private readonly IHubContext<ChatHub> _hubContext;
 
     public ReservationRealTimeService(IHubContext<ChatHub> hubContext)
@@ -14,9 +13,13 @@ public class ReservationRealTimeService : IReservationRealTime
         _hubContext = hubContext;
     }
 
-    public async Task ReservationUpdatedAsync(ReservationDto reservation, CancellationToken ct = default)
+    public async Task ReservationUpdatedAsync(
+        ReservationDto reservation,
+        CancellationToken ct = default
+    )
     {
-        await _hubContext.Clients.Group($"reservation-{reservation.ReservationId}").SendAsync("ReservationUpdated", reservation, ct);
+        await _hubContext
+            .Clients.Group($"reservation-{reservation.ReservationId}")
+            .SendAsync("ReservationUpdated", reservation, ct);
     }
-
 }

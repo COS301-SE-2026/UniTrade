@@ -5,6 +5,7 @@ using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
+
 namespace Api.Hubs;
 
 [Authorize]
@@ -73,11 +74,14 @@ public class ChatHub : Hub
         try
         {
             message = await _chatService.SendAsync(reservationId, Guid.Parse(userId), content);
-
         }
         catch (ChatException ex)
         {
-            throw new HubException(ex.Message == ChatErrors.Forbidden ? "Forbidden: you are not a participant in this reservation." : ex.Message);
+            throw new HubException(
+                ex.Message == ChatErrors.Forbidden
+                    ? "Forbidden: you are not a participant in this reservation."
+                    : ex.Message
+            );
         }
         catch (ArgumentException ex)
         {
@@ -106,7 +110,11 @@ public class ChatHub : Hub
         }
         catch (ChatException ex)
         {
-            throw new HubException(ex.Message == ChatErrors.Forbidden ? "Forbidden: you are not a participant in this reservation." : ex.Message);
+            throw new HubException(
+                ex.Message == ChatErrors.Forbidden
+                    ? "Forbidden: you are not a participant in this reservation."
+                    : ex.Message
+            );
         }
 
         if (counter > 0)
