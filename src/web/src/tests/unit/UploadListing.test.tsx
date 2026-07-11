@@ -130,11 +130,11 @@ describe('UploadListing', () => {
   })
 
 
-  it('switches to electronics and shows Brand / Model field', async () => {
+  it('switches to electronics and shows Brand field', async () => {
     const user = userEvent.setup()
     renderUpload()
     await user.click(await screen.findByRole('button', { name: /^electronics$/i }))
-    expect(screen.getByPlaceholderText('Brand / Model')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Brand')).toBeInTheDocument()
   })
 
   it('switches to furniture and shows Dimensions field', async () => {

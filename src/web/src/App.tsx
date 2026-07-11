@@ -31,9 +31,9 @@ import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 
-function RedirectToMessages ({role } : {role: 'buyer' | 'seller'}){
-  const {reservationId } = useParams<{reservationId: string}>();
-  return <Navigate to = {`/${role}/messages/${reservationId}`}replace />;
+function RedirectToMessages({ role }: { role: 'buyer' | 'seller' }) {
+  const { reservationId } = useParams<{ reservationId: string }>();
+  return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
 }
 export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
@@ -74,19 +74,12 @@ export default function App() {
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
 
-      <Route path = "/buyer/messages" element = {<ChatLayout role = "buyer" />}>
-      <Route index element = {<NoConversationsSelected />} />
-      <Route path = ":reservationId" element={<ChatPage />} />
-      </Route>
-      <Route path = "/seller/messages" element = {<ChatLayout role = "seller" />}>
-      <Route index element = {<NoConversationsSelected />} />
-      <Route path = ":reservationId" element={<ChatPage />} />
-      </Route>
+
 
       <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
       <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
       <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
-      
+
 
 
 
@@ -111,7 +104,15 @@ export default function App() {
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
         <Route path="/orders" element={<Navigate to="/buyer/dashboard" replace />} />
-      
+        <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
+          <Route index element={<NoConversationsSelected />} />
+          <Route path=":reservationId" element={<ChatPage />} />
+        </Route>
+        <Route path="/seller/messages" element={<ChatLayout role="seller" />}>
+          <Route index element={<NoConversationsSelected />} />
+          <Route path=":reservationId" element={<ChatPage />} />
+        </Route>
+
       </Route>
     </Routes>
   );
