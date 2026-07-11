@@ -121,6 +121,9 @@ export async function createReservation(
     // return handleResponse<Reservation>(res);    */
 }
 
+
+
+
 export async function acknowledgeReservatioin(
     reservationId: string
 ): Promise<Result<Reservation>> {
@@ -288,3 +291,17 @@ export async function getMessages(
     unreadCount,
   }; 
 }*/
+
+export async function getReservationById(
+  reservationId: string ): 
+  Promise<Result<ReservationListItem>> {
+    const existing = mockReservations.find((r) => r.reservationId === reservationId)
+    if(!existing){
+      return { success: false, error: { code: 'not_found',status: 404}};
+    }
+
+    return {
+      success: true,
+      data: existing
+    };
+  }
