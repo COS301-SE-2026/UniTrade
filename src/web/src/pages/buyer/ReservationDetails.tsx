@@ -204,7 +204,7 @@ const handleMessageSeller = () => {
   };
 
   const handleScheduleMeetup = () => {
-    if (reservation) navigate(`/reservations/${reservation.reservationId}/meetup`);
+    if (reservation) navigate(`/buyer/reservations/${reservation.reservationId}/meetup`);
   };
 
 const handleCancel = async () => {
@@ -282,14 +282,14 @@ return(
       </span>
       </nav>
 
-      {isCancelled && (
+      {!isCancelled && (
 
    <div className="text-right">
           <p
         className="test-sm text-gray-500 dark:text-navy-100 mb-1.5">
       Expires in
       </p>
-    <span className={"inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap"+countdownClasses}>
+    <span className={"inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap"+ countdownClasses}>
     {countdownLabel}
     </span>
     </div> )}
