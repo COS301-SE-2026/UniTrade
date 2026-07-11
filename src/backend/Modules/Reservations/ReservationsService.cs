@@ -12,18 +12,21 @@ public class ReservationService : IReservationService
     private readonly IListingRepository _listings;
     private readonly IReservationRepository _reservations;
     private readonly IChatService _chat;
+    private readonly IBroadCastService _broadcast;
     private readonly TimeProvider _clock;
 
     public ReservationService(
         IReservationRepository reservations,
         IListingRepository listings,
         IChatService chat,
+        IBroadCastService broadcast,
         TimeProvider clock
     )
     {
         _reservations = reservations;
         _listings = listings;
         _chat = chat;
+        _broadcast = broadcast;
         _clock = clock;
     }
 
@@ -90,6 +93,8 @@ public class ReservationService : IReservationService
         );
         await _reservations.SaveAsync(ct);
 
+        await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
+
         return MapToDto(r);
     }
 
@@ -118,6 +123,8 @@ public class ReservationService : IReservationService
         );
 
         await _reservations.SaveAsync(ct);
+        await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
+
         return MapToDto(r);
     }
 
@@ -135,7 +142,7 @@ public class ReservationService : IReservationService
         }
 
         var ids = reservations.Select(r => r.ReservationId);
-        var unread = await _chat.GetUnreadCountAsync(ids, userId, ct);
+        var unread = await _chat.GetUnreadCountsAsync(ids, userId, ct);
         return reservations.Select(r =>
         {
             var isBuyer = r.BuyerId == userId;
