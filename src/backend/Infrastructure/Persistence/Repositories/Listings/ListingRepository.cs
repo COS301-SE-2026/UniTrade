@@ -183,7 +183,11 @@ public class ListingRepository : IListingRepository
     {
         return await _db
             .Listings.AsNoTracking()
-            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId && l.ListingStatus != RemovedStatus);
+            .AnyAsync(l =>
+                l.ListingId == listingId
+                && l.SellerId == sellerId
+                && l.ListingStatus != RemovedStatus
+            );
     }
 
     public async Task<List<ListingCategory>> GetActiveCategories()
@@ -197,7 +201,12 @@ public class ListingRepository : IListingRepository
 
     public async Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
     {
-        var listings = await _db.Listings.Where(l => l.SellerId == sellerId && (l.ListingStatus == "live" || l.ListingStatus == "pending")).ToListAsync();
+        var listings = await _db
+            .Listings.Where(l =>
+                l.SellerId == sellerId
+                && (l.ListingStatus == "live" || l.ListingStatus == "pending")
+            )
+            .ToListAsync();
         if (!listings.Any())
         {
             return;
@@ -214,15 +223,18 @@ public class ListingRepository : IListingRepository
 
     public async Task<bool> TryReserveAsync(Guid listingId, CancellationToken ct = default)
     {
-        var rows = await _db.Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live").ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "reserved"), ct);
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live")
+            .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "reserved"), ct);
         return rows == 1;
     }
 
     public async Task<bool> ReleaseAsync(Guid listingId, CancellationToken ct = default)
     {
-        var rows = await _db.Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "reserved").ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "reserved")
+            .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
         return rows == 1;
-
     }
     public async Task<Dictionary<Guid, int>> GetActiveListingCountsAsync(IEnumerable<Guid> sellerIds, CancellationToken ct = default)
     {
@@ -235,4 +247,3 @@ public class ListingRepository : IListingRepository
     }
 
 }
-

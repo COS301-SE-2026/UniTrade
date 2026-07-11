@@ -1,20 +1,25 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Api.BackgroundServices;
+using Api.Hubs;
 using Api.Middleware;
 using Azure.Communication.Email;
 using dotenv.net;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
+using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Modules.Chat;
+using Modules.Chat.Repository;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
@@ -29,11 +34,7 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
-using Infrastructure.Persistence.Repositories.Reservations;
-using Api.Hubs;
-using Api.BackgroundServices;
-using Infrastructure.Persistence.Repositories.Chat;
-using Modules.Chat.Repository;
+
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
@@ -166,9 +167,8 @@ builder.Services.AddHostedService<ReservationExpiryWorker>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<IBroadCastService,BroadCastService>();
+builder.Services.AddScoped<IBroadCastService, BroadCastService>();
 builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
-
 
 builder.Services.AddSingleton(
     new EmailClient(
