@@ -123,12 +123,15 @@ function ReservationCard({
 
         <img src={reservation.listing.imagePath || '/placeholder.png'}
         alt={reservation.listing.title}
-        className="w-20 h-20 rounded-lg object-cover flex shrink-0"
+        onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+        className="w-20 h-20 rounded-lg object-cover flex shrink-0 curson-pointer hover:opcacity-90 transition-opacity"
         />
         <div className ="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                    <div className="flexi items-center gap-2 flex-wrap">
+
+                <div 
+                onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)} className="min-w-0 curse-pointer group">
+                    <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-bold text-gray-800 truncate">
                         {reservation.listing.title}
                     </p>
