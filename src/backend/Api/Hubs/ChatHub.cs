@@ -81,7 +81,7 @@ public class ChatHub : Hub
     }
 
     //read receipts -markAsread func
-    //automatic messages
+    //automatic messages->test zee's reservationfunc when pr'd
     //braodcast messages to reservation
     public async Task ReadReceipts(Guid reservationId,int upToMessageId)
     {
