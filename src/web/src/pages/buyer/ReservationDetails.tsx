@@ -188,9 +188,9 @@ export default function ReservationDetails(){ const { reservationId } = useParam
     loadReservation();
   }, [loadReservation]);
 
-  /*const { label: countdownLabel, isUrgent, isExpired } = useCountdown(
+  const { label: countdownLabel, isUrgent, isExpired } = useCountdown(
     reservation?.expiresAt ?? new Date().toISOString(),
-  );*/
+  );
 const handleMessageSeller = () => {
     if (reservation) navigate(`/buyer/messages/${reservation.reservationId}`);
   };
@@ -219,5 +219,192 @@ const handleCancel = async () => {
     setIsCancelling(false);
   };
 
- 
+if (isLoading) {
+    return (
+      <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-72 rounded-xl bg-gray-100 dark:bg-navy-800 animate-pulse" />
+          <div className="h-72 rounded-xl bg-gray-100 dark:bg-navy-800 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  
+  if (error || !reservation) {
+    return (
+      <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
+        <div className="rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 px-6 py-10 text-center">
+          <h3 className="text-lg font-bold text-red-700 dark:text-red-300 mb-1.5">
+            Couldn't load this reservation
+          </h3>
+          <p className="text-sm text-red-600/80 dark:text-red-300/70 mb-4">
+            {error ?? "Something went wrong. Please try again."}
+          </p>
+          <button
+            type="button"
+            onClick={loadReservation}
+            className="rounded-lg border border-gray-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-4 py-2 text-sm font-semibold text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+ const isCancelled = reservation.reservationStatus === "cancelled";
+  const expiresDate = new Date(reservation.expiresAt);
+  const createdDate = new Date(reservation.createdAt);
+
+  const countdownClasses = isCancelled || isExpired
+    ? "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100"
+    : isUrgent
+      ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+      : "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200";
+
+  const statusBadge = isCancelled
+    ? { className: "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100", text: "Cancelled" }
+    : isUrgent || isExpired
+      ? { className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300", text: "Expiring soon" }
+      : { className: "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200", text: "Reserved" };
+
+return(
+  <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
+  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+   <nav className="flex items-centwr gap-1.5 text-sm">
+    <Link to="/buyer/reservations"
+     className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+      My Reservations
+</Link>
+<IconChevronRight size={16} className="text-gray-400" />
+    <span className="font-semibold text-navy-900-dark:text-white">
+      {"#"+reservation.reservationId}
+      </span>
+      </nav>
+
+      {isCancelled && (
+
+   <div className="text-right">
+          <p
+        className="test-sm text-gray-500 dark:text-navy-100 mb-1.5">
+      Expires in
+      </p>
+    <span className={"inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap"+countdownClasses}>
+    {countdownLabel}
+    </span>
+    </div> )}
+      </div>
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="flex flex-col gap-6">
+    <SectionCard title="Item">
+    <div className="flex gap-4 mb-5">
+     <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
+    {listingDetail?.images?.[0]?.url || reservation.listing?.imagePath ? (
+     <img
+     src={listingDetail?.images?.[0]?.url ?? reservation.listing?.imagePath}
+        alt={reservation.listing?.title ?? "Listing image"}
+      className="w-full h-full object-cover"
+     /> ) :(
+        <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
+         {reservation.listing?.title ?? "Listing"}
+        </span>
+      )}
+   </div>
+    <div className="min-w-0">
+       <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
+         {reservation.listing?.title ?? "Untitled listing"}
+      </h3>
+        <p className="text-sm text-gray-500 dark:text-navy-100">
+        Condition:{listingDetail?.condition ?? "Good"}
+      </p>
+      <p className="text-sm text-gray-500 dark:text-navy-100">
+      Category:{listingDetail?.category ?? "Textbooks"}
+    </p>
+    <p className="text-sm text-gray-500 dark:text-navy-100">
+     Module Code: {listingDetail?.courseCode ?? "-"}
+      </p>
+    </div>
+     </div>
+
+    <InfoRow
+        label="Item price"
+     value={
+     <span className="text-lg font-extrabold">
+        {formatCurrency(reservation.listing?.price ?? 0)}
+       </span>
+              }
+            />
+       <InfoRow
+       label="Status"
+          value={
+            <span className={"inline-block rounded-full px-2.5 py-1 text-xs font-semibold " + statusBadge.className}>
+         {statusBadge.text}
+       </span>
+              } />
+          </SectionCard>
+
+          <SectionCard title="Actions">
+            <div className="flex flex-col gap-3">
+        <ActionButton
+  icon={<IconMessageCircle size={16} />}
+   label="Message Seller"
+    onClick={handleMessageSeller}
+       variant="primary" />
+
+      <ActionButton
+     icon={<IconDownload size={16} />}
+       label="Complete Payment"
+      onClick={handleCompletePayment}
+     disabled={isCancelled || isExpired}/>
+     
+      <ActionButton
+          icon={<IconEye size={16} />}
+        label="View Listing"
+       onClick={handleViewListing}
+           />
+         <ActionButton
+          icon={<IconCalendarClock size={16} />}
+          label="Schedule Meetup"
+          onClick={handleScheduleMeetup}
+          disabled={isCancelled || isExpired}
+          />
+        <ActionButton
+    icon={<IconFlag size={16} />}
+    label={isCancelling ? "Cancelling...": "Cancel"}
+   onClick={handleCancel}
+     disabled={isCancelled || isCancelling}
+ variant="danger"
+   />
+</div>
+</SectionCard>
+</div>
+
+    <div className="flex flex-col gap-6">
+         <SectionCard title="Seller">
+            <div className="flex items-center gap-3 mb-5">
+    <span className="w-11 h-11 rounded-full bg-navy-800 dark:bg-navy-500 text-white text-sm font-bold flex items-center justify-center shrink-0">
+      {reservation.counterparty ?.initials ?? 'S'}
+ </span>
+          <div>
+          <p className="text-base font-bold text-navy-900 dark:text-white">
+            {reservation.counterparty?.name ?? "Seller"}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-navy-100">
+                  
+          University of Pretoria student
+            </p>
+            </div></div>
+      <InfoRow label="Seller rating" value="-" />
+       <InfoRow label="Total Sales" value="12" />
+      </SectionCard>     
+<SectionCard title="Reservation Info">
+<InfoRow label="Reservation ID" value={"#" + reservation.reservationId} />
+<InfoRow label="Date Reserved" value={formatDate(createdDate.toISOString())} />
+<InfoRow label="Expiry Date" value={formatDate(expiresDate.toISOString())} />
+<InfoRow label="Expiry Time" value={formatTime(expiresDate.toISOString())} />
+</SectionCard>
+</div>
+</div>
+</div>
+);
   }
