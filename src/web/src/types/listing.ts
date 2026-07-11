@@ -1,6 +1,6 @@
 export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
-
+export type ListingMetadata = Record<string, string> | null
 
 export interface ListingImage {
   id: string
@@ -20,7 +20,8 @@ export interface SellerReview {
 export interface SimilarListing {
   id: string
   title: string
-  meta: string
+  price: number
+  image: string
   condition: ListingCondition
 }
 
@@ -34,22 +35,23 @@ export interface ListingDetail {
   status: ListingStatus
   courseCode: string
   courseId: number
-  university: string
-  tags: string[]
+  //university: string
+  //tags: string[]
   images: ListingImage[]
   views: number
   listedAt: string
   sellerId: string
-  sellerName: string
-  sellerInitials: string
-  sellerRating: number
-  sellerResponseRate: number
-  sellerTotalListings: number
-  isReserved: boolean
-  aiScore: number | null
-  aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
-  reviews: SellerReview[]
-  similarListings: SimilarListing[]
+  //sellerName: string
+  //sellerInitials: string
+  //sellerRating: number
+  //sellerResponseRate: number
+  //sellerTotalListings: number
+  //isReserved: boolean
+  //aiScore: number | null
+  //aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
+  //reviews: SellerReview[]
+  //similarListings: SimilarListing[]
+  metadata: ListingMetadata
 }
 
 export interface ListingSummary {
@@ -79,6 +81,7 @@ export interface SellerListingDetail {
   price: number
   condition: ListingCondition
   category: string
+  courseId: number | null
   courseCode: string
   listedAt: string
   views: number
@@ -90,6 +93,7 @@ export interface SellerListingDetail {
   aiLabel: 'Low Risk' | 'Medium Risk' | 'High Risk' | null
   isReserved: boolean
   timeline: TimelineStep[]
+  metadata: ListingMetadata
 }
 
 export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
@@ -100,9 +104,11 @@ export interface BrowseListing {
   image: string
   title: string
   module: string
+  courseId: number | null
   category: string
   price: number
   condition: BrowseCondition
+  metadata: ListingMetadata
 }
 
 export interface BrowseListingsResponse {
