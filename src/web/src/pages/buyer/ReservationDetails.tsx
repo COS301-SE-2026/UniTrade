@@ -8,9 +8,9 @@ import {
   IconCalendarClock,
   IconFlag,
 } from "@tabler/icons-react";
-import type { ReservationListResponse } from "../../types/Reservations";
+import type { ReservationListItem } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
-import { cancelReservation, getReservations } from "../../services/reservationService";
+import { cancelReservation, getReservationById, getReservations } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
 
 //type ReservationListItem = ReservationListResponse["items"][number];
@@ -60,8 +60,9 @@ function useCountdown(expiresAt: string): CountdownResult {
 }
 
 function formatCurrency(amount: number): string {
-  return "R " + amount.toLocaleString("en-ZA")};
+  return "R " + amount.toLocaleString("en-ZA");
 
+}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-ZA", {
@@ -79,15 +80,6 @@ function formatTime(iso: string): string {
   });
 }
 
-
-
-export default function ReservationDetails()
-{ return (
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">ReservationDetails</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
-    </div>
-  )}
 
   function SectionCard({
   title,
@@ -154,3 +146,78 @@ function ActionButton({
     </button>
   );
 }
+
+export default function ReservationDetails(){ const { reservationId } = useParams<{ reservationId: string }>();
+  const navigate = useNavigate();
+
+  const [reservation, setReservation] = useState<ReservationListItem | null>(null);
+  const [listingDetail, setListingDetail] = useState<ListingDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const loadReservation = useCallback(async () => {
+    if (!reservationId) return;
+
+  
+  setIsLoading(true);
+    setError(null);
+    //I should change once the endpoint to get each reservation by id is available 
+    const result = await getReservationById(reservationId);
+
+    if (!result.success) {
+      setError(result.error.message ?? "Something went wrong. Please try again.");
+      setIsLoading(false);
+      return;
+    }
+
+    setReservation(result.data);
+
+    try{
+      const detail = await listingsService.getById(result.data.listingId);
+      setListingDetail(detail);
+    }catch{
+
+    }
+    
+
+    setIsLoading(false);
+  }, [reservationId]);
+
+  useEffect(() => {
+    loadReservation();
+  }, [loadReservation]);
+
+  /*const { label: countdownLabel, isUrgent, isExpired } = useCountdown(
+    reservation?.expiresAt ?? new Date().toISOString(),
+  );*/
+const handleMessageSeller = () => {
+    if (reservation) navigate(`/buyer/messages/${reservation.reservationId}`);
+  };
+
+  const handleCompletePayment = () => {
+    if (reservation) navigate(`/buyer/reservations/${reservation.reservationId}/pay`);
+  };
+
+  const handleViewListing = () => {
+    if (reservation) navigate(`/listings/${reservation.listingId}`);
+  };
+
+  const handleScheduleMeetup = () => {
+    if (reservation) navigate(`/reservations/${reservation.reservationId}/meetup`);
+  };
+
+const handleCancel = async () => {
+    if (!reservation) return;
+    setIsCancelling(true);
+    const result = await cancelReservation(reservation.reservationId);
+    if (result.success) {
+      setReservation((prev) =>
+        prev ? { ...prev, reservationStatus: result.data.reservationStatus } : prev,
+      );
+    }
+    setIsCancelling(false);
+  };
+
+ 
+  }
