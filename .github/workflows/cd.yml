@@ -116,14 +116,18 @@ jobs:
         id: backend_rev
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
+
+          az containerapp secret set \
+            --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+            --secrets \
+              "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
+              "acs-conn=${{secrets.Acs__ConnectionString}}" \
+              "jwt-secret=${{secrets.JWT_Secret}}" 
+          
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
-              --secrets \
-                "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
-                "acs-conn=${{secrets.Acs__ConnectionString}}" \
-                "jwt-secret=${{secrets.JWT_Secret}}" \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
@@ -184,7 +188,9 @@ jobs:
           BACK_LIVE="${{ steps.live_revs.outputs.backend_live }}"
           FRONT_LIVE="${{ steps.live_revs.outputs.frontend_live }}"
 
+          BACK_SUFFIX="${{ steps.backend_rev.outputs.suffix }}"
           BACK_GREEN="${BACKEND_APP}--${{steps.backend_rev.outputs.suffix}}"
+          FRONT_SUFFIX="${{ steps.front_rev.outputs.suffix }}"
           FRONT_GREEN="${FRONTEND_APP}--${{steps.front_rev.outputs.suffix}}"
 
           if [ -n "$BACK_LIVE" ]; then
@@ -195,7 +201,7 @@ jobs:
               --resource-group "$BACKEND_RG" \
               --revision-weight "${BACK_LIVE}=100"
             
-              if [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
+              if [ -n "$BACK_SUFFIX" ] && [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
                 az containerapp revision deactivate \
                   --name "$BACKEND_APP" \
                   --resource-group "$BACKEND_RG" \
@@ -213,7 +219,7 @@ jobs:
               --resource-group "$FRONTEND_RG" \
               --revision-weight "${FRONT_LIVE}=100"
             
-              if [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
+              if [ -n "$FRONT_SUFFIX" ] && [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
                 az containerapp revision deactivate \
                   --name "$FRONTEND_APP" \
                   --resource-group "$FRONTEND_RG" \
@@ -304,14 +310,18 @@ jobs:
         id: backend_rev
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
+
+          az containerapp secret set \
+            --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+            --secrets \
+              "db-conn=${{ secrets.DB_CONNECTION_STRING_PROD}}" \
+              "acs-conn=${{secrets.Acs__ConnectionString}}" \
+              "jwt-secret=${{secrets.JWT_Secret}}"
+
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
-              --secrets \
-                "db-conn=${{secrets.DB_CONNECTION_STRING_PROD}}" \
-                "acs-conn=${{secrets.Acs__ConnectionString}}" \
-                "jwt-secret=${{secrets.JWT_Secret}}" \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
@@ -367,7 +377,9 @@ jobs:
           BACK_LIVE="${{ steps.live_revs.outputs.backend_live }}"
           FRONT_LIVE="${{ steps.live_revs.outputs.frontend_live }}"
 
+          BACK_SUFFIX="${{ steps.backend_rev.outputs.suffix }}"
           BACK_GREEN="${BACKEND_APP}--${{steps.backend_rev.outputs.suffix}}"
+          FRONT_SUFFIX="${{ steps.front_rev.outputs.suffix }}"
           FRONT_GREEN="${FRONTEND_APP}--${{steps.front_rev.outputs.suffix}}"
 
           if [ -n "$BACK_LIVE" ]; then
@@ -378,7 +390,7 @@ jobs:
               --resource-group "$BACKEND_RG" \
               --revision-weight "${BACK_LIVE}=100"
             
-              if [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
+              if [ -n "$BACK_SUFFIX" ] && [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
                 az containerapp revision deactivate \
                   --name "$BACKEND_APP" \
                   --resource-group "$BACKEND_RG" \
@@ -396,7 +408,7 @@ jobs:
               --resource-group "$FRONTEND_RG" \
               --revision-weight "${FRONT_LIVE}=100"
             
-              if [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
+              if [ -n "$FRONT_SUFFIX" ] && [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
                 az containerapp revision deactivate \
                   --name "$FRONTEND_APP" \
                   --resource-group "$FRONTEND_RG" \
