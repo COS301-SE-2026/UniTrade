@@ -46,12 +46,12 @@ export default function ConversationsSidebar ({role}: {role: 'buyer' | 'seller'}
                         }`}
                     >
                         <div className="w-9 h-9 rounded-full bg-[#003366]/10 flex items-center justify-center text-[#003366] text-xs font-bold shrink-0">
-                        {r.counterparty.initials}
+                        {r.counterParty.initials}
                         </div>
                         <div className = "flex-1 min-w-0">
                             <div className = "flex items-center justify-between gap-2">
                                 <p className="text-sm font-semibold text-gray-8-- truncate">
-                                    {r.counterparty.name}
+                                    {r.counterParty.name}
                                 </p>
                                 {r.unreadCount > 0 && (
                                     <span className= "shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold">

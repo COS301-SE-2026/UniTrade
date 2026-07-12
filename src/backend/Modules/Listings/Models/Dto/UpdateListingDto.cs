@@ -1,7 +1,7 @@
 namespace Modules.Listings.Models.Dto;
 
-using System.Text.Json;
 using System.Collections.Generic;
+using System.Text.Json;
 
 public class UpdateListingDto
 {
