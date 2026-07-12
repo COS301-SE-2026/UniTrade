@@ -139,3 +139,12 @@ export interface ListingSellerInfo {
   university: string | null
   activeListingCount: number
 }
+
+export interface WishlistListing extends BrowseListing {
+  status : ListingStatus
+}
+
+export interface WishlistResponse {
+  listings: WishlistListing[]
+  total: number
+}
