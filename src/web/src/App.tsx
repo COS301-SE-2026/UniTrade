@@ -76,7 +76,7 @@ export default function App() {
 
 
 
-      <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
+      
       <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
       <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
 
@@ -112,6 +112,7 @@ export default function App() {
           <Route index element={<NoConversationsSelected />} />
           <Route path=":reservationId" element={<ChatPage />} />
         </Route>
+        <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
 
       </Route>
     </Routes>

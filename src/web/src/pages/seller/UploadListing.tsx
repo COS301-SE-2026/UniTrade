@@ -169,6 +169,10 @@ const UploadListing: React.FC = () => {
       return;
     }
 
+     if (category === "book" && courseQuery.trim() && !moduleTag) {
+    setError("Please pick a module from the list");
+    return;
+     }
     setSubmitting(true);
     setError(null);
     const metadata: ListingMetadata =

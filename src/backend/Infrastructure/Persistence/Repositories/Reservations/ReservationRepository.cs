@@ -33,8 +33,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         await _db
             .Reservations.AsNoTracking()
             .Include(r => r.ReservationListings)
-            .ThenInclude(rl => rl.Listing)
-            .ThenInclude(l => l.Images)
+                .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
             .Include(r => r.Buyer)
             .Include(r => r.Seller)
             .Where(r => r.BuyerId == buyerId)
@@ -48,8 +48,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         await _db
             .Reservations.AsNoTracking()
             .Include(r => r.ReservationListings)
-            .ThenInclude(rl => rl.Listing)
-            .ThenInclude(l => l.Images)
+                .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
             .Include(r => r.Buyer)
             .Include(r => r.Seller)
             .Where(r => r.SellerId == sellerId)

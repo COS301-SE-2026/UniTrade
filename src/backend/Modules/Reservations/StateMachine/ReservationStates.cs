@@ -10,7 +10,6 @@ public static class ReservationState
     public static bool IsTerminal(string status) => status is Expired or Cancelled or Completed;
 }
 
-
 public static class TimerStages
 {
     public const string AwaitingSeller = "awaiting_seller";
