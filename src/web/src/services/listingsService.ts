@@ -208,6 +208,7 @@ export const listingsService = {
     status: item.listingStatus,
     views: item.viewCount,
     sellerId: item.sellerId,
+    seller: item.seller ?? null,
     listedAt: item.createdAt,
     courseId: item.courseId ?? null,          
     courseCode: item.courseCode ?? "",        
@@ -273,6 +274,7 @@ export const listingsService = {
       price: item.price,
       condition: item.condition,
       status: item.listingStatus,
+      isReserved: item.listingStatus === "reserved",
       views: item.viewCount,
       listedAt: item.createdAt,
       description: item.description,
@@ -303,6 +305,7 @@ export const listingsService = {
       condition: string;
       metadata?: ListingMetadata;
       images: { imageId: number; isPrimary: boolean; path: string }[];
+      seller?: {sellerId: string}
     };
     const primary = getFirstUploadedImagePath(l.images);
     return {
@@ -315,6 +318,7 @@ export const listingsService = {
       condition: mapCondition(l.condition),
       image: primary ? imageUrl(primary) : biologyTextbook,
       metadata: l.metadata ?? null,
+      sellerId: l.seller?.sellerId ?? "",
     };
   });
   return { listings, total: data.total };

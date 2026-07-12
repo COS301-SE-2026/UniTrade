@@ -94,6 +94,31 @@ function ActionButtons({
       </div>
     );
   }
+  if (listing.status === "reserved") {
+    return (
+      <div className="flex gap-2">
+        <button 
+        onClick={() => navigate(`/seller/listings/${listing.id}`)}
+        className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors"
+        >
+          View
+        </button>
+        <button 
+        disabled
+        className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-sm font-semibold px-5 py-2 rounded-full cursor-not-allowed"
+        >
+          Edit
+        </button>
+        <button
+        disabled
+        aria-label="Delete listing"
+        className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-400/40 p-2 rounded-full cursor-not-allowed"
+        >
+          <IconTrash size={16} />
+        </button>
+      </div>
+    )
+  }
 
   return null;
 }
