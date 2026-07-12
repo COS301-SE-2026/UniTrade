@@ -12,6 +12,13 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
 
+    private static readonly HashSet<string> SellerAllowedStatuses = new()
+    {
+        "live",
+        "draft",
+        "removed",
+    }; // as in removed form the platform because you sold it outside it
+
     public ListingService(IListingRepository listings, IListingImageRepository images)
     {
         _listings = listings;
@@ -63,12 +70,21 @@ public class ListingService : IListingService
                     $"/api/listings/{l.ListingId}/images/{i.ImageId}",
                     i.IsPrimary
                 ))
-                .ToList()
+                .ToList(),
+            Seller: l.Seller is null
+                ? null
+                : new SellerInfoDto(
+                    l.Seller.SellerId,
+                    l.Seller.FirstName,
+                    l.Seller.LastName,
+                    l.Seller.FullName,
+                    l.Seller.University,
+                    l.Seller.ActiveListingCount
+                )
         );
 
     public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
     {
-        //resolve category
         var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
         if (category == null)
         {
@@ -82,7 +98,6 @@ public class ListingService : IListingService
             throw new ArgumentException("book_fields_not_allowed");
         }
 
-        //validate metadata
         string? metadataJ = null;
         if (dto.Metadata.HasValue && dto.Metadata.Value.ValueKind != JsonValueKind.Null)
         {
@@ -104,7 +119,7 @@ public class ListingService : IListingService
             SellerId = callerId,
             ListingStatus = "live",
             ListingId = Guid.NewGuid(),
-            CourseId = isBook ? dto.CourseId : null, // the course is only relevant for books only
+            CourseId = isBook ? dto.CourseId : null,
             isBundle = dto.IsBundle,
             ViewCount = 0,
             Images = new List<ListingImage>(),
@@ -114,7 +129,6 @@ public class ListingService : IListingService
 
         if (isBook && dto.BookDetails is not null)
         {
-            //ValidateBookDetails()
             var newBook = new BookDetails
             {
                 ListingId = newListing.ListingId,
@@ -129,8 +143,6 @@ public class ListingService : IListingService
         return MapToSummary(newListing);
     }
 
-    //!!!!!validations for the book details!!!!
-
     public async Task<bool> UpdateListings(
         UpdateListingDto listings,
         Guid id,
@@ -138,7 +150,6 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
-        // updates to text based fields
         var listingLookUp = await _listings.GetByIdTrackedAsync(id);
         if (listingLookUp == null)
             return false;
@@ -173,7 +184,7 @@ public class ListingService : IListingService
             listingLookUp.BookDetails.Author = listings.BookDetails.Author;
             listingLookUp.BookDetails.Edition = listings.BookDetails.Edition;
         }
-        //update metadata
+
         if (listings.Metadata.HasValue && listings.Metadata.Value.ValueKind != JsonValueKind.Null)
         {
             var metadata = listings.Metadata.Value;
@@ -183,8 +194,7 @@ public class ListingService : IListingService
             }
             listingLookUp.Metadata = JsonSerializer.Serialize(metadata);
         }
-await ApplyCategoryChangeAsync(listings, listingLookUp);
-        // updates to images
+        await ApplyCategoryChangeAsync(listings, listingLookUp);
 
         if (listings.RemovedImageIds is { Count: > 0 })
         {
@@ -194,12 +204,13 @@ await ApplyCategoryChangeAsync(listings, listingLookUp);
             }
         }
 
+        await _listings.SaveAsync();
         return true;
     }
 
     private async Task ApplyCategoryChangeAsync(UpdateListingDto listings, Listing listingLookUp)
     {
-        if (!string.IsNullOrWhiteSpace(listings.CategoryName))
+        if (string.IsNullOrWhiteSpace(listings.CategoryName))
         {
             return;
         }
@@ -215,10 +226,8 @@ await ApplyCategoryChangeAsync(listings, listingLookUp);
         {
             throw new ArgumentException("book_fields_not_allowed");
         }
-        if (!isBook)
-        {
-            listingLookUp.CourseId = null;
-        }
+
+        listingLookUp.CourseId = isBook ? listings.CourseId : null;
         listingLookUp.CategoryId = category.CategoryId;
     }
 
@@ -240,5 +249,38 @@ await ApplyCategoryChangeAsync(listings, listingLookUp);
     public async Task<bool> IsOwnerAsync(Guid listingId, Guid callerId)
     {
         return await _listings.IsOwnerAsync(listingId, callerId);
+    }
+
+    public async Task<bool> UpdateStatusAsync(
+        Guid listingId,
+        Guid callerId,
+        string newStatus,
+        CancellationToken ct = default
+    )
+    {
+        if (!SellerAllowedStatuses.Contains(newStatus))
+        {
+            throw new ArgumentException("invalid_status");
+        }
+
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+        {
+            return false;
+        }
+
+        if (listing.SellerId != callerId)
+        {
+            throw new UnauthorizedAccessException("forbidden");
+        }
+        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected")
+        {
+            throw new InvalidOperationException("status_locked");
+        }
+
+        listing.ListingStatus = newStatus;
+        listing.UpdatedAt = DateTime.Now;
+        await _listings.SaveAsync();
+        return true;
     }
 }

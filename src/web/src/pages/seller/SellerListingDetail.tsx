@@ -34,12 +34,21 @@ export default function SellerListingDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImg, setSelectedImg] = useState(0);
+  const [courseCode, setCourseCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     listingsService
       .getSellerListingById(id)
-      .then((data) => setListing(data))
+      .then((data) => {
+        setListing(data);
+        if (data.courseId) {
+          listingsService
+            .getCourse(data.courseId)
+            .then((course) => setCourseCode(course.courseCode))
+            .catch(() => setCourseCode(null));
+        }
+      })
       .catch(() => setError("Failed to load listing"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -83,7 +92,6 @@ export default function SellerListingDetail() {
       </div>
 
       <div className="grid grid-cols-3 gap-5">
-        {/* Left column */}
         <div className="col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
             <img
@@ -98,11 +106,10 @@ export default function SellerListingDetail() {
                   src={img}
                   alt={`thumbnail ${i + 2}`}
                   onClick={() => setSelectedImg(i + 1)}
-                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${
-                    selectedImg === i + 1
-                      ? "border-navy-700 dark:border-white"
-                      : "border-transparent"
-                  }`}
+                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${selectedImg === i + 1
+                    ? "border-navy-700 dark:border-white"
+                    : "border-transparent"
+                    }`}
                 />
               ))}
             </div>
@@ -120,14 +127,21 @@ export default function SellerListingDetail() {
               <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 <IconCheck size={10} /> {formatCondition(listing.condition)}
               </span>
-              {/*{listing.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70"
-                >
-                  {tag}
+              {listing.category === 'book' && courseCode && (
+                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                  {courseCode}
                 </span>
-              ))}*/}
+              )}
+              {listing.category === 'electronics' && listing.metadata?.brand && (
+                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                  {listing.metadata.brand}
+                </span>
+              )}
+              {listing.category === 'furniture' && listing.metadata?.dimensions && (
+                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                  {listing.metadata.dimensions}
+                </span>
+              )}
             </div>
 
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">
@@ -149,9 +163,15 @@ export default function SellerListingDetail() {
                 </span>
               }
             />
-            {/*{listing.courseCode && (
-              <DetailRow label="Course Code" value={listing.courseCode} />
-            )}*/}
+            {listing.category === 'electronics' && listing.metadata?.brand && (
+              <DetailRow label="Brand" value={listing.metadata.brand} />
+            )}
+            {listing.category === 'furniture' && listing.metadata?.dimensions && (
+              <DetailRow label="Dimensions" value={listing.metadata.dimensions} />
+            )}
+            {listing.category === 'book' && courseCode && (
+              <DetailRow label="Course Code" value={courseCode} />
+            )}
             <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
           </div>

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 
-namespace Modules.ReferenceData;
+namespace Modules.ReferenceData.University;
 
 public class UniversityService : IUniversityService
 {

@@ -1,32 +1,49 @@
-import React, { useState} from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
-    IconChevronDown, 
-  IconChevronUp, 
-  IconSearch, 
-  IconBookmark, 
-  IconUpload, 
-  IconCreditCard, 
-  IconShield, 
-  IconStar, 
+  IconChevronDown,
+  IconChevronUp,
+  IconSearch,
+  IconBookmark,
+  IconUpload,
+  IconCreditCard,
+  IconShield,
+  IconStar,
   IconAlertCircle,
-  IconArrowLeft
+  IconArrowLeft,
+  IconSend,
+  IconX,
 } from '@tabler/icons-react';
-import { useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AlexAvatar from './AlexAvatar.tsx';
 import logo from "../../assets/logo.jpeg"
 
+interface QuickLinkItem {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
 
-function Navbar() 
-{
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+
+function Navbar() {
   const navigate = useNavigate()
   return (
     <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
       <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button 
-          onClick={ () => navigate(-1) }
-          className = "p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
-          <IconArrowLeft size={20} />
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
+            <IconArrowLeft size={20} />
           </button>
           <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
             <img
@@ -41,76 +58,169 @@ function Navbar()
           </div>
           <h1 className="font-bold text-navy-700 dark:text-white text-3xl mb-2">UniTrade</h1>
         </div>
-        </div>
-         </nav>
+      </div>
+    </nav>
   );
 }
 
-interface QuickLinkItem{
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-}
-
-interface FaqItem{
-    question: string;
-    answer: string;
-}
-
 export default function HelpCenter() {
-    //const navigate = useNavigate();
+  //const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: "Hey! I'm Alex, your UniTrade support assistant . What would you like to know?",
+    },
+  ]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-    const [searchQuery,setSearchQuery] = useState<string>('');
-    const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-    const toogleFaq = (index: number): void => {
-        setOpenFaq(openFaq == index ? null : index);
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (chatOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [chatOpen]);
+
+  const toogleFaq = (index: number): void => {
+    setOpenFaq(openFaq == index ? null : index);
+  };
+
+  const getResponse = (text: string): { reply: string; faqIndex?: number } => {
+    const lower = text.toLowerCase();
+
+    const keywordMap: { keywords: string[]; reply: string; faqIndex: number }[] = [
+      {
+        keywords: ['reservation', 'reserve', 'reserved', '24 hour', 'collection'],
+        reply: 'Reservations last 24 hours by default. If there is no communication or a scheduled meeting between the buyer and seller within this window, the reservation expires and the item is re-listed automatically.',
+        faqIndex: 0,
+      },
+      {
+        keywords: ['payout', 'pay', 'paid', 'seller', 'receive money', 'business day'],
+        reply: 'Payouts to sellers usually take about 2-3 business days after the buyers paymennt is confirmed.',
+        faqIndex: 1,
+      },
+      {
+        keywords: ['negotiate', 'negotiation', 'offer', 'price', 'bargain'],
+        reply: 'Yes, only if the products listed are negotiable. For negotiations use the in-app chat to message the seller and propose an offer. Any agreed price changes must be made by the seller before you complete payment.',
+        faqIndex: 2,
+      },
+      {
+        keywords: ['collect', 'collection', 'missed', 'late', 'expired'],
+        reply: "If you miss the collection window without communicating, the seller has the right to cancel the transaction and make the listing active for other university students again.",
+        faqIndex: 3,
+      },
+      {
+        keywords: ['unhappy', 'not satisfied', 'problem', 'issue', 'complaint'],
+        reply: "If an item does not match its description or has undisclosed damage, you can log a formal case file immediately via the 'Report a Problem' tile on this dashboard before marking the trade complete.",
+        faqIndex: 4,
+      },
+
+    ];
+
+    for (const entry of keywordMap) {
+      if (entry.keywords.some(keyword => lower.includes(keyword))) {
+        return { reply: entry.reply, faqIndex: entry.faqIndex };
+      }
+    }
+
+    return {
+      reply: "Im here to help with reservations, listings, payments, buyer protection, reviews, or reporting issues. Could you tell me more about what you need?",
     };
+  };
 
-    const quickLinks: QuickLinkItem[] = [
-        { icon: <IconBookmark size={22} className = "text-[#003366]" />, title: 'Reserving items', description: 'How reservations work and when they expire.' },
-        { icon: <IconUpload size={22} className = "text-[#003366]" />, title: 'Listing a product', description: 'Create and manage your product listing.' },
-        { icon: <IconCreditCard size={22} className = "text-[#003366]" />, title: 'Payment and Payouts', description: 'How payments are processed and when you get paid.' },
-        { icon: <IconShield size={22} className = "text-[#003366]" />, title: 'Buyer Protection', description: 'Whats covered is something goes wrong.' },
-        { icon: <IconStar size={22} className = "text-[#003366]" />, title: 'Reviews and ratings', description: 'How to leave and respond to reviews.' },
-        { icon: <IconAlertCircle size={22} className = "text-[#003366]" />, title: 'Reporting a problem', description: 'Flag a listing, user, or dispute an order.' },
-    ];
+  const sendMessage = async () => {
+    const text = inputValue.trim();
+    if (!text || isLoading) return;
 
-    const faqs: FaqItem[] = [
-        {
-            question: "How long does a reservation last?",
-            answer: "Reservations last 24 hours by default. If there is no communication or a schedules meeting between the buyer and seller within this window, the reservation expires and the item is re-listed automatically."
-        },
-        {
-            question: "When will I receive my payout as seller?",
-            answer: "This fully depends on the buyer's bank settings, either they do an immediate payment or just a transfer. But a rough estimate is as a seller you should expect a payout within 2-3 business days after the payment."
-        },
-        {
-            question: "Can I negotiate the price with a seller?",
-            answer: "Yes, only if the products listed are negotiable. For negotiations use the in-app chat to message the seller and propose an offer. Any agreed price changes must be made by the seller before you complete payment."
-        },
-        {
-            question: "What happens if I don't collect a reserved item on time?",
-            answer: "If you miss the collection window without communicating, the seller has the right to cancel the transaction and make the listing active for other university students again."
-        },
-        {
-            question: "What do I do if I am not happy with the product?",
-            answer: "If an item does not match its description or has undisclosed damage, you can log a formal case file immediately via the 'Report a Problem' tile on this dashboard before marking the trade complete."
+
+    const userMessage: Message = { role: 'user', content: text };
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const { reply, faqIndex } = getResponse(text);
+    const assistantMessage: Message = { role: 'assistant', content: reply };
+    setMessages(prev => [...prev, assistantMessage]);
+
+
+    if (faqIndex !== undefined) {
+      setOpenFaq(faqIndex);
+      setTimeout(() => {
+        const faqElement = document.getElementById(`faq-${faqIndex}`);
+        if (faqElement) {
+          faqElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    ];
+      }, 100);
+    }
+
+    setIsLoading(false);
+
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const quickLinks: QuickLinkItem[] = [
+    { icon: <IconBookmark size={22} className="text-[#003366]" />, title: 'Reserving items', description: 'How reservations work and when they expire.' },
+    { icon: <IconUpload size={22} className="text-[#003366]" />, title: 'Listing a product', description: 'Create and manage your product listing.' },
+    { icon: <IconCreditCard size={22} className="text-[#003366]" />, title: 'Payment and Payouts', description: 'How payments are processed and when you get paid.' },
+    { icon: <IconShield size={22} className="text-[#003366]" />, title: 'Buyer Protection', description: 'Whats covered is something goes wrong.' },
+    { icon: <IconStar size={22} className="text-[#003366]" />, title: 'Reviews and ratings', description: 'How to leave and respond to reviews.' },
+    { icon: <IconAlertCircle size={22} className="text-[#003366]" />, title: 'Reporting a problem', description: 'Flag a listing, user, or dispute an order.' },
+  ];
+
+  const faqs: FaqItem[] = [
+    {
+      question: "How long does a reservation last?",
+      answer: "Reservations last 24 hours by default. If there is no communication or a schedules meeting between the buyer and seller within this window, the reservation expires and the item is re-listed automatically."
+    },
+    {
+      question: "When will I receive my payout as seller?",
+      answer: "This fully depends on the buyer's bank settings, either they do an immediate payment or just a transfer. But a rough estimate is as a seller you should expect a payout within 2-3 business days after the payment."
+    },
+    {
+      question: "Can I negotiate the price with a seller?",
+      answer: "Yes, only if the products listed are negotiable. For negotiations use the in-app chat to message the seller and propose an offer. Any agreed price changes must be made by the seller before you complete payment."
+    },
+    {
+      question: "What happens if I don't collect a reserved item on time?",
+      answer: "If you miss the collection window without communicating, the seller has the right to cancel the transaction and make the listing active for other university students again."
+    },
+    {
+      question: "What do I do if I am not happy with the product?",
+      answer: "If an item does not match its description or has undisclosed damage, you can log a formal case file immediately via the 'Report a Problem' tile on this dashboard before marking the trade complete."
+    }
+  ];
 
 
-    return(
-        <div className = 'min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16'>
-            <Navbar />
+  return (
+    <div className='min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16'>
+      <Navbar />
 
       <div className="max-w-5xl mx-auto px-6 mt-8 relative">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible">
-          
+
           <div className="flex-1 w-full">
             <h2 className="text-3xl font-extrabold text-[#003366] tracking-tight">Help Center</h2>
             <p className="text-sm text-gray-500 mt-1 mb-6">Find answers, tutorials, and support resources</p>
-            
+
             <div className="relative w-full max-w-lg">
               <input
                 type="text"
@@ -124,9 +234,11 @@ export default function HelpCenter() {
           </div>
 
           <div className="w-full md:w-auto flex justify-center md:block pt-4 md:pt-0">
-            <AlexAvatar isThinking={searchQuery.length === 0} />
+            <AlexAvatar
+              isThinking={searchQuery.length === 0}
+              onClick={() => setChatOpen(!chatOpen)}
+            />
           </div>
-
         </div>
       </div>
 
@@ -134,8 +246,8 @@ export default function HelpCenter() {
         <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Quick Links</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {quickLinks.map((link, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className="bg-white border border-gray-100 p-5 rounded-xl shadow-xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
             >
               <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center mb-3 group-hover:bg-[#dce9f7] transition-colors">
@@ -154,8 +266,9 @@ export default function HelpCenter() {
           {faqs.map((faq, index) => {
             const isOpen = openFaq === index;
             return (
-              <div 
-                key={index} 
+              <div
+                key={index}
+                id={`faq-${index} `}
                 className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
               >
                 <button
@@ -180,6 +293,82 @@ export default function HelpCenter() {
           })}
         </div>
       </div>
+
+
+      {chatOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setChatOpen(false);
+          }}
+        >
+
+          <div className="bg-white rounded-t-2xl w-full max-w-lg flex flex-col" style={{ height: '70vh' }}>
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+              <div>
+                <div className="font-bold text-[#003366] text-sm">Alex</div>
+                <div className="text-xs text-gray-400">Unitrade Help Assistant</div>
+              </div>
+              <button
+                onClick={() => setChatOpen(false)}
+                aria-label="Close chat"
+                className="ml-auto w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
+              >
+                <IconX size={16} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
+                        ? 'bg-[#003366] text-white rounded-br-sm'
+                        : 'bg-[#eef4fa] text-[#003366] rounded-bl-sm'
+                      }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-[#eef4fa] rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5">
+                    {[0, 0.2, 0.4].map((delay, i) => (
+                      <span
+                        key={i}
+                        style={{ animationDelay: `${delay}s` }}
+                        className="w-2 h-2 bg-[#003366] rounded-full opacity-40 animate-bounce"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="px-4 py-3 border-t border-gray-100 flex gap-3 items-end">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Ask Alex anything..."
+                rows={1}
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none outline-none focus:border-[#003366] bg-gray-50 focus:bg-white transition-all font-sans"
+                style={{ maxHeight: 80 }}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={isLoading || !inputValue.trim()}
+                aria-label="Send message"
+                className="w-10 h-10 bg-[#003366] text-white rounded-xl flex items-center justify-center disabled:opacity-40 hover:bg-[#004080] transition-colors flex-shrink-0"
+              >
+                <IconSend size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ export interface RegisterPayload {
   email: string
   university: string
   degreeProgram: string
-  yearOfStudy: string  
+  yearOfStudy: string
   password: string
 }
 
@@ -84,7 +84,7 @@ export const authService = {
     })
     if (!res.ok) {
       const data = await res.json()
-      
+
       throw new Error(data.error ?? 'server_error')
     }
   },
@@ -113,7 +113,7 @@ export const authService = {
       //headers: { 'Content-Type': 'application/json'},
       credentials: 'include'
     });
-    if (!res.ok){
+    if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to load Universities');
     }
