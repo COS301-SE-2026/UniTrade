@@ -45,6 +45,7 @@ const makeListings = (): BrowseListing[] => [
     image: 'calc.jpg',
     courseId: 123,
     metadata: null,
+    sellerId: "1",
   },
   {
     id: '2',
@@ -56,6 +57,7 @@ const makeListings = (): BrowseListing[] => [
     image: 'arduino.jpg',
     courseId: 456,
     metadata: null,
+    sellerId: "1",
   },
   {
     id: '3',
@@ -66,6 +68,7 @@ const makeListings = (): BrowseListing[] => [
     module: 'CMY 117',
     image: 'goggles.jpg',
     courseId: 789,
+    sellerId: "1",
     metadata: null,
   },
   {
@@ -78,6 +81,7 @@ const makeListings = (): BrowseListing[] => [
     image: 'pens.jpg',
     courseId: 101,
     metadata: null,
+    sellerId: "1",
   },
 ];
 

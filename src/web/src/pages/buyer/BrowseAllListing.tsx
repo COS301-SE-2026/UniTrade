@@ -4,7 +4,9 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
+
 import { useAuthStore } from '../../store/useAuthStore'
+
 
 
 function CategoryCard({
@@ -41,7 +43,7 @@ function ListingCard({
 }) {
 
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  //const { user } = useAuthStore()
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
@@ -59,21 +61,21 @@ function ListingCard({
     setReserving(true)
     setReserveError(null)
 
-    const result = await createReservation(
-      { listingId: String(listing.id) },
-
-    { title: listing.title, price: listing.price, imagePath: listing.image },
-    user ? { userId: user.id, name: user.name, initials: user.initials } : undefined)
+    const result = await createReservation({ listingId: String(listing.id) })
    
     if(result.success) 
     {
       setReserved(true)
       navigate('/buyer/reservations')
     }
+    else if (result.error.code === 'self_reserve'){
+        setReserveError("You can't reserve your own listing.")
+      }
     else if(result.error.code === 'already_reserved')
       {
         setReserveError('Item was just reserved by someone else!')
       }
+      
       else{
         setReserveError(result.error.message ?? 'Counld not reserve this item.')
       }
@@ -142,12 +144,15 @@ export default function BrowseAllListing() {
   const [sortOption, setSortOption] = useState<SortOption>('Newest')
   const [currentPage, setCurrentPage] = useState(1)
   const [showMoreCategories, setShowMoreCategories] = useState(false)
-
+  const { user } = useAuthStore()
   useEffect(() => {
     listingsService.getBrowseListings()
       .then(data => {
-        setListings(data.listings)
-        setTotal(data.total)
+        const filtered = user
+        ? data.listings.filter(l => l.sellerId !== user.id)
+        : data.listings
+        setListings(filtered)
+        setTotal(filtered.length)
       })
       .catch(() => setError('Failed to load listings'))
       .finally(() => setLoading(false))

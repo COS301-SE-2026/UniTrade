@@ -201,19 +201,16 @@ export default function SellerListingDetail() {
             </h3>
             <button
               onClick={() => navigate(`/seller/editListing/${id}`)}
-              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors"
+              disabled={listing.isReserved}
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover-navy-700"
             >
               Edit Listing
             </button>
-            <button className="w-full border border-gray-200 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-xl mb-2.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-              Mark As Sold
-            </button>
-            <button className="w-full border border-gray-200 dark:border-white/20 text-[#00aaff] font-semibold text-sm py-2.5 rounded-xl mb-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-              Save as Draft
-            </button>
+           
             <button
               onClick={handleDelete}
-              className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              disabled={listing.isReserved}
+              className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowd disabled:hover:bg-red-50"
             >
               Delete Listing
             </button>

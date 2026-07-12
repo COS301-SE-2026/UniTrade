@@ -9,15 +9,21 @@ namespace Modules.Chat;
 
 public class ChatService : IChatService
 {
-    private readonly IReservationRepository _reservations;//using Isuserpat of reseravtion func
+    private readonly IReservationRepository _reservations; //using Isuserpat of reseravtion func
     private readonly IChatRepository _chatRepo;
+
     public ChatService(IChatRepository chatRepo, IReservationRepository reservations)
     {
         _chatRepo = chatRepo;
         _reservations = reservations;
     }
 
-    public async Task<ChatMessageDto> SendAsync(Guid reservationId, Guid senderId, string content, CancellationToken ct = default)
+    public async Task<ChatMessageDto> SendAsync(
+        Guid reservationId,
+        Guid senderId,
+        string content,
+        CancellationToken ct = default
+    )
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -28,7 +34,7 @@ public class ChatService : IChatService
 
         if (!isAuthorised)
         {
-            throw new ChatException(ChatErrors.Forbidden); // i change dit because of sonarqube 
+            throw new ChatException(ChatErrors.Forbidden); // i change dit because of sonarqube
         }
 
         var result = new ChatMessage
@@ -37,7 +43,7 @@ public class ChatService : IChatService
             SenderId = senderId,
             MessageType = "text",
             Content = content,
-            SentAt = DateTime.UtcNow
+            SentAt = DateTime.UtcNow,
         };
 
         await _chatRepo.AddAsync(result);
@@ -45,7 +51,11 @@ public class ChatService : IChatService
         return ToDto(result);
     }
 
-    public async Task<ChatMessageDto> SendSystemAsync(Guid reservationId, string content, CancellationToken ct = default)
+    public async Task<ChatMessageDto> SendSystemAsync(
+        Guid reservationId,
+        string content,
+        CancellationToken ct = default
+    )
     {
         var result = new ChatMessage
         {
@@ -53,14 +63,20 @@ public class ChatService : IChatService
             SenderId = null, // nulled because system messages don't technically have a sender
             MessageType = "system",
             Content = content,
-            SentAt = DateTime.UtcNow
+            SentAt = DateTime.UtcNow,
         };
         await _chatRepo.AddAsync(result);
 
         return ToDto(result);
     }
 
-    public async Task<ChatHistoryDto> GetHistoryAsync(Guid reservationId, Guid callerId, int? before, int limit = 50, CancellationToken ct = default)
+    public async Task<ChatHistoryDto> GetHistoryAsync(
+        Guid reservationId,
+        Guid callerId,
+        int? before,
+        int limit = 50,
+        CancellationToken ct = default
+    )
     {
         var isAuthorised = await _reservations.IsPartyToAsync(reservationId, callerId, ct);
 
@@ -94,15 +110,35 @@ public class ChatService : IChatService
             throw new ChatException(ChatErrors.Forbidden);
         }
         return await _chatRepo.MarkReadAsync(reservationId, readerId, upToMessageId);
-
     }
 
-    public Task<int> GetUnreadCountAsync(Guid reservationId, Guid userId, CancellationToken ct = default) => _chatRepo.GetUnreadCountAsync(reservationId, userId, ct);
-    public Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(IEnumerable<Guid> reservationIds, Guid userId, CancellationToken ct = default) => _chatRepo.GetUnreadCountsAsync(reservationIds, userId, ct);
+    public Task<int> GetUnreadCountAsync(
+        Guid reservationId,
+        Guid userId,
+        CancellationToken ct = default
+    ) => _chatRepo.GetUnreadCountAsync(reservationId, userId, ct);
+
+    public Task<IReadOnlyDictionary<Guid, int>> GetUnreadCountsAsync(
+        IEnumerable<Guid> reservationIds,
+        Guid userId,
+        CancellationToken ct = default
+    ) => _chatRepo.GetUnreadCountsAsync(reservationIds, userId, ct);
+
     private static ChatMessageDto ToDto(ChatMessage m)
     {
-        JsonElement? payload = m.Payload is not null ? JsonDocument.Parse(m.Payload).RootElement : null;
+        JsonElement? payload = m.Payload is not null
+            ? JsonDocument.Parse(m.Payload).RootElement
+            : null;
 
-        return new ChatMessageDto(m.MessageId, m.ReservationId, m.SenderId, m.MessageType, m.Content, payload, m.SentAt, m.ReadAt);
+        return new ChatMessageDto(
+            m.MessageId,
+            m.ReservationId,
+            m.SenderId,
+            m.MessageType,
+            m.Content,
+            payload,
+            m.SentAt,
+            m.ReadAt
+        );
     }
 }

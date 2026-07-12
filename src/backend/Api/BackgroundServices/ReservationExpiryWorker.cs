@@ -1,15 +1,19 @@
 using System.ComponentModel;
+using Modules.Notifications;
 using Modules.Reservations;
-using  Modules.Notifications;
+
 namespace Api.BackgroundServices;
 
-public class ReservationExpiryWorker :  BackgroundService
+public class ReservationExpiryWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ReservationExpiryWorker> _logger;
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
 
-    public ReservationExpiryWorker(IServiceScopeFactory scopeFactory, ILogger<ReservationExpiryWorker> logger)
+    public ReservationExpiryWorker(
+        IServiceScopeFactory scopeFactory,
+        ILogger<ReservationExpiryWorker> logger
+    )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
@@ -31,10 +35,12 @@ public class ReservationExpiryWorker :  BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Reservation expiry cleanup failed, next will retry the next tick");
+                _logger.LogError(
+                    ex,
+                    "Reservation expiry cleanup failed, next will retry the next tick"
+                );
             }
-        }
-        while (await timer.WaitForNextTickAsync(ct));
+        } while (await timer.WaitForNextTickAsync(ct));
     }
 
     private async Task CleanupAsync(CancellationToken ct)
@@ -52,14 +58,22 @@ public class ReservationExpiryWorker :  BackgroundService
         }
         _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
 
-        foreach(var reservation in expired)
+        foreach (var reservation in expired)
         {
             await hub.ReservationUpdatedAsync(reservation, ct);
 
-            await notifier.NotifyAsync(reservation.BuyerId, NotificationTypes.ReservationStatus, "Your reservation has expired and the item is available again for reserving", ct);
-            await notifier.NotifyAsync(reservation.SellerId, NotificationTypes.ReservationStatus, "A reservation on your listing expired. It currently live again.", ct);
-
+            await notifier.NotifyAsync(
+                reservation.BuyerId,
+                NotificationTypes.ReservationStatus,
+                "Your reservation has expired and the item is available again for reserving",
+                ct
+            );
+            await notifier.NotifyAsync(
+                reservation.SellerId,
+                NotificationTypes.ReservationStatus,
+                "A reservation on your listing expired. It currently live again.",
+                ct
+            );
         }
     }
-
 }
