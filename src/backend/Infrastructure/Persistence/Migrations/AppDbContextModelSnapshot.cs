@@ -669,6 +669,55 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("listing_images", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("notification_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_read");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("NotificationId")
+                        .HasName("pk_notifications");
+
+                    b.HasIndex("UserId", "IsRead")
+                        .HasDatabaseName("ix_notif_user_unread")
+                        .HasFilter("is_read = false");
+
+                    b.ToTable("notifications", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_notif_type", "type IN ('listing_status', 'reservation_status', 'meetup_reminder',  'chat', 'dispute', 'verification')");
+                        });
+                });
+
             modelBuilder.Entity("Modules.ReferenceData.Course.Course", b =>
                 {
                     b.Property<int>("CourseId")
@@ -832,6 +881,45 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("reservation_listings", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Wishlist.Models.WishlistItem", b =>
+                {
+                    b.Property<int>("WishlistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("wishlist_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("WishlistId"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.HasKey("WishlistId")
+                        .HasName("pk_wishlist_items");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("ix_wishlist_items_listing_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_wishlist_student");
+
+                    b.HasIndex("StudentId", "ListingId")
+                        .IsUnique()
+                        .HasDatabaseName("wishlist_entry");
+
+                    b.ToTable("wishlist_items", "unitrade");
+                });
+
             modelBuilder.Entity("Modules.Chat.Models.ChatMessage", b =>
                 {
                     b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
@@ -964,6 +1052,16 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Listing");
                 });
 
+            modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notifications_users_user_id");
+                });
+
             modelBuilder.Entity("Modules.ReferenceData.Course.Course", b =>
                 {
                     b.HasOne("Modules.ReferenceData.University.University", null)
@@ -1014,6 +1112,27 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Listing");
 
                     b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("Modules.Wishlist.Models.WishlistItem", b =>
+                {
+                    b.HasOne("Modules.Listings.Models.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_items_listings_listing_id");
+
+                    b.HasOne("Modules.Identity.Models.StudentProfile", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_items_student_profiles_student_id");
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.User", b =>

@@ -101,6 +101,11 @@ export interface GetMessagesParams {
     before?: string;
     limit?: number;
 }
+export interface MessagesReadEvent {
+  reservationId: string;
+  upToMessageId: string;
+  readerId: string;
+}
 export type ApiErrorCode = 'already_reserved' | string;
 
 export interface ApiError {
