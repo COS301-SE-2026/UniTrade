@@ -10,7 +10,7 @@ using Modules.Wishlist;
 namespace Api.Controllers;
 
 [ApiController]
-[Route("api/listings")]
+[Route("api/wishlist")]
 [Authorize]
 public class WishlistController : ControllerBase
 {
