@@ -11,8 +11,8 @@ export interface RegisterPayload {
 }
 
 export interface LoginPayload {
-  Email: string
-  Password: string
+  email: string
+  password: string
 }
 
 export interface MeResponse {
