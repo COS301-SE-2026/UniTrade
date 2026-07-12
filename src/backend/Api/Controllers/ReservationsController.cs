@@ -23,21 +23,20 @@ public class ReservationsController : ControllerBase
     private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
     private bool IsVerified => User.FindFirst("verification_status")?.Value == "verified";
 
-
     // POST /api/reservations
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateReservationRequest body, CancellationToken ct)
+    public async Task<IActionResult> Create(
+        [FromBody] CreateReservationRequest body,
+        CancellationToken ct
+    )
     {
-        if (
-           !IsVerified
-        )
+        if (!IsVerified)
             return StatusCode(403, new { error = "not_verified" });
 
         try
         {
             var dto = await _reservations.CreateAsync(body.ListingId, CallerId, ct);
             return CreatedAtAction(nameof(GetById), new { id = dto.ReservationId }, dto);
-
         }
         catch (ReservationException ex)
         {
@@ -48,10 +47,7 @@ public class ReservationsController : ControllerBase
     // POST /api/reservations/{id}/acknowledge
 
     [HttpPost("{id:guid}/acknowledge")]
-    public async Task<IActionResult> Acknowledge(
-        Guid id,
-        CancellationToken ct
-    )
+    public async Task<IActionResult> Acknowledge(Guid id, CancellationToken ct)
     {
         try
         {
@@ -65,10 +61,7 @@ public class ReservationsController : ControllerBase
 
     // POST /api/reservations/{id}/cancel
     [HttpPost("{id:guid}/cancel")]
-    public async Task<IActionResult> Cancel(
-        Guid id,
-        CancellationToken ct
-    )
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
     {
         try
         {
@@ -105,7 +98,12 @@ public class ReservationsController : ControllerBase
 
     // get /api/reservations/{id}/messages?before={messageId}&limit=20
     [HttpGet("{id:guid}/messages")]
-    public async Task<IActionResult> GetMessages(Guid id, [FromQuery] int? before, [FromQuery] int limit, CancellationToken ct)
+    public async Task<IActionResult> GetMessages(
+        Guid id,
+        [FromQuery] int? before,
+        [FromQuery] int limit,
+        CancellationToken ct
+    )
     {
         if (limit is <= 0 or > 100)
         {
@@ -122,20 +120,20 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    private IActionResult MapError(ReservationException ex) => ex.Message switch
-    {
-        ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),
-        ReservationErrors.NotFound => NotFound(new { error = ex.Message }),
-        ReservationErrors.AlreadyReserved => Conflict(new { error = ex.Message }),
-        ReservationErrors.SelfReserve => StatusCode(403, new { error = ex.Message }),
-        ReservationErrors.Forbidden => StatusCode(403, new { error = ex.Message }),
-        ReservationErrors.NotActive => Conflict(new { error = ex.Message }),
-        ReservationErrors.AlreadyAcknowledged => Conflict(new { error = ex.Message }),
-        ReservationErrors.AlreadyTerminal => Conflict(new { error = ex.Message }),
-        ReservationErrors.ReleasedTooEarly => StatusCode(403, new { error = ex.Message }),
-        _ => StatusCode(500, new { error = "server_error" }),
-    };
+    private IActionResult MapError(ReservationException ex) =>
+        ex.Message switch
+        {
+            ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),
+            ReservationErrors.NotFound => NotFound(new { error = ex.Message }),
+            ReservationErrors.AlreadyReserved => Conflict(new { error = ex.Message }),
+            ReservationErrors.SelfReserve => StatusCode(403, new { error = ex.Message }),
+            ReservationErrors.Forbidden => StatusCode(403, new { error = ex.Message }),
+            ReservationErrors.NotActive => Conflict(new { error = ex.Message }),
+            ReservationErrors.AlreadyAcknowledged => Conflict(new { error = ex.Message }),
+            ReservationErrors.AlreadyTerminal => Conflict(new { error = ex.Message }),
+            ReservationErrors.ReleasedTooEarly => StatusCode(403, new { error = ex.Message }),
+            _ => StatusCode(500, new { error = "server_error" }),
+        };
 
     public record CreateReservationRequest(Guid ListingId);
-
 }
