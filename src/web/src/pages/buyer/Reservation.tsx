@@ -6,6 +6,7 @@ import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import { formatPrice } from '../../utils/formatters'
 //import { queryKeys } from '../../lib/queryKeys'
 //import { useReservationsList } from '../../hooks/useReservationsList'
+import { getApiUrl } from '../../config'
 import {
     IconClock,
     IconPresentationAnalytics,
@@ -125,11 +126,14 @@ function ReservationCard({
     const msRemaining = getMsRemaining(reservation.expiresAt)
     const urgency = getUrgency(msRemaining)
     const isActive = reservation.reservationStatus === 'active'
+    const apiOrigin = getApiUrl().split('/api')[0];
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
 
-            <img src={reservation.listing.imagePath || '/placeholder.png'}
+            <img src={reservation.listing.imagePath 
+            ? `${apiOrigin}${reservation.listing.imagePath}`
+            : '/placeholder.png'}
                 alt={reservation.listing.title}
                 onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
         className="w-20 h-20 rounded-lg object-cover flex shrink-0 curson-pointer hover:opcacity-90 transition-opacity"
@@ -147,8 +151,8 @@ function ReservationCard({
 
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">
-                            List by <span className="font-semibold text-gray-500">
-                                {reservation.counterparty.name}
+                            Listed by <span className="font-semibold text-gray-500">
+                                {reservation.counterParty.name}
                             </span>
                         </p>
                     </div>
@@ -252,7 +256,7 @@ export default function Reservations() {
 
     const handleCancel = async (reservationId: string) => {
         const previous = reservations
-        setReservations((prev) => prev.map((r) => (r.reservationId === reservationId ? { ...r, reservationStatus: 'cancelled' } : r)))
+        setReservations((prev) => prev.filter((r) => r.reservationId === reservationId ))
         const result = await cancelReservation(reservationId)
         if (!result.success) {
             setReservations(previous)
@@ -301,7 +305,9 @@ export default function Reservations() {
                         </p>
                     </div>
                 )}
-                {reservations.map((reservation: ReservationListItem) => (
+                {reservations
+                .filter((r) => r.reservationStatus !== 'cancelled')
+                .map((reservation: ReservationListItem) => (
                     <ReservationCard key={reservation.reservationId}
                         reservation={reservation} onCancel={handleCancel} />
                 ))}

@@ -12,8 +12,8 @@ import {
     IconActivity,
     IconReceipt2,
 } from '@tabler/icons-react'
-
-type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
+import { getApiUrl } from '../../config'
+type ItemStatus = 'Active' | 'Expired' |'Completed' | 'Reserved';
 
 function StatusBadge({ status }: { status: string }) {
     if (!status) return null;
@@ -24,7 +24,7 @@ function StatusBadge({ status }: { status: string }) {
         Active: { bg: 'bg-emerald-50', text: ' text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Active' },
         Completed: { bg: 'bg-blue-50', text: 'text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Completed' },
         Expired: { bg: 'bg-gray-50', text: ' text-gray-700 border-gray-200', dot: 'bg-gray-500', label: 'Expired' },
-        Cancelled: { bg: 'bg-rose-50', text: ' text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
+        //Cancelled: { bg: 'bg-rose-50', text: ' text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
         Reserved: { bg: 'bg-amber-50', text: ' text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Reserved' },
     };
     const currentConfig = config[normalizedStatus] || config['Expired'];
@@ -41,6 +41,7 @@ function StatusBadge({ status }: { status: string }) {
 
 type UrgencyLevel = 'normal' | 'expiring'
 const baseBtn = 'inline-flex items-center justify-center gap-1 rounded-lg border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+
 
 function getMsRemaining(expiresAt: string): number {
     return new Date(expiresAt).getTime() - Date.now()
@@ -127,11 +128,14 @@ function ReservationCard({
     const msRemaining = getMsRemaining(reservation.expiresAt)
     const urgency = getUrgency(msRemaining)
     const isActive = reservation.reservationStatus === 'active'
+    const apiOrigin = getApiUrl().split('/api')[0];
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
 
-            <img src={reservation.listing.imagePath || '/placeholder.png'}
+            <img src={reservation.listing.imagePath 
+            ? `${apiOrigin}${reservation.listing.imagePath}`
+            : '/placeholder.png'}
                 alt={reservation.listing.title}
                 className="w-20 h-20 rounded-lg object-cover flex shrink-0"
             />
@@ -146,7 +150,7 @@ function ReservationCard({
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">
                             Reserved by <span className="font-semibold text-gray-500">
-                                {reservation.counterparty.name}
+                                {reservation.counterParty.name}
                             </span>
                         </p>
                     </div>
@@ -171,6 +175,7 @@ function ReservationCard({
 
                 {isActive && (
                     <div className="flex flex-wrap gap-2 mt-3">
+                        
                         {reservation.timerStage == 'awaiting_seller' ? (
                             <button
                                 type="button"
@@ -179,7 +184,7 @@ function ReservationCard({
                                 Accept Reservation
                             </button>
                         ) :
-                            (<div className="flex-1 text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg flex items-center justify-center bg-gray-50 py-2 font-medium">
+                            (<div className={`${baseBtn}flex-1 py-2 bg-white/100 text-gray-400 text-xs font-medium rounded-lg transition-colors`}>
                                 Awaiting Payment Completion
 
                             </div>)}
@@ -197,11 +202,13 @@ function ReservationCard({
                                 </span>
                             )}
                         </button>
+                        {isActive && reservation.timerStage !== 'coordinating' && (
                         <button
                             onClick={() => onCancel(reservation.reservationId)}
                             className=" py-2 px-3 border border-gray-300 text-rose-600 text-xs
                 font-semibold rounded-lg hover:bg-rose-50 transition-colors" >
-                            Reject</button>
+                            {reservation.timerStage === 'awaiting_seller' ? 'Reject' : 'Cancel Reservation'}</button>
+                        )}
                     </div>)}
             </div>
         </div>
@@ -213,8 +220,9 @@ export default function Reservations() {
     const queryClient = useQueryClient()
     const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('seller');
     //const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
+   
     const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reserved listings.') : null
-
+    const [actionError, setActionError] = useState<string | null>(null)
     const handleAcknowledge = async (reservationId: string) => {
         const result = await acknowledgeReservatioin(reservationId)
         if (result.success) {
@@ -223,9 +231,18 @@ export default function Reservations() {
     }
 
     const handleCancel = async (reservationId: string) => {
+        
         const result = await cancelReservation(reservationId)
         if (result.success) {
+            
+            setActionError(null)
             queryClient.invalidateQueries({ queryKey: queryKeys.reservations('seller') })
+        } else {
+            setActionError(
+                result.error.code === 'release_too_early'
+                ? 'You can only cancel after 12 hours of buyer silence.'
+                : 'Failed to reject reservation.'
+            )
         }
     }
 
@@ -234,6 +251,7 @@ export default function Reservations() {
         const activeCount = activeItems.length
         const actionRequiredCount = activeItems.filter((r) => r.timerStage === 'awaiting_seller').length
         const totalValue = activeItems.reduce((sum, r) => sum + r.listing.price, 0)
+        
         return { activeCount, actionRequiredCount, totalValue }
     }, [reservations]
     )
@@ -241,6 +259,7 @@ export default function Reservations() {
 
     return (
         <div className="flex flex-col gap-6">
+           
             <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
                 My Reserved Items</h1>
 
@@ -256,6 +275,16 @@ export default function Reservations() {
                     icon={<IconReceipt2 size={20} />} />
             </div>
             <div className="flex flex-col gap-4">
+                 {actionError && ( 
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-rose-600">{actionError}</p>
+                    <button 
+                    onClick={() => setActionError(null)}
+                    className="text-rose-400 hover:text-rose-600 text-sm font-bold px-2">
+                        ✕
+                    </button>
+       </div>
+            )}
                 {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
 
                 {!loading && error && (
@@ -270,7 +299,9 @@ export default function Reservations() {
                         </p>
                     </div>
                 )}
-                {reservations.map((reservation: ReservationListItem) => (
+                {reservations
+                .filter((r) => r.reservationStatus !== 'cancelled')
+                .map((reservation: ReservationListItem) => (
                     <ReservationCard key={reservation.reservationId}
                         reservation={reservation} onAcknowledge={handleAcknowledge}
                         onCancel={handleCancel} />

@@ -35,18 +35,16 @@ public interface IReservationService
     );
 
     Task<ReservationDto?> GetByIdAsync(
-       Guid reservationId,
-       Guid callerId,
-       CancellationToken ct = default
-   );
-
+        Guid reservationId,
+        Guid callerId,
+        CancellationToken ct = default
+    );
 
     // this is the same as your is user reserved, could change the naming though
     Task<bool> IsPartyToAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
 
     Task<IReadOnlyList<ReservationDto>> ExpireDueAsync(
-      DateTime asOf,
-      CancellationToken ct = default
-  );
-
+        DateTime asOf,
+        CancellationToken ct = default
+    );
 }

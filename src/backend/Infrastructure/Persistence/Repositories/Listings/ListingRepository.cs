@@ -73,6 +73,8 @@ public class ListingRepository : IListingRepository
         if (listingFilterDto.SellerId.HasValue)
             query = query.Where(x => x.SellerId == listingFilterDto.SellerId);
 
+        if (listingFilterDto.ExcludeSellerId.HasValue)
+            query = query.Where(x => x.SellerId != listingFilterDto.ExcludeSellerId);
         if (!string.IsNullOrWhiteSpace(listingFilterDto.Search))
         {
             var searchInput = listingFilterDto.Search.Trim();
@@ -144,14 +146,27 @@ public class ListingRepository : IListingRepository
                 u.UserId,
                 u.FirstName,
                 u.LastName,
-                University = u.StudentProfile != null ? _db.Universities.Where(uni => uni.UniversityId == u.StudentProfile.UniversityId).Select(uni => uni.Name).FirstOrDefault() : null
+                University = u.StudentProfile != null
+                    ? _db
+                        .Universities.Where(uni =>
+                            uni.UniversityId == u.StudentProfile.UniversityId
+                        )
+                        .Select(uni => uni.Name)
+                        .FirstOrDefault()
+                    : null,
             })
             .ToListAsync();
         var counts = await GetActiveListingCountsAsync(sellerIds);
 
         var byId = sellers.ToDictionary(
             u => u.UserId,
-            u => new SellerInfo(u.UserId, u.FirstName, u.LastName, u.University, counts.GetValueOrDefault(u.UserId, 0))
+            u => new SellerInfo(
+                u.UserId,
+                u.FirstName,
+                u.LastName,
+                u.University,
+                counts.GetValueOrDefault(u.UserId, 0)
+            )
         );
 
         foreach (var listing in listings)
@@ -236,14 +251,25 @@ public class ListingRepository : IListingRepository
             .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
         return rows == 1;
     }
-    public async Task<Dictionary<Guid, int>> GetActiveListingCountsAsync(IEnumerable<Guid> sellerIds, CancellationToken ct = default)
+
+    public async Task<Dictionary<Guid, int>> GetActiveListingCountsAsync(
+        IEnumerable<Guid> sellerIds,
+        CancellationToken ct = default
+    )
     {
         var ids = sellerIds.ToList();
         if (ids.Count == 0)
         {
             return new Dictionary<Guid, int>();
         }
-        return await _db.Listings.AsNoTracking().Where(l => ids.Contains(l.SellerId) && (l.ListingStatus == "live" || l.ListingStatus == "reserved")).GroupBy(l => l.SellerId).Select(g => new { SellerId = g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.SellerId, x => x.Count, ct);
+        return await _db
+            .Listings.AsNoTracking()
+            .Where(l =>
+                ids.Contains(l.SellerId)
+                && (l.ListingStatus == "live" || l.ListingStatus == "reserved")
+            )
+            .GroupBy(l => l.SellerId)
+            .Select(g => new { SellerId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SellerId, x => x.Count, ct);
     }
-
 }
