@@ -494,5 +494,29 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     const data = await res.json();
     const listings: WishlistListing[] = data.items.map(mapWishListItem);
     return { listings, total: data.total};
+  },
+
+  addToWishlist: async (listingId : string): Promise<WishlistListing> => {
+    const res = await fetch(`${getApiUrl()}/wishlist`, {
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({listingId}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to add to wishlist ");
+    }
+    return mapWishListItem(await res.json());
+  },
+
+  removeFromWishlist : async (listingId: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if(!res.ok && res.status !== 404) {
+      throw new Error("Failed to remove from wishlist ")
+    }
   }
 };
