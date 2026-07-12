@@ -6,6 +6,7 @@ using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
+using Modules.Wishlist.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -38,6 +39,9 @@ public class AppDbContext : DbContext
 
     // Notifications
     public DbSet<Notification> Notifications => Set<Notification>();
+
+    // Wishlist
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
     //constants - sonarqube
     private readonly string NowString = "now()";
@@ -626,6 +630,36 @@ public class AppDbContext : DbContext
                 .HasIndex(x => new { x.UserId, x.IsRead })
                 .HasDatabaseName("ix_notif_user_unread")
                 .HasFilter("is_read = false");
+        });
+
+        // Wishlist items
+        modelBuilder.Entity<WishlistItem>(entity =>
+        {
+            entity.HasKey(x => x.WishlistId);
+            entity.Property(x => x.WishlistId);
+
+            entity.Property(x => x.StudentId).IsRequired();
+            entity.Property(x => x.ListingId).IsRequired();
+
+            entity.Property(x => x.AddedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+
+            entity
+                .HasOne(x => x.Student)
+                .WithMany()
+                .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(x => x.Listing)
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.StudentId).HasDatabaseName("ix_wishlist_student");
+            entity
+                .HasIndex(x => new { x.StudentId, x.ListingId })
+                .IsUnique()
+                .HasDatabaseName("wishlist_entry");
         });
     }
 }
