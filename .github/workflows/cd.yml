@@ -19,6 +19,7 @@ concurrency:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
 
@@ -55,6 +56,7 @@ jobs:
   deploy-staging:
     needs: build-and-push
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: staging
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
@@ -78,7 +80,7 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Instal EF tool
+      - name: Install EF tool
         run: dotnet tool install --global dotnet-ef
       
       - name: restore dependencies
@@ -101,13 +103,13 @@ jobs:
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --secrets \
-                "db-conn=${{secrets.DB_CONNECTION_STRING_PROD}}" \
+                "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
                 "acs-conn=${{secrets.Acs__ConnectionString}}" \
                 "jwt-secret=${{secrets.JWT_Secret}}" \
               --set-env-vars \
-                "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
-                "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}"
+                "ConnectionStrings__DefaultConnection=secretref:db-conn" \
+                "Acs__ConnectionString=secretref:acs-conn" \
+                "Jwt__Secret=secretref:jwt-secret"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -142,13 +144,13 @@ jobs:
         run: |
           az containerapp ingress traffic set \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
+          --revision-weight "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}=100"
 
       - name: Shift traffic to green (frontend)
         run: |
           az containerapp ingress traffic set \
           --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
+          --revision-weight "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}=100"
 
       - name: Smoke test staging
         run: |
@@ -157,16 +159,16 @@ jobs:
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
+          --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
+            [ -n "$rev" ] && az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
           az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
+          --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
+           [ -n "$rev" ] && az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
           done
 
   approval-gate:
@@ -179,6 +181,7 @@ jobs:
   deploy-prod:
     needs: [build-and-push, approval-gate]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
@@ -201,7 +204,7 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Instal EF tool
+      - name: Install EF tool
         run: dotnet tool install --global dotnet-ef
 
       - name: restore dependencies
@@ -227,9 +230,9 @@ jobs:
                 "acs-conn=${{secrets.Acs__ConnectionString}}" \
                 "jwt-secret=${{secrets.JWT_Secret}}" \
               --set-env-vars \
-                "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_PROD }}" \
-                "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}" 
+                "ConnectionStrings__DefaultConnection=secretref:db-conn" \
+                "Acs__ConnectionString=secretref:acs-conn" \
+                "Jwt__Secret=secretref:jwt-secret" 
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -259,13 +262,13 @@ jobs:
         run: |
           az containerapp ingress traffic set \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
+          --revision-weight "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}=100"
 
       - name: Shift traffic to green (frontend)
         run: |
           az containerapp ingress traffic set \
           --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
+          --revision-weight "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}=100"
 
       - name: Smoke test prod
         run: |
@@ -274,14 +277,14 @@ jobs:
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
+          --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
+            [ -n "$rev" ] && az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
           az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-            --query "[?properties.trafficWeight==\'0\']name" -o tsv | \
+            --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
             while read -r rev; do
-              az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
+              [ -n "$rev" ] && az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
             done
