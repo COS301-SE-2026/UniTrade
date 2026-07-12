@@ -6,6 +6,8 @@ import type {
   ListingMetadata,
   SimilarListing,
   ListingStatus,
+  WishlistResponse,
+  WishlistListing,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
@@ -191,6 +193,35 @@ export interface CreateListingPayload {
   courseId: number | null;
   listingStatus: string;
   metadata?: ListingMetadata;
+}
+
+function mapWishListItem(item: unknown) :WishlistListing {
+  const l = item as {
+    listingId : string,
+    title: string;
+    price : number;
+    courseId?: number | null;
+    categoryName: string;
+    condition: string;
+    listingStatus: string;
+    metadata?: ListingMetadata;
+    images: {imageId: number; isPrimary: boolean; path:string}[];
+    seller?: {sellerId: string};
+  };
+  const primary = getFirstUploadedImagePath(l.images);
+  return {
+    id: l.listingId,
+    title: l.title,
+    price: l.price,
+    module: l.courseId?.toString() ?? "General",
+    courseId: l.courseId ?? null,
+    category: l.categoryName,
+    condition: mapCondition(l.condition),
+    image: primary ? imageUrl(primary) : biologyTextbook,
+    metadata: l.metadata ?? null,
+    sellerId: l.seller?.sellerId ?? "",
+    status: l.listingStatus as ListingStatus,
+  }
 }
 
 export const listingsService = {
@@ -456,4 +487,12 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
       throw new Error(data?.error ?? "Failed to update listing status");
     }
   },
+
+  getWishlist: async (): Promise<WishlistResponse> => {
+    const res = await fetch(`${getApiUrl()}/wishlist`, {credentials: "include"});
+    if (!res.ok) throw new Error("Failed to fetch wishlist");
+    const data = await res.json();
+    const listings: WishlistListing[] = data.items.map(mapWishListItem);
+    return { listings, total: data.total};
+  }
 };
