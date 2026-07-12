@@ -1,6 +1,7 @@
 name: CD - Deploy to Azure
 
 on:
+  # will make the cd run only if ci passes after tetsing
   push:
     branches: ["feature/backend/unitTesting_p1"]
     paths:
@@ -126,7 +127,9 @@ jobs:
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
-                "Jwt__Secret=secretref:jwt-secret"
+                "Jwt__Secret=secretref:jwt-secret" \
+                "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL_STAGING }}" \
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -171,7 +174,7 @@ jobs:
 
       - name: Smoke test staging
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL_STAGING }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL_STAGING }}/health" > /dev/null
       
       - name: Rollback to previous revisions (failure event)
         if: failure()
@@ -312,7 +315,9 @@ jobs:
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
-                "Jwt__Secret=secretref:jwt-secret" 
+                "Jwt__Secret=secretref:jwt-secret" \
+                "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL }}" \
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -352,7 +357,7 @@ jobs:
 
       - name: Smoke test prod
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL }}/health" > /dev/null
       
       - name: Rollback to previous revisions (failure event)
         if: failure()
