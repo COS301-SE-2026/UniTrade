@@ -145,10 +145,13 @@ public class ReservationService : IReservationService
         }
 
         var ids = reservations.Select(r => r.ReservationId);
+
         var unread = await _chat.GetUnreadCountsAsync(ids, userId, ct);
+        var lastMessages = await _chat.GetLastMessagesAsync(ids, ct);
         return reservations
             .Select(r =>
             {
+                var lastMsg = lastMessages.GetValueOrDefault(r.ReservationId);
                 var isBuyer = r.BuyerId == userId;
                 var listing = r.ReservationListings.First().Listing;
                 var other = isBuyer ? r.Seller : r.Buyer;
@@ -172,7 +175,9 @@ public class ReservationService : IReservationService
                             ? $"/api/listings/{listing.ListingId}/images/{listing.Images.First().ImageId}"
                             : null
                     ),
-                    UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0)
+                    UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0),
+                    LastMessagePreview: lastMsg.Content,
+                    LastMessageAt: lastMsg.SentAt == default ? (DateTime?)null : lastMsg.SentAt
                 );
             })
             .ToList();

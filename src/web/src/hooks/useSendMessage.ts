@@ -4,6 +4,8 @@ import { queryKeys } from '../lib/queryKeys';
 import type { ClientChatMessage } from '../types/chat';
 import { useAuthStore } from '../store/useAuthStore';
 import type { ChatMessage } from '../types/Reservations';
+//import { useContext } from 'react';
+
 
 interface MutationContext {
     clientId: string;
@@ -23,7 +25,7 @@ export function useSendMessage(reservationId: string) {
             const clientId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
             const optimisticMessage: ClientChatMessage = {
-                messageId: clientId,
+                
                 clientId,
                 senderId: user?.id ?? 'me',
                 messageType: 'text',
@@ -40,7 +42,9 @@ export function useSendMessage(reservationId: string) {
         },
 
         onSuccess: (serverMessage: ChatMessage, _content: string, context?: MutationContext) => {
-            if (!context) return;
+            if (!context || !serverMessage) return;
+
+            
             queryClient.setQueryData<ClientChatMessage[]>(key, (old: ClientChatMessage[] = []) => {
                 const alreadyReceivedViaSocket = old.some(
                     (m) => m.messageId === serverMessage.messageId && m.clientId !== context.clientId
@@ -71,12 +75,17 @@ export function useSendMessage(reservationId: string) {
             queryClient.setQueryData<ClientChatMessage[]>(key, (old: ClientChatMessage[] = []) =>
                 old.map((m) => (m.clientId === context.clientId ? { ...m, status: 'failed' as const } : m))
             );
+            console.error("Send error:", _err, _err.stack);
         },
     });
 
     const retry = (clientId: string, content: string) => {
         queryClient.setQueryData<ClientChatMessage[]>(key, (old: ClientChatMessage[] =[]) => old.filter((m) => m.clientId !== clientId));
         mutation.mutate(content);
+
+        if(connectionManager.getState() !== 'Connected'){
+            console.warn('Cannot retry - connection is not ready');
+        }
     };
 
     return { ...mutation, retry};

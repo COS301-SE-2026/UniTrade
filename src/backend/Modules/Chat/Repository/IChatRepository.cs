@@ -28,4 +28,9 @@ public interface IChatRepository
         CancellationToken ct = default
     );
     Task SaveAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyDictionary<Guid, (string Content, DateTime SentAt)>> GetLastMessagesAsync(
+        IEnumerable<Guid> reservationIds,
+        CancellationToken ct = default
+    );
 }

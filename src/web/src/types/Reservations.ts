@@ -29,6 +29,8 @@ export interface ReservationListItem extends Reservation {
     counterParty: ReservationCounterparty;
     listing: ReservationListingPreview;
     unreadCount: number;
+    lastMessagePreview: string | null;
+    lastMessageAt: string | null;
 }
 
 export interface ReservationListResponse {
@@ -38,7 +40,7 @@ export interface ReservationListResponse {
 }
 
 interface ChatMessageBase {
-    messageId: string;
+    messageId: number;
     senderId: string;
     sentAt: string;
     readAt: string | null;
@@ -86,7 +88,7 @@ export type ChatMessage =
 export interface ChatHistoryResponse {
     items: ChatMessage[];
     hasMore: boolean;
-    oldestMessageId: string | null;
+    oldestMessageId: number | null;
 }
 export interface CreateReservationRequest {
     listingId: string;
@@ -103,7 +105,7 @@ export interface GetMessagesParams {
 }
 export interface MessagesReadEvent {
   reservationId: string;
-  upToMessageId: string;
+  upToMessageId: number;
   readerId: string;
 }
 export type ApiErrorCode = 'already_reserved' | string;

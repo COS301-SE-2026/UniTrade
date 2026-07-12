@@ -141,4 +141,9 @@ public class ChatService : IChatService
             m.ReadAt
         );
     }
+
+    public Task<IReadOnlyDictionary<Guid, (string Content, DateTime SentAt)>> GetLastMessagesAsync(
+        IEnumerable<Guid> reservationIds,
+        CancellationToken ct = default
+    ) => _chatRepo.GetLastMessagesAsync(reservationIds, ct);
 }
