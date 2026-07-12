@@ -138,7 +138,10 @@ public class ReservationService : IReservationService
         CancellationToken ct = default
     )
     {
-        var reservations = role == "buyer" ? await _reservations.ListForBuyerAsync(userId, ct) : await _reservations.ListForSellerAsync(userId, ct);
+        var reservations =
+            role == "buyer"
+                ? await _reservations.ListForBuyerAsync(userId, ct)
+                : await _reservations.ListForSellerAsync(userId, ct);
 
         if (reservations.Count == 0)
         {
@@ -147,28 +150,36 @@ public class ReservationService : IReservationService
 
         var ids = reservations.Select(r => r.ReservationId);
         var unread = await _chat.GetUnreadCountsAsync(ids, userId, ct);
-        return reservations.Select(r =>
-        {
-            var isBuyer = r.BuyerId == userId;
-            var listing = r.ReservationListings.First().Listing;
-            var other = isBuyer ? r.Seller : r.Buyer;
+        return reservations
+            .Select(r =>
+            {
+                var isBuyer = r.BuyerId == userId;
+                var listing = r.ReservationListings.First().Listing;
+                var other = isBuyer ? r.Seller : r.Buyer;
 
-
-            return new ReservationListItemDto(
-                ReservationId: r.ReservationId,
-                ReservationStatus: r.ReservationStatus,
-                TimerStage: ReservationStateMachine.DeriveTimerStage(r),
-                ExpiresAt: r.ExpiresAt,
-                CreatedAt: r.CreatedAt,
-                CounterParty: new CounterPartyDto(other!.UserId, $"{other.FirstName}{other.LastName}", $"{other.FirstName[0]}{other.LastName[0]}"),
-                Listing: new ReservationListingSummaryDto(
-                    listing.ListingId,
-                    listing.Title,
-                    listing.Price,
-                    listing.Images.Count > 0 ? $"/api/listings/{listing.ListingId}/images/{listing.Images.First().ImageId}" : null),
+                return new ReservationListItemDto(
+                    ReservationId: r.ReservationId,
+                    ReservationStatus: r.ReservationStatus,
+                    TimerStage: ReservationStateMachine.DeriveTimerStage(r),
+                    ExpiresAt: r.ExpiresAt,
+                    CreatedAt: r.CreatedAt,
+                    CounterParty: new CounterPartyDto(
+                        other!.UserId,
+                        $"{other.FirstName} {other.LastName}",
+                        $"{other.FirstName[0]}{other.LastName[0]}"
+                    ),
+                    Listing: new ReservationListingSummaryDto(
+                        listing.ListingId,
+                        listing.Title,
+                        listing.Price,
+                        listing.Images.Count > 0
+                            ? $"/api/listings/{listing.ListingId}/images/{listing.Images.First().ImageId}"
+                            : null
+                    ),
                     UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0)
                 );
-        }).ToList();
+            })
+            .ToList();
     }
 
     public async Task<ReservationDto?> GetByIdAsync(
@@ -178,7 +189,8 @@ public class ReservationService : IReservationService
     )
     {
         var r = await _reservations.GetByIdAsync(reservationId, ct);
-        if (r is null) return null;
+        if (r is null)
+            return null;
         if (r.BuyerId != callerId && r.SellerId != callerId)
         {
             throw new ReservationException(ReservationErrors.Forbidden);

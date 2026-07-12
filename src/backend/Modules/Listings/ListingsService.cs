@@ -117,7 +117,7 @@ public class ListingService : IListingService
             Condition = dto.Condition,
             Metadata = metadataJ,
             SellerId = callerId,
-            ListingStatus = "live",
+            ListingStatus = dto.ListingStatus,
             ListingId = Guid.NewGuid(),
             CourseId = isBook ? dto.CourseId : null,
             isBundle = dto.IsBundle,
@@ -278,6 +278,14 @@ public class ListingService : IListingService
             throw new InvalidOperationException("status_locked");
         }
 
+        if (newStatus == "live" && listing.Images.Count == 0)
+        {
+            throw new InvalidOperationException("images_required");
+        }
+        if (newStatus == "live" && string.IsNullOrWhiteSpace(listing.Description))
+        {
+            throw new InvalidOperationException("description_required");
+        }
         listing.ListingStatus = newStatus;
         listing.UpdatedAt = DateTime.Now;
         await _listings.SaveAsync();

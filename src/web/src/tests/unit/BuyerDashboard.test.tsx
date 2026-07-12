@@ -22,7 +22,8 @@ const mockListings = {
       category: 'Textbooks' as const, 
       price: 1200, 
       condition: 'Good' as const, 
-      metadata: null,            
+      metadata: null, 
+      sellerId: "1",           
       courseId: 1,    
     },
     { 
@@ -34,6 +35,7 @@ const mockListings = {
       price: 4500, 
       condition: 'Good' as const, 
       metadata: null,
+      sellerId: "1",
       courseId: 2,
     },
     { 
@@ -45,6 +47,7 @@ const mockListings = {
       price: 350, 
       condition: 'Fair' as const, 
       metadata: null,
+      sellerId: "1",
       courseId: 3,
     },
   ],

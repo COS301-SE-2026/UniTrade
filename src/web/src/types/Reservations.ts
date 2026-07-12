@@ -26,7 +26,7 @@ export interface ReservationListingPreview {
 }
 
 export interface ReservationListItem extends Reservation {
-    counterparty: ReservationCounterparty;
+    counterParty: ReservationCounterparty;
     listing: ReservationListingPreview;
     unreadCount: number;
 }
