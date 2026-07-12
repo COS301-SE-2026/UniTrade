@@ -82,8 +82,6 @@ export default function App() {
 
 
 
-
-
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         <Route path="/listings/:id" element={<ListingDetail />} />{" "}
@@ -118,3 +116,4 @@ export default function App() {
     </Routes>
   );
 }
+// just truggerin the cd
