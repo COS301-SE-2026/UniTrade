@@ -106,7 +106,8 @@ jobs:
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
                 "Jwt__Secret=${{ secrets.JWT_Secret}}" \
-                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL_STAGING}}" 
+                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL_STAGING}}" \
+                "Acs__SenderAddress=${{secrets.ACS_SENDER_ADDRESS}}" 
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -225,7 +226,8 @@ jobs:
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_PROD }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
                 "Jwt__Secret=${{ secrets.JWT_Secret}}" \
-                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL}}" 
+                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL}}" \
+                "Acs__SenderAddress=${{secrets.ACS_SENDER_ADDRESS}}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
