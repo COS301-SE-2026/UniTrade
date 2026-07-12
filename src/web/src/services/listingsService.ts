@@ -292,6 +292,11 @@ export const listingsService = {
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
+    const user = useAuthStore.getState().user;
+    const params = new URLSearchParams({ listingStatus: "live"});
+    if (user){
+      params.set("exlcudeSellerId", user.id);
+    }
   const res = await fetch(`${getApiUrl()}/listings?listingStatus=live`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch listings");
   const data = await res.json();

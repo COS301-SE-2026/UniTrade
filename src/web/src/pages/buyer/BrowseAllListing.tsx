@@ -162,7 +162,7 @@ export default function BrowseAllListing() {
       .catch(() => {
         // category chips are non-critical; leave the list empty (just "All") on failure
       })
-  }, [])
+  }, [user])
   
   const visibleCategories = categories.slice(0,3)
   const hiddenCategories = categories.slice(3)
@@ -309,7 +309,7 @@ export default function BrowseAllListing() {
           <ListingCard
             key={listing.id}
             listing={listing}
-            onClick={() => navigate(`/listings/${listing.id}`)}
+            onClick={() => navigate(`/buyer/listings/${listing.id}`)}
           />
         ))}
       </div>
