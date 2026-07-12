@@ -62,14 +62,135 @@ const conditionColours: Record<BrowseCondition, string> = {
     }
 
     const unavailable = listing.status !== 'live'
+
+    return (
+      <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors">
+        <div className = "relative">
+          <img 
+          src = {listing.image}
+          alt = {listing.title}
+          onClick = {onClick}
+          className="w-full h-48 object-cover"
+          />
+          {unavailable && (
+          <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-navy-700 text-white capitalize">
+            {listing.status}
+          </span>
+        )}
+        </div>
+
+        <div className="p-4 flex flex-col gap-2 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-semibold text-gray-800 dark:text-white line-clamp-2">{listing.title}</p>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${conditionColours[listing.condition]}`}>
+            {listing.condition}
+          </span>
+        </div>
+
+         <p className="text-xs text-gray-400 capitalize">{listing.category}
+
+         </p>
+        <p className="text-sm font-bold text-gray-800 dark:text-white">
+          {formatPrice(listing.price)}
+          </p>
+
+          {reserveError && (
+            <p className="text-xs text-rose-600">
+              {reserveError}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-2 mt-auto pt-2">
+            <button
+            onClick={handleReserve}
+            disabled = {reserving || reserved || unavailable}
+            className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {reserved ? 'Reserved' : reserving ? 'Reserving...' : unavailable ? 'Unavailable ' : 'Reserve'}
+
+            </button>
+            <button
+            onClick={handleRemove}
+            disabled = {removing}
+            className = "w-full py-2 border border-gray-3000 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {removing ? 'Removing...' : 'Remove from Wishlist'}
+            </button>
+          </div>
+      </div>
+      </div>
+    )
   }
 
 
 export default function Wishlist() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Wishlist</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
+  const navigate = useNavigate()
+  const [listings, setListings ] = useState<WishlistListing[]>([])
+  const [total, setTotal ] = useState(0)
+  const [loading, setLoading ] = useState(true)
+  const [error, setError ] = useState<string | null>(null)
+
+  useEffect(() => {
+    listingsService.getWishlist()
+    .then(data => {
+      setListings(data.listings)
+      setTotal(data.total)
+    })
+    .catch(() => setError('Failed to load your wishlist '))
+    .finally(() => setLoading(false))
+  }, [])
+
+  const handleRemoved = (id: string) => {
+    setListings(curr => curr.filter(l => l.id ==id))
+    setTotal(t => t -1 )
+  }
+
+  if(loading ) return (
+    <div className="flex items-center justify-center h-64">
+      <p className="text-sm text-gray-400">
+        Loading...
+      </p>
     </div>
   )
+
+  if(error) return (
+    <div className = " flex items-center justify-center h-64">
+      <p className="text-sm text-red-400">
+        {error}
+      </p>
+    </div>
+  )
+
+  return (
+    <div className = "flex flex-col gap-6">
+      <div>
+        <h1 className = " text-2xl font-extrabold text-gray-800 dark:text-white">
+          Your Wishlist
+        </h1>
+        <p className = "text-sm text-gray-400 mt-1">
+          {total} {total === 1 ? 'item' : 'items'} saved for later
+        </p>
+      </div>
+
+      {listings.length === 0 ? (
+        <div className = "rounded-cl border border-gray-200 dark:border-white/10 p-8 text-center">
+          <p className = "text-sm text-gray-400">
+            Your wishlist is currently empty. Browse listings and tap "Add to Wishlist " to save items here.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {listings.map(listing => (
+            <WishlistCard
+            key = {listing.id}
+            listing={listing}
+            onClick = {() => navigate(`/listings/${listing.id}`)}
+            onRemoved={handleRemoved}
+            />
+          ))}
+          </div>
+      )}
+    </div>
+  )
+  
 }
