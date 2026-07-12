@@ -2,16 +2,16 @@ import type {
   ListingDetail,
   ListingSummary,
   MyListingsResponse,
-  Category,
-  SellerListingDetail,
-  BrowseListing,
-  BrowseListingsResponse,
-  BrowseCondition,
-  Course,
+  Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
+  ListingMetadata,
+  SimilarListing,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
+import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
+
+
 import { getApiUrl } from "../config";
 
 export function imageUrl(path: string): string {
@@ -86,7 +86,7 @@ const mockMyListings: ListingSummary[] = [
   },
 ];
 
-const mockListingDetail: ListingDetail = {
+/*const mockListingDetail: ListingDetail = {
   id: "1",
   title: "Calculus - Early Transcendentals",
   description:
@@ -96,8 +96,10 @@ const mockListingDetail: ListingDetail = {
   category: "book",
   status: "live",
   courseCode: "WTW114",
+  courseId: 1076,
   university: "University of Pretoria",
   tags: ["WTW114", "First Year", "University of Pretoria"],
+  metadata: null,
   images: [
     { id: "1", url: biologyTextbook, isPrimary: true },
     { id: "2", url: biologyTextbook, isPrimary: false },
@@ -142,11 +144,11 @@ const mockListingDetail: ListingDetail = {
     {
       id: "3",
       title: "Linear Algebra - 6th Ed",
-      meta: "UP · R310",
+      meta: "UP · R120",
       condition: "fair",
     },
   ],
-};
+};*/
 
 const mockSellerListingDetail: SellerListingDetail = {
   id: "4",
@@ -154,11 +156,13 @@ const mockSellerListingDetail: SellerListingDetail = {
   price: 4500,
   condition: "good",
   category: "book",
+  courseId: 1,
   courseCode: "WTW114",
   listedAt: "2026-05-07T09:15:00Z",
   views: 42,
   description: "Good condition with minor highlighting on pages 3-5.",
   tags: ["WTW114", "First Year", "UP"],
+  metadata: null,
   images: [
     "https://placehold.co/540x300/1a3a7a/ffffff?text=Calculus",
     "https://placehold.co/80x70/1a3a7a/ffffff?text=img2",
@@ -185,38 +189,39 @@ export interface CreateListingPayload {
   categoryName: string;
   courseId: number | null;
   listingStatus: string;
+  metadata?: ListingMetadata;
 }
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Failed to fetch listing");
-    const item = await res.json();
-    return {
-      ...mockListingDetail,
-      id: item.listingId,
-      title: item.title,
-      description: item.description,
-      price: item.price,
-      condition: item.condition,
-      status: item.listingStatus,
-      views: item.viewCount,
-      sellerId: item.sellerId,
-      listedAt: item.createdAt,
-      courseCode: item.courseId?.toString() ?? mockListingDetail.courseCode,
-      category: item.categoryName,
-      images: item.images.map((i: unknown) => {
-        const img = i as { imageId: number; path: string; isPrimary: boolean };
-        return {
-          id: img.imageId.toString(),
-          url: imageUrl(img.path),
-          isPrimary: img.isPrimary,
-        };
-      }),
-    };
-  },
+  const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
+  //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" }); 
+  if (!res.ok) throw new Error("Failed to fetch listing");
+  const item = await res.json();
+  return {
+    id: item.listingId,
+    title: item.title,
+    description: item.description,
+    price: item.price,
+    condition: item.condition,
+    status: item.listingStatus,
+    views: item.viewCount,
+    sellerId: item.sellerId,
+    listedAt: item.createdAt,
+    courseId: item.courseId ?? null,          
+    courseCode: item.courseCode ?? "",        
+    category: item.categoryName,
+    metadata: item.metadata ?? null,
+    images: item.images.map((i: unknown) => {
+      const img = i as { imageId: number; path: string; isPrimary: boolean };
+      return {
+        id: img.imageId.toString(),
+        url: imageUrl(img.path),
+        isPrimary: img.isPrimary,
+      };
+    }),
+  };
+},
 
   getMyListings: async (): Promise<MyListingsResponse> => {
     const user = useAuthStore.getState().user;
@@ -270,47 +275,55 @@ export const listingsService = {
       views: item.viewCount,
       listedAt: item.createdAt,
       description: item.description,
-      courseCode:
-        item.courseId?.toString() ?? mockSellerListingDetail.courseCode,
+      courseId: item.courseId ?? null, 
+      courseCode: "",
       category: item.categoryName,
+       metadata: item.metadata ?? null, 
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
-    const res = await fetch(`${getApiUrl()}/listings`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Failed to fetch listings");
-    const data = await res.json();
-    const listings: BrowseListing[] = data.items.map((item: unknown) => {
-      const l = item as {
-        listingId: string;
-        title: string;
-        price: number;
-        courseId?: number;
-        categoryName: string;
-        condition: string;
-        images: { imageId: number; isPrimary: boolean; path: string }[];
-      };
-      const primary = getFirstUploadedImagePath(l.images);
-      return {
-        id: l.listingId,
-        title: l.title,
-        price: l.price,
-        module: l.courseId?.toString() ?? "General",
-        category: l.categoryName,
-        condition: mapCondition(l.condition),
-        image: primary ? imageUrl(primary) : biologyTextbook,
-      };
-    });
-    return { listings, total: data.total };
-  },
+  const res = await fetch(`${getApiUrl()}/listings`, { credentials: "include" });
+  if (!res.ok) throw new Error("Failed to fetch listings");
+  const data = await res.json();
+  const listings: BrowseListing[] = data.items.map((item: unknown) => {
+    const l = item as {
+      listingId: string;
+      title: string;
+      price: number;
+      courseId?: number;
+      categoryName: string;
+      condition: string;
+      metadata?: ListingMetadata;
+      images: { imageId: number; isPrimary: boolean; path: string }[];
+    };
+    const primary = getFirstUploadedImagePath(l.images);
+    return {
+      id: l.listingId,
+      title: l.title,
+      price: l.price,
+      module: l.courseId?.toString() ?? "General",
+      courseId: l.courseId ?? null,
+      category: l.categoryName,
+      condition: mapCondition(l.condition),
+      image: primary ? imageUrl(primary) : biologyTextbook,
+      metadata: l.metadata ?? null,
+    };
+  });
+  return { listings, total: data.total };
+},
+
+getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarListing[]> => {
+  const { listings } = await listingsService.getBrowseListings();
+  return computeSimilarListings(listing, listings, limit);
+},
+
 
   uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
@@ -339,6 +352,7 @@ export const listingsService = {
         listingStatus: payload.listingStatus,
         courseId: payload.courseId,
         isBundle: false,
+        metadata: payload.metadata ?? null,
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
@@ -356,6 +370,7 @@ export const listingsService = {
       categoryName: string;
       courseId: number | null;
       removedImageIds?: number[];
+      metadata?: ListingMetadata;
     },
   ): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/listings/${id}`, {
@@ -370,6 +385,7 @@ export const listingsService = {
         categoryName: payload.categoryName,
         courseId: payload.courseId,
         removedImageIds: payload.removedImageIds ?? [],
+        metadata: payload.metadata ?? null,
       }),
     });
     if (!res.ok) throw new Error("Failed to update listing");
@@ -409,4 +425,14 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch courses");
     return await res.json();
   },
+
+  getCourse: async (id: number): Promise<Course> => {
+     const res = await fetch(`${getApiUrl()}/courses/${id}`, {
+     method: "GET",
+      credentials: "include",
+     });
+
+     if (!res.ok) throw new Error("Failed to fetch the courses")
+      return await res.json();
+  }
 };

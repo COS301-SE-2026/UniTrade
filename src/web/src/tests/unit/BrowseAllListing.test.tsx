@@ -43,6 +43,8 @@ const makeListings = (): BrowseListing[] => [
     price: 200,
     module: 'WTW 158',
     image: 'calc.jpg',
+    courseId: 123,
+    metadata: null,
   },
   {
     id: '2',
@@ -52,6 +54,8 @@ const makeListings = (): BrowseListing[] => [
     price: 450,
     module: 'EIR 271',
     image: 'arduino.jpg',
+    courseId: 456,
+    metadata: null,
   },
   {
     id: '3',
@@ -61,6 +65,8 @@ const makeListings = (): BrowseListing[] => [
     price: 80,
     module: 'CMY 117',
     image: 'goggles.jpg',
+    courseId: 789,
+    metadata: null,
   },
   {
     id: '4',
@@ -70,8 +76,10 @@ const makeListings = (): BrowseListing[] => [
     price: 50,
     module: 'General',
     image: 'pens.jpg',
+    courseId: 101,
+    metadata: null,
   },
-]
+];
 
 const renderComponent = () =>
   render(
@@ -91,7 +99,7 @@ describe('BrowseAllListing', () => {
   describe('Loading state', () => {
     it('shows a loading indicator while fetching', () => {
       vi.mocked(listingsService.getBrowseListings).mockImplementation(
-        () => new Promise(() => {}) // never resolves
+        () => new Promise(() => { }) // never resolves
       )
       renderComponent()
       expect(screen.getByText(/loading/i)).toBeInTheDocument()
@@ -99,7 +107,7 @@ describe('BrowseAllListing', () => {
 
     it('hides the listing grid while loading', () => {
       vi.mocked(listingsService.getBrowseListings).mockImplementation(
-        () => new Promise(() => {})
+        () => new Promise(() => { })
       )
       renderComponent()
       expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()

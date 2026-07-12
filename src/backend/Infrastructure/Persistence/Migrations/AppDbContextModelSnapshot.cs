@@ -23,6 +23,73 @@ namespace Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Modules.Chat.Models.ChatMessage", b =>
+                {
+                    b.Property<int>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("message_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MessageId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("text")
+                        .HasColumnName("message_type");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<Guid?>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTime>("SentAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("MessageId")
+                        .HasName("pk_chat_messages");
+
+                    b.HasIndex("SenderId")
+                        .HasDatabaseName("ix_chat_messages_sender_id");
+
+                    b.HasIndex("ReservationId", "ReadAt")
+                        .HasDatabaseName("ix_chat_unread")
+                        .HasFilter("read_at IS NULL");
+
+                    b.HasIndex("ReservationId", "SentAt")
+                        .HasDatabaseName("ix_chat_reservation");
+
+                    b.ToTable("chat_messages", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_message_type", "message_type IN ('text', 'system', 'meetup_proposal',  'meetup_response')");
+
+                            t.HasCheckConstraint("chk_payload_type", "(message_type IN ('meetup_proposal', 'meetup_response') AND payload IS NOT NULL ) OR( message_type IN ('text', 'system')  AND payload IS NULL )");
+
+                            t.HasCheckConstraint("chk_system_sender", "(message_type = 'system' AND sender_id IS NULL) OR (message_type <> 'system' AND sender_id IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
                 {
                     b.Property<Guid>("AdminId")
@@ -383,10 +450,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<int?>("ListingCategoryCategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("listing_category_category_id");
-
                     b.Property<string>("ListingStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -452,9 +515,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("CourseId1")
                         .HasDatabaseName("ix_listings_course_id1");
 
-                    b.HasIndex("ListingCategoryCategoryId")
-                        .HasDatabaseName("ix_listings_listing_category_category_id");
-
                     b.HasIndex("SellerId")
                         .HasDatabaseName("ix_listings_seller");
 
@@ -487,7 +547,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'low_visibility', 'rejected', 'sold', 'removed')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')");
                         });
                 });
 
@@ -609,6 +669,55 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("listing_images", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("notification_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_read");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("NotificationId")
+                        .HasName("pk_notifications");
+
+                    b.HasIndex("UserId", "IsRead")
+                        .HasDatabaseName("ix_notif_user_unread")
+                        .HasFilter("is_read = false");
+
+                    b.ToTable("notifications", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_notif_type", "type IN ('listing_status', 'reservation_status', 'meetup_reminder',  'chat', 'dispute', 'verification')");
+                        });
+                });
+
             modelBuilder.Entity("Modules.ReferenceData.Course.Course", b =>
                 {
                     b.Property<int>("CourseId")
@@ -685,6 +794,152 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("universities", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
+                {
+                    b.Property<Guid>("ReservationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_id");
+
+                    b.Property<DateTime?>("BuyerRespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("buyer_responded_at");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsBundle")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_bundle");
+
+                    b.Property<string>("ReservationStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("reservation_status");
+
+                    b.Property<DateTime?>("SellerAcknowledgedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seller_acknowledged_at");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("seller_id");
+
+                    b.HasKey("ReservationId")
+                        .HasName("pk_reservations");
+
+                    b.HasIndex("BuyerId")
+                        .HasDatabaseName("ix_res_buyer");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_res_expires")
+                        .HasFilter("reservation_status = 'active'");
+
+                    b.HasIndex("ReservationStatus")
+                        .HasDatabaseName("ix_res_status");
+
+                    b.HasIndex("SellerId")
+                        .HasDatabaseName("ix_res_seller");
+
+                    b.ToTable("reservations", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_res_status", "reservation_status IN ('active', 'expired', 'cancelled', 'completed')");
+                        });
+                });
+
+            modelBuilder.Entity("Modules.Reservations.Models.ReservationListing", b =>
+                {
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.HasKey("ReservationId", "ListingId")
+                        .HasName("pk_reservation_listings");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("ix_reservation_listings_listing_id");
+
+                    b.ToTable("reservation_listings", "unitrade");
+                });
+
+            modelBuilder.Entity("Modules.Wishlist.Models.WishlistItem", b =>
+                {
+                    b.Property<int>("WishlistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("wishlist_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("WishlistId"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.HasKey("WishlistId")
+                        .HasName("pk_wishlist_items");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("ix_wishlist_items_listing_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_wishlist_student");
+
+                    b.HasIndex("StudentId", "ListingId")
+                        .IsUnique()
+                        .HasDatabaseName("wishlist_entry");
+
+                    b.ToTable("wishlist_items", "unitrade");
+                });
+
+            modelBuilder.Entity("Modules.Chat.Models.ChatMessage", b =>
+                {
+                    b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_messages_reservations_reservation_id");
+
+                    b.HasOne("Modules.Identity.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_chat_messages_users_sender_id");
+
+                    b.Navigation("Reservation");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
                 {
                     b.HasOne("Modules.ReferenceData.University.University", null)
@@ -756,7 +1011,7 @@ namespace Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Modules.Listings.Models.Listing", b =>
                 {
                     b.HasOne("Modules.Listings.Models.ListingCategory", "Category")
-                        .WithMany()
+                        .WithMany("Listings")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
@@ -772,11 +1027,6 @@ namespace Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CourseId1")
                         .HasConstraintName("fk_listings_courses_course_id1");
-
-                    b.HasOne("Modules.Listings.Models.ListingCategory", null)
-                        .WithMany("Listings")
-                        .HasForeignKey("ListingCategoryCategoryId")
-                        .HasConstraintName("fk_listings_listing_categories_listing_category_category_id");
 
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
@@ -802,6 +1052,16 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Listing");
                 });
 
+            modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notifications_users_user_id");
+                });
+
             modelBuilder.Entity("Modules.ReferenceData.Course.Course", b =>
                 {
                     b.HasOne("Modules.ReferenceData.University.University", null)
@@ -810,6 +1070,69 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_courses_universities_university_id");
+                });
+
+            modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", "Buyer")
+                        .WithMany()
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservations_users_buyer_id");
+
+                    b.HasOne("Modules.Identity.Models.User", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservations_users_seller_id");
+
+                    b.Navigation("Buyer");
+
+                    b.Navigation("Seller");
+                });
+
+            modelBuilder.Entity("Modules.Reservations.Models.ReservationListing", b =>
+                {
+                    b.HasOne("Modules.Listings.Models.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservation_listings_listings_listing_id");
+
+                    b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
+                        .WithMany("ReservationListings")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservation_listings_reservations_reservation_id");
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("Modules.Wishlist.Models.WishlistItem", b =>
+                {
+                    b.HasOne("Modules.Listings.Models.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_items_listings_listing_id");
+
+                    b.HasOne("Modules.Identity.Models.StudentProfile", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_items_student_profiles_student_id");
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.User", b =>
@@ -829,6 +1152,13 @@ namespace Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Modules.Listings.Models.ListingCategory", b =>
                 {
                     b.Navigation("Listings");
+                });
+
+            modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("ReservationListings");
                 });
 #pragma warning restore 612, 618
         }

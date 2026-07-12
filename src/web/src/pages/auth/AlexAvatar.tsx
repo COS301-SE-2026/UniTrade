@@ -10,17 +10,17 @@ const ALEX_IMAGE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALcAAAEsCAYAAA
 export default function AlexAvatar({ isThinking = true, className = "", onClick, ...props }: AlexAvatarProps) {
   return (
     <div
-      className = { `relative flex flex-col items-center select-none cursor-pointer ${className}`}
-      onClick = {onClick}
-      role = "button"
-      tabIndex = {0}
-      aria-label = "Chat with Alex"
-      onKeyDown = {(e) => {
-        if (e.key === 'Enter' || e.key === '') onClick?.(); 
+      className={`relative flex flex-col items-center select-none cursor-pointer ${className}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      aria-label="Chat with Alex"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onClick?.();
       }}
-      {... props}
-      >
-        <style>{`
+      {...props}
+    >
+      <style>{`
         @keyframes alexFont {
         0%, 100% { transform: translateY(0px)}; }
         50%  {transform: translateY(-10px); }
@@ -73,11 +73,11 @@ export default function AlexAvatar({ isThinking = true, className = "", onClick,
       `}</style>
 
       {isThinking && (
-        <div className = "alex-thought mb-2 flex flex-col items-center">
-          <div className = "thought-cloud">
+        <div className="alex-thought mb-2 flex flex-col items-center">
+          <div className="thought-cloud">
             I'M ALEX, <br />ASK ME ANYTHING!
-            <span className = "thought-dot" style={{ width: 9, height: 9, bottom: -12, left: '48%'}} />
-            <span className = "thought-dot" style={{ width: 6, height: 6, bottom: -18, left: '51%'}} />
+            <span className="thought-dot" style={{ width: 9, height: 9, bottom: -12, left: '48%' }} />
+            <span className="thought-dot" style={{ width: 6, height: 6, bottom: -18, left: '51%' }} />
           </div>
         </div>
       )}
@@ -85,16 +85,16 @@ export default function AlexAvatar({ isThinking = true, className = "", onClick,
       <div className="alex-figure">
         <img
           src={ALEX_IMAGE}
-          style = {{
+          style={{
             width: 160,
             height: 'auto',
             imageRendering: 'crisp-edges',
             mixBlendMode: 'multiply',
           }}
-          draggable = {false}
+          draggable={false}
         />
-        </div>
-        </div>
+      </div>
+    </div>
   );
 }
-        
+
