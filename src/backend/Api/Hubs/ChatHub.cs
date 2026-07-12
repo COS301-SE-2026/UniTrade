@@ -36,8 +36,15 @@ public class ChatHub : Hub
     public async Task JoinRoom(Guid reservationId)
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
-
-        var isAuthorised = await _reservation.IsUserReservedAsync(userId, reservationId); //stub for now, needs tp be from ireservation!!
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            throw new HubException("Unauthorised: invalid user identifier");
+        }
+        var isAuthorised = await _reservation.IsPartyToAsync(
+            reservationId,
+            userGuid,
+            Context.ConnectionAborted
+        ); //stub for now, needs tp be from ireservation!!
         if (!isAuthorised)
         {
             throw new HubException("Forbidden: you are not a participant in this reservation.");
@@ -68,9 +75,13 @@ public class ChatHub : Hub
         {
             message = await _chatService.SendAsync(reservationId, Guid.Parse(userId), content);
         }
-        catch (UnauthorisedAccessException)
+        catch (ChatException ex)
         {
-            throw new HubException("Forbidden: you are not a participant in this reservation.");
+            throw new HubException(
+                ex.Message == ChatErrors.Forbidden
+                    ? "Forbidden: you are not a participant in this reservation."
+                    : ex.Message
+            );
         }
         catch (ArgumentException ex)
         {
@@ -78,5 +89,47 @@ public class ChatHub : Hub
         }
 
         await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
+    }
+
+    //read receipts -markAsread func
+    //automatic messages->test zee's reservationfunc when pr'd
+    //braodcast messages to reservation
+    public async Task ReadReceipts(Guid reservationId, int upToMessageId)
+    {
+        var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
+
+        int counter;
+
+        try
+        {
+            counter = await _chatService.MarkReadAsync(
+                reservationId,
+                Guid.Parse(userId),
+                upToMessageId
+            );
+        }
+        catch (ChatException ex)
+        {
+            throw new HubException(
+                ex.Message == ChatErrors.Forbidden
+                    ? "Forbidden: you are not a participant in this reservation."
+                    : ex.Message
+            );
+        }
+
+        if (counter > 0)
+        {
+            await Clients
+                .OthersInGroup(GroupName(reservationId))
+                .SendAsync(
+                    "Messages Read",
+                    new
+                    {
+                        reservationId,
+                        upToMessageId,
+                        readBy = userId,
+                    }
+                );
+        }
     }
 }

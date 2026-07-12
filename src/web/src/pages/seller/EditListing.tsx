@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
-import type { Category, Course } from "../../types/listing";
+import type { Category, Course, ListingMetadata } from "../../types/listing";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 
 
@@ -11,7 +11,8 @@ interface ListingData {
   title: string;
   category: string;
   moduleTag: string;
-  customField: string;
+  brand: string;
+  dimensions: string;
   description: string;
   condition: "Like_New" | "Good" | "Fair" | "Worn";
   price: number;
@@ -56,7 +57,8 @@ const EditListing: React.FC = () => {
     title: "",
     category: "",
     moduleTag: "",
-    customField: "",
+    brand: "",
+    dimensions: "",
     description: "",
     condition: "Good",
     price: 0,
@@ -87,7 +89,8 @@ const EditListing: React.FC = () => {
           title: data.title,
           category: data.category,
           moduleTag: data.courseCode ?? "",
-          customField: "",
+          brand: data.metadata?.brand ?? "",
+          dimensions: data.metadata?.dimensions ?? "",
           description: data.description,
           condition: API_TO_CONDITION[data.condition] ?? "Good",
           price: data.price,
@@ -189,41 +192,48 @@ const EditListing: React.FC = () => {
   };
 
   const handleSave = async () => {
-  if (!id) return;
-  setSaving(true);
-  setError(null);
-  try {
-    let resolvedCourseId: number | null = null;
+    if (!id) return;
+    setSaving(true);
+    setError(null);
+    try {
+      let resolvedCourseId: number | null = null;
 
-    if (formData.category === "book" && courseQuery.trim()) {
-      const results = await listingsService.searchCourses(courseQuery.trim());
-      const match = results.find(
-        (c) => c.courseCode.toLowerCase() === courseQuery.trim().toLowerCase()
-      );
-      resolvedCourseId = match ? match.courseId : null;
+      if (formData.category === "book" && courseQuery.trim()) {
+        const results = await listingsService.searchCourses(courseQuery.trim());
+        const match = results.find(
+          (c) => c.courseCode.toLowerCase() === courseQuery.trim().toLowerCase()
+        );
+        resolvedCourseId = match ? match.courseId : null;
+      }
+
+      let metadata: ListingMetadata = null;
+      if (formData.category === "electronics") {
+        metadata = { brand: formData.brand };
+      } else if (formData.category === "furniture") {
+        metadata = { dimensions: formData.dimensions };
+      }
+
+      await listingsService.updateListing(id, {
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        condition: CONDITION_TO_API[formData.condition],
+        categoryName: formData.category,
+        courseId: resolvedCourseId,
+        removedImageIds,
+        metadata,
+      });
+
+      if (newFiles.length > 0) {
+        await listingsService.uploadImages(id, newFiles);
+      }
+      navigate("/seller/listings");
+    } catch {
+      setError("Failed to save changes");
+    } finally {
+      setSaving(false);
     }
-
-    await listingsService.updateListing(id, {
-      title: formData.title,
-      description: formData.description,
-      price: Number(formData.price),
-      condition: CONDITION_TO_API[formData.condition],
-      categoryName: formData.category,
-      courseId: resolvedCourseId,   // <-- use the freshly-resolved value, not moduleTag
-      removedImageIds,
-    });
-
-    if (newFiles.length > 0) {
-      await listingsService.uploadImages(id, newFiles);
-    }
-    navigate("/seller/listings");
-  } catch {
-    setError("Failed to save changes");
-  } finally {
-    setSaving(false);
-  }
-};
-
+  };
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
@@ -275,10 +285,14 @@ const EditListing: React.FC = () => {
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => handleChange("category", cat.name)}
+                      onClick={() => {
+                        handleChange("category", cat.name);
+                        handleChange("brand", "");
+                        handleChange("dimensions", "");
+                      }}
                       className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
-                          ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                        ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                         }`}
                     >
                       {cat.name}
@@ -330,11 +344,9 @@ const EditListing: React.FC = () => {
                   <div>
                     <input
                       type="text"
-                      value={formData.customField}
-                      onChange={(e) =>
-                        handleChange("customField", e.target.value)
-                      }
-                      placeholder="Brand/Model"
+                      value={formData.brand}
+                      onChange={(e) => handleChange("brand", e.target.value)}
+                      placeholder="Brand"
                       className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
@@ -344,10 +356,8 @@ const EditListing: React.FC = () => {
                   <div>
                     <input
                       type="text"
-                      value={formData.customField}
-                      onChange={(e) =>
-                        handleChange("customField", e.target.value)
-                      }
+                      value={formData.dimensions}
+                      onChange={(e) => handleChange("dimensions", e.target.value)}
                       placeholder="Dimensions"
                       className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
@@ -509,8 +519,8 @@ const EditListing: React.FC = () => {
                           type="button"
                           onClick={() => handleChange("condition", item)}
                           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${formData.condition === item
-                              ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                              : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                            ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                             }`}
                         >
                           {item.replace("_", " ")}

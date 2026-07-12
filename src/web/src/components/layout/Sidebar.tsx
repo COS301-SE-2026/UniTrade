@@ -45,7 +45,7 @@ const buyerNav: NavSection[] = [
   {
     heading: 'Account',
     items: [
-      { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
+      { label: 'Messages', to: '/buyer/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
       //{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
@@ -57,7 +57,7 @@ const sellerNav: NavSection[] = [
     heading: 'Main',
     items: [
       { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Switch to me', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
+      { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
       { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} />},
       { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} />, badge: 2 },
@@ -66,7 +66,7 @@ const sellerNav: NavSection[] = [
   {
     heading: 'Account',
     items: [
-      { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
+      { label: 'Messages', to: '/seller/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
       //{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
@@ -185,7 +185,7 @@ export default function Sidebar() {
     } finally {
       clearUser()
       setShowPopover(false)
-      navigate('auth/login')
+      navigate('/auth/login')
     }
   }
   return (

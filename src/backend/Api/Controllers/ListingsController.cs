@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Listings;
-using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.SharedKernel;
 
@@ -63,7 +62,6 @@ public class ListingController : ControllerBase
         return Ok("Listings updated successfully");
     }
 
-
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] ListFilterDto filter)
@@ -80,6 +78,32 @@ public class ListingController : ControllerBase
         if (listing == null)
             return NotFound(new { error = "listing_not_found" });
         return Ok(listing);
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        try
+        {
+            var deleted = await _listings.DeleteListings(id, callerId);
+            if (!deleted)
+                return NotFound(new { error = "listing_not_found" });
+
+            return NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+        }
     }
 
     [Authorize]
@@ -160,4 +184,41 @@ public class ListingController : ControllerBase
 
         return File(data, contentType);
     }
+    [Authorize]
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request, CancellationToken ct)
+    {
+        var callerIdClaim =
+           User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        try
+        {
+            var updated = await _listings.UpdateStatusAsync(id, callerId, request.Status, ct);
+            return updated ? Ok(new { status = request.Status }) : NotFound(new { error = "listing_not_found" });
+
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_status")
+        {
+            return BadRequest(new { error = "invalid_status" });
+
+        }
+
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(403, new { error = "forbidden" });
+
+        }
+
+        catch (InvalidOperationException ex) when (ex.Message == "status_locked")
+        {
+            return Conflict(new { error = "status_locked" });
+
+        }
+    }
+
+    public record UpdateStatusRequest(string Status);
 }

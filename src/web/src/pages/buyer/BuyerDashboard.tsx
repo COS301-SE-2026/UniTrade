@@ -220,7 +220,7 @@ export default function BuyerDashboard() {
             <div 
             key={order.title}
             className="cursor-pointer"
-            onClick={() => navigate(`/buer/reservations/$(order.reservationsId}/chat)`)}
+            onClick={() => navigate(`/buyer/reservations/${order.reservationId}/chat`)}
             >
 
             <OrderRow key={order.title} {...order} />
