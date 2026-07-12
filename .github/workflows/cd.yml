@@ -93,6 +93,23 @@ jobs:
           #do it the longer way after deploying!
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
+      
+      - name: Capture current live revisions 
+        id: live_revs
+        run: |
+          BACK_LIVE=$(az containerapp revision list \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+              --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
+
+              FRONT_LIVE=$(az containerapp revision list \
+                --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
+                --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
+
+              echo "backend_live=$BACK_LIVE" >> "$GITHUB_OUTPUT"
+              echo "frontend_live=$FRONT_LIVE" >> "$GITHUB_OUTPUT"
+
+              echo "Backend live: ${BACK_LIVE:-<none>}"
+              echo "Frontend live: ${FRONT_LIVE:-<none>}"
 
       - name: Deploy backend green revision
         id: backend_rev
@@ -155,6 +172,53 @@ jobs:
       - name: Smoke test staging
         run: |
           curl -fsS "${{ secrets.VITE_API_URL_STAGING }}" > /dev/null
+      
+      - name: Rollback to previous revisions (failure event)
+        if: failure()
+        run: |
+          set +e
+
+          BACK_LIVE="${{ steps.live_revs.outputs.backend_live }}"
+          FRONT_LIVE="${{ steps.live_revs.outputs.frontend_live }}"
+
+          BACK_GREEN="${BACKEND_APP}--${{steps.backend_rev.outputs.suffix}}"
+          FRONT_GREEN="${FRONTEND_APP}--${{steps.front_rev.outputs.suffix}}"
+
+          if [ -n "$BACK_LIVE" ]; then
+            echo "Rolling backend back to $BACK_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$BACKEND_APP" \
+              --resource-group "$BACKEND_RG" \
+              --revision-weight "${BACK_LIVE}=100"
+            
+              if [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$BACKEND_APP" \
+                  --resource-group "$BACKEND_RG" \
+                  --revision "$BACK_GREEN"
+              fi
+          else
+            echo "No previous backend revision found."
+          fi
+
+          if [ -n "$FRONT_LIVE" ]; then
+            echo "Rolling frontend back to $FRONT_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$FRONTEND_APP" \
+              --resource-group "$FRONTEND_RG" \
+              --revision-weight "${FRONT_LIVE}=100"
+            
+              if [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$FRONTEND_APP" \
+                  --resource-group "$FRONTEND_RG" \
+                  --revision "$FRONT_GREEN"
+              fi
+          else
+            echo "No previous frontend revision found."
+          fi
 
       - name: Deactivate old backend revisions
         run: |
@@ -216,7 +280,23 @@ jobs:
           ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING_PROD }}
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
+      
+      - name: Capture current live revisions 
+        id: live_revs
+        run: |
+          BACK_LIVE=$(az containerapp revision list \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+              --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
 
+              FRONT_LIVE=$(az containerapp revision list \
+                --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
+                --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
+
+              echo "backend_live=$BACK_LIVE" >> "$GITHUB_OUTPUT"
+              echo "frontend_live=$FRONT_LIVE" >> "$GITHUB_OUTPUT"
+
+              echo "Backend live: ${BACK_LIVE:-<none>}"
+              echo "Frontend live: ${FRONT_LIVE:-<none>}"
       - name: Deploy backend green revision
         id: backend_rev
         run: |
@@ -273,7 +353,53 @@ jobs:
       - name: Smoke test prod
         run: |
           curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+      
+      - name: Rollback to previous revisions (failure event)
+        if: failure()
+        run: |
+          set +e
 
+          BACK_LIVE="${{ steps.live_revs.outputs.backend_live }}"
+          FRONT_LIVE="${{ steps.live_revs.outputs.frontend_live }}"
+
+          BACK_GREEN="${BACKEND_APP}--${{steps.backend_rev.outputs.suffix}}"
+          FRONT_GREEN="${FRONTEND_APP}--${{steps.front_rev.outputs.suffix}}"
+
+          if [ -n "$BACK_LIVE" ]; then
+            echo "Rolling backend back to $BACK_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$BACKEND_APP" \
+              --resource-group "$BACKEND_RG" \
+              --revision-weight "${BACK_LIVE}=100"
+            
+              if [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$BACKEND_APP" \
+                  --resource-group "$BACKEND_RG" \
+                  --revision "$BACK_GREEN"
+              fi
+          else
+            echo "No previous backend revision found."
+          fi
+
+          if [ -n "$FRONT_LIVE" ]; then
+            echo "Rolling frontend back to $FRONT_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$FRONTEND_APP" \
+              --resource-group "$FRONTEND_RG" \
+              --revision-weight "${FRONT_LIVE}=100"
+            
+              if [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$FRONTEND_APP" \
+                  --resource-group "$FRONTEND_RG" \
+                  --revision "$FRONT_GREEN"
+              fi
+          else
+            echo "No previous frontend revision found."
+          fi
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
