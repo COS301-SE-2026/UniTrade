@@ -244,7 +244,7 @@ jobs:
               "VITE_API_URL=${{ secrets.VITE_API_URL }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
-      - name: Health check staging backend (green)
+      - name: Health check production backend (green)
         run: |
           FQDN=$(az containerapp revision show \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
