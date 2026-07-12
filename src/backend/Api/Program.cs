@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
 using Api.BackgroundServices;
@@ -34,6 +35,8 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
+using Modules.Wishlist;
+using Modules.Wishlist.Repositories;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -169,6 +172,8 @@ builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IBroadCastService, BroadCastService>();
 builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
+builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
 builder.Services.AddSingleton(
     new EmailClient(
