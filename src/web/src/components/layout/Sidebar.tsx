@@ -68,7 +68,7 @@ const sellerNav: NavSection[] = [
     items: [
       { label: 'Messages', to: '/seller/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
-      ///{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      ////{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
   },
 ]

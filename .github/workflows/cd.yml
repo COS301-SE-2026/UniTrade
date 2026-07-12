@@ -105,7 +105,8 @@ jobs:
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}"
+                "Jwt__Secret=${{ secrets.JWT_Secret}}" \
+                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL_STAGING}}" 
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -223,7 +224,8 @@ jobs:
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_PROD }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}" 
+                "Jwt__Secret=${{ secrets.JWT_Secret}}" \
+                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL}}" 
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
