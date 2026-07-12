@@ -83,8 +83,15 @@ public class ReservationsController : ControllerBase
             return BadRequest(new { error = "invalid_role" });
         }
 
-        var reservationItems = await _reservations.ListForUserAsync(CallerId, role, ct);
-        return Ok(new { reservationItems, total = reservationItems.Count });
+        var items = await _reservations.ListForUserAsync(CallerId, role, ct);
+        return Ok(
+            new
+            {
+                items,
+                hasMore = false,
+                nextCursor = (string?)null,
+            }
+        );
     }
 
     // get /api/reservations/{id}

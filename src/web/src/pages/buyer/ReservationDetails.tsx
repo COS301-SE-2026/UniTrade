@@ -8,7 +8,7 @@ import {
   IconCalendarClock,
   IconFlag,
 } from "@tabler/icons-react";
-import type { ReservationListItem } from "../../types/Reservations";
+import type { Reservation } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
 import { cancelReservation, getReservationById} from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
@@ -150,7 +150,7 @@ function ActionButton({
 export default function ReservationDetails(){ const { reservationId } = useParams<{ reservationId: string }>();
   const navigate = useNavigate();
 
-  const [reservation, setReservation] = useState<ReservationListItem | null>(null);
+  const [reservation, setReservation] = useState<Reservation | null>(null);
   const [listingDetail, setListingDetail] = useState<ListingDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -289,7 +289,7 @@ return(
         className="test-sm text-gray-500 dark:text-navy-100 mb-1.5">
       Expires in
       </p>
-    <span className={"inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap"+ countdownClasses}>
+    <span className={`inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap  ${countdownClasses}`}>
     {countdownLabel}
     </span>
     </div> )}
@@ -299,30 +299,28 @@ return(
     <SectionCard title="Item">
     <div className="flex gap-4 mb-5">
      <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
-    {listingDetail?.images?.[0]?.url || reservation.listing?.imagePath ? (
+    {listingDetail?.images?.[0]?.url || listingDetail?.images?.[0]?.url ? (
      <img
-     src={listingDetail?.images?.[0]?.url ?? reservation.listing?.imagePath}
-        alt={reservation.listing?.title ?? "Listing image"}
+     src={listingDetail?.images?.[0]?.url ?? listingDetail?.images?.[0]?.url }
+        alt={listingDetail?.title ?? "Listing image"}
       className="w-full h-full object-cover"
      /> ) :(
         <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
-         {reservation.listing?.title ?? "Listing"}
+         {listingDetail?.title ?? "Listing"}
         </span>
       )}
    </div>
     <div className="min-w-0">
        <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
-         {reservation.listing?.title ?? "Untitled listing"}
+         {listingDetail?.title ?? "Untitled listing"}
       </h3>
         <p className="text-sm text-gray-500 dark:text-navy-100">
-        Condition:{listingDetail?.condition ?? "Good"}
+        Condition: {listingDetail?.condition ?? "Good"}
       </p>
       <p className="text-sm text-gray-500 dark:text-navy-100">
-      Category:{listingDetail?.category ?? "Textbooks"}
+      Category: {listingDetail?.category ?? "Textbooks"}
     </p>
-    <p className="text-sm text-gray-500 dark:text-navy-100">
-     Module Code: {listingDetail?.courseCode ?? "-"}
-      </p>
+
     </div>
      </div>
 
@@ -330,7 +328,7 @@ return(
         label="Item price"
      value={
      <span className="text-lg font-extrabold">
-        {formatCurrency(reservation.listing?.price ?? 0)}
+        {formatCurrency(listingDetail?.price ?? 0)}
        </span>
               }
             />
@@ -383,19 +381,21 @@ return(
          <SectionCard title="Seller">
             <div className="flex items-center gap-3 mb-5">
     <span className="w-11 h-11 rounded-full bg-navy-800 dark:bg-navy-500 text-white text-sm font-bold flex items-center justify-center shrink-0">
-      {reservation.counterparty ?.initials ?? 'S'}
+      {`${listingDetail?.seller?.firstName?.[0] ?? ''}${listingDetail?.seller?.lastName?.[0] ?? ''}`}
  </span>
           <div>
           <p className="text-base font-bold text-navy-900 dark:text-white">
-            {reservation.counterparty?.name ?? "Seller"}
+            {listingDetail?.seller?.firstName?? "Seller"}
           </p>
           <p className="text-sm text-gray-500 dark:text-navy-100">
                   
-          University of Pretoria student
+          {listingDetail?.seller?.university
+           ? `${listingDetail?.seller.university} student`
+           : "Student" }
             </p>
             </div></div>
       <InfoRow label="Seller rating" value="-" />
-       <InfoRow label="Total Sales" value="12" />
+       <InfoRow label="Total Sales" value={listingDetail?.seller?.activeListingCount} />
       </SectionCard>     
 <SectionCard title="Reservation Info">
 <InfoRow label="Reservation ID" value={"#" + reservation.reservationId} />

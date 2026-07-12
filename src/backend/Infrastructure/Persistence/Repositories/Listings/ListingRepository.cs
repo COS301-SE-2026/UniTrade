@@ -73,6 +73,8 @@ public class ListingRepository : IListingRepository
         if (listingFilterDto.SellerId.HasValue)
             query = query.Where(x => x.SellerId == listingFilterDto.SellerId);
 
+        if (listingFilterDto.ExcludeSellerId.HasValue)
+            query = query.Where(x => x.SellerId != listingFilterDto.ExcludeSellerId);
         if (!string.IsNullOrWhiteSpace(listingFilterDto.Search))
         {
             var searchInput = listingFilterDto.Search.Trim();
