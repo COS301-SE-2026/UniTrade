@@ -101,7 +101,9 @@ jobs:
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --secrets \
-                "db-conn=${{secrets.DB_CONNECTION_STRING_PROD}}"
+                "db-conn=${{secrets.DB_CONNECTION_STRING_PROD}}" \
+                "acs-conn=${{secrets.Acs__ConnectionString}}" \
+                "jwt-secret=${{secrets.JWT_Secret}}" \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
@@ -220,6 +222,10 @@ jobs:
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
+              --secrets \
+                "db-conn=${{secrets.DB_CONNECTION_STRING_PROD}}" \
+                "acs-conn=${{secrets.Acs__ConnectionString}}" \
+                "jwt-secret=${{secrets.JWT_Secret}}" \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_PROD }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
