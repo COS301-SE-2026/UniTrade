@@ -72,6 +72,7 @@ public static class ReservationStateMachine
         if (callerId == r.BuyerId)
         {
             r.ReservationStatus = ReservationState.Cancelled;
+            return;
         }
         if (callerId == r.SellerId)
         {
@@ -89,7 +90,7 @@ public static class ReservationStateMachine
     {
         if (r.SellerAcknowledgedAt is null)
         {
-            return false;
+            return true;
         }
         if (r.BuyerRespondedAt is not null)
         {

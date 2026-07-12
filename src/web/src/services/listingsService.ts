@@ -5,6 +5,7 @@ import type {
   Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
   ListingMetadata,
   SimilarListing,
+  ListingStatus,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
@@ -207,6 +208,7 @@ export const listingsService = {
     status: item.listingStatus,
     views: item.viewCount,
     sellerId: item.sellerId,
+    seller: item.seller ?? null,
     listedAt: item.createdAt,
     courseId: item.courseId ?? null,          
     courseCode: item.courseCode ?? "",        
@@ -272,6 +274,7 @@ export const listingsService = {
       price: item.price,
       condition: item.condition,
       status: item.listingStatus,
+      isReserved: item.listingStatus === "reserved",
       views: item.viewCount,
       listedAt: item.createdAt,
       description: item.description,
@@ -289,7 +292,7 @@ export const listingsService = {
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
-  const res = await fetch(`${getApiUrl()}/listings`, { credentials: "include" });
+  const res = await fetch(`${getApiUrl()}/listings?listingStatus=live`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch listings");
   const data = await res.json();
   const listings: BrowseListing[] = data.items.map((item: unknown) => {
@@ -302,6 +305,7 @@ export const listingsService = {
       condition: string;
       metadata?: ListingMetadata;
       images: { imageId: number; isPrimary: boolean; path: string }[];
+      seller?: {sellerId: string}
     };
     const primary = getFirstUploadedImagePath(l.images);
     return {
@@ -314,6 +318,7 @@ export const listingsService = {
       condition: mapCondition(l.condition),
       image: primary ? imageUrl(primary) : biologyTextbook,
       metadata: l.metadata ?? null,
+      sellerId: l.seller?.sellerId ?? "",
     };
   });
   return { listings, total: data.total };
@@ -434,5 +439,21 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
 
      if (!res.ok) throw new Error("Failed to fetch the courses")
       return await res.json();
-  }
+  },
+
+  updateListingStatus: async (
+    id: string,
+    status: ListingStatus,
+  ): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify({ status}),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to update listing status");
+    }
+  },
 };
