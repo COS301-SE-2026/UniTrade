@@ -20,5 +20,5 @@ export async function loadConfig(): Promise<AppConfig> {
 export function getApiUrl(): string {
   if (!config)
     throw new Error("Config not loaded, call the loadConfig() first");
-  return config.apiUrl;
+  return `${config.apiUrl}/api`;
 }
