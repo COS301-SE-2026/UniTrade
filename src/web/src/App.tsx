@@ -86,7 +86,7 @@ export default function App() {
 
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
-        <Route path="/listings/:id" element={<ListingDetail />} />{" "}
+        <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
         {/*the id can be anything for now since the data is hardcoded*/}
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings" element={<BrowseListings />} />

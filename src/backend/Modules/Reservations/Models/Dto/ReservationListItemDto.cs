@@ -17,5 +17,7 @@ public record ReservationListItemDto(
     DateTime CreatedAt,
     CounterPartyDto CounterParty,
     ReservationListingSummaryDto Listing,
-    int UnreadCount
+    int UnreadCount,
+    string? LastMessagePreview,
+    DateTime? LastMessageAt
 );

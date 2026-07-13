@@ -66,7 +66,7 @@ public class ChatHub : Hub
         return $"reservation-{reservationId}";
     }
 
-    public async Task SendMessage(Guid reservationId, string content)
+    public async Task<ChatMessageDto> SendMessage(Guid reservationId, string content)
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
@@ -89,6 +89,7 @@ public class ChatHub : Hub
         }
 
         await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
+        return message;
     }
 
     //read receipts -markAsread func
