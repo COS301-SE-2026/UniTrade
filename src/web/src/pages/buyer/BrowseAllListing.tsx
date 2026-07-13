@@ -48,11 +48,36 @@ function ListingCard({
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
 
+  const [wishlisting, setWishlisting] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false)
+  const [wishlistError, setWishlistError] = useState<string | null>(null)
+
   const conditionColours: Record<BrowseCondition, string> = {
     like_new: 'bg-green-100 text-green-700',
     Good: 'bg-green-100 text-green-700',
     Fair: 'bg-yellow-100 text-yellow-700',
     Poor: 'bg-red-100 text-red-700',
+  }
+
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (wishlisting || wishlisted) return
+    
+    setWishlisting(true)
+    setWishlistError(null)
+
+    try {
+      await listingsService.addToWishlist(String(listing.id))
+      setWishlisted(true)
+    } catch (err) {
+      if (err instanceof Error && err.message === 'already_wishlisted') {
+        setWishlisted(true)
+      } else {
+        setWishlistError('Could not add to wishlist.')
+      }
+    }finally {
+      setWishlisting(false)
+    }
   }
 
   const handleReserve = async (e: React.MouseEvent) => {
@@ -77,7 +102,7 @@ function ListingCard({
       }
       
       else{
-        setReserveError(result.error.message ?? 'Counld not reserve this item.')
+        setReserveError(result.error.message ?? 'Could not reserve this item.')
       }
       setReserving(false)
   }
@@ -107,6 +132,10 @@ function ListingCard({
         {reserveError && (
           <p className="text-xs text-rose-600">{reserveError}</p>
         )}
+        {wishlistError && (
+          <p className= "text-xs text-rose-600">{wishlistError}
+          </p>
+        )}
 
         <div className="flex flex-col gap-2 mt-auto pt-2">
           <button 
@@ -115,8 +144,11 @@ function ListingCard({
           className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
            {reserved ? 'Reserved' : reserving? 'Reserving...' : 'Reserve'}
           </button>
-          <button className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-            Add to Wishlist
+          <button 
+          onClick = { handleAddToWishlist}
+          disabled = {wishlisting || wishlisted}
+          className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+            {wishlisted ? 'In Wishlist' : wishlisting? 'Adding...' : 'Add to Wishlist'}
           </button>
         </div>
       </div>
@@ -162,7 +194,7 @@ export default function BrowseAllListing() {
       .catch(() => {
         // category chips are non-critical; leave the list empty (just "All") on failure
       })
-  }, [])
+  }, [user])
   
   const visibleCategories = categories.slice(0,3)
   const hiddenCategories = categories.slice(3)
@@ -309,7 +341,7 @@ export default function BrowseAllListing() {
           <ListingCard
             key={listing.id}
             listing={listing}
-            onClick={() => navigate(`/listings/${listing.id}`)}
+            onClick={() => navigate(`/buyer/listings/${listing.id}`)}
           />
         ))}
       </div>
