@@ -106,7 +106,7 @@ function InfoRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-navy-700 last:border-b-0">
+    <div className="flex items-center justify-between py-3 border-b border-gray-400 dark:border-navy-700 last:border-b-0">
       <span className="text-sm text-gray-500 dark:text-navy-100">{label}</span>
       <span className="text-sm font-semibold text-navy-900 dark:text-white">
         {value}
