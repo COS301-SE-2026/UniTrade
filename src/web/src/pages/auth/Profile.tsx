@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IconSettings, IconHistory, IconChevronRight, IconShieldLock, IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
@@ -87,8 +87,26 @@ export default function Profile() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [profile,setProfile] = useState <ProfileDetails | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const[profileError, setProfileError] =useState<string | null>(null);
 
-
+useEffect(() => {
+  authService.getMe()
+  .then((data) => {
+    if (data.std) {
+      setProfile( {
+        email: data.user.email,
+        university: data.std.university,
+        degreeProgram: data.std.degreeProgram,
+        yearOfStudy:data.std.yearOfStudy,
+        verificationStatus: data.std.verificationStatus
+      });
+    }else {
+      setProfile({email:data.user.email });
+    }
+  }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
+}, []);
 
   if (!user) return null;
 
@@ -107,6 +125,7 @@ export default function Profile() {
     setDeleting(true);
     setDeleteError(null);
     try {
+      await authService.deleteAccount();
       clearUser();
       navigate("/auth/login");
     } catch {
@@ -144,37 +163,61 @@ export default function Profile() {
             <div className="w-20 h-20 rounded-full bg-white text-navy-700 flex item-center justify-center text-2xl font-bold shadow-lg">
               {user.initials}
             </div>
-
           </div>
 
           <div>
-
             <p className="text-base font-bold text-white">
               {user.name}
             </p>
+            <div className ="flex items-center gap-2 mt-1.5 flex-wrap">
 
-            <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold mt-1">
-              Student
+         <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold mt-1">
+            Student
             </span>
+      {profile?.verificationStatus && ( <VerificationBadge status = {profile.verificationStatus} />
+      )}
 
           </div>
         </div>
-
-        <div className="flex items-start gap-4 pt-4 border-t border-white/10 mt-2">
-          <div className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center flex-shrink-0">
-            <IconSchool size={18} />
-          </div>
-          <div className="flex flex-col justify-center">
-
-            <p className="text-sm font-semibold text-white">
-              {user.course ?? "Course not set"}
-            </p>
-            <p className="text-xs text-white/60 mt-0.5">
-              {user.year ? `Year ${user.year}` : "Year not set"}
-            </p>
-          </div>
         </div>
+        </div>
+
+        <div className="bg-white rounded-2xl; shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+{loadingProfile &&(
+  <div className="p-4 flex flex-col gap-3">
+    <div className="h-10 rounded-lg bg-gray-100 animate-pulse" />
+     <div className="h-10 rounded-lg bg-gray-100 animate-pulse" />
+      <div className="h-10 rounded-lg bg-gray-100 animate-pulse" />
       </div>
+)}
+
+ {!loadingProfile && profileError && (
+  <div className="p-4 text-center">
+    <p className="text-sm text-red-500"> {profileError}</p>
+    </div>
+ )}
+
+ {!loadingProfile && !profileError && profile && (
+  <>
+   <InfoRow icon={<IconMail size={17} /> } label="Email" value={profile.email} />
+   {profile.degreeProgram && profile && (
+    <InfoRow icon={<IconBook2 size={17} />} label="Course" value={profile.degreeProgram} />
+    
+    )}
+    {profile.yearOfStudy !== undefined && (
+      <InfoRow 
+      icon = {<IconCalendarStats size={17} />}
+      label="Year of Study" 
+      value={`Year ${profile.yearOfStudy}`}
+      />
+   )}
+   {profile.university && (
+    <InfoRow icon={<IconSchool size={17} />} label="University" value={profile.university} />
+   )}
+   </>
+ )}
+ </div>
+
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
         <ProfileRow
