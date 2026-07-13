@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   IconStar, IconCheck, IconChevronRight,
+  IconBookmark, IconHeart, IconFlag
 } from '@tabler/icons-react'
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
 import type { ListingDetail as ListingDetailType, SimilarListing } from '../../types/listing'
-
-
-
+import { createReservation } from '../../services/reservationService'
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -19,30 +18,6 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
     </div>
   )
 }
-
-/*function ReviewRow({ initials, name, stars, text, date }: {
-  initials: string; name: string; stars: number; text: string; date: string
-}) {
-  return (
-    <div className="flex gap-3 py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-navy-700 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-        {initials}
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-navy-700 dark:text-white">{name}</p>
-        <div className="flex gap-0.5 my-0.5">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <IconStar key={index} size={11} className={index < stars ? 'text-amber-500 fill-amber-500' : 'text-gray-300'} />
-          ))}
-        </div>
-        <p className="text-xs text-gray-500 dark:text-white/50 leading-relaxed">{text}</p>
-        <p className="text-[10px] text-gray-300 mt-1">{formatDate(date)}</p>
-      </div>
-    </div>
-  )
-}*/
-
-
 export default function ListingDetail() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -50,26 +25,53 @@ export default function ListingDetail() {
   const [activeImage, setActiveImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [courseCode, setCourseCode] = useState<string | null>(null);
+  const [courseCode, setCourseCode] = useState<string | null>(null)
   const [similarListings, setSimilarListings] = useState<SimilarListing[] | null>(null)
+  const [reserving, setReserving] = useState(false)
+  const [reserved, setReserved] = useState(false)
+  const [reserveError, setReserveError] = useState<string | null>(null)
+
+  const handleReserve = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!listing) return
+
+    setReserving(true)
+    setReserveError(null)
+
+    const result = await createReservation({ listingId: String(listing.id) })
+
+    if (result.success) {
+      setReserved(true)
+      navigate('/buyer/reservations')
+    } else if (result.error.code === 'self_reserve') {
+      setReserveError("You can't reserve your own listing.")
+    } else if (result.error.code === 'already_reserved') {
+      setReserveError('Item was just reserved by someone else!')
+    } else {
+      setReserveError(result.error.message ?? 'Could not reserve this item.')
+    }
+
+    setReserving(false)
+  }
 
   useEffect(() => {
     if (!id) return
     listingsService.getById(id)
       .then(data => {
-        setListing(data);
+        setListing(data)
         if (data.courseId) {
           listingsService
             .getCourse(data.courseId)
-            .then((course) => setCourseCode(course.courseCode))
+            .then(course => setCourseCode(course.courseCode))
             .catch(() => setCourseCode(null))
         }
         listingsService.getSimilarListings(data)
           .then(setSimilarListings)
           .catch(() => setSimilarListings([]))
-        setActiveImage(data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null)
+        setActiveImage(
+          data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null
+        )
       })
-
       .catch(() => setError('Failed to load listing'))
       .finally(() => setLoading(false))
   }, [id])
@@ -86,16 +88,16 @@ export default function ListingDetail() {
     </div>
   )
 
-
   return (
     <div className="space-y-4">
-
       <div className="flex items-center gap-1.5 text-xs text-gray-400">
-        <span className="text-[#00aaff] cursor-pointer hover:underline" onClick={() => navigate('/buyer/dashboard')}>
+        <span className="text-[#00aaff] cursor-pointer hover:underline"
+          onClick={() => navigate('/buyer/dashboard')}>
           Dashboard
         </span>
         <IconChevronRight size={12} />
-        <span className="text-[#00aaff] cursor-pointer hover:underline" onClick={() => navigate('/buyer/listings')}>
+        <span className="text-[#00aaff] cursor-pointer hover:underline"
+          onClick={() => navigate('/buyer/listings')}>
           Listings
         </span>
         <IconChevronRight size={12} />
@@ -103,27 +105,28 @@ export default function ListingDetail() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2 space-y-4">
 
+        <div className="col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
             <div className="w-full h-56 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700">
               {activeImage ? (
                 <img src={activeImage} alt={listing.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-4xl">📚</span>
+                  <span className="text-4xl">None</span>
                 </div>
               )}
             </div>
             <div className="flex gap-2">
-              {listing.images.map((img) => (
+              {listing.images.map(img => (
                 <div
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
-                    ? 'border-navy-700 dark:border-white'
-                    : 'border-transparent'
-                    }`}
+                  className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${
+                    activeImage === img.url
+                      ? 'border-navy-700 dark:border-white'
+                      : 'border-transparent'
+                  }`}
                 >
                   {img.url ? (
                     <img src={img.url} alt={listing.title} className="w-full h-full object-cover" />
@@ -134,14 +137,14 @@ export default function ListingDetail() {
               ))}
             </div>
           </div>
-
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-            <h1 className="text-lg font-bold text-navy-700 dark:text-white mb-1">{listing.title}</h1>
+            <h1 className="text-lg font-bold text-navy-700 dark:text-white mb-1">
+              {listing.title}
+            </h1>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-2xl font-bold text-navy-700 dark:text-white">
                 {formatPrice(listing.price)}
               </span>
-
             </div>
 
             <div className="flex flex-wrap gap-2 mb-4">
@@ -163,7 +166,6 @@ export default function ListingDetail() {
                   {listing.metadata.dimensions}
                 </span>
               )}
-
             </div>
 
             <hr className="border-gray-100 dark:border-white/5 mb-4" />
@@ -175,7 +177,8 @@ export default function ListingDetail() {
             <hr className="border-gray-100 dark:border-white/5 mb-4" />
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">Listing details</h3>
             <DetailRow label="Category" value={listing.category} />
-            <DetailRow label="Condition"
+            <DetailRow
+              label="Condition"
               value={
                 <span className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
                   <IconStar size={10} className="fill-green-700" /> {formatCondition(listing.condition)}
@@ -194,43 +197,78 @@ export default function ListingDetail() {
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
           </div>
-
-          {/*<div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller reviews</h3>
-            {listing.reviews.length > 0 ? (
-              listing.reviews.map(review => (
-                <ReviewRow key={review.id} {...review} />
-              ))
-            ) : (
-              <p className="text-xs text-gray-400">No reviews yet.</p>
-            )}
-          </div>*/}
         </div>
-
-
         <div className="col-span-1 space-y-4">
 
-
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">Seller</h3>
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-navy-600 animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                <div className="h-2.5 w-16 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller</h3>
+            <div className="flex items-center gap-3 bg-blue-50 dark:bg-navy-700 rounded-lg p-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-navy-700 dark:bg-navy-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                {`${listing.seller?.firstName?.[0] ?? ''}${listing.seller?.lastName?.[0] ?? ''}`}
               </div>
-              <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
-                Coming soon
-              </span>
+              <div>
+                <p className="text-sm font-semibold text-navy-700 dark:text-white">
+                  {listing.seller?.firstName}
+                </p>
+                <p className="text-xs text-gray-400">{listing.seller?.university}</p>
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1">
+                  <IconCheck size={9} /> Verified Student
+                </span>
+              </div>
             </div>
-          </div>
 
+            <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+              {[
+                { val: listing.seller?.activeListingCount ?? '—', label: 'Listings' },
+                { val: '—', label: 'Response Rate' },
+                { val: '—', label: 'Rating' },
+              ].map(({ val, label }) => (
+                <div key={label}>
+                  <p className="text-base font-bold text-navy-700 dark:text-white">{val}</p>
+                  <p className="text-[10px] text-gray-400">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
+              <span className="text-blue-500 text-sm flex-shrink-0">🛡</span>
+              <p className="text-xs text-blue-700 dark:text-white/70 leading-relaxed">
+                Reserve now to hold this item for 24 hours. No payment until you meet and inspect it in person.
+              </p>
+            </div>
+
+            {/* Reserve error */}
+            {reserveError && (
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2 mb-3">
+                <p className="text-xs text-red-600 dark:text-red-400 text-center">{reserveError}</p>
+              </div>
+            )}
+
+            <button
+              onClick={handleReserve}
+              disabled={reserving || reserved}
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 mb-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <IconBookmark size={16} />
+              {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
+            </button>
+
+            <button className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+              <IconHeart size={16} /> Add to wishlist
+            </button>
+
+            <button
+              disabled
+              className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <IconFlag size={13} /> Report this listing
+            </button>
+          </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Similar listings</h3>
             {similarListings === null ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+              <div className="flex flex-col items-center justify-center py-6 gap-3">
                 <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-navy-600 animate-pulse" />
                 <div className="space-y-2">
                   <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
@@ -244,7 +282,7 @@ export default function ListingDetail() {
                 {similarListings.map(item => (
                   <div
                     key={item.id}
-                    onClick={() => navigate(`/listings/${item.id}`)}
+                    onClick={() => navigate(`/buyer/listings/${item.id}`)}
                     className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-navy-700 rounded-lg p-2 -m-2"
                   >
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex-shrink-0">
@@ -255,7 +293,9 @@ export default function ListingDetail() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-navy-700 dark:text-white truncate">{item.title}</p>
+                      <p className="text-xs font-medium text-navy-700 dark:text-white truncate">
+                        {item.title}
+                      </p>
                       <p className="text-[11px] text-gray-400">{formatPrice(item.price)}</p>
                     </div>
                     <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
@@ -268,9 +308,7 @@ export default function ListingDetail() {
           </div>
 
         </div>
-
       </div>
     </div>
-
   )
 }

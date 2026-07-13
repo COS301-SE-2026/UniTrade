@@ -92,4 +92,24 @@ public class ChatRepository : IChatRepository
     {
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<
+        IReadOnlyDictionary<Guid, (string Content, DateTime SentAt)>
+    > GetLastMessagesAsync(IEnumerable<Guid> reservationIds, CancellationToken ct = default)
+    {
+        var ids = reservationIds.ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, (string, DateTime)>();
+        }
+
+        var latest = await _db
+            .ChatMessages.AsNoTracking()
+            .Where(m => ids.Contains(m.ReservationId))
+            .GroupBy(m => m.ReservationId)
+            .Select(g => g.OrderByDescending(m => m.MessageId).First())
+            .ToListAsync(ct);
+
+        return latest.ToDictionary(m => m.ReservationId, m => (m.Content, m.SentAt));
+    }
 }
