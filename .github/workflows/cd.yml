@@ -105,7 +105,9 @@ jobs:
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}"
+                "Jwt__Secret=${{ secrets.JWT_Secret}}" \
+                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL_STAGING}}" \
+                "Acs__SenderAddress=${{secrets.ACS_SENDER_ADDRESS}}" 
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -150,7 +152,7 @@ jobs:
 
       - name: Smoke test staging
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL_STAGING }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL_STAGING }}/health" > /dev/null
 
       - name: Deactivate old backend revisions
         run: |
@@ -223,7 +225,9 @@ jobs:
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_PROD }}" \
                 "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}" 
+                "Jwt__Secret=${{ secrets.JWT_Secret}}" \
+                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL}}" \
+                "Acs__SenderAddress=${{secrets.ACS_SENDER_ADDRESS}}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -263,7 +267,7 @@ jobs:
 
       - name: Smoke test prod
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL }}" > /dev/null
+          curl -fsS "${{ secrets.VITE_API_URL }}/health" > /dev/null
 
       - name: Deactivate old backend revisions
         run: |

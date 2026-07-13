@@ -4,7 +4,7 @@ using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
-
+using Modules.Wishlist;
 namespace Modules.Reservations;
 
 public class ReservationService : IReservationService
@@ -13,6 +13,7 @@ public class ReservationService : IReservationService
     private readonly IReservationRepository _reservations;
     private readonly IChatService _chat;
     private readonly IBroadCastService _broadcast;
+    private readonly IWishlistService _wishlist;
     private readonly TimeProvider _clock;
 
     public ReservationService(
@@ -20,6 +21,7 @@ public class ReservationService : IReservationService
         IListingRepository listings,
         IChatService chat,
         IBroadCastService broadcast,
+        IWishlistService wishlist,
         TimeProvider clock
     )
     {
@@ -27,6 +29,7 @@ public class ReservationService : IReservationService
         _listings = listings;
         _chat = chat;
         _broadcast = broadcast;
+        _wishlist = wishlist;
         _clock = clock;
     }
 
@@ -70,6 +73,7 @@ public class ReservationService : IReservationService
             ct
         );
         await _reservations.SaveAsync(ct);
+        await _wishlist.CleanForListingAsync(listingId, ct);
 
         return MapToDto(reservation, listingId);
     }
