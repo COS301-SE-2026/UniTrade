@@ -1,11 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   IconSettings, IconHistory, IconChevronRight, IconShieldLock, IconTrash,
-  IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft,
+  IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
+  IconCalendarStats, IconCircleCheck, IconClock,
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
+
+interface ProfileDetails{
+  email: string;
+  university?: string;
+  degreeProgram? :string;
+  yearOfStudy?: number;
+  verificationStatus?: string;
+}
 
 interface ProfileRowProps {
   icon: React.ReactNode;
@@ -31,6 +40,45 @@ function ProfileRow({ icon, label, onClick, danger }: ProfileRowProps) {
   );
 }
 
+function InfoRow({
+  icon,
+  label,
+  value,
+}:{
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+
+})
+
+{
+  return(
+    <div className="flex items-center gap-3 px-4 py-3.5">
+    <span className = "w-9 h-9 rounded-full bg-gray-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+      {icon}
+      </span>
+      <div className="min-w-0">
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
+      
+      <p className="text-sm font-semibold text-navy-900 truncate"> {value}</p>
+      </div>
+      </div>
+  );}
+
+  function VerificationBadge({ status }: { status: string }){
+    const isVerified = status.toLowerCase() === "verified";
+    return(
+      <span className={`inline-flex intems-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${ isVerified ? "bg-emerald-500/80 text-emerald-50" : 
+        "bg-amber-500/80 text-amber-50"
+      }`
+    
+      } >
+        {isVerified ? <IconCircleCheck size={12} /> : <IconClock size={12} />}    
+        {isVerified ? "Verified" : "Pending Verification"}
+        </span> 
+    );
+  }
+
 
 export default function Profile() {
   const { user, clearUser } = useAuthStore();
@@ -39,13 +87,16 @@ export default function Profile() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+
+
+
   if (!user) return null;
 
   const handleLogout = async () => {
     try {
       await authService.logout();
     } catch {
-      //Empty
+      
     } finally {
       clearUser();
       navigate("/auth/login");
@@ -105,6 +156,7 @@ export default function Profile() {
             <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold mt-1">
               Student
             </span>
+
           </div>
         </div>
 
