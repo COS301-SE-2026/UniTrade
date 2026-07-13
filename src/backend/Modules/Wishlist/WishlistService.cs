@@ -36,10 +36,6 @@ public class WishlistService : IWishlistService
         var listing =
             await _listings.GetByIdAsync(listingId)
             ?? throw new WishlistException(WishlistErrors.ListingNotFound);
-        if (listing is not null)
-        {
-            throw new WishlistException(WishlistErrors.AlreadyWishlisted);
-        }
 
         
         if (listing.ListingStatus is "reserved" or "sold" or "removed")
@@ -47,6 +43,11 @@ public class WishlistService : IWishlistService
             throw new WishlistException(WishlistErrors.ListingUnavailable);
         }
 
+        var existing = await _wishlist.GetAsync(studentId, listingId, ct);
+        if (existing is not null)
+        {
+            throw new WishlistException(WishlistErrors.AlreadyWishlisted);
+        }
         var wishlistItem = new WishlistItem
         {
             StudentId = studentId,
