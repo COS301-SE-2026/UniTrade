@@ -1,6 +1,7 @@
 name: CD - Deploy to Azure
 
 on:
+  # will make the cd run only if ci passes after tetsing
   push:
     branches: ["feature/backend/unitTesting_p1"]
     paths:
@@ -19,15 +20,16 @@ concurrency:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -55,32 +57,31 @@ jobs:
   deploy-staging:
     needs: build-and-push
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: staging
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      #RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
-      #PUT rgs into secrets
       BACKEND_RG: unitrade-BackEnd
       FRONTEND_RG: unitrade-FrontEnd
       BACKEND_APP: unitrade-backend-staging
       FRONTEND_APP: unitrade-frontend-staging
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
         with:
           dotnet-version: "10.0.x"
 
-      - name: Instal EF tool
+      - name: Install EF tool
         run: dotnet tool install --global dotnet-ef
       
       - name: restore dependencies
@@ -93,21 +94,48 @@ jobs:
           #do it the longer way after deploying!
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
+      
+      - name: Capture current live revisions 
+        id: live_revs
+        run: |
+          BACK_LIVE=$(az containerapp revision list \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+              --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
+
+              FRONT_LIVE=$(az containerapp revision list \
+                --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
+                --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
+
+              echo "backend_live=$BACK_LIVE" >> "$GITHUB_OUTPUT"
+              echo "frontend_live=$FRONT_LIVE" >> "$GITHUB_OUTPUT"
+
+              echo "Backend live: ${BACK_LIVE:-<none>}"
+              echo "Frontend live: ${FRONT_LIVE:-<none>}"
 
       - name: Deploy backend green revision
         id: backend_rev
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
+
+          az containerapp secret set \
+            --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+            --secrets \
+              "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
+              "acs-conn=${{secrets.Acs__ConnectionString}}" \
+              "jwt-secret=${{secrets.JWT_Secret}}"  \
+              "otp-secret=${{secrets.OTP_SECRET}}" 
+          
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-                "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
-                "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}" \
-                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL_STAGING}}" \
-                "Acs__SenderAddress=${{secrets.ACS_SENDER_ADDRESS}}" 
+                "ConnectionStrings__DefaultConnection=secretref:db-conn" \
+                "Acs__ConnectionString=secretref:acs-conn" \
+                "Jwt__Secret=secretref:jwt-secret" \
+                "Otp__Secret=secretref:otp-secret" \
+                "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL_STAGING }}" \
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -142,31 +170,80 @@ jobs:
         run: |
           az containerapp ingress traffic set \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
+          --revision-weight "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}=100"
 
       - name: Shift traffic to green (frontend)
         run: |
           az containerapp ingress traffic set \
           --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
+          --revision-weight "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}=100"
 
       - name: Smoke test staging
         run: |
           curl -fsS "${{ secrets.VITE_API_URL_STAGING }}/health" > /dev/null
+      
+      - name: Rollback to previous revisions (failure event)
+        if: failure()
+        run: |
+          set +e
+
+          BACK_LIVE="${{ steps.live_revs.outputs.backend_live }}"
+          FRONT_LIVE="${{ steps.live_revs.outputs.frontend_live }}"
+
+          BACK_SUFFIX="${{ steps.backend_rev.outputs.suffix }}"
+          BACK_GREEN="${BACKEND_APP}--${{steps.backend_rev.outputs.suffix}}"
+          FRONT_SUFFIX="${{ steps.front_rev.outputs.suffix }}"
+          FRONT_GREEN="${FRONTEND_APP}--${{steps.front_rev.outputs.suffix}}"
+
+          if [ -n "$BACK_LIVE" ]; then
+            echo "Rolling backend back to $BACK_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$BACKEND_APP" \
+              --resource-group "$BACKEND_RG" \
+              --revision-weight "${BACK_LIVE}=100"
+            
+              if [ -n "$BACK_SUFFIX" ] && [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$BACKEND_APP" \
+                  --resource-group "$BACKEND_RG" \
+                  --revision "$BACK_GREEN"
+              fi
+          else
+            echo "No previous backend revision found."
+          fi
+
+          if [ -n "$FRONT_LIVE" ]; then
+            echo "Rolling frontend back to $FRONT_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$FRONTEND_APP" \
+              --resource-group "$FRONTEND_RG" \
+              --revision-weight "${FRONT_LIVE}=100"
+            
+              if [ -n "$FRONT_SUFFIX" ] && [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$FRONTEND_APP" \
+                  --resource-group "$FRONTEND_RG" \
+                  --revision "$FRONT_GREEN"
+              fi
+          else
+            echo "No previous frontend revision found."
+          fi
 
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
+            [ -n "$rev" ] && az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
           az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
+           [ -n "$rev" ] && az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
           done
 
   approval-gate:
@@ -179,6 +256,7 @@ jobs:
   deploy-prod:
     needs: [build-and-push, approval-gate]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
@@ -188,20 +266,20 @@ jobs:
       FRONTEND_APP: unitrade-frontend
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
         with:
           dotnet-version: "10.0.x"
 
-      - name: Instal EF tool
+      - name: Install EF tool
         run: dotnet tool install --global dotnet-ef
 
       - name: restore dependencies
@@ -213,21 +291,48 @@ jobs:
           ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING_PROD }}
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
+      
+      - name: Capture current live revisions 
+        id: live_revs
+        run: |
+          BACK_LIVE=$(az containerapp revision list \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+              --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
 
+              FRONT_LIVE=$(az containerapp revision list \
+                --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
+                --query "[?properties.trafficWeight>\`0\`].name | [0]" -o tsv)
+
+              echo "backend_live=$BACK_LIVE" >> "$GITHUB_OUTPUT"
+              echo "frontend_live=$FRONT_LIVE" >> "$GITHUB_OUTPUT"
+
+              echo "Backend live: ${BACK_LIVE:-<none>}"
+              echo "Frontend live: ${FRONT_LIVE:-<none>}"
       - name: Deploy backend green revision
         id: backend_rev
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
+
+          az containerapp secret set \
+            --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+            --secrets \
+              "db-conn=${{ secrets.DB_CONNECTION_STRING_PROD}}" \
+              "acs-conn=${{secrets.Acs__ConnectionString}}" \
+              "jwt-secret=${{secrets.JWT_Secret}}" \
+              "otp-secret=${{secrets.OTP_SECRET}}"
+              
+
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-                "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING_PROD }}" \
-                "Acs__ConnectionString=${{ secrets.Acs__ConnectionString }}" \
-                "Jwt__Secret=${{ secrets.JWT_Secret}}" \
-                "Cors__AllowedOrigins=${{secrets.FRONTEND_URL}}" \
-                "Acs__SenderAddress=${{secrets.ACS_SENDER_ADDRESS}}"
+                "ConnectionStrings__DefaultConnection=secretref:db-conn" \
+                "Acs__ConnectionString=secretref:acs-conn" \
+                "Jwt__Secret=secretref:jwt-secret" \
+                "Otp__Secret=secretref:otp-secret" \
+                "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL }}" \
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -242,7 +347,7 @@ jobs:
               "VITE_API_URL=${{ secrets.VITE_API_URL }}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
-      - name: Health check staging backend (green)
+      - name: Health check production backend (green)
         run: |
           FQDN=$(az containerapp revision show \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -257,29 +362,77 @@ jobs:
         run: |
           az containerapp ingress traffic set \
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision-weight "${BACKEND_APP}"--${{ steps.backend_rev.outputs.suffix }}=100
+          --revision-weight "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}=100"
 
       - name: Shift traffic to green (frontend)
         run: |
           az containerapp ingress traffic set \
           --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-          --revision-weight "${FRONTEND_APP}"--${{ steps.front_rev.outputs.suffix }}=100
+          --revision-weight "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}=100"
 
       - name: Smoke test prod
         run: |
           curl -fsS "${{ secrets.VITE_API_URL }}/health" > /dev/null
+      
+      - name: Rollback to previous revisions (failure event)
+        if: failure()
+        run: |
+          set +e
 
+          BACK_LIVE="${{ steps.live_revs.outputs.backend_live }}"
+          FRONT_LIVE="${{ steps.live_revs.outputs.frontend_live }}"
+
+          BACK_SUFFIX="${{ steps.backend_rev.outputs.suffix }}"
+          BACK_GREEN="${BACKEND_APP}--${{steps.backend_rev.outputs.suffix}}"
+          FRONT_SUFFIX="${{ steps.front_rev.outputs.suffix }}"
+          FRONT_GREEN="${FRONTEND_APP}--${{steps.front_rev.outputs.suffix}}"
+
+          if [ -n "$BACK_LIVE" ]; then
+            echo "Rolling backend back to $BACK_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$BACKEND_APP" \
+              --resource-group "$BACKEND_RG" \
+              --revision-weight "${BACK_LIVE}=100"
+            
+              if [ -n "$BACK_SUFFIX" ] && [ "$BACK_GREEN" != "$BACK_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$BACKEND_APP" \
+                  --resource-group "$BACKEND_RG" \
+                  --revision "$BACK_GREEN"
+              fi
+          else
+            echo "No previous backend revision found."
+          fi
+
+          if [ -n "$FRONT_LIVE" ]; then
+            echo "Rolling frontend back to $FRONT_LIVE"
+
+            az containerapp ingress traffic set \
+              --name "$FRONTEND_APP" \
+              --resource-group "$FRONTEND_RG" \
+              --revision-weight "${FRONT_LIVE}=100"
+            
+              if [ -n "$FRONT_SUFFIX" ] && [ "$FRONT_GREEN" != "$FRONT_LIVE" ]; then
+                az containerapp revision deactivate \
+                  --name "$FRONTEND_APP" \
+                  --resource-group "$FRONTEND_RG" \
+                  --revision "$FRONT_GREEN"
+              fi
+          else
+            echo "No previous frontend revision found."
+          fi
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --query "[?properties.trafficWeight=='0']name" -o tsv | \
+          --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
           while read -r rev; do
-            az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
+            [ -n "$rev" ] && az containerapp revision deactivate --name "$BACKEND_APP" --resource-group "$BACKEND_RG" --revision "$rev"
           done
       - name: Deactivate old frontend revisions
         run: |
           az containerapp revision list --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-            --query "[?properties.trafficWeight=='0']name" -o tsv | \
+            --query "[?properties.trafficWeight==\`0\`].name" -o tsv | \
             while read -r rev; do
-              az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
+              [ -n "$rev" ] && az containerapp revision deactivate --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" --revision "$rev"
             done
