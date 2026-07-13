@@ -38,7 +38,7 @@ const buyerNav: NavSection[] = [
       { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
-      { label: 'My Wishlist', to: '/wishlist', icon: <IconHeart size={18} /> },
+      { label: 'My Wishlist', to: 'buyer/wishlist', icon: <IconHeart size={18} /> },
       { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} />, badge: 2 },
     ],
   },
@@ -47,7 +47,7 @@ const buyerNav: NavSection[] = [
     items: [
       { label: 'Messages', to: '/buyer/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
-      //{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      ///{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
   },
 ]
@@ -68,7 +68,7 @@ const sellerNav: NavSection[] = [
     items: [
       { label: 'Messages', to: '/seller/messages', icon: <IconMessage size={18} />, badge: 5 },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
-      //{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      ////{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
   },
 ]
