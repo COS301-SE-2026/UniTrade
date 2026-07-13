@@ -4,7 +4,7 @@ using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
-
+using Modules.Wishlist;
 namespace Modules.Reservations;
 
 public class ReservationService : IReservationService
@@ -13,6 +13,7 @@ public class ReservationService : IReservationService
     private readonly IReservationRepository _reservations;
     private readonly IChatService _chat;
     private readonly IBroadCastService _broadcast;
+    private readonly IWishlistService _wishlist;
     private readonly TimeProvider _clock;
 
     public ReservationService(
@@ -20,6 +21,7 @@ public class ReservationService : IReservationService
         IListingRepository listings,
         IChatService chat,
         IBroadCastService broadcast,
+        IWishlistService wishlist,
         TimeProvider clock
     )
     {
@@ -27,6 +29,7 @@ public class ReservationService : IReservationService
         _listings = listings;
         _chat = chat;
         _broadcast = broadcast;
+        _wishlist = wishlist;
         _clock = clock;
     }
 
@@ -70,6 +73,7 @@ public class ReservationService : IReservationService
             ct
         );
         await _reservations.SaveAsync(ct);
+        await _wishlist.CleanForListingAsync(listingId, ct);
 
         return MapToDto(reservation, listingId);
     }
@@ -145,10 +149,13 @@ public class ReservationService : IReservationService
         }
 
         var ids = reservations.Select(r => r.ReservationId);
+
         var unread = await _chat.GetUnreadCountsAsync(ids, userId, ct);
+        var lastMessages = await _chat.GetLastMessagesAsync(ids, ct);
         return reservations
             .Select(r =>
             {
+                var lastMsg = lastMessages.GetValueOrDefault(r.ReservationId);
                 var isBuyer = r.BuyerId == userId;
                 var listing = r.ReservationListings.First().Listing;
                 var other = isBuyer ? r.Seller : r.Buyer;
@@ -172,7 +179,9 @@ public class ReservationService : IReservationService
                             ? $"/api/listings/{listing.ListingId}/images/{listing.Images.First().ImageId}"
                             : null
                     ),
-                    UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0)
+                    UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0),
+                    LastMessagePreview: lastMsg.Content,
+                    LastMessageAt: lastMsg.SentAt == default ? (DateTime?)null : lastMsg.SentAt
                 );
             })
             .ToList();
