@@ -184,7 +184,7 @@ export default function Wishlist() {
             <WishlistCard
             key = {listing.id}
             listing={listing}
-            onClick = {() => navigate(`/listings/${listing.id}`)}
+            onClick = {() => navigate(`/buyer/listings/${listing.id}`)}
             onRemoved={handleRemoved}
             />
           ))}
