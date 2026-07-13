@@ -196,18 +196,25 @@ export interface CreateListingPayload {
 }
 
 function mapWishListItem(item: unknown) :WishlistListing {
-  const l = item as {
-    listingId : string,
+  const w = item as {
+    wishlistId : number;
+    listingId: string;
+    addedAt: string;
+    listing: {
+    listingId : string;
     title: string;
     price : number;
+    sellerId : string;
     courseId?: number | null;
     categoryName: string;
     condition: string;
     listingStatus: string;
     metadata?: ListingMetadata;
     images: {imageId: number; isPrimary: boolean; path:string}[];
-    seller?: {sellerId: string};
+    seller?: {sellerId: string}| null;
+    };
   };
+  const l = w.listing;
   const primary = getFirstUploadedImagePath(l.images);
   return {
     id: l.listingId,
@@ -219,7 +226,7 @@ function mapWishListItem(item: unknown) :WishlistListing {
     condition: mapCondition(l.condition),
     image: primary ? imageUrl(primary) : biologyTextbook,
     metadata: l.metadata ?? null,
-    sellerId: l.seller?.sellerId ?? "",
+    sellerId: l.sellerId ?? l.seller?.sellerId ?? "",
     status: l.listingStatus as ListingStatus,
   }
 }

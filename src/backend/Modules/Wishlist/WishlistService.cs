@@ -41,6 +41,7 @@ public class WishlistService : IWishlistService
             throw new WishlistException(WishlistErrors.AlreadyWishlisted);
         }
 
+        
         if (listing.ListingStatus is "reserved" or "sold" or "removed")
         {
             throw new WishlistException(WishlistErrors.ListingUnavailable);
