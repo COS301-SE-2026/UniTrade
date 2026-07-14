@@ -64,9 +64,9 @@ async joinRoom(reservationId: string): Promise<void> {
     return () => this.connection?.off('Messages Read', callback);
   }
 
-  async sendMessage(reservationId: string, content: string): Promise<ChatMessage> {
+  async sendMessage(reservationId: string, content: string, clientId: string): Promise<ChatMessage> {
     if (!this.connection) throw new Error('Connection not started');
-    return this.connection.invoke<ChatMessage>('SendMessage', reservationId, content);
+    return this.connection.invoke<ChatMessage>('SendMessage', reservationId, content, clientId);
   }
 
 async markRead(reservationId: string, upToMessageId: number): Promise<void> {
