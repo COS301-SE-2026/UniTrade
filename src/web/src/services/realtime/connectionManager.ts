@@ -1,10 +1,10 @@
-import { FakeHubConnection } from './fakeSignalREmitter';
+
 import type { IHubConnection, ConnectionState } from '../../types/hubConnection.ts';
 import type { ChatMessage, Reservation, MessagesReadEvent } from '../../types/Reservations.ts';
+import { RealHubConnection } from './realHubConnection.ts';
 
 type Unsubscribe = () => void;
 
-const JOIN_GROUPS_METHOD = 'JoinReservationGroups';
 
 class ConnectionManager {
   private connection: IHubConnection | null = null;
@@ -17,39 +17,32 @@ class ConnectionManager {
     if (this.connectPromise) return this.connectPromise;
 
     this.connectPromise = (async () => {
-      this.connection = createHubConnection();
+        this.connection = createHubConnection();
 
-      this.connection.onreconnecting(() => {
-        this.notifyState('Reconnecting');
-      });
-
-      this.connection.onreconnected(() => {
-        this.notifyState('Connected');
-
-        this.connection?.invoke(JOIN_GROUPS_METHOD).catch(() => {
-
+        this.connection.onreconnecting(() => {
+            this.notifyState('Reconnecting');
         });
-  
-        this.reconnectedListeners.forEach((cb) => cb());
-      });
 
-      this.connection.onclose(() => {
-        this.notifyState('Disconnected');
-      });
+        this.connection.onreconnected(() => {
+            this.notifyState('Connected');
+            this.reconnectedListeners.forEach((cb) => cb());
+        });
 
-      await this.connection.start();
-      this.notifyState('Connected');
+        this.connection.onclose(() => {
+            this.notifyState('Disconnected');
+        });
 
-      try {
-        await this.connection.invoke(JOIN_GROUPS_METHOD);
-      } catch {
-       //nothing, forlinting not to fail
-      }
+        await this.connection.start();
+        this.notifyState('Connected');
     })();
 
     return this.connectPromise;
-  }
+}
 
+async joinRoom(reservationId: string): Promise<void> {
+    if (!this.connection) throw new Error('Connection not started');
+    await this.connection.invoke('JoinRoom', reservationId);
+}
   async disconnect(): Promise<void> {
     await this.connection?.stop();
     this.connection = null;
@@ -67,8 +60,8 @@ class ConnectionManager {
   }
 
   onMessagesRead(callback: (event: MessagesReadEvent) => void): Unsubscribe {
-    this.connection?.on('MessagesRead', callback);
-    return () => this.connection?.off('MessagesRead', callback);
+    this.connection?.on('Messages Read', callback);
+    return () => this.connection?.off('Messages Read', callback);
   }
 
   async sendMessage(reservationId: string, content: string): Promise<ChatMessage> {
@@ -76,10 +69,10 @@ class ConnectionManager {
     return this.connection.invoke<ChatMessage>('SendMessage', reservationId, content);
   }
 
-  async markRead(reservationId: string, upToMessageId: string): Promise<void> {
+async markRead(reservationId: string, upToMessageId: number): Promise<void> {
     if (!this.connection) throw new Error('Connection not started');
-    await this.connection.invoke('MarkRead', reservationId, upToMessageId);
-  }
+    await this.connection.invoke('ReadReceipts', reservationId, upToMessageId);
+}
 
   onReservationUpdated(callback: (reservation: Reservation) => void): Unsubscribe {
     this.connection?.on('ReservationUpdated', callback);
@@ -103,7 +96,7 @@ class ConnectionManager {
 }
 
 function createHubConnection(): IHubConnection {
-  return new FakeHubConnection();
+  return new RealHubConnection();
 
 }
 

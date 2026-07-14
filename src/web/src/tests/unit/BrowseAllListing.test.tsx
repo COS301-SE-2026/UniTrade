@@ -256,7 +256,7 @@ describe('BrowseAllListing', () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
       await userEvent.click(screen.getByAltText('Calculus Textbook'))
-      expect(mockNavigate).toHaveBeenCalledWith('/listings/1')
+      expect(mockNavigate).toHaveBeenCalledWith('/buyer/listings/1')
     })
   })
 })
