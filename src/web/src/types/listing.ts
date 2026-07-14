@@ -142,6 +142,8 @@ export interface ListingSellerInfo {
 
 export interface WishlistListing extends BrowseListing {
   status : ListingStatus
+  addedAt: string
+  sellerName: string | null
 }
 
 export interface WishlistResponse {
