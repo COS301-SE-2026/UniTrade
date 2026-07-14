@@ -211,7 +211,7 @@ function mapWishListItem(item: unknown) :WishlistListing {
     listingStatus: string;
     metadata?: ListingMetadata;
     images: {imageId: number; isPrimary: boolean; path:string}[];
-    seller?: {sellerId: string}| null;
+    seller?: {sellerId: string; fullName : string}| null;
     };
   };
   const l = w.listing;
@@ -227,8 +227,10 @@ function mapWishListItem(item: unknown) :WishlistListing {
     image: primary ? imageUrl(primary) : biologyTextbook,
     metadata: l.metadata ?? null,
     sellerId: l.sellerId ?? l.seller?.sellerId ?? "",
+    sellerName: l.seller?.fullName ?? null,
     status: l.listingStatus as ListingStatus,
-  }
+    addedAt: w.addedAt,
+  };
 }
 
 export const listingsService = {
