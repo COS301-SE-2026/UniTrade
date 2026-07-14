@@ -4,7 +4,7 @@ using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
-using Modules.Reservations.Models.StateMachine;
+using Modules.Reservations.StateMachine;
 
 namespace Modules.Chat;
 
