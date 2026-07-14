@@ -8,6 +8,7 @@ public interface IChatService
         Guid reservationId,
         Guid senderId,
         string content,
+        string? clientKey = null,
         CancellationToken ct = default
     );
 

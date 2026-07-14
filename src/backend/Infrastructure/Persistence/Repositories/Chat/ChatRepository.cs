@@ -112,4 +112,18 @@ public class ChatRepository : IChatRepository
 
         return latest.ToDictionary(m => m.ReservationId, m => (m.Content, m.SentAt));
     }
+
+    public async Task<ChatMessage?> GetByClientKeyAsync(
+        Guid reservationId,
+        string clientKey,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .ChatMessages.AsNoTracking()
+            .FirstOrDefaultAsync(
+                m => m.ReservationId == reservationId && m.ClientKey == clientKey,
+                ct
+            );
+    }
 }

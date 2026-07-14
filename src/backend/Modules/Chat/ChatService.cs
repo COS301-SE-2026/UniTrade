@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
@@ -22,6 +23,7 @@ public class ChatService : IChatService
         Guid reservationId,
         Guid senderId,
         string content,
+        string? clientKey = null,
         CancellationToken ct = default
     )
     {
@@ -35,6 +37,16 @@ public class ChatService : IChatService
         if (!isAuthorised)
         {
             throw new ChatException(ChatErrors.Forbidden); // i change dit because of sonarqube
+        }
+
+        if (!string.IsNullOrWhiteSpace(clientKey))
+        {
+            var existing = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey, ct);
+
+            if (existing is not null && existing.SenderId == senderId)
+            {
+                return ToDto(existing);
+            }
         }
 
         var reservation = await _reservations.GetByIdAsync(reservationId, ct);
@@ -54,11 +66,29 @@ public class ChatService : IChatService
             SenderId = senderId,
             MessageType = "text",
             Content = content,
+            ClientKey = string.IsNullOrWhiteSpace(clientKey) ? null : clientKey,
             SentAt = DateTime.UtcNow,
         };
 
-        await _chatRepo.AddAsync(result);
-        await _chatRepo.SaveAsync(ct);
+        try
+        {
+            await _chatRepo.AddAsync(result);
+            await _chatRepo.SaveAsync(ct);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is Npgsql.PostgresException pg
+                && pg.SqlState == "23505"
+                && pg.ConstraintName == "uix_chat_client_key"
+            )
+        {
+            var winner = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey, ct);
+
+            if (winner is not null && winner.SenderId == senderId)
+            {
+                return ToDto(winner);
+            }
+            throw;
+        }
         return ToDto(result);
     }
 
@@ -77,7 +107,7 @@ public class ChatService : IChatService
             SentAt = DateTime.UtcNow,
         };
         await _chatRepo.AddAsync(result);
-
+        await _chatRepo.SaveAsync(ct);
         return ToDto(result);
     }
 
