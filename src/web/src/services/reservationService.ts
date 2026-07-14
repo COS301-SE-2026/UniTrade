@@ -28,7 +28,7 @@ async function handleResponse<T>(res: Response): Promise<Result<T>>{
         code = body.error ?? body.code ?? code;
         message = body.message;
      } catch {
-        //no body
+        ///no body
      }
 
      return { success: false, error: { code, message, status: res.status } };
