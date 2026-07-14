@@ -554,6 +554,7 @@ public class AppDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValue("text");
 
+            entity.Property(x => x.ClientKey).HasMaxLength(64);
             entity.Property(x => x.Content).IsRequired();
             entity.Property(x => x.Payload).HasColumnType("jsonb");
             entity.Property(x => x.SentAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
@@ -596,6 +597,11 @@ public class AppDbContext : DbContext
                 .HasIndex(x => new { x.ReservationId, x.ReadAt })
                 .HasDatabaseName("ix_chat_unread")
                 .HasFilter("read_at IS NULL");
+
+            entity
+                .HasIndex(x => new { x.ReservationId, x.ClientKey })
+                .HasDatabaseName("uix_chat_client_key")
+                .HasFilter("client_key IS NOT NULL");
         });
 
         // Notification

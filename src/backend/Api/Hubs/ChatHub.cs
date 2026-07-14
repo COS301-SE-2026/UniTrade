@@ -66,7 +66,7 @@ public class ChatHub : Hub
         return $"reservation-{reservationId}";
     }
 
-    public async Task<ChatMessageDto> SendMessage(Guid reservationId, string content)
+    public async Task<ChatMessageDto> SendMessage(Guid reservationId, string content, string? clientKey = null)
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
@@ -77,7 +77,7 @@ public class ChatHub : Hub
 
         try
         {
-            message = await _chatService.SendAsync(reservationId, Guid.Parse(userId), content);
+            message = await _chatService.SendAsync(reservationId, senderId, content, clientKey);
         }
         catch (ChatException ex)
         {
