@@ -98,14 +98,15 @@ describe('UploadListing', () => {
 
   it('shows all 6 category buttons once categories load', async () => {
     renderUpload()
-    await screen.findByText('book')
+    await screen.findByText('Textbooks')
 
-    expect(await screen.findByRole('button', { name: /^book$/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^clothing$/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^electronics$/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^furniture$/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^other$/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^stationery$/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^Textbooks$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Clothing$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Electronics$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Furniture$/i })).toBeInTheDocument()
+    
+    expect(screen.getByRole('button', { name: /^Stationery$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Other$/i })).toBeInTheDocument()
   })
 
   it('shows all 4 condition buttons', () => {
