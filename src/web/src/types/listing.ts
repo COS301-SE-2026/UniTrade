@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -52,6 +52,7 @@ export interface ListingDetail {
   //reviews: SellerReview[]
   //similarListings: SimilarListing[]
   metadata: ListingMetadata
+  seller: ListingSellerInfo | null
 }
 
 export interface ListingSummary {
@@ -109,6 +110,7 @@ export interface BrowseListing {
   price: number
   condition: BrowseCondition
   metadata: ListingMetadata
+  sellerId: string
 }
 
 export interface BrowseListingsResponse {
@@ -127,4 +129,22 @@ export interface Course {
   courseCode: string;
   courseName: string;
   faculty: string;
+}
+
+export interface ListingSellerInfo {
+  sellerId: string
+  firstName: string
+  lastName: string
+  fullName: string
+  university: string | null
+  activeListingCount: number
+}
+
+export interface WishlistListing extends BrowseListing {
+  status : ListingStatus
+}
+
+export interface WishlistResponse {
+  listings: WishlistListing[]
+  total: number
 }

@@ -13,13 +13,17 @@ import { formatPrice } from "../../utils/formatters";
 import type { ListingSummary, ListingStatus } from "../../types/listing";
 import StatusPill from "../../components/layout/ui/StatusPill";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
-
+import type { ApiError } from "../../types/Reservations";
 function ActionButtons({
   listing,
   onDelete,
+  onSubmit,
+  submitting,
 }: {
   listing: ListingSummary;
   onDelete: (id: string) => void;
+  onSubmit: (id: string) => void;
+  submitting: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -56,8 +60,12 @@ function ActionButtons({
   if (listing.status === "draft") {
     return (
       <div className="flex gap-2">
-        <button className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
-          Submit
+        <button
+          onClick={() => onSubmit(listing.id)}
+          disabled={submitting}
+          className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors"
+        >
+          {submitting ? "Submitting...." : "Submit"}
         </button>
         <button
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
@@ -86,6 +94,31 @@ function ActionButtons({
       </div>
     );
   }
+  if (listing.status === "reserved") {
+    return (
+      <div className="flex gap-2">
+        <button 
+        onClick={() => navigate(`/seller/listings/${listing.id}`)}
+        className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors"
+        >
+          View
+        </button>
+        <button 
+        disabled
+        className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-sm font-semibold px-5 py-2 rounded-full cursor-not-allowed"
+        >
+          Edit
+        </button>
+        <button
+        disabled
+        aria-label="Delete listing"
+        className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-400/40 p-2 rounded-full cursor-not-allowed"
+        >
+          <IconTrash size={16} />
+        </button>
+      </div>
+    )
+  }
 
   return null;
 }
@@ -102,7 +135,31 @@ export default function MyListings() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
 
+  const handleSubmitListing = async (id: string) => {
+    setSubmittingId(id);
+    try {
+      await listingsService.updateListingStatus(id, "live");
+      setListings((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: "live" } : l)),
+      );
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      setError(
+        error.message === "images_required" || error.message === "description_required"
+          ? "Please add at least one photo and Description before uploading this listing"
+
+          : "Failed to submit listing",);
+
+
+
+    }
+
+    finally {
+      setSubmittingId(null);
+    }
+  };
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     try {
@@ -227,8 +284,8 @@ export default function MyListings() {
               setCurrentPage(1);
             }}
             className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${activeTab === tab.key
-                ? "bg-navy-700 text-white border-navy-700"
-                : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+              ? "bg-navy-700 text-white border-navy-700"
+              : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
           >
             {tab.label}
@@ -260,8 +317,8 @@ export default function MyListings() {
           <div
             key={listing.id}
             className={`flex items-center gap-4 px-5 py-4 ${i < paginated.length - 1
-                ? "border-b border-gray-100 dark:border-white/5"
-                : ""
+              ? "border-b border-gray-100 dark:border-white/5"
+              : ""
               }`}
           >
             <img
@@ -285,7 +342,9 @@ export default function MyListings() {
               {listing.views}
             </p>
             <div className="w-44 flex justify-end">
-              <ActionButtons listing={listing} onDelete={handleDelete} />
+              <ActionButtons listing={listing} onDelete={handleDelete}
+                onSubmit={handleSubmitListing}
+                submitting={submittingId === listing.id} />
             </div>
           </div>
         ))}
@@ -313,8 +372,8 @@ export default function MyListings() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
-                    ? "bg-navy-700 text-white border-navy-700"
-                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                  ? "bg-navy-700 text-white border-navy-700"
+                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
                   }`}
               >
                 {page}

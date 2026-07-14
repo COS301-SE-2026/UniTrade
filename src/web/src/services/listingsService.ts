@@ -5,6 +5,9 @@ import type {
   Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
   ListingMetadata,
   SimilarListing,
+  ListingStatus,
+  WishlistResponse,
+  WishlistListing,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
@@ -192,6 +195,42 @@ export interface CreateListingPayload {
   metadata?: ListingMetadata;
 }
 
+function mapWishListItem(item: unknown) :WishlistListing {
+  const w = item as {
+    wishlistId : number;
+    listingId: string;
+    addedAt: string;
+    listing: {
+    listingId : string;
+    title: string;
+    price : number;
+    sellerId : string;
+    courseId?: number | null;
+    categoryName: string;
+    condition: string;
+    listingStatus: string;
+    metadata?: ListingMetadata;
+    images: {imageId: number; isPrimary: boolean; path:string}[];
+    seller?: {sellerId: string}| null;
+    };
+  };
+  const l = w.listing;
+  const primary = getFirstUploadedImagePath(l.images);
+  return {
+    id: l.listingId,
+    title: l.title,
+    price: l.price,
+    module: l.courseId?.toString() ?? "General",
+    courseId: l.courseId ?? null,
+    category: l.categoryName,
+    condition: mapCondition(l.condition),
+    image: primary ? imageUrl(primary) : biologyTextbook,
+    metadata: l.metadata ?? null,
+    sellerId: l.sellerId ?? l.seller?.sellerId ?? "",
+    status: l.listingStatus as ListingStatus,
+  }
+}
+
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
   const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
@@ -207,6 +246,7 @@ export const listingsService = {
     status: item.listingStatus,
     views: item.viewCount,
     sellerId: item.sellerId,
+    seller: item.seller ?? null,
     listedAt: item.createdAt,
     courseId: item.courseId ?? null,          
     courseCode: item.courseCode ?? "",        
@@ -272,6 +312,7 @@ export const listingsService = {
       price: item.price,
       condition: item.condition,
       status: item.listingStatus,
+      isReserved: item.listingStatus === "reserved",
       views: item.viewCount,
       listedAt: item.createdAt,
       description: item.description,
@@ -289,7 +330,12 @@ export const listingsService = {
   },
 
   getBrowseListings: async (): Promise<BrowseListingsResponse> => {
-  const res = await fetch(`${getApiUrl()}/listings`, { credentials: "include" });
+    const user = useAuthStore.getState().user;
+    const params = new URLSearchParams({ listingStatus: "live"});
+    if (user){
+      params.set("exlcudeSellerId", user.id);
+    }
+  const res = await fetch(`${getApiUrl()}/listings?listingStatus=live`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch listings");
   const data = await res.json();
   const listings: BrowseListing[] = data.items.map((item: unknown) => {
@@ -302,6 +348,7 @@ export const listingsService = {
       condition: string;
       metadata?: ListingMetadata;
       images: { imageId: number; isPrimary: boolean; path: string }[];
+      seller?: {sellerId: string}
     };
     const primary = getFirstUploadedImagePath(l.images);
     return {
@@ -314,6 +361,7 @@ export const listingsService = {
       condition: mapCondition(l.condition),
       image: primary ? imageUrl(primary) : biologyTextbook,
       metadata: l.metadata ?? null,
+      sellerId: l.seller?.sellerId ?? "",
     };
   });
   return { listings, total: data.total };
@@ -434,5 +482,53 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
 
      if (!res.ok) throw new Error("Failed to fetch the courses")
       return await res.json();
+  },
+
+  updateListingStatus: async (
+    id: string,
+    status: ListingStatus,
+  ): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify({ status}),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to update listing status");
+    }
+  },
+
+  getWishlist: async (): Promise<WishlistResponse> => {
+    const res = await fetch(`${getApiUrl()}/wishlist`, {credentials: "include"});
+    if (!res.ok) throw new Error("Failed to fetch wishlist");
+    const data = await res.json();
+    const listings: WishlistListing[] = data.items.map(mapWishListItem);
+    return { listings, total: data.total};
+  },
+
+  addToWishlist: async (listingId : string): Promise<WishlistListing> => {
+    const res = await fetch(`${getApiUrl()}/wishlist`, {
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({listingId}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to add to wishlist ");
+    }
+    return mapWishListItem(await res.json());
+  },
+
+  removeFromWishlist : async (listingId: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if(!res.ok && res.status !== 404) {
+      throw new Error("Failed to remove from wishlist ")
+    }
   }
 };

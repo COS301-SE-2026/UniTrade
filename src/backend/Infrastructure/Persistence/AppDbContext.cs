@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Modules.Chat.Models;
 using Modules.Identity.Models;
 using Modules.Listings.Models;
+using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
-using Modules.Chat.Models;
+using Modules.Wishlist.Models;
+
 namespace Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
@@ -33,6 +36,12 @@ public class AppDbContext : DbContext
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<ReservationListing> ReservationListings => Set<ReservationListing>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+
+    // Notifications
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    // Wishlist
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
     //constants - sonarqube
     private readonly string NowString = "now()";
@@ -315,7 +324,6 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
             entity
                 .HasOne(x => x.BookDetails)
                 .WithOne(b => b.Listing)
@@ -589,5 +597,70 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_chat_unread")
                 .HasFilter("read_at IS NULL");
         });
+
+        // Notification
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(x => x.NotificationId);
+            entity.Property(x => x.NotificationId).ValueGeneratedOnAdd();
+
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.Type).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.Message).IsRequired();
+
+            entity.Property(x => x.IsRead).HasDefaultValue(false).IsRequired();
+
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_notif_type",
+                    "type IN ('listing_status', 'reservation_status', 'meetup_reminder',  'chat', 'dispute', 'verification')"
+                );
+            });
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasIndex(x => new { x.UserId, x.IsRead })
+                .HasDatabaseName("ix_notif_user_unread")
+                .HasFilter("is_read = false");
+        });
+
+        // Wishlist items
+        modelBuilder.Entity<WishlistItem>(entity =>
+        {
+            entity.HasKey(x => x.WishlistId);
+            entity.Property(x => x.WishlistId);
+
+            entity.Property(x => x.StudentId).IsRequired();
+            entity.Property(x => x.ListingId).IsRequired();
+
+            entity.Property(x => x.AddedAt).HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+
+            entity
+                .HasOne(x => x.Student)
+                .WithMany()
+                .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(x => x.Listing)
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.StudentId).HasDatabaseName("ix_wishlist_student");
+            entity
+                .HasIndex(x => new { x.StudentId, x.ListingId })
+                .IsUnique()
+                .HasDatabaseName("wishlist_entry");
+        });
     }
 }
+//
