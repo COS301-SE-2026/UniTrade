@@ -111,10 +111,34 @@ export function useSendMessage(reservationId: string) {
   const send = (content: string) => {
     const clientId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+    if (connectionManager.getState() !== "Connected") {
+      queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [
+        ...old,
+        {
+          clientId,
+          senderId: user?.id ?? "me",
+          messageType: "text",
+          content,
+          payload: null,
+          sentAt: new Date().toISOString(),
+          readAt: null,
+          status: "failed" as const,
+        },
+      ]);
+      return;
+    }
     mutation.mutate({ content, clientId, isRetry: false });
   };
 
   const retry = (clientId: string, content: string) => {
+    if (connectionManager.getState() !== "Connected") {
+      queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
+        old.map((m) =>
+          m.clientId === clientId ? { ...m, status: "failed" as const } : m,
+        ),
+      );
+      return;
+    }
     mutation.mutate({ content, clientId, isRetry: true });
   };
 
