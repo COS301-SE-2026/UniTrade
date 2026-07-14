@@ -68,7 +68,7 @@ function InfoRow({
   function VerificationBadge({ status }: { status: string }){
     const isVerified = status.toLowerCase() === "verified";
     return(
-      <span className={`inline-flex intems-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${ isVerified ? "bg-emerald-500/80 text-emerald-50" : 
+      <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${ isVerified ? "bg-emerald-500/80 text-emerald-50" : 
         "bg-amber-500/80 text-amber-50"
       }`
     
@@ -136,9 +136,10 @@ useEffect(() => {
 
 
   return (
-    <div className="max-w-xl mx-auto min-h-screen bg-gray-50 pb-6">
-      <div className="bg-navy-700 rounded-t-3xl px-6 pt-6 pb-6 shadow-md transition-all">
-        <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col gap-6">
+   
+      <div className="bg-navy-700 rounded-xl px-8 py-7 shadow-sm flex flex-col gap-6">
+        <div className="flex items-center justify-between">
           <div className="flex flex-col items-start mb-4">
             <button
               onClick={() => navigate(-1)}
@@ -157,21 +158,19 @@ useEffect(() => {
           </button>
         </div>
 
-
-        <div className="flex items-center gap-5 mb-6">
-          <div className="relative flex-shrink-0">
-            <div className="w-20 h-20 rounded-full bg-white text-navy-700 flex item-center justify-center text-2xl font-bold shadow-lg">
+        <div className="flex items-center gap-5">
+            <div className="w-40 h-40 rounded-full bg-white text-navy-700 flex items-center justify-center text-5xl font-bold shadow-lg">
               {user.initials}
             </div>
-          </div>
+
 
           <div>
-            <p className="text-base font-bold text-white">
+            <p className="text-base font-bold text-white text-xl">
               {user.name}
             </p>
-            <div className ="flex items-center gap-2 mt-1.5 flex-wrap">
+            <div className ="flex items-center gap-2 mt-5 flex-wrap">
 
-         <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold mt-1">
+         <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold ">
             Student
             </span>
       {profile?.verificationStatus && ( <VerificationBadge status = {profile.verificationStatus} />
@@ -182,7 +181,14 @@ useEffect(() => {
         </div>
         </div>
 
-        <div className="bg-white rounded-2xl; shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50 h-fit">
+
+
+        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-bold text-gray-800">Account Details</h2>
+
+         </div>   
 {loadingProfile &&(
   <div className="p-4 flex flex-col gap-3">
     <div className="h-10 rounded-lg bg-gray-100 animate-pulse" />
@@ -192,18 +198,22 @@ useEffect(() => {
 )}
 
  {!loadingProfile && profileError && (
-  <div className="p-4 text-center">
+  <div className="p-5 text-center">
     <p className="text-sm text-red-500"> {profileError}</p>
     </div>
  )}
 
  {!loadingProfile && !profileError && profile && (
-  <>
+  <div className="grid grid-cols-2 divide-gray-50">
+    <div className="border-r border-gray-50">
+  
    <InfoRow icon={<IconMail size={17} /> } label="Email" value={profile.email} />
-   {profile.degreeProgram && profile && (
+   {profile.degreeProgram && (
     <InfoRow icon={<IconBook2 size={17} />} label="Course" value={profile.degreeProgram} />
     
     )}
+    </div>
+    <div>
     {profile.yearOfStudy !== undefined && (
       <InfoRow 
       icon = {<IconCalendarStats size={17} />}
@@ -214,12 +224,13 @@ useEffect(() => {
    {profile.university && (
     <InfoRow icon={<IconSchool size={17} />} label="University" value={profile.university} />
    )}
-   </>
- )}
+   </div></div>
+ )}</div>
  </div>
 
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50 h-fit">
         <ProfileRow
           icon={<IconHistory size={19} />}
           label="View Activity History"
@@ -231,7 +242,6 @@ useEffect(() => {
           label="Privacy & Security"
           onClick={() => navigate("/profile/privacy")}
         />
-
 
 
         <ProfileRow
