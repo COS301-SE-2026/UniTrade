@@ -5,6 +5,7 @@ using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
+using Modules.Reservations.StateMachine;
 
 namespace Modules.Chat;
 
@@ -49,7 +50,13 @@ public class ChatService : IChatService
             }
         }
 
+        //block buyer/seller if seller not acked
         var reservation = await _reservations.GetByIdAsync(reservationId, ct);
+
+        if(reservation is not null && reservation.ReservationStatus==ReservationState.Cancelled)
+        {
+            throw new ChatException(ChatErrors.ReservationCancelled);
+        }
 
         if (
             reservation is not null
