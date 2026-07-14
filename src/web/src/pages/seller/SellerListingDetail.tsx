@@ -94,19 +94,23 @@ export default function SellerListingDetail() {
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <img
-              src={listing.images[selectedImg]}
-              alt={listing.title}
-              className="w-full h-64 object-cover rounded-lg mb-3"
-            />
+            <div className="w-full rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700">
+              {listing.images && listing.images.length > 0 ? (
+                <img src={listing.images[selectedImg]} alt={listing.title} className="w-full h-auto" />
+              ) : (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <span className="text-4xl">No image</span>
+                </div>
+              )}
+            </div>
             <div className="flex gap-2">
-              {listing.images.slice(1).map((img, i) => (
+              {listing.images.map((img, i) => (
                 <img
                   key={i}
                   src={img}
-                  alt={`thumbnail ${i + 2}`}
-                  onClick={() => setSelectedImg(i + 1)}
-                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${selectedImg === i + 1
+                  alt={`thumbnail ${i + 1}`}
+                  onClick={() => setSelectedImg(i)}
+                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${selectedImg === i
                     ? "border-navy-700 dark:border-white"
                     : "border-transparent"
                     }`}
@@ -206,7 +210,7 @@ export default function SellerListingDetail() {
             >
               Edit Listing
             </button>
-           
+
             <button
               onClick={handleDelete}
               disabled={listing.isReserved}
