@@ -70,7 +70,7 @@ public class ChatHub : Hub
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
-        if(!Guid.TryParse(userId, out var senderId))
+        if (!Guid.TryParse(userId, out var senderId))
         {
             throw new HubException("Unauthorised: invalid user identifier");
         }
@@ -84,8 +84,8 @@ public class ChatHub : Hub
             throw new HubException(
                 ex.Message == ChatErrors.Forbidden
                     ? "Forbidden: you are not a participant in this reservation."
-                    :ex.Message==ChatErrors.BuyerWaitingAck ? "Seller needs to acknowledge you first"
-                    : ex.Message
+                : ex.Message == ChatErrors.BuyerWaitingAck ? "Seller needs to acknowledge you first"
+                : ex.Message
             );
         }
         catch (ArgumentException ex)
