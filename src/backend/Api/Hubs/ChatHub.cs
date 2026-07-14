@@ -66,7 +66,11 @@ public class ChatHub : Hub
         return $"reservation-{reservationId}";
     }
 
-    public async Task<ChatMessageDto> SendMessage(Guid reservationId, string content, string? clientKey = null)
+    public async Task<ChatMessageDto> SendMessage(
+        Guid reservationId,
+        string content,
+        string? clientKey = null
+    )
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
@@ -82,11 +86,10 @@ public class ChatHub : Hub
         catch (ChatException ex)
         {
             throw new HubException(
-                ex.Message == ChatErrors.Forbidden
-                    ? "You are not a participant in this reservation"
+                ex.Message == ChatErrors.Forbidden ? "You are not a participant in this reservation"
                 : ex.Message == ChatErrors.BuyerWaitingAck ? "Seller needs to acknowledge you first"
-                : ex.Message==ChatErrors.ReservationCancelled ? "Reservation was Cancelled"
-                :ex.Message
+                : ex.Message == ChatErrors.ReservationCancelled ? "Reservation was Cancelled"
+                : ex.Message
             );
         }
         catch (ArgumentException ex)
