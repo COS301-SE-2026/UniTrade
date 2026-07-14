@@ -27,6 +27,7 @@ public class WishlistRepository : IWishlistRepository
     ) =>
         await _db
             .WishlistItems.AsNoTracking()
+            .Where(w=> w.StudentId == student)
             .Include(w => w.Listing)
                 .ThenInclude(l => l!.Images)
             .Include(w => w.Listing)
@@ -34,7 +35,7 @@ public class WishlistRepository : IWishlistRepository
             .Include(w => w.Listing)
                 .ThenInclude(l => l!.BookDetails)
             .OrderByDescending(w => w.AddedAt)
-            .ToListAsync();
+            .ToListAsync(ct);
 
     public async Task AddAsync(WishlistItem item, CancellationToken ct = default)
     {

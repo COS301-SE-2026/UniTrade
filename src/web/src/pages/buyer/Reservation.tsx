@@ -196,7 +196,12 @@ function ReservationCard({
                         <button
                             type="button"
                             className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
-                            onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/chat`)}
+                            onClick={() => navigate(`/buyer/messages/${reservation.reservationId}`, {
+                                state: {
+                                    counterparty: reservation.counterParty.name,
+                                    counterpartyInitials: reservation.counterParty.initials,
+                                },
+                            })}
                         >
                             Message seller
                             {reservation.unreadCount > 0 && (
@@ -256,7 +261,7 @@ export default function Reservations() {
 
     const handleCancel = async (reservationId: string) => {
         const previous = reservations
-        setReservations((prev) => prev.filter((r) => r.reservationId === reservationId ))
+        setReservations((prev) => prev.map((r) => r.reservationId === reservationId ?{ ...r, reservationStatus: 'cancelled'} : r ))
         const result = await cancelReservation(reservationId)
         if (!result.success) {
             setReservations(previous)

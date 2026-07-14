@@ -34,7 +34,7 @@ async function handleResponse<T>(res: Response): Promise<Result<T>>{
      return { success: false, error: { code, message, status: res.status } };
 }
 
-let mockReservations:ReservationListItem[] = []
+const mockReservations:ReservationListItem[] = []
 
 
 export interface MockListingInfo {
@@ -105,85 +105,21 @@ export async function getReservations(
 }
 
 export async function getMessages(
-    _params: GetMessagesParams
+    params: GetMessagesParams
 ): Promise<Result<ChatHistoryResponse>> {
-    //mock
-    return {
-    success: true,
-    data: {
-      items: [
-        {
-          messageId: 'msg-3',
-          senderId: 'mock-buyer-1',
-          messageType: 'meetup_proposal',
-          content: 'Can we meet at the library at 3pm?',
-          payload: {
-            proposedTime: new Date(Date.now() + 1000 * 60 * 60 * 3).toISOString(),
-            proposedLocation: 'Merensky Library',
-          },
-          sentAt: new Date().toISOString(),
-          readAt: null,
-        },
-        {
-          messageId: 'msg-2',
-          senderId: 'system',
-          messageType: 'system',
-          content: 'Seller acknowledged the reservation.',
-          payload: null,
-          sentAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-          readAt: new Date().toISOString(),
-        },
-        {
-          messageId: 'msg-1',
-          senderId: 'mock-buyer-1',
-          messageType: 'text',
-          content: 'Hi, is this still available?',
-          payload: null,
-          sentAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-          readAt: new Date().toISOString(),
-        },
-      ],
-      hasMore: false,
-      oldestMessageId: 'msg-1',
-    },
-  };
+ 
 
-  // const query = new URLSearchParams();
-  // if (params.before) query.set('before', params.before);
-  // query.set('limit', String(params.limit ?? 20));
-  // const res = await fetch(
-  // `${getApiUrl()}/reservations/${params.reservationId}/messages?${query}`
-  //);
-  // return handleResponse<ChatHistoryResponse>(res);
+   const query = new URLSearchParams();
+  if (params.before) query.set('before', params.before);
+  query.set('limit', String(params.limit ?? 20));
+  const res = await fetch(
+   `${getApiUrl()}/reservations/${params.reservationId}/messages?${query}`,
+   { credentials: 'include'}
+  );
+  return handleResponse<ChatHistoryResponse>(res);
 }
 
-/*function mockListItem(
-    id: string,
-    timerStage: Reservation['timerStage'],
-    unreadCount: number
-) {
-     return {
-    reservationId: id,
-    listingId: `listing-${id}`,
-    buyerId: 'mock-buyer-1',
-    sellerId: 'mock-seller-1',
-    reservationStatus: 'active' as const,
-    timerStage,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
-    createdAt: new Date().toISOString(),
-    counterparty: {
-      userId: 'mock-counterparty-1',
-      name: 'Thabo M.',
-      initials: 'TM',
-    },
-    listing: {
-      title: 'Calculus: Early Transcendentals (8th Ed)',
-      price: 350,
-      imagePath: '/assets/textbook.jpg',
-    },
-    unreadCount,
-  }; 
-}*/
+
 
 export async function getReservationById(
   reservationId: string ): 
