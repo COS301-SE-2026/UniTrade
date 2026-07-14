@@ -7,6 +7,7 @@ import { formatPrice } from '../../utils/formatters'
 //import { queryKeys } from '../../lib/queryKeys'
 //import { useReservationsList } from '../../hooks/useReservationsList'
 import { getApiUrl } from '../../config'
+import { useToast } from '../../components/layout/useToast'
 import {
     IconClock,
     IconPresentationAnalytics,
@@ -117,7 +118,6 @@ function ReservationCard({
 }) {
     const navigate = useNavigate()
     const [, forceTick] = useState(0)
-
     useEffect(() => {
         const interval = setInterval(() => forceTick((t) => t + 1), 1000)
         return () => clearInterval(interval)
@@ -246,18 +246,22 @@ export default function Reservations() {
     const [reservations, setReservations] = useState<ReservationListItem[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const { showToast} = useToast()
 
 
     useEffect(() => {
         getReservations({ role: 'buyer' }).then((result) => {
             if (result.success) {
                 setReservations(result.data.items)
+                showToast('success', 'Successfully fetched your reservations!!')
             } else {
+                
                 setError(result.error.message ?? 'Could not load your reservations.')
+                showToast('error', 'Could not load your reservations!!')
             }
         }).finally(() => setLoading(false))
     }
-        , [])
+        , [showToast])
 
     const handleCancel = async (reservationId: string) => {
         const previous = reservations
@@ -265,6 +269,8 @@ export default function Reservations() {
         const result = await cancelReservation(reservationId)
         if (!result.success) {
             setReservations(previous)
+            showToast('success', 'Successfully cancelled the reservation!!');
+       
         }
     }
 

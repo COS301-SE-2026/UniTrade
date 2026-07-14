@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
+
 import { listingsService } from '../../services/listingsService'
 import type { BrowseListing } from '../../types/listing'
 
@@ -33,6 +33,13 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
+vi.mock('../../components/layout/useToast', () => ({
+  useToast: () => ({
+    showToast: vi.fn(),
+  }),
+}));  
+
+import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
 
 const makeListings = (): BrowseListing[] => [
   {

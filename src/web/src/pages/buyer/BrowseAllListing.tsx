@@ -6,6 +6,7 @@ import type { BrowseListing, BrowseCondition, Category } from '../../types/listi
 import { createReservation } from '../../services/reservationService'
 import { getDisplayCategory, sortTheCategories } from '../../utils/categoryUtils'
 import { useAuthStore } from '../../store/useAuthStore'
+import { useToast } from '../../components/layout/useToast';
 
 
 
@@ -47,6 +48,7 @@ function ListingCard({
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
+  const { showToast } = useToast();
 
   const [wishlisting, setWishlisting] = useState(false);
   const [wishlisted, setWishlisted] = useState(false)
@@ -69,11 +71,15 @@ function ListingCard({
     try {
       await listingsService.addToWishlist(String(listing.id))
       setWishlisted(true)
+      showToast('success', 'Successfully added to wishlist.')
     } catch (err) {
       if (err instanceof Error && err.message === 'already_wishlisted') {
+       
         setWishlisted(true)
+        showToast('error', 'Already wishlisted.');
       } else {
-        setWishlistError('Could not add to wishlist.')
+        
+        showToast('error', 'Could not add to wishlist.');
       }
     }finally {
       setWishlisting(false)
@@ -91,18 +97,22 @@ function ListingCard({
     if(result.success) 
     {
       setReserved(true)
+      showToast('success', 'Sucessfully reserved| Redirecting to your reservations....');
       navigate('/buyer/reservations')
-    }
+    } 
     else if (result.error.code === 'self_reserve'){
         setReserveError("You can't reserve your own listing.")
+        showToast('error', "You can't reserve your own listing.");
       }
     else if(result.error.code === 'already_reserved')
       {
-        setReserveError('Item was just reserved by someone else!')
+       
+        showToast('error', 'Item was already reserved!!');
       }
       
       else{
-        setReserveError(result.error.message ?? 'Could not reserve this item.')
+        const msg = result.error.message ?? 'Could not reserve this item.';
+        showToast('error', msg);
       }
       setReserving(false)
   }
