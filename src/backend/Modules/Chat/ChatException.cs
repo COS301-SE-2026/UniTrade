@@ -12,5 +12,6 @@ public static class ChatErrors
     public const string Forbidden = "forbidden";
     public const string NotActive = "not_active";
     public const string NotFound = "not_found";
+    public const string BuyerWaitingAck="buyer_waiting_seller_ack";
 
 }
