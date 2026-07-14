@@ -57,7 +57,7 @@ export function useSendMessage(reservationId: string) {
 
     onSuccess: (
       serverMessage: ChatMessage,
-      _content: string,
+      _vars: SendVars,
       context?: MutationContext,
     ) => {
       if (!context || !serverMessage) return;
@@ -96,7 +96,7 @@ export function useSendMessage(reservationId: string) {
       });
     },
 
-    onError: (_err: Error, vars, context) => {
+    onError: (_err: Error, _vars: SendVars, context?: MutationContext) => {
       if (!context) return;
       queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
         old.map((m) =>
