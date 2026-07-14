@@ -4,7 +4,7 @@ import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
 import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
-
+import { useToast } from "../../components/layout/useToast";
 interface ApiError {
   message: string;
 }
@@ -31,6 +31,7 @@ const UploadListing: React.FC = () => {
   const [courseLoading, setCourseLoading] = useState(false);
   const [brand, setBrand] = useState("");
   const [dimensions, setDimensions] = useState("");
+  const {showToast} = useToast();
 
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
@@ -101,9 +102,11 @@ const UploadListing: React.FC = () => {
 
     const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
     if (oversized.length > 0) {
+      const eror =  `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`;
       setError(
-        `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`,
+       eror
       );
+      showToast('error', eror);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -128,11 +131,13 @@ const UploadListing: React.FC = () => {
   const handleSubmit = async () => {
     if (!title || !description || !price || files.length === 0) {
       setError("Please fill in all fields and add at least one image.");
+      showToast('error', 'Please fill in all fields and add at least one image.');
       return;
     }
 
     if (category === "book" && courseQuery.trim() && !moduleTag) {
       setError("Please pick a module from the list");
+      showToast('error', 'Please pick a module from the list');
       return;
     }
     setSubmitting(true);
@@ -155,6 +160,7 @@ const UploadListing: React.FC = () => {
         metadata,
       });
       await listingsService.uploadImages(listingId, files);
+      showToast('success', 'Listing uploaded successfully');
       navigate("/seller/listings");
     } catch (err: unknown) {
       const error = err as ApiError;
@@ -166,12 +172,13 @@ const UploadListing: React.FC = () => {
 
   const handleDraft = async () => {
     if (!title) {
-      setError("Please add a title before saving as draft.");
+      
+      showToast('error', 'Please add a title before saving as draft');
       return;
     }
 
-     if (category === "book" && courseQuery.trim() && !moduleTag) {
-    setError("Please pick a module from the list");
+     if (category === "Textbooks" && courseQuery.trim() && !moduleTag) {
+    showToast('error', 'Please pick a module from the list');
     return;
      }
     setSubmitting(true);
@@ -197,9 +204,11 @@ const UploadListing: React.FC = () => {
         await listingsService.uploadImages(listingId, files);
       }
       navigate("/seller/listings");
+      showToast('success', 'Listing saved successfully');
     } catch (err: unknown) {
       const error = err as ApiError;
       setError(error.message ?? "Something went wrong");
+      showToast('error', 'Something went wrong.')
     } finally {
       setSubmitting(false);
     }

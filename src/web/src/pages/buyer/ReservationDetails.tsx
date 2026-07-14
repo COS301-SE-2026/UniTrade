@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { useToast } from "../../components/layout/useToast";
 import {
   IconChevronRight,
   IconMessageCircle,
@@ -10,7 +11,7 @@ import {
 } from "@tabler/icons-react";
 import type { Reservation } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
-import { cancelReservation, getReservationById} from "../../services/reservationService";
+import { cancelReservation, getReservationById } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
 
 //type ReservationListItem = ReservationListResponse["items"][number];
@@ -36,9 +37,9 @@ function formatRemaining(ms: number): string {
   const seconds = totalSeconds % 60;
 
   if (hours > 0) {
-    return hours+ " hrs " + pad(minutes) + " mins " + pad(seconds)+" sec";
+    return hours + " hrs " + pad(minutes) + " mins " + pad(seconds) + " sec";
   }
-  return pad(minutes) + " mins "+ pad(seconds) + " sec";
+  return pad(minutes) + " mins " + pad(seconds) + " sec";
 }
 
 function useCountdown(expiresAt: string): CountdownResult {
@@ -81,7 +82,7 @@ function formatTime(iso: string): string {
 }
 
 
-  function SectionCard({
+function SectionCard({
   title,
   children,
 }: {
@@ -147,8 +148,12 @@ function ActionButton({
   );
 }
 
-export default function ReservationDetails(){ const { reservationId } = useParams<{ reservationId: string }>();
+export default function ReservationDetails() {
+
+  const { showToast} = useToast();
+  const { reservationId } = useParams<{ reservationId: string }>();
   const navigate = useNavigate();
+  const isSeller = window.location.pathname.startsWith('/seller');
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [listingDetail, setListingDetail] = useState<ListingDetail | null>(null);
@@ -157,15 +162,15 @@ export default function ReservationDetails(){ const { reservationId } = useParam
   const [isCancelling, setIsCancelling] = useState(false);
 
   const loadReservation = useCallback(async () => {
-     if (!reservationId) {
+    if (!reservationId) {
       setError("No reservation ID provided");
       setIsLoading(false);
       return;
     }
 
-  setError(null);
+    setError(null);
 
-    
+
     //I should change once the endpoint to get each reservation by id is available 
     const result = await getReservationById(reservationId);
 
@@ -177,13 +182,13 @@ export default function ReservationDetails(){ const { reservationId } = useParam
 
     setReservation(result.data);
 
-    try{
+    try {
       const detail = await listingsService.getById(result.data.listingId);
       setListingDetail(detail);
-    }catch{
- //nothing
+    } catch {
+      //nothing
     }
-    
+
 
     setIsLoading(false);
   }, [reservationId]);
@@ -193,21 +198,27 @@ export default function ReservationDetails(){ const { reservationId } = useParam
 
     const run = async () => {
       await Promise.resolve();
-      if(cancelled) return;
+      if (cancelled) return;
       await loadReservation();
     };
 
     void run();
     return () => {
-       cancelled = true;
+      cancelled = true;
     };
   }, [loadReservation]);
 
   const { label: countdownLabel, isUrgent, isExpired } = useCountdown(
     reservation?.expiresAt ?? new Date().toISOString(),
   );
-const handleMessageSeller = () => {
-    if (reservation) navigate(`/buyer/messages/${reservation.reservationId}`);
+  const handleMessageCounterparty = () => {
+    if (!reservation) return;
+    navigate(`/${isSeller ? 'seller' : 'buyer'}/messages/${reservation.reservationId}`, {
+      state: {
+        counterpartyName: reservation.counterParty?.name,
+        counterpartyInitials: reservation.counterParty?.initials,
+      },
+    });
   };
 
   const handleCompletePayment = () => {
@@ -219,10 +230,10 @@ const handleMessageSeller = () => {
   };
 
   const handleScheduleMeetup = () => {
-    if (reservation) navigate(`/buyer/reservations/${reservation.reservationId}/meetup`);
+    if (reservation) navigate(`/${isSeller ? 'seller' : 'buyer'}/reservations/${reservation.reservationId}/meetup`);
   };
 
-const handleCancel = async () => {
+  const handleCancel = async () => {
     if (!reservation) return;
     setIsCancelling(true);
     const result = await cancelReservation(reservation.reservationId);
@@ -230,11 +241,20 @@ const handleCancel = async () => {
       setReservation((prev) =>
         prev ? { ...prev, reservationStatus: result.data.reservationStatus } : prev,
       );
+      showToast('success', isSeller ? 'Reservation cancelled' : 'Reservation cancelled successfully.');
+      
+    } else {
+      showToast (
+        'error',
+        result.error.code === 'release_too_early'
+        ? 'You can only cancel after 12 hours of buyer silence.'
+        : result.error.message ?? 'Failed to cancel reservation.'
+      );
     }
     setIsCancelling(false);
   };
 
-if (isLoading) {
+  if (isLoading) {
     return (
       <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -245,7 +265,7 @@ if (isLoading) {
     );
   }
 
-  
+
   if (error || !reservation) {
     return (
       <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
@@ -267,7 +287,8 @@ if (isLoading) {
       </div>
     );
   }
- const isCancelled = reservation.reservationStatus === "cancelled";
+  const isCancelled = reservation.reservationStatus === "cancelled";
+  const isCoordinating = reservation.timerStage === "coordinating";
   const expiresDate = new Date(reservation.expiresAt);
   const createdDate = new Date(reservation.createdAt);
 
@@ -283,143 +304,156 @@ if (isLoading) {
       ? { className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300", text: "Expiring soon" }
       : { className: "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200", text: "Reserved" };
 
-return(
-  <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
-  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-   <nav className="flex items-centwr gap-1.5 text-sm">
-    <Link to="/buyer/reservations"
-     className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
-      My Reservations
-</Link>
-<IconChevronRight size={16} className="text-gray-400" />
-    <span className="font-semibold text-navy-900-dark:text-white">
-      {"#"+reservation.reservationId}
-      </span>
-      </nav>
+  const messageLabel = isSeller ? "Message Buyer" : "Message Seller";
+  const cancelLabel = isCancelling ? "Cancelling..." : isSeller ? (reservation.timerStage === "awaiting_seller" ? "Reject" : "Cancel Reservation") : "Cancel";
+  const canCancel = !isCancelled && !isCancelling && (isSeller || !isCoordinating);
 
-      {!isCancelled && (
+  const otherPartyLabel = isSeller ? "Buyer" : "Seller";
+  const otherPartyName = reservation.counterParty?.name ?? otherPartyLabel;
+  const otherPartyInitials = reservation.counterParty?.initials ?? otherPartyLabel[0];
 
-   <div className="text-right">
-          <p
-        className="test-sm text-gray-500 dark:text-navy-100 mb-1.5">
-      Expires in
-      </p>
-    <span className={`inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap  ${countdownClasses}`}>
-    {countdownLabel}
-    </span>
-    </div> )}
+
+  return (
+    <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <nav className="flex items-center gap-1.5 text-sm">
+          <Link to={isSeller ? "/seller/reservations" : "/buyer/reservations"}
+            className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+            My Reservations
+          </Link>
+          <IconChevronRight size={16} className="text-gray-400" />
+          <span className="font-semibold text-navy-900-dark:text-white">
+            {listingDetail?.title}
+          </span>
+        </nav>
+
+        {!isCancelled && (
+
+          <div className="text-right">
+            <p
+              className="test-sm text-gray-500 dark:text-navy-100 mb-1.5">
+              Expires in
+            </p>
+            <span className={`inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap  ${countdownClasses}`}>
+              {countdownLabel}
+            </span>
+          </div>)}
       </div>
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div className="flex flex-col gap-6">
-    <SectionCard title="Item">
-    <div className="flex gap-4 mb-5">
-     <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
-    {listingDetail?.images?.[0]?.url || listingDetail?.images?.[0]?.url ? (
-     <img
-     src={listingDetail?.images?.[0]?.url ?? listingDetail?.images?.[0]?.url }
-        alt={listingDetail?.title ?? "Listing image"}
-      className="w-full h-full object-cover"
-     /> ) :(
-        <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
-         {listingDetail?.title ?? "Listing"}
-        </span>
-      )}
-   </div>
-    <div className="min-w-0">
-       <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
-         {listingDetail?.title ?? "Untitled listing"}
-      </h3>
-        <p className="text-sm text-gray-500 dark:text-navy-100">
-        Condition: {listingDetail?.condition ?? "Good"}
-      </p>
-      <p className="text-sm text-gray-500 dark:text-navy-100">
-      Category: {listingDetail?.category ?? "Textbooks"}
-    </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
+          <SectionCard title="Item">
+            <div className="flex gap-4 mb-5">
+              <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
+                {listingDetail?.images?.[0]?.url || listingDetail?.images?.[0]?.url ? (
+                  <img
+                    src={listingDetail?.images?.[0]?.url ?? listingDetail?.images?.[0]?.url}
+                    alt={listingDetail?.title ?? "Listing image"}
+                    className="w-full h-full object-cover"
+                  />) : (
+                  <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
+                    {listingDetail?.title ?? "Listing"}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
+                  {listingDetail?.title ?? "Untitled listing"}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-navy-100">
+                  Condition: {listingDetail?.condition ?? "Good"}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-navy-100">
+                  Category: {listingDetail?.category ?? "Textbooks"}
+                </p>
 
-    </div>
-     </div>
+              </div>
+            </div>
 
-    <InfoRow
-        label="Item price"
-     value={
-     <span className="text-lg font-extrabold">
-        {formatCurrency(listingDetail?.price ?? 0)}
-       </span>
+            <InfoRow
+              label="Item price"
+              value={
+                <span className="text-lg font-extrabold">
+                  {formatCurrency(listingDetail?.price ?? 0)}
+                </span>
               }
             />
-       <InfoRow
-       label="Status"
-          value={
-            <span className={"inline-block rounded-full px-2.5 py-1 text-xs font-semibold " + statusBadge.className}>
-         {statusBadge.text}
-       </span>
+            <InfoRow
+              label="Status"
+              value={
+                <span className={"inline-block rounded-full px-2.5 py-1 text-xs font-semibold " + statusBadge.className}>
+                  {statusBadge.text}
+                </span>
               } />
           </SectionCard>
 
           <SectionCard title="Actions">
             <div className="flex flex-col gap-3">
-        <ActionButton
-  icon={<IconMessageCircle size={16} />}
-   label="Message Seller"
-    onClick={handleMessageSeller}
-       variant="primary" />
+              <ActionButton
+                icon={<IconMessageCircle size={16} />}
+                label={messageLabel}
+                onClick={handleMessageCounterparty}
+                variant="primary" />
+              
+              {!isSeller &&(
+              <ActionButton
+                icon={<IconDownload size={16} />}
+                label="Complete Payment"
+                onClick={handleCompletePayment}
+                disabled={isSeller || isCancelled || isExpired} />
+              )}
 
-      <ActionButton
-     icon={<IconDownload size={16} />}
-       label="Complete Payment"
-      onClick={handleCompletePayment}
-     disabled={isCancelled || isExpired}/>
-     
-      <ActionButton
-          icon={<IconEye size={16} />}
-        label="View Listing"
-       onClick={handleViewListing}
-           />
-         <ActionButton
-          icon={<IconCalendarClock size={16} />}
-          label="Schedule Meetup"
-          onClick={handleScheduleMeetup}
-          disabled={isCancelled || isExpired}
-          />
-        <ActionButton
-    icon={<IconFlag size={16} />}
-    label={isCancelling ? "Cancelling...": "Cancel"}
-   onClick={handleCancel}
-     disabled={isCancelled || isCancelling}
- variant="danger"
-   />
-</div>
-</SectionCard>
-</div>
+              <ActionButton
+                icon={<IconEye size={16} />}
+                label="View Listing"
+                onClick={handleViewListing}
+              />
+              <ActionButton
+                icon={<IconCalendarClock size={16} />}
+                label="Schedule Meetup"
+                onClick={handleScheduleMeetup}
+                disabled={isCancelled || isExpired}
+              />
+              <ActionButton
+                icon={<IconFlag size={16} />}
+                label={cancelLabel}
+                onClick={handleCancel}
+                disabled={!canCancel}
+                variant="danger"
+              />
+            </div>
+          </SectionCard>
+        </div>
 
-    <div className="flex flex-col gap-6">
-         <SectionCard title="Seller">
+        <div className="flex flex-col gap-6">
+          <SectionCard title={otherPartyLabel}>
             <div className="flex items-center gap-3 mb-5">
-    <span className="w-11 h-11 rounded-full bg-navy-800 dark:bg-navy-500 text-white text-sm font-bold flex items-center justify-center shrink-0">
-      {`${listingDetail?.seller?.firstName?.[0] ?? ''}${listingDetail?.seller?.lastName?.[0] ?? ''}`}
- </span>
-          <div>
-          <p className="text-base font-bold text-navy-900 dark:text-white">
-            {listingDetail?.seller?.firstName?? "Seller"}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-navy-100">
-                  
-          {listingDetail?.seller?.university
-           ? `${listingDetail?.seller.university} student`
-           : "Student" }
-            </p>
-            </div></div>
-      <InfoRow label="Seller rating" value="-" />
-       <InfoRow label="Total Sales" value={listingDetail?.seller?.activeListingCount} />
-      </SectionCard>     
-<SectionCard title="Reservation Info">
-<InfoRow label="Reservation ID" value={"#" + reservation.reservationId} />
-<InfoRow label="Date Reserved" value={formatDate(createdDate.toISOString())} />
-<InfoRow label="Expiry Date" value={formatDate(expiresDate.toISOString())} />
-<InfoRow label="Expiry Time" value={formatTime(expiresDate.toISOString())} />
-</SectionCard>
-</div>
-</div>
-</div>
-);
-  }
+              <span className="w-11 h-11 rounded-full bg-navy-800 dark:bg-navy-500 text-white text-sm font-bold flex items-center justify-center shrink-0">
+                {otherPartyInitials}
+              </span>
+              <div>
+                <p className="text-base font-bold text-navy-900 dark:text-white">
+                  {otherPartyName}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-navy-100">
+
+                  {!isSeller && listingDetail?.seller?.university
+                    ? `${listingDetail.seller.university} student`
+                    : "Student"}
+                </p>
+              </div></div>
+            <InfoRow label={`${otherPartyLabel} rating`} value="-" />
+            {!isSeller &&(
+            <InfoRow label="Total Sales" value={listingDetail?.seller?.activeListingCount} />
+            )}
+          </SectionCard>
+          <SectionCard title="Reservation Info">
+            <InfoRow label="Reservation ID" value={"#" + reservation.reservationId} />
+            <InfoRow label="Date Reserved" value={formatDate(createdDate.toISOString())} />
+            <InfoRow label="Expiry Date" value={formatDate(expiresDate.toISOString())} />
+            <InfoRow label="Expiry Time" value={formatTime(expiresDate.toISOString())} />
+          </SectionCard>
+        </div>
+      </div>
+    </div>
+  );
+}

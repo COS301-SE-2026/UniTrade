@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import MyListings from '../../pages/seller/MyListings'
 import { listingsService } from '../../services/listingsService'
 
 vi.mock('../../services/listingsService', () => ({
@@ -16,6 +15,13 @@ vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom')
     return { ...actual, useNavigate: () => mockNavigate }
 })
+
+vi.mock('../../components/layout/useToast', () => ({
+    useToast: () => ({
+        showToast: vi.fn(),
+    }),
+}))
+import MyListings from '../../pages/seller/MyListings'
 
 const mockListings = {
     listings: [
