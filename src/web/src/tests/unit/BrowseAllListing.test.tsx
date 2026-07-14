@@ -190,8 +190,8 @@ describe('BrowseAllListing', () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
       // category chips load async from getListingsCategories, so wait for one to appear
-      await screen.findByRole('button', { name: 'book' })
-      for (const cat of ['All', 'book', 'clothing', 'electronics', 'furniture', 'other', 'stationery']) {
+      await screen.findByRole('button', { name: 'Textbooks' })
+      for (const cat of ['All', 'Textbooks', 'Clothing', 'Electronics', 'Furniture','Stationery', 'Other']) {
         expect(screen.getByRole('button', { name: cat })).toBeInTheDocument()
       }
     })
@@ -222,7 +222,7 @@ describe('BrowseAllListing', () => {
     it('filters to book only', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      await userEvent.click(await screen.findByRole('button', { name: 'book' }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Textbooks' }))
       expect(screen.getByText('Calculus Textbook')).toBeInTheDocument()
       expect(screen.queryByText('Arduino Kit')).not.toBeInTheDocument()
     })
@@ -230,7 +230,7 @@ describe('BrowseAllListing', () => {
     it('filters to electronics only', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      await userEvent.click(await screen.findByRole('button', { name: 'electronics' }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Electronics' }))
       expect(screen.getByText('Arduino Kit')).toBeInTheDocument()
       expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
     })
@@ -238,7 +238,7 @@ describe('BrowseAllListing', () => {
     it('clicking All after a filter restores all listings', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      await userEvent.click(await screen.findByRole('button', { name: 'book' }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Textbooks' }))
       await userEvent.click(screen.getByRole('button', { name: 'All' }))
       expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
     })

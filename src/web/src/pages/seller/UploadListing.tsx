@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
+import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
 
 interface ApiError {
   message: string;
@@ -42,9 +43,9 @@ const UploadListing: React.FC = () => {
   useEffect(() => {
     listingsService
       .getListingsCategories()
-      .then((cats) => {
-        setCategories(cats);
-        if (cats.length > 0) setCategory(cats[0].name);
+      .then(data => {
+        setCategories(sortTheCategories(data));
+        if (data.length > 0) setCategory(data[0].name);
       })
       .catch(() => setError("Failed to load categories"));
   }, []);
@@ -254,12 +255,12 @@ const UploadListing: React.FC = () => {
                         setBrand("");
                         setDimensions("");
                       }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${category === cat.name
+                      className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${category === cat.name
                         ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
                         : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                         }`}
                     >
-                      {cat.name}
+                      {getDisplayCategory(cat.name)}
                     </button>
                   ))}
                 </div>
@@ -340,7 +341,6 @@ const UploadListing: React.FC = () => {
           </div>
         </div>
 
-        {/* Step 2: Pictures */}
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
