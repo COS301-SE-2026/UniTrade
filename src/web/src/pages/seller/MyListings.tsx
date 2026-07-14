@@ -14,6 +14,7 @@ import type { ListingSummary, ListingStatus } from "../../types/listing";
 import StatusPill from "../../components/layout/ui/StatusPill";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 import type { ApiError } from "../../types/Reservations";
+import { useToast } from "../../components/layout/useToast";
 function ActionButtons({
   listing,
   onDelete,
@@ -136,7 +137,7 @@ export default function MyListings() {
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
-
+  const {showToast} = useToast();
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
     try {
@@ -144,14 +145,15 @@ export default function MyListings() {
       setListings((prev) =>
         prev.map((l) => (l.id === id ? { ...l, status: "live" } : l)),
       );
+      showToast('success', 'Listing Uploaded successfully.')
     } catch (err: unknown) {
       const error = err as ApiError;
-      setError(
-        error.message === "images_required" || error.message === "description_required"
+      const theError = error.message === "images_required" || error.message === "description_required"
           ? "Please add at least one photo and Description before uploading this listing"
 
-          : "Failed to submit listing",);
-
+          : "Failed to submit listing"
+      
+      showToast('error', theError);
 
 
     }
@@ -166,8 +168,10 @@ export default function MyListings() {
       await listingsService.deleteListing(id);
       setListings((prev) => prev.filter((l) => l.id !== id));
       setTotal((t) => t - 1);
+      showToast('success', 'Listing successfully deleted.');
     } catch {
       setError("Failed to delete listing");
+      showToast('error', 'Failed to delete Listing');
     }
   };
 

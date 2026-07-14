@@ -91,8 +91,8 @@ const TextMessageBubble: React.FC<{
             <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[70%]`}>
                 <div
                     className={`px-4 py-2.5 text-[15px] leading-relaxed shadow-sm rounded-3xl ${isOwnMessage
-                            ? 'bg-[#003366] text-white rounded-br-none'
-                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                        ? 'bg-[#003366] text-white rounded-br-none'
+                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
                         }`}
                 >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -254,8 +254,8 @@ export default function ChatPage() {
     });
 
     const locationState = location.state as ChatLocationState | null;
-    const counterpartyName = locationState?.counterpartyName ?? 'Conversation!!!!';
-    const counterpartyInitials = locationState?.counterpartyInitials ?? initialsFromName(counterpartyName);
+    const counterpartyName = locationState?.counterpartyName ?? reservation?.counterParty?.name ?? 'Conversation!!!!';
+    const counterpartyInitials = locationState?.counterpartyInitials ?? reservation?.counterParty?.initials ?? initialsFromName(counterpartyName);
 
     const [connectionState, setConnectionState] = useState<ConnectionState>(connectionManager.getState());
     useEffect(() => connectionManager.onStateChange(setConnectionState), []);
@@ -323,7 +323,11 @@ export default function ChatPage() {
                             <p className="text-sm font-semibold text-gray-900">R {listing.price}</p>
                         </div>
                         <button
-                            onClick={() => navigate(`/${isSeller ? 'seller' : 'buyer'}/listings/${listing.id}`)}
+                            onClick={() => navigate(
+                                isSeller
+                                    ? `/seller/reservations/${reservationId}`
+                                    : `/buyer/reservations/${reservationId}`
+                            )}
                             className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
                         >
                             View
