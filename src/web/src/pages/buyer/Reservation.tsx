@@ -72,7 +72,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
     coordinating: { label: 'Coordination pickup', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
     return (
         <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
             <span className="text-navy-700">{icon}</span>
