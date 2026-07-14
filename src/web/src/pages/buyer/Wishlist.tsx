@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect , useMemo} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
@@ -14,7 +14,7 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react'
 
-type SortOption = 'Date added ' | 'Price low' | 'Price high'
+type SortOption = 'Date added' | 'Price low' | 'Price high'
 
 
 const conditionColours: Record<BrowseCondition, {bg: string ; text: string; dot: string}> = {
@@ -30,6 +30,7 @@ const conditionColours: Record<BrowseCondition, {bg: string ; text: string; dot:
 
       <span className= {`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${s.text}`}>
         <span className= {`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+        {condition}
       </span>
     )
   }
@@ -37,11 +38,9 @@ const conditionColours: Record<BrowseCondition, {bg: string ; text: string; dot:
 
   function WishlistCard ({
     listing,
-    //onClick,
     onRemoved,
   } : {
     listing: WishlistListing
-    onClick: () => void
     onRemoved: (id: string) => void 
   }) {
     const navigate = useNavigate()
@@ -123,7 +122,7 @@ const conditionColours: Record<BrowseCondition, {bg: string ; text: string; dot:
               type = "button"
               onClick = {handleReserve}
               disabled = {reserving || reserved || unavailable}
-              className = "inline-flex items-center justify-center gap-1.5 rounded-lg ng-navy-800 border border-navy-800 text-white px-4 py-2 text-sm font-semibold hover: bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className = "inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-4 py-2 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <IconBookmark size = {16} />
                 {reserved ? 'Reserved ' : reserving ? 'Reserving...' : unavailable ? 'Unavailable' : 'Reserve'}
@@ -133,7 +132,7 @@ const conditionColours: Record<BrowseCondition, {bg: string ; text: string; dot:
               type = "button"
               onClick={handleRemove}
               disabled = {removing}
-              className = "inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-300 text-rose-600 px-4 py-2 text-sm font-semibold hover: bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className = "inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-300 text-rose-600 px-4 py-2 text-sm font-semibold hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <IconTrash size = {16} />
                 {removing ? 'Removing...' : 'Remove'}
@@ -150,73 +149,152 @@ const conditionColours: Record<BrowseCondition, {bg: string ; text: string; dot:
   }
 
 export default function Wishlist() {
-  const navigate = useNavigate()
+  //const navigate = useNavigate()
   const [listings, setListings ] = useState<WishlistListing[]>([])
-  const [total, setTotal ] = useState(0)
+  const [sortOption, setSortOption] =  useState<SortOption>('Date added')
+  const [sortOpen, setSortOpen] = useState(false)
+  //const [total, setTotal ] = useState(0)
   const [loading, setLoading ] = useState(true)
   const [error, setError ] = useState<string | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [conditionFilter, setConditionFilter] = useState<BrowseCondition | 'All'>('All')
 
   useEffect(() => {
     listingsService.getWishlist()
-    .then(data => {
-      setListings(data.listings)
-      setTotal(data.total)
-    })
+    .then(data => setListings(data.listings))
     .catch(() => setError('Failed to load your wishlist '))
     .finally(() => setLoading(false))
   }, [])
 
   const handleRemoved = (id: string) => {
-    setListings(curr => curr.filter(l => l.id ==id))
-    setTotal(t => t -1 )
+    setListings(curr => curr.filter(l => l.id !== id))
   }
 
-  if(loading ) return (
-    <div className="flex items-center justify-center h-64">
-      <p className="text-sm text-gray-400">
-        Loading...
-      </p>
-    </div>
+  const filtered = useMemo(
+    () => (conditionFilter === 'All' ? listings : listings.filter((l) => l.condition === conditionFilter)),
+    [listings, conditionFilter],
   )
 
-  if(error) return (
-    <div className = " flex items-center justify-center h-64">
-      <p className="text-sm text-red-400">
-        {error}
-      </p>
-    </div>
-  )
+  const sorted = useMemo(() => {
+    const copy = [...filtered]
+    if(sortOption === 'Price low') copy.sort((a, b) => a.price - b.price)
+      else if (sortOption === 'Price high') copy.sort((a,b) => b.price - a.price)
+    else copy.sort((a, b) => new Date(b.addedAt).getTime()- new Date(a.addedAt).getTime())
+  return copy
+  }, [filtered, sortOption])
+
+  const totalValue = useMemo(() => listings.reduce((sum, l) => sum + l.price, 0),[listings])
+
 
   return (
     <div className = "flex flex-col gap-6">
-      <div>
-        <h1 className = " text-2xl font-extrabold text-gray-800 dark:text-white">
-          Your Wishlist
-        </h1>
-        <p className = "text-sm text-gray-400 mt-1">
-          {total} {total === 1 ? 'item' : 'items'} saved for later
-        </p>
-      </div>
-
-      {listings.length === 0 ? (
-        <div className = "rounded-cl border border-gray-200 dark:border-white/10 p-8 text-center">
-          <p className = "text-sm text-gray-400">
-            Your wishlist is currently empty. Browse listings and tap "Add to Wishlist " to save items here.
+      <div className = "flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
+            Your wishlist
+          </h1>
+          <p className = "text-sm text-gray-400 mt-1 flex items-center gap-1.5">
+            <IconHeart size={14} />
+            {listings.length} {listings.length === 1 ? 'item' : 'items'} saved for later 
           </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {listings.map(listing => (
-            <WishlistCard
-            key = {listing.id}
-            listing={listing}
-            onClick = {() => navigate(`/listings/${listing.id}`)}
-            onRemoved={handleRemoved}
-            />
-          ))}
+
+        <div className = "flex items-center gap-2">
+          <div className = "relative">
+            <button 
+            type = "button"
+            onClick = {() => setSortOpen((o) => !o)}
+            className = "inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+            >
+              Sort by : {sortOption.toLowerCase()}
+              <IconChevronDown size = {12} />
+            </button>
+            {sortOpen && (
+              <div className = "absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+                {(['Date added', 'Price low', 'Price high'] as SortOption[]).map((opt) => (
+                  <button 
+                  key = {opt}
+                  onClick = {() => {setSortOption(opt); setSortOpen(false)}}
+                  className = {`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${sortOption === opt ? 'text-navy-700 font-semibold' : 'text-gray-600'}`}
+                  >
+                    {opt}
+
+                  </button>
+                ))}
+                </div>
+            )}
           </div>
-      )}
-    </div>
-  )
-  
-}
+
+
+          <div className = "relative">
+            <button 
+            type = "button"
+            onClick = {() => setFilterOpen((o) => !o)}
+            className = "inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+            >
+              <IconFilter size = {12} />
+              Filter 
+              <IconChevronDown size = {12} />
+            </button>
+            {filterOpen && (
+              <div className = "absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+                {(['All', 'like_new', 'Good', 'Fair', 'Poor'] as const).map((opt) => (
+                  <button
+                  key = {opt}
+                  onClick = {() => { setConditionFilter(opt); setFilterOpen(false)}}
+                  className = {`w-full text-left px-4 py-2 text-sm capitalize hover:bg-gray-50  ${conditionFilter === opt ? 'text-navy-700 font-semibold' : 'text-gray-600'}`}
+                  >
+                    {opt === 'like_new' ? 'Like New' : opt}
+                  </button>
+                ))}
+                </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className = "flex gap-4">
+        <SummaryCard
+        label="Saved items"
+        value = {String(listings.length)}
+        icon = {<IconHeart size = {20} />}
+        />
+        <SummaryCard
+        label = "Total wishlist value"
+        value = {formatPrice(totalValue)}
+        icon = {<IconReceipt2 size = {20} />}
+        />
+      </div>
+
+      <div className = "flex flex-col gap-4">
+        {loading && <p className = "text-sm text-gray-400">
+          Loading your wishlist....
+          </p>}
+
+          {!loading && error && (
+            <div className = "bg-white rounded-xl border border-rose-200 p-6 text-center">
+              <p className = "text-sm font-semibold text-rose-600">
+                {error}
+              </p>
+              </div>
+          )}
+
+          {!loading && !error && sorted.length === 0 && (
+            <div className = "bg-white rounded-xl border border-gray-200 p-8 text-center">
+              <p className = "text-sm font-semibold text-gray-700">
+                Your wishlist is empty
+              </p>
+              <p className = "text-xs text-gray-400 mt-1">
+                Browse listings and tap "Add to Wishlist" to save items here.
+              </p>
+              </div>
+          )}
+
+          {sorted.map((listing) => (
+            <WishlistCard key = {listing.id} listing = {listing} onRemoved = {handleRemoved} />
+          ))}
+      </div>
+      </div>
+        )
+      }
+        
