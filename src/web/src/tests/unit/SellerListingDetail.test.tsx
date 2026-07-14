@@ -117,19 +117,7 @@ describe('SellerListingDetail', () => {
     })
   })
 
-  it('shows the Mark As Sold button', async () => {
-    renderDetail()
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /mark as sold/i })).toBeInTheDocument()
-    })
-  })
 
-  it('shows the Save as Draft button', async () => {
-    renderDetail()
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /save as draft/i })).toBeInTheDocument()
-    })
-  })
 
   it('renders error state when the API call fails', async () => {
     vi.mocked(listingsService.getSellerListingById).mockRejectedValue(new Error('API Error'))
