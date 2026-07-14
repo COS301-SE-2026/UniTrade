@@ -10,11 +10,11 @@ import type {
     //ApiError,
     
 } from '../types/Reservations'
+import { getApiUrl } from "../config";
 
-//const BASE_URL = import.meta.env.VITE_API_URL;
-//const API_ORIGIN = new URL(BASE_URL).origin;
 
-/*async function handleResponse<T>(res: Response): Promise<Result<T>>{
+
+async function handleResponse<T>(res: Response): Promise<Result<T>>{
      if (res.ok) {
         const data = (await res.json()) as T;
         return { success: true, data};
@@ -25,23 +25,17 @@ import type {
 
      try {
         const body = await res.json();
-        code = body.code ?? code;
+        code = body.error ?? body.code ?? code;
         message = body.message;
      } catch {
         //no body
      }
 
-     const error: ApiError = { code, message, status: res.status };
-     return { success: false, error};
-}*/
-
-let mockReservations:ReservationListItem[] = []
-let idCounter = 0
-function toBareReservation(item: ReservationListItem): Reservation {
-const { reservationId, listingId, buyerId, sellerId, reservationStatus, timerStage, expiresAt, createdAt} = item
-return { reservationId, listingId,buyerId,sellerId,reservationStatus, timerStage,expiresAt,createdAt}
-
+     return { success: false, error: { code, message, status: res.status } };
 }
+
+const mockReservations:ReservationListItem[] = []
+
 
 export interface MockListingInfo {
   title: string
@@ -56,9 +50,7 @@ export interface MockCounterparty {
   initials: string
 }
 export async function createReservation(
-    payload: CreateReservationRequest,
-    mockListing?: MockListingInfo,
-    mockCounterparty?: MockCounterparty    
+    payload: CreateReservationRequest,   
 ): Promise<Result<Reservation>> {
   const alreadyActive = mockReservations.some(
     (r) => r.listingId === payload.listingId && r.reservationStatus === 'active'
@@ -68,223 +60,72 @@ export async function createReservation(
   {
     return{ success: false, error: { code: 'already_reserved', status: 409 } }
   }
-    idCounter +=1
-    const newItem: ReservationListItem = {
-      reservationId: 'res-'+ idCounter,
-      listingId: payload.listingId,
-      buyerId: 'mock-buyer-1',
-      sellerId: 'mock-seller-1',
-      reservationStatus: 'active',
-      timerStage: 'awaiting_seller',
-      expiresAt: new Date(Date.now() + 1000 * 60 *60).toISOString(),
-      createdAt: new Date().toISOString(),
-      counterparty: mockCounterparty ?? {
-        userId: 'mock-counterparty-1',
-        name: 'Seller',
-        initials: 'S',
-      } ,
-      listing: mockListing ?? { title: 'Reserved item', price:0, imagePath: ''},
-      unreadCount: 0,
-    
-    } 
 
-    mockReservations = [newItem, ...mockReservations]
-    return { success: true, data: toBareReservation(newItem) }
-    
-    //Mock
-   /* if (payload.listingId === 'already-reserved-mock-id') {
-        return {
-            success: false,
-            error: {code: 'already_reserved', status: 409}
-        };
-    }
-    return {
-        success: true,
-        data: {
-            reservationId: 'mock-res-10',
-            listingId: payload.listingId,
-            buyerId: 'mock-buyer-1',
-            sellerId: 'mock-seller-1',
-            reservationStatus: 'active',
-            timerStage: 'awaiting_seller',
-            expiresAt: new Date(Date.now() + 1000 * 60 *60).toISOString(),
-            createdAt: new Date().toISOString(),
-        },
-    };
-
-    //const res = await fetch(`${BASE_URL}/reservations`, {
-    // method: 'POST',
-    // credentials: 'include',
-    // headers: { 'Content-Type': 'application/json'},
-    // body: JSON.stringify(payload),
-    // });
-    // return handleResponse<Reservation>(res);    */
+    const res = await fetch(`${getApiUrl()}/reservations`, {
+     method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+    });
+    return handleResponse<Reservation>(res);    
 }
 
 export async function acknowledgeReservatioin(
     reservationId: string
 ): Promise<Result<Reservation>> {
-    //mock 
-    const existing= mockReservations.find((r) => r.reservationId == reservationId)
-    if(!existing){
-      return {success: false, error: {code: 'not_found', status: 404 } }
-    }
-
-    const updated:ReservationListItem = {...existing, timerStage: 'awaiting_buyer'}
-    mockReservations = mockReservations.map((r) => (r.reservationId === reservationId ? updated : r))
-
-    return {
-        success: true,
-        data: 
-           toBareReservation(updated)
-  
-    // const res = await fetch(`${BASE_URL}/reservations/${reservationId}/acknowledge`, {
-    // method: 'POST',
-    // credentials: 'include',
-    // headers: { 'Content-Type': 'application/json'},
-    //});
-    // return handleResponse<Reservation>(res)
-}}
+    
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/acknowledge`, {
+    method: 'POST',
+    credentials: 'include',
+     headers: { 'Content-Type': 'application/json'},
+    });
+    return handleResponse<Reservation>(res)
+}
 
 export async function cancelReservation(
     reservationId: string
 ): Promise<Result<Reservation>> {
-    //mock 
-     const existing= mockReservations.find((r) => r.reservationId == reservationId)
-    if(!existing){
-      return {success: false, error: {code: 'not_found', status: 404 } }
-    }
-
-    const updated:ReservationListItem = {...existing, reservationStatus: 'cancelled'}
-    mockReservations = mockReservations.map((r) => (r.reservationId === reservationId ? updated : r))
-
-    return {
-        success: true,
-        data: toBareReservation(updated)}
-    
-
-    // const res = await fetch(`${BASE_URL}/reservations/${reservationId}/cancel`, {
-    // method: 'POST',
-    // credentials: 'include',
-    // headers: { 'Content-Type': 'application/json'},
-    //});
-    // return handleResponse<Reservation>(res)
+   
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/cancel`, {
+    method: 'POST',
+    credentials: 'include',
+    });
+    return handleResponse<Reservation>(res)
 }
 
 export async function getReservations(
-  _params: GetReservationParams
+  params: GetReservationParams
 ): Promise<Result<ReservationListResponse>> {
-    //mock
-  /*  if (params.role === 'buyer') {
-            return {
-      success: true,
-      data: {
-        items: [
-          mockListItem('res-b1', 'awaiting_seller', 0),
-          mockListItem('res-b2', 'awaiting_buyer', 2),
-          mockListItem('res-b3', 'coordinating', 0),
-        ],
-       mockReservations,
-        hasMore: false,
-        nextCursor: null,
-      },
-    };
-  }*/
-  return {
-    success: true,
-    data: {
-      items: //[
-        //mockListItem('res-s1', 'awaiting_seller', 1),
-       // mockListItem('res-s2', 'coordinating', 0),
-     // ],
-      mockReservations,
-        hasMore: false,
-        nextCursor: null,
-    },
-    }
 
-    // const query = new URLSearchParams({ role: params.role });
-    // const res = await fetch(`${BASE_URL}/reservations/?${query}`);
-    // return handleResponse<ReservationListResponse>(res);
+    const query = new URLSearchParams({ role: params.role });
+    const res = await fetch(`${getApiUrl()}/reservations/?${query}`, {
+      credentials: 'include'
+    });
+    return handleResponse<ReservationListResponse>(res);
 }
 
 export async function getMessages(
-    _params: GetMessagesParams
+    params: GetMessagesParams
 ): Promise<Result<ChatHistoryResponse>> {
-    //mock
-    return {
-    success: true,
-    data: {
-      items: [
-        {
-          messageId: 'msg-3',
-          senderId: 'mock-buyer-1',
-          messageType: 'meetup_proposal',
-          content: 'Can we meet at the library at 3pm?',
-          payload: {
-            proposedTime: new Date(Date.now() + 1000 * 60 * 60 * 3).toISOString(),
-            proposedLocation: 'Merensky Library',
-          },
-          sentAt: new Date().toISOString(),
-          readAt: null,
-        },
-        {
-          messageId: 'msg-2',
-          senderId: 'system',
-          messageType: 'system',
-          content: 'Seller acknowledged the reservation.',
-          payload: null,
-          sentAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-          readAt: new Date().toISOString(),
-        },
-        {
-          messageId: 'msg-1',
-          senderId: 'mock-buyer-1',
-          messageType: 'text',
-          content: 'Hi, is this still available?',
-          payload: null,
-          sentAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-          readAt: new Date().toISOString(),
-        },
-      ],
-      hasMore: false,
-      oldestMessageId: 'msg-1',
-    },
-  };
+ 
 
-  // const query = new URLSearchParams();
-  // if (params.before) query.set('before', params.before);
-  // query.set('limit', String(params.limit ?? 20));
-  // const res = await fetch(
-  // `${BASE_URL}/reservations/${params.reservationId}/messages?${query}`
-  //);
-  // return handleResponse<ChatHistoryResponse>(res);
+   const query = new URLSearchParams();
+  if (params.before) query.set('before', params.before);
+  query.set('limit', String(params.limit ?? 20));
+  const res = await fetch(
+   `${getApiUrl()}/reservations/${params.reservationId}/messages?${query}`,
+   { credentials: 'include'}
+  );
+  return handleResponse<ChatHistoryResponse>(res);
 }
 
-/*function mockListItem(
-    id: string,
-    timerStage: Reservation['timerStage'],
-    unreadCount: number
-) {
-     return {
-    reservationId: id,
-    listingId: `listing-${id}`,
-    buyerId: 'mock-buyer-1',
-    sellerId: 'mock-seller-1',
-    reservationStatus: 'active' as const,
-    timerStage,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
-    createdAt: new Date().toISOString(),
-    counterparty: {
-      userId: 'mock-counterparty-1',
-      name: 'Thabo M.',
-      initials: 'TM',
-    },
-    listing: {
-      title: 'Calculus: Early Transcendentals (8th Ed)',
-      price: 350,
-      imagePath: '/assets/textbook.jpg',
-    },
-    unreadCount,
-  }; 
-}*/
+
+
+export async function getReservationById(
+  reservationId: string ): 
+  Promise<Result<Reservation>> {
+const res = await fetch(`${getApiUrl()}/reservations/${reservationId}`, {
+  credentials: 'include',
+});
+return handleResponse<Reservation>(res)
+  }

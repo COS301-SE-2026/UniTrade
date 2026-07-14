@@ -73,6 +73,8 @@ public class ListingRepository : IListingRepository
         if (listingFilterDto.SellerId.HasValue)
             query = query.Where(x => x.SellerId == listingFilterDto.SellerId);
 
+        if (listingFilterDto.ExcludeSellerId.HasValue)
+            query = query.Where(x => x.SellerId != listingFilterDto.ExcludeSellerId);
         if (!string.IsNullOrWhiteSpace(listingFilterDto.Search))
         {
             var searchInput = listingFilterDto.Search.Trim();
@@ -144,12 +146,27 @@ public class ListingRepository : IListingRepository
                 u.UserId,
                 u.FirstName,
                 u.LastName,
+                University = u.StudentProfile != null
+                    ? _db
+                        .Universities.Where(uni =>
+                            uni.UniversityId == u.StudentProfile.UniversityId
+                        )
+                        .Select(uni => uni.Name)
+                        .FirstOrDefault()
+                    : null,
             })
             .ToListAsync();
+        var counts = await GetActiveListingCountsAsync(sellerIds);
 
         var byId = sellers.ToDictionary(
             u => u.UserId,
-            u => new SellerInfo(u.UserId, u.FirstName, u.LastName)
+            u => new SellerInfo(
+                u.UserId,
+                u.FirstName,
+                u.LastName,
+                u.University,
+                counts.GetValueOrDefault(u.UserId, 0)
+            )
         );
 
         foreach (var listing in listings)
@@ -181,7 +198,11 @@ public class ListingRepository : IListingRepository
     {
         return await _db
             .Listings.AsNoTracking()
-            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId && l.ListingStatus != RemovedStatus);
+            .AnyAsync(l =>
+                l.ListingId == listingId
+                && l.SellerId == sellerId
+                && l.ListingStatus != RemovedStatus
+            );
     }
 
     public async Task<List<ListingCategory>> GetActiveCategories()
@@ -195,7 +216,12 @@ public class ListingRepository : IListingRepository
 
     public async Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
     {
-        var listings = await _db.Listings.Where(l => l.SellerId == sellerId && (l.ListingStatus == "live" || l.ListingStatus == "pending")).ToListAsync();
+        var listings = await _db
+            .Listings.Where(l =>
+                l.SellerId == sellerId
+                && (l.ListingStatus == "live" || l.ListingStatus == "pending")
+            )
+            .ToListAsync();
         if (!listings.Any())
         {
             return;
@@ -209,5 +235,41 @@ public class ListingRepository : IListingRepository
 
         await _db.SaveChangesAsync();
     }
-}
 
+    public async Task<bool> TryReserveAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live")
+            .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "reserved"), ct);
+        return rows == 1;
+    }
+
+    public async Task<bool> ReleaseAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "reserved")
+            .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
+        return rows == 1;
+    }
+
+    public async Task<Dictionary<Guid, int>> GetActiveListingCountsAsync(
+        IEnumerable<Guid> sellerIds,
+        CancellationToken ct = default
+    )
+    {
+        var ids = sellerIds.ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, int>();
+        }
+        return await _db
+            .Listings.AsNoTracking()
+            .Where(l =>
+                ids.Contains(l.SellerId)
+                && (l.ListingStatus == "live" || l.ListingStatus == "reserved")
+            )
+            .GroupBy(l => l.SellerId)
+            .Select(g => new { SellerId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SellerId, x => x.Count, ct);
+    }
+}

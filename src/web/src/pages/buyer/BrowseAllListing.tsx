@@ -4,7 +4,9 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
+
 import { useAuthStore } from '../../store/useAuthStore'
+
 
 
 function CategoryCard({
@@ -41,10 +43,14 @@ function ListingCard({
 }) {
 
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  //const { user } = useAuthStore()
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
+
+  const [wishlisting, setWishlisting] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false)
+  const [wishlistError, setWishlistError] = useState<string | null>(null)
 
   const conditionColours: Record<BrowseCondition, string> = {
     like_new: 'bg-green-100 text-green-700',
@@ -53,29 +59,50 @@ function ListingCard({
     Poor: 'bg-red-100 text-red-700',
   }
 
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (wishlisting || wishlisted) return
+    
+    setWishlisting(true)
+    setWishlistError(null)
+
+    try {
+      await listingsService.addToWishlist(String(listing.id))
+      setWishlisted(true)
+    } catch (err) {
+      if (err instanceof Error && err.message === 'already_wishlisted') {
+        setWishlisted(true)
+      } else {
+        setWishlistError('Could not add to wishlist.')
+      }
+    }finally {
+      setWishlisting(false)
+    }
+  }
+
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation() 
 
     setReserving(true)
     setReserveError(null)
 
-    const result = await createReservation(
-      { listingId: String(listing.id) },
-
-    { title: listing.title, price: listing.price, imagePath: listing.image },
-    user ? { userId: user.id, name: user.name, initials: user.initials } : undefined)
+    const result = await createReservation({ listingId: String(listing.id) })
    
     if(result.success) 
     {
       setReserved(true)
       navigate('/buyer/reservations')
     }
+    else if (result.error.code === 'self_reserve'){
+        setReserveError("You can't reserve your own listing.")
+      }
     else if(result.error.code === 'already_reserved')
       {
         setReserveError('Item was just reserved by someone else!')
       }
+      
       else{
-        setReserveError(result.error.message ?? 'Counld not reserve this item.')
+        setReserveError(result.error.message ?? 'Could not reserve this item.')
       }
       setReserving(false)
   }
@@ -105,6 +132,10 @@ function ListingCard({
         {reserveError && (
           <p className="text-xs text-rose-600">{reserveError}</p>
         )}
+        {wishlistError && (
+          <p className= "text-xs text-rose-600">{wishlistError}
+          </p>
+        )}
 
         <div className="flex flex-col gap-2 mt-auto pt-2">
           <button 
@@ -113,8 +144,11 @@ function ListingCard({
           className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
            {reserved ? 'Reserved' : reserving? 'Reserving...' : 'Reserve'}
           </button>
-          <button className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-            Add to Wishlist
+          <button 
+          onClick = { handleAddToWishlist}
+          disabled = {wishlisting || wishlisted}
+          className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+            {wishlisted ? 'In Wishlist' : wishlisting? 'Adding...' : 'Add to Wishlist'}
           </button>
         </div>
       </div>
@@ -142,12 +176,15 @@ export default function BrowseAllListing() {
   const [sortOption, setSortOption] = useState<SortOption>('Newest')
   const [currentPage, setCurrentPage] = useState(1)
   const [showMoreCategories, setShowMoreCategories] = useState(false)
-
+  const { user } = useAuthStore()
   useEffect(() => {
     listingsService.getBrowseListings()
       .then(data => {
-        setListings(data.listings)
-        setTotal(data.total)
+        const filtered = user
+        ? data.listings.filter(l => l.sellerId !== user.id)
+        : data.listings
+        setListings(filtered)
+        setTotal(filtered.length)
       })
       .catch(() => setError('Failed to load listings'))
       .finally(() => setLoading(false))
@@ -157,7 +194,7 @@ export default function BrowseAllListing() {
       .catch(() => {
         // category chips are non-critical; leave the list empty (just "All") on failure
       })
-  }, [])
+  }, [user])
   
   const visibleCategories = categories.slice(0,3)
   const hiddenCategories = categories.slice(3)
@@ -304,7 +341,7 @@ export default function BrowseAllListing() {
           <ListingCard
             key={listing.id}
             listing={listing}
-            onClick={() => navigate(`/listings/${listing.id}`)}
+            onClick={() => navigate(`/buyer/listings/${listing.id}`)}
           />
         ))}
       </div>

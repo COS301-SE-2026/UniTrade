@@ -140,9 +140,13 @@ describe('Login', () => {
         lastName: 'Musiiwa',
         email: 'Tafadzwa@example.com',
         userRole: 'student',
-        university: 'UP'
+        //university: 'UP'
       },
-      std: { verificationStatus: 'verified' }
+      std: { 
+        verificationStatus: 'verified',
+        degreeProgram: 'BSc Computer Science',
+      yearOfStudy: 2,
+    university: 'UP' }
     })
 
     renderLogin()
@@ -171,9 +175,13 @@ describe('Login', () => {
         lastName: 'Shazi',
         email: 'zelamene@example.com',
         userRole: 'admin',
-        university: 'UCT'
+        //university: 'UCT'
       },
-      std: { verificationStatus: 'verified' }
+      std: { 
+        verificationStatus: 'verified',
+        degreeProgram: 'BSc Computer Science',
+      yearOfStudy: 2,
+    university: 'UCT'}
     })
 
     renderLogin()
@@ -206,9 +214,14 @@ describe('Login', () => {
         lastName: 'Musiiwa',
         email: 'tafadzwa@example.com',
         userRole: 'student',
-        university: 'UP'
+        //university: 'UP'
       },
-      std: { verificationStatus: 'verified' }
+      std: { 
+        verificationStatus: 'verified',
+      degreeProgram: 'BSc Computer Science',
+    yearOfStudy: 2,
+    university: 'UP'
+   }
     })
 
     renderLogin()
@@ -277,9 +290,14 @@ describe('Login', () => {
         lastName: 'Musiiwa',
         email: 'tafadzwa@example.com',
         userRole: 'student',
-        university: undefined,
+        //university: undefined,
       },
-      std: { verificationStatus: 'verified' }
+      std: { verificationStatus: 'verified',
+        degreeProgram: 'BSc Computer Science',
+    yearOfStudy: 2,
+    university: 'UP'
+
+       }
     })
 
     renderLogin()

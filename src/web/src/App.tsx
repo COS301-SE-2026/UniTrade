@@ -19,6 +19,7 @@ import AdminDisputes from "./pages/admin/AdminDisputes";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
 import Wishlist from "./pages/buyer/Wishlist";
 import Reservations from "./pages/buyer/Reservation";
+import ReservationDetails from "./pages/buyer/ReservationDetails";
 import MyListings from "./pages/seller/MyListings";
 import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
@@ -30,9 +31,9 @@ import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 
-function RedirectToMessages ({role } : {role: 'buyer' | 'seller'}){
-  const {reservationId } = useParams<{reservationId: string}>();
-  return <Navigate to = {`/${role}/messages/${reservationId}`}replace />;
+function RedirectToMessages({ role }: { role: 'buyer' | 'seller' }) {
+  const { reservationId } = useParams<{ reservationId: string }>();
+  return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
 }
 export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
@@ -73,25 +74,17 @@ export default function App() {
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
 
-      <Route path = "/buyer/messages" element = {<ChatLayout role = "buyer" />}>
-      <Route index element = {<NoConversationsSelected />} />
-      <Route path = ":reservationId" element={<ChatPage />} />
-      </Route>
-      <Route path = "/seller/messages" element = {<ChatLayout role = "seller" />}>
-      <Route index element = {<NoConversationsSelected />} />
-      <Route path = ":reservationId" element={<ChatPage />} />
-      </Route>
 
+
+      
       <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
       <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
-      
-
 
 
 
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
-        <Route path="/listings/:id" element={<ListingDetail />} />{" "}
+        <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
         {/*the id can be anything for now since the data is hardcoded*/}
         <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings" element={<BrowseListings />} />
@@ -109,8 +102,18 @@ export default function App() {
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
         <Route path="/orders" element={<Navigate to="/buyer/dashboard" replace />} />
-      
+        <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
+          <Route index element={<NoConversationsSelected />} />
+          <Route path=":reservationId" element={<ChatPage />} />
+        </Route>
+        <Route path="/seller/messages" element={<ChatLayout role="seller" />}>
+          <Route index element={<NoConversationsSelected />} />
+          <Route path=":reservationId" element={<ChatPage />} />
+        </Route>
+        <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
+
       </Route>
     </Routes>
   );
 }
+// just truggerin the cd.. again

@@ -49,7 +49,7 @@ const Login: React.FC = () => {
         name: `${me.user.firstName} ${me.user.lastName}`,
         initials: `${me.user.firstName[0]}${me.user.lastName[0]}`.toUpperCase(),
         role: me.user.userRole as UserRole,
-        university: me.user.university,
+        university: me.std.university,
       })
       if (me.user.userRole === 'admin') navigate('/admin/dashboard')
       else navigate('/buyer/listings')

@@ -22,11 +22,21 @@ export interface MeResponse {
     lastName: string
     email: string
     userRole: 'student' | 'admin'
-    university?: string
+   // university?: string
   }
   std: {
     verificationStatus: string
+    degreeProgram: string
+    yearOfStudy: number
+    university: string
   }
+}
+
+export interface UpdateProfilePayload {
+   firstName: string
+    lastName: string
+    yearOfStudy: number
+    degreeProgram: string
 }
 
 export interface University { //defines the exact shape of the university data coming back for backend
@@ -90,7 +100,7 @@ export const authService = {
   },
 
   getMe: async (): Promise<MeResponse> => {
-    const res = await fetch(`${getApiUrl()}/auth/me`, {
+    const res = await fetch(`${getApiUrl()}/users/me`, {
       credentials: 'include',
     })
     if (!res.ok) {
@@ -98,6 +108,33 @@ export const authService = {
     }
     return res.json()
   },
+
+  updateProfile: async (payload: UpdateProfilePayload): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/users/profile`,{
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+
+    if(!res.ok)
+    {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error ?? 'server_error')
+    }
+  },
+
+  deleteAccount: async (): Promise<void> => {
+     const res = await fetch(`${getApiUrl()}/users/account`,{
+      method: 'DELETE',
+      credentials: 'include',})
+  if(!res.ok)
+    {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.error ?? 'server_error')
+    }
+  },
+
 
   logout: async (): Promise<void> => {
     await fetch(`${getApiUrl()}/auth/logout`, {

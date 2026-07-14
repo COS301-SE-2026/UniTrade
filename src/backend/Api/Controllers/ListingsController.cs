@@ -25,21 +25,40 @@ public class ListingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateListingDto request)
     {
-        if (
-            string.IsNullOrEmpty(request.Title)
-            || string.IsNullOrEmpty(request.Condition)
-            || request.Price <= 0
-        )
-            return BadRequest("Field(s) missing.");
+        if (string.IsNullOrEmpty(request.Title))
+            return BadRequest(new { error = "Field(s) missing." });
 
+        var isDraft = string.Equals(
+            request.ListingStatus,
+            "draft",
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        if (!isDraft && (string.IsNullOrEmpty(request.Condition) || request.Price <= 0))
+            return BadRequest("Field(s) missing.");
         var callerIdClaim =
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
             return Unauthorized(new { error = "unauthenticated" });
         }
-        var response = await _listings.CreateListings(request, callerId);
-        return Ok(response);
+        try
+        {
+            var response = await _listings.CreateListings(request, callerId);
+            return Ok(response);
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_category")
+        {
+            return BadRequest(new { error = "invalid_category" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "book_fields_not_allowed")
+        {
+            return BadRequest(new { error = "book_fileds_not_allowed" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_metadata")
+        {
+            return BadRequest(new { error = "invalid_metadata" });
+        }
     }
 
     [Authorize]
@@ -63,7 +82,6 @@ public class ListingController : ControllerBase
         return Ok("Listings updated successfully");
     }
 
-
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] ListFilterDto filter)
@@ -80,6 +98,32 @@ public class ListingController : ControllerBase
         if (listing == null)
             return NotFound(new { error = "listing_not_found" });
         return Ok(listing);
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        try
+        {
+            var deleted = await _listings.DeleteListings(id, callerId);
+            if (!deleted)
+                return NotFound(new { error = "listing_not_found" });
+
+            return NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+        }
     }
 
     [Authorize]
@@ -160,4 +204,51 @@ public class ListingController : ControllerBase
 
         return File(data, contentType);
     }
+
+    [Authorize]
+    [HttpPatch("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        Guid id,
+        [FromBody] UpdateStatusRequest request,
+        CancellationToken ct
+    )
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        try
+        {
+            var updated = await _listings.UpdateStatusAsync(id, callerId, request.Status, ct);
+            return updated
+                ? Ok(new { status = request.Status })
+                : NotFound(new { error = "listings_not_found" });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "status_locked")
+        {
+            return Conflict(new { error = "status_locked" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "status_locked")
+        {
+            return Conflict(new { error = "status_locked" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "images_required")
+        {
+            return Conflict(new { error = "images_required" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "description_required")
+        {
+            return Conflict(new { error = "description_required" });
+        }
+    }
+
+    public record UpdateStatusRequest(string Status);
 }
