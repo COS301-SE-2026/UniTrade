@@ -83,9 +83,10 @@ public class ChatHub : Hub
         {
             throw new HubException(
                 ex.Message == ChatErrors.Forbidden
-                    ? "Forbidden: you are not a participant in this reservation."
+                    ? "You are not a participant in this reservation"
                 : ex.Message == ChatErrors.BuyerWaitingAck ? "Seller needs to acknowledge you first"
-                : ex.Message
+                : ex.Message==ChatErrors.ReservationCancelled ? "Reservation was Cancelled"
+                :ex.Message
             );
         }
         catch (ArgumentException ex)
