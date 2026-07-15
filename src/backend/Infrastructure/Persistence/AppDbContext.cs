@@ -601,6 +601,7 @@ public class AppDbContext : DbContext
             entity
                 .HasIndex(x => new { x.ReservationId, x.ClientKey })
                 .HasDatabaseName("uix_chat_client_key")
+                .IsUnique()
                 .HasFilter("client_key IS NOT NULL");
         });
 

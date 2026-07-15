@@ -32,7 +32,7 @@ class ConnectionManager {
       conn.on("ReceiveMessage", (m: ChatMessage) =>
         this.messageListeners.forEach((cb) => cb(m)),
       );
-      conn.on("MessageRed", (e: MessagesReadEvent) =>
+      conn.on("MessagesRead", (e: MessagesReadEvent) =>
         this.readListeners.forEach((cb) => cb(e)),
       );
       conn.on("ReservationUpdated", (r: Reservation) =>
@@ -61,6 +61,9 @@ class ConnectionManager {
       });
 
       await conn.start();
+      await Promise.allSettled(
+        [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
+    );
       this.notifyState("Connected");
     })();
 

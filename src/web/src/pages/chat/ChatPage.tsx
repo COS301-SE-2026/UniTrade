@@ -18,17 +18,6 @@ import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
 import type { ConnectionState } from '../../types/hubConnection';
 
-function connectionStatusLabel(state: ConnectionState): string {
-    switch (state) {
-        case 'Connected':
-            return 'online';
-        case 'Reconnecting':
-            return 'reconnecting…';
-        default:
-            return 'offline';
-    }
-}
-
 function initialsFromName(name: string): string {
     return name
         .split(' ')
@@ -78,7 +67,8 @@ const TextMessageBubble: React.FC<{
     isOwnMessage: boolean;
     counterpartyInitials: string;
     onRetry?: () => void;
-}> = ({ message, isOwnMessage, counterpartyInitials, onRetry }) => {
+    retryDisabled?: boolean;
+}> = ({ message, isOwnMessage, counterpartyInitials, onRetry, retryDisabled }) => {
     const time = new Date(message.sentAt).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -91,8 +81,8 @@ const TextMessageBubble: React.FC<{
             <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[70%]`}>
                 <div
                     className={`px-4 py-2.5 text-[15px] leading-relaxed shadow-sm rounded-3xl ${isOwnMessage
-                            ? 'bg-[#003366] text-white rounded-br-none'
-                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                        ? 'bg-[#003366] text-white rounded-br-none'
+                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
                         }`}
                 >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -103,7 +93,7 @@ const TextMessageBubble: React.FC<{
                         <>
                             {message.status === 'sending' && <span className="italic">sending...</span>}
                             {message.status === 'failed' && (
-                                <button onClick={onRetry} className="text-red-500 underline">
+                                <button onClick={onRetry} disabled={retryDisabled} className="text-red-500 underline active:opacity-50 active:translate-y-px disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed">
                                     failed • retry
                                 </button>
                             )}
@@ -183,12 +173,14 @@ function MessageBubble({
     currentUserId,
     counterpartyInitials,
     onRetry,
-}: {
+    connectionState,
+}: Readonly<{
     message: ClientChatMessage;
     currentUserId: string;
     counterpartyInitials: string;
     onRetry: (clientId: string, content: string) => void;
-}) {
+    connectionState: ConnectionState;
+}>) {
     const isOwnMessage = message.senderId === currentUserId;
 
     switch (message.messageType) {
@@ -199,6 +191,7 @@ function MessageBubble({
                     isOwnMessage={isOwnMessage}
                     counterpartyInitials={counterpartyInitials}
                     onRetry={() => onRetry(message.clientId!, message.content)}
+                    retryDisabled={connectionState !== 'Connected'}
                 />
             );
         case 'system':
@@ -227,7 +220,7 @@ export default function ChatPage() {
 
     const { data: messages = [], isLoading, isError } = useChatMessages(reservationId!);
     useReservationRealtime(reservationId!);
-    const { mutate: send, retry } = useSendMessage(reservationId!);
+    const { send, retry } = useSendMessage(reservationId!);
 
     const sortedMessages = React.useMemo(
         () => [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()),
@@ -295,9 +288,6 @@ export default function ChatPage() {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                         <p className="font-semibold text-gray-900 truncate">{counterpartyName}</p>
-                        <span className="text-xs text-emerald-600 shrink-0">
-                            {connectionStatusLabel(connectionState)}
-                        </span>
                     </div>
                 </div>
             </div>
@@ -345,6 +335,7 @@ export default function ChatPage() {
                                 currentUserId={currentUserId}
                                 counterpartyInitials={counterpartyInitials}
                                 onRetry={retry}
+                                connectionState={connectionState}
                             />
                         </React.Fragment>
                     );

@@ -88,6 +88,7 @@ public class ChatService : IChatService
                 && pg.ConstraintName == "uix_chat_client_key"
             )
         {
+            _chatRepo.Detach(result);
             var winner = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey, ct);
 
             if (winner is not null && winner.SenderId == senderId)
@@ -186,7 +187,8 @@ public class ChatService : IChatService
             m.Content,
             payload,
             m.SentAt,
-            m.ReadAt
+            m.ReadAt,
+            m.ClientKey
         );
     }
 
