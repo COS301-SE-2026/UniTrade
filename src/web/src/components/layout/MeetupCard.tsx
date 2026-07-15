@@ -1,7 +1,6 @@
-import React from 'react';
 import {
     IconMapPin, 
-    IconCalender,
+    IconCalendar,
     IconCheck, 
     IconX
 } from '@tabler/icons-react';
@@ -58,7 +57,7 @@ export default function MeetupCard({
                         </p>
                     </div>
                     <div className= "flex gap-3 mt-3">
-                        <IconCalender size={18} className = "mt-0.5 shrink-0" />
+                        <IconCalendar size={18} className = "mt-0.5 shrink-0" />
                         <p>
                             {date.toLocaleDateString('en-ZA', {weekday: 'short', month: 'short', day: 'numeric'})} . {' '}
                             {date.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}
