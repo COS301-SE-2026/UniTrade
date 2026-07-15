@@ -4,8 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import {
     IconSend,
     IconCheck,
-    IconMapPin,
-    IconCalendar,
     IconPaperclip,
 } from '@tabler/icons-react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -17,6 +15,11 @@ import { connectionManager } from '../../services/realtime/connectionManager';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
 import type { ConnectionState } from '../../types/hubConnection';
+import MeetupCard from '../../components/layout/MeetupCard';
+import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
+import { combineDateAndTime, type MeetupFormValues } from '../../types/meetup';
+
+
 
 function connectionStatusLabel(state: ConnectionState): string {
     switch (state) {
@@ -130,7 +133,7 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
-const MeetupProposalCard: React.FC<{
+/*const MeetupProposalCard: React.FC<{
     message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
     isOwnMessage: boolean;
 }> = ({ message, isOwnMessage }) => {
@@ -166,6 +169,7 @@ const MeetupProposalCard: React.FC<{
         </div>
     );
 };
+*/
 
 const MeetupResponseBubble: React.FC<{
     message: Extract<ClientChatMessage, { messageType: 'meetup_response' }>;
@@ -204,7 +208,15 @@ function MessageBubble({
         case 'system':
             return <SystemMessageBubble message={message} />;
         case 'meetup_proposal':
-            return <MeetupProposalCard message={message} isOwnMessage={isOwnMessage} />;
+            return (
+                <MeetupCard
+                location={message.payload.proposedLocation}
+                time = {message.payload.proposedTime}
+                status = {(message.payload as {status?: 'pending' | 'accepted' |'declined'}).status ?? 'pending'}
+                isOwnMessage={isOwnMessage}
+                caption = {message.content}
+                />
+            );
         case 'meetup_response':
             return <MeetupResponseBubble message={message} />;
         default:
@@ -261,8 +273,19 @@ export default function ChatPage() {
     useEffect(() => connectionManager.onStateChange(setConnectionState), []);
 
     const [draft, setDraft] = useState('');
+    const [isProposingMeetup, setIsProposingMeetup] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleProposeMeetup = (values: MeetupFormValues) => {
+        const proposedTime = combineDateAndTime(values.date, values.time);
+
+        console.log('Meetup proposal submitted:', {
+            proposedLocation: values.location,
+            proposedTime,
+        });
+        setIsProposingMeetup(false);
+    }
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -359,12 +382,19 @@ export default function ChatPage() {
             <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
                 <button
                     type="button"
-                    disabled
+                    onClick = {() => setIsProposingMeetup(true)}
                     className="w-full py-3 bg-[#003366] text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-[#002244] transition-colors disabled:opacity-60"
                 >
                     SCHEDULE A MEETUP
                 </button>
             </div>
+
+            {isProposingMeetup && (
+                <MeetupProposalForm
+                onCancel={() => setIsProposingMeetup(false)}
+                onSubmit={handleProposeMeetup}
+                />
+            )}
             <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
                 <button type="button" className="text-gray-400 p-1">
                     <IconPaperclip size={22} />
