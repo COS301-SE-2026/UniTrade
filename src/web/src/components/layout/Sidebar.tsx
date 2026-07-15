@@ -18,6 +18,8 @@ import {
 import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
 import { useState, useEffect, useRef } from 'react'
+import { useReservationsList } from '../../hooks/useReservationsList'
+import { useUnreadRealtime } from '../../hooks/useUnreadRealtime'
 
 interface NavItem {
   label: string
@@ -37,9 +39,9 @@ const buyerNav: NavSection[] = [
     items: [
       { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
+      { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />},
       { label: 'My Wishlist', to: 'buyer/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} />, badge: 2 },
+      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} />},
     ],
   },
   {
@@ -60,7 +62,7 @@ const sellerNav: NavSection[] = [
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
       { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} />},
-      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} />, badge: 2 },
+      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} />},
     ],
   },
   {
@@ -163,12 +165,30 @@ export default function Sidebar() {
   const [ShowPopover, setShowPopover] = useState(false)
   
 
+  const messageRole = viewMode === 'buyer' ? 'buyer' : 'seller'
+  const { data: reservations = []} = useReservationsList(messageRole, {
+    enabled: user?.role === 'student',
+  })
+  useUnreadRealtime(messageRole)
+
+   const unreadTotal = reservations
+    .filter((r) => r.reservationStatus === 'active')
+    .reduce((sum, r) => sum + (r.unreadCount ?? 0), 0)
+
+
   let sections: NavSection[] = []
   if (user?.role === 'admin') {
     sections = adminNav
   } else if (user?.role === 'student') {
     sections = viewMode === 'buyer' ? buyerNav : sellerNav
   }
+
+  sections = sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) =>
+    item.label === 'Messages' ? { ...item, badge: unreadTotal } : item
+  ),
+  }))
 
   const handleSwitch = () => {
     if (user?.role !== 'student') return
