@@ -4,6 +4,7 @@ import { queryKeys } from "../lib/queryKeys";
 import type { ClientChatMessage } from "../types/chat";
 import { useAuthStore } from "../store/useAuthStore";
 import type { ChatMessage } from "../types/Reservations";
+import { getReservationById } from "../services/reservationService";
 
 interface SendVars {
   content: string;
@@ -22,79 +23,91 @@ export function useSendMessage(reservationId: string) {
   const key = queryKeys.reservationMessages(reservationId);
 
   const mutation = useMutation<ChatMessage, Error, SendVars, MutationContext>({
-    mutationFn: ({ content, clientId }) =>
-      connectionManager.sendMessage(reservationId, content, clientId),
+    mutationFn: async ({ content, clientId }) => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeoutPromise = new Promise<never>((_, reject)) =>
+  timer = setTimeout(() => PromiseRejectionEvent(new Error('Send timed out')), 10_000);
+});
 
-    onMutate: async (vars: SendVars): Promise<MutationContext> => {
-      const { content, clientId, isRetry } = vars;
-      await queryClient.cancelQueries({ queryKey: key });
+try {
+  return await Promise.race([connectionManager.sendMessage(getReservationById, ContentVisibilityAutoStateChangeEvent, clientId), timeoutPromise,]);
 
-      if (isRetry) {
-        queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
-          old.map((m) =>
-            m.clientId === clientId ? { ...m, status: "sending" as const } : m,
-          ),
-        );
-      } else {
-        const optimisticMessage: ClientChatMessage = {
-          clientId,
-          senderId: user?.id ?? "me",
-          messageType: "text",
-          content,
-          payload: null,
-          sentAt: new Date().toISOString(),
-          readAt: null,
-          status: "sending",
-        };
-        queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [
-          ...old,
-          optimisticMessage,
-        ]);
-      }
+}
+finally {
+  clearTimeout(timer);
+}
+  },
 
-      return { clientId, isRetry };
-    },
+onMutate: async (vars: SendVars): Promise<MutationContext> => {
+  const { content, clientId, isRetry } = vars;
+  await queryClient.cancelQueries({ queryKey: key });
 
-    onSuccess: (
-      serverMessage: ChatMessage,
-      _vars: SendVars,
-      context?: MutationContext,
-    ) => {
-      if (!context || !serverMessage) return;
+  if (isRetry) {
+    queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
+      old.map((m) =>
+        m.clientId === clientId ? { ...m, status: "sending" as const } : m,
+      ),
+    );
+  } else {
+    const optimisticMessage: ClientChatMessage = {
+      clientId,
+      senderId: user?.id ?? "me",
+      messageType: "text",
+      content,
+      payload: null,
+      sentAt: new Date().toISOString(),
+      readAt: null,
+      status: "sending",
+    };
+    queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [
+      ...old,
+      optimisticMessage,
+    ]);
+  }
 
-      queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => {
-        const alreadyReceivedViaSocket = old.some(
-          (m) =>
-            m.messageId === serverMessage.messageId &&
-            m.clientId !== context.clientId,
-        );
+  return { clientId, isRetry };
+},
 
-        if (alreadyReceivedViaSocket) {
-          return old
-            .filter((m) => m.clientId !== context.clientId)
-            .map((m) =>
-              m.messageId === serverMessage.messageId
-                ? {
-                    ...m,
-                    senderId: user?.id ?? "me",
-                    status: "sent" as const,
-                  }
-                : m,
-            );
-        }
+  onSuccess: (
+    serverMessage: ChatMessage,
+    _vars: SendVars,
+    context?: MutationContext,
+  ) => {
+    if (!context || !serverMessage) return;
 
-        return old.map((m) =>
-          m.clientId === context.clientId
-            ? {
-                ...serverMessage,
-                clientId: context.clientId,
+    queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => {
+      const alreadyReceivedViaSocket = old.some(
+        (m) =>
+          m.messageId === serverMessage.messageId &&
+          m.clientId !== context.clientId,
+      );
+
+      if (alreadyReceivedViaSocket) {
+        return old
+          .filter((m) => m.clientId !== context.clientId)
+          .map((m) =>
+            m.messageId === serverMessage.messageId
+              ? {
+                ...m,
                 senderId: user?.id ?? "me",
                 status: "sent" as const,
               }
-            : m,
-        );
-      });
-    },
+              : m,
+          );
+      }
+
+      return old.map((m) =>
+        m.clientId === context.clientId
+          ? {
+            ...serverMessage,
+            clientId: context.clientId,
+            senderId: user?.id ?? "me",
+            status: "sent" as const,
+          }
+          : m,
+      );
+    });
+  },
 
     onError: (_err: Error, _vars: SendVars, context?: MutationContext) => {
       if (!context) return;
@@ -108,39 +121,39 @@ export function useSendMessage(reservationId: string) {
     },
   });
 
-  const send = (content: string) => {
-    const clientId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const send = (content: string) => {
+  const clientId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    if (connectionManager.getState() !== "Connected") {
-      queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [
-        ...old,
-        {
-          clientId,
-          senderId: user?.id ?? "me",
-          messageType: "text",
-          content,
-          payload: null,
-          sentAt: new Date().toISOString(),
-          readAt: null,
-          status: "failed" as const,
-        },
-      ]);
-      return;
-    }
-    mutation.mutate({ content, clientId, isRetry: false });
-  };
+  if (connectionManager.getState() !== "Connected") {
+    queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [
+      ...old,
+      {
+        clientId,
+        senderId: user?.id ?? "me",
+        messageType: "text",
+        content,
+        payload: null,
+        sentAt: new Date().toISOString(),
+        readAt: null,
+        status: "failed" as const,
+      },
+    ]);
+    return;
+  }
+  mutation.mutate({ content, clientId, isRetry: false });
+};
 
-  const retry = (clientId: string, content: string) => {
-    if (connectionManager.getState() !== "Connected") {
-      queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
-        old.map((m) =>
-          m.clientId === clientId ? { ...m, status: "failed" as const } : m,
-        ),
-      );
-      return;
-    }
-    mutation.mutate({ content, clientId, isRetry: true });
-  };
+const retry = (clientId: string, content: string) => {
+  if (connectionManager.getState() !== "Connected") {
+    queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
+      old.map((m) =>
+        m.clientId === clientId ? { ...m, status: "failed" as const } : m,
+      ),
+    );
+    return;
+  }
+  mutation.mutate({ content, clientId, isRetry: true });
+};
 
-  return { ...mutation, mutate: send, retry };
+return { ...mutation, mutate: send, retry };
 }

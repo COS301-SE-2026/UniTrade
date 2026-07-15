@@ -16,6 +16,6 @@ export function useChatMessages(reservationId: string) {
     enabled: !!reservationId,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
-    staleTime: 50 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
