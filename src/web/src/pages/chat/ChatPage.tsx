@@ -256,6 +256,12 @@ export default function ChatPage() {
     const locationState = location.state as ChatLocationState | null;
     const counterpartyName = locationState?.counterpartyName ?? 'Conversation!!!!';
     const counterpartyInitials = locationState?.counterpartyInitials ?? initialsFromName(counterpartyName);
+    const isCancelled=reservation?.reservationStatus==='cancelled';
+    const isBuyerWaitingAck=!isSeller&&!reservation?.sellerAcknowledgedAt;
+
+    const inputDisabled=isCancelled||isBuyerWaitingAck;
+
+    const messageForAckOrCancel=isCancelled ? 'Reservation was cancelled.' :isBuyerWaitingAck?'Waiting for seller to accept reservation' :null;
 
     const [connectionState, setConnectionState] = useState<ConnectionState>(connectionManager.getState());
     useEffect(() => connectionManager.onStateChange(setConnectionState), []);
@@ -279,7 +285,7 @@ export default function ChatPage() {
     }, [reservationId, sortedMessages]);
 
     const handleSend = () => {
-        if (!draft.trim()) return;
+        if (!draft.trim() ||inputDisabled) return;
         send(draft.trim());
         setDraft('');
         inputRef.current?.focus();
@@ -361,6 +367,10 @@ export default function ChatPage() {
                     SCHEDULE A MEETUP
                 </button>
             </div>
+            {messageForAckOrCancel ? (<div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
+                {messageForAckOrCancel}
+                </div>
+            ):(
             <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
                 <button type="button" className="text-gray-400 p-1">
                     <IconPaperclip size={22} />
@@ -381,7 +391,7 @@ export default function ChatPage() {
                 >
                     <IconSend size={18} />
                 </button>
-            </div>
+            </div>)}
         </div>
     );
 }

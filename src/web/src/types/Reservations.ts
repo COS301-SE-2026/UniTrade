@@ -11,6 +11,7 @@ export interface Reservation {
     timerStage: TimerStage;
     expiresAt: string;
     createdAt: string;
+    sellerAcknowledgedAt?:string |null;
 }
 
 export interface ReservationCounterparty {
