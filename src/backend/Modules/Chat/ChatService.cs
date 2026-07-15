@@ -37,6 +37,17 @@ public class ChatService : IChatService
             throw new ChatException(ChatErrors.Forbidden); // i change dit because of sonarqube
         }
 
+        var reservation = await _reservations.GetByIdAsync(reservationId, ct);
+
+        if (
+            reservation is not null
+            && reservation.BuyerId == senderId
+            && reservation.SellerAcknowledgedAt is null
+        )
+        {
+            throw new ChatException(ChatErrors.BuyerWaitingAck);
+        }
+
         var result = new ChatMessage
         {
             ReservationId = reservationId,
