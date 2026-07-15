@@ -126,4 +126,9 @@ public class ChatRepository : IChatRepository
                 ct
             );
     }
+
+    public void Detach(ChatMessage message)
+    {
+        _db.Entry(message).State = EntityState.Detached;
+    }
 }

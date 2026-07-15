@@ -39,4 +39,6 @@ public interface IChatRepository
         string clientKey,
         CancellationToken ct = default
     );
+
+    void Detach(ChatMessage message);
 }

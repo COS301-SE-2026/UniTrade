@@ -72,6 +72,7 @@ public class ChatHub : Hub
         string? clientKey = null
     )
     {
+        // await Task.Delay(12000); // just using this for testing locally
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
         if (!Guid.TryParse(userId, out var senderId))
@@ -97,7 +98,7 @@ public class ChatHub : Hub
             throw new HubException(ex.Message);
         }
 
-        await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
+        await Clients.OthersInGroup(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
         return message;
     }
 
@@ -132,7 +133,7 @@ public class ChatHub : Hub
             await Clients
                 .OthersInGroup(GroupName(reservationId))
                 .SendAsync(
-                    "Messages Read",
+                    "MessagesRead",
                     new
                     {
                         reservationId,
@@ -142,4 +143,7 @@ public class ChatHub : Hub
                 );
         }
     }
+
+    public Task LeaveRoom(Guid reservationId) =>
+        Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(reservationId));
 }
