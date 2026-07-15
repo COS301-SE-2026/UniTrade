@@ -114,7 +114,7 @@ useEffect(() => {
     try {
       await authService.logout();
     } catch {
-      
+      //this is just for linting to pass
     } finally {
       clearUser();
       navigate("/auth/login");
