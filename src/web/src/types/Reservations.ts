@@ -11,6 +11,7 @@ export interface Reservation {
     timerStage: TimerStage;
     expiresAt: string;
     createdAt: string;
+    counterParty: ReservationCounterparty | null;
 }
 
 export interface ReservationCounterparty {
