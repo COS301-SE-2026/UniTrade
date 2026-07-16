@@ -31,7 +31,7 @@ import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 
-function RedirectToMessages({ role }: { role: 'buyer' | 'seller' }) {
+function RedirectToMessages({ role }: { role: "buyer" | "seller" }) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
 }
@@ -55,7 +55,7 @@ export default function App() {
           });
         }
       })
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setAuthChecked(true));
   }, [setUser]);
   if (!authChecked) {
@@ -74,13 +74,14 @@ export default function App() {
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
 
-
-
-      
-      <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
-      <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
-
-
+      <Route
+        path="/buyer/reservations/:reservationId/chat"
+        element={<RedirectToMessages role="buyer" />}
+      />
+      <Route
+        path="/seller/reservations/:reservationId/chat"
+        element={<RedirectToMessages role="seller" />}
+      />
 
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
@@ -91,7 +92,6 @@ export default function App() {
         <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/buyer/reservations" element={<Reservations />} />
         <Route path="seller/reservations" element={<SellerReservations />} />
-
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
@@ -101,7 +101,10 @@ export default function App() {
         <Route path="/admin/verifications" element={<AdminVerifications />} />
         <Route path="/admin/listings" element={<AdminListingQueue />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
-        <Route path="/orders" element={<Navigate to="/buyer/dashboard" replace />} />
+        <Route
+          path="/orders"
+          element={<Navigate to="/buyer/dashboard" replace />}
+        />
         <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
           <Route index element={<NoConversationsSelected />} />
           <Route path=":reservationId" element={<ChatPage />} />
@@ -110,10 +113,11 @@ export default function App() {
           <Route index element={<NoConversationsSelected />} />
           <Route path=":reservationId" element={<ChatPage />} />
         </Route>
-        <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
-
+        <Route
+          path="/buyer/reservations/:reservationId"
+          element={<ReservationDetails />}
+        />
       </Route>
     </Routes>
   );
 }
-// just truggerin the cd.. again
