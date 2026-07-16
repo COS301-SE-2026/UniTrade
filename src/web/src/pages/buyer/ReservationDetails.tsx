@@ -226,7 +226,7 @@ export default function ReservationDetails() {
   };
 
   const handleViewListing = () => {
-    if (reservation) navigate(`/listings/${reservation.listingId}`);
+    if (reservation) navigate(`/buyer/listings/${reservation.listingId}`);
   };
 
   const handleScheduleMeetup = () => {
