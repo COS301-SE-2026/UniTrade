@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ShieldCheck,ShieldAlert } from "lucide-react";
+
 
 export default function EnterPin()
 {
