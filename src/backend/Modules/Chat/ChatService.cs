@@ -227,4 +227,50 @@ public class ChatService : IChatService
         await _chatRepo.SaveAsync(ct);
         return ToDto(message);
     }
+
+    public async Task<ChatMessageDto?> GetMessageAsync(
+        Guid reservationId,
+        int message,
+        CancellationToken ct = default
+    )
+    {
+        var m = await _chatRepo.GetByIdAsync(reservationId, message, ct);
+        return m is null ? null : ToDto(m);
+    }
+
+    public Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    ) => _chatRepo.HasResponseForProposalAsync(reservationId, proposalMessageId, ct);
+
+    public async Task<ChatMessageDto> SendMeetupResponseAsync(
+        Guid reservationId,
+        Guid senderId,
+        MeetupResponsePayload payload,
+        CancellationToken ct = default
+    )
+    {
+        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        {
+            throw new ChatException(ChatErrors.Forbidden);
+        }
+
+        var content = payload.Accepted
+            ? $"Meetup confirmed - {payload.ProposedTime:ddd d MMM HH:mm} at {payload.LocationName}"
+            : "Meetup proposal declined";
+        var result = new ChatMessage
+        {
+            ReservationId = reservationId,
+            SenderId = senderId,
+            MessageType = "meetup_response",
+            Content = content,
+            Payload = JsonSerializer.Serialize(payload),
+            SentAt = DateTime.UtcNow,
+        };
+
+        await _chatRepo.AddAsync(result, ct);
+        await _chatRepo.SaveAsync(ct);
+        return ToDto(result);
+    }
 }

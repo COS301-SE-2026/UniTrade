@@ -11,4 +11,11 @@ public interface IMeetupService
         MeetupProposalPayload payload,
         CancellationToken ct = default
     );
+
+    Task<MeetupResponseResult> AcceptAsync(
+        Guid reservationId,
+        Guid callerId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    );
 }

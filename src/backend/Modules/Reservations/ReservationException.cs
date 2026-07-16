@@ -19,4 +19,8 @@ public static class ReservationErrors
     public const string NotYetExpired = "not_yet_expired";
     public const string TimeInPast = "time_in_past";
     public const string Cancelled = "cancelled";
+    public const string ProposalNotFound = "proposal_not_found";
+    public const string NotAProposal = "not_a_proposal";
+    public const string CannotAcceptOwnProposal = "cannot_accept_own_proposal";
+    public const string AlreadyResponded = "already_responded";
 }
