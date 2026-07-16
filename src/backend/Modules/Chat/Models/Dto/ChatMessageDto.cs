@@ -10,5 +10,6 @@ public record ChatMessageDto(
     string Content,
     JsonElement? Payload,
     DateTime SentAt,
-    DateTime? ReadAt
+    DateTime? ReadAt,
+    string? ClientKey
 );
