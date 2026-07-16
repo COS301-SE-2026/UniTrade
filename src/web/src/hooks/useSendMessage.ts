@@ -125,10 +125,12 @@ export function useSendMessage(reservationId: string) {
     },
   });
 
+  const canSend = () =>
+    navigator.onLine && connectionManager.getState() === "Connected";
   const send = (content: string) => {
     const clientId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    if (navigator.onLine && connectionManager.getState() !== "Connected") {
+    if (!canSend()) {
       queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [
         ...old,
         {
@@ -149,7 +151,7 @@ export function useSendMessage(reservationId: string) {
   };
 
   const retry = (clientId: string, content: string) => {
-    if (navigator.onLine && connectionManager.getState() !== "Connected") {
+    if (!canSend()) {
       queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
         old.map((m) =>
           m.clientId === clientId ? { ...m, status: "failed" as const } : m,
