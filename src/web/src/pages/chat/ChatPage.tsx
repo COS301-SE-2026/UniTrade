@@ -17,7 +17,9 @@ import { listingsService } from '../../services/listingsService';
 import type { ConnectionState } from '../../types/hubConnection';
 import MeetupCard from '../../components/layout/MeetupCard';
 import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
-import { combineDateAndTime, type MeetupFormValues } from '../../types/meetup';
+import { combineDateAndTime, type MeetupFormValues, type MeetupStatus } from '../../types/meetup';
+import CheckInModal from '../../components/CheckInModal';
+
 
 
 
@@ -187,11 +189,19 @@ function MessageBubble({
     currentUserId,
     counterpartyInitials,
     onRetry,
+    meetupOverrides,
+    respondingKey,
+    onRespondMeetup,
+    onCheckIn,
 }: {
     message: ClientChatMessage;
     currentUserId: string;
     counterpartyInitials: string;
     onRetry: (clientId: string, content: string) => void;
+    meetupOverrides: Record<string, MeetupStatus>;
+    respondingKey: string | null;
+    onRespondMeetup : (key: string, status: MeetupStatus) => void;
+    onCheckIn: (location: string) => void;
 }) {
     const isOwnMessage = message.senderId === currentUserId;
 
@@ -207,16 +217,26 @@ function MessageBubble({
             );
         case 'system':
             return <SystemMessageBubble message={message} />;
-        case 'meetup_proposal':
+        case 'meetup_proposal': {
+            const key =  String(message.clientId ?? message.messageId ?? '');
+            const serverStatus = (message.payload as {status?: MeetupStatus}).status ?? 'pending';
+            const status = meetupOverrides[key] ?? serverStatus;
+            const location = message.payload.proposedLocation;
+
             return (
                 <MeetupCard
-                location={message.payload.proposedLocation}
+                location={location}
                 time = {message.payload.proposedTime}
-                status = {(message.payload as {status?: 'pending' | 'accepted' |'declined'}).status ?? 'pending'}
+                status = {status}
                 isOwnMessage={isOwnMessage}
                 caption = {message.content}
+                isResponding = {respondingKey === key}
+                onAccept={() => onRespondMeetup(key, 'accepted')}
+                onDecline={() => onRespondMeetup(key, 'declined')}
+                onCheckIn={status === 'accepted' ? () => onCheckIn(location) : undefined}
                 />
             );
+        }
         case 'meetup_response':
             return <MeetupResponseBubble message={message} />;
         default:
@@ -277,6 +297,11 @@ export default function ChatPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const [meetupOverrides, setMeetupOverrides] = useState<Record<string, MeetupStatus>>({});
+    const [respondingKey, setRespondingKey] = useState<string | null>(null);
+    const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+
+
     const handleProposeMeetup = (values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);
 
@@ -285,7 +310,15 @@ export default function ChatPage() {
             proposedTime,
         });
         setIsProposingMeetup(false);
-    }
+    };
+
+    const handleRespondMeetup = (key: string, status: MeetupStatus) => {
+        setRespondingKey(key)
+        setTimeout(() => {
+            setMeetupOverrides((prev) => ({...prev, [key]: status}));
+            setRespondingKey(null);
+        }, 500);
+    };
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -372,6 +405,10 @@ export default function ChatPage() {
                                 currentUserId={currentUserId}
                                 counterpartyInitials={counterpartyInitials}
                                 onRetry={retry}
+                                meetupOverrides={meetupOverrides}
+                                respondingKey={respondingKey}
+                                onRespondMeetup={handleRespondMeetup}
+                                onCheckIn={setCheckInLocation}
                             />
                         </React.Fragment>
                     );
@@ -395,6 +432,14 @@ export default function ChatPage() {
                 onSubmit={handleProposeMeetup}
                 />
             )}
+
+            {checkInLocation && (
+                <CheckInModal
+                meetupLocation={checkInLocation}
+                onClose={() => setCheckInLocation(null)}
+                />
+            )}
+
             <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
                 <button type="button" className="text-gray-400 p-1">
                     <IconPaperclip size={22} />
