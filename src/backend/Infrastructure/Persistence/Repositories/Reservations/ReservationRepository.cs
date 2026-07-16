@@ -80,7 +80,11 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     ) =>
         await _db
             .Reservations.Include(r => r.ReservationListings)
-            .Where(r => r.ReservationStatus == ReservationState.Active && r.ExpiresAt <= asOf)
+            .Where(r =>
+                r.ReservationStatus == ReservationState.Active
+                && r.ExpiresAt <= asOf
+                && r.MeetupConfirmedAt == null
+            )
             .OrderBy(r => r.ExpiresAt)
             .Take(batchSize)
             .ToListAsync(ct);

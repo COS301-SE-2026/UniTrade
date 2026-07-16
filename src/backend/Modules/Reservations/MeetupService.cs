@@ -12,12 +12,19 @@ namespace Modules.Reservations;
 public class MeetupService : IMeetupService
 {
     private readonly IReservationRepository _reservations;
+    private readonly IMeetupRepository _meetups;
     private readonly IChatService _chat;
     private readonly TimeProvider _clock;
 
-    public MeetupService(IReservationRepository reservations, IChatService chat, TimeProvider clock)
+    public MeetupService(
+        IReservationRepository reservations,
+        IChatService chat,
+        TimeProvider clock,
+        IMeetupRepository meetups
+    )
     {
         _reservations = reservations;
+        _meetups = meetups;
         _chat = chat;
         _clock = clock;
     }
@@ -91,6 +98,23 @@ public class MeetupService : IMeetupService
 
         var details = meetupProposalPayload;
 
+        var now = _clock.GetUtcNow().UtcDateTime;
+
+        var meetup = new Meetup
+        {
+            ReservationId = reservationId,
+            AgreedLocationName = details.LocationName,
+            AgreedLatitude = details.Lat,
+            AgreedLongitude = details.Lng,
+            AgreedTime = details.ProposedTime,
+            CheckinWindowClosesAt =
+                details.ProposedTime + ReservationStateMachine.CheckinWindowAfterMeetup,
+            Status = "scheduled",
+        };
+        await _meetups.AddAsync(meetup, ct);
+
+        ReservationStateMachine.ConfirmMeetup(r, now);
+
         var responsePayload = new MeetupResponsePayload(
             Accepted: true,
             ProposalMessageId: proposalMessageId,
@@ -111,8 +135,7 @@ public class MeetupService : IMeetupService
 
         return new MeetupResponseResult(
             ResponseMessage: responseMessage,
-            MeetupId: null // be2: day 2
-            ,
+            MeetupId: meetup.MeetupId,
             Reservation: MapToDto(r)
         );
     }

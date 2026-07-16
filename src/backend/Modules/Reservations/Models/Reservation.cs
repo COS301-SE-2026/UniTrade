@@ -1,5 +1,6 @@
-using Modules.Identity.Models;
 using Modules.Chat.Models;
+using Modules.Identity.Models;
+
 namespace Modules.Reservations.Models;
 
 public class Reservation
@@ -24,4 +25,7 @@ public class Reservation
         new List<ReservationListing>();
 
     public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+
+    public DateTime? MeetupConfirmedAt { get; set; }
+    public ICollection<Meetup> Meetups { get; set; } = new List<Meetup>();
 }
