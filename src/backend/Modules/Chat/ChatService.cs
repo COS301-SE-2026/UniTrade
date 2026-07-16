@@ -53,7 +53,7 @@ public class ChatService : IChatService
         //block buyer/seller if seller not acked
         var reservation = await _reservations.GetByIdAsync(reservationId, ct);
 
-        if(reservation is not null && reservation.ReservationStatus==ReservationState.Cancelled)
+        if (reservation is not null && reservation.ReservationStatus == ReservationState.Cancelled)
         {
             throw new ChatException(ChatErrors.ReservationCancelled);
         }
@@ -196,4 +196,35 @@ public class ChatService : IChatService
         IEnumerable<Guid> reservationIds,
         CancellationToken ct = default
     ) => _chatRepo.GetLastMessagesAsync(reservationIds, ct);
+
+    public async Task<ChatMessageDto> SendMeetupProposal(
+        Guid reservationId,
+        Guid senderId,
+        MeetupProposalPayload payload,
+        CancellationToken ct = default
+    )
+    {
+        if (!await _membership.IsPartyToAsync(reservationId, senderId, ct))
+        {
+            throw new ChatException(ChatErrors.Forbidden);
+        }
+
+        var content =
+            $"Proposed a meetup at {payload.LocationName}, "
+            + $"{payload.ProposedTime:ddd d MM HH:mm}";
+
+        var message = new ChatMessage
+        {
+            ReservationId = reservationId,
+            SenderId = senderId,
+            MessageType = "meetup_proposal",
+            Content = content,
+            Payload = JsonSerializer.Serialize(payload),
+            SentAt = DateTime.UtcNow,
+        };
+
+        await _chatRepo.AddAsync(message, ct);
+        await _chatRepo.SaveAsync(ct);
+        return ToDto(message);
+    }
 }
