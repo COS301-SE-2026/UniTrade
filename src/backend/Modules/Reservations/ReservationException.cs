@@ -23,4 +23,5 @@ public static class ReservationErrors
     public const string NotAProposal = "not_a_proposal";
     public const string CannotAcceptOwnProposal = "cannot_accept_own_proposal";
     public const string AlreadyResponded = "already_responded";
+    public const string MeetupAlreadyConfirmed ="meetup_already_confirmed";
 }
