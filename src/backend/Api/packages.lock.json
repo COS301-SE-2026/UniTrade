@@ -481,6 +481,7 @@
           "BCrypt.Net-Next": "[4.2.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.4, )",
           "Microsoft.IdentityModel.Tokens": "[8.18.0, )",
+          "Npgsql": "[10.0.3, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
           "System.IdentityModel.Tokens.Jwt": "[8.18.0, )"
         }
