@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
-using Modules.Reservations;
+using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 
@@ -197,21 +197,21 @@ public class ChatService : IChatService
         CancellationToken ct = default
     ) => _chatRepo.GetLastMessagesAsync(reservationIds, ct);
 
-    public async Task<ChatMessageDto> SendMeetupProposal(
+    public async Task<ChatMessageDto> SendMeetupProposalAsync(
         Guid reservationId,
         Guid senderId,
         MeetupProposalPayload payload,
         CancellationToken ct = default
     )
     {
-        if (!await _membership.IsPartyToAsync(reservationId, senderId, ct))
+        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
         {
             throw new ChatException(ChatErrors.Forbidden);
         }
 
         var content =
             $"Proposed a meetup at {payload.LocationName}, "
-            + $"{payload.ProposedTime:ddd d MM HH:mm}";
+            + $"{payload.ProposedTime:ddd d MMM HH:mm}";
 
         var message = new ChatMessage
         {
