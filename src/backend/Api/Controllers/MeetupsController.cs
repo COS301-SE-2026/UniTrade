@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modules.Chat;
 using Modules.Chat.Models.Dto;
 using Modules.Reservations;
+using Modules.Reservations.Models.Dto;
 
 namespace Api.Controllers;
 
@@ -41,6 +42,26 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
         }
     }
 
+    // POST /api/reservations/{id}/meetup/accept
+    [HttpPost("accept")]
+    public async Task<IActionResult> Accept(
+        Guid reservationId,
+        [FromBody] RespondMeetupRequest body,
+        CancellationToken ct = default
+    )
+    {
+        try
+        {
+            return Ok(
+                await _meetups.AcceptAsync(reservationId, CallerId, body.ProposalMessageId, ct)
+            );
+        }
+        catch (ReservationException ex)
+        {
+            return MapError(ex);
+        }
+    }
+
     private IActionResult MapError(ReservationException ex) =>
         ex.Message switch
         {
@@ -54,6 +75,13 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
             ReservationErrors.AlreadyTerminal => Conflict(new { error = ex.Message }),
             ReservationErrors.ReleasedTooEarly => StatusCode(403, new { error = ex.Message }),
             ReservationErrors.TimeInPast => BadRequest(new { error = ex.Message }),
+            ReservationErrors.ProposalNotFound => NotFound(new { error = ex.Message }),
+            ReservationErrors.CannotAcceptOwnProposal => StatusCode(
+                403,
+                new { error = ex.Message }
+            ),
+            ReservationErrors.NotAProposal => BadRequest(new { error = ex.Message }),
+            ReservationErrors.AlreadyResponded => Conflict(new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
@@ -63,4 +91,6 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
         decimal Lng,
         DateTime ProposedTime
     );
+
+    public record RespondMeetupRequest(int ProposalMessageId);
 }

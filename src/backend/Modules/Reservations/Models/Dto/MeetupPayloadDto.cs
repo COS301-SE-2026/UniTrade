@@ -1,8 +1,10 @@
 namespace Modules.Reservations.Models.Dto;
 
-public record MeetupProposalPayload(
-    string LocationName,
-    decimal Lat,
-    decimal Lng,
-    DateTime ProposedTime
+public record MeetupResponsePayload(
+    bool Accepted,
+    int ProposalMessageId,
+    string? LocationName = null,
+    decimal? Lat = null,
+    decimal? Lng = null,
+    DateTime? ProposedTime = null
 );
