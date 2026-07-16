@@ -43,4 +43,11 @@ public interface IChatService
         IEnumerable<Guid> reservationIds,
         CancellationToken ct = default
     );
+
+    Task<ChatMessageDto> SendMeetupProposal(
+        Guid reservationId,
+        Guid senderId,
+        MeetupProposalPayload payload,
+        CancellationToken ct = default
+    );
 }

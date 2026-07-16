@@ -17,5 +17,6 @@ public static class ReservationErrors
     public const string AlreadyTerminal = "already_terminal";
     public const string ReleasedTooEarly = "release_too_early";
     public const string NotYetExpired = "not_yet_expired";
+    public const string TimeInPast = "time_in_past";
 
 }
