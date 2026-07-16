@@ -1,3 +1,4 @@
+using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Reservations.Repositories;
 
