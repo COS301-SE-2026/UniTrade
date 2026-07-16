@@ -1,4 +1,5 @@
 using Modules.Chat.Models.Dto;
+using Modules.Reservations.Models.Dto;
 
 namespace Modules.Chat;
 
@@ -44,7 +45,7 @@ public interface IChatService
         CancellationToken ct = default
     );
 
-    Task<ChatMessageDto> SendMeetupProposal(
+    Task<ChatMessageDto> SendMeetupProposalAsync(
         Guid reservationId,
         Guid senderId,
         MeetupProposalPayload payload,

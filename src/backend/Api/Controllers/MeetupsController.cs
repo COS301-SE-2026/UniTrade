@@ -40,6 +40,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
             return MapError(ex);
         }
     }
+
     private IActionResult MapError(ReservationException ex) =>
         ex.Message switch
         {
@@ -52,6 +53,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
             ReservationErrors.AlreadyAcknowledged => Conflict(new { error = ex.Message }),
             ReservationErrors.AlreadyTerminal => Conflict(new { error = ex.Message }),
             ReservationErrors.ReleasedTooEarly => StatusCode(403, new { error = ex.Message }),
+            ReservationErrors.TimeInPast => BadRequest(new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
