@@ -11,6 +11,7 @@ export interface Reservation {
     timerStage: TimerStage;
     expiresAt: string;
     createdAt: string;
+    sellerAcknowledgedAt?:string |null;
 }
 
 export interface ReservationCounterparty {
@@ -41,21 +42,23 @@ export interface ReservationListResponse {
 
 interface ChatMessageBase {
     messageId: number;
+    reservationId: string;
     senderId: string;
+    clientKey?: string | null;
     sentAt: string;
     readAt: string | null;
 }
 
 export interface TextMessage extends ChatMessageBase {
-  messageType: 'text';
-  content: string;
-  payload: null;
+    messageType: 'text';
+    content: string;
+    payload: null;
 }
 
 export interface SystemMessage extends ChatMessageBase {
-  messageType: 'system';
-  content: string;
-  payload: null;
+    messageType: 'system';
+    content: string;
+    payload: null;
 }
 
 export interface MeetupProposalPayload {
@@ -64,26 +67,26 @@ export interface MeetupProposalPayload {
 }
 
 export interface MeetupProposalMessage extends ChatMessageBase {
-  messageType: 'meetup_proposal';
-  content: string;
-  payload: MeetupProposalPayload;
+    messageType: 'meetup_proposal';
+    content: string;
+    payload: MeetupProposalPayload;
 }
 
 export interface MeetupResponsePayload {
-  accepted: boolean;
+    accepted: boolean;
 }
 
 export interface MeetupResponseMessage extends ChatMessageBase {
-  messageType: 'meetup_response';
-  content: string;
-  payload: MeetupResponsePayload;
+    messageType: 'meetup_response';
+    content: string;
+    payload: MeetupResponsePayload;
 }
 
 export type ChatMessage =
-  | TextMessage
-  | SystemMessage
-  | MeetupProposalMessage
-  | MeetupResponseMessage;
+    | TextMessage
+    | SystemMessage
+    | MeetupProposalMessage
+    | MeetupResponseMessage;
 
 export interface ChatHistoryResponse {
     items: ChatMessage[];
@@ -95,7 +98,7 @@ export interface CreateReservationRequest {
 }
 
 export interface GetReservationParams {
-   role: 'buyer' | 'seller';
+    role: 'buyer' | 'seller';
 }
 
 export interface GetMessagesParams {
@@ -104,9 +107,9 @@ export interface GetMessagesParams {
     limit?: number;
 }
 export interface MessagesReadEvent {
-  reservationId: string;
-  upToMessageId: number;
-  readerId: string;
+    reservationId: string;
+    upToMessageId: number;
+    readBy: string;
 }
 export type ApiErrorCode = 'already_reserved' | string;
 
@@ -116,7 +119,7 @@ export interface ApiError {
     status: number;
 }
 
-export type Result<T> = 
- | { success: true; data: T}
- | { success: false; error: ApiError };
+export type Result<T> =
+    | { success: true; data: T }
+    | { success: false; error: ApiError };
 
