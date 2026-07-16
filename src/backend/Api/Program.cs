@@ -174,6 +174,7 @@ builder.Services.AddScoped<IBroadCastService, BroadCastService>();
 builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IMeetupService, MeetupService>();
 
 builder.Services.AddSingleton(
     new EmailClient(
