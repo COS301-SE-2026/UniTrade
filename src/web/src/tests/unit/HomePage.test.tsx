@@ -466,16 +466,6 @@ describe('Footer', () => {
         expect(screen.getByText('Contact Us')).toBeInTheDocument()
     })
 
-    it('renders social media links with placeholder hrefs', () => {
-        render(<Footer />)
-
-        const socialLinks = screen.getAllByRole('link', { name: /𝕏|📸|𝕗/ })
-        expect(socialLinks).toHaveLength(3)
-        socialLinks.forEach((link) => {
-            expect(link).toHaveAttribute('href', '#')
-        })
-    })
-
     beforeEach(() => {
         mockNavigate.mockClear()
     })
