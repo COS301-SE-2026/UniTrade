@@ -91,7 +91,7 @@ public class ReservationService : IReservationService
 
         ReservationStateMachine.Acknowledge(r, callerId, _clock.GetUtcNow().UtcDateTime);
 
-        if (reservationId == listing.SellerId)
+        if (callerId == r.SellerId)
         {
             await _chat.SendSystemAsync(
                 reservationId,
