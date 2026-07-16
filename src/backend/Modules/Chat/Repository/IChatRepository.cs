@@ -33,4 +33,12 @@ public interface IChatRepository
         IEnumerable<Guid> reservationIds,
         CancellationToken ct = default
     );
+
+    Task<ChatMessage?> GetByClientKeyAsync(
+        Guid reservationId,
+        string clientKey,
+        CancellationToken ct = default
+    );
+
+    void Detach(ChatMessage message);
 }

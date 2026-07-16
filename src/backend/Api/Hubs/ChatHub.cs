@@ -66,8 +66,13 @@ public class ChatHub : Hub
         return $"reservation-{reservationId}";
     }
 
-    public async Task<ChatMessageDto> SendMessage(Guid reservationId, string content)
+    public async Task<ChatMessageDto> SendMessage(
+        Guid reservationId,
+        string content,
+        string? clientKey = null
+    )
     {
+        // await Task.Delay(12000); // just using this for testing locally
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
         ChatMessageDto message;
         if (!Guid.TryParse(userId, out var senderId))
@@ -77,16 +82,15 @@ public class ChatHub : Hub
 
         try
         {
-            message = await _chatService.SendAsync(reservationId, Guid.Parse(userId), content);
+            message = await _chatService.SendAsync(reservationId, senderId, content, clientKey);
         }
         catch (ChatException ex)
         {
             throw new HubException(
-                ex.Message == ChatErrors.Forbidden
-                    ? "You are not a participant in this reservation"
+                ex.Message == ChatErrors.Forbidden ? "You are not a participant in this reservation"
                 : ex.Message == ChatErrors.BuyerWaitingAck ? "Seller needs to acknowledge you first"
-                : ex.Message==ChatErrors.ReservationCancelled ? "Reservation was Cancelled"
-                :ex.Message
+                : ex.Message == ChatErrors.ReservationCancelled ? "Reservation was Cancelled"
+                : ex.Message
             );
         }
         catch (ArgumentException ex)
@@ -94,7 +98,7 @@ public class ChatHub : Hub
             throw new HubException(ex.Message);
         }
 
-        await Clients.Group(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
+        await Clients.OthersInGroup(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
         return message;
     }
 
@@ -129,7 +133,7 @@ public class ChatHub : Hub
             await Clients
                 .OthersInGroup(GroupName(reservationId))
                 .SendAsync(
-                    "Messages Read",
+                    "MessagesRead",
                     new
                     {
                         reservationId,
@@ -139,4 +143,7 @@ public class ChatHub : Hub
                 );
         }
     }
+
+    public Task LeaveRoom(Guid reservationId) =>
+        Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(reservationId));
 }
