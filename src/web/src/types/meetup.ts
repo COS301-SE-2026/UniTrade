@@ -1,5 +1,7 @@
 export type MeetupStatus = 'pending' | 'accepted' | 'declined';
 
+export type CheckInState = 'requesting' | 'success' | 'denied' | 'unsupported' | 'error';
+
 export interface MeetupProposalPayload {
     proposedLocation: string;
     proposedTime: string;

@@ -14,6 +14,8 @@ interface MeetupCardProps {
     caption?: string;
     onAccept?: () => void;
     onDecline?: () => void;
+    onCheckIn? :() => void;
+    isResponding?: boolean;
 }
 
 
@@ -31,6 +33,8 @@ export default function MeetupCard({
     caption,
     onAccept,
     onDecline,
+    onCheckIn,
+    isResponding,
 } : MeetupCardProps) {
     const date = new Date(time);
     const {bg, label} = STATUS_STYLES[status];
@@ -76,20 +80,35 @@ export default function MeetupCard({
                             <button
                             type="button"
                             onClick = {onDecline}
+                            disabled = {isResponding}
                             className = "flex-1 py-3 hover:bg-white/10 transition-colors text-white/70"
                             >
-                                Decline
+                                {isResponding? '...' : 'Decline'}
                             </button>
                             <div className = "w-px bg-white/20" />
                             <button 
                             type = "button"
                             onClick = {onAccept}
+                            disabled = {isResponding}
                             className = "flex-1 py-3 hover:bg-white/10 transition-colors font-semibold"
                             >
-                                Accept
+                                {isResponding? '...' : 'Accept'}
                             </button>
                             </>
                         )}
+                        </div>
+                )}
+
+                {status === 'accepted' && onCheckIn && (
+                    <div className = "border-t border-white/20 flex text-sm font-medium">
+                        <button 
+                        type = "button"
+                        onClick={onCheckIn}
+                        className="flex-1 py-3 hover:bg-white/10 transition-colors font-semibold flex items-center justify-center gap-2"
+                        >
+                            <IconMapPin size = {16} />
+                            I'M HERE
+                        </button>
                         </div>
                 )}
             </div>
