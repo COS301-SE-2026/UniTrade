@@ -18,4 +18,18 @@ public interface IMeetupService
         int proposalMessageId,
         CancellationToken ct = default
     );
+
+    Task<CheckInResult> CheckInAsync(
+        Guid reservationId,
+        Guid callerId,
+        decimal? lat,
+        decimal? lng,
+        CancellationToken ct = default
+    );
+
+    Task<MeetupStatusDto?> GetMeetupStatusAsync(
+        Guid reservationId,
+        Guid callerId,
+        CancellationToken ct = default
+    );
 }

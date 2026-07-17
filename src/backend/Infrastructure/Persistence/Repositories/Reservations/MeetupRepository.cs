@@ -39,4 +39,13 @@ public class MeetupRepository : IMeetupRepository
             m => m.ReservationId == reservationId && m.Status == "scheduled",
             ct
         );
+
+    public async Task<Meetup?> GetActiveByReservationTrackedAsync(
+        Guid reservationId,
+        CancellationToken ct = default
+    ) =>
+        await _db
+            .Meetups.Where(m => m.ReservationId == reservationId && m.Status == "scheduled")
+            .OrderByDescending(m => m.AgreedTime)
+            .FirstOrDefaultAsync(ct);
 }

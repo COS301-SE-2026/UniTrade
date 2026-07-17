@@ -12,5 +12,8 @@ public interface IMeetupRepository
     Task AddAsync(Meetup meetup, CancellationToken ct = default);
     Task SaveAsync(CancellationToken ct = default);
 
-    
+    Task<Meetup?> GetActiveByReservationTrackedAsync(
+        Guid reservationId,
+        CancellationToken ct = default
+    );
 }

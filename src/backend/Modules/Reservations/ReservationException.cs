@@ -23,5 +23,9 @@ public static class ReservationErrors
     public const string NotAProposal = "not_a_proposal";
     public const string CannotAcceptOwnProposal = "cannot_accept_own_proposal";
     public const string AlreadyResponded = "already_responded";
-    public const string MeetupAlreadyConfirmed ="meetup_already_confirmed";
+    public const string MeetupAlreadyConfirmed = "meetup_already_confirmed";
+    public const string MeetupNotFound = "meetup_not_found";
+    public const string MeetupNotScheduled = "meetup_not_scheduled";
+    public const string CheckInWindowClosed = "check_in_window_closed";
+    public const string AlreadyCheckedIn = "already_checked_in";
 }

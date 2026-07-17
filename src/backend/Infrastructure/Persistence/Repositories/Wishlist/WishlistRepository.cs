@@ -27,7 +27,7 @@ public class WishlistRepository : IWishlistRepository
     ) =>
         await _db
             .WishlistItems.AsNoTracking()
-            .Where(w=> w.StudentId == student)
+            .Where(w => w.StudentId == student)
             .Include(w => w.Listing)
                 .ThenInclude(l => l!.Images)
             .Include(w => w.Listing)
