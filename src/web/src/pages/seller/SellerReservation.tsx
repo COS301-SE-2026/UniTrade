@@ -192,7 +192,7 @@ function ReservationCard({
                         <button
                             type="button"
                             className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
-                            onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/chat`)}
+                            onClick={() => navigate(`/seller/reservations/${reservation.reservationId}/chat`)}
                         >
                             Message buyer
 

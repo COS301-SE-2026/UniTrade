@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260714224440_AddClientKeyIndexFilter")]
+    partial class AddClientKeyIndexFilter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,7 +82,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_chat_messages_sender_id");
 
                     b.HasIndex("ReservationId", "ClientKey")
-                        .IsUnique()
                         .HasDatabaseName("uix_chat_client_key")
                         .HasFilter("client_key IS NOT NULL");
 
@@ -804,101 +806,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("universities", "unitrade");
                 });
 
-            modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
-                {
-                    b.Property<int>("MeetupId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("meetup_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MeetupId"));
-
-                    b.Property<decimal>("AgreedLatitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("agreed_latitude");
-
-                    b.Property<string>("AgreedLocationName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("agreed_location_name");
-
-                    b.Property<decimal>("AgreedLongitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("agreed_longitude");
-
-                    b.Property<DateTime>("AgreedTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("agreed_time");
-
-                    b.Property<bool>("BuyerCheckedIn")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("buyer_checked_in");
-
-                    b.Property<decimal?>("BuyerCheckinLatitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("buyer_checkin_latitude");
-
-                    b.Property<decimal?>("BuyerCheckinLongitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("buyer_checkin_longitude");
-
-                    b.Property<DateTime?>("BuyerCheckinTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("buyer_checkin_time");
-
-                    b.Property<DateTime>("CheckinWindowClosesAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("checkin_window_closes_at");
-
-                    b.Property<Guid>("ReservationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("reservation_id");
-
-                    b.Property<bool>("SellerCheckedIn")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("seller_checked_in");
-
-                    b.Property<decimal?>("SellerCheckinLatitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("seller_checkin_latitude");
-
-                    b.Property<decimal?>("SellerCheckinLongitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("numeric(9,6)")
-                        .HasColumnName("seller_checkin_longitude");
-
-                    b.Property<DateTime?>("SellerCheckinTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("seller_checkin_time");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.HasKey("MeetupId")
-                        .HasName("pk_meetups");
-
-                    b.HasIndex("ReservationId")
-                        .HasDatabaseName("ix_meetup_reservation");
-
-                    b.ToTable("meetups", "unitrade", t =>
-                        {
-                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')");
-                        });
-                });
-
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
                     b.Property<Guid>("ReservationId")
@@ -931,10 +838,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_bundle");
 
-                    b.Property<DateTime?>("MeetupConfirmedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("meetup_confirmed_at");
-
                     b.Property<string>("ReservationStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -957,7 +860,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("ix_res_expires")
-                        .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
+                        .HasFilter("reservation_status = 'active'");
 
                     b.HasIndex("ReservationStatus")
                         .HasDatabaseName("ix_res_status");
@@ -1181,18 +1084,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_courses_universities_university_id");
                 });
 
-            modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
-                {
-                    b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
-                        .WithMany("Meetups")
-                        .HasForeignKey("ReservationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_meetups_reservations_reservation_id");
-
-                    b.Navigation("Reservation");
-                });
-
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
                     b.HasOne("Modules.Identity.Models.User", "Buyer")
@@ -1277,8 +1168,6 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
-                    b.Navigation("Meetups");
-
                     b.Navigation("Messages");
 
                     b.Navigation("ReservationListings");
