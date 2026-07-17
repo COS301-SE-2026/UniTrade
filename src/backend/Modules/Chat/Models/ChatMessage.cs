@@ -20,4 +20,5 @@ public class ChatMessage
 
     public Reservation Reservation { get; set; } = null!;
     public User? Sender { get; set; } = null!;
+    public string? ClientKey { get; set; }
 }

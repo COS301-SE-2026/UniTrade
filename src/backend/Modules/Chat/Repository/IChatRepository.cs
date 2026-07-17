@@ -33,4 +33,24 @@ public interface IChatRepository
         IEnumerable<Guid> reservationIds,
         CancellationToken ct = default
     );
+
+    Task<ChatMessage?> GetByClientKeyAsync(
+        Guid reservationId,
+        string clientKey,
+        CancellationToken ct = default
+    );
+
+    void Detach(ChatMessage message);
+
+    Task<ChatMessage?> GetByIdAsync(
+        Guid reservationId,
+        int messageId,
+        CancellationToken ct = default
+    );
+
+    Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    );
 }

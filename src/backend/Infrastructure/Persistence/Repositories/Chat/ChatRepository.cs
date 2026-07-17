@@ -112,4 +112,51 @@ public class ChatRepository : IChatRepository
 
         return latest.ToDictionary(m => m.ReservationId, m => (m.Content, m.SentAt));
     }
+
+    public async Task<ChatMessage?> GetByClientKeyAsync(
+        Guid reservationId,
+        string clientKey,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .ChatMessages.AsNoTracking()
+            .FirstOrDefaultAsync(
+                m => m.ReservationId == reservationId && m.ClientKey == clientKey,
+                ct
+            );
+    }
+
+    public void Detach(ChatMessage message)
+    {
+        _db.Entry(message).State = EntityState.Detached;
+    }
+
+    public async Task<ChatMessage?> GetByIdAsync(
+        Guid reservationId,
+        int messageId,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .ChatMessages.AsNoTracking()
+            .FirstOrDefaultAsync(
+                m => m.ReservationId == reservationId && m.MessageId == messageId,
+                ct
+            );
+    }
+
+    public Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    ) =>
+        _db.ChatMessages.AnyAsync(
+            m =>
+                m.ReservationId == reservationId
+                && m.MessageType == "meetup_response"
+                && EF.Functions.JsonExists(m.Payload!, "ProposalMessageId")
+                && m.Payload!.Contains($"\"ProposalMessageId\":{proposalMessageId}"),
+            ct
+        );
 }

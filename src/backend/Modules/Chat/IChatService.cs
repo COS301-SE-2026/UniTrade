@@ -1,4 +1,5 @@
 using Modules.Chat.Models.Dto;
+using Modules.Reservations.Models.Dto;
 
 namespace Modules.Chat;
 
@@ -8,6 +9,7 @@ public interface IChatService
         Guid reservationId,
         Guid senderId,
         string content,
+        string? clientKey = null,
         CancellationToken ct = default
     );
 
@@ -40,6 +42,32 @@ public interface IChatService
 
     Task<IReadOnlyDictionary<Guid, (string Content, DateTime SentAt)>> GetLastMessagesAsync(
         IEnumerable<Guid> reservationIds,
+        CancellationToken ct = default
+    );
+
+    Task<ChatMessageDto> SendMeetupProposalAsync(
+        Guid reservationId,
+        Guid senderId,
+        MeetupProposalPayload payload,
+        CancellationToken ct = default
+    );
+
+    Task<ChatMessageDto?> GetMessageAsync(
+        Guid reservationId,
+        int message,
+        CancellationToken ct = default
+    );
+
+    Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    );
+
+    Task<ChatMessageDto> SendMeetupResponseAsync(
+        Guid reservationId,
+        Guid senderId,
+        MeetupResponsePayload payload,
         CancellationToken ct = default
     );
 }
