@@ -17,7 +17,15 @@ function todayISODate (): string {
 export default function MeetupProposalForm({onCancel, onSubmit, isSubmitting} : MeetupProposalFormProps) {
     const [date, setDate] = useState(todayISODate());
     const [time, setTime] = useState('12:00');
-    const [location, setLocation] = useState<string>(PRESET_MEETUP_LOCATIONS[0]);
+    const [location, setLocation] = useState<{name: string; lat: number; lng: number}>
+    ({
+        name: PRESET_MEETUP_LOCATIONS[0],
+        lat: 0,
+        lng: 0,
+    });
+
+    const [isCustom, setIsCustom] = useState(false);
+    const [customLocationName, setCustomLocationName] = useState('');
 
     const canSubmit = !!date && !!time && !!location;
 
@@ -76,12 +84,16 @@ export default function MeetupProposalForm({onCancel, onSubmit, isSubmitting} : 
                 </label>
                 <div className = "flex flex-col gap-2 mb-6">
                     {PRESET_MEETUP_LOCATIONS.map((preset) => {
-                        const selected = preset === location;
+                        const selected = !isCustom && location.name === preset;
                         return (
                             <button 
                             key = {preset}
                             type = "button"
-                            onClick = {() => setLocation(preset)}
+                            onClick = {() => {
+                                setLocation({name: preset, lat: 0, lng: 0});
+                                setIsCustom(false);
+                                setCustomLocationName('');
+                        }}
                             className = {`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left border transition-colors ${
                                 selected
                                 ? 'bg-[#003366] text-white border-[#003366]'
@@ -93,7 +105,38 @@ export default function MeetupProposalForm({onCancel, onSubmit, isSubmitting} : 
                             </button>
                         );
                     })}
+
+                    <button 
+                    type = "button"
+                    onClick = {() => setIsCustom(true)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-left border transition-colors ${
+                        isCustom
+                        ? 'bg-[#003366] text-white border-[#003366]'
+                        : 'bg-gray-50 text-gray-700 border-transparent hover:bg-gray-100'
+                    }`}
+                    >
+                        <IconMapPin size = {16} className = {isCustom? 'text-white' : 'text-gray-400'} />
+                        + Custom Location
+                    </button>
+
+                    {isCustom && (
+                        <input
+                            type="text"
+                            value={customLocationName}
+                            onChange={(e) => setCustomLocationName(e.target.value)}
+                            onBlur={() => {
+                                if (customLocationName.trim()) {
+                                    setLocation({ name: customLocationName.trim(), lat: 0, lng: 0 });
+                                }
+                            }}
+                            placeholder="Type your location..."
+                            className="w-full bg-gray-100 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
+                            autoFocus
+                            />
+                    )}
                 </div>
+
+
 
                 <button
                 type = "button"

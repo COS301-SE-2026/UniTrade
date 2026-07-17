@@ -3,20 +3,29 @@ export type MeetupStatus = 'pending' | 'accepted' | 'declined';
 export type CheckInState = 'requesting' | 'success' | 'denied' | 'unsupported' | 'error';
 
 export interface MeetupProposalPayload {
-    proposedLocation: string;
-    proposedTime: string;
-    status: MeetupStatus;
-    proposedByUserId?: string;
+    LocationName: string;
+    ProposedTime: string;
+    Lat: number;
+    Lng: number;
+    //status: MeetupStatus;
+    //proposedByUserId?: string;
 }
 
 export interface MeetupFormValues {
     date: string;
     time:string;
-    location: string;
+    location: {
+        name: string;
+        lat: number;
+        lng: number;
+    };
 }
 
 export function combineDateAndTime(date: string, time: string): string{
-    return new Date(`${date}T${time}`).toISOString();
+    const [year, month, day] = date.split('-').map(Number);
+    const [hours, minutes] = time.split(':').map(Number);
+    const dt = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    return dt.toISOString(); 
 }
 
 export const PRESET_MEETUP_LOCATIONS: readonly string[] = [
