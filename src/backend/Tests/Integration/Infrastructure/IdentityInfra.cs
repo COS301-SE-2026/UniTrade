@@ -21,7 +21,7 @@ public class InfrastructureTests
         var connectionString = _fixture.ConnectionString;
         Assert.NotNull(connectionString);
         Assert.Contains("Database", connectionString);
-        
+
         await Task.CompletedTask;
     }
 }

@@ -10,5 +10,5 @@ public static class ChatErrors
     public const string NotActive = "not_active";
     public const string NotFound = "not_found";
     public const string BuyerWaitingAck = "buyer_waiting_seller_ack";
-    public const string ReservationCancelled="reservation_cancelled";
+    public const string ReservationCancelled = "reservation_cancelled";
 }
