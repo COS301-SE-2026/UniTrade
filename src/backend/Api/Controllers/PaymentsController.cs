@@ -74,6 +74,17 @@ public class PaymentController:ControllerBase
             return NotFound();
         }
 
+        if(reservation.ReservationStatus!=ReservationState.Active)
+        {
+            return Ok();
+        }
+
+        if(fields.GetValueOrDefault("payment_status")=="complete")
+        {
+            reservation.ReservationStatus=ReservationState.Completed;
+            await _reservations.SaveAsync(ct);
+        }
+
         return Ok();
     }
 }
