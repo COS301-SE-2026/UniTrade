@@ -2,6 +2,8 @@ using Microsoft.Extensions.Configuration;
 using System.Globalization;
 using Modules.Reservations;
 using Modules.Identity.Models.Dto;
+using System.Web;
+using System.Text;
 
 namespace Modules.Payments;
 
@@ -82,5 +84,12 @@ public class PaymentService :IPaymentsService
     }
 
     private static string Truncate(string value,int maxLength)=>value.Length <= maxLength? value:value[..maxLength];
+
+    public bool VerifySignature(Dictionary<string,string> itnFields,string receivedSign)
+    {
+        var fields=itnFields.Where(f=>f.Key!="signature"&& !string.IsNullOrEmpty(f.Value)).ToList();
+        var Gensignature=GenerateSignature(fields);
+        return Gensignature==receivedSign.ToLowerInvariant();
+    }
 
 }
