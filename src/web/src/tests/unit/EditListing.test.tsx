@@ -1,7 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, fireEvent} from "@testing-library/react";
 import userEvent from "@testing-library/user-event"
+vi.mock("@tabler/icons-react", () => ({
+    IconUpload: () => <svg data-testid="icon-upload" />,
+    IconCheck: () => <svg data-testid="icon-check" />,
+    IconX: () => <svg data-testid="icon-x" />,
+}));
 
+vi.mock("../../components/layout/useToast", () => ({
+  useToast: () => ({
+    showToast: vi.fn(),
+  }),
+}));
 
 const {
     getListingsCategories,

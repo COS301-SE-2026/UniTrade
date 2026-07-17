@@ -3,7 +3,7 @@ import { getReservations } from '../services/reservationService';
 import {queryKeys} from '../lib/queryKeys';
 import type { ReservationListItem } from '../types/Reservations';
 
-export function useReservationsList(role: 'buyer' | 'seller'){
+export function useReservationsList(role: 'buyer' | 'seller', options?: {enabled?: boolean}){
     return useQuery<ReservationListItem[]>({
         queryKey: queryKeys.reservations(role),
         queryFn: async () => {
@@ -13,5 +13,6 @@ export function useReservationsList(role: 'buyer' | 'seller'){
             }
             return result.data.items;
         },
+        enabled: options?.enabled ?? true,
     });
 }

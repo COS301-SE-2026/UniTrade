@@ -1,6 +1,7 @@
 import {NavLink, useParams} from 'react-router-dom';
 import { useReservationsList } from '../../hooks/useReservationsList';
 import type { ReservationListItem } from '../../types/Reservations';
+import { useUnreadRealtime } from '../../hooks/useUnreadRealtime';
 
 
 
@@ -17,6 +18,7 @@ function relativeTime(iso: string): string {
 
 export default function ConversationsSidebar ({role}: {role: 'buyer' | 'seller'}) {
     const {data: reservations = [], isLoading} = useReservationsList(role);
+    useUnreadRealtime(role);
     const {reservationId: activeId} = useParams<{reservationId: string}>();
 
 const active = reservations
