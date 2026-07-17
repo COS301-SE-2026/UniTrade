@@ -109,7 +109,7 @@ const TextMessageBubble: React.FC<{
                             {message.status === 'sending' && <span className="italic">sending...</span>}
                             {message.status === 'failed' && (
                                 <button onClick={onRetry} className="text-red-500 underline">
-                                    failed • retry
+                                    failed . retry
                                 </button>
                             )}
                             {(!message.status || message.status === 'sent') && (
@@ -200,7 +200,7 @@ function MessageBubble({
     onRetry: (clientId: string, content: string) => void;
     meetupOverrides: Record<string, MeetupStatus>;
     respondingKey: string | null;
-    onRespondMeetup : (key: string, status: MeetupStatus) => void;
+    onRespondMeetup: ( proposalMessageId: number, status: MeetupStatus) => void;
     onCheckIn: (location: string) => void;
 }) {
     const isOwnMessage = message.senderId === currentUserId;
@@ -218,21 +218,32 @@ function MessageBubble({
         case 'system':
             return <SystemMessageBubble message={message} />;
         case 'meetup_proposal': {
-            const key =  String(message.clientId ?? message.messageId ?? '');
+            const key =  message.messageId?.toString() ?? message.clientId ?? '';
             const serverStatus = (message.payload as {status?: MeetupStatus}).status ?? 'pending';
             const status = meetupOverrides[key] ?? serverStatus;
-            const location = message.payload.proposedLocation;
+            const payload = message.payload as any;
+            const location = payload.LocationName || payload.proposedLocation || '';
+            const proposedTime = payload.ProposedTime || payload.proposedTime || '';
+            const proposalMessageId = message.messageId;
 
             return (
                 <MeetupCard
                 location={location}
-                time = {message.payload.proposedTime}
+                time = {proposedTime}
                 status = {status}
                 isOwnMessage={isOwnMessage}
                 caption = {message.content}
                 isResponding = {respondingKey === key}
-                onAccept={() => onRespondMeetup(key, 'accepted')}
-                onDecline={() => onRespondMeetup(key, 'declined')}
+                onAccept={() => {
+                    if (proposalMessageId) {
+                        onRespondMeetup(proposalMessageId,'accepted');
+                    }
+                }}
+                onDecline={() => {
+                    if(proposalMessageId) {
+                         onRespondMeetup(proposalMessageId, 'declined');
+                    }
+                }}
                 onCheckIn={status === 'accepted' ? () => onCheckIn(location) : undefined}
                 />
             );
@@ -257,13 +268,20 @@ export default function ChatPage() {
     const isSeller = window.location.pathname.startsWith('/seller');
     const currentUserId = user?.id ?? 'me';
 
-    const { data: messages = [], isLoading, isError } = useChatMessages(reservationId!);
+    const { data: messages = [], isLoading, isError, refetch } = useChatMessages(reservationId!);
     useReservationRealtime(reservationId!);
-    const { mutate: send, retry } = useSendMessage(reservationId!);
+    const { send, retry } = useSendMessage(reservationId!);
 
     const sortedMessages = React.useMemo(
         () => [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()),
         [messages]
+    );
+
+    const meetupConfirmed = sortedMessages.some (
+
+        (message) => 
+            message.messageType === "meetup_response" && 
+        message.payload?.accepted === true
     );
 
 
@@ -302,22 +320,50 @@ export default function ChatPage() {
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
 
 
-    const handleProposeMeetup = (values: MeetupFormValues) => {
+    const handleProposeMeetup = async(values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);
+        if(new Date(proposedTime) <= new Date()) {
+            alert('Please select a time in the future');
+            return;
+        }
+        try{
+            await listingsService.proposeMeetup(reservationId!, {
+                locationName: values.location.name,
+                lat: values.location.lat,
+                lng: values.location.lng,
+                proposedTime,
+            });
+            setIsProposingMeetup(false);
+            refetch();
+        } catch(err) {
+            console.error('Failed to propose meetup:', err);
+        } 
+    };
 
-        console.log('Meetup proposal submitted:', {
+       /* console.log('Meetup proposal submitted:', {
             proposedLocation: values.location,
             proposedTime,
         });
         setIsProposingMeetup(false);
     };
+    */
 
-    const handleRespondMeetup = (key: string, status: MeetupStatus) => {
+    const handleRespondMeetup = async ( proposalMessageId: number, status: MeetupStatus) => {
+        const key = proposalMessageId.toString();
         setRespondingKey(key)
-        setTimeout(() => {
-            setMeetupOverrides((prev) => ({...prev, [key]: status}));
-            setRespondingKey(null);
-        }, 500);
+        try {
+            if(status === 'accepted') {
+                await listingsService.acceptMeetup(reservationId!, proposalMessageId);
+
+                
+                setMeetupOverrides((prev) => ({...prev, [key]: status}));
+            } else if (status === 'declined') {
+                
+                setMeetupOverrides((prev) => ({...prev, [key]: status}));
+            }
+        } catch (err) {
+            console.error('Failed to respond to meetup:', err);
+        }
     };
 
     useEffect(() => {
@@ -420,7 +466,13 @@ export default function ChatPage() {
                 <button
                     type="button"
                     onClick = {() => setIsProposingMeetup(true)}
-                    className="w-full py-3 bg-[#003366] text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-[#002244] transition-colors disabled:opacity-60"
+                    disabled = {meetupConfirmed}
+                    className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
+                    ${
+                        meetupConfirmed
+                        ? "bg-[#003366] text-white opacity-50 cursor-not-allowed"
+                        : "bg-[#003366] text-white hover:bg-[#002244]"
+                    }`}
                 >
                     SCHEDULE A MEETUP
                 </button>
@@ -435,6 +487,7 @@ export default function ChatPage() {
 
             {checkInLocation && (
                 <CheckInModal
+                reservationId={reservationId!}
                 meetupLocation={checkInLocation}
                 onClose={() => setCheckInLocation(null)}
                 />

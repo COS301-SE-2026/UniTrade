@@ -146,11 +146,35 @@ public class ChatRepository : IChatRepository
             );
     }
 
-    public Task<bool> HasResponseForProposalAsync(
+    public async Task<bool> HasResponseForProposalAsync(
         Guid reservationId,
         int proposalMessageId,
         CancellationToken ct = default
-    ) =>
+    ) 
+    {
+        var responses = await _db.ChatMessages
+        .AsNoTracking()
+        .Where(m =>
+        m.ReservationId == reservationId &&
+        m.MessageType == "meetup_response")
+        .ToListAsync(ct);
+
+        foreach (var message in responses)
+    {
+        if (string.IsNullOrWhiteSpace(message.Payload))
+            continue;
+
+        using var json = System.Text.Json.JsonDocument.Parse(message.Payload);
+
+        if (json.RootElement.TryGetProperty("ProposalMessageId", out var id) &&
+            id.GetInt32() == proposalMessageId)
+        {
+            return true;
+        }
+    }
+
+    return false;
+   /* }=>
         _db.ChatMessages.AnyAsync(
             m =>
                 m.ReservationId == reservationId
@@ -159,4 +183,6 @@ public class ChatRepository : IChatRepository
                 && m.Payload!.Contains($"\"ProposalMessageId\":{proposalMessageId}"),
             ct
         );
+        */
+}
 }

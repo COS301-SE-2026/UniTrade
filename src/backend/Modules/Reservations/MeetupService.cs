@@ -227,6 +227,7 @@ public class MeetupService : IMeetupService
             ReservationStatus: r.ReservationStatus,
             TimerStage: ReservationStateMachine.DeriveTimerStage(r),
             ExpiresAt: r.ExpiresAt,
-            CreatedAt: r.CreatedAt
+            CreatedAt: r.CreatedAt,
+            CounterParty: null
         );
 }

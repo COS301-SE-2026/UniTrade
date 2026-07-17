@@ -5,14 +5,16 @@ import {
     IconX,
     IconAlertTriangle
 } from '@tabler/icons-react';
+import { listingsService } from '../services/listingsService';
 import type { CheckInState } from '../types/meetup';
 
 interface CheckInModalProps {
     meetupLocation: string;
+    reservationId: string;
     onClose: () => void;
 }
 
-export default function CheckInModal ({meetupLocation, onClose}: CheckInModalProps) {
+export default function CheckInModal ({reservationId, meetupLocation, onClose}: CheckInModalProps) {
     const [state, setState] = useState<CheckInState>('requesting');
     const [errorMessage, setErrorMessage] = useState('');
 
@@ -26,8 +28,19 @@ export default function CheckInModal ({meetupLocation, onClose}: CheckInModalPro
         }
 
         navigator.geolocation.getCurrentPosition(
-            (_position) => {
-                setTimeout(() => setState('success'), 900);
+            async (position) => {
+                try {
+                    await listingsService.checkInMeetup(
+                        reservationId,
+                        position.coords.latitude,
+                        position.coords.longitude
+                    );
+                    setState('success')
+                } catch(err) {
+                    setErrorMessage(err instanceof Error ? err.message : 'Failed to check in');
+                    setState('error');
+                }
+                
             },
             (error) => {
                 if(error.code === error.PERMISSION_DENIED) {
