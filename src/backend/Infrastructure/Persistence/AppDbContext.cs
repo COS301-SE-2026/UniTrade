@@ -43,6 +43,9 @@ public class AppDbContext : DbContext
     // Wishlist
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
+    // Meetups
+    public DbSet<Meetup> Meetups => Set<Meetup>();
+
     //constants - sonarqube
     private readonly string NowString = "now()";
 
@@ -517,7 +520,7 @@ public class AppDbContext : DbContext
             entity
                 .HasIndex(x => x.ExpiresAt)
                 .HasDatabaseName("ix_res_expires")
-                .HasFilter("reservation_status = 'active'");
+                .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>
@@ -667,6 +670,48 @@ public class AppDbContext : DbContext
                 .HasIndex(x => new { x.StudentId, x.ListingId })
                 .IsUnique()
                 .HasDatabaseName("wishlist_entry");
+        });
+
+        // Meetups
+        modelBuilder.Entity<Meetup>(entity =>
+        {
+            entity.HasKey(x => x.MeetupId);
+            entity.Property(x => x.MeetupId).ValueGeneratedOnAdd();
+
+            entity.Property(x => x.ReservationId).IsRequired();
+
+            entity.Property(x => x.AgreedLocationName).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.AgreedLatitude).HasPrecision(9, 6).IsRequired();
+            entity.Property(x => x.AgreedLongitude).HasPrecision(9, 6).IsRequired();
+            entity.Property(x => x.AgreedTime).IsRequired();
+
+            entity.Property(x => x.BuyerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.BuyerCheckinLatitude).HasPrecision(9, 6);
+            entity.Property(x => x.BuyerCheckinLongitude).HasPrecision(9, 6);
+
+            entity.Property(x => x.SellerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.SellerCheckinLatitude).HasPrecision(9, 6);
+            entity.Property(x => x.SellerCheckinLongitude).HasPrecision(9, 6);
+
+            entity.Property(x => x.CheckinWindowClosesAt).IsRequired();
+
+            entity.Property(x => x.Status).HasMaxLength(20).IsRequired();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_meetup_status",
+                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')"
+                );
+            });
+
+            entity
+                .HasOne(x => x.Reservation)
+                .WithMany(r => r.Meetups)
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_meetup_reservation");
         });
     }
 }

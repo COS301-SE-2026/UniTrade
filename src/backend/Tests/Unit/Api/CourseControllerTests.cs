@@ -127,7 +127,7 @@ public class CourseControllerTests
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
         var json = JsonSerializer.Serialize(notFoundResult.Value);
 
-        var response =JsonSerializer.Deserialize<ErrorResponse>(json, _jsonOptions);
+        var response = JsonSerializer.Deserialize<ErrorResponse>(json, _jsonOptions);
         Assert.Equal("course_not_found", response?.Error);
     }
 
