@@ -47,6 +47,19 @@ describe('Profile', () => {
         mockClearUser.mockClear()
         vi.clearAllMocks()
         mockStore()
+
+        ;(authService.getMe as ReturnType<typeof vi.fn>).mockRejectedValue({
+            user: { email: 'test@example.com'},
+            std: {
+                university: 'UP',
+                degreeProgram: 'BSc',
+                yearOfStudy: 2,
+                verificationStatus: 'Verified',
+            },
+        })
+    ;(authService.logout as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+    ;(authService.deleteAccount as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+    
     })
 
     it('should render nothing when user is null', () => {
@@ -55,9 +68,9 @@ describe('Profile', () => {
         expect(container).toBeEmptyDOMElement()
     })
 
-    it('should render user name and initials', () => {
+    it('should render user name and initials', async () => {
         renderProfile()
-        expect(screen.getByText(mockUser.name)).toBeInTheDocument()
+        expect(await screen.getByText(mockUser.name)).toBeInTheDocument()
         expect(screen.getByText(mockUser.initials)).toBeInTheDocument()
     })
 
