@@ -181,7 +181,7 @@ describe("authService", () => {
       await expect(authService.getMe()).resolves.toEqual(mockResponse);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/auth/me"),
+        "http://localhost:300/api/users/me",
         expect.objectContaining({ credentials: "include" }),
       );
     });

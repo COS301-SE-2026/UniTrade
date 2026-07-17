@@ -4,8 +4,8 @@ import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingMetadata } from "../../types/listing";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
-
-
+import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
+import { useToast } from "../../components/layout/useToast";
 
 interface ListingData {
   title: string;
@@ -76,7 +76,9 @@ const EditListing: React.FC = () => {
   useEffect(() => {
     listingsService
       .getListingsCategories()
-      .then(setCategories)
+      .then(data => {
+        setCategories(sortTheCategories(data))
+      })
       .catch(() => setError("Failed to load categories"));
   }, []);
 
@@ -164,17 +166,20 @@ const EditListing: React.FC = () => {
     setNewFiles((prev) => prev.filter((_, i) => i !== idx));
     setNewPreviews((prev) => prev.filter((_, i) => i !== idx));
   };
-
+ 
+  const { showToast} = useToast();
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const incoming = Array.from(e.target.files ?? []);
 
     const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
     if (oversized.length > 0) {
-      setError(
-        `Some files exceed the ${MAX_SIZE_MB}MB limit: ${oversized
+      const eror =  `Some files exceed the ${MAX_SIZE_MB}MB limit: ${oversized
           .map((f) => f.name)
-          .join(", ")}`,
+          .join(", ")}`
+      setError(
+       eror
       );
+      showToast('error', eror)
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -230,6 +235,7 @@ const EditListing: React.FC = () => {
       navigate("/seller/listings");
     } catch {
       setError("Failed to save changes");
+      showToast('error', 'Failed to save changes');
     } finally {
       setSaving(false);
     }
@@ -290,12 +296,12 @@ const EditListing: React.FC = () => {
                         handleChange("brand", "");
                         handleChange("dimensions", "");
                       }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
-                        ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                      className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
+                          ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                         }`}
                     >
-                      {cat.name}
+                      {getDisplayCategory(cat.name)}
                     </button>
                   ))}
                 </div>
