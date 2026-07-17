@@ -62,6 +62,39 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
         }
     }
 
+    // POST /api/reservations/{id}/meetup/check-in
+    [HttpPost("check-in")]
+    public async Task<IActionResult> Accept(
+        Guid reservationId,
+        [FromBody] CheckInRequest body,
+        CancellationToken ct = default
+    )
+    {
+        try
+        {
+            return Ok(await _meetups.CheckInAsync(reservationId, CallerId, body.Lat, body.Lng, ct));
+        }
+        catch (ReservationException ex)
+        {
+            return MapError(ex);
+        }
+    }
+
+    //GET /api/reservations/{id}/meetup
+    [HttpGet]
+    public async Task<IActionResult> GetStatus(Guid reservationId, CancellationToken ct = default)
+    {
+        try
+        {
+            var status = await _meetups.GetMeetupStatusAsync(reservationId, CallerId, ct);
+            return status is null ? NotFound(new { error = "meetup_not_found" }) : Ok(status);
+        }
+        catch (ReservationException ex)
+        {
+            return MapError(ex);
+        }
+    }
+
     private IActionResult MapError(ReservationException ex) =>
         ex.Message switch
         {
@@ -82,6 +115,10 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
             ),
             ReservationErrors.NotAProposal => BadRequest(new { error = ex.Message }),
             ReservationErrors.AlreadyResponded => Conflict(new { error = ex.Message }),
+            ReservationErrors.MeetupNotFound => NotFound(new { error = ex.Message }),
+            ReservationErrors.MeetupNotScheduled => Conflict(new { error = ex.Message }),
+            ReservationErrors.AlreadyCheckedIn => Conflict(new { error = ex.Message }),
+            ReservationErrors.CheckInWindowClosed => Conflict(new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
@@ -93,4 +130,6 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
     );
 
     public record RespondMeetupRequest(int ProposalMessageId);
+
+    public record CheckInRequest(decimal? Lat = null, decimal? Lng = null);
 }

@@ -89,7 +89,7 @@ public class ChatService : IChatService
             )
         {
             _chatRepo.Detach(result);
-            var winner = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey, ct);
+            var winner = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey!, ct);
 
             if (winner is not null && winner.SenderId == senderId)
             {

@@ -140,6 +140,84 @@ public class MeetupService : IMeetupService
         );
     }
 
+    public async Task<CheckInResult> CheckInAsync(
+        Guid reservationId,
+        Guid callerId,
+        decimal? lat,
+        decimal? lng,
+        CancellationToken ct = default
+    )
+    {
+        var r =
+            await _reservations.GetByIdAsync(reservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.MeetupNotFound);
+
+        Guard(r, callerId);
+
+        var meetup =
+            await _meetups.GetActiveByReservationAsync(reservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.MeetupNotFound);
+
+        var now = _clock.GetUtcNow().UtcDateTime;
+        var isBuyer = r.BuyerId == callerId;
+
+        var verified = isBuyer
+            ? MeetupStateMachine.CheckInBuyer(meetup, now, lat, lng)
+            : MeetupStateMachine.CheckInSeller(meetup, now, lat, lng);
+
+        await _meetups.SaveAsync(ct);
+
+        var paymentUnlocked = isBuyer && MeetupStateMachine.IsPaymentUnlocked(meetup);
+        var message = verified
+            ? "Checked in."
+            : "Checked in. Note: without location, you won't be able to prove you were at the meetup if there's a dispute.";
+
+        // still have to broadcast over the hub so the other party sees they've arrived and the pay button unlock w/o needing a refresh
+        return new CheckInResult(
+            MeetupId: meetup.MeetupId,
+            CheckedIn: true,
+            LocationVerified: verified,
+            CheckInAt: isBuyer ? meetup.BuyerCheckinTime!.Value : meetup.SellerCheckinTime!.Value,
+            PaymentUnlocked: paymentUnlocked,
+            Message: message
+        );
+    }
+
+    public async Task<MeetupStatusDto?> GetMeetupStatusAsync(
+        Guid reservationId,
+        Guid callerId,
+        CancellationToken ct = default
+    )
+    {
+        var r =
+            await _reservations.GetByIdAsync(reservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.MeetupNotFound);
+        if (r.BuyerId != callerId && r.SellerId != callerId)
+        {
+            throw new ReservationException(ReservationErrors.Forbidden);
+        }
+
+        var meetup = await _meetups.GetActiveByReservationAsync(reservationId, ct);
+        if (meetup is null)
+        {
+            return null;
+        }
+
+        var now = _clock.GetUtcNow().UtcDateTime;
+
+        return new MeetupStatusDto(
+            MeetupId: meetup.MeetupId,
+            AgreedLocationName: meetup.AgreedLocationName,
+            AgreedTime: meetup.AgreedTime,
+            CheckinWindowClosesAt: meetup.CheckinWindowClosesAt,
+            CheckInWindowOpen: MeetupStateMachine.IsCheckInWindowOpen(meetup, now),
+            BuyerCheckedIn: meetup.BuyerCheckedIn,
+            SellerCheckedIn: meetup.SellerCheckedIn,
+            PaymentUnlocked: MeetupStateMachine.IsPaymentUnlocked(meetup),
+            Status: meetup.Status
+        );
+    }
+
     private static ReservationDto MapToDto(Reservation r, Guid? listingId = null) =>
         new(
             ReservationId: r.ReservationId,
