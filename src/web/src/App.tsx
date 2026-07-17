@@ -98,12 +98,8 @@ export default function App() {
         <Route path="/buyer/listings" element={<BrowseListings />} />
         <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/buyer/reservations" element={<Reservations />} />
-<<<<<<< HEAD
         <Route path="/seller/reservations" element={<SellerReservations />} />
 
-=======
-        <Route path="seller/reservations" element={<SellerReservations />} />
->>>>>>> b1f868155b97252c2dc5671c53d7bfdbb49a24e4
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
@@ -125,16 +121,9 @@ export default function App() {
           <Route index element={<NoConversationsSelected />} />
           <Route path=":reservationId" element={<ChatPage />} />
         </Route>
-<<<<<<< HEAD
         <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
         <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
 
-=======
-        <Route
-          path="/buyer/reservations/:reservationId"
-          element={<ReservationDetails />}
-        />
->>>>>>> b1f868155b97252c2dc5671c53d7bfdbb49a24e4
       </Route>
     </Routes>
   );

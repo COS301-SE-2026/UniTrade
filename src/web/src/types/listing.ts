@@ -150,3 +150,22 @@ export interface WishlistResponse {
   listings: WishlistListing[]
   total: number
 }
+
+export type MeetupStatus = 'pending' | 'accepted' | 'declined'
+
+export interface ProposeMeetupPayload {
+  locationName: string
+  lat: number 
+  lng : number 
+  proposedTime : string 
+}
+
+export interface MeetupStatusResponse {
+  proposalMessageId: number 
+  locationName: string
+  lat : number 
+  lng : number 
+  proposedTime : string 
+  status : MeetupStatus
+  checkedInAt?: string | null
+}
