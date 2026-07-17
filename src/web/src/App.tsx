@@ -74,6 +74,13 @@ export default function App() {
       <Route path="/auth/help-center" element={<HelpCenter />} />
       <Route path="/auth/profile" element={<Profile />} />
 
+
+
+
+      <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
+      <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
+
+
       <Route
         path="/buyer/reservations/:reservationId/chat"
         element={<RedirectToMessages role="buyer" />}
@@ -91,7 +98,8 @@ export default function App() {
         <Route path="/buyer/listings" element={<BrowseListings />} />
         <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/buyer/reservations" element={<Reservations />} />
-        <Route path="seller/reservations" element={<SellerReservations />} />
+        <Route path="/seller/reservations" element={<SellerReservations />} />
+
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
@@ -113,10 +121,9 @@ export default function App() {
           <Route index element={<NoConversationsSelected />} />
           <Route path=":reservationId" element={<ChatPage />} />
         </Route>
-        <Route
-          path="/buyer/reservations/:reservationId"
-          element={<ReservationDetails />}
-        />
+        <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
+        <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
+
       </Route>
     </Routes>
   );

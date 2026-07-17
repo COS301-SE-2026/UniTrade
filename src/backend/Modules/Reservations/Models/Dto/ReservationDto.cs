@@ -8,5 +8,6 @@ public record ReservationDto(
     string ReservationStatus,
     string TimerStage,
     DateTime ExpiresAt,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    CounterPartyDto? CounterParty
 );

@@ -2,18 +2,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe('config', () => {
     const mockConfig = { apiUrl: 'https://api.example.com'};
+    let fetchMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         vi.resetModules();
-        vi.stubGlobal('fetch', vi.fn());
+        fetchMock = vi.fn()
+        globalThis.fetch = fetchMock as unknown as typeof fetch;
     });
 
     afterEach(() => {
-        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
     });
 
     it('fetches and returns config on first call', async () => {
-        (fetch as any).mockResolvedValueOnce({
+        fetchMock.mockResolvedValueOnce({
             ok: true,
             json: async () => mockConfig,
         });
@@ -22,12 +24,12 @@ describe('config', () => {
         const result = await loadConfig();
 
         expect(result).toEqual(mockConfig);
-        expect(fetch).toHaveBeenCalledWith('/config.json', { cache: 'no-store'});
-        expect(fetch).toHaveBeenCalledTimes(1)
-    })
+        expect(fetchMock).toHaveBeenCalledWith('/config.json', { cache: 'no-store'});
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
 
     it('returns cached config on subsequent calls withiout refetching', async () => {
-        (fetch as any).mockResolvedValueOnce({
+        fetchMock.mockResolvedValueOnce({
             ok: true,
             json: async () => mockConfig,
         });
@@ -37,12 +39,12 @@ describe('config', () => {
         const second = await loadConfig();
         
         expect(second).toEqual(mockConfig);
-        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
 
     })
 
     it('throws when the response is not ok', async () => {
-        (fetch as any).mockResolvedValueOnce({
+        fetchMock.mockResolvedValueOnce({
             ok: false,
             json: async () => ({})
         });
@@ -52,7 +54,7 @@ describe('config', () => {
     });
 
     it('getApiUrl returns apiUrl after config is loaded', async () => {
-        (fetch as any).mockResolvedValueOnce({
+       fetchMock.mockResolvedValueOnce({
             ok: true,
             json: async () => mockConfig,
         });
