@@ -17,5 +17,4 @@ public class User
     public DateTime? DeletedAt { get; set; }
     public StudentProfile? StudentProfile { get; set; }
     public AdminProfile? AdminProfile { get; set; }
-
 }
