@@ -8,6 +8,8 @@ export default function EnterPin()
   const [pin, setPin] = useState<string[]>(['','','','','','']);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft,setTimeLeft] = useState(59);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null> (null);
 
   const targetPin = "813472";
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -48,8 +50,9 @@ export default function EnterPin()
     const newPin = ['', '', '', '', '', '']
     pasted.split('').forEach((char, i) => { newPin[i] = char })
     setPin(newPin)
+    setError(null)
     inputRefs.current[Math.min(pasted.length, 5)]?.focus()
-  }
+  };
 
   const handleClear =() =>
   {
@@ -58,19 +61,74 @@ export default function EnterPin()
     inputRefs.current[0]?.focus();
 
   };
-  const currentPinStr = pin.join('');
-  const isComplete = pin.every(d => d != '');
-  const isCorrect = currentPinStr === targetPin;
 
-  const handleVerify = () => {
-    if(!isComplete) return;
-    if (currentPinStr === targetPin){
-      navigate('/payment/payment-complete');
+   const currentPinStr = pin.join('');
+  const isComplete = pin.every(d => d != '');
+
+  const handleVerify = async() => {
+    if(!isComplete || isSubmitting) return;
+
+
+    //if (currentPinStr === targetPin){
+    //  navigate('/payment/payment-complete');
+    //}
+    //else{
+//setError("Incorrect Pin.Please try again.");
+//handleClear();
+
+  setIsSubmitting(true);
+  setError(null);
+
+if(currentPinStr ===targetPin)
+{
+  try{ setPaymentStatus("Payment started...");
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+    setPaymentStatus("Payment processing...");
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  setPaymentStatus("Payment successful!");
+  await new Promise((resolve) => setTimeout(resolve, 900));
+ 
+  navigate('payment/payment-complete',{state: {transactionId: "testing813472" } });
+  return;
+  }catch (err){
+    setError("Status simulation failed.");
+  } finally{
+    setIsSubmitting(false);
+    setPaymentStatus(null);
+  } return;
+  }
+
+
+  
+  try{
+    const response = await fetch('/api/payment/verify-pin',
+    {
+      method: 'POST',
+      headers:{
+        'Content-Type': 'application/json',
+
+      },
+      body: JSON.stringify({pin: currentPinStr }),
+    });
+    let data: any ={};
+    const contentType = response.headers.get("content-type");
+    if(contentType && contentType.includes("application/json")) {
+      data = await response.json();
     }
-    else{
-setError("Incorrect Pin.Please try again.");
-handleClear();
+    if (!response.ok){
+      throw new Error(data.message || 'Verification failed. Please try again.');
     }
+
+    navigate('/payment/payment-complete', {state: {transactionId : data.transactionId } });
+  
+  }
+  catch (error: any){
+    setError(error.message || 'An unexpected network error occurred.');
+  handleClear();
+  } finally {
+    setIsSubmitting(false);
+  }
+
   };
 
 return (
@@ -90,6 +148,15 @@ return (
       {error}
       </div>
   )}
+
+  {paymentStatus && (
+    <div className="text-sm text-[#0d2ac5c] font-semibold bg-blue-50 border border-blue-100 px-4 py-2 rounded-lg text-center w-full max-w-xs flex items-center justify-center gap-2">
+      <div className="w-4 h-4 border-2 border-[#0d2a5c] border-t-transparent rounded-full animate-spin" />
+      {paymentStatus}
+      </div>
+  )
+
+  }
   <div className="flex justify-center gap-3 md:gap-4">
     {pin.map((digit, index) => (
 <input 
@@ -99,10 +166,11 @@ type="text"
 inputMode="numeric"
 maxLength={1}
 value={digit}
+disabled={isSubmitting}
 onChange={e =>handleChange(index, e.target.value)}
 onKeyDown={e => handleKeyDown(index, e)}
 onPaste={handlePaste}
-className={`w-12 md:h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-non transition-all duration-150 ${
+className={`w-12 h-12 md:h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-non transition-all duration-150 ${
   digit
   ? 'border-[#00aaff] text-slate-800 bg-white'
   : 'border-[#00aaff]/60 text-slate-800 bg-white'} focus:border[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`} />
@@ -114,14 +182,14 @@ className={`w-12 md:h-16 text-center text-2xl font-bold rounded-2xl border-2 out
 </div>
 <button 
 onClick={handleVerify}
-disabled={!isComplete}
+disabled={!isComplete || isSubmitting}
 className={`w-full max-w-xs py-4 rounded-full text-white font-bold text-lg tracking-wide transition-all ${
-isComplete
+isComplete && !isSubmitting
 ? 'bg-[#0d2a5c] hover:bg-[#081e42] cursor-pointer active:scale-[0.99]'
 : 'bg-[#0d2a5c]/50 cursor-not-allowed'
 }`}
 >
-  Verify PIN
+ {isSubmitting ? 'Verifying...' :'Verify PIN'}
 </button>
   </div>
  </div>
