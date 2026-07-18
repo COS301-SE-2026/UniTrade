@@ -29,6 +29,7 @@ using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.Payments;
 using Modules.Payments.Models.Dto;
+using Modules.Payments.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
@@ -177,7 +178,7 @@ builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IPaymentsService, PaymentService>();
-
+builder.Services.AddScoped<ITransactionRepository,TransactionRepository>();
 builder.Services.AddSingleton(
     new EmailClient(
         builder.Configuration["Acs:ConnectionString"]
