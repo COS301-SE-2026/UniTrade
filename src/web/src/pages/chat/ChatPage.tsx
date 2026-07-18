@@ -324,6 +324,8 @@ export default function ChatPage() {
     const [meetupOverrides, setMeetupOverrides] = useState<Record<string, MeetupStatus>>({});
     const [respondingKey, setRespondingKey] = useState<string | null>(null);
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+    const [isSendingProposal, setIsSendingProposal ] = useState(false);
+
 
 
     const handleProposeMeetup = async(values: MeetupFormValues) => {
@@ -332,6 +334,7 @@ export default function ChatPage() {
             alert('Please select a time in the future');
             return;
         }
+        setIsSendingProposal(true);
         try{
             await listingsService.proposeMeetup(reservationId!, {
                 locationName: values.location.name,
@@ -343,7 +346,9 @@ export default function ChatPage() {
             refetch();
         } catch(err) {
             console.error('Failed to propose meetup:', err);
-        } 
+        } finally{
+            setIsSendingProposal(false);
+        }
     };
 
        /* console.log('Meetup proposal submitted:', {
@@ -508,6 +513,22 @@ export default function ChatPage() {
                     <IconSend size={18} />
                 </button>
             </div>)}
+
+            {isProposingMeetup && (
+                <MeetupProposalForm
+                onCancel={() => setIsProposingMeetup(false)}
+                onSubmit={handleProposeMeetup}
+                isSubmitting = {isSendingProposal}
+                />
+            )}
+
+            {checkInLocation && (
+                <CheckInModal
+                reservationId={reservationId!}
+                meetupLocation={checkInLocation}
+                onClose={() => setCheckInLocation(null)}
+                />
+            )}
         </div>
     );
 }
