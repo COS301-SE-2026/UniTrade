@@ -20,9 +20,5 @@ export async function loadConfig(): Promise<AppConfig> {
 export function getApiUrl(): string {
   if (!config)
     throw new Error("Config not loaded, call the loadConfig() first");
-  if(config.apiUrl.endsWith('/api') || config.apiUrl.endsWith('/api/'))
-  {
-    return config.apiUrl.replace(/\/$/,"")
-  }
   return  config.apiUrl; // if local use config.apiUrl, when deploying us `${config.apiUrl}/api`
 }

@@ -19,7 +19,7 @@ public class ReservationRealTimeService : IReservationRealTime
     )
     {
         await _hubContext
-            .Clients.Group($"reservation-{reservation.ReservationId}")
+            .Clients.Users(reservation.BuyerId.ToString(), reservation.SellerId.ToString())
             .SendAsync("ReservationUpdated", reservation, ct);
     }
 }
