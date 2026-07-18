@@ -6,6 +6,7 @@ using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
+using Modules.Reviews.Models;
 using Modules.Wishlist.Models;
 using Modules.Payments.Models;
 
@@ -44,8 +45,16 @@ public class AppDbContext : DbContext
     // Wishlist
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
+<<<<<<< HEAD
     //Transactions
     public DbSet<Transaction> Transactions => Set<Transaction>();
+=======
+    // Meetups
+    public DbSet<Meetup> Meetups => Set<Meetup>();
+
+    // Reviews
+    public DbSet<Review> Reviews => Set<Review>();
+>>>>>>> cbe31801699fdc3acac4c17045c5ffd8a6163a83
 
     //constants - sonarqube
     private readonly string NowString = "now()";
@@ -104,7 +113,8 @@ public class AppDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValue("pending");
 
-            entity.Property(x => x.ReputationScore).HasPrecision(4, 2).HasDefaultValue(0);
+            entity.Property(x => x.SellerTrustScore).HasPrecision(4, 2).HasDefaultValue(0);
+            entity.Property(x => x.BuyerReliabilityScore).HasPrecision(4, 2).HasDefaultValue(0);
 
             entity.ToTable(t =>
             {
@@ -521,7 +531,7 @@ public class AppDbContext : DbContext
             entity
                 .HasIndex(x => x.ExpiresAt)
                 .HasDatabaseName("ix_res_expires")
-                .HasFilter("reservation_status = 'active'");
+                .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>
@@ -699,6 +709,87 @@ public class AppDbContext : DbContext
             entity
                 .HasOne<Reservation>().WithMany()
                 .HasForeignKey(x => x.ReservationId)
+        });
+        // Meetups
+        modelBuilder.Entity<Meetup>(entity =>
+        {
+            entity.HasKey(x => x.MeetupId);
+            entity.Property(x => x.MeetupId).ValueGeneratedOnAdd();
+
+            entity.Property(x => x.ReservationId).IsRequired();
+
+            entity.Property(x => x.AgreedLocationName).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.AgreedLatitude).HasPrecision(9, 6).IsRequired();
+            entity.Property(x => x.AgreedLongitude).HasPrecision(9, 6).IsRequired();
+            entity.Property(x => x.AgreedTime).IsRequired();
+
+            entity.Property(x => x.BuyerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.BuyerCheckinLatitude).HasPrecision(9, 6);
+            entity.Property(x => x.BuyerCheckinLongitude).HasPrecision(9, 6);
+
+            entity.Property(x => x.SellerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.SellerCheckinLatitude).HasPrecision(9, 6);
+            entity.Property(x => x.SellerCheckinLongitude).HasPrecision(9, 6);
+
+            entity.Property(x => x.CheckinWindowClosesAt).IsRequired();
+
+            entity.Property(x => x.Status).HasMaxLength(20).IsRequired();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_meetup_status",
+                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')"
+                );
+            });
+
+            entity
+                .HasOne(x => x.Reservation)
+                .WithMany(r => r.Meetups)
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_meetup_reservation");
+        });
+
+        // Reviews
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.HasKey(x => x.ReviewId);
+            entity.Property(x => x.ReviewId).ValueGeneratedOnAdd();
+
+            entity.Property(x => x.TransactionId).IsRequired();
+            entity.Property(x => x.ReviewerId).IsRequired();
+            entity.Property(x => x.RevieweeId).IsRequired();
+
+            entity.Property(x => x.Rating).IsRequired();
+            entity.Property(x => x.Comment);
+
+            entity.Property(x => x.ReviewType).IsRequired().HasMaxLength(20);
+
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+
+            entity.ToTable(t =>
+            {
+                t.HasTrigger("tr_reputation_on_review");
+                t.HasCheckConstraint("chk_rating", "rating BETWEEN 1 AND 5");
+                t.HasCheckConstraint("chk_review_self", "reviewer_id <> reviewee_id");
+                t.HasCheckConstraint(
+                    "chk_review_type",
+                    "review_type IN ('buyer_to_seller', 'seller_to_buyer')"
+                );
+            });
+            entity
+                .HasIndex(x => new { x.TransactionId, x.ReviewerId })
+                .IsUnique()
+                .HasDatabaseName("review_per_transaction");
+
+            entity.HasIndex(x => x.RevieweeId).HasDatabaseName("ix_review_reviewee");
+
+            entity
+                .HasOne(x => x.Transaction)
+                .WithMany()
+                .HasForeignKey(x => x.TransactionId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

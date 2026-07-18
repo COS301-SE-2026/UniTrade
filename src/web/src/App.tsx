@@ -25,7 +25,6 @@ import SellerListingDetail from "./pages/seller/SellerListingDetail";
 import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
 import ChatPage from "./pages/chat/ChatPage";
-//const BASE_URL = import.meta.env.VITE_API_URL;
 import SellerReservations from "./pages/seller/SellerReservation";
 import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
@@ -83,6 +82,15 @@ export default function App() {
         element={<RedirectToMessages role="seller" />}
       />
 
+      <Route
+        path="/buyer/reservations/:reservationId/chat"
+        element={<RedirectToMessages role="buyer" />}
+      />
+      <Route
+        path="/seller/reservations/:reservationId/chat"
+        element={<RedirectToMessages role="seller" />}
+      />
+
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
         <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
@@ -91,7 +99,7 @@ export default function App() {
         <Route path="/buyer/listings" element={<BrowseListings />} />
         <Route path="/buyer/wishlist" element={<Wishlist />} />
         <Route path="/buyer/reservations" element={<Reservations />} />
-        <Route path="seller/reservations" element={<SellerReservations />} />
+        <Route path="/seller/reservations" element={<SellerReservations />} />
         <Route path="/seller/dashboard" element={<SellerDashboard />} />
         <Route path="/seller/upload" element={<UploadListing />} />
         <Route path="/seller/editListing/:id" element={<EditListing />} />
@@ -115,6 +123,10 @@ export default function App() {
         </Route>
         <Route
           path="/buyer/reservations/:reservationId"
+          element={<ReservationDetails />}
+        />
+        <Route
+          path="/seller/reservations/:reservationId"
           element={<ReservationDetails />}
         />
       </Route>

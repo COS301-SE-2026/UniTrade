@@ -13,7 +13,7 @@ namespace Infrastructure.Persistence.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "faculty",
                 schema: "unitrade",
-                table: "courses", 
+                table: "courses",
                 type: "text",
                 nullable: false,
                 defaultValue: "",

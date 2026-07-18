@@ -16,6 +16,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         _db
             .Reservations.AsNoTracking()
             .Include(r => r.ReservationListings)
+            .Include(r => r.Buyer)
+            .Include(r => r.Seller)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
 
     public Task<Reservation?> GetByIdTrackedAsync(
@@ -80,7 +82,11 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     ) =>
         await _db
             .Reservations.Include(r => r.ReservationListings)
-            .Where(r => r.ReservationStatus == ReservationState.Active && r.ExpiresAt <= asOf)
+            .Where(r =>
+                r.ReservationStatus == ReservationState.Active
+                && r.ExpiresAt <= asOf
+                && r.MeetupConfirmedAt == null
+            )
             .OrderBy(r => r.ExpiresAt)
             .Take(batchSize)
             .ToListAsync(ct);

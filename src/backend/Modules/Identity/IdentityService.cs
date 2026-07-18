@@ -36,13 +36,14 @@ public class IdentityService : IIdentityService
 
     public IdentityService(
         IUserRepository users,
-        IUniversityRepository universities, IListingRepository listing,
+        IUniversityRepository universities,
+        IListingRepository listing,
         IConfiguration config
     )
     {
         _users = users;
         _universities = universities;
-        _listings =listing;
+        _listings = listing;
         _config = config;
     }
 
@@ -74,8 +75,16 @@ public class IdentityService : IIdentityService
             throw new IdentityException("invalid_email");
         }
         var studentNumber = emailParts[0];
-        var domain = emailParts[1].ToLower();
+        var domain = emailParts[1].ToLowerInvariant();
 
+        try
+        {
+            domain = new IdnMapping().GetAscii(domain);
+        }
+        catch (ArgumentException)
+        {
+            throw new IdentityException("invalid_domain");
+        }
         if (dto.YearOfStudy < 1 || dto.YearOfStudy > 10)
         {
             throw new IdentityException("invalid_year_of_study");
@@ -121,7 +130,8 @@ public class IdentityService : IIdentityService
                 YearOfStudy = dto.YearOfStudy,
                 DegreeProgram = dto.DegreeProgram,
                 VerificationStatus = "pending",
-                ReputationScore = 0,
+                SellerTrustScore = 0,
+                BuyerReliabilityScore = 0,
             },
         };
 
@@ -139,7 +149,7 @@ public class IdentityService : IIdentityService
 
     public async Task<User?> GetUserByEmailAsync(string email)
     {
-        return await _users.GetByEmailAsync(email.Trim().ToLowerInvariant());
+        return await _users.GetByEmailAsync(NormaliseEmail(email.Trim().ToLowerInvariant()));
     }
 
     private static bool IsPasswordStrong(string? password)
@@ -285,7 +295,9 @@ public class IdentityService : IIdentityService
         //strip invisible chars
         var ignore = new HashSet<char> { '\u00ad', '\u200b', '\u2060', '\ufeff' };
 
-        return new string(email.Where(c => !ignore.Contains(c)).ToArray());
+        var cleaned = new string(email.Where(c => !ignore.Contains(c)).ToArray());
+
+        return cleaned.Normalize(NormalizationForm.FormC);
     }
 
     public static string NormaliseDomain(string domain)
@@ -311,7 +323,7 @@ public class IdentityService : IIdentityService
         }
 
         //*user here follows User Model not schema
-        var user = await _users.GetByEmailAsync(loginDto.Email.Trim().ToLowerInvariant());
+        var user = await _users.GetByEmailAsync(NormaliseEmail(loginDto.Email.Trim().ToLowerInvariant()));
         //tasks: query db, verify password and get email, gen. token, then return a response
         if (user == null || user.IsDeleted)
         {
@@ -405,6 +417,9 @@ public class IdentityService : IIdentityService
                     DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
                     YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
                     University = getUser.StudentProfile?.University?.Name ?? string.Empty,
+                    SellerTrustScore = getUser.StudentProfile?.SellerTrustScore?? 0,
+                    BuyerReliabilityScore = getUser.StudentProfile?.BuyerReliabilityScore?? 0,
+                    
                 },
             };
         }
@@ -467,10 +482,9 @@ public class IdentityService : IIdentityService
     public async Task DeleteAccountAsync(string userId)
     {
         var user = await _users.GetByIdAsync(Guid.Parse(userId));
-        if(user == null)
+        if (user == null)
         {
             throw new IdentityException("not_found");
-
         }
 
         user.IsDeleted = true;
@@ -478,7 +492,9 @@ public class IdentityService : IIdentityService
         user.Email = $"deleted_{user.UserId}@unitrade.com";
         await _users.UpdateAsync(user);
 
-        await _listings.MarkAllBySellerAsRemovedAsync(Guid.Parse(userId), "User deleted their account");
-
+        await _listings.MarkAllBySellerAsRemovedAsync(
+            Guid.Parse(userId),
+            "User deleted their account"
+        );
     }
 }

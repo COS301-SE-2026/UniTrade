@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
-using Modules.Reservations;
+using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 
@@ -53,7 +53,7 @@ public class ChatService : IChatService
         //block buyer/seller if seller not acked
         var reservation = await _reservations.GetByIdAsync(reservationId, ct);
 
-        if(reservation is not null && reservation.ReservationStatus==ReservationState.Cancelled)
+        if (reservation is not null && reservation.ReservationStatus == ReservationState.Cancelled)
         {
             throw new ChatException(ChatErrors.ReservationCancelled);
         }
@@ -89,7 +89,7 @@ public class ChatService : IChatService
             )
         {
             _chatRepo.Detach(result);
-            var winner = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey, ct);
+            var winner = await _chatRepo.GetByClientKeyAsync(reservationId, clientKey!, ct);
 
             if (winner is not null && winner.SenderId == senderId)
             {
@@ -196,4 +196,81 @@ public class ChatService : IChatService
         IEnumerable<Guid> reservationIds,
         CancellationToken ct = default
     ) => _chatRepo.GetLastMessagesAsync(reservationIds, ct);
+
+    public async Task<ChatMessageDto> SendMeetupProposalAsync(
+        Guid reservationId,
+        Guid senderId,
+        MeetupProposalPayload payload,
+        CancellationToken ct = default
+    )
+    {
+        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        {
+            throw new ChatException(ChatErrors.Forbidden);
+        }
+
+        var content =
+            $"Proposed a meetup at {payload.LocationName}, "
+            + $"{payload.ProposedTime:ddd d MMM HH:mm}";
+
+        var message = new ChatMessage
+        {
+            ReservationId = reservationId,
+            SenderId = senderId,
+            MessageType = "meetup_proposal",
+            Content = content,
+            Payload = JsonSerializer.Serialize(payload),
+            SentAt = DateTime.UtcNow,
+        };
+
+        await _chatRepo.AddAsync(message, ct);
+        await _chatRepo.SaveAsync(ct);
+        return ToDto(message);
+    }
+
+    public async Task<ChatMessageDto?> GetMessageAsync(
+        Guid reservationId,
+        int message,
+        CancellationToken ct = default
+    )
+    {
+        var m = await _chatRepo.GetByIdAsync(reservationId, message, ct);
+        return m is null ? null : ToDto(m);
+    }
+
+    public Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    ) => _chatRepo.HasResponseForProposalAsync(reservationId, proposalMessageId, ct);
+
+    public async Task<ChatMessageDto> SendMeetupResponseAsync(
+        Guid reservationId,
+        Guid senderId,
+        MeetupResponsePayload payload,
+        CancellationToken ct = default
+    )
+    {
+        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        {
+            throw new ChatException(ChatErrors.Forbidden);
+        }
+
+        var content = payload.Accepted
+            ? $"Meetup confirmed - {payload.ProposedTime:ddd d MMM HH:mm} at {payload.LocationName}"
+            : "Meetup proposal declined";
+        var result = new ChatMessage
+        {
+            ReservationId = reservationId,
+            SenderId = senderId,
+            MessageType = "meetup_response",
+            Content = content,
+            Payload = JsonSerializer.Serialize(payload),
+            SentAt = DateTime.UtcNow,
+        };
+
+        await _chatRepo.AddAsync(result, ct);
+        await _chatRepo.SaveAsync(ct);
+        return ToDto(result);
+    }
 }

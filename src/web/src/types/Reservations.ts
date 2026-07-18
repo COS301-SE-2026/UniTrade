@@ -12,6 +12,7 @@ export interface Reservation {
     expiresAt: string;
     createdAt: string;
     sellerAcknowledgedAt?:string |null;
+    counterParty: ReservationCounterparty | null;
 }
 
 export interface ReservationCounterparty {

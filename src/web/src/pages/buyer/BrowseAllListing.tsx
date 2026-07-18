@@ -4,8 +4,9 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing, BrowseCondition, Category } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
-
+import { getDisplayCategory, sortTheCategories } from '../../utils/categoryUtils'
 import { useAuthStore } from '../../store/useAuthStore'
+import { useToast } from '../../components/layout/useToast';
 
 
 
@@ -47,6 +48,7 @@ function ListingCard({
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
+  const { showToast } = useToast();
 
   const [wishlisting, setWishlisting] = useState(false);
   const [wishlisted, setWishlisted] = useState(false)
@@ -69,11 +71,15 @@ function ListingCard({
     try {
       await listingsService.addToWishlist(String(listing.id))
       setWishlisted(true)
+      showToast('success', 'Successfully added to wishlist.')
     } catch (err) {
       if (err instanceof Error && err.message === 'already_wishlisted') {
+       
         setWishlisted(true)
+        showToast('error', 'Already wishlisted.');
       } else {
-        setWishlistError('Could not add to wishlist.')
+        
+        showToast('error', 'Could not add to wishlist.');
       }
     }finally {
       setWishlisting(false)
@@ -91,18 +97,22 @@ function ListingCard({
     if(result.success) 
     {
       setReserved(true)
+      showToast('success', 'Sucessfully reserved| Redirecting to your reservations....');
       navigate('/buyer/reservations')
-    }
+    } 
     else if (result.error.code === 'self_reserve'){
         setReserveError("You can't reserve your own listing.")
+        showToast('error', "You can't reserve your own listing.");
       }
     else if(result.error.code === 'already_reserved')
       {
-        setReserveError('Item was just reserved by someone else!')
+       
+        showToast('error', 'Item was already reserved!!');
       }
       
       else{
-        setReserveError(result.error.message ?? 'Could not reserve this item.')
+        const msg = result.error.message ?? 'Could not reserve this item.';
+        showToast('error', msg);
       }
       setReserving(false)
   }
@@ -124,7 +134,7 @@ function ListingCard({
         </div>
 
 
-        <p className="text-xs text-gray-400 capitalize">{listing.category}</p>
+        <p className="text-xs text-gray-400 capitalize">{getDisplayCategory(listing.category)}</p>
         <p className="text-sm font-bold text-gray-800 dark:text-white">
           {formatPrice(listing.price)}
         </p>
@@ -190,7 +200,9 @@ export default function BrowseAllListing() {
       .finally(() => setLoading(false))
 
     listingsService.getListingsCategories()
-      .then(setCategories)
+      .then(data => {
+        setCategories(sortTheCategories(data))
+      })
       .catch(() => {
         // category chips are non-critical; leave the list empty (just "All") on failure
       })
@@ -266,7 +278,7 @@ export default function BrowseAllListing() {
           {visibleCategories.map(cat => (
             <CategoryCard
               key={cat.id}
-              title={cat.name}
+              title={getDisplayCategory(cat.name)}
               active={activeCategory === cat.name}
               onClick={() => handleCategpryClick(cat.name)}
             />
@@ -291,7 +303,7 @@ export default function BrowseAllListing() {
                         activeCategory === cat.name ? 'text-navy-700 font-medium' : ''
                       }`}
                     >
-                      {cat.name}
+                      {getDisplayCategory(cat.name)}
                     </button>
                   ))}
                 </div>
@@ -302,7 +314,7 @@ export default function BrowseAllListing() {
           {hiddenCategories.map((cat) => (
             <CategoryCard
               key={cat.id}
-              title={cat.name}
+              title={getDisplayCategory(cat.name)}
               active={activeCategory === cat.name}
               onClick={() => handleCategpryClick(cat.name)}
               className="hidden md:inline-flex"
