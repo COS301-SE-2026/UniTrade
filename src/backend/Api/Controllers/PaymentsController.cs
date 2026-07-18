@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Payments;
 using Modules.Payments.Repositories;
+using Modules.Reservations.Repositories;
+using Modules.Reservations.StateMachine;
 
 namespace Api.Controllers;
 
@@ -22,7 +24,7 @@ public class PaymentController:ControllerBase
         _transactions=transactions;
     }
 
-    [HttpPost("{reservationId/payment-request}")]
+    [HttpPost("{reservationId}/payment-request")]
     [Authorize]
     public async Task<IActionResult> CreatePaymentRequest(Guid reservationId,CancellationToken ct)
     {
@@ -35,7 +37,7 @@ public class PaymentController:ControllerBase
 
         try{
             var result =await _payments.CreatesPaymentReq(reservationId,buyerId,ct);
-             retrun Ok(new{ sandbox_url=result.SandboxUrl,fields=result.Fields});
+             return Ok(new{ sandbox_url=result.ProcessUrl,fields=result.Fields});
         }
         catch(PaymentException ex)
         {
@@ -45,7 +47,7 @@ public class PaymentController:ControllerBase
                 PaymentErrors.NotBuyer=>Forbid(),
                 PaymentErrors.InvalidStatus=>BadRequest(new {code=ex.Code}),
                 _=>BadRequest(new{code=ex.Code}),            
-            }
+            };
         }
     }
 

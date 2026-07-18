@@ -1,6 +1,12 @@
 namespace Modules.Payments;
 
-public sealed class PaymentException(string code) : Exception(code) { }
+public sealed class PaymentException: Exception { 
+    public string Code{get;}
+    public PaymentException(string code):base(code)
+    {
+        Code=code;
+    }
+}
 
 public static class PaymentErrors
 {

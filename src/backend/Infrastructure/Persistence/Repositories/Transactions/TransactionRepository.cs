@@ -8,7 +8,7 @@ public class TransactionRepository: ITransactionRepository
 {
     private readonly AppDbContext _db;
 
-    public PaymentRepository(AppDbContext db)=>_db=db;
+    public TransactionRepository(AppDbContext db)=>_db=db;
 
     public Task<Transaction?> GetByReservationIdAsync(Guid reservationId,CancellationToken ct=default)=>_db .Transactions.AsNoTracking().FirstOrDefaultAsync(t=>t.ReservationId==reservationId);
 

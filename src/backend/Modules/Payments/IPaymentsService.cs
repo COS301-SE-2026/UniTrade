@@ -12,4 +12,5 @@ public interface IPaymentsService
 
     Task ConfirmPaymentAsync(Guid reservationId,string payfastPaymentId,CancellationToken ct=default);
     Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default);
+    bool VerifySignature(Dictionary<string,string> itnFields,string receivedSign);
 }

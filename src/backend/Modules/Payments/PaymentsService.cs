@@ -7,6 +7,9 @@ using Modules.Payments.Models.Dto;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Payments.Repositories;
+using Modules.Payments.Models;
+using System.Security.Cryptography;
+using Modules.Reservations.StateMachine;
 
 namespace Modules.Payments;
 
@@ -28,16 +31,16 @@ public class PaymentService : IPaymentsService
         _reservations = reservations;
         _merchantId =
             config["PayFast:MerchantId"]
-            ?? throw new InvaildOperationException("Merchant Id not configured");
+            ?? throw new InvalidOperationException("Merchant Id not configured");
         _merchantKey =
             config["PayFast:MerchantKey"]
-            ?? throw new InvaildOperationException("Merchant Key not configured");
+            ?? throw new InvalidOperationException("Merchant Key not configured");
         _sandboxUrl =
             config["PayFast:SandboxUrl"]
-            ?? throw new InvaildOperationException("Sandbox Url not configured");
+            ?? throw new InvalidOperationException("Sandbox Url not configured");
         _passphrase =
             config["PayFast:Passphrase"]
-            ?? throw new InvaildOperationException("Passphrase not configured");
+            ?? throw new InvalidOperationException("Passphrase not configured");
 
         _transactions=transactions;
         _broadcast=broadcast;
@@ -70,14 +73,14 @@ public class PaymentService : IPaymentsService
 
         var fieldsWithSign = new Dictionary<string, string>(fields) { ["signature"] = signature };
 
-        return new PaymentRequestDto(_processUrl, fieldsWithSign);
+        return new PaymentRequestDto(_sandboxUrl, fieldsWithSign);
     }
 
     private List<KeyValuePair<string, string>> BuildFields(
         Guid reservationId,
         string listingTitle,
         decimal price,
-        UserDto userId
+        Modules.Identity.Models.User buyer
     )
     {
         var fields = new List<KeyValuePair<string, string>>
@@ -127,7 +130,7 @@ public class PaymentService : IPaymentsService
 
     public async Task ConfirmPaymentAsync(Guid reservationId,string payfastPaymentId,CancellationToken ct=default)
     {
-        var reservation=await _reservation.GetByIdTrackedAsync(reservationId,ct) ?? throw new PaymentException(PaymentErrors.ReservationNotFound);
+        var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct) ?? throw new PaymentException(PaymentErrors.ReservationNotFound);
         
         var existing=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct);
         
@@ -144,8 +147,8 @@ public class PaymentService : IPaymentsService
         {
             existing=new Transaction
             {
-                Reservation=reservationId,
-                BuyerId=reservation.BuyerId;
+                ReservationId=reservationId,
+                BuyerId=reservation.BuyerId,
                 SellerId=reservation.SellerId,
                 Amount=listing.Price,
             };
@@ -162,7 +165,7 @@ public class PaymentService : IPaymentsService
         await _broadcast.SendToUserAsync(reservation.BuyerId,"pin_generated",new{reservationId,pin});//dont forge to impl.!!!(sabira)
     }
 
-    Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default)
+    public async Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default)
     {
         var tx=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct);
         if(tx.SellerId!=sellerId)

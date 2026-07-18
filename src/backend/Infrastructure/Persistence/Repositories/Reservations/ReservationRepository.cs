@@ -23,7 +23,7 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         CancellationToken ct = default
     ) =>
         _db
-            .Reservations.Include(r => r.ReservationListings).ThenInclude(r1=>r1,Listing)//added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
+            .Reservations.Include(r => r.ReservationListings).ThenInclude(r1=>r1.Listing)//added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
 
     public async Task<IReadOnlyList<Reservation>> ListForBuyerAsync(
