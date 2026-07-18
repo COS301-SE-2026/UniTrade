@@ -130,7 +130,8 @@ public class IdentityService : IIdentityService
                 YearOfStudy = dto.YearOfStudy,
                 DegreeProgram = dto.DegreeProgram,
                 VerificationStatus = "pending",
-                ReputationScore = 0,
+                SellerTrustScore = 0,
+                BuyerReliabilityScore = 0,
             },
         };
 
@@ -416,6 +417,9 @@ public class IdentityService : IIdentityService
                     DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
                     YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
                     University = getUser.StudentProfile?.University?.Name ?? string.Empty,
+                    SellerTrustScore = getUser.StudentProfile?.SellerTrustScore?? 0,
+                    BuyerReliabilityScore = getUser.StudentProfile?.BuyerReliabilityScore?? 0,
+                    
                 },
             };
         }

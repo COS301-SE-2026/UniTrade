@@ -44,6 +44,10 @@ public class ReviewService : IReviewService
         }
         if (transaction.PinStatus != "confirmed")
         {
+            throw new ReviewException(ReviewErrors.TransactionNotComplete);
+        }
+        if (await _reviews.ExistsAsync(request.TransactionId, callerId, ct))
+        {
             throw new ReviewException(ReviewErrors.AlreadyReviewed);
         }
         var typeOfReview = isBuyer ? "buyer_to_seller" : "seller_to_buyer";
