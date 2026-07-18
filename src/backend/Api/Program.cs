@@ -43,6 +43,7 @@ using Modules.Reviews.Repositories;
 using Modules.SharedKernel;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
+using Microsoft.AspNetCore.SignalR;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -186,7 +187,7 @@ builder.Services.AddScoped<IMeetupService, MeetupService>();
 builder.Services.AddScoped<IMeetupRepository, MeetupRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-
+builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton(
     new EmailClient(
         builder.Configuration["Acs:ConnectionString"]
