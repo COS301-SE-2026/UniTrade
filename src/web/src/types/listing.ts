@@ -169,3 +169,31 @@ export interface MeetupStatusResponse {
   status : MeetupStatus
   checkedInAt?: string | null
 }
+
+export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
+
+export interface Review {
+  reviewId: number
+  transactionId: string
+  reviewerId: string
+  revieweeId: string
+  reviewType: string
+  rating: number
+  comment : string | null
+  createdAt: string
+
+
+}
+
+export interface UserReviewsResponse {
+  userId: string
+  sellerScore: number 
+  buyerScore: number
+  reviews: Review[]
+}
+
+export interface SubmitReviewPayload {
+  transactionId: string
+  rating: number
+  comment?: string 
+}

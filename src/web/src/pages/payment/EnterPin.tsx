@@ -64,71 +64,17 @@ export default function EnterPin()
 
    const currentPinStr = pin.join('');
   const isComplete = pin.every(d => d != '');
+  //const isCorrect = currentPinStr === targetPin;
 
-  const handleVerify = async() => {
-    if(!isComplete || isSubmitting) return;
-
-
-    //if (currentPinStr === targetPin){
-    //  navigate('/payment/payment-complete');
-    //}
-    //else{
-//setError("Incorrect Pin.Please try again.");
-//handleClear();
-
-  setIsSubmitting(true);
-  setError(null);
-
-if(currentPinStr ===targetPin)
-{
-  try{ setPaymentStatus("Payment started...");
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-    setPaymentStatus("Payment processing...");
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  setPaymentStatus("Payment successful!");
-  await new Promise((resolve) => setTimeout(resolve, 900));
- 
-  navigate('payment/payment-complete',{state: {transactionId: "testing813472" } });
-  return;
-  }catch (err){
-    setError("Status simulation failed.");
-  } finally{
-    setIsSubmitting(false);
-    setPaymentStatus(null);
-  } return;
-  }
-
-
-  
-  try{
-    const response = await fetch('/api/payment/verify-pin',
-    {
-      method: 'POST',
-      headers:{
-        'Content-Type': 'application/json',
-
-      },
-      body: JSON.stringify({pin: currentPinStr }),
-    });
-    let data: any ={};
-    const contentType = response.headers.get("content-type");
-    if(contentType && contentType.includes("application/json")) {
-      data = await response.json();
+  const handleVerify = () => {
+    if(!isComplete) return;
+    if (currentPinStr === targetPin){
+      navigate('/payment/payment-complete');
     }
-    if (!response.ok){
-      throw new Error(data.message || 'Verification failed. Please try again.');
+    else{
+setError("Incorrect Pin.Please try again.");
+handleClear();
     }
-
-    navigate('/payment/payment-complete', {state: {transactionId : data.transactionId } });
-  
-  }
-  catch (error: any){
-    setError(error.message || 'An unexpected network error occurred.');
-  handleClear();
-  } finally {
-    setIsSubmitting(false);
-  }
-
   };
 
 return (
