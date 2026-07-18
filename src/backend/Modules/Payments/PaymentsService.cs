@@ -25,6 +25,9 @@ public class PaymentService : IPaymentsService
     private readonly string _merchantKey;
     private readonly string _sandboxUrl;
     private readonly string _passphrase;
+    private readonly string _notifyUrl;
+    private readonly string _returnUrl;
+    private readonly string _cancelUrl;
 
     public PaymentService(IReservationRepository reservations, IConfiguration config,IBroadCastService broadcast,ITransactionRepository transactions)
     {
@@ -41,6 +44,10 @@ public class PaymentService : IPaymentsService
         _passphrase =
             config["PayFast:Passphrase"]
             ?? throw new InvalidOperationException("Passphrase not configured");
+
+        _notifyUrl=config["PayFast:NotifyUrl"] ?? "";
+        _returnUrl=config["PayFast:ReturnUrl"] ?? "";
+        _cancelUrl=config["PayFast:CancelUrl"] ?? "";
 
         _transactions=transactions;
         _broadcast=broadcast;
@@ -87,7 +94,14 @@ public class PaymentService : IPaymentsService
         {
             new("merchant_id", _merchantId),
             new("merchant_key", _merchantKey),
-            new("sandbox_url", _sandboxUrl),
+            new("return_url", _returnUrl),
+            new("cancel_url",_cancelUrl),
+            new("notify_url",_notifyUrl),
+            new("name_first",_notifyUrl),
+            new("email_address",buyer.FirstName ?? ""),
+            new("m_payment_id",reservationId.ToString()),
+            new("amount",price.ToString("F2",CultureInfo.InvariantCulture)),
+            new("item_name",Truncate(listingTitle,100)),
         };
         return fields.Where(f => !string.IsNullOrEmpty(f.Value)).ToList();
     }
@@ -167,7 +181,7 @@ public class PaymentService : IPaymentsService
 
     public async Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default)
     {
-        var tx=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct);
+        var tx=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct) ?? throw new PaymentException("transaction_not_found");
         if(tx.SellerId!=sellerId)
         {
             throw new PaymentException("not_seller");
@@ -197,6 +211,7 @@ public class PaymentService : IPaymentsService
         reservation.ReservationStatus=ReservationState.Completed;
 
         var listing=reservation.ReservationListings.First().Listing;
+        listing.ListingStatus="sold";
 
         await _transactions.SaveAsync(ct);
         await _reservations.SaveAsync(ct);
