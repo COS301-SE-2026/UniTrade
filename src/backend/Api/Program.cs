@@ -14,6 +14,7 @@ using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
+using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
@@ -178,7 +179,7 @@ builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IPaymentsService, PaymentService>();
-builder.Services.AddScoped<ITransactionRepository,TransactionRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddSingleton(
     new EmailClient(
         builder.Configuration["Acs:ConnectionString"]

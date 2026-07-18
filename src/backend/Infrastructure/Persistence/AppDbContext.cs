@@ -7,6 +7,7 @@ using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
 using Modules.Wishlist.Models;
+using Modules.Payments.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -696,7 +697,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_transactions_reservation");
 
             entity
-                .HasOne<Reservation>.WithMany()
+                .HasOne<Reservation>().WithMany()
                 .HasForeignKey(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
