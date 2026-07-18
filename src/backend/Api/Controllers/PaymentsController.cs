@@ -67,9 +67,9 @@ public class TransactionController:ControllerBase
             return BadRequest("invalid_signature");
         }
 
-        if(!fields.TryGetValue("m_Transaction_id",out var TransactionIdStr) || !Guid.TryParse(TransactionIdStr,out var reservationId))
+        if(!fields.TryGetValue("m_payment_id",out var TransactionIdStr) || !Guid.TryParse(TransactionIdStr,out var reservationId))
         {
-            return BadRequest("invalid_Transaction_id");
+            return BadRequest("invalid_payment_id");
         }
 
         var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct);
@@ -84,9 +84,9 @@ public class TransactionController:ControllerBase
             return Ok();
         }
 
-        if(fields.GetValueOrDefault("Transaction_status")=="complete")
+        if(fields.GetValueOrDefault("payment_status")=="COMPLETE")
         {
-            var pfTransactionId=fields.GetValueOrDefault("pf_Transaction_id") ?? "";
+            var pfTransactionId=fields.GetValueOrDefault("pf_payment_id") ?? "";
             await _Transactions.ConfirmTransactionAsync(reservationId,pfTransactionId,ct);
         }
 
