@@ -11,7 +11,7 @@ public class Review
     public Guid RevieweeId { get; set; }
     public int Rating { get; set; }
 
-    public string Comment { get; set; } = null!;
+    public string Comment { get; set; } = string.Empty;
     public string ReviewType { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
