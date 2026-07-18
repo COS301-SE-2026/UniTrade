@@ -483,29 +483,10 @@ export default function ChatPage() {
                     SCHEDULE A MEETUP
                 </button>
             </div>
-<<<<<<< HEAD
             {messageForAckOrCancel ? (<div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
                 {messageForAckOrCancel}
                 </div>
             ):(
-=======
-
-            {isProposingMeetup && (
-                <MeetupProposalForm
-                onCancel={() => setIsProposingMeetup(false)}
-                onSubmit={handleProposeMeetup}
-                />
-            )}
-
-            {checkInLocation && (
-                <CheckInModal
-                reservationId={reservationId!}
-                meetupLocation={checkInLocation}
-                onClose={() => setCheckInLocation(null)}
-                />
-            )}
-
->>>>>>> cbe31801699fdc3acac4c17045c5ffd8a6163a83
             <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
                 <button type="button" className="text-gray-400 p-1">
                     <IconPaperclip size={22} />
