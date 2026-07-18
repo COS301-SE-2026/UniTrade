@@ -1,6 +1,6 @@
 namespace Modules.Reviews.Models.Dto;
 
-public record CreateReviewRequest(Guid reservationId, int Rating, string? Comment);
+public record CreateReviewRequest(Guid TransactionId, int Rating, string? Comment);
 
 public record ReviewDto(
     int ReviewId,
