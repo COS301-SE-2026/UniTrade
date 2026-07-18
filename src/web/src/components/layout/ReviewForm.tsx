@@ -11,7 +11,7 @@ interface StarRatingProps {
 }
 
 
-function StarRating({
+export function StarRating({
     value, 
     onChange, 
     size = 28, 
@@ -39,7 +39,8 @@ function StarRating({
                     ) : (
                         <IconStar size = {size} className="text-gray-300" />
                     )}
-                </button>                )
+                </button>                
+                )
             })}
         </div>
     )
