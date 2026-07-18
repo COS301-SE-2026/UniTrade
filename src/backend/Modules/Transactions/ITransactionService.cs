@@ -1,16 +1,16 @@
-using Modules.Payments.Models.Dto;
+using Modules.Transactions.Models.Dto;
 
-namespace Modules.Payments;
+namespace Modules.Transactions;
 
-public interface IPaymentsService
+public interface ITransactionsService
 {
-    Task<PaymentRequestDto> CreatesPaymentReq(
+    Task<TransactionRequestDto> CreatesTransactionReq(
         Guid reservationId,
         Guid buyerId,
         CancellationToken ct = default
     );
 
-    Task ConfirmPaymentAsync(Guid reservationId,string payfastPaymentId,CancellationToken ct=default);
+    Task ConfirmTransactionAsync(Guid reservationId,string payfastTransactionId,CancellationToken ct=default);
     Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default);
     bool VerifySignature(Dictionary<string,string> itnFields,string receivedSign);
 }

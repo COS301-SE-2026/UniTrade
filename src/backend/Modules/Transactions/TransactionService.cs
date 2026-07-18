@@ -3,17 +3,17 @@ using System.Text;
 using System.Web;
 using Microsoft.Extensions.Configuration;
 using Modules.Identity.Models.Dto;
-using Modules.Payments.Models.Dto;
+using Modules.Transactions.Models.Dto;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
-using Modules.Payments.Repositories;
-using Modules.Payments.Models;
+using Modules.Transactions.Repositories;
+using Modules.Transactions.Models;
 using System.Security.Cryptography;
 using Modules.Reservations.StateMachine;
 
-namespace Modules.Payments;
+namespace Modules.Transactions;
 
-public class PaymentService : IPaymentsService
+public class TransactionService : ITransactionsService
 {
     private readonly IReservationRepository _reservations;
     private readonly ITransactionRepository _transactions;
@@ -26,7 +26,7 @@ public class PaymentService : IPaymentsService
     private readonly string _sandboxUrl;
     private readonly string _passphrase;
 
-    public PaymentService(IReservationRepository reservations, IConfiguration config,IBroadCastService broadcast,ITransactionRepository transactions)
+    public TransactionService(IReservationRepository reservations, IConfiguration config,IBroadCastService broadcast,ITransactionRepository transactions)
     {
         _reservations = reservations;
         _merchantId =
@@ -46,7 +46,7 @@ public class PaymentService : IPaymentsService
         _broadcast=broadcast;
     }
 
-    public async Task<PaymentRequestDto> CreatesPaymentReq(
+    public async Task<TransactionRequestDto> CreatesTransactionReq(
         Guid reservationId,
         Guid buyerId,
         CancellationToken ct = default
@@ -54,15 +54,15 @@ public class PaymentService : IPaymentsService
     {
         var reservation =
             await _reservations.GetByIdAsync(reservationId, ct)
-            ?? throw new PaymentException(PaymentErrors.ReservationNotFound);
+            ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
         if (reservation.BuyerId != buyerId)
         {
-            throw new PaymentException(PaymentErrors.NotBuyer);
+            throw new TransactionException(TransactionErrors.NotBuyer);
         }
 
         if (reservation.ReservationStatus != ReservationState.Active)
         {
-            throw new PaymentException(PaymentErrors.InvalidStatus);
+            throw new TransactionException(TransactionErrors.InvalidStatus);
         }
 
         var listing = reservation.ReservationListings.First().Listing;
@@ -73,7 +73,7 @@ public class PaymentService : IPaymentsService
 
         var fieldsWithSign = new Dictionary<string, string>(fields) { ["signature"] = signature };
 
-        return new PaymentRequestDto(_sandboxUrl, fieldsWithSign);
+        return new TransactionRequestDto(_sandboxUrl, fieldsWithSign);
     }
 
     private List<KeyValuePair<string, string>> BuildFields(
@@ -128,13 +128,13 @@ public class PaymentService : IPaymentsService
         return Gensignature == receivedSign.ToLowerInvariant();
     }
 
-    public async Task ConfirmPaymentAsync(Guid reservationId,string payfastPaymentId,CancellationToken ct=default)
+    public async Task ConfirmTransactionAsync(Guid reservationId,string payfastTransactionId,CancellationToken ct=default)
     {
-        var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct) ?? throw new PaymentException(PaymentErrors.ReservationNotFound);
+        var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct) ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
         
         var existing=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct);
         
-        if(existing is not null && existing.PaymentStatus=="completed")
+        if(existing is not null && existing.TransactionStatus=="completed")
         {
             return;
         }
@@ -156,8 +156,8 @@ public class PaymentService : IPaymentsService
             await _transactions.AddAsync(existing,ct);
         }
 
-        existing.PayFastPaymentId=payfastPaymentId;
-        existing.PaymentStatus="completed";
+        existing.PayFastTransactionId=payfastTransactionId;
+        existing.TransactionStatus="completed";
         existing.PinHash=pinHash;
         existing.PinStatus="pending";
 
@@ -170,7 +170,7 @@ public class PaymentService : IPaymentsService
         var tx=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct);
         if(tx.SellerId!=sellerId)
         {
-            throw new PaymentException("not_seller");
+            throw new TransactionException("not_seller");
         }
 
         if(tx.PinStatus=="confirmed")
@@ -180,20 +180,20 @@ public class PaymentService : IPaymentsService
 
         if(tx.PinAttempts>=5)
         {
-            throw new PaymentException("too_many_attempts");
+            throw new TransactionException("too_many_attempts");
         }
 
         if(HashPin(pin)!=tx.PinHash)
         {
             tx.PinAttempts+=1;
             await _transactions.SaveAsync(ct);
-            throw new PaymentException("invalid_pin");
+            throw new TransactionException("invalid_pin");
         }
 
         tx.PinStatus="confirmed";
         tx.PinEnteredAt=DateTime.UtcNow;
 
-        var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct) ?? throw new PaymentException(PaymentErrors.ReservationNotFound);
+        var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct) ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
         reservation.ReservationStatus=ReservationState.Completed;
 
         var listing=reservation.ReservationListings.First().Listing;
