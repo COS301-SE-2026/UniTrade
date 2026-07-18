@@ -7,11 +7,16 @@ interface StarRatingProps {
     value: number
     onChange? : (value: number) => void
     size?: number
-    readonly?: boolean
+    readOnly?: boolean
 }
 
 
-export default function StarRating({value, onChange, size = 28, readOnly = false} : StarRatingProps) {
+function StarRating({
+    value, 
+    onChange, 
+    size = 28, 
+    readOnly = false,
+} : StarRatingProps) {
     const stars = [1, 2, 3, 4, 5]
 
     return (
@@ -109,7 +114,55 @@ export default function ReviewFrom({
                 <p className = "text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
                     Your rating
                 </p>
+                <StarRating value = {rating} onChange = {setRating} />
             </div>
+
+            <div>
+                <label
+                htmlFor = "review-comment"
+                className = "text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2 block"
+                >
+                    Comments (optional)
+                </label>
+                <textarea
+                id = "review-comment"
+                value = {comment}
+                onChange = {(e) => setComment(e.target.value)}
+                rows = {4}
+                maxLength={500}
+                placeholder = "Share details about your experience..."
+                className = "w-full rounded-xl border border-gray-200 px-3 py-2 text-navy-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy-700/20 resize-none"
+                />
+                <p className = "text-[11px] text-gray-400 mt-1 text-right">
+                    {comment.length}/500
+                </p>
+            </div>
+
+            {error && 
+            <p className = "text-sm text-red-500">
+                {error}
+            </p>}
+
+            <div className = "flex gap-3 mt-2">
+                <button
+                type = "button"
+                onClick = {onCancel}
+                disabled = {submitting}
+                className = "flex-1 rounded-full border border-gray-200 text-gray-600 font-semibold text-sm py-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                    Cancel 
+
+                </button>
+                <button 
+                type = "button"
+                onClick = {handleSubmit}
+                disabled = {submitting}
+                className = "flex-1 rounded-full bg-navy-700 text-white font-semibold text-sm py-2.5 hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                    {submitting ? 'Submitting...' : 'Submit Review'}
+                </button>
+
+                </div>
         </div>
     )
 }
