@@ -37,7 +37,7 @@ public class WishlistService : IWishlistService
             await _listings.GetByIdAsync(listingId)
             ?? throw new WishlistException(WishlistErrors.ListingNotFound);
 
-        
+
         if (listing.ListingStatus is "reserved" or "sold" or "removed")
         {
             throw new WishlistException(WishlistErrors.ListingUnavailable);

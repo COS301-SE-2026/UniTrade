@@ -10,5 +10,5 @@ public class WishlistItem
     public Guid ListingId { get; set; }
     public DateTime AddedAt { get; set; }
     public StudentProfile? Student { get; set; }
-    public Listing Listing { get; set; }
+    public Listing Listing { get; set; } = null!;
 }

@@ -18,4 +18,9 @@ public class BroadCastService : IBroadCastService
             .Clients.Group($"reservation-{reservationId}")
             .SendAsync("ReservationStatusChanged", new { reservationId, status = newStatus });
     }
+
+    public async Task SendToUserAsync(Guid userId, string eventName, object payload)
+    {
+        await _hubcontext.Clients.User(userId.ToString()).SendAsync(eventName, payload);
+    }
 }

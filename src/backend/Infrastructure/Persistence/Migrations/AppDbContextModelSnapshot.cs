@@ -32,6 +32,11 @@ namespace Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MessageId"));
 
+                    b.Property<string>("ClientKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("client_key");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text")
@@ -72,6 +77,11 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SenderId")
                         .HasDatabaseName("ix_chat_messages_sender_id");
+
+                    b.HasIndex("ReservationId", "ClientKey")
+                        .IsUnique()
+                        .HasDatabaseName("uix_chat_client_key")
+                        .HasFilter("client_key IS NOT NULL");
 
                     b.HasIndex("ReservationId", "ReadAt")
                         .HasDatabaseName("ix_chat_unread")
@@ -124,6 +134,13 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("student_id");
 
+                    b.Property<decimal>("BuyerReliabilityScore")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("buyer_reliability_score");
+
                     b.Property<int?>("CourseId")
                         .HasColumnType("integer")
                         .HasColumnName("course_id");
@@ -134,12 +151,12 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("degree_program");
 
-                    b.Property<decimal>("ReputationScore")
+                    b.Property<decimal>("SellerTrustScore")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(4, 2)
                         .HasColumnType("numeric(4,2)")
                         .HasDefaultValue(0m)
-                        .HasColumnName("reputation_score");
+                        .HasColumnName("seller_trust_score");
 
                     b.Property<string>("StudentNumber")
                         .HasMaxLength(50)
@@ -794,6 +811,101 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("universities", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
+                {
+                    b.Property<int>("MeetupId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("meetup_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MeetupId"));
+
+                    b.Property<decimal>("AgreedLatitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("agreed_latitude");
+
+                    b.Property<string>("AgreedLocationName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("agreed_location_name");
+
+                    b.Property<decimal>("AgreedLongitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("agreed_longitude");
+
+                    b.Property<DateTime>("AgreedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("agreed_time");
+
+                    b.Property<bool>("BuyerCheckedIn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("buyer_checked_in");
+
+                    b.Property<decimal?>("BuyerCheckinLatitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("buyer_checkin_latitude");
+
+                    b.Property<decimal?>("BuyerCheckinLongitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("buyer_checkin_longitude");
+
+                    b.Property<DateTime?>("BuyerCheckinTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("buyer_checkin_time");
+
+                    b.Property<DateTime>("CheckinWindowClosesAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checkin_window_closes_at");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<bool>("SellerCheckedIn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("seller_checked_in");
+
+                    b.Property<decimal?>("SellerCheckinLatitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("seller_checkin_latitude");
+
+                    b.Property<decimal?>("SellerCheckinLongitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("numeric(9,6)")
+                        .HasColumnName("seller_checkin_longitude");
+
+                    b.Property<DateTime?>("SellerCheckinTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seller_checkin_time");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("MeetupId")
+                        .HasName("pk_meetups");
+
+                    b.HasIndex("ReservationId")
+                        .HasDatabaseName("ix_meetup_reservation");
+
+                    b.ToTable("meetups", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
                     b.Property<Guid>("ReservationId")
@@ -826,6 +938,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_bundle");
 
+                    b.Property<DateTime?>("MeetupConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("meetup_confirmed_at");
+
                     b.Property<string>("ReservationStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -848,7 +964,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("ix_res_expires")
-                        .HasFilter("reservation_status = 'active'");
+                        .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
 
                     b.HasIndex("ReservationStatus")
                         .HasDatabaseName("ix_res_status");
@@ -879,6 +995,143 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_reservation_listings_listing_id");
 
                     b.ToTable("reservation_listings", "unitrade");
+                });
+
+            modelBuilder.Entity("Modules.Reviews.Models.Review", b =>
+                {
+                    b.Property<int>("ReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("review_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReviewId"));
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer")
+                        .HasColumnName("rating");
+
+                    b.Property<string>("ReviewType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("review_type");
+
+                    b.Property<Guid>("RevieweeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewee_id");
+
+                    b.Property<Guid>("ReviewerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewer_id");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("ReviewId")
+                        .HasName("pk_reviews");
+
+                    b.HasIndex("RevieweeId")
+                        .HasDatabaseName("ix_review_reviewee");
+
+                    b.HasIndex("TransactionId", "ReviewerId")
+                        .IsUnique()
+                        .HasDatabaseName("review_per_transaction");
+
+                    b.ToTable("reviews", "unitrade", t =>
+                        {
+                            t.HasTrigger("tr_reputation_on_review");
+
+                            t.HasCheckConstraint("chk_rating", "rating BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("chk_review_self", "reviewer_id <> reviewee_id");
+
+                            t.HasCheckConstraint("chk_review_type", "review_type IN ('buyer_to_seller', 'seller_to_buyer')");
+                        });
+                });
+
+            modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
+                {
+                    b.Property<Guid>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("PayFastTransactionId")
+                        .HasColumnType("text")
+                        .HasColumnName("pay_fast_transaction_id");
+
+                    b.Property<int>("PinAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("pin_attempts");
+
+                    b.Property<DateTime?>("PinEnteredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("pin_entered_at");
+
+                    b.Property<string>("PinHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("pin_hash");
+
+                    b.Property<string>("PinStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasDefaultValue("pending")
+                        .HasColumnName("pin_status");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("seller_id");
+
+                    b.Property<string>("TransactionStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("pending")
+                        .HasColumnName("transaction_status");
+
+                    b.HasKey("TransactionId")
+                        .HasName("pk_transactions");
+
+                    b.HasIndex("ReservationId")
+                        .HasDatabaseName("ix_transactions_reservation");
+
+                    b.ToTable("transactions", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Wishlist.Models.WishlistItem", b =>
@@ -1072,6 +1325,18 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_courses_universities_university_id");
                 });
 
+            modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
+                {
+                    b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
+                        .WithMany("Meetups")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_meetups_reservations_reservation_id");
+
+                    b.Navigation("Reservation");
+                });
+
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
                     b.HasOne("Modules.Identity.Models.User", "Buyer")
@@ -1112,6 +1377,28 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Listing");
 
                     b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("Modules.Reviews.Models.Review", b =>
+                {
+                    b.HasOne("Modules.Transactions.Models.Transaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reviews_transactions_transaction_id");
+
+                    b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
+                {
+                    b.HasOne("Modules.Reservations.Models.Reservation", null)
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_transactions_reservations_reservation_id");
                 });
 
             modelBuilder.Entity("Modules.Wishlist.Models.WishlistItem", b =>
@@ -1156,6 +1443,8 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
+                    b.Navigation("Meetups");
+
                     b.Navigation("Messages");
 
                     b.Navigation("ReservationListings");

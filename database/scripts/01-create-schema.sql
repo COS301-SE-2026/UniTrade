@@ -306,13 +306,15 @@ CREATE TABLE Reviews(
     transaction_id UUID NOT NULL REFERENCES Transactions(transaction_id),
     reviewer_id UUID NOT NULL REFERENCES Users(user_id),
     reviewee_id UUID NOT NULL REFERENCES Users(user_id),
-    rating INT CONSTRAINT chk_rating CHECK (
+    rating INT NOT NULL CONSTRAINT chk_rating CHECK (
         rating BETWEEN 1
         AND 5
     ),
     comment TEXT,
+    review_type VARCHAR(20) NOT NULL CHECK (review_type IN ('buyer_to_seller', 'seller_to_buyer')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT review_per_transaction UNIQUE (transaction_id, reviewer_id),
+    
     CONSTRAINT chk_review_self CHECK (reviewer_id <> reviewee_id)
 );
 

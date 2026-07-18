@@ -14,6 +14,7 @@ using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
+using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
@@ -27,6 +28,9 @@ using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
+using Modules.Transactions;
+using Modules.Transactions.Models.Dto;
+using Modules.Transactions.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
@@ -34,6 +38,8 @@ using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
+using Modules.Reviews;
+using Modules.Reviews.Repositories;
 using Modules.SharedKernel;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
@@ -61,7 +67,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 50000,
+                    PermitLimit = 50000, // note to future self - restore ratelimiting once done testing
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
@@ -174,6 +180,12 @@ builder.Services.AddScoped<IBroadCastService, BroadCastService>();
 builder.Services.AddScoped<IReservationRealTime, ReservationRealTimeService>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<ITransactionsService, TransactionService>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IMeetupService, MeetupService>();
+builder.Services.AddScoped<IMeetupRepository, MeetupRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 builder.Services.AddSingleton(
     new EmailClient(
