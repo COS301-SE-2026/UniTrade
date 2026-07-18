@@ -181,7 +181,7 @@ public class TransactionService : ITransactionsService
 
     public async Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default)
     {
-        var tx=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct) ?? throw new PaymentException("transaction_not_found");
+        var tx=await _transactions.GetByReservationIdTrackedAsync(reservationId,ct) ?? throw new TransactionException("transaction_not_found");
         if(tx.SellerId!=sellerId)
         {
             throw new TransactionException("not_seller");
