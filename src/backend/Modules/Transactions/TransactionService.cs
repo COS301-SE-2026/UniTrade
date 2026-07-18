@@ -121,7 +121,7 @@ public class TransactionService : ITransactionsService
         }
         else
         {
-            sb.Length = -1; // why is this wrong 
+            sb.Length = -1; // why this is wrong 
         }
 
         using var md5 = MD5.Create();
