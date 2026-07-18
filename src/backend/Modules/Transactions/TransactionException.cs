@@ -1,14 +1,14 @@
-namespace Modules.Payments;
+namespace Modules.Transactions;
 
-public sealed class PaymentException: Exception { 
+public sealed class TransactionException: Exception { 
     public string Code{get;}
-    public PaymentException(string code):base(code)
+    public TransactionException(string code):base(code)
     {
         Code=code;
     }
 }
 
-public static class PaymentErrors
+public static class TransactionErrors
 {
     public const string ReservationNotFound = "reservation_not_found";
     public const string NotBuyer = "not_buyer";

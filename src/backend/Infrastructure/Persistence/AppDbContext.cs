@@ -8,7 +8,7 @@ using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
 using Modules.Reviews.Models;
 using Modules.Wishlist.Models;
-using Modules.Payments.Models;
+using Modules.Transactions.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -45,16 +45,13 @@ public class AppDbContext : DbContext
     // Wishlist
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
-<<<<<<< HEAD
     //Transactions
     public DbSet<Transaction> Transactions => Set<Transaction>();
-=======
     // Meetups
     public DbSet<Meetup> Meetups => Set<Meetup>();
 
     // Reviews
     public DbSet<Review> Reviews => Set<Review>();
->>>>>>> cbe31801699fdc3acac4c17045c5ffd8a6163a83
 
     //constants - sonarqube
     private readonly string NowString = "now()";
@@ -691,7 +688,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.SellerId).IsRequired();
             entity.Property(x => x.Amount).HasPrecision(10, 2).IsRequired();
             entity
-                .Property(x => x.PaymentStatus)
+                .Property(x => x.TransactionStatus)
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasDefaultValue("pending");
@@ -708,7 +705,7 @@ public class AppDbContext : DbContext
 
             entity
                 .HasOne<Reservation>().WithMany()
-                .HasForeignKey(x => x.ReservationId)
+                .HasForeignKey(x => x.ReservationId);
         });
         // Meetups
         modelBuilder.Entity<Meetup>(entity =>

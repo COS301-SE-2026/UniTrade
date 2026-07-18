@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modules.Payments;
-using Modules.Payments.Repositories;
+using Modules.Transactions;
+using Modules.Transactions.Repositories;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 
@@ -11,22 +11,22 @@ namespace Api.Controllers;
 [ApiController]
 [Route("api/reservations")]
 
-public class PaymentController:ControllerBase
+public class TransactionController:ControllerBase
 {
-    private readonly IPaymentsService _payments;
+    private readonly ITransactionsService _Transactions;
     private readonly IReservationRepository _reservations;
     private readonly ITransactionRepository _transactions;
 
-    public PaymentController(IPaymentsService payments,IReservationRepository reservations,ITransactionRepository transactions)
+    public TransactionController(ITransactionsService Transactions,IReservationRepository reservations,ITransactionRepository transactions)
     {
-        _payments=payments;
+        _Transactions=Transactions;
         _reservations=reservations;
         _transactions=transactions;
     }
 
-    [HttpPost("{reservationId}/payment-request")]
+    [HttpPost("{reservationId}/Transaction-request")]
     [Authorize]
-    public async Task<IActionResult> CreatePaymentRequest(Guid reservationId,CancellationToken ct)
+    public async Task<IActionResult> CreateTransactionRequest(Guid reservationId,CancellationToken ct)
     {
         var userIdClaim=User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;//linked to jwt setup
 
@@ -36,16 +36,16 @@ public class PaymentController:ControllerBase
         }
 
         try{
-            var result =await _payments.CreatesPaymentReq(reservationId,buyerId,ct);
+            var result =await _Transactions.CreatesTransactionReq(reservationId,buyerId,ct);
              return Ok(new{ sandbox_url=result.ProcessUrl,fields=result.Fields});
         }
-        catch(PaymentException ex)
+        catch(TransactionException ex)
         {
             return  ex.Code switch
             {
-                PaymentErrors.ReservationNotFound=>NotFound(new{code=ex.Code}),
-                PaymentErrors.NotBuyer=>Forbid(),
-                PaymentErrors.InvalidStatus=>BadRequest(new {code=ex.Code}),
+                TransactionErrors.ReservationNotFound=>NotFound(new{code=ex.Code}),
+                TransactionErrors.NotBuyer=>Forbid(),
+                TransactionErrors.InvalidStatus=>BadRequest(new {code=ex.Code}),
                 _=>BadRequest(new{code=ex.Code}),            
             };
         }
@@ -62,14 +62,14 @@ public class PaymentController:ControllerBase
             return BadRequest();
         }
 
-        if(!_payments.VerifySignature(fields,receivedSign))
+        if(!_Transactions.VerifySignature(fields,receivedSign))
         {
             return BadRequest("invalid_signature");
         }
 
-        if(!fields.TryGetValue("m_payment_id",out var paymentIdStr) || !Guid.TryParse(paymentIdStr,out var reservationId))
+        if(!fields.TryGetValue("m_Transaction_id",out var TransactionIdStr) || !Guid.TryParse(TransactionIdStr,out var reservationId))
         {
-            return BadRequest("invalid_payment_id");
+            return BadRequest("invalid_Transaction_id");
         }
 
         var reservation=await _reservations.GetByIdTrackedAsync(reservationId,ct);
@@ -84,10 +84,10 @@ public class PaymentController:ControllerBase
             return Ok();
         }
 
-        if(fields.GetValueOrDefault("payment_status")=="complete")
+        if(fields.GetValueOrDefault("Transaction_status")=="complete")
         {
-            var pfPaymentId=fields.GetValueOrDefault("pf_payment_id") ?? "";
-            await _payments.ConfirmPaymentAsync(reservationId,pfPaymentId,ct);
+            var pfTransactionId=fields.GetValueOrDefault("pf_Transaction_id") ?? "";
+            await _Transactions.ConfirmTransactionAsync(reservationId,pfTransactionId,ct);
         }
 
         return Ok();
