@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice } from '../../utils/formatters'
 import type { BrowseListing } from '../../types/listing'
+import { ReviewModal } from '../auth/Review'
 import {
   IconShoppingBag,
   IconCurrencyDollar,
@@ -11,6 +12,7 @@ import {
   IconHeart,
   IconArrowUpRight,
   IconChevronDown,
+  IconStar,
 } from '@tabler/icons-react'
 
 
@@ -79,12 +81,14 @@ function OrderRow({
   price,
   status,
   image,
+  onReview,
 }: {
   title: string
   date: string
   price: number
   status: 'Collected' | 'Pending' | 'Cancelled'
   image: string
+  onReview?: () => void 
 }) {
 
   const statusStyles = {
@@ -112,6 +116,18 @@ function OrderRow({
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyles[status]}`}>
           {status}
         </span>
+        {status === 'Collected' && onReview && (
+          <button
+          type = "button"
+          onClick = {(e) => {
+            e.stopPropagation()
+            onReview()
+          }}
+          className = "flex items-center gap-1 text-[10px] font-semibold text-[#00aaff] hover:underline mt-1"
+          >
+            <IconStar size = {10} /> Leave a Review 
+          </button>
+        )}
       </div>
     </div>
   )
@@ -168,6 +184,13 @@ export default function BuyerDashboard() {
     { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '',reservationId: 'r2' },
     { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '',reservationId: 'r3'},
   ]
+
+  const [reviewTarget, setReviewTarget] = useState<{
+    transactionId : string 
+    revieweeName : string
+  } | null>(null)
+
+
   return (
     <div className="flex flex-col gap-6">
 
@@ -229,6 +252,17 @@ export default function BuyerDashboard() {
         </div>
 
       </div>
+
+      {reviewTarget && (
+        <ReviewModal
+          isOpen = {!!reviewTarget}
+          onClose = {() => setReviewTarget(null)}
+          transactionId={reviewTarget.transactionId}
+          revieweeName={reviewTarget.revieweeName}
+          revieweeLabel="seller"
+          onSubmitted={() => setReviewTarget(null)}
+              />
+      )}
     </div>
   )
 }
