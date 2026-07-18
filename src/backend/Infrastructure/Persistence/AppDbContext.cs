@@ -107,7 +107,8 @@ public class AppDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValue("pending");
 
-            entity.Property(x => x.ReputationScore).HasPrecision(4, 2).HasDefaultValue(0);
+            entity.Property(x => x.SellerTrustScore).HasPrecision(4, 2).HasDefaultValue(0);
+            entity.Property(x => x.BuyerReliabilityScore).HasPrecision(4, 2).HasDefaultValue(0);
 
             entity.ToTable(t =>
             {
@@ -729,7 +730,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.RevieweeId).IsRequired();
 
             entity.Property(x => x.Rating).IsRequired();
-            entity.Property(x => x.Comment).IsRequired();
+            entity.Property(x => x.Comment);
 
             entity.Property(x => x.ReviewType).IsRequired().HasMaxLength(20);
 
@@ -737,12 +738,12 @@ public class AppDbContext : DbContext
 
             entity.ToTable(t =>
             {
-                entity.ToTable(tb => tb.HasTrigger("tr_reputation_on_review"));
+                t.HasTrigger("tr_reputation_on_review");
                 t.HasCheckConstraint("chk_rating", "rating BETWEEN 1 AND 5");
                 t.HasCheckConstraint("chk_review_self", "reviewer_id <> reviewee_id");
                 t.HasCheckConstraint(
                     "chk_review_type",
-                    " review_type IN ('buyer_to_seller', 'seller_to_buyer')"
+                    "review_type IN ('buyer_to_seller', 'seller_to_buyer')"
                 );
             });
             entity
