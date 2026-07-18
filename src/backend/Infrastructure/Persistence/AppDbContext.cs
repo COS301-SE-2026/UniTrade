@@ -43,6 +43,9 @@ public class AppDbContext : DbContext
     // Wishlist
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
+    //Transactions
+    public DbSet<Transaction> Transactions => Set<Transaction>();
+
     //constants - sonarqube
     private readonly string NowString = "now()";
 
@@ -667,6 +670,35 @@ public class AppDbContext : DbContext
                 .HasIndex(x => new { x.StudentId, x.ListingId })
                 .IsUnique()
                 .HasDatabaseName("wishlist_entry");
+        });
+
+        modelBuilder.Entity<Transaction>(entity =>
+        {
+            entity.HasKey(x => x.TransactionId);
+            entity.Property(x => x.ReservationId).IsRequired();
+            entity.Property(x => x.BuyerId).IsRequired();
+            entity.Property(x => x.SellerId).IsRequired();
+            entity.Property(x => x.Amount).HasPrecision(10, 2).IsRequired();
+            entity
+                .Property(x => x.PaymentStatus)
+                .HasMaxLength(20)
+                .IsRequired()
+                .HasDefaultValue("pending");
+            entity.Property(x => x.PinHash).HasMaxLength(255);
+            entity.Property(x => x.PinAttempts).HasDefaultValue(0);
+            entity
+                .Property(x => x.PinStatus)
+                .HasMaxLength(255)
+                .IsRequired()
+                .HasDefaultValue("pending");
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+
+            entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_transactions_reservation");
+
+            entity
+                .HasOne<Reservation>.WithMany()
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
