@@ -7,6 +7,13 @@ import {
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
+import { listingsService } from "../../services/listingsService";
+import type { Review, UserReviewsResponse } from "../../types/listing";
+import { computeAverageRating, computeReputationScore, ratingAsSeller, ratingAsBuyer } from "../../types/reviewStats";
+import { StarRating } from "../../components/layout/ReviewForm";
+import { ReviewList } from "./Review";
+
+
 
 interface ProfileDetails{
   email: string;
@@ -68,7 +75,7 @@ function InfoRow({
   function VerificationBadge({ status }: { status: string }){
     const isVerified = status.toLowerCase() === "verified";
     return(
-      <span className={`inline-flex intems-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${ isVerified ? "bg-emerald-500/80 text-emerald-50" : 
+      <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${ isVerified ? "bg-emerald-500/80 text-emerald-50" : 
         "bg-amber-500/80 text-amber-50"
       }`
     
@@ -91,6 +98,11 @@ export default function Profile() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const[profileError, setProfileError] =useState<string | null>(null);
 
+  const [reviewData, setReviewData] = useState<UserReviewsResponse | null>(null);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+
+
 useEffect(() => {
   authService.getMe()
   .then((data) => {
@@ -107,6 +119,20 @@ useEffect(() => {
     }
   }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
 }, []);
+
+useEffect(() => {
+  if(!user?.id) return;
+  listingsService
+  .getReviewsForUser(user.id)
+  .then((data) => setReviewData(data))
+  .catch(() => setReviewsError("Could not load reviews"))
+  .finally(() => setLoadingReviews(false));
+}, [user?.id]);
+
+const reviews: Review[] = reviewData?.reviews ?? [];
+const averageRating = computeAverageRating(reviews);
+const reputationScore = computeReputationScore(reviews);
+
 
   if (!user) return null;
 
@@ -218,6 +244,58 @@ useEffect(() => {
  )}
  </div>
 
+
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden">
+        <div className="px-4 py-4 flex items-center justify-between border-b border-gray-50">
+          <div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Reputation Score</p>
+            <p className="text-2xl font-bold text-navy-900">
+              {reputationScore}
+              <span className="text-sm text-gray-400 font-medium">/100</span>
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Average Rating</p>
+            <div className="flex items-center gap-1.5 justify-end mt-0.5">
+              <StarRating value={Math.round(averageRating)} readOnly size={16} />
+              <span className="text-sm font-bold text-navy-900">
+                {averageRating.toFixed(1)}
+                </span>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {reviews.length} review{reviews.length === 1 ? "" : "s"}
+            </p>
+          </div>
+        </div>
+
+        {reviewData && (
+          <div className="px-4 py-3 flex items-center gap-6 border-b border-gray-50">
+            <div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">As Seller</p>
+              <p className="text-sm font-bold text-navy-900">{ratingAsSeller(reviewData).toFixed(1)} ★</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">As Buyer</p>
+              <p className="text-sm font-bold text-navy-900">{ratingAsBuyer(reviewData).toFixed(1)} ★</p>
+            </div>
+          </div>
+        )}
+
+        {loadingReviews && (
+          <div className="p-4 flex flex-col gap-3">
+            <div className="h-14 rounded-lg bg-gray-100 animate-pulse" />
+            <div className="h-14 rounded-lg bg-gray-100 animate-pulse" />
+          </div>
+        )}
+
+        {!loadingReviews && reviewsError && (
+          <div className="p-4 text-center">
+            <p className="text-sm text-red-500">{reviewsError}</p>
+          </div>
+        )}
+
+        {!loadingReviews && !reviewsError && <ReviewList reviews={reviews} />}
+      </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
         <ProfileRow
