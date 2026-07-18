@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
 
 
-export default function EnterPin()
+export default function GeneratePin()
 {
   const navigate = useNavigate();
-  const pinDigits = ['1','2','3','4','5','0'];
+  const pinDigits = ['8','1','3','4','7','2'];
   
   const [timeLeft,setTimeLeft] = useState(59);
-
+const [isSimulating,setIsSimulating] =useState(false);
+  
+const [paymentStatus, setPaymentStatus] = useState<string | null> (null);
   useEffect(() => {if 
     (timeLeft ===0)return;
     const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000)
@@ -20,8 +22,16 @@ export default function EnterPin()
     //api will be called here lateer
   }
 
-  const handleDone = () => {
-      navigate('/buyer/Reservation');
+  const handleDone = async () => {
+   setPaymentStatus("Payment started...");
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+    setPaymentStatus("Payment processing...");
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  setPaymentStatus("Payment successful!");
+  await new Promise((resolve) => setTimeout(resolve, 900));
+    setIsSimulating(false);
+    setPaymentStatus(null);
+      navigate('/payment/payment-complete',{state: {transactionId: "pinReceived813472"}});
   };
 
   return (
@@ -35,6 +45,14 @@ export default function EnterPin()
         Present this pin to the seller upon transaction completion.
       </p>
   </div>
+  {paymentStatus && (
+    <div className="text-sm text-[#0d2ac5c] font-semibold bg-blue-50 border border-blue-100 px-4 py-2 rounded-lg text-center w-full max-w-xs flex items-center justify-center gap-2">
+      <div className="w-4 h-4 border-2 border-[#0d2a5c] border-t-transparent rounded-full animate-spin" />
+      {paymentStatus}
+      </div>
+  )
+
+  }
 
   <div className="flex justify-center gap-3 md:gap-4">
     {pinDigits.map((digit, index) => (
@@ -68,9 +86,11 @@ timeLeft === 0
   </div>
  </div>
  <button
+ type="button"
  onClick={handleDone}
+ disabled={isSimulating}
  className="w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer">
-  Done
+  {isSimulating ? 'Proccessing...':'Done'}
  </button>
  </div>
  </div>
