@@ -317,7 +317,6 @@ export default function Reservations() {
                     </div>
                 )}
                 {reservations
-                .filter((r) => r.reservationStatus !== 'cancelled')
                 .map((reservation: ReservationListItem) => (
                     <ReservationCard key={reservation.reservationId}
                         reservation={reservation} onCancel={handleCancel} />
