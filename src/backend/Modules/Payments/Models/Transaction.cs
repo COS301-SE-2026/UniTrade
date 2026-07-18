@@ -11,7 +11,7 @@ public class Transaction
     public string PaymentStatus{get;set;}="pending";
     public string? PinHash{get;set;}
     public int PinAttempts{get;set;}=0;
-    public DateTime? PinEntered{get;set;}
+    public DateTime? PinEnteredAt{get;set;}
     public string PinStatus{get;set;}="pending";
     public DateTime CreatedAt{get;set;}=DateTime.UtcNow;
 

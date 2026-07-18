@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Payments;
+using Modules.Payments.Repositories;
 
 namespace Api.Controllers;
 
@@ -12,11 +13,13 @@ public class PaymentController:ControllerBase
 {
     private readonly IPaymentsService _payments;
     private readonly IReservationRepository _reservations;
+    private readonly ITransactionRepository _transactions;
 
-    public PaymentController(IPaymentsService payments,IReservationRepository reservations)
+    public PaymentController(IPaymentsService payments,IReservationRepository reservations,ITransactionRepository transactions)
     {
         _payments=payments;
         _reservations=reservations;
+        _transactions=transactions;
     }
 
     [HttpPost("{reservationId/payment-request}")]
@@ -81,8 +84,8 @@ public class PaymentController:ControllerBase
 
         if(fields.GetValueOrDefault("payment_status")=="complete")
         {
-            reservation.ReservationStatus=ReservationState.Completed;
-            await _reservations.SaveAsync(ct);
+            var pfPaymentId=fields.GetValueOrDefault("pf_payment_id") ?? "";
+            await _payments.ConfirmPaymentAsync(reservationId,pfPaymentId,ct);
         }
 
         return Ok();
