@@ -1,4 +1,4 @@
-using Modules.Payments.Models.dto;
+using Modules.Payments.Models.Dto;
 
 namespace Modules.Payments;
 

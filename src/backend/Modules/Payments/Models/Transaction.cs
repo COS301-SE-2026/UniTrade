@@ -13,6 +13,6 @@ public class Transaction
     public int PinAttempts{get;set;}=0;
     public DateTime? PinEntered{get;set;}
     public string PinStatus{get;set;}="pending";
-    public DateTime CreatedAt{ge;set;}=DateTime.UtcNow;
+    public DateTime CreatedAt{get;set;}=DateTime.UtcNow;
 
 }
