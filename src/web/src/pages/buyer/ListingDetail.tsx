@@ -30,6 +30,7 @@ export default function ListingDetail() {
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const [reserveError, setReserveError] = useState<string | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -108,11 +109,22 @@ export default function ListingDetail() {
 
         <div className="col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <div className="w-full rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700">
+            <div className="relative w-full h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
+            onClick={() => activeImage && setLightboxOpen(true)}>
               {activeImage ? (
-                <img src={activeImage} alt={listing.title} className="w-full h-auto" />
+              <>
+
+                <img src={activeImage} 
+                alt={listing.title} 
+                className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-full">
+                Click to view full image
+                </span>
+                  </div>
+                  </>
               ) : (
-                <div className="w-full h-64 flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center">
                   <span className="text-4xl">None</span>
                 </div>
               )}
@@ -307,6 +319,24 @@ export default function ListingDetail() {
 
         </div>
       </div>
+
+      {lightboxOpen && activeImage && (
+        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
+        onClick={() => setLightboxOpen(false)}
+        >
+          <button 
+          onClick={() => setLightboxOpen(false)}
+          className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none">
+            &times;
+            </button>
+              <img 
+              src={activeImage}
+              alt={listing.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+              />
+           </div>
+      )}
     </div>
   )
 }

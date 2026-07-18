@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { loadConfig } from "./config.ts";
 import "./index.css";
 import App from "./App.tsx";
+import OfflineBanner from "./components/layout/OfflineBanner.tsx";
 import { ToastProvider } from "./components/layout/Toast.tsx";
 //import { AppQueryProvider } from "./queryClient.tsx";
 
@@ -16,6 +17,7 @@ loadConfig().then(() => {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
         <ToastProvider>
+         <OfflineBanner />
           <App />
           </ToastProvider>
         </BrowserRouter>
