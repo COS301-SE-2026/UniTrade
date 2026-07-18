@@ -330,7 +330,7 @@ export default function ChatPage() {
                             )}
                             className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
                         >
-                            View
+                            View Reservation
                         </button>
                     </div>
                 )}
