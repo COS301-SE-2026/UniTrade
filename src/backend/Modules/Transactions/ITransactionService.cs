@@ -10,7 +10,16 @@ public interface ITransactionsService
         CancellationToken ct = default
     );
 
-    Task ConfirmTransactionAsync(Guid reservationId,string payfastTransactionId,CancellationToken ct=default);
-    Task VerifyPinAsync(Guid reservationId,Guid sellerId,string pin, CancellationToken ct=default);
-    bool VerifySignature(Dictionary<string,string> itnFields,string receivedSign);
+    Task ConfirmTransactionAsync(
+        Guid reservationId,
+        string payfastTransactionId,
+        CancellationToken ct = default
+    );
+    Task VerifyPinAsync(
+        Guid reservationId,
+        Guid sellerId,
+        string pin,
+        CancellationToken ct = default
+    );
+    bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign);
 }
