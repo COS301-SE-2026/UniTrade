@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+//import { useNavigate } from 'react-router-dom'
 
-import { CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { CheckCircle2/*ShieldCheck,ArrowRight */} from 'lucide-react';
 
 export default function PaymentComplete() {
-   const navigate = useNavigate();
+ //  const navigate = useNavigate();
 
-   const transactionDetails = {
+ /*  const transactionDetails = {
     amount: "R400.00",
     receipient: "Langa V",
     item: "Calculus 2nd Edition",
@@ -16,10 +16,10 @@ export default function PaymentComplete() {
       day: 'numeric',
     })
   };
-  const handleDone = () => {
+  /*const handleDone = () => {
     navigate('/dashboard');
   } ;
-   
+   */
   return (
     
  <div className="min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-samns p-4">

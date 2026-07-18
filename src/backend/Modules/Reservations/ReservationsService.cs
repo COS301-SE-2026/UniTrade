@@ -95,7 +95,7 @@ public class ReservationService : IReservationService
         {
             await _chat.SendSystemAsync(
                 reservationId,
-                "You have accepted this reservation request",
+                "This reservation was accepted by the seller.",
                 ct
             );
         }

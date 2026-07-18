@@ -60,7 +60,7 @@ export default function EnterPin()
   };
   const currentPinStr = pin.join('');
   const isComplete = pin.every(d => d != '');
-  const isCorrect = currentPinStr === targetPin;
+  //const isCorrect = currentPinStr === targetPin;
 
   const handleVerify = () => {
     if(!isComplete) return;
