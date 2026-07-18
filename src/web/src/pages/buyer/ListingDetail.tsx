@@ -108,11 +108,11 @@ export default function ListingDetail() {
 
         <div className="col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <div className="w-full h-56 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700">
+            <div className="w-full rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700">
               {activeImage ? (
-                <img src={activeImage} alt={listing.title} className="w-full h-full object-cover" />
+                <img src={activeImage} alt={listing.title} className="w-full h-auto" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-64 flex items-center justify-center">
                   <span className="text-4xl">None</span>
                 </div>
               )}
@@ -122,11 +122,10 @@ export default function ListingDetail() {
                 <div
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${
-                    activeImage === img.url
+                  className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
                       ? 'border-navy-700 dark:border-white'
                       : 'border-transparent'
-                  }`}
+                    }`}
                 >
                   {img.url ? (
                     <img src={img.url} alt={listing.title} className="w-full h-full object-cover" />
@@ -237,7 +236,6 @@ export default function ListingDetail() {
               </p>
             </div>
 
-            {/* Reserve error */}
             {reserveError && (
               <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2 mb-3">
                 <p className="text-xs text-red-600 dark:text-red-400 text-center">{reserveError}</p>

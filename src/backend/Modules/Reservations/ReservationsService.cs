@@ -76,7 +76,7 @@ public class ReservationService : IReservationService
         await _reservations.SaveAsync(ct);
         await _wishlist.CleanForListingAsync(listingId, ct);
 
-        return MapToDto(reservation, listingId);
+        return MapToDto(reservation, listingId: listingId);
     }
 
     public async Task<ReservationDto> AcknowledgeAsync(
@@ -142,7 +142,7 @@ public class ReservationService : IReservationService
         await _reservations.SaveAsync(ct);
         await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
 
-        return MapToDto(r);
+        return MapToDto(r, callerId);
     }
 
     public async Task<IReadOnlyList<ReservationListItemDto>> ListForUserAsync(
@@ -213,7 +213,43 @@ public class ReservationService : IReservationService
         {
             throw new ReservationException(ReservationErrors.Forbidden);
         }
-        return MapToDto(r);
+        return MapToDto(r, callerId);
+    }
+
+    private static ReservationDto MapToDto(
+        Reservation r,
+        Guid? callerId = null,
+        Guid? listingId = null
+    )
+    {
+        CounterPartyDto? counterParty = null;
+
+        if (callerId.HasValue)
+        {
+            var isBuyer = r.BuyerId == callerId.Value;
+            var other = isBuyer ? r.Seller : r.Buyer;
+
+            if (other is not null)
+            {
+                counterParty = new CounterPartyDto(
+                    other.UserId,
+                    $"{other.FirstName} {other.LastName}",
+                    $"{other.FirstName[0]}{other.LastName[0]}"
+                );
+            }
+        }
+
+        return new ReservationDto(
+            ReservationId: r.ReservationId,
+            ListingId: listingId ?? r.ReservationListings.First().ListingId,
+            BuyerId: r.BuyerId,
+            SellerId: r.SellerId,
+            ReservationStatus: r.ReservationStatus,
+            TimerStage: ReservationStateMachine.DeriveTimerStage(r),
+            ExpiresAt: r.ExpiresAt,
+            CreatedAt: r.CreatedAt,
+            CounterParty: counterParty
+        );
     }
 
     public async Task<IReadOnlyList<ReservationDto>> ExpireDueAsync(
@@ -249,16 +285,4 @@ public class ReservationService : IReservationService
         Guid userId,
         CancellationToken ct = default
     ) => _reservations.IsPartyToAsync(reservationId, userId, ct);
-
-    private static ReservationDto MapToDto(Reservation r, Guid? listingId = null) =>
-        new(
-            ReservationId: r.ReservationId,
-            ListingId: listingId ?? r.ReservationListings.First().ListingId,
-            BuyerId: r.BuyerId,
-            SellerId: r.SellerId,
-            ReservationStatus: r.ReservationStatus,
-            TimerStage: ReservationStateMachine.DeriveTimerStage(r),
-            ExpiresAt: r.ExpiresAt,
-            CreatedAt: r.CreatedAt
-        );
 }

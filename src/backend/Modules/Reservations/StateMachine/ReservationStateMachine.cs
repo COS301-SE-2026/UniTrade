@@ -7,9 +7,11 @@ public static class ReservationStateMachine
 {
     public static readonly TimeSpan ResponseWindow = TimeSpan.FromHours(24);
     public static readonly TimeSpan SellerReleaseAfterBuyerSilence = TimeSpan.FromHours(12);
+    public static readonly TimeSpan CheckinWindowAfterMeetup = TimeSpan.FromMinutes(30);
 
     public static string DeriveTimerStage(Reservation r) =>
-        r.BuyerRespondedAt is not null ? TimerStages.Coordinating
+        r.MeetupConfirmedAt is not null ? TimerStages.MeetupConfirmed
+        : r.BuyerRespondedAt is not null ? TimerStages.Coordinating
         : r.SellerAcknowledgedAt is not null ? TimerStages.AwaitingBuyer
         : TimerStages.AwaitingSeller;
 
@@ -113,4 +115,20 @@ public static class ReservationStateMachine
 
         r.ReservationStatus = ReservationState.Expired;
     }
+
+    public static void ConfirmMeetup(Reservation r, DateTime now)
+    {
+        if (r.ReservationStatus != ReservationState.Active)
+        {
+            throw new ReservationException(ReservationErrors.NotActive);
+        }
+
+        if (r.MeetupConfirmedAt is not null)
+        {
+            throw new ReservationException(ReservationErrors.MeetupAlreadyConfirmed);
+        }
+        r.MeetupConfirmedAt = now;
+    }
+
+    public static bool IsTimerPaused(Reservation r) => r.MeetupConfirmedAt is not null;
 }

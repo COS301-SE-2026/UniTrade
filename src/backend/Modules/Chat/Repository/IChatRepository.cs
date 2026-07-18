@@ -41,4 +41,16 @@ public interface IChatRepository
     );
 
     void Detach(ChatMessage message);
+
+    Task<ChatMessage?> GetByIdAsync(
+        Guid reservationId,
+        int messageId,
+        CancellationToken ct = default
+    );
+
+    Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    );
 }
