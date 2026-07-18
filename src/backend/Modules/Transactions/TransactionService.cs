@@ -202,7 +202,7 @@ public class TransactionService : ITransactionsService
     {
         var tx =
             await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
-            ?? throw new PaymentException("transaction_not_found");
+            ?? throw new TransactionException("transaction_not_found");
         if (tx.SellerId != sellerId)
         {
             throw new TransactionException("not_seller");
