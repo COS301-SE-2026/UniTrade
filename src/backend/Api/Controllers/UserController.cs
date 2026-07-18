@@ -42,6 +42,7 @@ public class UserController(IIdentityService identityService) : ControllerBase
     }
 
     [HttpPut("profile")]
+    [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
         try
@@ -76,6 +77,7 @@ public class UserController(IIdentityService identityService) : ControllerBase
     }
 
     [HttpDelete("account")]
+    [Authorize]
     public async Task<IActionResult> DeleteAccount()
     {
         try

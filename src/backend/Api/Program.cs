@@ -34,6 +34,8 @@ using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
+using Modules.Reviews;
+using Modules.Reviews.Repositories;
 using Modules.SharedKernel;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
@@ -61,7 +63,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 50000,
+                    PermitLimit = 50000, // note to future self - restore ratelimiting once done testing
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
@@ -176,6 +178,8 @@ builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IMeetupService, MeetupService>();
 builder.Services.AddScoped<IMeetupRepository, MeetupRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 builder.Services.AddSingleton(
     new EmailClient(
