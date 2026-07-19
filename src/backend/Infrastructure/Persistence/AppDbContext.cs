@@ -7,8 +7,8 @@ using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
 using Modules.Reservations.Models;
 using Modules.Reviews.Models;
-using Modules.Wishlist.Models;
 using Modules.Transactions.Models;
+using Modules.Wishlist.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -47,6 +47,7 @@ public class AppDbContext : DbContext
 
     //Transactions
     public DbSet<Transaction> Transactions => Set<Transaction>();
+
     // Meetups
     public DbSet<Meetup> Meetups => Set<Meetup>();
 
@@ -703,9 +704,7 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_transactions_reservation");
 
-            entity
-                .HasOne<Reservation>().WithMany()
-                .HasForeignKey(x => x.ReservationId);
+            entity.HasOne<Reservation>().WithMany().HasForeignKey(x => x.ReservationId);
         });
         // Meetups
         modelBuilder.Entity<Meetup>(entity =>
@@ -746,7 +745,10 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_meetup_reservation");
+            entity
+                .HasIndex(x => x.ReservationId)
+                .HasDatabaseName("ix_meetup_reservation")
+                .IsUnique();
         });
 
         // Reviews

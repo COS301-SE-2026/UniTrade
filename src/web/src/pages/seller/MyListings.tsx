@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   IconPackage,
   IconNotes,
   IconBoxPadding,
   IconPlus,
   IconTrash,
-  IconLivePhoto
+  IconLivePhoto,
 } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
@@ -15,6 +16,7 @@ import StatusPill from "../../components/layout/ui/StatusPill";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 import type { ApiError } from "../../types/Reservations";
 import { useToast } from "../../components/layout/useToast";
+import { useMyListings } from "../../hooks/useMyListings";
 function ActionButtons({
   listing,
   onDelete,
@@ -98,27 +100,27 @@ function ActionButtons({
   if (listing.status === "reserved") {
     return (
       <div className="flex gap-2">
-        <button 
-        onClick={() => navigate(`/seller/listings/${listing.id}`)}
-        className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors"
+        <button
+          onClick={() => navigate(`/seller/listings/${listing.id}`)}
+          className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors"
         >
           View
         </button>
-        <button 
-        disabled
-        className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-sm font-semibold px-5 py-2 rounded-full cursor-not-allowed"
+        <button
+          disabled
+          className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-sm font-semibold px-5 py-2 rounded-full cursor-not-allowed"
         >
           Edit
         </button>
         <button
-        disabled
-        aria-label="Delete listing"
-        className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-400/40 p-2 rounded-full cursor-not-allowed"
+          disabled
+          aria-label="Delete listing"
+          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-400/40 p-2 rounded-full cursor-not-allowed"
         >
           <IconTrash size={16} />
         </button>
       </div>
-    )
+    );
   }
 
   return null;
@@ -130,35 +132,44 @@ const PAGE_SIZE = 6;
 
 export default function MyListings() {
   const navigate = useNavigate();
-  const [listings, setListings] = useState<ListingSummary[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  const { data, isLoading, error } = useMyListings();
+  const listings = data?.listings ?? [];
+  const total = data?.total ?? 0;
+
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
-  const {showToast} = useToast();
+
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
     try {
       await listingsService.updateListingStatus(id, "live");
-      setListings((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status: "live" } : l)),
+      queryClient.setQueryData<{ listings: ListingSummary[]; total: number }>(
+        ["listings", "my"],
+        (old) =>
+          old
+            ? {
+                ...old,
+                listings: old.listings.map((l) =>
+                  l.id === id ? { ...l, status: "live" as const } : l,
+                ),
+              }
+            : old,
       );
-      showToast('success', 'Listing Uploaded successfully.')
+      showToast("success", "Listing Uploaded successfully.");
     } catch (err: unknown) {
       const error = err as ApiError;
-      const theError = error.message === "images_required" || error.message === "description_required"
+      const theError =
+        error.message === "images_required" ||
+        error.message === "description_required"
           ? "Please add at least one photo and Description before uploading this listing"
+          : "Failed to submit listing";
 
-          : "Failed to submit listing"
-      
-      showToast('error', theError);
-
-
-    }
-
-    finally {
+      showToast("error", theError);
+    } finally {
       setSubmittingId(null);
     }
   };
@@ -166,25 +177,21 @@ export default function MyListings() {
     if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     try {
       await listingsService.deleteListing(id);
-      setListings((prev) => prev.filter((l) => l.id !== id));
-      setTotal((t) => t - 1);
-      showToast('success', 'Listing successfully deleted.');
+      queryClient.setQueryData<{ listings: ListingSummary[]; total: number }>(
+        ["listings", "my"],
+        (old) =>
+          old
+            ? {
+                listings: old.listings.filter((l) => l.id !== id),
+                total: old.total - 1,
+              }
+            : old,
+      );
+      showToast("success", "Listing successfully deleted.");
     } catch {
-      setError("Failed to delete listing");
-      showToast('error', 'Failed to delete Listing');
+      showToast("error", "Failed to delete Listing");
     }
   };
-
-  useEffect(() => {
-    listingsService
-      .getMyListings()
-      .then((data) => {
-        setListings(data.listings);
-        setTotal(data.total);
-      })
-      .catch(() => setError("Failed to load listings"))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered =
     activeTab === "all"
@@ -208,7 +215,7 @@ export default function MyListings() {
     { key: "rejected", label: `Rejected (${count("rejected")})` },
   ];
 
-  if (loading)
+  if (isLoading)
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-sm text-gray-400">Loading...</p>
@@ -218,7 +225,9 @@ export default function MyListings() {
   if (error)
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-red-400">
+          {error instanceof Error ? error.message : "Failed to load listings"}
+        </p>
       </div>
     );
 
@@ -287,10 +296,11 @@ export default function MyListings() {
               setActiveTab(tab.key);
               setCurrentPage(1);
             }}
-            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${activeTab === tab.key
-              ? "bg-navy-700 text-white border-navy-700"
-              : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
-              }`}
+            className={`px-5 py-2 rounded-full text-sm font-semibold border transition-colors ${
+              activeTab === tab.key
+                ? "bg-navy-700 text-white border-navy-700"
+                : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+            }`}
           >
             {tab.label}
           </button>
@@ -320,10 +330,11 @@ export default function MyListings() {
         {paginated.map((listing, i) => (
           <div
             key={listing.id}
-            className={`flex items-center gap-4 px-5 py-4 ${i < paginated.length - 1
-              ? "border-b border-gray-100 dark:border-white/5"
-              : ""
-              }`}
+            className={`flex items-center gap-4 px-5 py-4 ${
+              i < paginated.length - 1
+                ? "border-b border-gray-100 dark:border-white/5"
+                : ""
+            }`}
           >
             <img
               src={listing.imageUrl || biologyTextbook}
@@ -346,9 +357,12 @@ export default function MyListings() {
               {listing.views}
             </p>
             <div className="w-44 flex justify-end">
-              <ActionButtons listing={listing} onDelete={handleDelete}
+              <ActionButtons
+                listing={listing}
+                onDelete={handleDelete}
                 onSubmit={handleSubmitListing}
-                submitting={submittingId === listing.id} />
+                submitting={submittingId === listing.id}
+              />
             </div>
           </div>
         ))}
@@ -363,10 +377,8 @@ export default function MyListings() {
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">
           Showing{" "}
-          {paginated.length === 0
-            ? 0
-            : (currentPage - 1) * PAGE_SIZE + 1}
-          –{Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
+          {paginated.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
+          {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
           {filtered.length} listings
         </p>
         <div className="flex gap-2">
@@ -375,10 +387,11 @@ export default function MyListings() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
-                  ? "bg-navy-700 text-white border-navy-700"
-                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
-                  }`}
+                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
+                  currentPage === page
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                }`}
               >
                 {page}
               </button>

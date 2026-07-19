@@ -98,7 +98,14 @@ public class ChatHub : Hub
             throw new HubException(ex.Message);
         }
 
-        await Clients.OthersInGroup(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
+        var reservation = await _reservation.GetByIdAsync(reservationId, Context.ConnectionAborted);
+        if (reservation is not null)
+        {
+            var recipientId =
+                reservation.BuyerId == senderId ? reservation.SellerId : reservation.BuyerId;
+            await Clients.User(recipientId.ToString()).SendAsync("ReceiveMessage", message);
+        }
+
         return message;
     }
 
@@ -130,17 +137,28 @@ public class ChatHub : Hub
 
         if (counter > 0)
         {
-            await Clients
-                .OthersInGroup(GroupName(reservationId))
-                .SendAsync(
-                    "MessagesRead",
-                    new
-                    {
-                        reservationId,
-                        upToMessageId,
-                        readBy = userId,
-                    }
-                );
+            var reservation = await _reservation.GetByIdAsync(
+                reservationId,
+                Context.ConnectionAborted
+            );
+            if (reservation is not null)
+            {
+                var senderId = Guid.Parse(userId);
+
+                var recipientId =
+                    reservation.BuyerId == senderId ? reservation.SellerId : reservation.BuyerId;
+                await Clients
+                    .User(recipientId.ToString())
+                    .SendAsync(
+                        "MessagesRead",
+                        new
+                        {
+                            reservationId,
+                            upToMessageId,
+                            readBy = userId,
+                        }
+                    );
+            }
         }
     }
 

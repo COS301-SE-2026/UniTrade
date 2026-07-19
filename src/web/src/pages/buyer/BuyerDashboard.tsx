@@ -23,15 +23,14 @@ function StatCard({
   subColour,
   icon,
 }: {
-  title: string
-  value: string
-  subText: string
-  subColour: string
-  icon: React.ReactNode
+  title: string;
+  value: string;
+  subText: string;
+  subColour: string;
+  icon: React.ReactNode;
 }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-
       <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
         <p className="text-white text-sm font-bold">{title}</p>
         <span className="text-white/70">{icon}</span>
@@ -42,21 +41,20 @@ function StatCard({
         <p className={`text-xs mt-1 ${subColour}`}>{subText}</p>
       </div>
     </div>
-  )
+  );
 }
 
 function ProductCard({
   title,
   price,
-  image
+  image,
 }: {
-  title: string
-  price: number
-  image: string
+  title: string;
+  price: number;
+  image: string;
 }) {
   return (
     <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
-
       <img
         src={image}
         alt={title}
@@ -72,7 +70,7 @@ function ProductCard({
         Add to Wishlist
       </button>
     </div>
-  )
+  );
 }
 
 function OrderRow({
@@ -92,14 +90,13 @@ function OrderRow({
 }) {
 
   const statusStyles = {
-    Collected: 'bg-green-100 text-green-700',
-    Pending: 'bg-yellow-100 text-yellow-700',
-    Cancelled: 'bg-red-100 text-red-600',
-  }
+    Collected: "bg-green-100 text-green-700",
+    Pending: "bg-yellow-100 text-yellow-700",
+    Cancelled: "bg-red-100 text-red-600",
+  };
 
   return (
     <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
-
       <img
         src={image}
         alt={title}
@@ -113,7 +110,9 @@ function OrderRow({
 
       <div className="text-right">
         <p className="text-sm font-bold text-gray-800">{formatPrice(price)}</p>
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyles[status]}`}>
+        <span
+          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyles[status]}`}
+        >
           {status}
         </span>
         {status === 'Collected' && onReview && (
@@ -130,54 +129,53 @@ function OrderRow({
         )}
       </div>
     </div>
-  )
+  );
 }
 
-
 export default function BuyerDashboard() {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
 
-  const { user } = useAuthStore()
-  const navigate = useNavigate()
-
-  const [products, setProducts] = useState<BrowseListing[]>([])
-  const [, setLoading] = useState(true)
+  const [products, setProducts] = useState<BrowseListing[]>([]);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
-    listingsService.getBrowseListings().then(data => setProducts(data.listings.slice(0, 3)))
-      .finally(() => setLoading(false))
-  }, [])
+    listingsService
+      .getBrowseListings()
+      .then((data) => setProducts(data.listings.slice(0, 3)))
+      .finally(() => setLoading(false));
+  }, []);
 
   const stats = [
     {
-      title: 'Total Orders',
-      value: '150',
-      subText: '+12% this month',
-      subColour: 'text-green-500',
+      title: "Total Orders",
+      value: "150",
+      subText: "+12% this month",
+      subColour: "text-green-500",
       icon: <IconShoppingBag size={16} />,
     },
     {
-      title: 'Total Spent',
-      value: 'R1000',
-      subText: '+12% this month',
-      subColour: 'text-green-500',
+      title: "Total Spent",
+      value: "R1000",
+      subText: "+12% this month",
+      subColour: "text-green-500",
       icon: <IconCurrencyDollar size={16} />,
     },
     {
-      title: 'Pending Collection',
-      value: '3',
-      subText: 'Collection soon',
-      subColour: 'text-orange-400',
+      title: "Pending Collection",
+      value: "3",
+      subText: "Collection soon",
+      subColour: "text-orange-400",
       icon: <IconClock size={16} />,
     },
     {
-      title: 'Wishlist Items',
-      value: '5',
-      subText: '2 price drops',
-      subColour: 'text-red-400',
+      title: "Wishlist Items",
+      value: "5",
+      subText: "2 price drops",
+      subColour: "text-red-400",
       icon: <IconHeart size={16} />,
     },
-
-  ]
+  ];
 
   const recentOrders = [
     { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '',reservationId: 'r1' },
@@ -193,11 +191,9 @@ export default function BuyerDashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-
       <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
-        Welcome {user?.name?.split(' ')[0] ?? 'Back'}
+        Welcome {user?.name?.split(" ")[0] ?? "Back"}
       </h1>
-
 
       <div className="grid grid-cols-4 gap-4">
         {stats.map((stat) => (
@@ -205,13 +201,12 @@ export default function BuyerDashboard() {
         ))}
       </div>
 
-
       <div className="grid grid-cols-3 gap-4">
-
-
         <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-gray-800">Suggested For You</h2>
+            <h2 className="text-sm font-bold text-gray-800">
+              Suggested For You
+            </h2>
             <div className="flex gap-2">
               <button className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">
                 Filter <IconChevronDown size={12} />
@@ -223,34 +218,37 @@ export default function BuyerDashboard() {
           </div>
 
           <div className="flex justify-end mb-2">
-            <button className="text-xs text-[#00aaff] hover:underline flex items-center gap-1" onClick={() => navigate('/buyer/listings')}>
+            <button
+              className="text-xs text-[#00aaff] hover:underline flex items-center gap-1"
+              onClick={() => navigate("/buyer/listings")}
+            >
               view all <IconArrowUpRight size={12} />
             </button>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {products.map((p) => (
-              <ProductCard key={p.id} {...p}
-              />
+              <ProductCard key={p.id} {...p} />
             ))}
           </div>
         </div>
 
-
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-sm font-bold text-gray-800 mb-2">Recent Orders</h2>
+          <h2 className="text-sm font-bold text-gray-800 mb-2">
+            Recent Orders
+          </h2>
           {recentOrders.map((order) => (
-            <div 
-            key={order.title}
-            className="cursor-pointer"
-            onClick={() => navigate(`/buyer/reservations/${order.reservationId}/chat`)}
+            <div
+              key={order.title}
+              className="cursor-pointer"
+              onClick={() =>
+                navigate(`/buyer/reservations/${order.reservationId}/chat`)
+              }
             >
-
-            <OrderRow key={order.title} {...order} />
+              <OrderRow key={order.title} {...order} />
             </div>
           ))}
         </div>
-
       </div>
 
       {reviewTarget && (
@@ -264,5 +262,5 @@ export default function BuyerDashboard() {
               />
       )}
     </div>
-  )
+  );
 }
