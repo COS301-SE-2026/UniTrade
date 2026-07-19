@@ -3,24 +3,26 @@ import { useQueryClient } from "@tanstack/react-query";
 import { connectionManager } from "../services/realtime/connectionManager";
 import { queryKeys } from "../lib/queryKeys";
 
-export function useUnreadRealtime(role: 'buyer' | 'seller') {
-    const queryClient = useQueryClient();
+export function useUnreadRealtime(role: "buyer" | "seller") {
+  const queryClient = useQueryClient();
 
-    useEffect(() => {
-        connectionManager.connect().catch(() => { });
+  useEffect(() => {
+    connectionManager.connect().catch(() => {});
 
-        const invalidate = () => {
-            queryClient.invalidateQueries({ queryKey: queryKeys.reservations(role) });
-        };
+    const invalidate = () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.reservations(role) });
+    };
 
-        const unsubscribeMessage = connectionManager.onMessageReceived(invalidate);
-        const unsubscribeRead = connectionManager.onMessagesRead(invalidate);
-        const unsubscribeReconnected = connectionManager.onReconnected(invalidate);
-
-        return () => {
-            unsubscribeMessage();
-            unsubscribeRead();
-            unsubscribeReconnected();
-        };
-    }, [role, queryClient]);
+    const unsubscribeMessage = connectionManager.onMessageReceived(invalidate);
+    const unsubscribeRead = connectionManager.onMessagesRead(invalidate);
+    const unsubscribeReconnected = connectionManager.onReconnected(invalidate);
+    const unsubscribeReservation =
+      connectionManager.onReservationUpdated(invalidate);
+    return () => {
+      unsubscribeMessage();
+      unsubscribeRead();
+      unsubscribeReconnected();
+      unsubscribeReservation();
+    };
+  }, [role, queryClient]);
 }

@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Api.BackgroundServices;
 using Api.Hubs;
 using Api.Middleware;
+using Api.Notifiers;
 using Azure.Communication.Email;
 using dotenv.net;
 using Infrastructure.Notifications;
@@ -18,6 +19,7 @@ using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Modules.Chat;
@@ -28,9 +30,6 @@ using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
-using Modules.Transactions;
-using Modules.Transactions.Models.Dto;
-using Modules.Transactions.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
@@ -41,6 +40,9 @@ using Modules.Reservations.Repositories;
 using Modules.Reviews;
 using Modules.Reviews.Repositories;
 using Modules.SharedKernel;
+using Modules.Transactions;
+using Modules.Transactions.Models.Dto;
+using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
 
@@ -186,7 +188,9 @@ builder.Services.AddScoped<IMeetupService, MeetupService>();
 builder.Services.AddScoped<IMeetupRepository, MeetupRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-
+builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
+builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
+builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton(
     new EmailClient(
         builder.Configuration["Acs:ConnectionString"]
@@ -219,8 +223,21 @@ builder
         {
             OnMessageReceived = ctx =>
             {
+                if (ctx.HttpContext.Request.Path.StartsWithSegments("/chathub"))
+                {
+                    var accessToken = ctx.Request.Query["access_token"];
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        ctx.Token = accessToken;
+                        return Task.CompletedTask;
+                    }
+                }
+
                 var token = ctx.Request.Cookies["authToken"];
-                ctx.Token = token;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    ctx.Token = token;
+                }
                 return Task.CompletedTask;
             },
             OnAuthenticationFailed = ctx =>
@@ -229,6 +246,12 @@ builder
             },
             OnTokenValidated = ctx =>
             {
+                var isHub = ctx.HttpContext.Request.Path.StartsWithSegments("/chathub");
+                var aud = ctx.Principal?.FindFirst("aud")?.Value;
+                if (aud == "chat-hub" && !isHub)
+                {
+                    ctx.Fail("hub token used outside the hub");
+                }
                 return Task.CompletedTask;
             },
             OnChallenge = ctx =>

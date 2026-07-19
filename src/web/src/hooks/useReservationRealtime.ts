@@ -1,29 +1,60 @@
-import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { connectionManager } from '../services/realtime/connectionManager';
-import { queryKeys } from '../lib/queryKeys';
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { connectionManager } from "../services/realtime/connectionManager";
+import { queryKeys } from "../lib/queryKeys";
 
 export function useReservationRealtime(reservationId: string) {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    useEffect(() => {
-        let active = true;
+  useEffect(() => {
+    let active = true;
 
+    connectionManager
+      .joinRoom(reservationId)
+      .then(() => {
+        if (active) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.reservationMessages(reservationId),
+          });
+        }
+      })
+      .catch((e) => console.error("joinRoom failed", e));
 
-        connectionManager.joinRoom(reservationId).then(() => {
-            if (active) {
-                queryClient.invalidateQueries({
-                    queryKey: queryKeys.reservationMessages(reservationId),
-                });
+    const offMessage = connectionManager.onMessageReceived((m) => {
+      if (m.reservationId !== reservationId) {
+        return;
+      }
 
-            }
-        })
-            .catch((e) => console.error('joinRoom failed', e));
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reservationMessages(reservationId),
+      });
+    });
+    const offRead = connectionManager.onMessagesRead((e) => {
+      if (e.reservationId !== reservationId) {
+        return;
+      }
 
-        return () => {
-            active = false;
-            void connectionManager.leaveRoom(reservationId);
-        };
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reservationMessages(reservationId),
+      });
+    });
+    const off = connectionManager.onReservationUpdated((r) => {
+      if (r.reservationId === reservationId) {
+        queryClient.invalidateQueries({
+          queryKey: ["reservation", reservationId],
+        });
 
-    }, [reservationId, queryClient]);
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.reservationMessages(reservationId),
+        });
+      }
+    });
+    return () => {
+      active = false;
+      offMessage();
+      offRead();
+      off();
+      void connectionManager.leaveRoom(reservationId);
+    };
+  }, [reservationId, queryClient]);
 }
