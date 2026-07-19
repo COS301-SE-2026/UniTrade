@@ -509,21 +509,27 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
-        <button
-          type="button"
-          onClick={() => setIsProposingMeetup(true)}
-          disabled={meetupConfirmed}
-          className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
+      {reservation?.reservationStatus === "active" && (
+        <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsProposingMeetup(true)}
+            disabled={meetupConfirmed || isBuyerWaitingAck}
+            className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
                     ${
-                      meetupConfirmed
-                        ? "bg-[#003366] text-white opacity-50 cursor-not-allowed"
+                      meetupConfirmed || isBuyerWaitingAck
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                         : "bg-[#003366] text-white hover:bg-[#002244]"
                     }`}
-        >
-          SCHEDULE A MEETUP
-        </button>
-      </div>
+          >
+            {isBuyerWaitingAck
+              ? "Waiting for seller to accept reservation"
+              : meetupConfirmed
+                ? "Meetup confirmed"
+                : "SCHEDULE A MEETUP"}
+          </button>
+        </div>
+      )}
       {messageForAckOrCancel ? (
         <div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
           {messageForAckOrCancel}
