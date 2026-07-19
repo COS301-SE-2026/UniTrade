@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Api.BackgroundServices;
 using Api.Hubs;
 using Api.Middleware;
+using Api.Notifiers;
 using Azure.Communication.Email;
 using dotenv.net;
 using Infrastructure.Notifications;
@@ -187,6 +188,8 @@ builder.Services.AddScoped<IMeetupService, MeetupService>();
 builder.Services.AddScoped<IMeetupRepository, MeetupRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
+builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton(
     new EmailClient(
@@ -239,10 +242,6 @@ builder
             },
             OnAuthenticationFailed = ctx =>
             {
-                Console.WriteLine(
-                    $"[JWT] auth failed on {ctx.HttpContext.Request.Path}: {ctx.Exception.Message}"
-                );
-
                 return Task.CompletedTask;
             },
             OnTokenValidated = ctx =>

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.SignalR;
 using Modules.Reservations;
 using Modules.Reservations.Models.Dto;
-
-namespace Api.Hubs;
+using Api.Hubs;
+namespace Api.Notifiers;
 
 public class ReservationRealTimeService : IReservationRealTime
 {

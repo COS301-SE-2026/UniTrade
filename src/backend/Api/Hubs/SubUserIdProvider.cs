@@ -9,10 +9,6 @@ public class SubUserIdProvider : IUserIdProvider
         var id =
             connection.User?.FindFirst("sub")?.Value
             ?? connection.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        Console.WriteLine(
-            $"Signal R resolved user: {id ?? "NULL"} | authenticated: {connection.User?.Identity?.IsAuthenticated}"
-        );
-
         return id;
     }
 }
