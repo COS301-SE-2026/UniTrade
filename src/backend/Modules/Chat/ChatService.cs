@@ -13,11 +13,17 @@ public class ChatService : IChatService
 {
     private readonly IReservationRepository _reservations; //using Isuserpat of reseravtion func
     private readonly IChatRepository _chatRepo;
+    private readonly IChatNotifier _notifier;
 
-    public ChatService(IChatRepository chatRepo, IReservationRepository reservations)
+    public ChatService(
+        IChatRepository chatRepo,
+        IReservationRepository reservations,
+        IChatNotifier notifier
+    )
     {
         _chatRepo = chatRepo;
         _reservations = reservations;
+        _notifier = notifier;
     }
 
     public async Task<ChatMessageDto> SendAsync(
@@ -58,11 +64,7 @@ public class ChatService : IChatService
             throw new ChatException(ChatErrors.ReservationCancelled);
         }
 
-        if (
-            reservation is not null
-            && reservation.BuyerId == senderId
-            && reservation.SellerAcknowledgedAt is null
-        )
+        if (reservation is not null && reservation.SellerAcknowledgedAt is null)
         {
             throw new ChatException(ChatErrors.BuyerWaitingAck);
         }
@@ -116,7 +118,16 @@ public class ChatService : IChatService
         };
         await _chatRepo.AddAsync(result);
         await _chatRepo.SaveAsync(ct);
-        return ToDto(result);
+        var dto = ToDto(result);
+
+        var reservation = await _reservations.GetByIdAsync(reservationId, ct);
+        if (reservation is null)
+        {
+            throw new InvalidOperationException("Reservation not found");
+        }
+        var recipientIds = new[] { reservation.BuyerId, reservation.SellerId };
+        await _notifier.MessageCreatedAsync(dto, recipientIds, ct);
+        return dto;
     }
 
     public async Task<ChatHistoryDto> GetHistoryAsync(
