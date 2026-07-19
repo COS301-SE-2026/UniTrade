@@ -1,7 +1,9 @@
+using Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Modules.Reservations;
-using Api.Hubs;
+
 namespace Api.Notifiers;
+
 public class BroadCastService : IBroadCastService
 {
     private readonly IHubContext<ChatHub> _hubcontext;
