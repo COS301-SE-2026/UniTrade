@@ -7,6 +7,8 @@ import {
     IconMapPin,
     IconCalendar,
     IconPaperclip,
+    IconArrowLeft,
+    IconEye,
 } from '@tabler/icons-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useChatMessages } from '../../hooks/useChatMessages';
@@ -288,9 +290,14 @@ export default function ChatPage() {
     if (!reservationId) return <div className="p-8 text-center">No reservation specified.</div>;
 
     return (
-        <div className="h-full flex flex-col bg-white overflow-hidden">
+        <div className="h-full w-full flex flex-col bg-white overflow-hidden">
 
             <div className="px-5 py-4 border-b flex items-center gap-3 shrink-0">
+                <button 
+                onClick={() => navigate(`/${isSeller ? 'seller' : 'buyer'}/messages`)}
+                className="md:hidden text-gray-400 hover:text-gray-600 shrink-0">
+                    <IconArrowLeft size={20} />
+                </button>
                 <Avatar initials={counterpartyInitials} />
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -328,9 +335,10 @@ export default function ChatPage() {
                                     ? `/seller/reservations/${reservationId}`
                                     : `/buyer/reservations/${reservationId}`
                             )}
-                            className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
+                            className="bg-[#003366] text-white text-xs font-bold px-2 py-2 sm:px-4 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
                         >
-                            View Reservation
+                            <span className="hidden sm:inline">View Reservation</span>
+                            <IconEye size={16} className="sm:hidden" />
                         </button>
                     </div>
                 )}
