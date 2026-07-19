@@ -102,7 +102,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       },
     );
 
-    const offListing = connectionManager.onListingChanged((listingId) => {
+    const offListing = connectionManager.onListingChanged(() => {
       queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
