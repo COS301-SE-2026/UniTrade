@@ -11,7 +11,7 @@ import type {
     
 } from '../types/Reservations'
 import { getApiUrl } from "../config";
-import type { MeetupDetailsResponse } from '../types/meetup';
+//import type { MeetupDetailsResponse } from '../types/meetup';
 
 
 async function handleResponse<T>(res: Response): Promise<Result<T>>{
@@ -35,7 +35,7 @@ async function handleResponse<T>(res: Response): Promise<Result<T>>{
 }
 
 
-export async function getMeetupDetails (
+/*export async function getMeetupDetails (
   reservationId: string,
 ): Promise<Result<MeetupDetailsResponse>> {
   try {
@@ -64,7 +64,7 @@ export async function getMeetupDetails (
       error: { code: 'network_error', status: 0, message: 'Network request failed'},
     };
   }
-}
+}*/
 const mockReservations:ReservationListItem[] = []
 
 
