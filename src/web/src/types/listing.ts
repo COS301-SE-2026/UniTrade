@@ -150,3 +150,50 @@ export interface WishlistResponse {
   listings: WishlistListing[]
   total: number
 }
+
+export type MeetupStatus = 'pending' | 'accepted' | 'declined'
+
+export interface ProposeMeetupPayload {
+  locationName: string
+  lat: number 
+  lng : number 
+  proposedTime : string 
+}
+
+export interface MeetupStatusResponse {
+  proposalMessageId: number 
+  locationName: string
+  lat : number 
+  lng : number 
+  proposedTime : string 
+  status : MeetupStatus
+  checkedInAt?: string | null
+}
+
+export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
+
+export interface Review {
+  reviewId: number
+  transactionId: string
+  reviewerId: string
+  revieweeId: string
+  reviewType: string
+  rating: number
+  comment : string | null
+  createdAt: string
+
+
+}
+
+export interface UserReviewsResponse {
+  userId: string
+  sellerScore: number 
+  buyerScore: number
+  reviews: Review[]
+}
+
+export interface SubmitReviewPayload {
+  transactionId: string
+  rating: number
+  comment?: string 
+}

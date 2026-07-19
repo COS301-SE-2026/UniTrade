@@ -4,8 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import {
     IconSend,
     IconCheck,
-    IconMapPin,
-    IconCalendar,
     IconPaperclip,
 } from '@tabler/icons-react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -17,6 +15,13 @@ import { connectionManager } from '../../services/realtime/connectionManager';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
 import type { ConnectionState } from '../../types/hubConnection';
+import MeetupCard from '../../components/layout/MeetupCard';
+import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
+import { combineDateAndTime, type MeetupFormValues, type MeetupStatus } from '../../types/meetup';
+import CheckInModal from '../../components/CheckInModal';
+
+
+
 
 function connectionStatusLabel(state: ConnectionState): string {
     switch (state) {
@@ -104,7 +109,7 @@ const TextMessageBubble: React.FC<{
                             {message.status === 'sending' && <span className="italic">sending...</span>}
                             {message.status === 'failed' && (
                                 <button onClick={onRetry} className="text-red-500 underline">
-                                    failed • retry
+                                    failed . retry
                                 </button>
                             )}
                             {(!message.status || message.status === 'sent') && (
@@ -130,7 +135,7 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
-const MeetupProposalCard: React.FC<{
+/*const MeetupProposalCard: React.FC<{
     message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
     isOwnMessage: boolean;
 }> = ({ message, isOwnMessage }) => {
@@ -166,6 +171,7 @@ const MeetupProposalCard: React.FC<{
         </div>
     );
 };
+*/
 
 const MeetupResponseBubble: React.FC<{
     message: Extract<ClientChatMessage, { messageType: 'meetup_response' }>;
@@ -183,11 +189,19 @@ function MessageBubble({
     currentUserId,
     counterpartyInitials,
     onRetry,
+    meetupOverrides,
+    respondingKey,
+    onRespondMeetup,
+    onCheckIn,
 }: {
     message: ClientChatMessage;
     currentUserId: string;
     counterpartyInitials: string;
     onRetry: (clientId: string, content: string) => void;
+    meetupOverrides: Record<string, MeetupStatus>;
+    respondingKey: string | null;
+    onRespondMeetup: ( proposalMessageId: number, status: MeetupStatus) => void;
+    onCheckIn: (location: string) => void;
 }) {
     const isOwnMessage = message.senderId === currentUserId;
 
@@ -203,8 +217,37 @@ function MessageBubble({
             );
         case 'system':
             return <SystemMessageBubble message={message} />;
-        case 'meetup_proposal':
-            return <MeetupProposalCard message={message} isOwnMessage={isOwnMessage} />;
+        case 'meetup_proposal': {
+            const key =  message.messageId?.toString() ?? message.clientId ?? '';
+            const serverStatus = (message.payload as {status?: MeetupStatus}).status ?? 'pending';
+            const status = meetupOverrides[key] ?? serverStatus;
+            const payload = message.payload as any;
+            const location = payload.LocationName || payload.proposedLocation || '';
+            const proposedTime = payload.ProposedTime || payload.proposedTime || '';
+            const proposalMessageId = message.messageId;
+
+            return (
+                <MeetupCard
+                location={location}
+                time = {proposedTime}
+                status = {status}
+                isOwnMessage={isOwnMessage}
+                caption = {message.content}
+                isResponding = {respondingKey === key}
+                onAccept={() => {
+                    if (proposalMessageId) {
+                        onRespondMeetup(proposalMessageId,'accepted');
+                    }
+                }}
+                onDecline={() => {
+                    if(proposalMessageId) {
+                         onRespondMeetup(proposalMessageId, 'declined');
+                    }
+                }}
+                onCheckIn={status === 'accepted' ? () => onCheckIn(location) : undefined}
+                />
+            );
+        }
         case 'meetup_response':
             return <MeetupResponseBubble message={message} />;
         default:
@@ -225,13 +268,20 @@ export default function ChatPage() {
     const isSeller = window.location.pathname.startsWith('/seller');
     const currentUserId = user?.id ?? 'me';
 
-    const { data: messages = [], isLoading, isError } = useChatMessages(reservationId!);
+    const { data: messages = [], isLoading, isError, refetch } = useChatMessages(reservationId!);
     useReservationRealtime(reservationId!);
-    const { mutate: send, retry } = useSendMessage(reservationId!);
+    const { send, retry } = useSendMessage(reservationId!);
 
     const sortedMessages = React.useMemo(
         () => [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()),
         [messages]
+    );
+
+    const meetupConfirmed = sortedMessages.some (
+
+        (message) => 
+            message.messageType === "meetup_response" && 
+        message.payload?.accepted === true
     );
 
 
@@ -254,15 +304,78 @@ export default function ChatPage() {
     });
 
     const locationState = location.state as ChatLocationState | null;
-    const counterpartyName = locationState?.counterpartyName ?? reservation?.counterParty?.name ?? 'Conversation!!!!';
-    const counterpartyInitials = locationState?.counterpartyInitials ?? reservation?.counterParty?.initials ?? initialsFromName(counterpartyName);
+    const counterpartyName = locationState?.counterpartyName ?? 'Conversation!!!!';
+    const counterpartyInitials = locationState?.counterpartyInitials ?? initialsFromName(counterpartyName);
+    const isCancelled=reservation?.reservationStatus==='cancelled';
+    const isBuyerWaitingAck=!isSeller&&!reservation?.sellerAcknowledgedAt;
+
+    const inputDisabled=isCancelled||isBuyerWaitingAck;
+
+    const messageForAckOrCancel=isCancelled ? 'Reservation was cancelled.' :isBuyerWaitingAck?'Waiting for seller to accept reservation' :null;
 
     const [connectionState, setConnectionState] = useState<ConnectionState>(connectionManager.getState());
     useEffect(() => connectionManager.onStateChange(setConnectionState), []);
 
     const [draft, setDraft] = useState('');
+    const [isProposingMeetup, setIsProposingMeetup] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const [meetupOverrides, setMeetupOverrides] = useState<Record<string, MeetupStatus>>({});
+    const [respondingKey, setRespondingKey] = useState<string | null>(null);
+    const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+    const [isSendingProposal, setIsSendingProposal ] = useState(false);
+
+
+
+    const handleProposeMeetup = async(values: MeetupFormValues) => {
+        const proposedTime = combineDateAndTime(values.date, values.time);
+        if(new Date(proposedTime) <= new Date()) {
+            alert('Please select a time in the future');
+            return;
+        }
+        setIsSendingProposal(true);
+        try{
+            await listingsService.proposeMeetup(reservationId!, {
+                locationName: values.location.name,
+                lat: values.location.lat,
+                lng: values.location.lng,
+                proposedTime,
+            });
+            setIsProposingMeetup(false);
+            refetch();
+        } catch(err) {
+            console.error('Failed to propose meetup:', err);
+        } finally{
+            setIsSendingProposal(false);
+        }
+    };
+
+       /* console.log('Meetup proposal submitted:', {
+            proposedLocation: values.location,
+            proposedTime,
+        });
+        setIsProposingMeetup(false);
+    };
+    */
+
+    const handleRespondMeetup = async ( proposalMessageId: number, status: MeetupStatus) => {
+        const key = proposalMessageId.toString();
+        setRespondingKey(key)
+        try {
+            if(status === 'accepted') {
+                await listingsService.acceptMeetup(reservationId!, proposalMessageId);
+
+                
+                setMeetupOverrides((prev) => ({...prev, [key]: status}));
+            } else if (status === 'declined') {
+                
+                setMeetupOverrides((prev) => ({...prev, [key]: status}));
+            }
+        } catch (err) {
+            console.error('Failed to respond to meetup:', err);
+        }
+    };
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -279,7 +392,7 @@ export default function ChatPage() {
     }, [reservationId, sortedMessages]);
 
     const handleSend = () => {
-        if (!draft.trim()) return;
+        if (!draft.trim() ||inputDisabled) return;
         send(draft.trim());
         setDraft('');
         inputRef.current?.focus();
@@ -349,6 +462,10 @@ export default function ChatPage() {
                                 currentUserId={currentUserId}
                                 counterpartyInitials={counterpartyInitials}
                                 onRetry={retry}
+                                meetupOverrides={meetupOverrides}
+                                respondingKey={respondingKey}
+                                onRespondMeetup={handleRespondMeetup}
+                                onCheckIn={setCheckInLocation}
                             />
                         </React.Fragment>
                     );
@@ -359,12 +476,22 @@ export default function ChatPage() {
             <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
                 <button
                     type="button"
-                    disabled
-                    className="w-full py-3 bg-[#003366] text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-[#002244] transition-colors disabled:opacity-60"
+                    onClick = {() => setIsProposingMeetup(true)}
+                    disabled = {meetupConfirmed}
+                    className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
+                    ${
+                        meetupConfirmed
+                        ? "bg-[#003366] text-white opacity-50 cursor-not-allowed"
+                        : "bg-[#003366] text-white hover:bg-[#002244]"
+                    }`}
                 >
                     SCHEDULE A MEETUP
                 </button>
             </div>
+            {messageForAckOrCancel ? (<div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
+                {messageForAckOrCancel}
+                </div>
+            ):(
             <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
                 <button type="button" className="text-gray-400 p-1">
                     <IconPaperclip size={22} />
@@ -385,7 +512,23 @@ export default function ChatPage() {
                 >
                     <IconSend size={18} />
                 </button>
-            </div>
+            </div>)}
+
+            {isProposingMeetup && (
+                <MeetupProposalForm
+                onCancel={() => setIsProposingMeetup(false)}
+                onSubmit={handleProposeMeetup}
+                isSubmitting = {isSendingProposal}
+                />
+            )}
+
+            {checkInLocation && (
+                <CheckInModal
+                reservationId={reservationId!}
+                meetupLocation={checkInLocation}
+                onClose={() => setCheckInLocation(null)}
+                />
+            )}
         </div>
     );
 }

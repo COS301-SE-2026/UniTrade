@@ -23,7 +23,7 @@ export default function ConversationsSidebar ({role}: {role: 'buyer' | 'seller'}
     const apiOrigin = getApiUrl().split('/api')[0];
 
 const active = reservations
-    .filter((r: ReservationListItem) => r.reservationStatus === 'active')
+    .filter((r: ReservationListItem) => r.reservationStatus === 'active' || r.reservationStatus=='cancelled')
     .filter((reservation, index, self) => 
         self.findIndex(r => r.reservationId === reservation.reservationId) === index
     )
@@ -88,6 +88,10 @@ const active = reservations
                             <div className = "flex items-center justify-between gap-2">
                                 <p className="text-sm font-semibold text-gray-800 truncate">
                                     {r.counterParty.name}
+                                    {r.reservationStatus==='cancelled' && (
+                                    <span className="text-[9px] font-bold uppercase tracking-wide text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                                        Cancelled
+                                    </span>)}
                                 </p>
                                 <span className="shrink-0 text-[10px] text-gray-400">
                                     {relativeTime(timestamp)}
