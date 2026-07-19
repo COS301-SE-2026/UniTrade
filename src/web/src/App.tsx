@@ -88,12 +88,25 @@ export default function App() {
         element={<RedirectToMessages role="seller" />}
       />
 
+      <Route
+        path="/buyer/reservations/:reservationId/chat"
+        element={<RedirectToMessages role="buyer" />}
+      />
+      <Route
+        path="/seller/reservations/:reservationId/chat"
+        element={<RedirectToMessages role="seller" />}
+      />
+
+
+      <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
+      <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
       <Route path="/payment/meetup" element={<MeetupDetails />} />
       <Route path="/payment/payfast-redirect" element={<Redirect />} />
       <Route path="/payment/confirming" element={<ConfirmPayment />} />
       <Route path="/payment/generate-pin" element={<GeneratePin />} />
       <Route path="/payment/buyer-pin" element={<EnterPin />} />
       <Route path="/payment/payment-complete" element={<PaymentComplete />} />
+
 
       <Route element={<AppLayout />}>
         <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
