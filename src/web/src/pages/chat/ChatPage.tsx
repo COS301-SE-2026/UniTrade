@@ -9,15 +9,13 @@ import type { ClientChatMessage } from "../../types/chat";
 import { connectionManager } from "../../services/realtime/connectionManager";
 import { getReservationById } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
-//import type { ConnectionState } from '../../types/hubConnection';
 import MeetupCard from "../../components/layout/MeetupCard";
-//import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
+import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
 import {
-  /*combineDateAndTime, type MeetupFormValues,*/ type MeetupStatus,
+    combineDateAndTime, type MeetupFormValues, type MeetupStatus,
 } from "../../types/meetup";
-//import { queryClient } from "../../lib/queryClient";
 import { queryKeys } from "../../lib/queryKeys";
-//import CheckInModal from '../../components/CheckInModal';
+import CheckInModal from '../../components/CheckInModal';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 function initialsFromName(name: string): string {
     return name
@@ -84,8 +82,8 @@ const TextMessageBubble: React.FC<{
             >
                 <div
                     className={`px-4 py-2.5 text-[15px] leading-relaxed shadow-sm rounded-3xl ${isOwnMessage
-                            ? "bg-[#003366] text-white rounded-br-none"
-                            : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
+                        ? "bg-[#003366] text-white rounded-br-none"
+                        : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
                         }`}
                 >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -126,7 +124,7 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
-/*const MeetupProposalCard: React.FC<{
+const MeetupProposalCard: React.FC<{
     message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
     isOwnMessage: boolean;
 }> = ({ message, isOwnMessage }) => {
@@ -162,7 +160,7 @@ const SystemMessageBubble: React.FC<{
         </div>
     );
 };
-*/
+
 
 const MeetupResponseBubble: React.FC<{
     message: Extract<ClientChatMessage, { messageType: "meetup_response" }>;
@@ -170,8 +168,8 @@ const MeetupResponseBubble: React.FC<{
     <div className="flex justify-center py-2">
         <span
             className={`text-xs font-semibold px-5 py-1.5 rounded-full ${message.payload.accepted
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-600"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-600"
                 }`}
         >
             {message.content}
@@ -275,7 +273,7 @@ export default function ChatPage() {
     const {
         data: messages = [],
         isLoading,
-        isError /*refetch*/,
+        isError, refetch,
     } = useChatMessages(reservationId!);
     useReservationRealtime(reservationId!);
     const { send, retry } = useSendMessage(reservationId!);
@@ -331,18 +329,18 @@ export default function ChatPage() {
     >({});
     const [respondingKey, setRespondingKey] = useState<string | null>(null);
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
-    const [isSendingProposal, setIsSendingProposal ] = useState(false);
+    const [isSendingProposal, setIsSendingProposal] = useState(false);
 
 
 
-    const handleProposeMeetup = async(values: MeetupFormValues) => {
+    const handleProposeMeetup = async (values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);
-        if(new Date(proposedTime) <= new Date()) {
+        if (new Date(proposedTime) <= new Date()) {
             alert('Please select a time in the future');
             return;
         }
         setIsSendingProposal(true);
-        try{
+        try {
             await listingsService.proposeMeetup(reservationId!, {
                 locationName: values.location.name,
                 lat: values.location.lat,
@@ -351,22 +349,22 @@ export default function ChatPage() {
             });
             setIsProposingMeetup(false);
             refetch();
-        } catch(err) {
+        } catch (err) {
             console.error('Failed to propose meetup:', err);
-        } finally{
+        } finally {
             setIsSendingProposal(false);
         }
     };
 
-       /* console.log('Meetup proposal submitted:', {
-            proposedLocation: values.location,
-            proposedTime,
-        });
-        setIsProposingMeetup(false);
-    };
-    */
+    /* console.log('Meetup proposal submitted:', {
+         proposedLocation: values.location,
+         proposedTime,
+     });
+     setIsProposingMeetup(false);
+ };
+ */
 
-    const handleRespondMeetup = async ( proposalMessageId: number, status: MeetupStatus) => {
+    const handleRespondMeetup = async (proposalMessageId: number, status: MeetupStatus) => {
         const key = proposalMessageId.toString();
         setRespondingKey(key);
         try {
@@ -379,6 +377,9 @@ export default function ChatPage() {
             }
         } catch (err) {
             console.error("Failed to respond to meetup:", err);
+        }
+        finally {
+            setRespondingKey(null);
         }
     };
 
@@ -403,7 +404,7 @@ export default function ChatPage() {
                 )
                 .catch(() => { });
         }
-    }, [reservationId, sortedMessages, role]);
+    }, [reservationId, sortedMessages, role, queryClient]);
 
     const handleSend = () => {
         if (!draft.trim() || inputDisabled) return;
@@ -546,42 +547,22 @@ export default function ChatPage() {
                         <IconSend size={18} />
                     </button>
                 </div>
-            ):(
-            <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
-                <button type="button" className="text-gray-400 p-1">
-                    <IconPaperclip size={22} />
-                </button>
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Type a message..."
-                    className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
-                />
-                <button
-                    onClick={handleSend}
-                    disabled={!draft.trim()}
-                    className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
-                >
-                    <IconSend size={18} />
-                </button>
-            </div>)}
+            )}
+
 
             {isProposingMeetup && (
                 <MeetupProposalForm
-                onCancel={() => setIsProposingMeetup(false)}
-                onSubmit={handleProposeMeetup}
-                isSubmitting = {isSendingProposal}
+                    onCancel={() => setIsProposingMeetup(false)}
+                    onSubmit={handleProposeMeetup}
+                    isSubmitting={isSendingProposal}
                 />
             )}
 
             {checkInLocation && (
                 <CheckInModal
-                reservationId={reservationId!}
-                meetupLocation={checkInLocation}
-                onClose={() => setCheckInLocation(null)}
+                    reservationId={reservationId!}
+                    meetupLocation={checkInLocation}
+                    onClose={() => setCheckInLocation(null)}
                 />
             )}
         </div>
