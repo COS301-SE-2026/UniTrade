@@ -91,11 +91,23 @@ public class ReservationService : IReservationService
 
         ReservationStateMachine.Acknowledge(r, callerId, _clock.GetUtcNow().UtcDateTime);
 
-        await _chat.SendSystemAsync(
-            reservationId,
-            "The seller confirmed they can sell this item",
-            ct
-        );
+        if (callerId==r.SellerId)
+        {
+            await _chat.SendSystemAsync(
+                reservationId,
+                "You have accepted this reservation request",
+                ct
+            );
+        }
+        else
+        {
+            await _chat.SendSystemAsync(
+                reservationId,
+                "The seller confirmed they can sell this item",
+                ct
+            );
+        }
+
         await _reservations.SaveAsync(ct);
 
         await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);

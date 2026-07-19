@@ -8,6 +8,11 @@ import type {
   ListingStatus,
   WishlistResponse,
   WishlistListing,
+  MeetupStatusResponse,
+  ProposeMeetupPayload,
+  UserReviewsResponse,
+  SubmitReviewPayload,
+  Review,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
@@ -532,5 +537,93 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     if(!res.ok && res.status !== 404) {
       throw new Error("Failed to remove from wishlist ")
     }
+  },
+
+  proposeMeetup: async (
+    reservationId: string,
+    payload: ProposeMeetupPayload
+  ): Promise<MeetupStatusResponse> => {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/propose`, {
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type" : "application/json"},
+      body: JSON.stringify(payload)
+    });
+    
+    if(!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to propose meetup");
+    }
+    return res.json();
+
+  },
+
+  acceptMeetup: async (
+    reservationId: string,
+    proposalMessageId: number
+  ): Promise<MeetupStatusResponse> => {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/accept`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proposalMessageId }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to accept meetup");
+    }
+    return res.json();
+  },
+
+  checkInMeetup: async (
+    reservationId: string,
+    lat?: number,
+    lng?: number
+  ): Promise<MeetupStatusResponse> => {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/check-in`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat, lng }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to check in");
+    }
+    return res.json();
+  },
+
+  getMeetupStatus: async (reservationId: string): Promise<MeetupStatusResponse | null> => {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup`, {
+      credentials: "include",
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error("Failed to fetch meetup status");
+    return res.json();
+  },
+
+  getReviewsForUser: async (userId: string) : Promise<UserReviewsResponse> => {
+    const res = await fetch(`${getApiUrl()}/reviews?userId=${userId}`, {
+      credentials: "include",
+    });
+    if (!res.ok){
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to fetch reviews");
+    }
+    return res.json();
+  },
+
+  submitReview: async (payload: SubmitReviewPayload): Promise<Review> => {
+    const res = await fetch(`${getApiUrl()}/reviews`,{
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type": "application/json"},
+      body : JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to submit review");
+    }
+    return res.json();
   }
 };

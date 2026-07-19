@@ -7,5 +7,7 @@ namespace Modules.Identity.Models.DTO
 
         public string DegreeProgram { get; set; } = null!;
         public string University { get; set; } = null!;
+        public decimal SellerTrustScore { get; set; }
+        public decimal BuyerReliabilityScore { get; set; }
     }
 }

@@ -112,4 +112,77 @@ public class ChatRepository : IChatRepository
 
         return latest.ToDictionary(m => m.ReservationId, m => (m.Content, m.SentAt));
     }
+
+    public async Task<ChatMessage?> GetByClientKeyAsync(
+        Guid reservationId,
+        string clientKey,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .ChatMessages.AsNoTracking()
+            .FirstOrDefaultAsync(
+                m => m.ReservationId == reservationId && m.ClientKey == clientKey,
+                ct
+            );
+    }
+
+    public void Detach(ChatMessage message)
+    {
+        _db.Entry(message).State = EntityState.Detached;
+    }
+
+    public async Task<ChatMessage?> GetByIdAsync(
+        Guid reservationId,
+        int messageId,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .ChatMessages.AsNoTracking()
+            .FirstOrDefaultAsync(
+                m => m.ReservationId == reservationId && m.MessageId == messageId,
+                ct
+            );
+    }
+
+    public async Task<bool> HasResponseForProposalAsync(
+        Guid reservationId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    ) 
+    {
+        var responses = await _db.ChatMessages
+        .AsNoTracking()
+        .Where(m =>
+        m.ReservationId == reservationId &&
+        m.MessageType == "meetup_response")
+        .ToListAsync(ct);
+
+        foreach (var message in responses)
+    {
+        if (string.IsNullOrWhiteSpace(message.Payload))
+            continue;
+
+        using var json = System.Text.Json.JsonDocument.Parse(message.Payload);
+
+        if (json.RootElement.TryGetProperty("ProposalMessageId", out var id) &&
+            id.GetInt32() == proposalMessageId)
+        {
+            return true;
+        }
+    }
+
+    return false;
+   /* }=>
+        _db.ChatMessages.AnyAsync(
+            m =>
+                m.ReservationId == reservationId
+                && m.MessageType == "meetup_response"
+                && EF.Functions.JsonExists(m.Payload!, "ProposalMessageId")
+                && m.Payload!.Contains($"\"ProposalMessageId\":{proposalMessageId}"),
+            ct
+        );
+        */
+}
 }

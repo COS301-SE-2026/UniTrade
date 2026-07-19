@@ -15,6 +15,7 @@ public static class TimerStages
     public const string AwaitingSeller = "awaiting_seller";
     public const string AwaitingBuyer = "awaiting_buyer";
     public const string Coordinating = "coordinating";
+    public const string MeetupConfirmed = "meetup_confirmed";
 }
 
 public static class ListingStates
