@@ -10,4 +10,8 @@ public interface IWishlistRepository
     Task SaveAsync(CancellationToken ct = default);
     Task<bool> RemoveAsync(Guid studentId, Guid listingId, CancellationToken ct = default);
     Task RemoveAllForListingAsync(Guid listingId, CancellationToken ct = default);
+    Task SuppressAllForListingAsync(Guid listingId, Guid reservationId, CancellationToken ct = default);
+
+    Task RestoreForReservationAsync(Guid reservationId, CancellationToken ct = default);
+
 }

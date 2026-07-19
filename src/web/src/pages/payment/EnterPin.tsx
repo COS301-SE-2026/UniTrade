@@ -8,8 +8,8 @@ export default function EnterPin()
   const [pin, setPin] = useState<string[]>(['','','','','','']);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft,setTimeLeft] = useState(59);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<string | null> (null);
+  const [isSubmitting,] = useState(false);
+  const [paymentStatus,] = useState<string | null> (null);
 
   const targetPin = "813472";
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
