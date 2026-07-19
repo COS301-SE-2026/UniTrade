@@ -16,11 +16,13 @@ class ConnectionManager {
   private connectPromise: Promise<void> | null = null;
   private readonly joinedRooms = new Set<string>();
 
-  private readonly stateListeners: Set<(state: ConnectionState) => void> = new Set();
+  private readonly stateListeners: Set<(state: ConnectionState) => void> =
+    new Set();
   private readonly reconnectedListeners: Set<() => void> = new Set();
   private readonly messageListeners = new Set<(m: ChatMessage) => void>();
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
+  private readonly listingListeners = new Set<(listingId: string) => void>();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -39,15 +41,20 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
+      conn.on("ListingReserved", (p: { listingId: string }) =>
+        this.listingListeners.forEach((cb) => cb(p.listingId)),
+      );
+      conn.on("ListingReleased", (p: { listingId: string }) =>
+        this.listingListeners.forEach((cb) => cb(p.listingId)),
+      );
+
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
 
       conn.onreconnected(async () => {
         await Promise.allSettled(
-          [...this.joinedRooms].map((id) =>
-            conn.invoke("JoinRoom", id),
-          ),
+          [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
 
         this.notifyState("Connected");
@@ -63,7 +70,7 @@ class ConnectionManager {
       await conn.start();
       await Promise.allSettled(
         [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
-    );
+      );
       this.notifyState("Connected");
     })();
 
@@ -84,7 +91,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
     }
   }
   async disconnect(): Promise<void> {
@@ -109,6 +116,10 @@ class ConnectionManager {
   onReservationUpdated(callback: (r: Reservation) => void): Unsubscribe {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);
+  }
+  onListingChanged(cb: (listingId: string) => void): Unsubscribe {
+    this.listingListeners.add(cb);
+    return () => this.listingListeners.delete(cb);
   }
   async sendMessage(
     reservationId: string,

@@ -189,6 +189,7 @@ builder.Services.AddScoped<IMeetupRepository, MeetupRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
+builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton(
     new EmailClient(
@@ -241,10 +242,6 @@ builder
             },
             OnAuthenticationFailed = ctx =>
             {
-                Console.WriteLine(
-                    $"[JWT] auth failed on {ctx.HttpContext.Request.Path}: {ctx.Exception.Message}"
-                );
-
                 return Task.CompletedTask;
             },
             OnTokenValidated = ctx =>
