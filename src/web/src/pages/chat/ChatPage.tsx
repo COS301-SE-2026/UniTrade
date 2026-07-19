@@ -335,11 +335,11 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [meetupOverrides, setMeetupOverrides] = useState<
-    Record<string, MeetupStatus>
-  >({});
-  const [respondingKey, setRespondingKey] = useState<string | null>(null);
-  const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+    const [meetupOverrides, setMeetupOverrides] = useState<Record<string, MeetupStatus>>({});
+    const [respondingKey, setRespondingKey] = useState<string | null>(null);
+    const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+    const [isSendingProposal, setIsSendingProposal ] = useState(false);
+
 
   void isProposingMeetup;
   void checkInLocation; // change when FE2 fixes
@@ -350,6 +350,7 @@ export default function ChatPage() {
             alert('Please select a time in the future');
             return;
         }
+        setIsSendingProposal(true);
         try{
             await listingsService.proposeMeetup(reservationId!, {
                 locationName: values.location.name,
@@ -361,7 +362,9 @@ export default function ChatPage() {
             refetch();
         } catch(err) {
             console.error('Failed to propose meetup:', err);
-        } 
+        } finally{
+            setIsSendingProposal(false);
+        }
     };
 
        /* console.log('Meetup proposal submitted:', {
@@ -514,37 +517,51 @@ export default function ChatPage() {
                         ? "bg-[#003366] text-white opacity-50 cursor-not-allowed"
                         : "bg-[#003366] text-white hover:bg-[#002244]"
                     }`}
-        >
-          SCHEDULE A MEETUP
-        </button>
-      </div>
-      {messageForAckOrCancel ? (
-        <div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
-          {messageForAckOrCancel}
+                >
+                    SCHEDULE A MEETUP
+                </button>
+            </div>
+            {messageForAckOrCancel ? (<div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
+                {messageForAckOrCancel}
+                </div>
+            ):(
+            <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
+                <button type="button" className="text-gray-400 p-1">
+                    <IconPaperclip size={22} />
+                </button>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
+                />
+                <button
+                    onClick={handleSend}
+                    disabled={!draft.trim()}
+                    className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
+                >
+                    <IconSend size={18} />
+                </button>
+            </div>)}
+
+            {isProposingMeetup && (
+                <MeetupProposalForm
+                onCancel={() => setIsProposingMeetup(false)}
+                onSubmit={handleProposeMeetup}
+                isSubmitting = {isSendingProposal}
+                />
+            )}
+
+            {checkInLocation && (
+                <CheckInModal
+                reservationId={reservationId!}
+                meetupLocation={checkInLocation}
+                onClose={() => setCheckInLocation(null)}
+                />
+            )}
         </div>
-      ) : (
-        <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
-          <button type="button" className="text-gray-400 p-1">
-            <IconPaperclip size={22} />
-          </button>
-          <input
-            ref={inputRef}
-            type="text"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type a message..."
-            className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!draft.trim()}
-            className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
-          >
-            <IconSend size={18} />
-          </button>
-        </div>
-      )}
-    </div>
-  );
+    );
 }
