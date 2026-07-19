@@ -11,7 +11,7 @@ import type {
     
 } from '../types/Reservations'
 import { getApiUrl } from "../config";
-
+import type { MeetupDetailsResponse } from '../types/meetup';
 
 
 async function handleResponse<T>(res: Response): Promise<Result<T>>{
@@ -34,6 +34,37 @@ async function handleResponse<T>(res: Response): Promise<Result<T>>{
      return { success: false, error: { code, message, status: res.status } };
 }
 
+
+export async function getMeetupDetails (
+  reservationId: string,
+): Promise<Result<MeetupDetailsResponse>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup`, {
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return {
+        success: false,
+        error: {
+          code: body?.error ?? 'unknown_error',
+          message: body?.message,
+          status: res.status,
+        },
+      };
+    }
+
+    const data = await res.json();
+    
+    return { success: true, data};
+  } catch {
+    return {
+      success: false,
+      error: { code: 'network_error', status: 0, message: 'Network request failed'},
+    };
+  }
+}
 const mockReservations:ReservationListItem[] = []
 
 
