@@ -96,14 +96,23 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         queryClient.invalidateQueries({
           queryKey: ["listings", "my"],
         });
+        queryClient.invalidateQueries({
+          queryKey: ["reservation", updated.reservationId],
+        });
       },
     );
+
+    const offListing = connectionManager.onListingChanged((listingId) => {
+      queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
+      queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+    });
 
     return () => {
       offMessage();
       offReconnected();
       offRead();
       offReservationUpdated();
+      offListing();
     };
   }, [queryClient]);
   return <>{children}</>;

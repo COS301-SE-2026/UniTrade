@@ -1,4 +1,5 @@
 using Modules.Chat;
+using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
@@ -14,6 +15,8 @@ public class ReservationService : IReservationService
     private readonly IReservationRepository _reservations;
     private readonly IChatService _chat;
     private readonly IBroadCastService _broadcast;
+    private readonly IReservationRealTime _realtime;
+    private readonly IListingNotifier _listingNotifier;
     private readonly IWishlistService _wishlist;
     private readonly TimeProvider _clock;
 
@@ -22,6 +25,8 @@ public class ReservationService : IReservationService
         IListingRepository listings,
         IChatService chat,
         IBroadCastService broadcast,
+        IReservationRealTime realtime,
+        IListingNotifier listingNotifier,
         IWishlistService wishlist,
         TimeProvider clock
     )
@@ -30,6 +35,8 @@ public class ReservationService : IReservationService
         _listings = listings;
         _chat = chat;
         _broadcast = broadcast;
+        _realtime = realtime;
+        _listingNotifier = listingNotifier;
         _wishlist = wishlist;
         _clock = clock;
     }
@@ -67,13 +74,14 @@ public class ReservationService : IReservationService
         };
 
         await _reservations.AddAsync(reservation, ct);
-
+        await _reservations.SaveAsync(ct);
+        await _listingNotifier.ListingReservedAsync(listingId, ct);
         await _chat.SendSystemAsync(
             reservation.ReservationId,
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
-        await _reservations.SaveAsync(ct);
+
         await _wishlist.CleanForListingAsync(listingId, ct);
 
         return MapToDto(reservation, listingId: listingId);
@@ -90,8 +98,8 @@ public class ReservationService : IReservationService
             ?? throw new ReservationException(ReservationErrors.NotFound);
 
         ReservationStateMachine.Acknowledge(r, callerId, _clock.GetUtcNow().UtcDateTime);
-
-        if (callerId==r.SellerId)
+        await _reservations.SaveAsync(ct);
+        if (callerId == r.SellerId)
         {
             await _chat.SendSystemAsync(
                 reservationId,
@@ -108,8 +116,8 @@ public class ReservationService : IReservationService
             );
         }
 
-        await _reservations.SaveAsync(ct);
-
+        var dto = MapToDto(r);
+        await _realtime.ReservationUpdatedAsync(dto, ct);
         await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
 
         return MapToDto(r);
@@ -140,6 +148,13 @@ public class ReservationService : IReservationService
         );
 
         await _reservations.SaveAsync(ct);
+        foreach (var rl in r.ReservationListings)
+        {
+            await _listingNotifier.ListingReleasedAsync(rl.ListingId, ct);
+        }
+
+        var dto = MapToDto(r, callerId);
+        await _realtime.ReservationUpdatedAsync(dto, ct);
         await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
 
         return MapToDto(r, callerId);
@@ -273,10 +288,20 @@ public class ReservationService : IReservationService
                 await _listings.ReleaseAsync(rl.ListingId, ct);
             }
 
-            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
         }
+
         await _reservations.SaveAsync(ct);
+
+        foreach (var reservation in reservationsThatShouldExpire)
+        {
+            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
+            await _realtime.ReservationUpdatedAsync(MapToDto(reservation), ct);
+            foreach (var rl in reservation.ReservationListings)
+            {
+                await _listingNotifier.ListingReleasedAsync(rl.ListingId, ct);
+            }
+        }
         return expired;
     }
 

@@ -318,17 +318,10 @@ export default function ChatPage() {
     locationState?.counterpartyName ?? "Conversation!!!!";
   const counterpartyInitials =
     locationState?.counterpartyInitials ?? initialsFromName(counterpartyName);
+  const isAwaitingAck = reservation?.timerStage === "awaiting_seller";
   const isCancelled = reservation?.reservationStatus === "cancelled";
-  const isBuyerWaitingAck =
-    !isSeller && reservation?.timerStage === "awaiting_seller";
 
-  const inputDisabled = isCancelled || isBuyerWaitingAck;
-
-  const messageForAckOrCancel = isCancelled
-    ? "Reservation was cancelled."
-    : isBuyerWaitingAck
-      ? "Waiting for seller to accept reservation"
-      : null;
+  const inputDisabled = isCancelled || isAwaitingAck;
 
   const [draft, setDraft] = useState("");
   const [isProposingMeetup, setIsProposingMeetup] = useState(false);
@@ -509,30 +502,30 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {reservation?.reservationStatus === "active" && (
+      {reservation?.reservationStatus === "active" && !isAwaitingAck && (
         <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
           <button
             type="button"
             onClick={() => setIsProposingMeetup(true)}
-            disabled={meetupConfirmed || isBuyerWaitingAck}
+            disabled={meetupConfirmed}
             className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
                     ${
-                      meetupConfirmed || isBuyerWaitingAck
+                      meetupConfirmed
                         ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                         : "bg-[#003366] text-white hover:bg-[#002244]"
                     }`}
           >
-            {isBuyerWaitingAck
-              ? "Waiting for seller to accept reservation"
-              : meetupConfirmed
-                ? "Meetup confirmed"
-                : "SCHEDULE A MEETUP"}
+            {meetupConfirmed ? "Meetup confirmed" : "SCHEDULE A MEETUP"}
           </button>
         </div>
       )}
-      {messageForAckOrCancel ? (
+      {isCancelled || isAwaitingAck ? (
         <div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
-          {messageForAckOrCancel}
+          {isCancelled
+            ? "Reservation was cancelled."
+            : isSeller
+              ? "Accept this reservation to start chatting."
+              : "Waiting for seller to accept reservation"}
         </div>
       ) : (
         <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">

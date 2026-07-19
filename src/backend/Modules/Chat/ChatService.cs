@@ -64,11 +64,7 @@ public class ChatService : IChatService
             throw new ChatException(ChatErrors.ReservationCancelled);
         }
 
-        if (
-            reservation is not null
-            && reservation.BuyerId == senderId
-            && reservation.SellerAcknowledgedAt is null
-        )
+        if (reservation is not null && reservation.SellerAcknowledgedAt is null)
         {
             throw new ChatException(ChatErrors.BuyerWaitingAck);
         }
