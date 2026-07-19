@@ -331,42 +331,42 @@ export default function ChatPage() {
     >({});
     const [respondingKey, setRespondingKey] = useState<string | null>(null);
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+    const [isSendingProposal, setIsSendingProposal ] = useState(false);
 
-    void isProposingMeetup;
-    void checkInLocation; // change when FE2 fixes
 
-    /*    const handleProposeMeetup = async(values: MeetupFormValues) => {
-          const proposedTime = combineDateAndTime(values.date, values.time);
-          if(new Date(proposedTime) <= new Date()) {
-              alert('Please select a time in the future');
-              return;
-          }
-          try{
-              await listingsService.proposeMeetup(reservationId!, {
-                  locationName: values.location.name,
-                  lat: values.location.lat,
-                  lng: values.location.lng,
-                  proposedTime,
-              });
-              setIsProposingMeetup(false);
-              refetch();
-          } catch(err) {
-              console.error('Failed to propose meetup:', err);
-          } 
-      };
-  
-         /* console.log('Meetup proposal submitted:', {
-              proposedLocation: values.location,
-              proposedTime,
-          });
-          setIsProposingMeetup(false);
-      };
-      */
 
-    const handleRespondMeetup = async (
-        proposalMessageId: number,
-        status: MeetupStatus,
-    ) => {
+    const handleProposeMeetup = async(values: MeetupFormValues) => {
+        const proposedTime = combineDateAndTime(values.date, values.time);
+        if(new Date(proposedTime) <= new Date()) {
+            alert('Please select a time in the future');
+            return;
+        }
+        setIsSendingProposal(true);
+        try{
+            await listingsService.proposeMeetup(reservationId!, {
+                locationName: values.location.name,
+                lat: values.location.lat,
+                lng: values.location.lng,
+                proposedTime,
+            });
+            setIsProposingMeetup(false);
+            refetch();
+        } catch(err) {
+            console.error('Failed to propose meetup:', err);
+        } finally{
+            setIsSendingProposal(false);
+        }
+    };
+
+       /* console.log('Meetup proposal submitted:', {
+            proposedLocation: values.location,
+            proposedTime,
+        });
+        setIsProposingMeetup(false);
+    };
+    */
+
+    const handleRespondMeetup = async ( proposalMessageId: number, status: MeetupStatus) => {
         const key = proposalMessageId.toString();
         setRespondingKey(key);
         try {
@@ -546,6 +546,43 @@ export default function ChatPage() {
                         <IconSend size={18} />
                     </button>
                 </div>
+            ):(
+            <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
+                <button type="button" className="text-gray-400 p-1">
+                    <IconPaperclip size={22} />
+                </button>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
+                />
+                <button
+                    onClick={handleSend}
+                    disabled={!draft.trim()}
+                    className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
+                >
+                    <IconSend size={18} />
+                </button>
+            </div>)}
+
+            {isProposingMeetup && (
+                <MeetupProposalForm
+                onCancel={() => setIsProposingMeetup(false)}
+                onSubmit={handleProposeMeetup}
+                isSubmitting = {isSendingProposal}
+                />
+            )}
+
+            {checkInLocation && (
+                <CheckInModal
+                reservationId={reservationId!}
+                meetupLocation={checkInLocation}
+                onClose={() => setCheckInLocation(null)}
+                />
             )}
         </div>
     );
