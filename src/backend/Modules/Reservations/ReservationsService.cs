@@ -74,7 +74,7 @@ public class ReservationService : IReservationService
             ct
         );
         await _reservations.SaveAsync(ct);
-        await _wishlist.CleanForListingAsync(listingId, ct);
+        await _wishlist.SuppressForListingAsync(listingId, reservation.ReservationId, ct);
 
         return MapToDto(reservation, listingId: listingId);
     }
@@ -131,6 +131,8 @@ public class ReservationService : IReservationService
         {
             await _listings.ReleaseAsync(rl.ListingId, ct);
         }
+         
+         await _wishlist.RestoreForReservationAsync(reservationId, ct);
 
         var whoIsThis = callerId == r.BuyerId ? "buyer" : "seller";
         await _chat.SendSystemAsync(
@@ -272,6 +274,8 @@ public class ReservationService : IReservationService
             {
                 await _listings.ReleaseAsync(rl.ListingId, ct);
             }
+
+            await _wishlist.RestoreForReservationAsync(reservation.ReservationId, ct);
 
             await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
