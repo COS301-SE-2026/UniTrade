@@ -1,9 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import { useState } from 'react';
+import CheckInModal from '../../components/CheckInModal';
 import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
-import { getReservationById, getMeetupDetails } from '../../services/reservationService';
+import { getReservationById } from '../../services/reservationService';
 import LocationPicker from '../../components/layout/LocationPicker';
 interface MeetupDetailsState {
   reservationId?: string;
@@ -35,6 +36,8 @@ export default function MeetupDetails() {
   const navState = (location.state as MeetupDetailsState | null) ?? {};
   const isSeller = navState.role === 'seller'
   const reservationId = navState.reservationId;
+  const [showCheckIn, setShowCheckIn] = useState(false);
+
 
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
@@ -47,13 +50,9 @@ export default function MeetupDetails() {
     enabled: !!reservationId,
   });
 
-  const { data: meetup, isLoading: isMeetupLoading } = useQuery({
+  const { data: meetup, isLoading: isMeetupLoading, refetch: refetchMeetup } = useQuery({
     queryKey: ['meetup', reservationId],
-    queryFn: async () => {
-      const result = await getMeetupDetails(reservationId!);
-      if (!result.success) throw new Error(result.error.message ?? 'Failed to load meetup details');
-      return result.data;
-    },
+    queryFn: () => listingsService.getMeetupStatus(reservationId!),
     enabled: !!reservationId,
   });
 
@@ -74,11 +73,11 @@ export default function MeetupDetails() {
 
   const meetupCoords =
     meetup?.agreedLatitude != null && meetup?.agreedLongitude != null
-        ? { lat: meetup.agreedLatitude, lng: meetup.agreedLongitude }
-        : navState.meetupLat != null && navState.meetupLng != null
+      ? { lat: meetup.agreedLatitude, lng: meetup.agreedLongitude }
+      : navState.meetupLat != null && navState.meetupLng != null
         ? { lat: navState.meetupLat, lng: navState.meetupLng }
         : null;
-        
+
   if (!reservationId) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
@@ -199,33 +198,84 @@ export default function MeetupDetails() {
                 <span className="font-black text-xl text-blue-950">{price != null ? `R${price.toFixed(2)}` : 'R-'}</span>
               </div>
 
-              <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex-items-start gap-3">
-                <ShieldCheck className="w- h-5 text-indigo-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-blue-90 leading-relaxed">
-                  <strong>Safety Guarantee:</strong>Your funds are held securely by Unitrade and will only be release once you supply a PIN to {' '} {counterpartyName} at physical meetup.
+
+
+
+              <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-900 leading-relaxed">
+                  <strong>Safety Guarantee:</strong>{' '}
+                  {!isSeller ? (
+                    <>
+                      Your funds are held securely by UniTrade and will only be released once you supply a PIN to{' '}
+                      {counterpartyName} at the physical meetup.
+                    </>
+                  ) : (
+                    <>
+                      Your funds are held securely by UniTrade and will only be released to you once you enter the PIN given by{' '}
+                      {counterpartyName} at the physical meetup.
+                    </>
+                  )}
                 </p>
               </div>
-
               {!isSeller ? (
                 <div className=" space-y-3">
-                  <button onClick={() => navigate('/payment/payfast-redirect', { state: { reservationId, price } })}
-                    disabled={price == null}
-                    className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg">
-                    <Lock className="w-4 h-4" /> Pay {price != null ? `R${price.toFixed(2)}` : ''}
-                  </button>
-                  <p className="text-center text-[11px] text-slate 400">By Paying you agree to the Unitrade Payment policies.
-                  </p>
+                  {!meetup?.buyerCheckedIn ? (
+                    <>
+                      <button
+                        onClick={() => setShowCheckIn(true)}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                      >
+                        <MapPin className="w-4 h-4" /> Check In at Meetup
+                      </button>
+                      <p className="text-center text-[11px] text-slate-400">
+                        Check in once you are at the meetup to unlock payment.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => navigate('/payment/payfast-redirect', { state: { reservationId, price } })}
+                        disabled={!meetup?.paymentUnlocked || price == null}
+                        className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg">
+                        <Lock className="w-4 h-4" /> Pay {price != null ? `R${price.toFixed(2)}` : ''}
+                      </button>
+                      <p className="text-center text-[11px] text-slate-400">
+                        By paying you agree to the UniTrade Payment policies.
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (
-                <p className="text-center text-sm text-slate-500 bg-slate-50 rounded-xl py-3 px-4">
-                  Waiting for the buyer to complete payment.
-                </p>
+                <div className="space-y-3">
+                  {!meetup?.sellerCheckedIn ? (
+                    <button
+                      onClick={() => setShowCheckIn(true)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                    >
+                      <MapPin className="w-4 h-4" /> Check In at Meetup
+                    </button>
+                  ) : (
+                    <p className="text-center text-sm text-slate-500 bg-slate-50 rounded-xl py-3 px-4">
+                      {meetup?.buyerCheckedIn ? 'Waiting for the buyer to complete payment.' : "Waiting for the buyer to check in."}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
         </div>
       </div>
+      {showCheckIn && (
+        <CheckInModal
+          reservationId={reservationId}
+          meetupLocation={meetupLocation}
+          onClose={() => {
+            setShowCheckIn(false);
+            refetchMeetup();
+          }}
+        />
+      )}
     </div>
   );
 }

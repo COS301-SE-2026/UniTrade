@@ -38,7 +38,7 @@ export interface MeetupFormValues {
 export function combineDateAndTime(date: string, time: string): string{
     const [year, month, day] = date.split('-').map(Number);
     const [hours, minutes] = time.split(':').map(Number);
-    const dt = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    const dt = new Date(year, month - 1, day, hours, minutes);
     return dt.toISOString(); 
 }
 

@@ -50,7 +50,7 @@ export default function LocationPicker({
     readOnly = false,
 }: LocationPickerProps) {
     return (
-        <div className="rounded-2xl overflow-hidden border border-gray-200" style={{height}}>
+        <div className="isolate rounded-2xl overflow-hidden border border-gray-200" style={{height}}>
             <MapContainer
              center={value ? [value.lat, value.lng] : center}
              zoom={default_zoom}
