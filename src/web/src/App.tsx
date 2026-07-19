@@ -60,7 +60,7 @@ export default function App() {
           });
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setAuthChecked(true));
   }, [setUser]);
   if (!authChecked) {
@@ -72,70 +72,12 @@ export default function App() {
         {/*<Route element={<AppLayout />}>*/}
 
         <Route path="/" element={<Navigate to="/auth/HomePage" replace />} />
-        <Route path="/" element={<HomePage />} />
         <Route path="/auth/Login" element={<Login />} />
         <Route path="/auth/Signup" element={<Signup />} />
         <Route path="/auth/HomePage" element={<HomePage />} />
         <Route path="/verify-otp" element={<OTP_verification />} />
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
-
-
-      <Route path="/buyer/reservations/:reservationId/chat" element={<RedirectToMessages role="buyer" />} />
-      <Route path="/seller/reservations/:reservationId/chat" element={<RedirectToMessages role="seller" />} />
-      <Route path="/payment/meetup" element={<MeetupDetails />} />
-      <Route path="/payment/payfast-redirect" element={<Redirect />} />
-      <Route path="/payment/confirming" element={<ConfirmPayment />} />
-      <Route path="/payment/generate-pin" element={<GeneratePin />} />
-      <Route path="/payment/buyer-pin" element={<EnterPin />} />
-      <Route path="/payment/payment-complete" element={<PaymentComplete />} />
-
-
-      <Route element={<AppLayout />}>
-        <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
-        <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
-        {/*the id can be anything for now since the data is hardcoded*/}
-        <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
-        <Route path="/buyer/listings" element={<BrowseListings />} />
-        <Route path="/buyer/wishlist" element={<Wishlist />} />
-        <Route path="/buyer/reservations" element={<Reservations />} />
-        <Route path="/seller/reservations" element={<SellerReservations />} />
-        <Route path="/seller/dashboard" element={<SellerDashboard />} />
-        <Route path="/seller/upload" element={<UploadListing />} />
-        <Route path="/seller/editListing/:id" element={<EditListing />} />
-        <Route path="/seller/listings" element={<MyListings />} />
-        <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/verifications" element={<AdminVerifications />} />
-        <Route path="/admin/listings" element={<AdminListingQueue />} />
-        <Route path="/admin/disputes" element={<AdminDisputes />} />
-        <Route
-          path="/orders"
-          element={<Navigate to="/buyer/dashboard" replace />}
-        />
-        <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
-          <Route index element={<NoConversationsSelected />} />
-          <Route path=":reservationId" element={<ChatPage />} />
-        </Route>
-        <Route path="/seller/messages" element={<ChatLayout role="seller" />}>
-          <Route index element={<NoConversationsSelected />} />
-          <Route path=":reservationId" element={<ChatPage />} />
-        </Route>
-        <Route
-          path="/buyer/reservations/:reservationId/chat"
-          element={<RedirectToMessages role="buyer" />}
-        />
-        <Route
-          path="/seller/reservations/:reservationId/chat"
-          element={<RedirectToMessages role="seller" />}
-        />
-
-        <Route path="/payment/meetup" element={<MeetupDetails />} />
-        <Route path="/payment/payfast-redirect" element={<Redirect />} />
-        <Route path="/payment/confirming" element={<ConfirmPayment />} />
-        <Route path="/payment/generate-pin" element={<GeneratePin />} />
-        <Route path="/payment/buyer-pin" element={<EnterPin />} />
-        <Route path="/payment/payment-complete" element={<PaymentComplete />} />
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
@@ -150,10 +92,7 @@ export default function App() {
           <Route path="/seller/upload" element={<UploadListing />} />
           <Route path="/seller/editListing/:id" element={<EditListing />} />
           <Route path="/seller/listings" element={<MyListings />} />
-          <Route
-            path="/seller/listings/:id"
-            element={<SellerListingDetail />}
-          />
+          <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
@@ -171,15 +110,26 @@ export default function App() {
             <Route path=":reservationId" element={<ChatPage />} />
           </Route>
           <Route
-            path="/buyer/reservations/:reservationId"
-            element={<ReservationDetails />}
+            path="/buyer/reservations/:reservationId/chat"
+            element={<RedirectToMessages role="buyer" />}
           />
           <Route
-            path="/seller/reservations/:reservationId"
-            element={<ReservationDetails />}
+            path="/seller/reservations/:reservationId/chat"
+            element={<RedirectToMessages role="seller" />}
           />
+
+          <Route path="/payment/meetup" element={<MeetupDetails />} />
+          <Route path="/payment/payfast-redirect" element={<Redirect />} />
+          <Route path="/payment/confirming" element={<ConfirmPayment />} />
+          <Route path="/payment/generate-pin" element={<GeneratePin />} />
+          <Route path="/payment/buyer-pin" element={<EnterPin />} />
+          <Route path="/payment/payment-complete" element={<PaymentComplete />} />
+
+          <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
+          <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
         </Route>
       </Routes>
     </RealtimeProvider>
   );
+
 }
