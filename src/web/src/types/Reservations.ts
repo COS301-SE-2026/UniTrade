@@ -1,6 +1,7 @@
 export type ReservationStatus = 'active' | 'expired' | 'cancelled' | 'completed';
 export type TimerStage = 'awaiting_seller' | 'awaiting_buyer' | 'coordinating';
 export type MessageType = 'text' | 'system' | 'meetup_proposal' | 'meetup_response';
+export type MeetupStatus = 'pending' | 'accepted' | 'declined';
 
 export interface Reservation {
     reservationId: string;
@@ -11,6 +12,7 @@ export interface Reservation {
     timerStage: TimerStage;
     expiresAt: string;
     createdAt: string;
+    sellerAcknowledgedAt?:string |null;
     counterParty: ReservationCounterparty | null;
 }
 
@@ -42,49 +44,58 @@ export interface ReservationListResponse {
 
 interface ChatMessageBase {
     messageId: number;
+    reservationId: string;
     senderId: string;
+    clientKey?: string | null;
     sentAt: string;
     readAt: string | null;
 }
 
 export interface TextMessage extends ChatMessageBase {
-  messageType: 'text';
-  content: string;
-  payload: null;
+    messageType: 'text';
+    content: string;
+    payload: null;
 }
 
 export interface SystemMessage extends ChatMessageBase {
-  messageType: 'system';
-  content: string;
-  payload: null;
+    messageType: 'system';
+    content: string;
+    payload: null;
 }
 
 export interface MeetupProposalPayload {
-    proposedTime: string;
-    proposedLocation: string;
+    LocationName?: string;
+    proposedLocation?: string;
+    ProposedTime?: string;
+    proposedTime?: string;
+    Lat?: number;
+    Lng?: number;
+    lat?: number;
+    lng?: number;
+    status?: MeetupStatus;
 }
 
 export interface MeetupProposalMessage extends ChatMessageBase {
-  messageType: 'meetup_proposal';
-  content: string;
-  payload: MeetupProposalPayload;
+    messageType: 'meetup_proposal';
+    content: string;
+    payload: MeetupProposalPayload;
 }
 
 export interface MeetupResponsePayload {
-  accepted: boolean;
+    accepted: boolean;
 }
 
 export interface MeetupResponseMessage extends ChatMessageBase {
-  messageType: 'meetup_response';
-  content: string;
-  payload: MeetupResponsePayload;
+    messageType: 'meetup_response';
+    content: string;
+    payload: MeetupResponsePayload;
 }
 
 export type ChatMessage =
-  | TextMessage
-  | SystemMessage
-  | MeetupProposalMessage
-  | MeetupResponseMessage;
+    | TextMessage
+    | SystemMessage
+    | MeetupProposalMessage
+    | MeetupResponseMessage;
 
 export interface ChatHistoryResponse {
     items: ChatMessage[];
@@ -96,7 +107,7 @@ export interface CreateReservationRequest {
 }
 
 export interface GetReservationParams {
-   role: 'buyer' | 'seller';
+    role: 'buyer' | 'seller';
 }
 
 export interface GetMessagesParams {
@@ -105,9 +116,9 @@ export interface GetMessagesParams {
     limit?: number;
 }
 export interface MessagesReadEvent {
-  reservationId: string;
-  upToMessageId: number;
-  readerId: string;
+    reservationId: string;
+    upToMessageId: number;
+    readBy: string;
 }
 export type ApiErrorCode = 'already_reserved' | string;
 
@@ -117,7 +128,7 @@ export interface ApiError {
     status: number;
 }
 
-export type Result<T> = 
- | { success: true; data: T}
- | { success: false; error: ApiError };
+export type Result<T> =
+    | { success: true; data: T }
+    | { success: false; error: ApiError };
 

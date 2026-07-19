@@ -25,7 +25,7 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         CancellationToken ct = default
     ) =>
         _db
-            .Reservations.Include(r => r.ReservationListings)
+            .Reservations.Include(r => r.ReservationListings).ThenInclude(r1=>r1.Listing)//added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
 
     public async Task<IReadOnlyList<Reservation>> ListForBuyerAsync(
@@ -82,7 +82,11 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     ) =>
         await _db
             .Reservations.Include(r => r.ReservationListings)
-            .Where(r => r.ReservationStatus == ReservationState.Active && r.ExpiresAt <= asOf)
+            .Where(r =>
+                r.ReservationStatus == ReservationState.Active
+                && r.ExpiresAt <= asOf
+                && r.MeetupConfirmedAt == null
+            )
             .OrderBy(r => r.ExpiresAt)
             .Take(batchSize)
             .ToListAsync(ct);

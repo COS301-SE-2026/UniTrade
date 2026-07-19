@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Modules.Reservations;
-
-namespace Api.Hubs;
-
+using Api.Hubs;
+namespace Api.Notifiers;
 public class BroadCastService : IBroadCastService
 {
     private readonly IHubContext<ChatHub> _hubcontext;
@@ -17,5 +16,10 @@ public class BroadCastService : IBroadCastService
         await _hubcontext
             .Clients.Group($"reservation-{reservationId}")
             .SendAsync("ReservationStatusChanged", new { reservationId, status = newStatus });
+    }
+
+    public async Task SendToUserAsync(Guid userId, string eventName, object payload)
+    {
+        await _hubcontext.Clients.User(userId.ToString()).SendAsync(eventName, payload);
     }
 }
