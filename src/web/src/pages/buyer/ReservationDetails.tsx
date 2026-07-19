@@ -299,6 +299,7 @@ export default function ReservationDetails() {
   }
   const isCancelled = reservation.reservationStatus === "cancelled";
   const isCoordinating = reservation.timerStage === "coordinating";
+  const isMeetupConfirmed = reservation.timerStage === "meetup_confirmed";
   const expiresDate = new Date(reservation.expiresAt);
   const createdDate = new Date(reservation.createdAt);
 
@@ -337,7 +338,7 @@ export default function ReservationDetails() {
           </span>
         </nav>
 
-        {!isCancelled && (
+        {!isCancelled && !isMeetupConfirmed && (
 
           <div className="text-right">
             <p
