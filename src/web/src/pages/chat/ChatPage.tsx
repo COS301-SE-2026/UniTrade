@@ -437,44 +437,38 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 bg-[#f8f9fa] space-y-4">
-        {listing && (
-          <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
-            {listing.images?.[0]?.url && (
-              <img
-                src={listing.images[0].url}
-                alt={listing.title}
-                className="w-16 h-16 rounded-xl object-cover shrink-0"
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-[#003366] uppercase tracking-wider">
-                  Listing
-                </span>
-                <span className="text-[10px] text-gray-400">•</span>
-                <span className="text-xs text-gray-500 truncate">
-                  {listing.title}
-                </span>
-              </div>
-              <p className="text-sm font-semibold text-gray-900">
-                R {listing.price}
-              </p>
-            </div>
-            <button
-              onClick={() =>
-                navigate(
-                  isSeller
-                    ? `/seller/reservations/${reservationId}`
-                    : `/buyer/reservations/${reservationId}`,
-                )
-              }
-              className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
-            >
-              View
-            </button>
-          </div>
-        )}
+            <div className="flex-1 overflow-y-auto px-4 py-4 bg-[#f8f9fa] space-y-4">
+                {listing && (
+                    <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
+                        {listing.images?.[0]?.url && (
+                            <img
+                                src={listing.images[0].url}
+                                alt={listing.title}
+                                className="w-16 h-16 rounded-xl object-cover shrink-0"
+                            />
+                        )}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-[#003366] uppercase tracking-wider">
+                                    Listing
+                                </span>
+                                <span className="text-[10px] text-gray-400">•</span>
+                                <span className="text-xs text-gray-500 truncate">{listing.title}</span>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-900">R {listing.price}</p>
+                        </div>
+                        <button
+                            onClick={() => navigate(
+                                isSeller
+                                    ? `/seller/reservations/${reservationId}`
+                                    : `/buyer/reservations/${reservationId}`
+                            )}
+                            className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
+                        >
+                            View Reservation
+                        </button>
+                    </div>
+                )}
 
         {isLoading && (
           <p className="text-center text-gray-400">Loading messages...</p>
