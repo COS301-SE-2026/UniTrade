@@ -289,7 +289,7 @@ function Firstpage() {
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-blue-40 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
               <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
               MADE FOR SA UNIVERSITY STUDENTS
             </div>
@@ -314,14 +314,14 @@ function Firstpage() {
             <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <button
                 onClick={() => navigate('/auth/Signup')}
-                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 SIGNUP
                 <IconArrowRight size={18} />
               </button>
 
               <button
                 onClick={() => navigate('/auth/Login')}
-                className="bg-white hover:bg-navy-600 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 LOGIN
                 <IconArrowRight size={18} />
               </button>
@@ -512,45 +512,38 @@ export function Footer() {
   const navigate = useNavigate();
   return (
     <footer className="bg-white text-gray">
-      <div className="max-w-7xl mx-auto px-10 py-16 grid md:grid-cols-3 gap-80">
-        <div>
-          <div className="mt-8">
-            <p className="text-xs">CONTACT INFO</p>
-            <p className="text-sm mt-2">+27 123 456 789</p>
-            <p className="text-sm">devenexus28@gmail.com</p>
-          </div>
-        </div>
+  <div className="max-w-7xl mx-auto px-10 py-16 flex justify-between items-start">
+    {/* Left */}
+    <div>
+      <p className="text-xs">CONTACT INFO</p>
+      <p className="text-sm mt-2">+27 123 456 789</p>
+      <p className="text-sm">devenexus28@gmail.com</p>
+    </div>
 
-        <div>
-          <p className="text-xs mb-4">SUPPORT</p>
-          <div className="space-y-2 text-sm">
-            
-            <ul className="flex flex-col gap-1">
-            <li
-               onClick={() => navigate('/auth/help-center')}
-               className = "text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-               >
-                Help Center
-               </li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Safety Tips</li>
-            <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">Contact Us</li>
-            </ul>
-          </div>
-        </div>
-        <div>
-          <p className="text-xs mb-4">SOCIAL MEDIA</p>
-          <div className="flex gap-6 text-2xl">
-            <a href="#" className="hover:text-white transition-colors">𝕏</a>
-            <a href="#" className="hover:text-white transition-colors">📸</a>
-            <a href="#" className="hover:text-white transition-colors">𝕗</a>
-          </div>
-        </div>
-      </div>
-      <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
-        © 2026 UniTrade. All rights reserved. Made with ❤️ for South African students.
-      </div>
+    {/* Right */}
+    <div>
+      <p className="text-xs mb-4">SUPPORT</p>
+      <ul className="flex flex-col gap-1">
+        <li
+          onClick={() => navigate('/auth/help-center')}
+          className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
+        >
+          Help Center
+        </li>
+        <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">
+          Safety Tips
+        </li>
+        <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">
+          Contact Us
+        </li>
+      </ul>
+    </div>
+  </div>
 
-    </footer>
+  <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
+    © 2026 UniTrade. All rights reserved. Made for South African students.
+  </div>
+</footer>
   )
 }
 
