@@ -1,8 +1,10 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
+using Modules.Notifications;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
@@ -14,16 +16,22 @@ public class ChatService : IChatService
     private readonly IReservationRepository _reservations; //using Isuserpat of reseravtion func
     private readonly IChatRepository _chatRepo;
     private readonly IChatNotifier _notifier;
+    private readonly INotificationDispatcher _pushNotifier;
+    private readonly ILogger<ChatService> _logger;
 
     public ChatService(
         IChatRepository chatRepo,
         IReservationRepository reservations,
-        IChatNotifier notifier
+        IChatNotifier notifier,
+        INotificationDispatcher pushNotifier,
+        ILogger<ChatService> logger
     )
     {
         _chatRepo = chatRepo;
         _reservations = reservations;
         _notifier = notifier;
+        _pushNotifier = pushNotifier;
+        _logger = logger;
     }
 
     public async Task<ChatMessageDto> SendAsync(
@@ -98,6 +106,20 @@ public class ChatService : IChatService
                 return ToDto(winner);
             }
             throw;
+        }
+
+        var dto = ToDto(result);
+        try
+        {
+            var recipientId =
+                reservation.BuyerId == senderId ? reservation.SellerId : reservation.BuyerId;
+
+            var preview = content.Length > 100 ? content[..100] + "..." : content;
+            await _pushNotifier.NotifyAsync(recipientId, NotificationTypes.Chat, preview, ct);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Chat push failed for reservation: {ReservationId}", reservationId);
         }
         return ToDto(result);
     }

@@ -32,4 +32,11 @@ public interface IMeetupService
         Guid callerId,
         CancellationToken ct = default
     );
+
+    Task<ChatMessageDto> DeclineAsync(
+        Guid reservationId,
+        Guid callerId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    );
 }
