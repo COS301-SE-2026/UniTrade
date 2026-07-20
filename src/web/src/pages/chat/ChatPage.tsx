@@ -124,6 +124,7 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
+/*
 const MeetupProposalCard: React.FC<{
     message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
     isOwnMessage: boolean;
@@ -161,7 +162,7 @@ const MeetupProposalCard: React.FC<{
     );
 };
 
-
+*/
 const MeetupResponseBubble: React.FC<{
     message: Extract<ClientChatMessage, { messageType: "meetup_response" }>;
 }> = ({ message }) => (

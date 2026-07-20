@@ -52,6 +52,7 @@ services:
       Otp__Secret: ${Otp__Secret}
       Acs__SenderAddress: ${Acs__SenderAddress}
       Acs__ConnectionString: ${Acs__ConnectionString}
+      Firebase__CredentialsJson: ${Firebase__CredentialsJson}
     depends_on:
      db: 
        condition: service_healthy
@@ -62,6 +63,12 @@ services:
     container_name: unitrade-web
     environment:
         VITE_API_URL: ${VITE_API_URL}
+        FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+        FIREBASE_AUTH_DOMAIN: ${FIREBASE_AUTH_DOMAIN}
+        FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+        FIREBASE_SENDER_ID: ${FIREBASE_SENDER_ID}
+        FIREBASE_APP_ID: ${FIREBASE_APP_ID}
+        FIREBASE_VAPID_KEY: ${FIREBASE_VAPID_KEY}
     ports:
     - "3000:80"
     depends_on:
