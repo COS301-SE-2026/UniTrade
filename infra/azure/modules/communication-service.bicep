@@ -5,12 +5,12 @@ var emailServiceName='email-${projectName}'
 var domainName='AzureManagedDomain'
 
 
-resource emailService 'Microsoft.Communication/emailService@2023-04-01'={
+resource emailService 'Microsoft.Communication/emailServices@2023-04-01'={
     name:emailServiceName
     location: 'global'
 }
 
-resource domain 'Microsoft.Communication/emailService@2023-04-01'={
+resource domain 'Microsoft.Communication/emailServices/domains@2023-04-01'={
     parent: emailService
     name: domainName
     location: 'global'
@@ -19,7 +19,7 @@ resource domain 'Microsoft.Communication/emailService@2023-04-01'={
     }
 }
 
-resource acs 'Microsoft.Communication/emailService@2023-04-01'={
+resource acs 'Microsoft.Communication/communicationServices@2023-04-01'={
     name: acsName
     location: 'global
     properties: {
@@ -32,3 +32,4 @@ resource acs 'Microsoft.Communication/emailService@2023-04-01'={
 
 output senderAddress string='DoNotReply@${domain.properties.mailFromSenderDomain}'
 output connectionString string=acs.listKeys().primaryConnectionString
+output acsName string=acs.name
