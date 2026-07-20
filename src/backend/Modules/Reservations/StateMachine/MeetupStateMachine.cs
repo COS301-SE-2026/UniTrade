@@ -36,7 +36,7 @@ public static class MeetupStateMachine
 
         var inRange = GeoDistance.IsWIthinRadius(
             m.AgreedLatitude,
-            m.AgreedLatitude,
+            m.AgreedLongitude,
             lat!.Value,
             lng!.Value
         );
@@ -76,7 +76,7 @@ public static class MeetupStateMachine
 
         var inRange = GeoDistance.IsWIthinRadius(
             m.AgreedLatitude,
-            m.AgreedLatitude,
+            m.AgreedLongitude,
             lat!.Value,
             lng!.Value
         );
