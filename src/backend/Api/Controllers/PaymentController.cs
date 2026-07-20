@@ -62,20 +62,19 @@ public class TransactionController : ControllerBase
 
     [HttpPost("itn")]
     public async Task<IActionResult> HandleItn(CancellationToken ct)
-
-{
-    Console.WriteLine("[ITN Debug] VERSION-CHECK-2 — MemoryStream approach running");
-    
-    string rawBody;
-    using (var ms = new MemoryStream())
     {
-        await Request.Body.CopyToAsync(ms, ct);
-        ms.Position = 0;
-        using var reader = new StreamReader(ms, Encoding.UTF8);
-        rawBody = await reader.ReadToEndAsync(ct);
-    }
+        Console.WriteLine("[ITN Debug] VERSION-CHECK-2 — MemoryStream approach running");
 
-    Console.WriteLine($"[ITN Debug] rawBody length: {rawBody.Length}, content: '{rawBody}'");
+        string rawBody;
+        using (var ms = new MemoryStream())
+        {
+            await Request.Body.CopyToAsync(ms, ct);
+            ms.Position = 0;
+            using var reader = new StreamReader(ms, Encoding.UTF8);
+            rawBody = await reader.ReadToEndAsync(ct);
+        }
+
+        Console.WriteLine($"[ITN Debug] rawBody length: {rawBody.Length}, content: '{rawBody}'");
 
         var fields = rawBody
             .Split('&', StringSplitOptions.RemoveEmptyEntries)
