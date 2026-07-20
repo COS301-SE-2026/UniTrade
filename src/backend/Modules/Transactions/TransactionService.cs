@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Extensions.Configuration;
 using Modules.Identity.Models.Dto;
@@ -18,6 +19,7 @@ public class TransactionService : ITransactionsService
     private readonly IReservationRepository _reservations;
     private readonly ITransactionRepository _transactions;
     private readonly IBroadCastService _broadcast;
+    private static readonly Regex HexEscape = new(@"%[0-9a-f]{2}", RegexOptions.Compiled); //added this because currently payfast if failing because the signature is not a match hence transform the signature to uppercase for the match tom pass
 
     ///***chech if this causes circular dependency or effect the arch/////
     private readonly string _merchantId;
@@ -27,6 +29,12 @@ public class TransactionService : ITransactionsService
     private readonly string _notifyUrl;
     private readonly string _returnUrl;
     private readonly string _cancelUrl;
+
+    private static string PayfastUrlEncode(string value)
+    {
+        var encoded = HttpUtility.UrlEncode(value);
+        return HexEscape.Replace(encoded, m => m.Value.ToUpperInvariant());
+    }
 
     public TransactionService(
         IReservationRepository reservations,
@@ -98,7 +106,7 @@ public class TransactionService : ITransactionsService
         {
             new("merchant_id", _merchantId),
             new("merchant_key", _merchantKey),
-            new("return_url", _returnUrl),
+            new("return_url", $"{_returnUrl}?reservationId={reservationId}"),
             new("cancel_url", _cancelUrl),
             new("notify_url", _notifyUrl),
             new("name_first", buyer.FirstName ?? ""),
@@ -116,34 +124,59 @@ public class TransactionService : ITransactionsService
 
         foreach (var (key, value) in fields)
         {
-            sb.Append($"{key}={HttpUtility.UrlEncode(value)}&");
+            sb.Append($"{key}={PayfastUrlEncode(value)}&");
         }
 
         if (!string.IsNullOrEmpty(_passphrase))
         {
-            sb.Append($"passphrase={HttpUtility.UrlEncode(_passphrase)}");
+            sb.Append($"passphrase={PayfastUrlEncode(_passphrase)}");
         }
         else
         {
-            sb.Length -= 1; // why is this wrong-->-1 is invalid cause it throws an out of range exception
+            sb.Length -= 1;
         }
+
+        Console.WriteLine($"[PayFast Signature Debug] Raw string: {sb}");
 
         using var md5 = MD5.Create();
         var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
 
-        return Convert.ToHexString(hash).ToLowerInvariant();
+        var result = Convert.ToHexString(hash).ToLowerInvariant();
+        Console.WriteLine($"[PayFast Signature Debug] Computed: {result}");
+
+        return result;
     }
 
     private static string Truncate(string value, int maxLength) =>
         value.Length <= maxLength ? value : value[..maxLength];
 
-    public bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign)
+    public bool VerifySignature(List<KeyValuePair<string, string>> itnFields, string receivedSign)
     {
-        var fields = itnFields
-            .Where(f => f.Key != "signature" && !string.IsNullOrEmpty(f.Value))
-            .ToList();
+        var fields = itnFields.Where(f => f.Key != "signature").ToList();
         var Gensignature = GenerateSignature(fields);
         return Gensignature == receivedSign.ToLowerInvariant();
+    }
+
+    public bool VerifySignatureRaw(string rawBody, string receivedSign)
+    {
+        var withoutSignature = Regex.Replace(rawBody, @"(^|&)signature=[^&]*(&|$)", "$1").Trim('&');
+
+        var sb = new StringBuilder(withoutSignature);
+        if (!string.IsNullOrEmpty(_passphrase))
+        {
+            sb.Append($"&passphrase={PayfastUrlEncode(_passphrase)}");
+        }
+
+        Console.WriteLine($"[ITN Debug] String to hash: {sb}");
+
+        using var md5 = MD5.Create();
+        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+        var computed = Convert.ToHexString(hash).ToLowerInvariant();
+
+        Console.WriteLine($"[ITN Debug] Computed:  {computed}");
+        Console.WriteLine($"[ITN Debug] Received:  {receivedSign.ToLowerInvariant()}");
+
+        return computed == receivedSign.ToLowerInvariant();
     }
 
     public async Task ConfirmTransactionAsync(
@@ -186,6 +219,12 @@ public class TransactionService : ITransactionsService
         existing.PinStatus = "pending";
 
         await _transactions.SaveAsync(ct);
+        await _broadcast.SendToUserAsync(
+            reservation.BuyerId,
+            "pin_generated",
+            new { reservationId, pin }
+        );
+
         await _broadcast.SendToUserAsync(
             reservation.BuyerId,
             "pin_generated",

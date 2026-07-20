@@ -21,5 +21,6 @@ public interface ITransactionsService
         string pin,
         CancellationToken ct = default
     );
-    bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign);
+    bool VerifySignature(List<KeyValuePair<string, string>> itnFields, string receivedSign);
+    bool VerifySignatureRaw(string rawBody, string receivedSign);
 }

@@ -2,7 +2,7 @@ namespace Modules.Reservations.StateMachine;
 
 public static class GeoDistance
 {
-    public const double VerificationRadiusMetres = 300; // a valid check in is within 300m of the agreed location, maybe too harsh or  too relaxed, NOTE
+    public const double VerificationRadiusMetres = 1000; // a valid check in is within 1000m of the agreed location, maybe too harsh or  too relaxed, NOTE
 
     public const double EarthRadiusMetres = 6_371_000;
 
