@@ -21,6 +21,7 @@ interface QuickLinkItem {
   icon: React.ReactNode;
   title: string;
   description: string;
+  details: string[];
 }
 
 interface FaqItem {
@@ -63,6 +64,54 @@ function Navbar() {
   );
 }
 
+function QuickLinkOverlay({
+  link,
+  onClose,
+
+}: {
+  link: QuickLinkItem;
+  onClose: () => void;
+}) {
+  return (
+    <div 
+    className = "fixed inset-0 bg-black/40 z-50 flex items-end justify-center "
+    onClick = {(e) => {
+      if(e.target === e.currentTarget) onClose();
+    }}
+    >
+      <div className = "bg-white rounded-t-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
+        <div className = "flex items-start gap-3 px-5 py-4 border-b border-gray-100">
+          <div className = "w-10 h-10 rounded-lg-bg-[#eef4fa] flex items-center justify-center flex-shrink-0">
+            {link.icon}
+          </div>
+          <div className = "flex-1 min-w-0">
+            <div className = "font-bold text-[#003366] text-sm">
+              {link.title}
+            </div>
+            <div className = "text-xs text-gray-400">
+              {link.description}
+            </div>
+          </div>
+          <button
+          onClick={onClose}
+          aria-label = "Close"
+          className = "w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors flex-shrink-0"
+          >
+            <IconX size = {16} />
+          </button>
+        </div>
+
+        <div className = "flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
+          {link.details.map((paragraph, i) => (
+            <p key = {i} className = "text-sm text-gray-600 leading-relaxed">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 export default function HelpCenter() {
   //const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +156,7 @@ export default function HelpCenter() {
       },
       {
         keywords: ['payout', 'pay', 'paid', 'seller', 'receive money', 'business day'],
-        reply: 'Payouts to sellers usually take about 2-3 business days after the buyers paymennt is confirmed.',
+        reply: 'Payouts to sellers usually take about 2-3 business days after the buyers payments is confirmed.',
         faqIndex: 1,
       },
       {
@@ -125,6 +174,11 @@ export default function HelpCenter() {
         reply: "If an item does not match its description or has undisclosed damage, you can log a formal case file immediately via the 'Report a Problem' tile on this dashboard before marking the trade complete.",
         faqIndex: 4,
       },
+      {
+        keywords: ['sign up', 'signing up', 'get started', 'open an account', 'start an account'],
+        reply: "To sign up and start an account navigate to the home page and press on the get started account, if you have an account already, you can login to access your account.",
+        faqIndex: 5
+      }
 
     ];
 
@@ -178,12 +232,59 @@ export default function HelpCenter() {
   };
 
   const quickLinks: QuickLinkItem[] = [
-    { icon: <IconBookmark size={22} className="text-[#003366]" />, title: 'Reserving items', description: 'How reservations work and when they expire.' },
-    { icon: <IconUpload size={22} className="text-[#003366]" />, title: 'Listing a product', description: 'Create and manage your product listing.' },
-    { icon: <IconCreditCard size={22} className="text-[#003366]" />, title: 'Payment and Payouts', description: 'How payments are processed and when you get paid.' },
-    { icon: <IconShield size={22} className="text-[#003366]" />, title: 'Buyer Protection', description: 'Whats covered is something goes wrong.' },
-    { icon: <IconStar size={22} className="text-[#003366]" />, title: 'Reviews and ratings', description: 'How to leave and respond to reviews.' },
-    { icon: <IconAlertCircle size={22} className="text-[#003366]" />, title: 'Reporting a problem', description: 'Flag a listing, user, or dispute an order.' },
+    { 
+      icon: <IconBookmark size={22} className="text-[#003366]" />, 
+      title: 'Reserving items', 
+      description: 'How reservations work and when they expire.' ,
+      details: [
+        "when you reserve a listing , the seller has 24 hours to accept before the reservation expires automatically",
+        "Once accepted, the item is held for you and will not be shown to other buyers until the reservation is completed or cancelled",
+        "You can cancel a pending reservation at any time from your Reservations page",
+      ],},
+    { 
+      icon: <IconUpload size={22} className="text-[#003366]" />, 
+      title: 'Listing a product', 
+      description: 'Create and manage your product listing.' ,
+      details: [
+      "Go to upload a listing and fill in the details of the listing such as the price, condition and at least one photo of the item",
+      "You can edit or remove a listing at any time before it is reserved by a buyer",
+      "Listings that break our content guidelines may be removed- see 'Reporting a problem' for more details",
+      ],
+    },
+    { icon: <IconCreditCard size={22} className="text-[#003366]" />,
+      title: 'Payment and Payouts', 
+      description: 'How payments are processed and when you get paid.',
+      details: [
+        "Buyers pay securely through UniTrade at checkout; funds are held until the meetup is confirmed.",
+        "Sellers receive payouts within 2-3 business days after a completed and confirmed handover.",
+        "You can track payout status from your Seller Dashboard."
+
+      ] },
+    { icon: <IconShield size={22} className="text-[#003366]" />, 
+      title: 'Buyer Protection', 
+      description: 'Whats covered is something goes wrong.',
+      details: [
+        "still need to add this lol "
+
+      ] },
+    { icon: <IconStar size={22} className="text-[#003366]" />, 
+      title: 'Reviews and ratings', 
+      description: 'How to leave and respond to reviews.',
+      details: [
+        "After a reservation is completed, both buyer and seller can leave a rating and short review.",
+        "Reviews are public on a user's profile and can't be edited after posting, so double-check before submitting.",
+        "You can reply once to a review you've received to add context.",
+
+      ] },
+    { icon: <IconAlertCircle size={22} className="text-[#003366]" />, 
+      title: 'Reporting a problem', 
+      description: 'Flag a listing, user, or dispute an order.',
+      details: [
+        "Use the 'Report' option on any listing, profile, or chat to flag something to our team.",
+        "For order-specific issues, open a dispute from the Reservation page instead — it routes faster.",
+        "We aim to review reports within 24 hours.",
+
+      ] },
   ];
 
   const faqs: FaqItem[] = [
