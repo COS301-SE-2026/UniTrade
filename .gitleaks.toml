@@ -1,7 +1,7 @@
 title = "UniTrade Gitleaks"
 
 [[allowlists]]
-description = 'Public Firebase Web API key used by the Web SDK"
+description = "Public Firebase Web API key used by the Web SDK"
 regexes = [
     '''AIzaSyDuFf0srxj0BURaw-GbbUuJr9a5cJLKCsA'''
 ]
