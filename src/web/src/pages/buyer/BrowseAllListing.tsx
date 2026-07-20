@@ -73,8 +73,8 @@ function ListingCard({
 
     try {
       await listingsService.addToWishlist(String(listing.id));
-      (setWishlisted(true),
-        queryClient.invalidateQueries({ queryKey: ["wishlist"] }));
+      setWishlisted(true);
+        queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       showToast("success", "Successfully added to wishlist.");
     } catch (err) {
       if (err instanceof Error && err.message === "already_wishlisted") {

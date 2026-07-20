@@ -53,6 +53,13 @@ services:
       Acs__SenderAddress: ${Acs__SenderAddress}
       Acs__ConnectionString: ${Acs__ConnectionString}
       Firebase__CredentialsJson: ${Firebase__CredentialsJson}
+      PayFast__MerchantId: ${PayFast__MerchantId}
+      PayFast__MerchantKey: ${PayFast__MerchantKey}
+      PayFast__SandboxUrl: ${PayFast__SandboxUrl}
+      PayFast__PassPhrase: ${PayFast__PassPhrase}
+      PayFast__NotifyUrl: ${PayFast__NotifyUrl}
+      PayFast__ReturnUrl: ${PayFast__ReturnUrl}
+      PayFast__CancelUrl: ${PayFast__CancelUrl}
     depends_on:
      db: 
        condition: service_healthy

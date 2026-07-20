@@ -34,7 +34,7 @@ const active = reservations
     })
 
     return (
-        <div className = "w-72 shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
+        <div className = "w-full md:w-72 md:shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
             <div className = "px-4 py-3 border-b border-gray-100">
                 <h2 className="text-sm font-bold text-gray-800 text-xl">
                     Messages
