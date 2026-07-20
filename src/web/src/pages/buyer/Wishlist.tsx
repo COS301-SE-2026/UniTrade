@@ -171,7 +171,7 @@ export default function Wishlist() {
   const [sortOption, setSortOption] = useState<SortOption>("Date added");
   const [sortOpen, setSortOpen] = useState(false);
   const { data, isLoading, error } = useWishlist();
-  const listings = data?.listings ?? [];
+  const listings = useMemo(() => data?.listings ?? [], [data]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [conditionFilter, setConditionFilter] = useState<
     BrowseCondition | "All"

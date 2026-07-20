@@ -229,9 +229,6 @@ export default function ReservationDetails() {
     if (reservation) navigate(`/buyer/listings/${reservation.listingId}`);
   };
 
-  const handleScheduleMeetup = () => {
-    if (reservation) navigate(`/${isSeller ? 'seller' : 'buyer'}/reservations/${reservation.reservationId}/meetup`);
-  };
 
   const handleCancel = async () => {
     if (!reservation) return;
@@ -252,6 +249,19 @@ export default function ReservationDetails() {
       );
     }
     setIsCancelling(false);
+  };
+
+  const handleViewMeetupDetails = () => {
+     if (!reservation) return;
+     navigate('/payment/meetup', {
+      state: {
+        reservationId: reservation.reservationId,
+        role: isSeller ? 'seller' : 'buyer',
+        counterpartyName: otherPartyName,
+        listingTitle: listingDetail?.title,
+        listingPrice: listingDetail?.price,
+      },
+     });
   };
 
   if (isLoading) {
@@ -289,6 +299,7 @@ export default function ReservationDetails() {
   }
   const isCancelled = reservation.reservationStatus === "cancelled";
   const isCoordinating = reservation.timerStage === "coordinating";
+  const isMeetupConfirmed = reservation.timerStage === "meetup_confirmed";
   const expiresDate = new Date(reservation.expiresAt);
   const createdDate = new Date(reservation.createdAt);
 
@@ -327,7 +338,7 @@ export default function ReservationDetails() {
           </span>
         </nav>
 
-        {!isCancelled && (
+        {!isCancelled && !isMeetupConfirmed && (
 
           <div className="text-right">
             <p
@@ -409,8 +420,8 @@ export default function ReservationDetails() {
               />
               <ActionButton
                 icon={<IconCalendarClock size={16} />}
-                label="Schedule Meetup"
-                onClick={handleScheduleMeetup}
+                label="View Meetup Details"
+                onClick={handleViewMeetupDetails}
                 disabled={isCancelled || isExpired}
               />
               <ActionButton

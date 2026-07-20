@@ -18,6 +18,10 @@ public class ChatService : IChatService
     private readonly IChatNotifier _notifier;
     private readonly INotificationDispatcher _pushNotifier;
     private readonly ILogger<ChatService> _logger;
+    private static readonly TimeSpan SouthAfricaOffset = TimeSpan.FromHours(2);
+
+    private static DateTime ToSouthAfricaTime(DateTime utc) =>
+        DateTime.SpecifyKind(utc, DateTimeKind.Utc).Add(SouthAfricaOffset);
 
     public ChatService(
         IChatRepository chatRepo,
@@ -244,7 +248,7 @@ public class ChatService : IChatService
 
         var content =
             $"Proposed a meetup at {payload.LocationName}, "
-            + $"{payload.ProposedTime:ddd d MMM HH:mm}";
+            + $"{ToSouthAfricaTime(payload.ProposedTime):ddd d MMM HH:mm}";
 
         var message = new ChatMessage
         {
@@ -289,9 +293,18 @@ public class ChatService : IChatService
             throw new ChatException(ChatErrors.Forbidden);
         }
 
-        var content = payload.Accepted
-            ? $"Meetup confirmed - {payload.ProposedTime:ddd d MMM HH:mm} at {payload.LocationName}"
-            : "Meetup proposal declined";
+        string content;
+        if (payload.Accepted)
+        {
+            var timeText = payload.ProposedTime.HasValue
+                ? ToSouthAfricaTime(payload.ProposedTime.Value).ToString("ddd d MMM HH:mm")
+                : "time TBC";
+            content = $"Meetup confirmed - {timeText} at {payload.LocationName}";
+        }
+        else
+        {
+            content = "Meetup proposal declined";
+        }
         var result = new ChatMessage
         {
             ReservationId = reservationId,
