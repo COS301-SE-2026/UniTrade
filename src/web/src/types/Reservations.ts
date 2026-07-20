@@ -85,6 +85,13 @@ export interface MeetupResponsePayload {
     accepted: boolean;
 }
 
+export interface TransactionRequestResponse {
+    sandbox_url: string;
+    fields: Record<string, string>;
+}
+
+
+
 export interface MeetupResponseMessage extends ChatMessageBase {
     messageType: 'meetup_response';
     content: string;

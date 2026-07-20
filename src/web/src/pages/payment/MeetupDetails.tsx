@@ -6,6 +6,10 @@ import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
 import { getReservationById } from '../../services/reservationService';
 import LocationPicker from '../../components/layout/LocationPicker';
+import { useEffect } from 'react';
+import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
+import { connectionManager } from '../../services/realtime/connectionManager';
+
 interface MeetupDetailsState {
   reservationId?: string;
   role?: 'buyer' | 'seller';
@@ -37,7 +41,7 @@ export default function MeetupDetails() {
   const isSeller = navState.role === 'seller'
   const reservationId = navState.reservationId;
   const [showCheckIn, setShowCheckIn] = useState(false);
-
+  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
 
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
@@ -78,6 +82,46 @@ export default function MeetupDetails() {
         ? { lat: navState.meetupLat, lng: navState.meetupLng }
         : null;
 
+  useEffect(() => {
+    if (!reservationId || !isSeller) return;
+
+    getTransactionStatus(reservationId).then((result) => {
+      if (result.success) setTxStatus(result.data);
+    });
+
+    connectionManager.connect().catch((e) => console.error('connect failed', e));
+    const off = connectionManager.onPaymentCompleted((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });
+    return () => off();
+  }, [reservationId, isSeller]);
+
+  const handlePayNow = async () => {
+    if (!reservationId) return;
+    const result = await createTransactionRequest(reservationId);
+    if (!result.success) {
+      console.error('Failed to start payment:', result.error);
+      return;
+    }
+    const { sandbox_url, fields } = result.data;
+    console.log('Payfast response:', result.data); //not to me(Tafadzwa)- make sure to remove this
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = sandbox_url;
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   if (!reservationId) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
@@ -97,6 +141,10 @@ export default function MeetupDetails() {
   if (isLoading && !navState.meetupLocation) {
     return <div className="p-8 text-center text-slate-500">Looading meetup details....</div>;
   }
+
+
+
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
       <div className="bg-navy-800 border-b border-slate-200">
@@ -219,7 +267,7 @@ export default function MeetupDetails() {
                 </p>
               </div>
               {!isSeller ? (
-                <div className=" space-y-3">
+                <div className="space-y-3">
                   {!meetup?.buyerCheckedIn ? (
                     <>
                       <button
@@ -229,14 +277,16 @@ export default function MeetupDetails() {
                         <MapPin className="w-4 h-4" /> Check In at Meetup
                       </button>
                       <p className="text-center text-[11px] text-slate-400">
-                        Check in once you are at the meetup to unlock payment.
+                        Check in once you've arrived to unlock payment.
                       </p>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => navigate('/payment/payfast-redirect', { state: { reservationId, price } })}
+                      <button
+                        onClick={handlePayNow}
                         disabled={!meetup?.paymentUnlocked || price == null}
-                        className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg">
+                        className="w-full bg-blue-950 hover:bg-blue-900 disabled:bg-gray-300 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                      >
                         <Lock className="w-4 h-4" /> Pay {price != null ? `R${price.toFixed(2)}` : ''}
                       </button>
                       <p className="text-center text-[11px] text-slate-400">
@@ -254,9 +304,20 @@ export default function MeetupDetails() {
                     >
                       <MapPin className="w-4 h-4" /> Check In at Meetup
                     </button>
+                  ) : txStatus?.transactionStatus === 'completed' && txStatus?.pinStatus === 'pending' ? (
+                    <button
+                      onClick={() => navigate('/payment/buyer-pin', { state: { reservationId } })}
+                      className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                    >
+                      <Lock className="w-4 h-4" /> Enter Buyer's PIN
+                    </button>
+                  ) : txStatus?.pinStatus === 'confirmed' ? (
+                    <p className="text-center text-sm text-emerald-700 bg-emerald-50 rounded-xl py-3 px-4">
+                      Transaction complete.
+                    </p>
                   ) : (
                     <p className="text-center text-sm text-slate-500 bg-slate-50 rounded-xl py-3 px-4">
-                      {meetup?.buyerCheckedIn ? 'Waiting for the buyer to complete payment.' : "Waiting for the buyer to check in."}
+                      Waiting for the buyer to complete payment.
                     </p>
                   )}
                 </div>
