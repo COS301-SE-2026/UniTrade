@@ -11,8 +11,14 @@ import type {
     
 } from '../types/Reservations'
 import { getApiUrl } from "../config";
+import type { TransactionRequestResponse } from '../types/Reservations';
+
 //import type { MeetupDetailsResponse } from '../types/meetup';
 
+export interface TransactionStatusResponse {
+    transactionStatus: 'none' | 'completed' | string;
+    pinStatus: 'pending' | 'confirmed' | null;
+}
 
 async function handleResponse<T>(res: Response): Promise<Result<T>>{
      if (res.ok) {
@@ -160,3 +166,61 @@ const res = await fetch(`${getApiUrl()}/reservations/${reservationId}`, {
 });
 return handleResponse<Reservation>(res)
   }
+
+export async function createTransactionRequest (
+  reservationId: string,
+): Promise<Result<TransactionRequestResponse>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/Transaction-request`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
+
+    }
+    return { success: true, data: await res.json()};
+  } catch {
+    return { success: false, error: {code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
+export async function getTransactionStatus(
+  reservationId: string,
+): Promise<Result<TransactionStatusResponse>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/transaction-status`, {
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
+    }
+    return { success: true, data: await res.json()};
+  } catch {
+    return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
+export async function verifyPin(
+  reservationId: string,
+  pin: string,
+): Promise<Result<void>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/verify-pin`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ pin }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
+    }
+    return { success: true, data: undefined};
+  } catch {
+    return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
