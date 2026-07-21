@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260719024021_AddWishListSuppression")]
+    partial class AddWishListSuppression
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -686,58 +689,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("listing_images", "unitrade");
                 });
 
-            modelBuilder.Entity("Modules.Notifications.Models.DeviceToken", b =>
-                {
-                    b.Property<Guid>("DeviceTokenId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("device_token_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime>("LastSeenAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_seen_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("Platform")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("platform");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
-                        .HasColumnName("token");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("DeviceTokenId")
-                        .HasName("pk_device_tokens");
-
-                    b.HasIndex("Token")
-                        .IsUnique()
-                        .HasDatabaseName("ix_device_tokens_token");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_device_tokens_user");
-
-                    b.ToTable("device_tokens", "unitrade", t =>
-                        {
-                            t.HasCheckConstraint("chk_device_platform", "platform IN ('web', 'android', 'ios')");
-                        });
-                });
-
             modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -1008,10 +959,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<Guid>("SellerId")
                         .HasColumnType("uuid")
                         .HasColumnName("seller_id");
-
-                    b.Property<DateTime?>("TwoHourWarningSentAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("two_hour_warning_sent_at");
 
                     b.HasKey("ReservationId")
                         .HasName("pk_reservations");
@@ -1368,18 +1315,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_listing_images_listings_listing_id");
 
                     b.Navigation("Listing");
-                });
-
-            modelBuilder.Entity("Modules.Notifications.Models.DeviceToken", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_device_tokens_users_user_id");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>

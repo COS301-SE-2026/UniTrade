@@ -346,6 +346,8 @@ export default function ChatPage() {
     const [isSendingProposal, setIsSendingProposal] = useState(false);
 
 
+  void isProposingMeetup;
+  void checkInLocation; // change when FE2 fixes
 
     const handleProposeMeetup = async (values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);

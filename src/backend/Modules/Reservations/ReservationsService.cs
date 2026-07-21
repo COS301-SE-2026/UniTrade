@@ -75,8 +75,7 @@ public class ReservationService(
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
-
-        await _wishlist.CleanForListingAsync(listingId, ct);
+        await _wishlist.SuppressForListingAsync(listingId, reservation.ReservationId, ct);
         await GuardedPushAsync(
             listing.SellerId,
             NotificationTypes.ReservationStatus,
@@ -144,6 +143,8 @@ public class ReservationService(
         {
             await _listings.ReleaseAsync(rl.ListingId, ct);
         }
+         
+         await _wishlist.RestoreForReservationAsync(reservationId, ct);
 
         var whoIsThis = callerId == r.BuyerId ? "buyer" : "seller";
         await _chat.SendSystemAsync(
@@ -300,6 +301,9 @@ public class ReservationService(
                 await _listings.ReleaseAsync(rl.ListingId, ct);
             }
 
+            await _wishlist.RestoreForReservationAsync(reservation.ReservationId, ct);
+
+            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
         }
 
