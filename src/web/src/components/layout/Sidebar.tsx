@@ -20,6 +20,7 @@ import { authService } from '../../services/authService'
 import { useState, useEffect, useRef } from 'react'
 import { useReservationsList } from '../../hooks/useReservationsList'
 import { useUnreadRealtime } from '../../hooks/useUnreadRealtime'
+import { connectionManager } from '../../services/realtime/connectionManager'
 
 interface NavItem {
   label: string
@@ -199,7 +200,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await authService.logout()
+      await authService.logout(() => connectionManager.disconnect());
     } catch {
        //Inacase there is an api call frontend doesn't fail
     } finally {
