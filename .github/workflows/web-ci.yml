@@ -92,7 +92,7 @@ jobs:
         run: docker build -t unitrade-web-ci .
 
       - name: Install SonarScanner
-        run: npm install -g sonar-scanner@5.0.1 --ignore-scripts
+        run: npm install -g @sonar/scan --ignore-scripts
         
       - name: Run SonarCloud analysis
         working-directory: src/web
