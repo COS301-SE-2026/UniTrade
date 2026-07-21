@@ -9,6 +9,8 @@ public class WishlistItem
     public Guid StudentId { get; set; }
     public Guid ListingId { get; set; }
     public DateTime AddedAt { get; set; }
+    public DateTime? SuppressedAt { get; set; }
+    public Guid? SuppressedByReservationId { get; set; }
     public StudentProfile? Student { get; set; }
     public Listing Listing { get; set; } = null!;
 }
