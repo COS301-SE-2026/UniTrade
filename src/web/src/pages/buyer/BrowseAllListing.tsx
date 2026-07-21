@@ -246,7 +246,7 @@ export default function BrowseAllListing() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-800 dark:text-white">
+        <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Browse All Listings
         </h1>
         <p className="text-sm text-gray-400 mt-1">

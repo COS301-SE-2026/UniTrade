@@ -64,6 +64,12 @@ jobs:
         working-directory: src/web
         run: npm run lint
 
+      - name: Set up Java 21 for SonarScanner
+        uses: actions/setup-java@v4
+        with:
+         java-version: '21'
+         distribution: 'temurin'
+
       - name: Validate frontend env
         working-directory: src/web
         env: 
