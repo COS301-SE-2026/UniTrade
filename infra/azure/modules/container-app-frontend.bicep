@@ -6,6 +6,8 @@ param acrLoginServer string
 param placeholderImage string
 
 param acrUsername string
+
+@secure()
 param acrPassword string
 
 var appName='ca-frontend-${environment}'
@@ -43,7 +45,7 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                     image:placeholderImage
                     resources:{
                         cpu:json('0.25')
-                        memory:'1Gi'
+                        memory:'0.5Gi'
                     }
                 }
             ]
@@ -57,4 +59,3 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
 
 output fqdn string =frontendApp.properties.configuration.ingress.fqdn
 output appName string =frontendApp.name
-output principalId string =frontendApp.Identity.principalId

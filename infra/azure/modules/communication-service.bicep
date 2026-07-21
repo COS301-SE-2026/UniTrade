@@ -1,4 +1,4 @@
-param  string projectName
+param  projectName string
 
 var acsName='acs-${projectName}'
 var emailServiceName='email-${projectName}'
@@ -32,4 +32,3 @@ resource acs 'Microsoft.Communication/communicationServices@2023-04-01'={
 
 output senderAddress string='DoNotReply@${domain.properties.mailFromSenderDomain}'
 output connectionString string=acs.listKeys().primaryConnectionString
-output acsName string=acs.name
