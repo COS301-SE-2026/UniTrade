@@ -14,9 +14,8 @@ param acrName string
 param acrUsername string
 
 @secure()
-param acrPassword
+param acrPassword string
 
-@secure()
 param adminUsername string='psqladmin'
 
 @secure()
@@ -31,7 +30,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2023-07-01'={
     location: location
 }
 
-param deployAcr bool=false;
+param deployAcr bool=false
 
 module containerRegistry 'modules/container-registry.bicep'=if(deployAcr){
     name: 'deployAcr'
