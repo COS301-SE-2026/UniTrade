@@ -12,6 +12,8 @@ public record CheckInResult(
 public record MeetupStatusDto(
     int MeetupId,
     string AgreedLocationName,
+    decimal AgreedLatitude,
+    decimal AgreedLongitude,
     DateTime AgreedTime,
     DateTime CheckinWindowClosesAt,
     bool CheckInWindowOpen,

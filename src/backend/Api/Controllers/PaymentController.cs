@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Reservations.Repositories;
@@ -62,15 +63,33 @@ public class TransactionController : ControllerBase
     [HttpPost("itn")]
     public async Task<IActionResult> HandleItn(CancellationToken ct)
     {
-        var form = await Request.ReadFormAsync(ct);
-        var fields = form.ToDictionary(f => f.Key, f => f.Value.ToString());
+        Console.WriteLine("[ITN Debug] VERSION-CHECK-2 — MemoryStream approach running");
+
+        string rawBody;
+        using (var ms = new MemoryStream())
+        {
+            await Request.Body.CopyToAsync(ms, ct);
+            ms.Position = 0;
+            using var reader = new StreamReader(ms, Encoding.UTF8);
+            rawBody = await reader.ReadToEndAsync(ct);
+        }
+
+        Console.WriteLine($"[ITN Debug] rawBody length: {rawBody.Length}, content: '{rawBody}'");
+
+        var fields = rawBody
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(pair => pair.Split('=', 2))
+            .ToDictionary(
+                parts => Uri.UnescapeDataString(parts[0]),
+                parts => parts.Length > 1 ? Uri.UnescapeDataString(parts[1].Replace('+', ' ')) : ""
+            );
 
         if (!fields.TryGetValue("signature", out var receivedSign))
         {
             return BadRequest();
         }
 
-        if (!_Transactions.VerifySignature(fields, receivedSign))
+        if (!_Transactions.VerifySignatureRaw(rawBody, receivedSign))
         {
             return BadRequest("invalid_signature");
         }
@@ -103,4 +122,53 @@ public class TransactionController : ControllerBase
 
         return Ok();
     }
+
+    //Added the following endpoints for integration (Tafadzwa)
+
+    [HttpPost("{reservationId}/verify-pin")]
+    [Authorize]
+    public async Task<IActionResult> VerifyPin(
+        Guid reservationId,
+        [FromBody] VerifyPinRequest request,
+        CancellationToken ct
+    )
+    {
+        var userIdClaim =
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var sellerId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await _Transactions.VerifyPinAsync(reservationId, sellerId, request.Pin, ct);
+            return Ok();
+        }
+        catch (TransactionException ex)
+        {
+            return ex.Code switch
+            {
+                "transaction_not_found" => NotFound(new { code = ex.Code }),
+                "not_seller" => Forbid(),
+                "too_many_attempts" => BadRequest(new { code = ex.Code }),
+                "invalid_pin" => BadRequest(new { code = ex.Code }),
+                _ => BadRequest(new { code = ex.Code }),
+            };
+        }
+    }
+
+    [HttpGet("{reservationId}/transaction-status")]
+    [Authorize]
+    public async Task<IActionResult> GetTransactionStatus(Guid reservationId, CancellationToken ct)
+    {
+        var tx = await _transactions.GetByReservationIdTrackedAsync(reservationId, ct);
+        if (tx is null)
+        {
+            return Ok(new { transactionStatus = "none", pinStatus = (string?)null });
+        }
+        return Ok(new { transactionStatus = tx.TransactionStatus, pinStatus = tx.PinStatus });
+    }
+
+    public record VerifyPinRequest(string Pin);
 }

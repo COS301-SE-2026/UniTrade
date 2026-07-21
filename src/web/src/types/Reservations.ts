@@ -1,6 +1,7 @@
 export type ReservationStatus = 'active' | 'expired' | 'cancelled' | 'completed';
-export type TimerStage = 'awaiting_seller' | 'awaiting_buyer' | 'coordinating';
+export type TimerStage = 'awaiting_seller' | 'awaiting_buyer' | 'coordinating' | 'meetup_confirmed';
 export type MessageType = 'text' | 'system' | 'meetup_proposal' | 'meetup_response';
+export type MeetupStatus = 'pending' | 'accepted' | 'declined';
 
 export interface Reservation {
     reservationId: string;
@@ -63,8 +64,15 @@ export interface SystemMessage extends ChatMessageBase {
 }
 
 export interface MeetupProposalPayload {
-    proposedTime: string;
-    proposedLocation: string;
+    LocationName?: string;
+    proposedLocation?: string;
+    ProposedTime?: string;
+    proposedTime?: string;
+    Lat?: number;
+    Lng?: number;
+    lat?: number;
+    lng?: number;
+    status?: MeetupStatus;
 }
 
 export interface MeetupProposalMessage extends ChatMessageBase {
@@ -76,6 +84,13 @@ export interface MeetupProposalMessage extends ChatMessageBase {
 export interface MeetupResponsePayload {
     accepted: boolean;
 }
+
+export interface TransactionRequestResponse {
+    sandbox_url: string;
+    fields: Record<string, string>;
+}
+
+
 
 export interface MeetupResponseMessage extends ChatMessageBase {
     messageType: 'meetup_response';

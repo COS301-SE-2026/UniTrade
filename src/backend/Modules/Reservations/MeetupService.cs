@@ -208,6 +208,8 @@ public class MeetupService : IMeetupService
         return new MeetupStatusDto(
             MeetupId: meetup.MeetupId,
             AgreedLocationName: meetup.AgreedLocationName,
+            AgreedLatitude: meetup.AgreedLatitude,
+            AgreedLongitude: meetup.AgreedLongitude,
             AgreedTime: meetup.AgreedTime,
             CheckinWindowClosesAt: meetup.CheckinWindowClosesAt,
             CheckInWindowOpen: MeetupStateMachine.IsCheckInWindowOpen(meetup, now),
