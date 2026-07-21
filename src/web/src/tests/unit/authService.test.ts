@@ -199,7 +199,8 @@ describe("authService", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: true });
 
-      await authService.logout();
+      const mockStopConn = vi.fn().mockResolvedValue(undefined);
+      await authService.logout(mockStopConn);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/auth/logout"),
@@ -213,8 +214,9 @@ describe("authService", () => {
     it("should not throw even if the logout response is not ok", async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis.fetch as any).mockResolvedValueOnce({ ok: false });
+      const mockStopConn = vi.fn().mockResolvedValue(undefined);
 
-      await expect(authService.logout()).resolves.toBeUndefined();
+      await expect(authService.logout(mockStopConn)).resolves.toBeUndefined();
     });
   });
 
