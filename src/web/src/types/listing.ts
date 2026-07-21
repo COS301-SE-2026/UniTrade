@@ -161,13 +161,17 @@ export interface ProposeMeetupPayload {
 }
 
 export interface MeetupStatusResponse {
-  proposalMessageId: number 
-  locationName: string
-  lat : number 
-  lng : number 
-  proposedTime : string 
-  status : MeetupStatus
-  checkedInAt?: string | null
+  meetupId: number
+  agreedLocationName: string
+  agreedLatitude: number
+  agreedLongitude: number
+  agreedTime: string
+  checkinWindowClosesAt: string
+  checkInWindowOpen: boolean
+  buyerCheckedIn: boolean
+  sellerCheckedIn: boolean
+  paymentUnlocked: boolean
+  status: string
 }
 
 export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'

@@ -11,6 +11,20 @@ export interface MeetupProposalPayload {
     //proposedByUserId?: string;
 }
 
+export interface MeetupDetailsResponse {
+    meetupId: number,
+    agreedLocationName: string;
+    agreedLatitude: number;
+    agreedLongitude: number;
+    agreedTime: string,
+    checkinWindowClosesAt: string;
+    checkInWindowOpen: boolean;
+    buyerCheckedIn: boolean;
+    sellerCheckedIn: boolean;
+    paymentUnlocked: boolean;
+    status: string;
+}
+
 export interface MeetupFormValues {
     date: string;
     time:string;
@@ -24,7 +38,7 @@ export interface MeetupFormValues {
 export function combineDateAndTime(date: string, time: string): string{
     const [year, month, day] = date.split('-').map(Number);
     const [hours, minutes] = time.split(':').map(Number);
-    const dt = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    const dt = new Date(year, month - 1, day, hours, minutes);
     return dt.toISOString(); 
 }
 
