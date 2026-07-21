@@ -121,4 +121,10 @@ public class WishlistService : IWishlistService
         );
         return new WishlistItemDto(w.WishlistId, w.ListingId, w.AddedAt, listing);
     }
+
+    public async Task SuppressForListingAsync(Guid listingId, Guid reservationId, CancellationToken ct = default) =>
+    await _wishlist.SuppressAllForListingAsync(listingId,reservationId, ct);
+    public async Task RestoreForReservationAsync(Guid reservationId, CancellationToken ct = default) =>
+    await _wishlist.RestoreForReservationAsync(reservationId,ct);
+
 }

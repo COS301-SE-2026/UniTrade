@@ -1,12 +1,11 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Modules.Identity.Models;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
-using Microsoft.Extensions.Configuration;
 
 namespace Modules.Identity.Verification;
-
 
 public sealed class VerificationException(string code) : Exception(code) { }
 
@@ -15,7 +14,7 @@ public class VerificationService : IVerificationService
     private readonly IVerificationRepository _verifications;
 
     private readonly IUserRepository _users;
-    private readonly INotificationsService _notifications;
+    private readonly IEmailService _emails;
     private readonly IConfiguration _config;
     private const int OTP_EXPIRY_MINUTES = 5;
     private const int MAX_ATTEMPTS = 3;
@@ -24,13 +23,13 @@ public class VerificationService : IVerificationService
     public VerificationService(
         IVerificationRepository verifications,
         IUserRepository users,
-        INotificationsService notifications,
+        IEmailService emails,
         IConfiguration config
     )
     {
         _verifications = verifications;
         _users = users;
-        _notifications = notifications;
+        _emails = emails;
         _config = config;
     }
 
@@ -72,7 +71,7 @@ public class VerificationService : IVerificationService
 
         await _verifications.CreateAsync(record);
 
-        await _notifications.SendOtpEmailAsync(email, otp);
+        await _emails.SendOtpEmailAsync(email, otp);
     }
 
     public async Task<bool> VerifyAsync(Guid userId, string otp)
@@ -141,7 +140,7 @@ public class VerificationService : IVerificationService
         {
             User.StudentProfile.VerificationStatus = "verified";
             await _users.UpdateAsync(User);
-            await _notifications.SendWelcomeEmailAsync(User.Email, User.FirstName);
+            await _emails.SendWelcomeEmailAsync(User.Email, User.FirstName);
         }
         return true;
     }
@@ -175,7 +174,7 @@ public class VerificationService : IVerificationService
         record.AttemptNumber = 0;
 
         await _verifications.UpdateAsync(record);
-        await _notifications.SendOtpEmailAsync(email, otp);
+        await _emails.SendOtpEmailAsync(email, otp);
     }
 
     private static string GenerateOtp()

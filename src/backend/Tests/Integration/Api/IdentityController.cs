@@ -5,6 +5,7 @@ using Api.Tests.Integration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Microsoft.Extensions.Configuration;
 
 namespace Api.Tests.Integration.Api;
 
