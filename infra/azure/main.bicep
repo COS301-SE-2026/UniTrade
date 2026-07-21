@@ -14,8 +14,12 @@ param acrName string
 param acrUsername string
 
 @secure()
+param acrPassword
+
+@secure()
 param adminUsername string='psqladmin'
 
+@secure()
 param adminPassword string
 
 param placeholderImage string='mcr.microsoft.com/k8se/quickstart:latest'
@@ -71,6 +75,14 @@ module postgresql 'modules/postgresql.bicep'={
 }
 
 module communicationService 'modules/communication-service.bicep'={
+    name: 'deploy-acs'
+    scope: rg
+    params: {
+        projectName: projectName
+    }
+}
+
+module backendApp 'modules/container-app-backend.bicep'={
     name: 'deploy-backend'
     scope: rg
     params: {
@@ -79,6 +91,7 @@ module communicationService 'modules/communication-service.bicep'={
         location: location
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
         acrLoginServer: acrLoginServer
+        placeholderImage: placeholderImage
         acrUsername: acrUsername
         acrPassword: acrPassword
     }

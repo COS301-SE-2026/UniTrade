@@ -4,6 +4,7 @@ param createServer bool=true
 param location string
 param adminUsername string ='devnexusadmin'
 
+@secure()
 param adminPassword string =''
 
 var databaseName='unitrade'
@@ -18,6 +19,7 @@ resource newServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview
     properties:{
         version: 16
         administratorLogin: adminUsername
+        administratorLoginPassword: adminPassword
         storage:{
             storageSizeGB:32
         }
@@ -32,13 +34,29 @@ resource existingServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-pr
     name: serverName
 }
 
-resource database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview'={
-    parent:createServer? newServer: existingServer
+resource databaseOnNewServer 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview'=if(createServer){
+    parent: newServer
     name: databaseName
 }
 
-resource allowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-06-01-preview'={
-    parent:createServer? newServer: existingServer
+
+resource databaseOnExistingServer 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview'=if(!createServer){
+    parent: existingServer
+    name: databaseName
+}
+
+
+resource firewallOnNewServer 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-06-01-preview'=if(createServer){
+    parent: newServer
+    name: 'AllowAllAzureServicesAndGitHubActions'
+    properties:{
+        startIpAddress: '0.0.0.0'
+        endIpAddress: '255.255.255.255'
+    }
+}
+
+resource firewallOnExistingServer 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-06-01-preview'=if(!createServer){
+    parent: existingServer
     name: 'AllowAllAzureServicesAndGitHubActions'
     properties:{
         startIpAddress: '0.0.0.0'
