@@ -20,7 +20,7 @@ export default {
       },
       animation: {
          'fade-up': 'fade-up 0.6s ease-out both',
-         'pop-in': 'pop-in o.5s ease-out both',
+         'pop-in': 'pop-in 0.5s ease-out both',
       },
       colors: {
         navy: {
