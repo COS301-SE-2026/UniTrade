@@ -28,7 +28,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2023-07-01'={
 param deployAcr bool=false
 
 module containerRegistry 'modules/container-registry.bicep'=if(deployAcr){
-    name: 'deployAcr'
+    name: 'deployAcr-${environment}'
     scope: rg
     params: {
         acrName: acrName
@@ -68,7 +68,7 @@ module postgresql 'modules/postgresql.bicep'={
     }
 }
 
-module communicationService 'modules/communication-service.bicep'={
+module communicationService 'modules/communication-service.bicep'=if(deployAcr){
     name: 'deploy-acs-${environment}'
     scope: rg
     params: {
@@ -109,7 +109,7 @@ output acrLoginServer string =acrLoginServer
 output backendFqdn string=backendApp.outputs.fqdn 
 output frontendFqdn string=frontendApp.outputs.fqdn 
 output postgresHost string =postgresql.outputs.fqdn
-output containerAppsEnvId=containerAppsEnv.outputs.environmentId
+output containerAppsEnvId string=containerAppsEnv.outputs.environmentId
 output appInsightsConnectionString string =containerAppsEnv.outputs.appInsightsConnectionString
 
 output backendPrincipalId string =backendApp.outputs.principalId
