@@ -22,7 +22,7 @@ class ConnectionManager {
   private readonly messageListeners = new Set<(m: ChatMessage) => void>();
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
-  private readonly listingListeners = new Set<(listingId: string) => void>();
+  private readonly listingListeners = new Set<(listingId: string, event: "reserved" | "released") => void>();
   private readonly pinGeneratedListeners = new Set<(e: { reservationId: string; pin: string}) => void>();
   private readonly paymentCompletedListeners = new Set<(e: { reservationId: string}) => void>();
 
@@ -43,11 +43,15 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
-      conn.on("ListingReserved", (p: { listingId: string }) =>
-        this.listingListeners.forEach((cb) => cb(p.listingId)),
+      conn.on("ListingReserved", (p: { listingId: string }) =>{
+        console.log("[realtime] ListingReleased received",p);
+      
+        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));}
       );
       conn.on("ListingReleased", (p: { listingId: string }) =>
-        this.listingListeners.forEach((cb) => cb(p.listingId)),
+      {
+          console.log("[realtime] ListingReleased received",p);
+        this.listingListeners.forEach((cb) => cb(p.listingId, "released"));}
       );
 
       conn.on("pin_generated", (e: {reservationId: string; pin: string}) =>
@@ -126,7 +130,7 @@ class ConnectionManager {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);
   }
-  onListingChanged(cb: (listingId: string) => void): Unsubscribe {
+  onListingChanged(cb: (listingId: string, event: "reserved" | "released") => void): Unsubscribe {
     this.listingListeners.add(cb);
     return () => this.listingListeners.delete(cb);
   }
