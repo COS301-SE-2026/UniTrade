@@ -222,14 +222,10 @@ public class TransactionService : ITransactionsService
         existing.PayFastTransactionId = payfastTransactionId;
         existing.TransactionStatus = "completed";
         existing.PinHash = pinHash;
+        existing.Pin = pin;
         existing.PinStatus = "pending";
 
         await _transactions.SaveAsync(ct);
-        await _broadcast.SendToUserAsync(
-            reservation.BuyerId,
-            "pin_generated",
-            new { reservationId, pin }
-        );
 
         await _broadcast.SendToUserAsync(
             reservation.BuyerId,
@@ -237,7 +233,36 @@ public class TransactionService : ITransactionsService
             new { reservationId, pin }
         );
     }
+ 
+   public async Task<string> GetPendingPinAsync(
+    Guid reservationId,
+    Guid buyerId,
+    CancellationToken ct = default
+   )
+   {
+    var reservation = await _reservations.GetByIdAsync(reservationId, ct)
+     ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
+     if (reservation.BuyerId != buyerId) 
+     {
+        throw new TransactionException(TransactionErrors.NotBuyer);
+     }
+
+     var tx =
+         await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
+         ?? throw new TransactionException("transaction_not_found");
+
+    if (tx.PinStatus != "pending")
+    {
+        throw new TransactionException("pin_not_pending");
+    }
+
+    var pin = GeneratePin();
+    tx.PinHash = HashPin(pin);
+    await _transactions.SaveAsync(ct);
+
+    return pin;
+   }
     public async Task VerifyPinAsync(
         Guid reservationId,
         Guid sellerId,

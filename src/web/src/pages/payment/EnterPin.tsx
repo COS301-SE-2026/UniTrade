@@ -65,7 +65,7 @@ export default function EnterPin() {
         const result = await verifyPin(reservationId, currentPinStr);
         setIsVerifying(false);
         if (result.success) {
-            navigate('/payment/payment-complete');
+            navigate('/payment/payment-complete?reservationId=${reservationId}');
         } else {
             const message =
                 result.error.code === 'too_many_attempts'
