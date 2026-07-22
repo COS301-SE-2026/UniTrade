@@ -16,6 +16,7 @@ param adminUsername string='unitradeadmin'
 
 @secure()
 param adminPassword string
+param useAcrRegistry bool =false
 
 param placeholderImage string='mcr.microsoft.com/k8se/quickstart:latest'
 
@@ -86,6 +87,7 @@ module backendApp 'modules/container-app-backend.bicep'={
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
         acrLoginServer: acrLoginServer
         placeholderImage: placeholderImage
+        useAcrRegistry: useAcrRegistry
     }
 }
 
@@ -99,6 +101,7 @@ module frontendApp 'modules/container-app-frontend.bicep'={
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
         acrLoginServer: acrLoginServer
         placeholderImage: placeholderImage
+        useAcrRegistry: useAcrRegistry
     }
 }
 
