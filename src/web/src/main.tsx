@@ -1,7 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 import { loadConfig } from "./config.ts";
 import { registerSW } from "virtual:pwa-register";
 import "./index.css";
@@ -20,7 +21,7 @@ const updateSW = registerSW({
     console.log("UniTrade is ready to work offline.");
   },
 })
-const queryClient = new QueryClient();
+//const queryClient = new QueryClient();
 
 loadConfig().then(() => {
   createRoot(document.getElementById("root")!).render(
