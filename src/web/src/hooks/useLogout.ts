@@ -13,7 +13,9 @@ export const useLogout = () => {
       await authService.logout(() => connectionManager.disconnect());
       clearUser();
       navigate("/login");
-    } catch (error) {}
+    } catch {
+      //error
+    }
   }, [clearUser, navigate]);
   return logout;
 };

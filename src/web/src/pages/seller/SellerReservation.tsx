@@ -261,7 +261,7 @@ export default function Reservations() {
     return (
         <div className="flex flex-col gap-6">
            
-            <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
+            <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
                 My Reserved Items</h1>
 
             <div className="flex gap-4">

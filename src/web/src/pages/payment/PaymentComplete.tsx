@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Lock } from 'lucide-react';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getTransactionStatus } from '../../services/reservationService';
+import { getPendingPin } from '../../services/reservationService';
 
 export default function PaymentComplete() {
   const navigate = useNavigate();
@@ -14,12 +15,22 @@ export default function PaymentComplete() {
 
   useEffect(() => {
     if (!reservationId) return;
+    /*let cancelled = false, attempts =0 ;
 
-    getTransactionStatus(reservationId).then((result) => {
+    const tick = async () => {
+      const result = await getTransactionStatus(reservationId);
+      if (cancelled) return;
       if (result.success && result.data.transactionStatus === 'completed') {
         setIsConfirmed(true);
+        if(result.data.pin) {
+          setPin(result.data.pin);
+          return;
+        }
       }
-    });
+      if (attempts++ < 15) setTimeout(tick, 2000);
+    };
+    tick();*/
+
 
     connectionManager.connect().catch((e) => console.error('connect failed', e));
 
@@ -29,7 +40,17 @@ export default function PaymentComplete() {
       setIsConfirmed(true);
     });
 
-    return () => off();
+        getTransactionStatus(reservationId).then((result) => {
+      if (result.success && result.data.transactionStatus === 'completed') {
+        setIsConfirmed(true);
+        getPendingPin(reservationId).then((pinResult) => {
+          if (pinResult.success) setPin(pinResult.data.pin);
+        });
+      }
+    });
+
+
+  return () => off();
   }, [reservationId]);
 
   const handleGeneratePin = () => {
