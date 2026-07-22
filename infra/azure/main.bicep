@@ -102,6 +102,26 @@ module frontendApp 'modules/container-app-frontend.bicep'={
     }
 }
 
+module acrPullBackend 'modules/acr-pull-access.bicep'={
+    name: 'acrpull-backend-${environment}'
+    scope: rg
+    params: {
+        acrName: acrName
+        acrResourceGroupName: 'rg-${projectName}-dev'
+        principalId: backendApp.outputs.principalId
+    }
+}
+
+module acrPullFrontend 'modules/acr-pull-access.bicep'={
+    name: 'acrpull-frontend-${environment}'
+    scope: rg
+    params: {
+        acrName: acrName
+        acrResourceGroupName: 'rg-${projectName}-dev'
+        principalId: frontendApp.outputs.principalId
+    }
+}
+
 output resourceGroupName string=rg.name
 output acrLoginServer string =acrLoginServer
 output backendFqdn string=backendApp.outputs.fqdn 

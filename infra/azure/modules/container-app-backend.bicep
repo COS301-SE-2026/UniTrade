@@ -25,6 +25,12 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                 targetPort:8080
                 transport:'auto'
             }
+            registries: [
+                {
+                    server: acrLoginServer
+                    identity: 'system'
+                }
+            ]
             
             activeRevisionsMode: 'Multiple'
         }
