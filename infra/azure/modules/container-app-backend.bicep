@@ -8,6 +8,7 @@ param placeholderImage string
 //param acrUsername string
 //param acrPassword string
 param useManagedIdentity bool=true
+param useAcrRegistry bool=false
 
 var appName='ca-backend-${environment}'
 
@@ -25,12 +26,12 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                 targetPort:8080
                 transport:'auto'
             }
-            registries: [
+            registries: useAcrRegistry ? [
                 {
                     server: acrLoginServer
                     identity: 'system'
                 }
-            ]
+            ]: []
             
             activeRevisionsMode: 'Multiple'
         }

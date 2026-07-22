@@ -7,6 +7,7 @@ param placeholderImage string
 
 
 var appName='ca-frontend-${environment}'
+param useAcrRegistry bool =false//set this true once you get acces to acrpull
 
 resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
     name: appName
@@ -19,15 +20,15 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
         configuration:{
             ingress:{
                 external:true
-                targetPort:80
+                targetPort:8080
                 transport:'auto'
             }
-            registries: [
+            registries: useAcrRegistry ? [
                 {
                     server: acrLoginServer
                     identity: 'system'
                 }
-            ]
+            ]:[]
             
             activeRevisionsMode: 'Multiple'
         }
