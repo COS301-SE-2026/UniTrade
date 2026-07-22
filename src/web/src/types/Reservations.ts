@@ -82,7 +82,8 @@ export interface MeetupProposalMessage extends ChatMessageBase {
 }
 
 export interface MeetupResponsePayload {
-    accepted: boolean;
+    Accepted: boolean;
+    ProposalMessageId: number;
 }
 
 export interface TransactionRequestResponse {

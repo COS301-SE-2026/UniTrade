@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconCalendar, IconClock, IconMapPin, IconX } from '@tabler/icons-react';
 import type { MeetupFormValues } from '../../types/meetup';
 import LocationPicker from './LocationPicker';
@@ -19,6 +19,35 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
     const [time, setTime] = useState('12:00');
     const [locationName, setLocationName] = useState('');
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+    const [nameEdited, setNameEdited] = useState(false);
+
+    useEffect(() => {
+        if (!coords || nameEdited) {
+            return;
+        }
+        const controller = new AbortController();
+
+        (async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=18&addressdetails=1`, { signal: controller.signal, headers: { 'Accept-Language': 'en' } },
+                );
+                if (!res.ok) {
+                    return;
+                }
+                const data = await res.json();
+
+                if (data?.display_name) {
+                    const short = data.display_name.split(',').slice(0, 2).join(',').trim();
+                    setLocationName(short);
+                }
+            }
+            catch {
+
+            }
+        })();
+        return () => controller.abort();
+    }, [coords, nameEdited]);
+
 
     const canSubmit = !!date && !!time && !!locationName.trim() && coords !== null;
 
@@ -83,7 +112,7 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                     <input
                         type="text"
                         value={locationName}
-                        onChange={(e) => setLocationName(e.target.value)}
+                        onChange={(e) => { setLocationName(e.target.value); setNameEdited(true); }}
                         placeholder="e.g. Merensky Library - Main Entrance"
                         className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
                     />
@@ -92,7 +121,10 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                     Tap the map to drop a pin at the exact spot.
                 </p>
                 <div className="mb-6">
-                    <LocationPicker value={coords} onChange={setCoords} />
+                    <LocationPicker value={coords} onChange={(newCoords) => {
+                        setCoords(newCoords);
+                        setNameEdited(false);
+                    }} />
                 </div>
 
                 <button
