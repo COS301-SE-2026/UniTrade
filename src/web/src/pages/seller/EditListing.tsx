@@ -250,7 +250,7 @@ const EditListing: React.FC = () => {
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
       <div className="mt-6">
-        <h2 className="text-2xl font-bold text-[#0F2D5E] tracking-tight">
+        <h2 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Edit Listing
         </h2>
         <p className="text-xs text-slate-400 mt-1">
