@@ -107,7 +107,6 @@ module acrPullBackend 'modules/acr-pull-access.bicep'={
     scope: resourceGroup('rg-${projectName}-dev')
     params: {
         acrName: acrName
-        acrResourceGroupName: 'rg-${projectName}-dev'
         principalId: backendApp.outputs.principalId
     }
 }
@@ -117,7 +116,6 @@ module acrPullFrontend 'modules/acr-pull-access.bicep'={
     scope: resourceGroup('rg-${projectName}-dev')
     params: {
         acrName: acrName
-        acrResourceGroupName: 'rg-${projectName}-dev'
         principalId: frontendApp.outputs.principalId
     }
 }
