@@ -19,9 +19,15 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
         configuration:{
             ingress:{
                 external:true
-                targetPort:8080
+                targetPort:80
                 transport:'auto'
             }
+            registries: [
+                {
+                    server: acrLoginServer
+                    identity: 'system'
+                }
+            ]
             
             activeRevisionsMode: 'Multiple'
         }
