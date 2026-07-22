@@ -21,7 +21,7 @@ param placeholderImage string='mcr.microsoft.com/k8se/quickstart:latest'
 
 var rgName='rg-${projectName}-${environment}'
 
-resource rg 'Microsoft.Resources/resourceGroups@2023-07-01'={
+resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' existing={
     name:rgName
 }
 
