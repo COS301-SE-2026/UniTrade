@@ -1,6 +1,10 @@
 targetScope='subscription'
 
-@allowed(['dev','staging','prod'])
+@allowed([
+    'dev'
+    'staging'
+    'prod'
+])
 param environment string
 
 param location string ='southafricanorth'
@@ -109,4 +113,4 @@ output containerAppsEnvId=containerAppsEnv.outputs.environmentId
 output appInsightsConnectionString string =containerAppsEnv.outputs.appInsightsConnectionString
 
 output backendPrincipalId string =backendApp.outputs.principalId
-output frontendPrincipalId=frontendApp.outputs.principalId
+output frontendPrincipalId string =frontendApp.outputs.principalId
