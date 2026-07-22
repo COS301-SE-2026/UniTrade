@@ -125,7 +125,11 @@ jobs:
             src/backend/Infrastructure/packages.lock.json
             src/backend/Modules/packages.lock.json
             src/backend/Tests/packages.lock.json
-
+      - name: Set up Java 21 for SonarScanner
+        uses: actions/setup-java@v4
+        with:
+         java-version: '21'
+         distribution: 'temurin'
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
