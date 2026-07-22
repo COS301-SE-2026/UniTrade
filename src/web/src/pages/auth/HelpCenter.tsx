@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   IconChevronDown,
   IconChevronUp,
@@ -81,7 +81,7 @@ function QuickLinkOverlay({
     >
       <div className = "bg-white rounded-t-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
         <div className = "flex items-start gap-3 px-5 py-4 border-b border-gray-100">
-          <div className = "w-10 h-10 rounded-lg-bg-[#eef4fa] flex items-center justify-center flex-shrink-0">
+          <div className = "w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center flex-shrink-0">
             {link.icon}
           </div>
           <div className = "flex-1 min-w-0">
@@ -112,10 +112,12 @@ function QuickLinkOverlay({
     </div>
   )
 }
+
 export default function HelpCenter() {
   //const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeLink, setActiveLink] = useState<QuickLinkItem | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -310,6 +312,29 @@ export default function HelpCenter() {
     }
   ];
 
+  const normalisedQuery = searchQuery.trim().toLowerCase();
+
+  const filteredQuickLinks = useMemo(() => {
+    if (!normalisedQuery) return quickLinks;
+    return quickLinks.filter((link) =>
+      `${link.title} ${link.description} ${link.details.join(' ')}`
+        .toLowerCase()
+        .includes(normalisedQuery)
+    );
+  }, [normalisedQuery]);
+
+
+ const filteredFaqs = useMemo(() => {
+    if (!normalisedQuery) return faqs;
+    return faqs.filter((faq) =>
+      `${faq.question} ${faq.answer}`.toLowerCase().includes(normalisedQuery)
+    );
+  }, [normalisedQuery]);
+
+
+  const hasResults = filteredQuickLinks.length > 0 || filteredFaqs.length > 0;
+
+
 
   return (
     <div className='min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16'>
@@ -343,59 +368,79 @@ export default function HelpCenter() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 mt-10">
-        <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Quick Links</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {quickLinks.map((link, idx) => (
-            <div
-              key={idx}
-              className="bg-white border border-gray-100 p-5 rounded-xl shadow-xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
-            >
-              <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center mb-3 group-hover:bg-[#dce9f7] transition-colors">
-                {link.icon}
-              </div>
-              <h4 className="text-sm font-bold text-gray-800 mb-1">{link.title}</h4>
-              <p className="text-xs text-gray-500 leading-relaxed">{link.description}</p>
-            </div>
-          ))}
+      
+      {!hasResults && (
+        <div className="max-w-5xl mx-auto px-6 mt-10">
+          <p className="text-center text-sm text-gray-400 py-6">
+            No results for "{searchQuery}". Try a different word, or ask Alex.
+          </p>
         </div>
-      </div>
+      )}
 
-      <div className="max-w-5xl mx-auto px-6 mt-12">
-        <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Frequently Asked Questions</h3>
-        <div className="flex flex-col gap-3">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaq === index;
-            return (
+      {filteredQuickLinks.length > 0 && (
+        <div className="max-w-5xl mx-auto px-6 mt-10">
+          <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Quick Links</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {filteredQuickLinks.map((link, idx) => (
               <div
-                key={index}
-                id={`faq-${index} `}
-                className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
+                key={idx}
+                onClick={() => setActiveLink(link)}
+                className="bg-white border border-gray-100 p-5 rounded-xl shadow-xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
               >
-                <button
-                  onClick={() => toogleFaq(index)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-800 hover:bg-gray-50 transition-colors"
-                >
-                  <span>{faq.question}</span>
-                  {isOpen ? (
-                    <IconChevronUp size={18} className="text-gray-500" />
-                  ) : (
-                    <IconChevronDown size={18} className="text-gray-500" />
-                  )}
-                </button>
-
-                {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs text-gray-600 leading-relaxed border-t border-gray-50 bg-slate-50/50">
-                    {faq.answer}
-                  </div>
-                )}
+                <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center mb-3 group-hover:bg-[#dce9f7] transition-colors">
+                  {link.icon}
+                </div>
+                <h4 className="text-sm font-bold text-gray-800 mb-1">{link.title}</h4>
+                <p className="text-xs text-gray-500 leading-relaxed">{link.description}</p>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
+      {filteredFaqs.length > 0 && (
+        <div className = "max-w-5xl mx-auto px-6 mt-12">
+          <h3 className = "text-xs font-bold text-[#003366] uppercase tracking-wider mb-4"> 
+            Frequently Asked Questions
+          </h3>
+          <div className = "flex flex-col gap-3">
+            {filteredFaqs.map((faq, index) => {
+              const isOpen = openFaq === index;
+              return (
+                <div 
+                key = {index}
+                id = {`faq-${index}`}
+                className = "bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
+                >
+                  <button 
+                  onClick = {() => toogleFaq(index)}
+                  className = "w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-800 hover:bg-gray-50 transition-colors"
+                  >
+                    <span>
+                      {faq.question}
+                    </span>
+                    {isOpen ? (
+                      <IconChevronUp size = {18} className="text-gray-500" />
+                    ): (
+                      <IconChevronDown size = {18} className = "text-gray-500" />
+                    )}
+                  </button>
 
+                  {isOpen && (
+                    <div className = "px-5 pb-5 pt-1 text-xs text-gray-600 leading-relaxed border-t border-gray-50 bg-slate-50/50">
+                      {faq.answer}
+                      </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          </div>
+      )}
+
+      {activeLink && (
+        <QuickLinkOverlay link={activeLink} onClose = {() => setActiveLink(null)} />
+      )}
       {chatOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center"
           onClick={(e) => {
