@@ -44,23 +44,26 @@ public class TransactionService : ITransactionsService
     )
     {
         _reservations = reservations;
-        _merchantId =
+        _merchantId = (
             config["PayFast:MerchantId"]
-            ?? throw new InvalidOperationException("Merchant Id not configured");
-        _merchantKey =
+            ?? throw new InvalidOperationException("Merchant Id not configured")
+        ).Trim();
+        _merchantKey = (
             config["PayFast:MerchantKey"]
-            ?? throw new InvalidOperationException("Merchant Key not configured");
-        _sandboxUrl =
+            ?? throw new InvalidOperationException("Merchant Key not configured")
+        ).Trim();
+        _sandboxUrl = (
             config["PayFast:SandboxUrl"]
-            ?? throw new InvalidOperationException("Sandbox Url not configured");
-        _passphrase =
+            ?? throw new InvalidOperationException("Sandbox Url not configured")
+        ).Trim();
+        _passphrase = (
             config["PayFast:Passphrase"]
-            ?? throw new InvalidOperationException("Passphrase not configured");
+            ?? throw new InvalidOperationException("Passphrase not configured")
+        ).Trim();
 
-        _notifyUrl = config["PayFast:NotifyUrl"] ?? "";
-        _returnUrl = config["PayFast:ReturnUrl"] ?? "";
-        _cancelUrl = config["PayFast:CancelUrl"] ?? "";
-
+        _notifyUrl = (config["PayFast:NotifyUrl"] ?? "").Trim();
+        _returnUrl = (config["PayFast:ReturnUrl"] ?? "").Trim();
+        _cancelUrl = (config["PayFast:CancelUrl"] ?? "").Trim();
         _transactions = transactions;
         _broadcast = broadcast;
     }
@@ -115,7 +118,10 @@ public class TransactionService : ITransactionsService
             new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
             new("item_name", Truncate(listingTitle, 100)),
         };
-        return fields.Where(f => !string.IsNullOrEmpty(f.Value)).ToList();
+        return fields
+            .Select(f => new KeyValuePair<string, string>(f.Key, f.Value.Trim()))
+            .Where(f => !string.IsNullOrEmpty(f.Value))
+            .ToList();
     }
 
     private string GenerateSignature(List<KeyValuePair<string, string>> fields)
@@ -216,14 +222,10 @@ public class TransactionService : ITransactionsService
         existing.PayFastTransactionId = payfastTransactionId;
         existing.TransactionStatus = "completed";
         existing.PinHash = pinHash;
+        existing.Pin = pin;
         existing.PinStatus = "pending";
 
         await _transactions.SaveAsync(ct);
-        await _broadcast.SendToUserAsync(
-            reservation.BuyerId,
-            "pin_generated",
-            new { reservationId, pin }
-        );
 
         await _broadcast.SendToUserAsync(
             reservation.BuyerId,
@@ -231,7 +233,36 @@ public class TransactionService : ITransactionsService
             new { reservationId, pin }
         );
     }
+ 
+   public async Task<string> GetPendingPinAsync(
+    Guid reservationId,
+    Guid buyerId,
+    CancellationToken ct = default
+   )
+   {
+    var reservation = await _reservations.GetByIdAsync(reservationId, ct)
+     ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
+     if (reservation.BuyerId != buyerId) 
+     {
+        throw new TransactionException(TransactionErrors.NotBuyer);
+     }
+
+     var tx =
+         await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
+         ?? throw new TransactionException("transaction_not_found");
+
+    if (tx.PinStatus != "pending")
+    {
+        throw new TransactionException("pin_not_pending");
+    }
+
+    var pin = GeneratePin();
+    tx.PinHash = HashPin(pin);
+    await _transactions.SaveAsync(ct);
+
+    return pin;
+   }
     public async Task VerifyPinAsync(
         Guid reservationId,
         Guid sellerId,

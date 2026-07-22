@@ -342,17 +342,27 @@ export const listingsService = {
     };
   },
 
-  getBrowseListings: async (): Promise<BrowseListingsResponse> => {
+  getBrowseListings: async (options?: {
+    search?: string;
+  }): Promise<BrowseListingsResponse> => {
+    const params = new URLSearchParams();
+    params.set("listingStatus", "live");
+
     const user = useAuthStore.getState().user;
-    const params = new URLSearchParams({ listingStatus: "live" });
     if (user) {
-      params.set("exlcudeSellerId", user.id);
+      params.set("excludeSellerId", user.id);
     }
-    const res = await fetch(`${getApiUrl()}/listings?listingStatus=live`, {
+
+    if (options?.search) {
+      params.set("search", options.search);
+    }
+    const res = await fetch(`${getApiUrl()}/listings?${params.toString()}`, {
       credentials: "include",
     });
+
     if (!res.ok) throw new Error("Failed to fetch listings");
     const data = await res.json();
+
     const listings: BrowseListing[] = data.items.map((item: unknown) => {
       const l = item as {
         listingId: string;
@@ -379,6 +389,7 @@ export const listingsService = {
         sellerId: l.seller?.sellerId ?? "",
       };
     });
+
     return { listings, total: data.total };
   },
 
@@ -648,7 +659,7 @@ export const listingsService = {
   },
 
   getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
-    const res = await fetch(`${getApiUrl()}/reviews/users/${userId}`, {
+    const res = await fetch(`${getApiUrl()}/reviews?userId=${userId}`, {
       credentials: "include",
     });
     if (!res.ok) {
