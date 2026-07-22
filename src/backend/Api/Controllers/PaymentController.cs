@@ -183,7 +183,7 @@ public class TransactionController : ControllerBase
             );
         }
 
-        if(tx.BuyerId != userId && tx.SellerId != userId) 
+        if (tx.BuyerId != userId && tx.SellerId != userId)
         {
             return Forbid();
         }
@@ -196,7 +196,7 @@ public class TransactionController : ControllerBase
                 transactionStatus = tx.TransactionStatus,
                 pinStatus = tx.PinStatus,
 
-                pin
+                pin,
             }
         );
     }
@@ -206,27 +206,28 @@ public class TransactionController : ControllerBase
     public async Task<IActionResult> GetPendingPin(Guid reservationId, CancellationToken ct)
     {
         var userIdClaim =
-          User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
-          if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var buyerId))
-          {
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var buyerId))
+        {
             return Unauthorized();
-          }
+        }
 
-          try 
-          {
+        try
+        {
             var pin = await _Transactions.GetPendingPinAsync(reservationId, buyerId, ct);
             return Ok(new { pin });
-          }
-          catch (TransactionException ex)
-          {
-            return ex.Code switch{
-                TransactionErrors.ReservationNotFound => NotFound(new { code = ex.Code}),
+        }
+        catch (TransactionException ex)
+        {
+            return ex.Code switch
+            {
+                TransactionErrors.ReservationNotFound => NotFound(new { code = ex.Code }),
                 TransactionErrors.NotBuyer => Forbid(),
                 "transaction_not_found" => NotFound(new { code = ex.Code }),
-                "pin_not_pending" => BadRequest(new { code = ex.Code}),
-                _ => BadRequest(new {code = ex.Code}),
+                "pin_not_pending" => BadRequest(new { code = ex.Code }),
+                _ => BadRequest(new { code = ex.Code }),
             };
-          }
+        }
     }
 
     public record VerifyPinRequest(string Pin);
