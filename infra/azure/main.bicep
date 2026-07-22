@@ -1,22 +1,14 @@
 targetScope='subscription'
 
-@allowed([
-    'dev'
-    'staging'
-    'prod'
-])
+@allowed(['dev','staging','prod'])
 param environment string
 
 param location string ='southafricanorth'
 param projectName string='unitrade'
 
 param acrName string
-param acrUsername string
 
-@secure()
-param acrPassword string
-
-param adminUsername string='psqladmin'
+param adminUsername string='unitradeadmin'
 
 @secure()
 param adminPassword string
@@ -27,7 +19,6 @@ var rgName='rg-${projectName}-${environment}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2023-07-01'={
     name:rgName
-    location: location
 }
 
 param deployAcr bool=false
@@ -49,7 +40,7 @@ resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existin
 var acrLoginServer=deployAcr ? containerRegistry.outputs.loginServer : existingAcr.properties.loginServer
 
 module containerAppsEnv 'modules/container-apps-env.bicep'={
-    name: 'deploy-cae'
+    name: 'deploy-cae-${environment}'
     scope: rg
     params: {
         projectName: projectName
@@ -62,7 +53,7 @@ param postgresServerName string
 param createPostgresServer bool=true
 
 module postgresql 'modules/postgresql.bicep'={
-    name: 'deploy-postgres'
+    name: 'deploy-postgres-${environment}'
     scope: rg
     params: {
         serverName: postgresServerName
@@ -74,15 +65,17 @@ module postgresql 'modules/postgresql.bicep'={
 }
 
 module communicationService 'modules/communication-service.bicep'={
-    name: 'deploy-acs'
+    name: 'deploy-acs-${environment}'
     scope: rg
     params: {
         projectName: projectName
+        environment: environment
+        location: location
     }
 }
 
 module backendApp 'modules/container-app-backend.bicep'={
-    name: 'deploy-backend'
+    name: 'deploy-backend-${environment}'
     scope: rg
     params: {
         projectName: projectName
@@ -91,8 +84,6 @@ module backendApp 'modules/container-app-backend.bicep'={
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
         acrLoginServer: acrLoginServer
         placeholderImage: placeholderImage
-        acrUsername: acrUsername
-        acrPassword: acrPassword
     }
 }
 
@@ -106,8 +97,6 @@ module frontendApp 'modules/container-app-frontend.bicep'={
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
         acrLoginServer: acrLoginServer
         placeholderImage: placeholderImage
-        acrUsername: acrUsername
-        acrPassword: acrPassword
     }
 }
 
@@ -116,3 +105,8 @@ output acrLoginServer string =acrLoginServer
 output backendFqdn string=backendApp.outputs.fqdn 
 output frontendFqdn string=frontendApp.outputs.fqdn 
 output postgresHost string =postgresql.outputs.fqdn
+output containerAppsEnvId=containerAppsEnv.outputs.environmentId
+output appInsightsConnectionString string =containerAppsEnv.outputs.appInsightsConnectionString
+
+output backendPrincipalId string =backendApp.outputs.principalId
+output frontendPrincipalId=frontendApp.outputs.principalId

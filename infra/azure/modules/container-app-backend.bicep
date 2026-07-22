@@ -5,14 +5,18 @@ param containerAppsEnvId string
 param acrLoginServer string
 param placeholderImage string
 
-param acrUsername string
-param acrPassword string
+//param acrUsername string
+//param acrPassword string
+param useManagedIdentity bool=true
 
 var appName='ca-backend-${environment}'
 
 resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
     name: appName
     location:location
+    identity:{
+        type: 'SystemAssigned'
+    }
     properties:{
         environmentId:containerAppsEnvId
         configuration:{
@@ -21,19 +25,7 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                 targetPort:8080
                 transport:'auto'
             }
-            secrets:[
-                {
-                    name:'acr-password'
-                    value:acrPassword
-                }
-            ]
-            registries:[
-                {
-                    server: acrLoginServer
-                    username: acrUsername
-                    passwordSecretRef: 'acr-password'
-                }
-            ]
+            
             activeRevisionsMode: 'Multiple'
         }
         template:{
@@ -57,3 +49,4 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
 
 output fqdn string =backendApp.properties.configuration.ingress.fqdn
 output appName string =backendApp.name
+output principalId string =backendApp.identity.principalId
