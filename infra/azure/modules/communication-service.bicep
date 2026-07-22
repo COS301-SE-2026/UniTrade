@@ -24,10 +24,10 @@ resource acs 'Microsoft.Communication/communicationServices@2023-04-01'={
     location: 'global'
     properties: {
         dataLocation: 'Africa'
-        linkedDomains: [
-            domain.id
-        ]
     }
+    dependsOn: [
+            domain
+        ]
 }
 
 output senderAddress string='DoNotReply@${domain.properties.mailFromSenderDomain}'
