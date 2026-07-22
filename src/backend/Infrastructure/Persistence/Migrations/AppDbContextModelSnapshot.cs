@@ -686,6 +686,58 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("listing_images", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Notifications.Models.DeviceToken", b =>
+                {
+                    b.Property<Guid>("DeviceTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_token_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("platform");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("token");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("DeviceTokenId")
+                        .HasName("pk_device_tokens");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_device_tokens_token");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_device_tokens_user");
+
+                    b.ToTable("device_tokens", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_device_platform", "platform IN ('web', 'android', 'ios')");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -957,6 +1009,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("seller_id");
 
+                    b.Property<DateTime?>("TwoHourWarningSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("two_hour_warning_sent_at");
+
                     b.HasKey("ReservationId")
                         .HasName("pk_reservations");
 
@@ -1087,6 +1143,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("pay_fast_transaction_id");
 
+                    b.Property<string>("Pin")
+                        .HasColumnType("text")
+                        .HasColumnName("pin");
+
                     b.Property<int>("PinAttempts")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -1157,6 +1217,14 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uuid")
                         .HasColumnName("student_id");
+
+                    b.Property<DateTime?>("SuppressedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("suppressed_at");
+
+                    b.Property<Guid?>("SuppressedByReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("suppressed_by_reservation_id");
 
                     b.HasKey("WishlistId")
                         .HasName("pk_wishlist_items");
@@ -1304,6 +1372,18 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_listing_images_listings_listing_id");
 
                     b.Navigation("Listing");
+                });
+
+            modelBuilder.Entity("Modules.Notifications.Models.DeviceToken", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_device_tokens_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Modules.Notifications.Models.Notification", b =>

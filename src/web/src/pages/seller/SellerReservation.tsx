@@ -70,6 +70,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
     awaiting_seller: { label: 'Waiting on seller', className: 'bg-sky-100 text-sky-700' },
     awaiting_buyer: { label: 'Buyer turn', className: 'bg-sky-100 text-sky-700' },
     coordinating: { label: 'Coordination pickup', className: 'bg-emerald-100 text-emerald-700' },
+    meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
 function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
@@ -154,7 +155,7 @@ function ReservationCard({
                             </span>
                         </p>
                     </div>
-                    {isActive && msRemaining > 0 && (
+                    {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
                         <div className="text-right flex-shrink-0">
                             <p className="text-[10px] text-gray-400 uppercase tracking-wide">
                                 Action timer
@@ -260,7 +261,7 @@ export default function Reservations() {
     return (
         <div className="flex flex-col gap-6">
            
-            <h1 className="text-2xl font-extrabold text-gray-800 uppercase">
+            <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
                 My Reserved Items</h1>
 
             <div className="flex gap-4">

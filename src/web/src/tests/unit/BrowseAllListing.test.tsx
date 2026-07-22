@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
-
+import { QueryClientProvider } from '@tanstack/react-query'
 import { listingsService } from '../../services/listingsService'
 import type { BrowseListing } from '../../types/listing'
 
@@ -33,14 +33,33 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
+const mockShowToast = vi.fn()
 vi.mock('../../components/layout/useToast', () => ({
   useToast: () => ({
-    showToast: vi.fn(),
+    showToast: mockShowToast,
   }),
 }));  
 
 import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
+import { QueryClient } from '@tanstack/react-query'
 
+const renderComponent = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <BrowseAllListing />
+      </MemoryRouter>
+    </QueryClientProvider>
+  )
+}
 const makeListings = (): BrowseListing[] => [
   {
     id: '1',
@@ -92,12 +111,7 @@ const makeListings = (): BrowseListing[] => [
   },
 ];
 
-const renderComponent = () =>
-  render(
-    <MemoryRouter>
-      <BrowseAllListing />
-    </MemoryRouter>
-  )
+
 
 describe('BrowseAllListing', () => {
   beforeEach(() => {
@@ -129,13 +143,13 @@ describe('BrowseAllListing', () => {
     it('shows an error message when the request fails', async () => {
       vi.mocked(listingsService.getBrowseListings).mockRejectedValueOnce(new Error('Network error'))
       renderComponent()
-      expect(await screen.findByText(/failed to load listings/i)).toBeInTheDocument()
+      expect(await screen.findByText('Network error')).toBeInTheDocument()
     })
 
     it('does not render listings on error', async () => {
       vi.mocked(listingsService.getBrowseListings).mockRejectedValueOnce(new Error('fail'))
       renderComponent()
-      await screen.findByText(/failed to load listings/i)
+      await screen.findByText('fail')
       expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
     })
   })

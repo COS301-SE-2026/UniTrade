@@ -1,7 +1,9 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Modules.Chat;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
+using Modules.Notifications;
 using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
@@ -14,18 +16,24 @@ public class MeetupService : IMeetupService
     private readonly IReservationRepository _reservations;
     private readonly IMeetupRepository _meetups;
     private readonly IChatService _chat;
+    private readonly INotificationDispatcher _pushNotifier;
+    private readonly ILogger<MeetupService> _logger;
     private readonly TimeProvider _clock;
 
     public MeetupService(
         IReservationRepository reservations,
         IChatService chat,
         TimeProvider clock,
-        IMeetupRepository meetups
+        IMeetupRepository meetups,
+        INotificationDispatcher pushNotifier,
+        ILogger<MeetupService> logger
     )
     {
         _reservations = reservations;
         _meetups = meetups;
         _chat = chat;
+        _pushNotifier = pushNotifier;
+        _logger = logger;
         _clock = clock;
     }
 
@@ -46,6 +54,14 @@ public class MeetupService : IMeetupService
         {
             throw new ReservationException(ReservationErrors.TimeInPast);
         }
+
+        var recipient = callerId == r.BuyerId ? r.SellerId : r.BuyerId;
+        await GuardedPushAsync(
+            recipient,
+            NotificationTypes.ReservationStatus,
+            $"TMeetup propose at {payload.LocationName}, {payload.ProposedTime:ddd d MMM HH:mm}",
+            ct
+        );
 
         return await _chat.SendMeetupProposalAsync(reservationId, callerId, payload, ct);
     }
@@ -111,6 +127,14 @@ public class MeetupService : IMeetupService
                 details.ProposedTime + ReservationStateMachine.CheckinWindowAfterMeetup,
             Status = "scheduled",
         };
+
+        var proposer = proposal.SenderId!.Value;
+        await GuardedPushAsync(
+            proposer,
+            NotificationTypes.ReservationStatus,
+            $"Meetup confirmed - {details.ProposedTime:ddd d MMM HH:mm} at {details.LocationName}.",
+            ct
+        );
         await _meetups.AddAsync(meetup, ct);
 
         ReservationStateMachine.ConfirmMeetup(r, now);
@@ -204,11 +228,14 @@ public class MeetupService : IMeetupService
         }
 
         var now = _clock.GetUtcNow().UtcDateTime;
-
+        var opensAt = meetup.AgreedTime - ReservationStateMachine.CheckinWindowAfterMeetup;
         return new MeetupStatusDto(
             MeetupId: meetup.MeetupId,
             AgreedLocationName: meetup.AgreedLocationName,
+            AgreedLatitude: meetup.AgreedLatitude,
+            AgreedLongitude: meetup.AgreedLongitude,
             AgreedTime: meetup.AgreedTime,
+            CheckinWindowOpensAt: opensAt,
             CheckinWindowClosesAt: meetup.CheckinWindowClosesAt,
             CheckInWindowOpen: MeetupStateMachine.IsCheckInWindowOpen(meetup, now),
             BuyerCheckedIn: meetup.BuyerCheckedIn,
@@ -216,6 +243,70 @@ public class MeetupService : IMeetupService
             PaymentUnlocked: MeetupStateMachine.IsPaymentUnlocked(meetup),
             Status: meetup.Status
         );
+    }
+
+    public async Task<ChatMessageDto> DeclineAsync(
+        Guid reservationId,
+        Guid callerId,
+        int proposalMessageId,
+        CancellationToken ct = default
+    )
+    {
+        var reservation =
+            await _reservations.GetByIdAsync(reservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.NotFound);
+
+        Guard(reservation, callerId);
+
+        var proposalMade =
+            await _chat.GetMessageAsync(reservationId, proposalMessageId, ct)
+            ?? throw new ReservationException(ReservationErrors.ProposalNotFound);
+
+        if (proposalMade.MessageType != "meetup_proposal")
+        {
+            throw new ReservationException(ReservationErrors.NotAProposal);
+        }
+
+        if (proposalMade.SenderId == callerId)
+        {
+            throw new ReservationException(ReservationErrors.CannotAcceptOwnProposal);
+        }
+
+        if (await _chat.HasResponseForProposalAsync(reservationId, proposalMessageId, ct))
+        {
+            throw new ReservationException(ReservationErrors.AlreadyResponded);
+        }
+
+        var payload = new MeetupResponsePayload(
+            Accepted: false,
+            ProposalMessageId: proposalMessageId
+        );
+
+        var response = await _chat.SendMeetupResponseAsync(reservationId, callerId, payload, ct);
+        await GuardedPushAsync(
+            proposalMade.SenderId!.Value,
+            NotificationTypes.ReservationStatus,
+            "Your meetup proposal was declined.",
+            ct
+        );
+        return response;
+    }
+
+    private async Task GuardedPushAsync(
+        Guid userId,
+        string type,
+        string message,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            await _pushNotifier.NotifyAsync(userId, type, message, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Push failed for user {UserId}, type {Type}", userId, type);
+        }
     }
 
     private static ReservationDto MapToDto(Reservation r, Guid? listingId = null) =>
