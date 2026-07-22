@@ -3,7 +3,7 @@ param acrResourceGroupName string
 param principalId string 
 
 
-resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01 existing={
+resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing={
     name: acrName
     scope: resourceGroup(acrResourceGroupName)
 }
