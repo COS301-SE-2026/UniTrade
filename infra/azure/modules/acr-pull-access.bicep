@@ -8,7 +8,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing={
 
 var acrPullRoleId='7f951dda-4ed3-4680-a7ca-43fe172d538d'
 
-resource acrPullAssignment 'Microsoft.Authorization/roleAssignment@2022-04-01'={
+resource acrPullAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01'={
     name:guid(acr.id,principalId,acrPullRoleId)
     scope: acr
     properties: {
