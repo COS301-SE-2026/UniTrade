@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
-import type { WishlistListing, BrowseCondition } from "../../types/listing";
+import type { WishlistListing, BrowseCondition, WishlistResponse } from "../../types/listing";
 import { createReservation } from "../../services/reservationService";
 import { SummaryCard } from "./Reservation";
 import {
@@ -171,15 +171,15 @@ export default function Wishlist() {
   const [sortOption, setSortOption] = useState<SortOption>("Date added");
   const [sortOpen, setSortOpen] = useState(false);
   const { data, isLoading, error } = useWishlist();
-  const listings = data?.listings ?? [];
+  const listings = useMemo(() => data?.listings ?? [], [data]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [conditionFilter, setConditionFilter] = useState<
     BrowseCondition | "All"
   >("All");
 
   const handleRemoved = (id: string) => {
-    queryClient.setQueryData<WishlistListing[]>(["wishlist"], (old) =>
-      old?.filter((l) => l.id !== id),
+    queryClient.setQueryData<WishlistResponse>(["wishlist"], (old) =>
+      old && { ...old, listings: old.listings.filter((l) => l.id !== id), total: old.total-1},
     );
   };
 
@@ -213,7 +213,7 @@ export default function Wishlist() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
-            Your wishlist
+            Your wishlister
           </h1>
           <p className="text-sm text-gray-400 mt-1 flex items-center gap-1.5">
             <IconHeart size={14} />

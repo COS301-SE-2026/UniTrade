@@ -15,7 +15,7 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     public Task<Reservation?> GetByIdAsync(Guid reservationId, CancellationToken ct = default) =>
         _db
             .Reservations.AsNoTracking()
-            .Include(r => r.ReservationListings)
+            .Include(r => r.ReservationListings).ThenInclude(rl => rl.Listing) 
             .Include(r => r.Buyer)
             .Include(r => r.Seller)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
@@ -25,7 +25,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         CancellationToken ct = default
     ) =>
         _db
-            .Reservations.Include(r => r.ReservationListings).ThenInclude(r1=>r1.Listing)//added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
+            .Reservations.Include(r => r.ReservationListings)
+                .ThenInclude(r1 => r1.Listing) //added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
 
     public async Task<IReadOnlyList<Reservation>> ListForBuyerAsync(
@@ -90,4 +91,22 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             .OrderBy(r => r.ExpiresAt)
             .Take(batchSize)
             .ToListAsync(ct);
+
+    public Task<IReadOnlyList<Reservation>> GetDueForTwoHourWarningAsync(
+        DateTime asOfTime,
+        int batchSize,
+        CancellationToken ct
+    )
+    {
+        return _db
+            .Reservations.Where(r =>
+                r.ReservationStatus == ReservationState.Active
+                && r.TwoHourWarningSentAt == null
+                && r.ExpiresAt <= asOfTime.AddHours(2)
+                && r.ExpiresAt > asOfTime
+            )
+            .Take(batchSize)
+            .ToListAsync(ct)
+            .ContinueWith(t => (IReadOnlyList<Reservation>)t.Result, ct);
+    }
 }

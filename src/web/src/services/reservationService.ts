@@ -11,8 +11,15 @@ import type {
     
 } from '../types/Reservations'
 import { getApiUrl } from "../config";
+import type { TransactionRequestResponse } from '../types/Reservations';
 
+//import type { MeetupDetailsResponse } from '../types/meetup';
 
+export interface TransactionStatusResponse {
+    transactionStatus: 'none' | 'completed' | string;
+    pinStatus: 'pending' | 'confirmed' | null;
+    pin: string | null;
+}
 
 async function handleResponse<T>(res: Response): Promise<Result<T>>{
      if (res.ok) {
@@ -34,6 +41,37 @@ async function handleResponse<T>(res: Response): Promise<Result<T>>{
      return { success: false, error: { code, message, status: res.status } };
 }
 
+
+/*export async function getMeetupDetails (
+  reservationId: string,
+): Promise<Result<MeetupDetailsResponse>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup`, {
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return {
+        success: false,
+        error: {
+          code: body?.error ?? 'unknown_error',
+          message: body?.message,
+          status: res.status,
+        },
+      };
+    }
+
+    const data = await res.json();
+    
+    return { success: true, data};
+  } catch {
+    return {
+      success: false,
+      error: { code: 'network_error', status: 0, message: 'Network request failed'},
+    };
+  }
+}*/
 const mockReservations:ReservationListItem[] = []
 
 
@@ -129,3 +167,78 @@ const res = await fetch(`${getApiUrl()}/reservations/${reservationId}`, {
 });
 return handleResponse<Reservation>(res)
   }
+
+export async function createTransactionRequest (
+  reservationId: string,
+): Promise<Result<TransactionRequestResponse>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/Transaction-request`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
+
+    }
+    return { success: true, data: await res.json()};
+  } catch {
+    return { success: false, error: {code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
+export async function getTransactionStatus(
+  reservationId: string,
+): Promise<Result<TransactionStatusResponse>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/transaction-status`, {
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
+    }
+    return { success: true, data: await res.json()};
+  } catch {
+    return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
+export async function verifyPin(
+  reservationId: string,
+  pin: string,
+): Promise<Result<void>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/verify-pin`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ pin }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
+    }
+    return { success: true, data: undefined};
+  } catch {
+    return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
+export async function getPendingPin(
+  reservationId: string,
+): Promise<Result<{ pin: string }>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/pending-pin`, {
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success:false, error: { code: body?.code?? 'unknown_error', status: res.status}};
+    }
+    return { success: true, data: await res.json()};
+  } catch {
+    return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
