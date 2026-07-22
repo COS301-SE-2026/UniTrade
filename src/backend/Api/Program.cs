@@ -270,6 +270,13 @@ builder
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    if(context.Request.Path.StartsWithSegments("/api/reservations/itn"))
+    context.Request.EnableBuffering();
+    await next();
+});
+
 FirebaseInitializer.Initialize(app.Configuration, app.Environment, app.Services.GetRequiredService<ILogger<Program>>());
 if (app.Environment.IsDevelopment())
 {

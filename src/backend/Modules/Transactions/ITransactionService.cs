@@ -23,4 +23,5 @@ public interface ITransactionsService
     );
     bool VerifySignature(List<KeyValuePair<string, string>> itnFields, string receivedSign);
     bool VerifySignatureRaw(string rawBody, string receivedSign);
+    Task<string> GetPendingPinAsync(Guid reservationId, Guid buyerId, CancellationToken ct = default);
 }
