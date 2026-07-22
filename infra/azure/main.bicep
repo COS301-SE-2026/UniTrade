@@ -73,8 +73,6 @@ module communicationService 'modules/communication-service.bicep'=if(deployAcr){
     scope: rg
     params: {
         projectName: projectName
-        environment: environment
-        location: location
     }
 }
 
