@@ -2,7 +2,12 @@ import type {
   ListingDetail,
   ListingSummary,
   MyListingsResponse,
-  Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
+  Category,
+  SellerListingDetail,
+  BrowseListing,
+  BrowseListingsResponse,
+  BrowseCondition,
+  Course,
   ListingMetadata,
   SimilarListing,
   ListingStatus,
@@ -18,7 +23,6 @@ import type {
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
-
 
 import { getApiUrl } from "../config";
 
@@ -240,8 +244,10 @@ function mapWishListItem(item: unknown): WishlistListing {
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-    const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
-    //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" }); 
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
+      credentials: "include",
+    });
+    //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
     if (!res.ok) throw new Error("Failed to fetch listing");
     const item = await res.json();
     return {
@@ -330,26 +336,28 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-            imageUrl((i as { path: string }).path),
-          )
+              imageUrl((i as { path: string }).path),
+            )
           : mockSellerListingDetail.images,
     };
   },
 
-  getBrowseListings: async (options?: { search?: string }): Promise<BrowseListingsResponse> => {
+  getBrowseListings: async (options?: {
+    search?: string;
+  }): Promise<BrowseListingsResponse> => {
     const params = new URLSearchParams();
-    params.set('listingStatus', 'live');
+    params.set("listingStatus", "live");
 
     const user = useAuthStore.getState().user;
     if (user) {
-      params.set('excludeSellerId', user.id);
+      params.set("excludeSellerId", user.id);
     }
 
     if (options?.search) {
-      params.set('search', options.search);
+      params.set("search", options.search);
     }
     const res = await fetch(`${getApiUrl()}/listings?${params.toString()}`, {
-      credentials: "include"
+      credentials: "include",
     });
 
     if (!res.ok) throw new Error("Failed to fetch listings");
@@ -385,11 +393,13 @@ export const listingsService = {
     return { listings, total: data.total };
   },
 
-  getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarListing[]> => {
+  getSimilarListings: async (
+    listing: ListingDetail,
+    limit = 2,
+  ): Promise<SimilarListing[]> => {
     const { listings } = await listingsService.getBrowseListings();
     return computeSimilarListings(listing, listings, limit);
   },
-
 
   uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
@@ -498,7 +508,7 @@ export const listingsService = {
       credentials: "include",
     });
 
-    if (!res.ok) throw new Error("Failed to fetch the courses")
+    if (!res.ok) throw new Error("Failed to fetch the courses");
     return await res.json();
   },
 
@@ -519,7 +529,9 @@ export const listingsService = {
   },
 
   getWishlist: async (): Promise<WishlistResponse> => {
-    const res = await fetch(`${getApiUrl()}/wishlist`, { credentials: "include" });
+    const res = await fetch(`${getApiUrl()}/wishlist`, {
+      credentials: "include",
+    });
     if (!res.ok) throw new Error("Failed to fetch wishlist");
     const data = await res.json();
     const listings: WishlistListing[] = data.items.map(mapWishListItem);
@@ -546,39 +558,44 @@ export const listingsService = {
       credentials: "include",
     });
     if (!res.ok && res.status !== 404) {
-      throw new Error("Failed to remove from wishlist ")
+      throw new Error("Failed to remove from wishlist ");
     }
   },
 
   proposeMeetup: async (
     reservationId: string,
-    payload: ProposeMeetupPayload
+    payload: ProposeMeetupPayload,
   ): Promise<MeetupStatusResponse> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/propose`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/propose`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
 
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to propose meetup");
     }
     return res.json();
-
   },
 
   acceptMeetup: async (
     reservationId: string,
-    proposalMessageId: number
+    proposalMessageId: number,
   ): Promise<MeetupStatusResponse> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/accept`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ proposalMessageId }),
-    });
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/accept`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalMessageId }),
+      },
+    );
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to accept meetup");
@@ -586,17 +603,40 @@ export const listingsService = {
     return res.json();
   },
 
+  declineMeetup: async (
+    reservationId: string,
+    proposalMessageId: number,
+  ): Promise<void> => {
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/decline`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalMessageId }),
+      },
+    );
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to decline meetup");
+    }
+  },
+
   checkInMeetup: async (
     reservationId: string,
     lat?: number,
-    lng?: number
+    lng?: number,
   ): Promise<MeetupStatusResponse> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/check-in`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat, lng }),
-    });
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/check-in`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lng }),
+      },
+    );
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to check in");
@@ -604,10 +644,15 @@ export const listingsService = {
     return res.json();
   },
 
-  getMeetupStatus: async (reservationId: string): Promise<MeetupStatusResponse | null> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup`, {
-      credentials: "include",
-    });
+  getMeetupStatus: async (
+    reservationId: string,
+  ): Promise<MeetupStatusResponse | null> => {
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup`,
+      {
+        credentials: "include",
+      },
+    );
     if (res.status === 404) return null;
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
@@ -636,5 +681,5 @@ export const listingsService = {
       throw new Error(data?.error ?? "Failed to submit review");
     }
     return res.json();
-  }
+  },
 };

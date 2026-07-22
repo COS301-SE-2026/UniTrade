@@ -18,8 +18,28 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
     const [state, setState] = useState<CheckInState>('requesting');
     const [errorMessage, setErrorMessage] = useState('');
 
+    const mapResponse = (err: any): string => {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('check_in_window_closed')) {
+            return 'The check-in window has closed. You can no longer check in for this meetup.';
+        }
+        if (msg.includes('already_checked_in')) {
+            return "You've already checked in for this meetup.";
+        }
+
+        if (msg.includes('meetup_not_scheduled')) {
+            return "The meetup isn't scheduled yet.";
+        }
+        if (msg.includes('meetup_not_found')) {
+            return "We couldn't find this meetup.";
+        }
+        if (msg.includes('forbidden')) {
+            return "You're not part of this meetup.";
+        }
+        return "Something went wrong while checking you in. Please try again.";
+    }
     const checkLocation = useCallback(() => {
-      
+
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 try {
@@ -30,7 +50,11 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
                     );
                     setState('success');
                 } catch (err) {
-                    setErrorMessage(err instanceof Error ? err.message : 'Failed to check in');
+                    console.log('Error type', typeof err);
+                    console.log('Error value', err);
+                    console.log('Error message', err instanceof Error ? err.message : "not an error");
+
+                    setErrorMessage(mapResponse(err));
                     setState('error');
                 }
             },
@@ -53,13 +77,13 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
     };
 
     useEffect(() => {
-          if (!('geolocation' in navigator)) {
+        if (!('geolocation' in navigator)) {
             return;
         }
         checkLocation();
     }, [checkLocation]);
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
             <div
                 className="w-full max-w-md bg-white rounded-t-3xl p-6 pb-8 shadow-xl text-center"
                 onClick={(e) => e.stopPropagation()}
