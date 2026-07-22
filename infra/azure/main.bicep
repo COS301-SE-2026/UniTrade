@@ -17,6 +17,7 @@ param adminUsername string='unitradeadmin'
 @secure()
 param adminPassword string
 param useAcrRegistry bool =false
+param grantAcrAccess bool =false
 
 param placeholderImage string='mcr.microsoft.com/k8se/quickstart:latest'
 
@@ -105,7 +106,7 @@ module frontendApp 'modules/container-app-frontend.bicep'={
     }
 }
 
-module acrPullBackend 'modules/acr-pull-access.bicep'={
+module acrPullBackend 'modules/acr-pull-access.bicep'=if(grantAcrAccess){
     name: 'acrpull-backend-${environment}'
     scope: resourceGroup('rg-${projectName}-dev')
     params: {
@@ -114,7 +115,7 @@ module acrPullBackend 'modules/acr-pull-access.bicep'={
     }
 }
 
-module acrPullFrontend 'modules/acr-pull-access.bicep'={
+module acrPullFrontend 'modules/acr-pull-access.bicep'=if(grantAcrAccess){
     name: 'acrpull-frontend-${environment}'
     scope: resourceGroup('rg-${projectName}-dev')
     params: {
