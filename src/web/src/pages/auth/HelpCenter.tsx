@@ -74,18 +74,18 @@ function QuickLinkOverlay({
 }) {
   return (
     <div 
-    className = "fixed inset-0 bg-black/40 z-50 flex items-end justify-center "
+    className = "fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 "
     onClick = {(e) => {
       if(e.target === e.currentTarget) onClose();
     }}
     >
-      <div className = "bg-white rounded-t-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
-        <div className = "flex items-start gap-3 px-5 py-4 border-b border-gray-100">
+      <div className = "bg-white rounded-2xl w-full max-w-lg flex flex-col max-h-[75vh] shadow-xl">
+        <div className = "flex items-start gap-3 px-6 py-5 border-b border-gray-100">
           <div className = "w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center flex-shrink-0">
             {link.icon}
           </div>
           <div className = "flex-1 min-w-0">
-            <div className = "font-bold text-[#003366] text-sm">
+            <div className = "font-bold text-[#003366] text-base">
               {link.title}
             </div>
             <div className = "text-xs text-gray-400">
@@ -442,7 +442,7 @@ export default function HelpCenter() {
         <QuickLinkOverlay link={activeLink} onClose = {() => setActiveLink(null)} />
       )}
       {chatOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center"
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) setChatOpen(false);
           }}
