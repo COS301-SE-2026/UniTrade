@@ -196,7 +196,6 @@ builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 
-
 var acsConn = builder.Configuration["Acs:ConnectionString"];
 builder.Services.AddSingleton(
     new EmailClient(
@@ -270,14 +269,20 @@ builder
 
 var app = builder.Build();
 
-app.Use(async (context, next) =>
-{
-    if(context.Request.Path.StartsWithSegments("/api/reservations/itn"))
-    context.Request.EnableBuffering();
-    await next();
-});
+app.Use(
+    async (context, next) =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/reservations/itn"))
+            context.Request.EnableBuffering();
+        await next();
+    }
+);
 
-FirebaseInitializer.Initialize(app.Configuration, app.Environment, app.Services.GetRequiredService<ILogger<Program>>());
+FirebaseInitializer.Initialize(
+    app.Configuration,
+    app.Environment,
+    app.Services.GetRequiredService<ILogger<Program>>()
+);
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
