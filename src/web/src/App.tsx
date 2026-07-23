@@ -9,7 +9,7 @@ import UploadListing from "./pages/seller/UploadListing";
 import EditListing from "./pages/seller/EditListing";
 
 import HomePage from "./pages/auth/HomePage";
-import BuyerDashboard from "./pages/buyer/BuyerDashboard";
+import Orders from "./pages/buyer/Orders";
 import ListingDetail from "./pages/buyer/ListingDetail";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -80,10 +80,10 @@ export default function App() {
         <Route path="/auth/profile" element={<Profile />} />
 
         <Route element={<AppLayout />}>
-          <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+          <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
-          <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
+          <Route path="/buyer/Orders" element={<Orders/>} />
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
