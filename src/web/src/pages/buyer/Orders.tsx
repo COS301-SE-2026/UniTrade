@@ -1,6 +1,6 @@
 //import { useNavigate } from 'react-router-dom'
 import /*React ,*/{ /*useEffect, useCallback,*/ useState } from 'react'
-import { Search, Bell, Sun, /*Star, Loader2, AlertCircle*/ } from 'lucide-react'
+import { Search, Bell, Sun, Star } from 'lucide-react'
 
 export interface Order {
   id: string;
@@ -101,21 +101,60 @@ export default function Orders(){
   <div className='space-y-6'>
     {mockOrders.map((order) =>(
       <div key={order.id} className='bg-slate-2--/60 rounded-xl p-4 border order-slate-300'>
-        <div className='flext jistify-between items-center mb-3 px-1'>
+        <div className='flext justify-between items-center mb-3 px-1'>
           <span className='text-sm font-semibold text-slate-700'>Ref nu,{order.refNum}</span>
           <div className='flex items-center gap-3'>
             <span className='text-sm font-medium text-slate-600'>Collected {order.date}</span>
-            <span className='bg-emeral-200 text-emeral-800 text-xs px-3 py-1 rounded-full font-semibold'>
+            <span className='bg-emerald-200 text-emerald-800 text-xs px-3 py-1 rounded-full font-semibold'>
               {order.status}
             </span>
           </div>
           </div>
           
-  
+ <div className='bg-white rounded-lg p-4 border border-slate-200 flex items-center justify-between'>
+      <div className="flex items-center gap-4">
+        <div className='w-20 h-20 bg-slate-900 rounded-md overflow-hidden shrink-0 flex items-center justify-venter text-xs text-white'>
+          [Book Cover]
+
   </div>
-   ))}
+  <div className='space-y-1'>
+    <h3 className='font-bold text-slate-800 text-base'>{order.title}</h3>
+    <p className='text-xs text-slate-500'>Condition: {order.condition}</p>
+
+    <div className="flex items-center gap-2 pt-1">
+    <span className='w-5 h-5 rounded-full bg-blue-7-- text-white text-[10px] font-bold flex items-center justify-center'>
+      {order.sellerInitials}
+      </span>
+      <span className='text-xs font-semibold text-slate-700'>
+        {order.sellerName}</span>
+        </div>
+
+
+        <div className="flex items-center gap-1 pt-1">
+          {[...Array(5)].map((_,i) => (
+            <Star 
+            key={i}
+            className={`w-4 h-4 ${i < order.rating ? 'fill-amber-400 text-amber-400': 'text-slate-300'
+            }`}/>
+
+          ))}
+          <span className='text-xs text-slate-500 ml-1'>You rated this</span>
+        </div>
     </div>
       </div>
+      <div className='text-ight space-y-4'>
+        <div>
+          <p className='text-lg font-bold text-slate-900'>R{order.price}</p>
+          <p className="text-xs text-slate-400">{order.date}</p></div>
+          <button className='px-4 py-1.5 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-dlate-50 transition-colors'>
+            View details
+          </button>
+      </div>
+      </div>
+      </div>))}
+      </div>
+      </div>
     </main>
+
   );
 }
