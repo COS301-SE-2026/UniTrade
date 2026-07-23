@@ -10,6 +10,7 @@ import EditListing from "./pages/seller/EditListing";
 
 import HomePage from "./pages/auth/HomePage";
 import Orders from "./pages/buyer/Orders";
+import OrderDetails from "./pages/buyer/OrderDetails";
 import ListingDetail from "./pages/buyer/ListingDetail";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -81,9 +82,10 @@ export default function App() {
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
+          <Route path="/buyer/orders/:id" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
-          <Route path="/buyer/Orders" element={<Orders/>} />
+          <Route path="/buyer/orders" element={<Orders/>} />
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
@@ -97,10 +99,8 @@ export default function App() {
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
-          <Route
-            path="/orders"
-            element={<Navigate to="/buyer/dashboard" replace />}
-          />
+         
+          
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
             <Route path=":reservationId" element={<ChatPage />} />
