@@ -5,6 +5,7 @@ import { vi, it, expect, describe} from 'vitest';
 import ChatPage from '../../pages/chat/ChatPage';
 import { useSendMessage } from '../../hooks/useSendMessage';
 import { beforeEach } from 'vitest';
+import { useChatMessages } from '../../hooks/useChatMessages';
 
 
 const navigateMock = vi.fn();
@@ -219,3 +220,29 @@ describe('sending messages', () => {
         expect(sendMock).toHaveBeenCalledWith('Enter to send');
     });
 })
+
+describe('loading and the error states', () => {
+    it('shows a loading sign while the messages are loading', async() => {
+        vi.mocked(useChatMessages).mockReturnValue({
+            data: [],
+            isLoading: true,
+            isError: false,
+            refetch: vi.fn(),
+        }as any);
+
+        renderWithProviders(<ChatPage />);
+        expect(await screen.findByText('Loading messages...')).toBeInTheDocument();
+    });
+
+    it('must show the error message when the messages fail to load', async () => {
+        vi.mocked(useChatMessages).mockReturnValue({
+            data: [],
+            isLoading: false,
+            isError: true,
+            refetch: vi.fn(),
+        } as any);
+
+        renderWithProviders(<ChatPage />);
+        expect(await screen.findByText('Failed to load messages') ).toBeInTheDocument();
+    });
+});
