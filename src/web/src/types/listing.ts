@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 

@@ -107,7 +107,6 @@ export default function MeetupDetails() {
       return;
     }
     const { sandbox_url, fields } = result.data;
-    console.log('Payfast response:', result.data); //not to me(Tafadzwa)- make sure to remove this
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = sandbox_url;
@@ -142,10 +141,7 @@ export default function MeetupDetails() {
     return <div className="p-8 text-center text-slate-500">Looading meetup details....</div>;
   }
 
-
-
-
-  return (
+return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
       <div className="bg-navy-800 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -245,11 +241,7 @@ export default function MeetupDetails() {
                 <span className="font-bold text-slate-900 text-base">Price</span>
                 <span className="font-black text-xl text-blue-950">{price != null ? `R${price.toFixed(2)}` : 'R-'}</span>
               </div>
-
-
-
-
-              <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-start gap-3">
+             <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
                 <p className="text-xs text-blue-900 leading-relaxed">
                   <strong>Safety Guarantee:</strong>{' '}
