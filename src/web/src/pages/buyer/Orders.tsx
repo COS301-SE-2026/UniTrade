@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom'
-import React,{ /*useEffect, useCallback,*/ useState } from 'react'
-import { Search, Bell, Sun, Star, Loader2, AlertCircle } from 'lucide-react'
+//import { useNavigate } from 'react-router-dom'
+import /*React ,*/{ /*useEffect, useCallback,*/ useState } from 'react'
+import { Search, Bell, Sun, /*Star, Loader2, AlertCircle*/ } from 'lucide-react'
 
 export interface Order {
   id: string;
@@ -97,6 +97,24 @@ export default function Orders(){
       >Reviewed (9)
       </button>
       </div>
+
+  <div className='space-y-6'>
+    {mockOrders.map((order) =>(
+      <div key={order.id} className='bg-slate-2--/60 rounded-xl p-4 border order-slate-300'>
+        <div className='flext jistify-between items-center mb-3 px-1'>
+          <span className='text-sm font-semibold text-slate-700'>Ref nu,{order.refNum}</span>
+          <div className='flex items-center gap-3'>
+            <span className='text-sm font-medium text-slate-600'>Collected {order.date}</span>
+            <span className='bg-emeral-200 text-emeral-800 text-xs px-3 py-1 rounded-full font-semibold'>
+              {order.status}
+            </span>
+          </div>
+          </div>
+          
+  
+  </div>
+   ))}
+    </div>
       </div>
     </main>
   );
