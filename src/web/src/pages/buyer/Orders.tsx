@@ -1,8 +1,9 @@
-//import { useNavigate } from 'react-router-dom'
-import /*React ,*/{ /*useEffect, useCallback,*/ useState } from 'react'
-import { Search, Bell, Sun, Star } from 'lucide-react'
 
-export interface Order {
+import { useEffect, useCallback, useState, /*useMemo*/} from 'react'
+import { Search, Bell, Sun, Star,Loader2 ,AlertCircle} from 'lucide-react'
+
+
+export interface OrderItem{
   id: string;
   refNum: string;
   title: string;
@@ -15,27 +16,70 @@ export interface Order {
   rating: number;
 }
 
+export interface OrderStatsData {
+  totalPurchases: number;
+  totalSpent: number;
+  reviewsLeft: string;
+}
+
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
-const mockOrders: Order[] =[
-  {
-  id: '1',
-  refNum: 'OR1234',
-  title: 'Calculus - Early Transcendentals',
-  condition: 'Good',
-  sellerName:'Tafadzwa Musiiwa',
-  sellerInitials: 'TM',
-  price:280,
-  date: '14 June 2025',
-  status: 'Completed' ,
-  rating: 5,
-  }
-];
+const API_BASE_URL ='http://localhost:5000/api';
 
+async function fetchOrders(tab: OrderFilterTab):Promise<OrderItem[]>{
+  const response = await fetch(`${API_BASE_URL}/orders?filter=${tab}`,
+    {
+      headers:{'Content-Type': 'application/json',
+
+    },
+});
+if(!response.ok){
+  throw new Error(`failed to fetch orders (${response.status})`);
+
+} return response.json();
+} 
+async function fetchOrderStats(): Promise<OrderStatsData> {
+  const response = await fetch(`${API_BASE_URL}/orders/stats`,
+{
+      headers:{'Content-Type': 'application/json',
+
+    },
+});
+if(!response.ok){
+  throw new Error(`failed to fetch order stats`);
+
+} return response.json();
+} 
+  
 
 export default function Orders(){
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [stats,setStats] = useState<OrderStatsData  |null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() =>{
+    fetchOrderStats().then(setStats).catch((err)=> console.error('Error loading stats:', err));
+  }, []);
+
+  const loadOrders = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try{
+      const data = await fetchOrders(activeTab);
+      setOrders(data);
+    }catch (err:any){
+      setError(err.message || 'An error occured while loading your orders.');
+      }finally{
+        setIsLoading(false);
+      }
+    }, [activeTab]);
+
+    useEffect(() => {
+      loadOrders();
+    }, [loadOrders]);
+    
   return(
     <main className='flex-1 flex flex-col overflow-y-auto'>
       <header className='flex items-center justify-between px-8 py--4 bg-white border-b border-slate-200'>
@@ -62,47 +106,75 @@ export default function Orders(){
         <h2 className="text-2xl font-bold text-[#0F224A] mb-6">My Orders</h2>
         <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
-          <p className='text-3xl font-extrabold text-slate 800'>2</p>
+          <p className='text-3xl font-extrabold text-slate 800'>
+            {stats ? stats.totalPurchases : '--'}
+          </p>
           <p className='text-xs text-slate-500 font-medium mt-1'>Total Purchases</p>
           </div>
            <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
-          <p className='text-3xl font-extrabold text-slate 800'>R4 820</p>
+          <p className='text-3xl font-extrabold text-slate 800'>
+            {stats ? `R ${stats.totalSpent.toLocaleString()}`:'--'}
+
+          </p>
           <p className='text-xs text-slate-500 font-medium mt-1'>Total Spent</p>
           </div>
            <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
-          <p className='text-3xl font-extrabold text-slate 800'>9/12</p>
+          <p className='text-3xl font-extrabold text-slate 800'>
+            {stats ? stats?.reviewsLeft : '--'}
+          </p>
           <p className='text-xs text-slate-500 font-medium mt-1'>Reviews left</p>
           </div>
           
       </div>
 
+
+
       <div className='flex items-center gap mb-6'>
-        <button onClick={()=>setActiveTab('all')}
+        {(['all','semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
+        <button 
+        key={tab}
+         onClick={()=>setActiveTab(tab)}
         className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-          activeTab=== 'all' ?'bg-[#0F224A text-white': 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
-      >All
+       activeTab === tab ? 'bg-[#0F224A text-white': 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
+      >
+      {tab === 'semester' ? 'This semester' :tab === 'awaiting' ? 'Awaiting review' : tab}
       </button>
-      <button onClick={()=>setActiveTab('semester')}
-        className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-          activeTab=== 'semester' ?'bg-[#0F224A text-white': 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
-      >This semester (5)
-      </button><button onClick={()=>setActiveTab('awaiting')}
-        className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-          activeTab=== 'awaiting' ?'bg-[#0F224A text-white': 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
-      >Awaiting Review (9)
+        ))}
+        </div>
+        {isLoading && (
+          <div className='flex flex-col items-center justify-center py-16 text-slate-500'>
+            <Loader2 className='w-8 h-8 animate-spin mb-2' />
+            <p className='text-sm'>Fetching orders from server...</p>
+            </div>
+        )}
+    
+
+      {error && !isLoading &&(
+        <div className='bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between'>
+          <div className='flex items-center gap-3'>
+            <AlertCircle className='w-5 h-5 text-rose-500 shrink-0' />
+            <span className='text-sm font-medium'>{error}</span>
+          </div>
+      <button 
+      onClick={loadOrders}
+      className='px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors'
+      >
+        Retry
       </button>
-      <button onClick={()=>setActiveTab('reviewed')}
-        className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-          activeTab=== 'reviewed' ?'bg-[#0F224A text-white': 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
-      >Reviewed (9)
-      </button>
-      </div>
+      </div>)}
+
+      {!isLoading && !error && orders.length ===0 && (
+        <div className='text-center py-16 bg-white rounded-xl border border-slate-200'>
+          <p className='text-slate-600 font-medium'>No orders found </p>
+          <p className='text-xs text-slate-400 mt-1'>There are no orders available for this category.</p></div>
+      )}
+      {isLoading && !error && orders.length>0 && (
 
   <div className='space-y-6'>
-    {mockOrders.map((order) =>(
-      <div key={order.id} className='bg-slate-2--/60 rounded-xl p-4 border order-slate-300'>
-        <div className='flext justify-between items-center mb-3 px-1'>
-          <span className='text-sm font-semibold text-slate-700'>Ref nu,{order.refNum}</span>
+    {orders.map((order) =>(
+      <div key={order.id} className='bg-slate-200/60 rounded-xl p-4 border order-slate-300'>
+        <div className='flex justify-between items-center mb-3 px-1'>
+          <span className='text-sm font-semibold text-slate-700'>Ref num: {order.refNum}</span>
           <div className='flex items-center gap-3'>
             <span className='text-sm font-medium text-slate-600'>Collected {order.date}</span>
             <span className='bg-emerald-200 text-emerald-800 text-xs px-3 py-1 rounded-full font-semibold'>
@@ -122,7 +194,7 @@ export default function Orders(){
     <p className='text-xs text-slate-500'>Condition: {order.condition}</p>
 
     <div className="flex items-center gap-2 pt-1">
-    <span className='w-5 h-5 rounded-full bg-blue-7-- text-white text-[10px] font-bold flex items-center justify-center'>
+    <span className='w-5 h-5 rounded-full bg-blue-700 text-white text-10px] font-bold flex items-center justify-center'>
       {order.sellerInitials}
       </span>
       <span className='text-xs font-semibold text-slate-700'>
@@ -134,7 +206,8 @@ export default function Orders(){
           {[...Array(5)].map((_,i) => (
             <Star 
             key={i}
-            className={`w-4 h-4 ${i < order.rating ? 'fill-amber-400 text-amber-400': 'text-slate-300'
+            className={`w-4 h-4 ${
+              i < order.rating ? 'fill-amber-400 text-amber-400': 'text-slate-300'
             }`}/>
 
           ))}
@@ -151,8 +224,10 @@ export default function Orders(){
           </button>
       </div>
       </div>
-      </div>))}
       </div>
+    ))}
+      </div>
+      )}
       </div>
     </main>
 
