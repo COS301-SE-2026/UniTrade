@@ -8,7 +8,35 @@ import { beforeEach } from 'vitest';
 import { useChatMessages } from '../../hooks/useChatMessages';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
+import type { MeetupStatusResponse } from '../../types/listing';
 
+type ChatMessagesResult = ReturnType<typeof useChatMessages>;
+type SendMessageResult = ReturnType<typeof useSendMessage>;
+type ReservationResult = Awaited<ReturnType<typeof getReservationById>>;
+type ListingResult = Awaited<ReturnType<typeof listingsService.getById>>;
+
+interface MeetupProposalFormMockProps {
+    onSubmit: (values: {
+        date: string;
+        time: string;
+        location: { name: string; lat: number; lng: number };
+    }) => void;
+    onCancel: () => void;
+}
+
+interface CheckInModalMockProps {
+    meetupLocation: string;
+    onClose: () => void;
+}
+
+interface MeetupCardMockProps {
+    location: string;
+    status: string;
+    caption?: string;
+    onAccept?: () => void;
+    onDecline?: () => void;
+    onCheckIn?: () => void;
+}
 
 const navigateMock = vi.fn();
 vi.mock('react-router-dom', async() => {
@@ -33,36 +61,15 @@ vi.mock('../../services/realtime/connectionManager', () => ({
 }));
 
 vi.mock('../../hooks/useChatMessages', () => ({
-    useChatMessages: vi.fn(() => ({
-        data: [],
-        isLoading: false,
-        isError: false,
-        refetch: vi.fn(),
-    })),
+    useChatMessages: vi.fn(),
 }));
 
 vi.mock('../../hooks/useSendMessage', () => ({
-    useSendMessage: vi.fn(() => ({
-        send: vi.fn(),
-        retry: vi.fn()
-    })),
+    useSendMessage: vi.fn(),
 }));
 
 vi.mock('../../services/reservationService', () => ({
-    getReservationById: vi.fn().mockResolvedValue({
-        success: true,
-    data: 
-    { 
-        reservationId: '123', 
-        listingId: 'listing-1',
-        reservationStatus: 'active',
-        timerStage: null,
-        counterParty: {
-            name: 'Mahadio Tlaka',
-            initials: 'MT'
-        },
-    },
-    }),
+    getReservationById: vi.fn(),
 }));
 
 vi.mock('../../store/useAuthStore', () => ({
@@ -73,20 +80,15 @@ vi.mock('../../store/useAuthStore', () => ({
 
 vi.mock('../../services/listingsService', () => ({
     listingsService: {
-        getById: vi.fn().mockResolvedValue({
-            id: 'listing-1',
-            title: 'Test Listing',
-            price: 100,
-            images: [],
-        }),
-        proposeMeetup: vi.fn().mockResolvedValue(undefined),
-        acceptMeetup: vi.fn().mockResolvedValue(undefined),
-        declineMeetup: vi.fn().mockResolvedValue(undefined),
+        getById: vi.fn(),
+        proposeMeetup: vi.fn(),
+        acceptMeetup: vi.fn(),
+        declineMeetup: vi.fn(),
     },
 }));
 
 vi.mock('../../components/layout/MeetupProposalForm', () => ({
-    default: (props: any) => (
+    default: (props: MeetupProposalFormMockProps) => (
         <div data-testid = "meetup-proposal-form">
             <button
             onClick = {() => 
@@ -111,8 +113,8 @@ vi.mock('../../components/layout/MeetupProposalForm', () => ({
 }));
 
 vi.mock('../../components/CheckInModal', () => ({
-    default: (props:any) => (
-        <div data-testingid="check-in-modal">
+    default: (props:CheckInModalMockProps) => (
+        <div data-testid="check-in-modal">
             <span>
                 {props.meetupLocation}
             </span>
@@ -124,7 +126,7 @@ vi.mock('../../components/CheckInModal', () => ({
 }))
 
 vi.mock('../../components/layout/MeetupCard', () => ({
-    default: (props: any) => (
+    default: (props: MeetupCardMockProps) => (
         <div data-testid="meetup-card">
             <span data-testingid="meetup-card-location">
                 {props.location}
@@ -151,7 +153,7 @@ vi.mock('../../components/layout/MeetupCard', () => ({
     ),
 }));
 
-const defaultReservation = {
+const defaultReservation: ReservationResult = {
     success: true,
     data: {
         reservationId: '123',
@@ -163,39 +165,39 @@ const defaultReservation = {
             initials: 'MT',
         },
     },
-};
+}as unknown as ReservationResult;
 
-const defaultListing = {
+const defaultListing: ListingResult = {
     id: 'listing-1',
     title: 'Test Listing',
     price: 100,
     images: [],
-};
+} as unknown as  ListingResult;
 
-const defaultMessages = {
+const defaultMessages: ChatMessagesResult = {
     data: [],
     isLoading: false,
     isError: false,
     refetch: vi.fn(),
-};
+}as unknown as  ChatMessagesResult;
 
-const defaultSend = {
+const defaultSend: SendMessageResult = {
     send: vi.fn(),
     retry: vi.fn(),
-};
+}as unknown as SendMessageResult;
 
 beforeEach(() => {
     Element.prototype.scrollIntoView = vi.fn();
     navigateMock.mockClear();
     window.history.pushState({}, '', '/buyer/messages/123');
 
-    vi.mocked(getReservationById).mockReset().mockResolvedValue(defaultReservation as any);
-    vi.mocked(listingsService.getById).mockReset().mockResolvedValue(defaultListing as any);
-    vi.mocked(listingsService.proposeMeetup).mockReset().mockResolvedValue(undefined as any);
-    vi.mocked(listingsService.acceptMeetup).mockReset().mockResolvedValue(undefined as any);
-    vi.mocked(listingsService.declineMeetup).mockReset().mockResolvedValue(undefined as any);
-    vi.mocked(useChatMessages).mockReset().mockReturnValue(defaultMessages as any);
-    vi.mocked(useSendMessage).mockReset().mockReturnValue(defaultSend as any);
+    vi.mocked(getReservationById).mockReset().mockResolvedValue(defaultReservation);
+    vi.mocked(listingsService.getById).mockReset().mockResolvedValue(defaultListing);
+    vi.mocked(listingsService.proposeMeetup).mockReset().mockResolvedValue(undefined as MeetupStatusResponse);
+    vi.mocked(listingsService.acceptMeetup).mockReset().mockResolvedValue(undefined as MeetupStatusResponse);
+    vi.mocked(listingsService.declineMeetup).mockReset().mockResolvedValue(undefined);
+    vi.mocked(useChatMessages).mockReset().mockReturnValue(defaultMessages);
+    vi.mocked(useSendMessage).mockReset().mockReturnValue(defaultSend);
 });
 
 
@@ -254,7 +256,7 @@ describe('sending messages', () => {
         vi.mocked(useSendMessage).mockReturnValue({
             send: sendMock,
             retry: vi.fn(),
-        } as any);
+        } as unknown as SendMessageResult);
 
         renderWithProviders(<ChatPage />);
         const input = await screen.findByPlaceholderText('Type a message...');
@@ -272,7 +274,7 @@ describe('loading and the error states', () => {
             isLoading: true,
             isError: false,
             refetch: vi.fn(),
-        }as any);
+        }as unknown as ChatMessagesResult);
 
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('Loading messages...')).toBeInTheDocument();
@@ -284,7 +286,7 @@ describe('loading and the error states', () => {
             isLoading: false,
             isError: true,
             refetch: vi.fn(),
-        } as any);
+        } as unknown as ChatMessagesResult);
 
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('Failed to load messages') ).toBeInTheDocument();
@@ -305,7 +307,7 @@ describe('reservation meet-up flow within the chatting ', () => {
                     initials: 'MT'
                 },
             },
-        }as any);
+        }as ReservationResult);
 
         renderWithProviders(<ChatPage /> , '/buyer/messages/123');
         expect(
@@ -327,7 +329,7 @@ describe('reservation meet-up flow within the chatting ', () => {
                 timerStage: 'awaiting_seller',
                 counterParty: { name: 'Mahadio Tlaka', initials: 'MT' },
             },
-        } as any);
+        } as ReservationResult);
 
         renderWithProviders(<ChatPage />, '/seller/messages/123');
         expect(
@@ -355,7 +357,7 @@ describe('reservation meet-up flow within the chatting ', () => {
             isLoading: false,
             isError: false,
             refetch: vi.fn(),
-        } as any);
+        } as unknown as ChatMessagesResult);
 
         renderWithProviders(<ChatPage />);
         const confirmedButton = await screen.findByText('Meetup confirmed');
@@ -376,7 +378,7 @@ describe('listing summary card', () => {
     });
 
     it('does not render the listing card while the listing is unavailable', async () => {
-        vi.mocked(listingsService.getById).mockResolvedValue(undefined as any);
+        vi.mocked(listingsService.getById).mockResolvedValue(undefined as unknown as ListingResult);
         renderWithProviders(<ChatPage />);
         await screen.findByPlaceholderText('Type a message...');
         expect(screen.queryByText('Listing')).not.toBeInTheDocument();
