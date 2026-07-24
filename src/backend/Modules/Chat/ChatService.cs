@@ -262,6 +262,27 @@ public class ChatService : IChatService
 
         await _chatRepo.AddAsync(message, ct);
         await _chatRepo.SaveAsync(ct);
+
+        var dto = ToDto(message);
+
+        try
+        {
+            var reservation = await _reservations.GetByIdAsync(reservationId, ct);
+            if (reservation is not null)
+            {
+                var recipientIds = new[] { reservation.BuyerId, reservation.SellerId };
+
+                await _notifier.MessageCreatedAsync(dto, recipientIds, ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to broadcast meetup proposal for reservation {ReservationId}",
+                reservationId
+            );
+        }
         return ToDto(message);
     }
 
@@ -317,6 +338,27 @@ public class ChatService : IChatService
 
         await _chatRepo.AddAsync(result, ct);
         await _chatRepo.SaveAsync(ct);
+
+        var dto = ToDto(result);
+
+        try
+        {
+            var reservation = await _reservations.GetByIdAsync(reservationId, ct);
+            if (reservation is not null)
+            {
+                var recipientIds = new[] { reservation.BuyerId, reservation.SellerId };
+
+                await _notifier.MessageCreatedAsync(dto, recipientIds, ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to broadcast meetup response for reservation {ReservationId}",
+                reservationId
+            );
+        }
         return ToDto(result);
     }
 }
