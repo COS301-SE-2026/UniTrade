@@ -13,7 +13,6 @@ import type { Reservation } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
 import { cancelReservation, getReservationById } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
-import { useQuery } from "@tanstack/react-query";
 
 //type ReservationListItem = ReservationListResponse["items"][number];
 
@@ -22,27 +21,7 @@ interface CountdownResult {
   isUrgent: boolean;
   isExpired: boolean;
 }
-type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
-function StatusBadge({ status }: { status: string }) {
-  if (!status) return null;
-  const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
-  const config: Record<ItemStatus, { bg: string; text: string; dot: string; label: string }> = {
-    Active: { bg: 'bg-emerald-50', text: 'text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Active' },
-    Completed: { bg: 'bg-blue-50', text: 'text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Completed' },
-    Expired: { bg: 'bg-gray-50', text: 'text-gray-700 border-gray-200', dot: 'bg-gray-500', label: 'Expired' },
-    Cancelled: { bg: 'bg-rose-50', text: 'text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
-    Reserved: { bg: 'bg-amber-50', text: 'text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Reserved' },
-  };
-  const currentConfig = config[normalizedStatus] || config['Expired'];
-
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${currentConfig.bg} ${currentConfig.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.dot} ${normalizedStatus === 'Active' ? 'animate-pulse' : ''}`} />
-      {currentConfig.label}
-    </span>
-  );
-}
 const URGENT_THRESHOLD_MS = 15 * 60 * 1000;
 
 function pad(value: number): string {
@@ -181,11 +160,7 @@ export default function ReservationDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const { data: meetup} = useQuery({
-    queryKey: ['meetup', reservationId],
-    queryFn: () => listingsService.getMeetupStatus(reservationId!),
-    enabled: !!reservationId,
-  });
+
   const loadReservation = useCallback(async () => {
     if (!reservationId) {
       setError("No reservation ID provided");
@@ -247,17 +222,7 @@ export default function ReservationDetails() {
   };
 
   const handleCompletePayment = () => {
-    if (!reservation) return;
-    navigate('/payment/meetup', {
-      state: {
-        reservationId: reservation.reservationId,
-        role: isSeller ? 'seller' : 'buyer',
-        counterPartyName: otherPartyName,
-        counterpartyInitials: otherPartyInitials,
-        listingTitle: listingDetail?.title,
-        listingPrice: listingDetail?.price,
-      }
-    })
+    if (reservation) navigate(`/buyer/reservations/${reservation.reservationId}/pay`);
   };
 
   const handleViewListing = () => {
@@ -344,13 +309,11 @@ export default function ReservationDetails() {
       ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
       : "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200";
 
-  /*const statusBadge = isCancelled
+  const statusBadge = isCancelled
     ? { className: "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100", text: "Cancelled" }
     : isUrgent || isExpired
       ? { className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300", text: "Expiring soon" }
-      : { className: "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200", text: "Reserved" };*/
-
-
+      : { className: "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200", text: "Reserved" };
 
   const messageLabel = isSeller ? "Message Buyer" : "Message Seller";
   const cancelLabel = isCancelling ? "Cancelling..." : isSeller ? (reservation.timerStage === "awaiting_seller" ? "Reject" : "Cancel Reservation") : "Cancel";
@@ -428,8 +391,8 @@ export default function ReservationDetails() {
             <InfoRow
               label="Status"
               value={
-                <span className={"inline-block rounded-full px-2.5 py-1 text-xs font-semibold "}>
-                  <StatusBadge status={reservation.reservationStatus} />
+                <span className={"inline-block rounded-full px-2.5 py-1 text-xs font-semibold " + statusBadge.className}>
+                  {statusBadge.text}
                 </span>
               } />
           </SectionCard>
@@ -447,7 +410,7 @@ export default function ReservationDetails() {
                 icon={<IconDownload size={16} />}
                 label="Complete Payment"
                 onClick={handleCompletePayment}
-                disabled={isSeller || isCancelled || isExpired || !meetup?.buyerCheckedIn} />
+                disabled={isSeller || isCancelled || isExpired} />
               )}
 
               <ActionButton
