@@ -211,7 +211,7 @@ export interface OrderItem {
   sellerName: string;
   sellerInitials: string;
   price: number;
-  data: string;
+  date: string;
   status: 'Completed' | 'Pending' | 'Cancelled';
   rating: number;
   _createdAtIso: string;

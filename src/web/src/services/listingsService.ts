@@ -18,11 +18,14 @@ import type {
   UserReviewsResponse,
   SubmitReviewPayload,
   Review,
+  OrderItem
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
+import { getReservations, getTransactionStatus } from "./reservationService";
+
 
 import { getApiUrl } from "../config";
 
@@ -682,4 +685,92 @@ export const listingsService = {
     }
     return res.json();
   },
-};
+
+  getCompletedOrders: async (): Promise<OrderItem[]> => {
+    const res = await getReservations({role: 'buyer'});
+    if(!res.success){
+      throw new Error(res.error.message ?? 'Failed to load your orders');
+    }
+
+    const completed = res.data.items.filter(
+      (r) => r.reservationStatus === 'completed',
+    );
+
+    if(completed.length === 0) return [];
+
+    const listingIds = [...new Set(completed.map((r) => r.listingId))];
+    const conditionMap = new Map<string, string>();
+    const imageMap = new Map<string, string>();
+
+    await Promise.all(
+      listingIds.map(async (listingId) => {
+        try {
+          const detail = await listingsService.getById(listingId);
+          conditionMap.set(listingId, detail.condition);
+          const firstImage = detail.images?.[0]?.url || '';
+          imageMap.set(listingId, firstImage);
+        } catch {
+          conditionMap.set(listingId, 'Unknown');
+          imageMap.set(listingId, '');
+        }
+      }),
+    );
+
+    const txMap = new Map<string, string | null>();
+    await Promise.all(
+      completed.map(async (r) => {
+        const tx = await getTransactionStatus(r.reservationId);
+        txMap.set(r.reservationStatus, tx.success ? tx.data.transactionId : null);
+      }),
+    );
+
+    const sellerIds = [...new Set(completed.map((r) => r.counterParty.userId))];
+    const reviewsMap = new Map<string, Review[]>();
+    await Promise.all(
+      sellerIds.map(async (sellerId) => {
+        try {
+          const data = await listingsService.getReviewsForUser(sellerId);
+          reviewsMap.set(sellerId, data.reviews);
+        } catch {
+          reviewsMap.set(sellerId, []);
+        }
+        }),
+      );
+
+      function toRefNum(reservationId: string): string {
+        return `#${reservationId.slice(0,8).toUpperCase()}`;
+      }
+
+      function formatOrderDate(iso: string): string {
+        return new Date(iso).toLocaleDateString('en-ZA', {
+          day : 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+      }
+
+      return completed.map((r: any) => {
+      const transactionId = txMap.get(r.reservationId);
+      const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
+      const theReview = transactionId
+      ? sellerReviews.find((rev) => rev.transactionId === transactionId)
+      : undefined;
+
+    return {
+      id: r.reservationId,
+      refNum: toRefNum(r.reservationId),
+      title: r.listing.title,
+      condition: conditionMap.get(r.listingId) ?? 'Unknown',
+      sellerName: r.counterParty.name,
+      sellerInitials: r.counterParty.initials,
+      price: r.listing.price,
+      date: formatOrderDate(r.createdAt),
+      status: 'Completed' as const,
+      rating: theReview?.rating ?? 0,
+      _createdAtIso: r.createdAt,
+      imageUrl: imageMap.get(r.listingId) ?? '',
+    }
+  });
+},
+
+}
