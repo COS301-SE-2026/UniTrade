@@ -172,6 +172,7 @@ export interface MeetupStatusResponse {
   sellerCheckedIn: boolean
   paymentUnlocked: boolean
   status: string
+  checkinWindowOpensAt: string
 }
 
 export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
