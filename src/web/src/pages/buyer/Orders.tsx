@@ -7,6 +7,7 @@ import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
 import type { Review } from '../../types/listing';
 import type { ReservationListItem} from '../../types/Reservations';
+import { SummaryCard } from "./Reservation";
 
 
 export interface OrderItem{
@@ -21,6 +22,7 @@ export interface OrderItem{
   status: 'Completed' | 'Pending' | 'Cancelled';
   rating: number;
   _createdAtIso: string;
+  imageUrl: string;
 }
 
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
@@ -44,10 +46,43 @@ function formatOrderDate(iso: string) : string{
   })
 }
 
+
+const conditionColours: Record<
+  string,
+  { bg: string; text: string; dot: string }
+> = {
+  like_new: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  Good: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  Fair: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
+  Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
+};
+
+function ConditionBadge({ condition }: { condition: string}) {
+  const s = conditionColours[condition] ?? conditionColours.Fair;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${s.text}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {condition}
+    </span>
+  );
+}
+
+
+
 async function loadCompletedOrders(): Promise<OrderItem[]> {
   const result = await getReservations({ role: 'buyer'})
   if(!result.success){
-    throw new Error(result.error.message ?? 'Faild to load orders.')
+    throw new Error(result.error.message ?? 'Failed  to load your orders.')
   }
 
   const completed = result.data.items.filter(
@@ -109,7 +144,9 @@ price: r.listing.price,
 date: formatOrderDate(r.createdAt),
 status: 'Completed',
 rating: theReview?.rating ?? 0,
-_createdAtIso: r.createdAt,}}) 
+_createdAtIso: r.createdAt,
+imageUrl: imageByListingId.get(r.listingId) ?? '',
+}}) 
 }
 
 
@@ -160,66 +197,60 @@ export default function Orders(){
     },[orders])
     
   return(
-    <main className='flex-1 flex flex-col overflow-y-auto'>
-      <header className='flex items-center justify-between px-8 py--4 bg-white border-b border-slate-200'>
-        <div className='relative w-96'>
-          <Search className='w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400' />
-          <input
-          type="text"
-          placeholder='search...'
-          className='w-full pl-9 pr-4 py-2 bg-slate-100 rounded-lg text-sm focus:outline-none foucs:ring-2 focus:ring-blue-500'
-          />
-          </div>
-          <div className='flex items-center gap-4 text-slate-600'>
-            <button className='p-2 hover:bg-slate-slate-100 rounded-full transition-colors'>
-            <Bell className='w-5 h-5' />
-            </button>
-
-              <button className='p-2 hover:bg-slate-slate-100 rounded-full transition-colors'>
-            <Sun className='w-5 h-5' />
-            </button>
+    <div className = "flex flex-col gap-6">
+      <div className = "flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
+            My Orders
+          </h1>
+          <p className = "text-sm text-gray-400 mt-1">
+            {orders.length} {orders.length === 1 ? 'order' : 'orders'} placed
+          </p>
         </div>
-      </header>
-
-      <div className='p-8 max-w-5xl'>
-        <h2 className="text-2xl font-bold text-[#0F224A] mb-6">My Orders</h2>
-        <div className="grid grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
-          <p className='text-3xl font-extrabold text-slate 800'>
-            {stats.totalPurchases}
-          </p>
-          <p className='text-xs text-slate-500 font-medium mt-1'>Total Purchases</p>
-          </div>
-           <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
-          <p className='text-3xl font-extrabold text-slate 800'>
-    {formatPrice(stats.totalSpent)}
-
-          </p>
-          <p className='text-xs text-slate-500 font-medium mt-1'>Total Spent</p>
-          </div>
-           <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
-          <p className='text-3xl font-extrabold text-slate 800'>
-            {stats.reviewsLeft}
-          </p>
-          <p className='text-xs text-slate-500 font-medium mt-1'>Reviews left</p>
-          </div>
-          
       </div>
 
+      <div className = "flex gap-4">
+        <SummaryCard
+        label = "Total Purchases"
+        value = {String(stats.totalPurchases)}
+        icon={null}
+        />
+        <SummaryCard
+        label = "Total Spent"
+        value = {formatPrice(stats.totalSpent)}
+        icon = {null}
+        />
+        <SummaryCard
+        label = "Reviews left"
+        value = {stats.reviewsLeft}
+        icon = {null}
+        />
+      </div>
 
-
-      <div className='flex items-center gap mb-6'>
+      <div className = "flex items-center gap-2">
         {(['all','semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
-        <button 
-        key={tab}
-         onClick={()=>setActiveTab(tab)}
-        className={`px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
-       activeTab === tab ? 'bg-[#0F224A text-white': 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
-      >
-      {tab === 'semester' ? 'This semester' :tab === 'awaiting' ? 'Awaiting review' : tab}
-      </button>
+          <button
+          key = {tab}
+          onClick={() => setActiveTab(tab)}
+          className = {`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+            activeTab === tab
+            ? 'bg-navy-700 text-white'
+            : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
+          }`}
+          >
+            {
+              tab === 'semester'
+              ? 'This semester'
+              :tab === 'awaiting'
+              ? 'Awaiting review'
+              : tab === 'reviewed'
+              ? 'Reviewed'
+              : 'All'
+            }
+          </button>
         ))}
-        </div>
+      </div>
+
         {isLoading && (
           <div className='flex flex-col items-center justify-center py-16 text-slate-500'>
             <Loader2 className='w-8 h-8 animate-spin mb-2' />
@@ -243,15 +274,27 @@ export default function Orders(){
       </div>)}
 
       {!isLoading && !error && filteredOrders.length ===0 && (
-        <div className='text-center py-16 bg-white rounded-xl border border-slate-200'>
-          <p className='text-slate-600 font-medium'>No orders found </p>
-          <p className='text-xs text-slate-400 mt-1'>There are no orders available for this category.</p></div>
+        <div className='bg-white rounded-xl border border-gray-200 p-8 text-center'>
+          <p className='text-sm font-semibold text-gray-700'>
+            No orders found 
+          </p>
+          <p className='text-xs text-gray-400 mt-1'>
+            There are no orders available for this category.
+          </p>
+        </div>
       )}
-      {!isLoading && !error && filteredOrders.length>0 && (
 
-  <div className='space-y-6'>
+
+  {!isLoading && !error && filteredOrders.length>0 && (
+  <div className='flex flex-col gap-4'>
     {filteredOrders.map((order) =>(
-      <div key={order.id} className='bg-slate-200/60 rounded-xl p-4 border order-slate-300'>
+      <div
+        key={order.id} 
+        className='bg-white rounded-xl border border-gray-200 p-4 flex-items-center gap-4'
+      >
+
+        <img
+        src = {order.imageUrl || ''}
         <div className='flex justify-between items-center mb-3 px-1'>
           <span className='text-sm font-semibold text-slate-700'>Ref num: {order.refNum}</span>
           <div className='flex items-center gap-3'>
