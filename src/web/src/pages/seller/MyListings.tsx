@@ -124,18 +124,6 @@ function ActionButtons({
       </div>
     );
   }
-  if (listing.status === "sold") {
-    return (
-      <div className="flex items-center gap-2 fle-wrap md:flex-nowrap">
-        <button
-          onClick={() => navigate(`/seller/listings/${listing.id}`)}
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
-        >
-          View
-        </button>
-      </div>
-    );
-  }
 
   return null;
 }
@@ -228,7 +216,6 @@ export default function MyListings() {
     { key: "pending", label: `Pending (${count("pending")})` },
     { key: "draft", label: `Drafts (${count("draft")})` },
     { key: "rejected", label: `Rejected (${count("rejected")})` },
-    { key: "sold", label: `Sold (${count("sold")})` },
   ];
 
   if (isLoading)
@@ -313,8 +300,8 @@ export default function MyListings() {
               setCurrentPage(1);
             }}
             className={`px-4 md:px-5 py-2 rounded-full text-xs md:text-sm font-semibold border transition-colors ${activeTab === tab.key
-              ? "bg-navy-700 text-white border-navy-700"
-              : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                ? "bg-navy-700 text-white border-navy-700"
+                : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
           >
             {tab.label}
@@ -324,6 +311,7 @@ export default function MyListings() {
 
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <div className="min-w-[700px] md:min-w-0">
+          {/* Table Header */}
           <div className="hidden md:flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
             <div className="w-12 flex-shrink-0" />
             <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
@@ -347,8 +335,8 @@ export default function MyListings() {
             <div
               key={listing.id}
               className={`flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 px-4 md:px-5 py-4 ${i < paginated.length - 1
-                ? "border-b border-gray-100 dark:border-white/5"
-                : ""
+                  ? "border-b border-gray-100 dark:border-white/5"
+                  : ""
                 } md:border-b md:border-gray-100 md:dark:border-white/5 border border-gray-200 dark:border-white/10 rounded-xl md:rounded-none mb-3 md:mb-0 bg-white dark:bg-navy-800 md:bg-transparent`}
             >
               <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:min-w-0">
@@ -414,8 +402,8 @@ export default function MyListings() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
-                  ? "bg-navy-700 text-white border-navy-700"
-                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
                   }`}
               >
                 {page}

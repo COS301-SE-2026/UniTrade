@@ -1,42 +1,33 @@
 import { IconBell, IconSun, IconMoon, IconSearch } from '@tabler/icons-react';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useSearchParams } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Topbar() {
   const { isDark, toggle } = useThemeStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [inputValue, setInputValue] = useState(searchParams.get('q') || '');
-  const inputValueRef = useRef(inputValue);
 
   useEffect(() => {
-    inputValueRef.current = inputValue;
-  }, [inputValue]);
-  useEffect(() => {
     const timer = setTimeout(() => {
-      const trimmed = inputValue.trim();
-      setSearchParams((prev) => {
-        const currentQ = prev.get('q') || '';
-        if (trimmed === currentQ) return prev;
-        const newParams = new URLSearchParams(prev);
-        if (trimmed) {
-          newParams.set('q', trimmed);
+      const currentQ = searchParams.get('q') || '';
+
+      if (inputValue.trim() !== currentQ) {
+        const newParams = new URLSearchParams(searchParams);
+
+        if (inputValue.trim()) {
+          newParams.set('q', inputValue.trim());
         } else {
           newParams.delete('q');
         }
-        return newParams;
-      }, { replace: true });
+
+        setSearchParams(newParams, { replace: true });
+      }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, setSearchParams]);
-  useEffect(() => {
-    const q = searchParams.get('q') || '';
-    if (q !== inputValueRef.current) {
-      setInputValue(q);
-    }
-  }, [searchParams]);
+  }, [inputValue]);
 
   return (
     <header className="h-14 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-white/10 flex items-center px-5 gap-4 flex-shrink-0">

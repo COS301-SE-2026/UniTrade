@@ -7,8 +7,6 @@ const statusStyles: Record<ListingStatus, string> = {
   draft:    'bg-[#e0f7fa] text-[#006064]',
   rejected: 'bg-red-100 text-red-400',
   reserved: 'bg-amber-100 text-amber-700',
-  sold: 'bg-navy-100 text-navy-700'
-  
 }
 
 const statusLabel: Record<ListingStatus, string> = {
@@ -16,9 +14,7 @@ const statusLabel: Record<ListingStatus, string> = {
   pending:  'Pending Review',
   draft:    'Draft',
   rejected: 'Rejected',
-  reserved: 'Reserved',
-  sold: 'Sold'
- 
+  reserved: 'Reserved'
 }
 
 export default function StatusPill({ status }: { status: ListingStatus }) {
