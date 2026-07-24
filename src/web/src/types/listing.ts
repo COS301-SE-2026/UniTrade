@@ -202,3 +202,19 @@ export interface SubmitReviewPayload {
   rating: number
   comment?: string 
 }
+
+export interface OrderItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  sellerName: string;
+  sellerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
+}
