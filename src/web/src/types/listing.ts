@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -201,4 +201,20 @@ export interface SubmitReviewPayload {
   transactionId: string
   rating: number
   comment?: string 
+}
+
+export interface OrderItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  sellerName: string;
+  sellerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
 }

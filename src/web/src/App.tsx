@@ -38,6 +38,7 @@ import GeneratePin from "./pages/payment/GeneratePin";
 import EnterPin from "./pages/payment/EnterPin";
 import PaymentComplete from "./pages/payment/PaymentComplete";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
+import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
 function RedirectToMessages({ role }: { role: "buyer" | "seller" }) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
@@ -80,6 +81,7 @@ export default function App() {
         <Route path="/verify-otp" element={<OTP_verification />} />
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
+        <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
