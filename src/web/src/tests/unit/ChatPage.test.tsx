@@ -193,8 +193,8 @@ beforeEach(() => {
 
     vi.mocked(getReservationById).mockReset().mockResolvedValue(defaultReservation);
     vi.mocked(listingsService.getById).mockReset().mockResolvedValue(defaultListing);
-    vi.mocked(listingsService.proposeMeetup).mockReset().mockResolvedValue(undefined as MeetupStatusResponse);
-    vi.mocked(listingsService.acceptMeetup).mockReset().mockResolvedValue(undefined as MeetupStatusResponse);
+    vi.mocked(listingsService.proposeMeetup).mockReset().mockResolvedValue(undefined as unknown as MeetupStatusResponse);
+    vi.mocked(listingsService.acceptMeetup).mockReset().mockResolvedValue(undefined as unknown  as MeetupStatusResponse);
     vi.mocked(listingsService.declineMeetup).mockReset().mockResolvedValue(undefined);
     vi.mocked(useChatMessages).mockReset().mockReturnValue(defaultMessages);
     vi.mocked(useSendMessage).mockReset().mockReturnValue(defaultSend);
