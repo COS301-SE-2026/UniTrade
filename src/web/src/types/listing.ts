@@ -205,6 +205,7 @@ export interface SubmitReviewPayload {
 
 export interface OrderItem {
   id: string;
+  transactionId: string | null;
   refNum: string;
   title: string;
   condition: string;
