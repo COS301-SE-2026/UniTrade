@@ -662,7 +662,7 @@ export const listingsService = {
   },
 
   getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
-    const res = await fetch(`${getApiUrl()}/reviews?userId=${userId}`, {
+    const res = await fetch(`${getApiUrl()}/reviews/users/${userId}`, {
       credentials: "include",
     });
     if (!res.ok) {

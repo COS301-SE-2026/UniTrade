@@ -6,7 +6,7 @@ import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
 import type { OrderItem } from '../../types/listing';
 import { SummaryCard } from "./Reservation";
-
+import { ReviewModal } from '../auth/Review';
 
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
@@ -53,6 +53,10 @@ export default function Orders(){
   const navigate=useNavigate()
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{
+    transactionId: string
+    revieweeName: string
+  } | null>(null);
 
   const load= useCallback(async () => {
     setIsLoading(true);
@@ -222,6 +226,8 @@ export default function Orders(){
               </div>
 
               <div className= "flex items-center gap-1 pt-1">
+                {order.rating > 0 ? (
+                <>
                 {[...Array(5)].map((_, i) => (
                   <Star
                   key = {i}
@@ -234,10 +240,32 @@ export default function Orders(){
                 ))}
 
                 <span className = "text-xs text-gray-500 ml-1">
-                  {order.rating > 0 ? 'You rated this' : 'Not yet rated'}
+                  You rated this
                 </span>
+                </>
+
+                ) : order.transactionId ? (
+                  <button 
+                  type = "button"
+                  onClick = {(e) => {
+                    e.stopPropagation();
+                    setReviewTarget({
+                      transactionId: order.transactionId as string,
+                      revieweeName: order.sellerName,
+                    });
+                  }}
+                  className = "flex items-center gap-1 text-xs font-semibold text-navy-700 hover:underline"
+                  >
+                    <Star className = "w-4 h-4 text-navy-700" />
+                    Rate this seller
+                  </button>
+                ) : (
+                  <span className = "text-xs text-gray-400">
+                    Review unavailable
+                  </span>
+                )}
               </div>
-            </div>
+              </div>
 
                 <div className = "text-right space-y-3">
                   <div>
@@ -258,6 +286,20 @@ export default function Orders(){
             </div>
           ))}
       </div>
+      )}
+
+      {reviewTarget && (
+        <ReviewModal
+        isOpen = {!!reviewTarget}
+        onClose = {() => setReviewTarget(null)}
+        transactionId= {reviewTarget.transactionId}
+        revieweeName= {reviewTarget.revieweeName}
+        revieweeLabel = "seller"
+        onSubmitted={() => {
+          setReviewTarget(null)
+          load()
+        }}
+        />
       )}
     </div>
     );
