@@ -1,29 +1,12 @@
 
 import { useEffect, useCallback, useState, useMemo} from 'react'
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, Sun, Star,Loader2 ,AlertCircle} from 'lucide-react'
-import { getReservations, getTransactionStatus} from '../../services/reservationService';
+import { Loader2 ,AlertCircle, Star} from 'lucide-react'
 import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
-import type { Review } from '../../types/listing';
-import type { ReservationListItem} from '../../types/Reservations';
+import type { OrderItem } from '../../types/listing';
 import { SummaryCard } from "./Reservation";
 
-
-export interface OrderItem{
-  id: string;
-  refNum: string;
-  title: string;
-  condition: string;
-  sellerName: string;
-  sellerInitials: string;
-  price: number;
-  date: string;
-  status: 'Completed' | 'Pending' | 'Cancelled';
-  rating: number;
-  _createdAtIso: string;
-  imageUrl: string;
-}
 
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
@@ -33,19 +16,6 @@ const mockMonth = new Date()
 mockMonth.setMonth(mockMonth.getMonth()-3)
 return new Date(iso) >= mockMonth
 }
-
-function toRefNum(reservationId: string): string {
-  return `#${reservationId.slice(0,8).toUpperCase()}`
-}
-
-function formatOrderDate(iso: string) : string{
-  return new Date(iso).toLocaleDateString('en-ZA', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
 
 const conditionColours: Record<
   string,
@@ -77,80 +47,6 @@ function ConditionBadge({ condition }: { condition: string}) {
   );
 }
 
-
-
-async function loadCompletedOrders(): Promise<OrderItem[]> {
-  const result = await getReservations({ role: 'buyer'})
-  if(!result.success){
-    throw new Error(result.error.message ?? 'Failed  to load your orders.')
-  }
-
-  const completed = result.data.items.filter(
-    (r) => r.reservationStatus === 'completed',
-  )
-
-  const listingIds = [...new Set(completed.map((r) => r.listingId))]
-const conditionByListingId = new Map<string, string>()
-
-await Promise.all(
-  listingIds.map(async (listingId) => {
-    try {
-      const detail = await listingsService.getById(listingId)
-      conditionByListingId.set(listingId, detail.condition)
-
-    } catch {
-      conditionByListingId.set(listingId, 'Uknown')
-    }
-  }),
-)
-
-const txBbyReservationId = new Map<string, string | null>()
-await Promise.all(
-  completed.map(async (r) => {
-    const tx = await getTransactionStatus(r.reservationId)
-    txBbyReservationId.set(r.reservationId, tx.success ? tx.data.transactionId: null)
-
-  }),
-)
-
-const sellerIds = [...new Set(completed.map((r) =>r.counterParty.userId))]
-const reviewsBySellerId = new Map< string, Review[]>()
-await Promise.all(
-  sellerIds.map(async (sellerId) => {
-    try{
-      const data = await listingsService.getReviewsForUser(sellerId)
-      reviewsBySellerId.set(sellerId, data.reviews)
-    }
-    catch{reviewsBySellerId.set(sellerId, [])
-    }
-  }),
-)
-
-return completed.map((r: ReservationListItem) => {
-  const transactionId = txBbyReservationId.get(r.reservationId)
-  const sellerReviews = reviewsBySellerId.get(r.counterParty.userId) ?? [] 
-  const theReview = transactionId
-  ? sellerReviews.find(
-    (rev) => rev.transactionId === transactionId) :undefined
-
-return{
-  id: r.reservationId,
-  refNum: toRefNum(r.reservationId),
-  title: r.listing.title,
-  condition: conditionByListingId.get(r.listingId) ?? 'Unknown',
-sellerName: r.counterParty.name,
-sellerInitials: r.counterParty.initials,
-price: r.listing.price,
-date: formatOrderDate(r.createdAt),
-status: 'Completed',
-rating: theReview?.rating ?? 0,
-_createdAtIso: r.createdAt,
-imageUrl: imageByListingId.get(r.listingId) ?? '',
-}}) 
-}
-
-
-
 export default function Orders(){
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
   const [orders, setOrders] = useState<OrderItem[]>([]);
@@ -162,7 +58,7 @@ export default function Orders(){
     setIsLoading(true);
     setError(null);
     try{
-      const data = await loadCompletedOrders();
+      const data = await listingsService.getCompletedOrders();
       setOrders(data);
     }catch (err:any){
       setError(err instanceof Error ? err.message : 'An error occured while loading your orders.');
@@ -290,70 +186,79 @@ export default function Orders(){
     {filteredOrders.map((order) =>(
       <div
         key={order.id} 
-        className='bg-white rounded-xl border border-gray-200 p-4 flex-items-center gap-4'
+        className='bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4'
       >
-
         <img
-        src = {order.imageUrl || ''}
-        <div className='flex justify-between items-center mb-3 px-1'>
-          <span className='text-sm font-semibold text-slate-700'>Ref num: {order.refNum}</span>
-          <div className='flex items-center gap-3'>
-            <span className='text-sm font-medium text-slate-600'>Collected {order.date}</span>
-            <span className='bg-emerald-200 text-emerald-800 text-xs px-3 py-1 rounded-full font-semibold'>
-              {order.status}
-            </span>
-          </div>
-          </div>
-          
- <div className='bg-white rounded-lg p-4 border border-slate-200 flex items-center justify-between'>
-      <div className="flex items-center gap-4">
-        <div className='w-20 h-20 bg-slate-900 rounded-md overflow-hidden shrink-0 flex items-center justify-venter text-xs text-white'>
-          [Book Cover]
+        src = {order.imageUrl || '/placeholder-book.png'}
+        alt = {order.title}
+        onClick={() => navigate(`/buyer/orders/${order.id}`)}
+        className = "w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+        />
 
-  </div>
-  <div className='space-y-1'>
-    <h3 className='font-bold text-slate-800 text-base'>{order.title}</h3>
-    <p className='text-xs text-slate-500'>Condition: {order.condition}</p>
+        <div className = "flex-1 min-w-0">
+          <div
+          onClick = {() => navigate(`/buyer/orders/${order.id}`)}
+          className = "cursor-pointer"
+          >
 
-    <div className="flex items-center gap-2 pt-1">
-    <span className='w-5 h-5 rounded-full bg-blue-700 text-white text-10px] font-bold flex items-center justify-center'>
-      {order.sellerInitials}
-      </span>
-      <span className='text-xs font-semibold text-slate-700'>
-        {order.sellerName}</span>
-        </div>
+            <div className = "flex items-center gap-2 flex-wrap">
+              <p className = "text-sm font-bold text-gray-800 truncate">
+                {order.title}
+              </p>
+              <ConditionBadge condition= {order.condition} />
+            </div>
+            <p className = "text-xs text-gray-400 mt-0.5">
+              Collected {order.date} . Ref: {order.refNum}
+            </p>
+            </div>
 
+            <div className = "flex items-center gap-2 mt-1">
+              <span className = "w-5 h-5 rounded-full bg-navy-700 text-white text-[10px] font-bold flex items-center justify-center">
+                {order.sellerInitials}
+              </span>
+              <span className= "text-xs font-semibold text-gray-700">
+                {order.sellerName}
+              </span>
+              </div>
 
-        <div className="flex items-center gap-1 pt-1">
-          {[...Array(5)].map((_,i) => (
-            <Star 
-            key={i}
-            className={`w-4 h-4 ${
-              i < order.rating ? 'fill-amber-400 text-amber-400': 'text-slate-300'
-            }`}/>
+              <div className= "flex items-center gap-1 pt-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                  key = {i}
+                  className = {`w-4 h-4 ${
+                    i < order.rating
+                    ? 'fill-amber-400 text-amber-400'
+                    : 'text-gray-300'
+                  }`}
+                  />
+                ))}
 
+                <span className = "text-xs text-gray-500 ml-1">
+                  {order.rating > 0 ? 'You rated this' : 'Not yet rated'}
+                </span>
+              </div>
+            </div>
+
+                <div className = "text-right space-y-3">
+                  <div>
+                    <p className = "text-lg font-bold text-gray-900">
+                      {formatPrice(order.price)}
+                    </p>
+                    <p className = "text-xs text-gray-400">
+                      {order.date}
+                    </p>
+                  <button 
+                  onClick = {() => navigate(`/buyer/orders/${order.id}`)}
+                  className = "px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    View details
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
-          <span className='text-xs text-slate-500 ml-1'>You rated this</span>
-        </div>
-    </div>
-      </div>
-      <div className='text-ight space-y-4'>
-        <div>
-          <p className='text-lg font-bold text-slate-900'>R{formatPrice(order.price)}</p>
-          <p className="text-xs text-slate-400">{order.date}</p></div>
-          <button 
-          onClick={() => navigate(`/buyer/orders/${order.id}`)}
-            className='px-4 py-1.5 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors'>
-            View details
-          </button>
-      </div>
-      </div>
-      </div>
-    ))}
       </div>
       )}
-      </div>
-    </main>
-
-  );
+    </div>
+    );
 }

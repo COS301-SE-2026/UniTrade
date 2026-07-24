@@ -720,7 +720,7 @@ export const listingsService = {
     await Promise.all(
       completed.map(async (r) => {
         const tx = await getTransactionStatus(r.reservationId);
-        txMap.set(r.reservationStatus, tx.success ? tx.data.transactionId : null);
+        txMap.set(r.reservationId, tx.success ? tx.data.transactionId : null);
       }),
     );
 
@@ -758,6 +758,7 @@ export const listingsService = {
 
     return {
       id: r.reservationId,
+      transactionId: transactionId ?? null,
       refNum: toRefNum(r.reservationId),
       title: r.listing.title,
       condition: conditionMap.get(r.listingId) ?? 'Unknown',
