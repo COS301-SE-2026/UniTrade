@@ -1,11 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  content: ["./index.html", "./src/**/*.{ts,tsx}", "./src/pages/auth/BrandingStyleDoc"],
   darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif']
+        sans: ['Inter', 'sans-serif'],
+        display: ['Fraunces', 'serrif'],
       },
       keyframes: {
         'fade-up': {
@@ -23,6 +24,26 @@ export default {
          'pop-in': 'pop-in 0.5s ease-out both',
       },
       colors: {
+        primary: {
+          500: '#1a3a7a',
+          700: '#0d1f4e',
+          800: '#0a1840',
+        },
+        secondary: {
+          500: '#04b4fd',
+        },
+        success: {
+          600: '#059669',
+        },
+        error: {
+          600: '#e11d48',
+        },
+        warning: {
+          500: '#f59e0b',
+        },
+        info: {
+          700: '#0a1840',
+        },
         navy: {
           50:  '#e6eaf2',
           100: '#b3bcce',
@@ -32,7 +53,8 @@ export default {
           800: '#0a1840',
           900: '#070f27',
         }
-      }
+      },
+
     }
   },
   plugins: [],

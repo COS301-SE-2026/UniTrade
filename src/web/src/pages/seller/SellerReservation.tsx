@@ -11,9 +11,13 @@ import {
     IconPresentationAnalytics,
     IconActivity,
     IconReceipt2,
+    IconFilter,
+    IconChevronDown,
 } from '@tabler/icons-react'
 import { getApiUrl } from '../../config'
-type ItemStatus = 'Active' | 'Expired' |'Completed' | 'Reserved';
+type ItemStatus = 'Active' | 'Expired' | 'Completed' | 'Reserved' | 'Cancelled';
+type FilterStatus = 'All' | ItemStatus;
+type SortOption = 'Date added' | 'Price low' | 'Price high';
 
 function StatusBadge({ status }: { status: string }) {
     if (!status) return null;
@@ -24,7 +28,7 @@ function StatusBadge({ status }: { status: string }) {
         Active: { bg: 'bg-emerald-50', text: ' text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Active' },
         Completed: { bg: 'bg-blue-50', text: 'text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Completed' },
         Expired: { bg: 'bg-gray-50', text: ' text-gray-700 border-gray-200', dot: 'bg-gray-500', label: 'Expired' },
-        //Cancelled: { bg: 'bg-rose-50', text: ' text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
+        Cancelled: { bg: 'bg-rose-50', text: ' text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
         Reserved: { bg: 'bg-amber-50', text: ' text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Reserved' },
     };
     const currentConfig = config[normalizedStatus] || config['Expired'];
@@ -134,9 +138,9 @@ function ReservationCard({
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
 
-            <img src={reservation.listing.imagePath 
-            ? `${apiOrigin}${reservation.listing.imagePath}`
-            : '/placeholder.png'}
+            <img src={reservation.listing.imagePath
+                ? `${apiOrigin}${reservation.listing.imagePath}`
+                : '/placeholder.png'}
                 alt={reservation.listing.title}
                 className="w-20 h-20 rounded-lg object-cover flex shrink-0"
             />
@@ -176,7 +180,7 @@ function ReservationCard({
 
                 {isActive && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                        
+
                         {reservation.timerStage == 'awaiting_seller' ? (
                             <button
                                 type="button"
@@ -204,11 +208,11 @@ function ReservationCard({
                             )}
                         </button>
                         {isActive && reservation.timerStage !== 'coordinating' && (
-                        <button
-                            onClick={() => onCancel(reservation.reservationId)}
-                            className=" py-2 px-3 border border-gray-300 text-rose-600 text-xs
+                            <button
+                                onClick={() => onCancel(reservation.reservationId)}
+                                className=" py-2 px-3 border border-gray-300 text-rose-600 text-xs
                 font-semibold rounded-lg hover:bg-rose-50 transition-colors" >
-                            {reservation.timerStage === 'awaiting_seller' ? 'Reject' : 'Cancel Reservation'}</button>
+                                {reservation.timerStage === 'awaiting_seller' ? 'Reject' : 'Cancel Reservation'}</button>
                         )}
                     </div>)}
             </div>
@@ -221,7 +225,11 @@ export default function Reservations() {
     const queryClient = useQueryClient()
     const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('seller');
     //const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
-   
+    const [sortOption, setSortOption] = useState<SortOption>("Date added")
+    const [sortOpen, setSortOpen] = useState(false)
+    const [filterOpen, setFilterOpen] = useState(false)
+    const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
+
     const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reserved listings.') : null
     const [actionError, setActionError] = useState<string | null>(null)
     const handleAcknowledge = async (reservationId: string) => {
@@ -231,28 +239,51 @@ export default function Reservations() {
         }
     }
 
+
     const handleCancel = async (reservationId: string) => {
-        
+
         const result = await cancelReservation(reservationId)
         if (result.success) {
-            
+
             setActionError(null)
             queryClient.invalidateQueries({ queryKey: queryKeys.reservations('seller') })
         } else {
             setActionError(
                 result.error.code === 'release_too_early'
-                ? 'You can only cancel after 12 hours of buyer silence.'
-                : 'Failed to reject reservation.'
+                    ? 'You can only cancel after 12 hours of buyer silence.'
+                    : 'Failed to reject reservation.'
             )
         }
     }
 
+    const filtered = useMemo(() => {
+        if (statusFilter === "All") return reservations;
+        return reservations.filter(
+            (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
+        );
+    }, [reservations, statusFilter]);
+
+    const sorted = useMemo(() => {
+        const copy = [...filtered];
+        if (sortOption === "Price low") {
+            copy.sort((a, b) => a.listing.price - b.listing.price);
+        } else if (sortOption === "Price high") {
+            copy.sort((a, b) => b.listing.price - a.listing.price);
+        } else {
+            copy.sort(
+                (a, b) =>
+                    new Date(b.createdAt ?? b.expiresAt).getTime() -
+                    new Date(a.createdAt ?? a.expiresAt).getTime()
+            );
+        }
+        return copy;
+    }, [filtered, sortOption]);
     const summary = useMemo(() => {
         const activeItems = reservations.filter((r) => r.reservationStatus === 'active')
         const activeCount = activeItems.length
         const actionRequiredCount = activeItems.filter((r) => r.timerStage === 'awaiting_seller').length
         const totalValue = activeItems.reduce((sum, r) => sum + r.listing.price, 0)
-        
+
         return { activeCount, actionRequiredCount, totalValue }
     }, [reservations]
     )
@@ -260,9 +291,67 @@ export default function Reservations() {
 
     return (
         <div className="flex flex-col gap-6">
-           
-            <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
-                My Reserved Items</h1>
+            <div className="flex items-start justify-between flex-wrap gap-4">
+                <div>
+                    <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
+                        My Reserved Items</h1>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setSortOpen((o) => !o)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+                        >
+                            Sort by : {sortOption.toLowerCase()}
+                            <IconChevronDown size={12} />
+                        </button>
+                        {sortOpen && (
+                            <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+                                {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
+                                    <button
+                                        key={opt}
+                                        onClick={() => {
+                                            setSortOption(opt);
+                                            setSortOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${sortOption === opt ? "text-navy-700 font-semibold" : "text-gray-600"}`}
+                                    >
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setFilterOpen((o) => !o)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+                        >
+                            <IconFilter size={12} />
+                            Filter
+                            <IconChevronDown size={12} />
+                        </button>
+                        {filterOpen && (
+                            <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+                                {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
+                                    <button
+                                        key={opt}
+                                        onClick={() => {
+                                            setStatusFilter(opt);
+                                            setFilterOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${statusFilter === opt ? "text-navy-700 font-semibold" : "text-gray-600"}`}
+                                    >
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             <div className="flex gap-4">
                 <SummaryCard label="Active reservations"
@@ -276,37 +365,39 @@ export default function Reservations() {
                     icon={<IconReceipt2 size={20} />} />
             </div>
             <div className="flex flex-col gap-4">
-                 {actionError && ( 
-                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-rose-600">{actionError}</p>
-                    <button 
-                    onClick={() => setActionError(null)}
-                    className="text-rose-400 hover:text-rose-600 text-sm font-bold px-2">
-                        ✕
-                    </button>
-       </div>
-            )}
-                {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
-
-                {!loading && error && (
-                    <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
-                        <p className="text-sm font-semibold text-rose-600">{error}</p>
+                {actionError && (
+                    <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center justify-between">
+                        <p className="text-sm font-semibold text-rose-600">{actionError}</p>
+                        <button
+                            onClick={() => setActionError(null)}
+                            className="text-rose-400 hover:text-rose-600 text-sm font-bold px-2">
+                            ✕
+                        </button>
                     </div>
                 )}
-                {!loading && !error && reservations.length === 0 && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                        <p className="text-sm font-semibold text-gray-700">No reservations found</p>
+                {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
+
+                {!loading && error && sorted.length === 0 && (
+                    <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+                        <p className="text-sm font-semibold text-rose-600">{error}</p>
                         <p className="text-xs text-gray-400 mt-1">
+                            {statusFilter !== "All"
+                                ? `There are no reservations with "${statusFilter}" status.`
+                                : "List more items so they can be reserved."}
                         </p>
                     </div>
                 )}
-                {reservations
-                .filter((r) => r.reservationStatus !== 'cancelled')
-                .map((reservation: ReservationListItem) => (
-                    <ReservationCard key={reservation.reservationId}
-                        reservation={reservation} onAcknowledge={handleAcknowledge}
-                        onCancel={handleCancel} />
+
+                {sorted.map((reservation: ReservationListItem) => (
+                    <ReservationCard
+                        key={reservation.reservationId}
+                        reservation={reservation}
+                        onCancel={handleCancel}
+                        onAcknowledge={handleAcknowledge}
+                    />
                 ))}
+
+               
             </div>
 
         </div>
