@@ -141,6 +141,7 @@ public class TransactionService : ITransactionsService
         {
             sb.Length -= 1;
         }
+        // note to backend engineers, remove console wrtelines afetr tetsing, rtaher usse loggers 
 
         Console.WriteLine($"[PayFast Signature Debug] Raw string: {sb}");
 
