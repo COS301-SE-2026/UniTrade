@@ -11,24 +11,23 @@ export default function Topbar() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      const currentQ = searchParams.get('q') || '';
 
-      setSearchParams((prev) => {
-        const currentQ = prev.get('q') || '';
-        if (inputValue.trim() === currentQ) {
-          return prev;
-        }
-        const newParams = new URLSearchParams(prev);
+      if (inputValue.trim() !== currentQ) {
+        const newParams = new URLSearchParams(searchParams);
+
         if (inputValue.trim()) {
           newParams.set('q', inputValue.trim());
         } else {
           newParams.delete('q');
         }
-        return newParams;
-      }, { replace: true });
+
+        setSearchParams(newParams, { replace: true });
+      }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, setSearchParams]);
+  }, [inputValue]);
 
   return (
     <header className="h-14 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-white/10 flex items-center px-5 gap-4 flex-shrink-0">
