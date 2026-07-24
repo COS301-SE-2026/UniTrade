@@ -10,6 +10,7 @@ import EditListing from "./pages/seller/EditListing";
 
 import HomePage from "./pages/auth/HomePage";
 import Orders from "./pages/buyer/Orders";
+import Sales from "./pages/seller/MySales"
 import OrderDetails from "./pages/buyer/OrderDetails";
 import ListingDetail from "./pages/buyer/ListingDetail";
 import SellerDashboard from "./pages/seller/SellerDashboard";
@@ -83,9 +84,11 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/orders/:id" element={<OrderDetails />} />
+          <Route path="/seller/sales/:id" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
           <Route path="/buyer/orders" element={<Orders/>} />
+          <Route path="/seller/sales/:id" element={<Sales />} />
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
