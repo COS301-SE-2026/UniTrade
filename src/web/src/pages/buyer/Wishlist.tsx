@@ -213,7 +213,7 @@ export default function Wishlist() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
-            Your wishlister
+            Your wishlist
           </h1>
           <p className="text-sm text-gray-400 mt-1 flex items-center gap-1.5">
             <IconHeart size={14} />
