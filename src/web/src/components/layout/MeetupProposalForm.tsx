@@ -42,7 +42,7 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                 }
             }
             catch {
-
+               // 
             }
         })();
         return () => controller.abort();
