@@ -228,13 +228,14 @@ public class MeetupService : IMeetupService
         }
 
         var now = _clock.GetUtcNow().UtcDateTime;
-
+        var opensAt = meetup.AgreedTime - ReservationStateMachine.CheckinWindowAfterMeetup;
         return new MeetupStatusDto(
             MeetupId: meetup.MeetupId,
             AgreedLocationName: meetup.AgreedLocationName,
             AgreedLatitude: meetup.AgreedLatitude,
             AgreedLongitude: meetup.AgreedLongitude,
             AgreedTime: meetup.AgreedTime,
+            CheckinWindowOpensAt: opensAt,
             CheckinWindowClosesAt: meetup.CheckinWindowClosesAt,
             CheckInWindowOpen: MeetupStateMachine.IsCheckInWindowOpen(meetup, now),
             BuyerCheckedIn: meetup.BuyerCheckedIn,

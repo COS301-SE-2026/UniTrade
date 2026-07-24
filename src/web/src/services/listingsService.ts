@@ -2,7 +2,12 @@ import type {
   ListingDetail,
   ListingSummary,
   MyListingsResponse,
-  Category, SellerListingDetail, BrowseListing, BrowseListingsResponse, BrowseCondition, Course,
+  Category,
+  SellerListingDetail,
+  BrowseListing,
+  BrowseListingsResponse,
+  BrowseCondition,
+  Course,
   ListingMetadata,
   SimilarListing,
   ListingStatus,
@@ -18,7 +23,6 @@ import type {
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
-
 
 import { getApiUrl } from "../config";
 
@@ -200,23 +204,23 @@ export interface CreateListingPayload {
   metadata?: ListingMetadata;
 }
 
-function mapWishListItem(item: unknown) :WishlistListing {
+function mapWishListItem(item: unknown): WishlistListing {
   const w = item as {
-    wishlistId : number;
+    wishlistId: number;
     listingId: string;
     addedAt: string;
     listing: {
-    listingId : string;
-    title: string;
-    price : number;
-    sellerId : string;
-    courseId?: number | null;
-    categoryName: string;
-    condition: string;
-    listingStatus: string;
-    metadata?: ListingMetadata;
-    images: {imageId: number; isPrimary: boolean; path:string}[];
-    seller?: {sellerId: string; fullName : string}| null;
+      listingId: string;
+      title: string;
+      price: number;
+      sellerId: string;
+      courseId?: number | null;
+      categoryName: string;
+      condition: string;
+      listingStatus: string;
+      metadata?: ListingMetadata;
+      images: { imageId: number; isPrimary: boolean; path: string }[];
+      seller?: { sellerId: string; fullName: string } | null;
     };
   };
   const l = w.listing;
@@ -240,35 +244,37 @@ function mapWishListItem(item: unknown) :WishlistListing {
 
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
-  const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
-  //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" }); 
-  if (!res.ok) throw new Error("Failed to fetch listing");
-  const item = await res.json();
-  return {
-    id: item.listingId,
-    title: item.title,
-    description: item.description,
-    price: item.price,
-    condition: item.condition,
-    status: item.listingStatus,
-    views: item.viewCount,
-    sellerId: item.sellerId,
-    seller: item.seller ?? null,
-    listedAt: item.createdAt,
-    courseId: item.courseId ?? null,          
-    courseCode: item.courseCode ?? "",        
-    category: item.categoryName,
-    metadata: item.metadata ?? null,
-    images: item.images.map((i: unknown) => {
-      const img = i as { imageId: number; path: string; isPrimary: boolean };
-      return {
-        id: img.imageId.toString(),
-        url: imageUrl(img.path),
-        isPrimary: img.isPrimary,
-      };
-    }),
-  };
-},
+    const res = await fetch(`${getApiUrl()}/listings/${id}`, {
+      credentials: "include",
+    });
+    //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch listing");
+    const item = await res.json();
+    return {
+      id: item.listingId,
+      title: item.title,
+      description: item.description,
+      price: item.price,
+      condition: item.condition,
+      status: item.listingStatus,
+      views: item.viewCount,
+      sellerId: item.sellerId,
+      seller: item.seller ?? null,
+      listedAt: item.createdAt,
+      courseId: item.courseId ?? null,
+      courseCode: item.courseCode ?? "",
+      category: item.categoryName,
+      metadata: item.metadata ?? null,
+      images: item.images.map((i: unknown) => {
+        const img = i as { imageId: number; path: string; isPrimary: boolean };
+        return {
+          id: img.imageId.toString(),
+          url: imageUrl(img.path),
+          isPrimary: img.isPrimary,
+        };
+      }),
+    };
+  },
 
   getMyListings: async (): Promise<MyListingsResponse> => {
     const user = useAuthStore.getState().user;
@@ -323,62 +329,77 @@ export const listingsService = {
       views: item.viewCount,
       listedAt: item.createdAt,
       description: item.description,
-      courseId: item.courseId ?? null, 
+      courseId: item.courseId ?? null,
       courseCode: "",
       category: item.categoryName,
-       metadata: item.metadata ?? null, 
+      metadata: item.metadata ?? null,
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-            imageUrl((i as { path: string }).path),
-          )
+              imageUrl((i as { path: string }).path),
+            )
           : mockSellerListingDetail.images,
     };
   },
 
-  getBrowseListings: async (): Promise<BrowseListingsResponse> => {
+  getBrowseListings: async (options?: {
+    search?: string;
+  }): Promise<BrowseListingsResponse> => {
+    const params = new URLSearchParams();
+    params.set("listingStatus", "live");
+
     const user = useAuthStore.getState().user;
-    const params = new URLSearchParams({ listingStatus: "live"});
-    if (user){
-      params.set("exlcudeSellerId", user.id);
+    if (user) {
+      params.set("excludeSellerId", user.id);
     }
-  const res = await fetch(`${getApiUrl()}/listings?listingStatus=live`, { credentials: "include" });
-  if (!res.ok) throw new Error("Failed to fetch listings");
-  const data = await res.json();
-  const listings: BrowseListing[] = data.items.map((item: unknown) => {
-    const l = item as {
-      listingId: string;
-      title: string;
-      price: number;
-      courseId?: number;
-      categoryName: string;
-      condition: string;
-      metadata?: ListingMetadata;
-      images: { imageId: number; isPrimary: boolean; path: string }[];
-      seller?: {sellerId: string}
-    };
-    const primary = getFirstUploadedImagePath(l.images);
-    return {
-      id: l.listingId,
-      title: l.title,
-      price: l.price,
-      module: l.courseId?.toString() ?? "General",
-      courseId: l.courseId ?? null,
-      category: l.categoryName,
-      condition: mapCondition(l.condition),
-      image: primary ? imageUrl(primary) : biologyTextbook,
-      metadata: l.metadata ?? null,
-      sellerId: l.seller?.sellerId ?? "",
-    };
-  });
-  return { listings, total: data.total };
-},
 
-getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarListing[]> => {
-  const { listings } = await listingsService.getBrowseListings();
-  return computeSimilarListings(listing, listings, limit);
-},
+    if (options?.search) {
+      params.set("search", options.search);
+    }
+    const res = await fetch(`${getApiUrl()}/listings?${params.toString()}`, {
+      credentials: "include",
+    });
 
+    if (!res.ok) throw new Error("Failed to fetch listings");
+    const data = await res.json();
+
+    const listings: BrowseListing[] = data.items.map((item: unknown) => {
+      const l = item as {
+        listingId: string;
+        title: string;
+        price: number;
+        courseId?: number;
+        categoryName: string;
+        condition: string;
+        metadata?: ListingMetadata;
+        images: { imageId: number; isPrimary: boolean; path: string }[];
+        seller?: { sellerId: string };
+      };
+      const primary = getFirstUploadedImagePath(l.images);
+      return {
+        id: l.listingId,
+        title: l.title,
+        price: l.price,
+        module: l.courseId?.toString() ?? "General",
+        courseId: l.courseId ?? null,
+        category: l.categoryName,
+        condition: mapCondition(l.condition),
+        image: primary ? imageUrl(primary) : biologyTextbook,
+        metadata: l.metadata ?? null,
+        sellerId: l.seller?.sellerId ?? "",
+      };
+    });
+
+    return { listings, total: data.total };
+  },
+
+  getSimilarListings: async (
+    listing: ListingDetail,
+    limit = 2,
+  ): Promise<SimilarListing[]> => {
+    const { listings } = await listingsService.getBrowseListings();
+    return computeSimilarListings(listing, listings, limit);
+  },
 
   uploadImages: async (listingId: string, files: File[]): Promise<number[]> => {
     const fd = new FormData();
@@ -482,13 +503,13 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   getCourse: async (id: number): Promise<Course> => {
-     const res = await fetch(`${getApiUrl()}/courses/${id}`, {
-     method: "GET",
+    const res = await fetch(`${getApiUrl()}/courses/${id}`, {
+      method: "GET",
       credentials: "include",
-     });
+    });
 
-     if (!res.ok) throw new Error("Failed to fetch the courses")
-      return await res.json();
+    if (!res.ok) throw new Error("Failed to fetch the courses");
+    return await res.json();
   },
 
   updateListingStatus: async (
@@ -498,8 +519,8 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
       method: "PATCH",
       credentials: "include",
-      headers: { "Content-Type": "application/json"},
-      body: JSON.stringify({ status}),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
@@ -508,66 +529,73 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   getWishlist: async (): Promise<WishlistResponse> => {
-    const res = await fetch(`${getApiUrl()}/wishlist`, {credentials: "include"});
+    const res = await fetch(`${getApiUrl()}/wishlist`, {
+      credentials: "include",
+    });
     if (!res.ok) throw new Error("Failed to fetch wishlist");
     const data = await res.json();
     const listings: WishlistListing[] = data.items.map(mapWishListItem);
-    return { listings, total: data.total};
+    return { listings, total: data.total };
   },
 
-  addToWishlist: async (listingId : string): Promise<WishlistListing> => {
+  addToWishlist: async (listingId: string): Promise<WishlistListing> => {
     const res = await fetch(`${getApiUrl()}/wishlist`, {
       method: "POST",
       credentials: "include",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({listingId}),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ listingId }),
     });
-    if(!res.ok) {
+    if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to add to wishlist ");
     }
     return mapWishListItem(await res.json());
   },
 
-  removeFromWishlist : async (listingId: string): Promise<void> => {
+  removeFromWishlist: async (listingId: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
       method: "DELETE",
       credentials: "include",
     });
-    if(!res.ok && res.status !== 404) {
-      throw new Error("Failed to remove from wishlist ")
+    if (!res.ok && res.status !== 404) {
+      throw new Error("Failed to remove from wishlist ");
     }
   },
 
   proposeMeetup: async (
     reservationId: string,
-    payload: ProposeMeetupPayload
+    payload: ProposeMeetupPayload,
   ): Promise<MeetupStatusResponse> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/propose`, {
-      method: "POST",
-      credentials: "include",
-      headers: {"Content-Type" : "application/json"},
-      body: JSON.stringify(payload)
-    });
-    
-    if(!res.ok) {
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/propose`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to propose meetup");
     }
     return res.json();
-
   },
 
   acceptMeetup: async (
     reservationId: string,
-    proposalMessageId: number
+    proposalMessageId: number,
   ): Promise<MeetupStatusResponse> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/accept`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ proposalMessageId }),
-    });
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/accept`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalMessageId }),
+      },
+    );
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to accept meetup");
@@ -575,17 +603,40 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     return res.json();
   },
 
+  declineMeetup: async (
+    reservationId: string,
+    proposalMessageId: number,
+  ): Promise<void> => {
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/decline`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposalMessageId }),
+      },
+    );
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to decline meetup");
+    }
+  },
+
   checkInMeetup: async (
     reservationId: string,
     lat?: number,
-    lng?: number
+    lng?: number,
   ): Promise<MeetupStatusResponse> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup/check-in`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat, lng }),
-    });
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup/check-in`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lng }),
+      },
+    );
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to check in");
@@ -593,20 +644,25 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     return res.json();
   },
 
-  getMeetupStatus: async (reservationId: string): Promise<MeetupStatusResponse | null> => {
-    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/meetup`, {
-      credentials: "include",
-    });
+  getMeetupStatus: async (
+    reservationId: string,
+  ): Promise<MeetupStatusResponse | null> => {
+    const res = await fetch(
+      `${getApiUrl()}/reservations/${reservationId}/meetup`,
+      {
+        credentials: "include",
+      },
+    );
     if (res.status === 404) return null;
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
   },
 
-  getReviewsForUser: async (userId: string) : Promise<UserReviewsResponse> => {
+  getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
     const res = await fetch(`${getApiUrl()}/reviews?userId=${userId}`, {
       credentials: "include",
     });
-    if (!res.ok){
+    if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to fetch reviews");
     }
@@ -614,16 +670,16 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
   },
 
   submitReview: async (payload: SubmitReviewPayload): Promise<Review> => {
-    const res = await fetch(`${getApiUrl()}/reviews`,{
+    const res = await fetch(`${getApiUrl()}/reviews`, {
       method: "POST",
       credentials: "include",
-      headers: {"Content-Type": "application/json"},
-      body : JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.error ?? "Failed to submit review");
     }
     return res.json();
-  }
+  },
 };

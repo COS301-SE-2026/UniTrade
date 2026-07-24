@@ -16,7 +16,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const default_center: [number, number] = [-25.7545, 28.2314];
-const default_zoom = 50;
+const default_zoom = 16;
 
 interface LocationPickerProps {
     value: { lat: number; lng: number} | null;

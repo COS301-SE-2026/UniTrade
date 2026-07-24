@@ -18,6 +18,7 @@ import type { TransactionRequestResponse } from '../types/Reservations';
 export interface TransactionStatusResponse {
     transactionStatus: 'none' | 'completed' | string;
     pinStatus: 'pending' | 'confirmed' | null;
+    pin: string | null;
 }
 
 async function handleResponse<T>(res: Response): Promise<Result<T>>{
@@ -219,6 +220,23 @@ export async function verifyPin(
       return { success: false, error: { code: body?.code ?? 'unknown_error', status: res.status}};
     }
     return { success: true, data: undefined};
+  } catch {
+    return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
+  }
+}
+
+export async function getPendingPin(
+  reservationId: string,
+): Promise<Result<{ pin: string }>> {
+  try {
+    const res = await fetch(`${getApiUrl()}/reservations/${reservationId}/pending-pin`, {
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { success:false, error: { code: body?.code?? 'unknown_error', status: res.status}};
+    }
+    return { success: true, data: await res.json()};
   } catch {
     return { success: false, error: { code: 'network_error', status: 0, message: 'Network request failed'}};
   }

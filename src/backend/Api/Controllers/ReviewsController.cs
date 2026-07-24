@@ -1,14 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.Forms.Mapping;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi;
-using Modules.Listings;
-using Modules.Listings.Models.Dto;
 using Modules.Reviews;
 using Modules.Reviews.Models.Dto;
-using Modules.SharedKernel;
-using Modules.Wishlist;
 
 namespace Api.Controllers;
 
@@ -37,20 +31,20 @@ public class ReviewsController : ControllerBase
         {
             return Ok(await _reviews.CreateAsync(CallerId, request, ct));
         }
-        catch (WishlistException ex)
+        catch (ReviewException ex)
         {
             return MapError(ex);
         }
     }
 
     // GET /api/reviews/users/{userId}
-    [HttpGet]
+    [HttpGet("users/{userId:guid}")]
     public async Task<IActionResult> GetForUser(Guid userId, CancellationToken ct)
     {
         return Ok(await _reviews.GetForUserAsync(userId, ct));
     }
 
-    private IActionResult MapError(WishlistException ex) =>
+    private IActionResult MapError(ReviewException ex) =>
         ex.Message switch
         {
             ReviewErrors.TransactionNotFound => NotFound(new { error = ex.Message }),
@@ -62,5 +56,4 @@ public class ReviewsController : ControllerBase
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
-    public record AddToWishlistRequest(Guid ListingId);
 }
