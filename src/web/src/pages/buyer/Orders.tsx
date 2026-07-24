@@ -1,7 +1,10 @@
 
-import { useEffect, useCallback, useState, /*useMemo*/} from 'react'
+import { useEffect, useCallback, useState, useMemo} from 'react'
 import { Search, Bell, Sun, Star,Loader2 ,AlertCircle} from 'lucide-react'
-
+import { getReservations } from '../../services/reservationService';
+import { listingsService } from '../../services/listingsService';
+import { formatPrice} from '../../utils/formatters';
+import type { ReservationListItem } from '../../types/Reservations';
 
 export interface OrderItem{
   id: string;
@@ -14,71 +17,123 @@ export interface OrderItem{
   date: string;
   status: 'Completed' | 'Pending' | 'Cancelled';
   rating: number;
-}
-
-export interface OrderStatsData {
-  totalPurchases: number;
-  totalSpent: number;
-  reviewsLeft: string;
+  _createdAtIso: string;
 }
 
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
-const API_BASE_URL ='http://localhost:5000/api';
+function mockRatingFor(reservationId: string): number {
+  let hash = 0;
+  for(let i=0;i<reservationId.length;i++){
+    hash=(hash*31+reservationId.charCodeAt(i)) >>>0
+  }
+  if(hash%4 ===0) return 0
+  return (hash%5)+1
+  }
+function isThisSemester(iso: string): boolean{
+//for now 
+const mockMonth = new Date()
+mockMonth.setMonth(mockMonth.getMonth()-3)
+return new Date(iso) >= mockMonth
+}
 
-async function fetchOrders(tab: OrderFilterTab):Promise<OrderItem[]>{
-  const response = await fetch(`${API_BASE_URL}/orders?filter=${tab}`,
-    {
-      headers:{'Content-Type': 'application/json',
+function toRefNum(reservationId: string): string {
+  return `#${reservationId.slice(0,8).toUpperCase()}`
+}
 
-    },
-});
-if(!response.ok){
-  throw new Error(`failed to fetch orders (${response.status})`);
+function formatOrderDate(iso: string) : string{
+  return new Date(iso).toLocaleDateString('en-ZA', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
 
-} return response.json();
-} 
-async function fetchOrderStats(): Promise<OrderStatsData> {
-  const response = await fetch(`${API_BASE_URL}/orders/stats`,
-{
-      headers:{'Content-Type': 'application/json',
+async function loadCompletedOrders(): Promise<OrderItem[]> {
+  const result = await getReservations({ role: 'buyer'})
+  if(!result.success){
+    throw new Error(result.error.message ?? 'Faild to load orders.')
+  }
 
-    },
-});
-if(!response.ok){
-  throw new Error(`failed to fetch order stats`);
+  const completed = result.data.items.filter(
+    (r) => r.reservationStatus === 'completed',
+  )
 
-} return response.json();
-} 
-  
+  const listingIds = [...new Set(completed.map((r) => r.listingId))]
+const conditionByListingId = new Map<string, string>()
+
+await Promise.all(
+  listingIds.map(async (listingId) => {
+    try {
+      const detail = await listingsService.getById(listingId)
+      conditionByListingId.set(listingId, detail.condition)
+
+    } catch {
+      conditionByListingId.set(listingId, 'Uknown')
+    }
+  }),
+)
+
+return completed.map((r: ReservationListItem) => ({
+  id: r.reservationId,
+  refNum: toRefNum(r.reservationId),
+  title: r.listing.title,
+  condition: conditionByListingId.get(r.listingId) ?? 'Unknown',
+sellerName: r.counterParty.name,
+sellerInitials: r.counterParty.initials,
+price: r.listing.price,
+date: formatOrderDate(r.createdAt),
+status: 'Completed',
+rating: mockRatingFor(r.reservationId),
+_createdAtIso: r.createdAt,})) as (OrderItem & { _createdAtIso: string })[]
+}
+
+
 
 export default function Orders(){
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
   const [orders, setOrders] = useState<OrderItem[]>([]);
-  const [stats,setStats] = useState<OrderStatsData  |null>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() =>{
-    fetchOrderStats().then(setStats).catch((err)=> console.error('Error loading stats:', err));
-  }, []);
-
-  const loadOrders = useCallback(async () => {
+  const load= useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try{
-      const data = await fetchOrders(activeTab);
+      const data = await loadCompletedOrders();
       setOrders(data);
     }catch (err:any){
-      setError(err.message || 'An error occured while loading your orders.');
+      setError(err instanceof Error ? err.message : 'An error occured while loading your orders.');
       }finally{
         setIsLoading(false);
       }
-    }, [activeTab]);
+    }, []);
 
     useEffect(() => {
-      loadOrders();
-    }, [loadOrders]);
+      load();
+    }, [load]);
+
+    const filteredOrders = useMemo(() => {
+      switch(activeTab) {
+        case 'semester': return orders.filter((o) => isThisSemester(o._createdAtIso))
+
+        case 'awaiting' :  return orders.filter((o) => o.rating === 0)
+        case 'reviewed' :  return orders.filter((o) => o.rating > 0)
+        default:
+          return orders
+     }
+    }, [orders, activeTab])
+
+    const stats = useMemo(() => {
+      const totalPurchases = orders.length
+      const totalSpent = orders.reduce((sum, o )=> sum +o.price, 0)
+      const reviewedCount = orders.filter((o) => o.rating >0).length
+
+      return {
+        totalPurchases,totalSpent,reviewsLeft: `${reviewedCount}/${totalPurchases}`
+      }
+    },[orders])
     
   return(
     <main className='flex-1 flex flex-col overflow-y-auto'>
@@ -107,20 +162,20 @@ export default function Orders(){
         <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
           <p className='text-3xl font-extrabold text-slate 800'>
-            {stats ? stats.totalPurchases : '--'}
+            {stats.totalPurchases}
           </p>
           <p className='text-xs text-slate-500 font-medium mt-1'>Total Purchases</p>
           </div>
            <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
           <p className='text-3xl font-extrabold text-slate 800'>
-            {stats ? `R ${stats.totalSpent.toLocaleString()}`:'--'}
+    {formatPrice(stats.totalSpent)}
 
           </p>
           <p className='text-xs text-slate-500 font-medium mt-1'>Total Spent</p>
           </div>
            <div className="bg-white p-4 rounded-xl border border-slate-200 text center">
           <p className='text-3xl font-extrabold text-slate 800'>
-            {stats ? stats?.reviewsLeft : '--'}
+            {stats.reviewsLeft}
           </p>
           <p className='text-xs text-slate-500 font-medium mt-1'>Reviews left</p>
           </div>
@@ -144,7 +199,7 @@ export default function Orders(){
         {isLoading && (
           <div className='flex flex-col items-center justify-center py-16 text-slate-500'>
             <Loader2 className='w-8 h-8 animate-spin mb-2' />
-            <p className='text-sm'>Fetching orders from server...</p>
+            <p className='text-sm'>Fetching orders...</p>
             </div>
         )}
     
@@ -156,22 +211,22 @@ export default function Orders(){
             <span className='text-sm font-medium'>{error}</span>
           </div>
       <button 
-      onClick={loadOrders}
+      onClick={load}
       className='px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors'
       >
         Retry
       </button>
       </div>)}
 
-      {!isLoading && !error && orders.length ===0 && (
+      {!isLoading && !error && filteredOrders.length ===0 && (
         <div className='text-center py-16 bg-white rounded-xl border border-slate-200'>
           <p className='text-slate-600 font-medium'>No orders found </p>
           <p className='text-xs text-slate-400 mt-1'>There are no orders available for this category.</p></div>
       )}
-      {isLoading && !error && orders.length>0 && (
+      {!isLoading && !error && filteredOrders.length>0 && (
 
   <div className='space-y-6'>
-    {orders.map((order) =>(
+    {filteredOrders.map((order) =>(
       <div key={order.id} className='bg-slate-200/60 rounded-xl p-4 border order-slate-300'>
         <div className='flex justify-between items-center mb-3 px-1'>
           <span className='text-sm font-semibold text-slate-700'>Ref num: {order.refNum}</span>
@@ -217,9 +272,9 @@ export default function Orders(){
       </div>
       <div className='text-ight space-y-4'>
         <div>
-          <p className='text-lg font-bold text-slate-900'>R{order.price}</p>
+          <p className='text-lg font-bold text-slate-900'>R{formatPrice(order.price)}</p>
           <p className="text-xs text-slate-400">{order.date}</p></div>
-          <button className='px-4 py-1.5 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-dlate-50 transition-colors'>
+          <button className='px-4 py-1.5 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors'>
             View details
           </button>
       </div>
