@@ -44,7 +44,7 @@ function ListingCard({
 }) {
 
   const navigate = useNavigate()
-  /////const { user } = useAuthStore()
+  //const { user } = useAuthStore()
   const [reserving, setReserving] = useState(false)
   const [reserved, setReserved] = useState(false)
   const[reserveError, setReserveError] = useState<string |null>(null)
