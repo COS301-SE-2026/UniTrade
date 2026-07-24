@@ -1,10 +1,13 @@
 
 import { useEffect, useCallback, useState, useMemo} from 'react'
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Sun, Star,Loader2 ,AlertCircle} from 'lucide-react'
-import { getReservations } from '../../services/reservationService';
+import { getReservations, getTransactionStatus} from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
-import type { ReservationListItem } from '../../types/Reservations';
+import type { Review } from '../../types/listing';
+import type { ReservationListItem} from '../../types/Reservations';
+
 
 export interface OrderItem{
   id: string;
@@ -22,14 +25,6 @@ export interface OrderItem{
 
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
-function mockRatingFor(reservationId: string): number {
-  let hash = 0;
-  for(let i=0;i<reservationId.length;i++){
-    hash=(hash*31+reservationId.charCodeAt(i)) >>>0
-  }
-  if(hash%4 ===0) return 0
-  return (hash%5)+1
-  }
 function isThisSemester(iso: string): boolean{
 //for now 
 const mockMonth = new Date()
@@ -74,7 +69,36 @@ await Promise.all(
   }),
 )
 
-return completed.map((r: ReservationListItem) => ({
+const txBbyReservationId = new Map<string, string | null>()
+await Promise.all(
+  completed.map(async (r) => {
+    const tx = await getTransactionStatus(r.reservationId)
+    txBbyReservationId.set(r.reservationId, tx.success ? tx.data.transactionId: null)
+
+  }),
+)
+
+const sellerIds = [...new Set(completed.map((r) =>r.counterParty.userId))]
+const reviewsBySellerId = new Map< string, Review[]>()
+await Promise.all(
+  sellerIds.map(async (sellerId) => {
+    try{
+      const data = await listingsService.getReviewsForUser(sellerId)
+      reviewsBySellerId.set(sellerId, data.reviews)
+    }
+    catch{reviewsBySellerId.set(sellerId, [])
+    }
+  }),
+)
+
+return completed.map((r: ReservationListItem) => {
+  const transactionId = txBbyReservationId.get(r.reservationId)
+  const sellerReviews = reviewsBySellerId.get(r.counterParty.userId) ?? [] 
+  const theReview = transactionId
+  ? sellerReviews.find(
+    (rev) => rev.transactionId === transactionId) :undefined
+
+return{
   id: r.reservationId,
   refNum: toRefNum(r.reservationId),
   title: r.listing.title,
@@ -84,8 +108,8 @@ sellerInitials: r.counterParty.initials,
 price: r.listing.price,
 date: formatOrderDate(r.createdAt),
 status: 'Completed',
-rating: mockRatingFor(r.reservationId),
-_createdAtIso: r.createdAt,})) as (OrderItem & { _createdAtIso: string })[]
+rating: theReview?.rating ?? 0,
+_createdAtIso: r.createdAt,}}) 
 }
 
 
@@ -93,7 +117,7 @@ _createdAtIso: r.createdAt,})) as (OrderItem & { _createdAtIso: string })[]
 export default function Orders(){
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
   const [orders, setOrders] = useState<OrderItem[]>([]);
-
+  const navigate=useNavigate()
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -274,7 +298,9 @@ export default function Orders(){
         <div>
           <p className='text-lg font-bold text-slate-900'>R{formatPrice(order.price)}</p>
           <p className="text-xs text-slate-400">{order.date}</p></div>
-          <button className='px-4 py-1.5 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors'>
+          <button 
+          onClick={() => navigate(`/buyer/orders/${order.id}`)}
+            className='px-4 py-1.5 border border-slate-400 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors'>
             View details
           </button>
       </div>
