@@ -67,10 +67,10 @@ jobs:
     environment: staging
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      BACKEND_RG: unitrade-BackEnd
-      FRONTEND_RG: unitrade-FrontEnd
-      BACKEND_APP: unitrade-backend-staging
-      FRONTEND_APP: unitrade-frontend-staging
+      BACKEND_RG: rg-devnexus-staging
+      FRONTEND_RG: rg-devnexus-staging
+      BACKEND_APP: ca-backend-staging
+      FRONTEND_APP: ca-frontend-staging
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -266,10 +266,10 @@ jobs:
     environment: production
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      BACKEND_RG: unitrade-BackEnd
-      FRONTEND_RG: unitrade-FrontEnd
-      BACKEND_APP: unitrade-backend
-      FRONTEND_APP: unitrade-frontend
+      BACKEND_RG: rg-devnexus-prod
+      FRONTEND_RG: rg-devnexus-prod
+      BACKEND_APP: ca-backend-prod
+      FRONTEND_APP: ca-frontend-prod
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
