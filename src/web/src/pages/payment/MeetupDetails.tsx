@@ -60,6 +60,36 @@ export default function MeetupDetails() {
     enabled: !!reservationId,
   });
 
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+  useEffect(() => {
+    if (!meetup) {
+      return;
+    }
+    const updateCountdown = () => {
+      const now = new Date();
+      const opensAt = new Date(meetup.checkinWindowOpensAt);
+      const closesAt = new Date(meetup.checkinWindowClosesAt);
+
+      if (now < opensAt) {
+        const diff = opensAt.getTime() - now.getTime();
+        const minutes = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        setTimeRemaining(`Opens in ${minutes}m ${secs}s`);
+
+      }
+      else if (now > closesAt) {
+        setTimeRemaining(`Check-in window closed`);
+      }
+      else {
+        setTimeRemaining(null);
+      }
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [meetup]);
+
+
 
   const { data: listing, isLoading: isListingLoading } = useQuery({
     queryKey: ['listing', reservation?.listingId],
@@ -107,6 +137,7 @@ export default function MeetupDetails() {
       return;
     }
     const { sandbox_url, fields } = result.data;
+    console.log('Payfast response:', result.data); //not to me(Tafadzwa)- make sure to remove this
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = sandbox_url;
@@ -129,7 +160,7 @@ export default function MeetupDetails() {
         </p>
         <button
           onClick={() => navigate(-1)}
-          className="bg-blue-500 bover:bg-blue-900 text-white font-bold py-2.5 px-5 rounded-xl"
+          className="bg-blue-500 hover:bg-blue-900 text-white font-bold py-2.5 px-5 rounded-xl"
         >
           Go back
         </button>
@@ -138,10 +169,13 @@ export default function MeetupDetails() {
   }
 
   if (isLoading && !navState.meetupLocation) {
-    return <div className="p-8 text-center text-slate-500">Looading meetup details....</div>;
+    return <div className="p-8 text-center text-slate-500">Loading meetup details....</div>;
   }
 
-return (
+
+
+
+  return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
       <div className="bg-navy-800 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -169,7 +203,7 @@ return (
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">{isSeller ? 'Buyer' : 'Seller'}</h2>
               <div className=" flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-50 border border-indigo-100 rounded-full flex-items-center justify-center">
+                <div className="w-12 h-12 bg-blue-50 border border-indigo-100 rounded-full flex items-center justify-center">
                   <User className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
@@ -192,7 +226,7 @@ return (
                   </div>
                 </div>
 
-                <div className="flex gap-3 items-start bg-slate-50 rounded-xl">
+                <div className="flex gap-3 items-start p-3 bg-slate-50 rounded-xl">
                   <Calendar className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-sm text-slate-800">Scheduled Time</p>
@@ -241,7 +275,11 @@ return (
                 <span className="font-bold text-slate-900 text-base">Price</span>
                 <span className="font-black text-xl text-blue-950">{price != null ? `R${price.toFixed(2)}` : 'R-'}</span>
               </div>
-             <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-start gap-3">
+
+
+
+
+              <div className="bg-blue-50/50 rounded-xl p-3.5 border border-blue-100/50 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
                 <p className="text-xs text-blue-900 leading-relaxed">
                   <strong>Safety Guarantee:</strong>{' '}
@@ -268,6 +306,7 @@ return (
                       >
                         <MapPin className="w-4 h-4" /> Check In at Meetup
                       </button>
+                      {timeRemaining && <p className="text-sm text-slate-500">{timeRemaining}</p>}
                       <p className="text-center text-[11px] text-slate-400">
                         Check in once you've arrived to unlock payment.
                       </p>
