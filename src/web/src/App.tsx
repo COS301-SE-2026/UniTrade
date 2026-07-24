@@ -84,10 +84,10 @@ export default function App() {
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
-          <Route path="/buyer/orders/:id" element={<OrderDetails />} />
+          <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
-          <Route path="/buyer/orders" element={<Orders/>} />
+          <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
@@ -101,8 +101,6 @@ export default function App() {
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
-         
-          
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
             <Route path=":reservationId" element={<ChatPage />} />
