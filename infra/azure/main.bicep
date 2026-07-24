@@ -1,7 +1,6 @@
 targetScope='subscription'
 
 @allowed([
-    'dev'
     'staging'
     'prod'
 ])

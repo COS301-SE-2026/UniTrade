@@ -3,7 +3,7 @@ name: CD - Deploy to Azure
 on:
   # will make the cd run only if ci passes after testing and change the deploy branch to main
   push:
-    branches: ["feature/backend/unitTesting_p1"]
+    branches: ["main","dev","feature/backend/azureDeployment"]
     paths:
       - "src/backend/**"
       - "src/web/**"
