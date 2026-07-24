@@ -174,13 +174,7 @@ function ReservationCard({
 
         {isActive && (
           <div className="flex flex-wrap gap-2 mt-3">
-            <button
-              type="button"
-              className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
-              onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}/pay`)}
-            >
-              Complete payment
-            </button>
+
             <button
               type="button"
               className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
@@ -208,6 +202,7 @@ function ReservationCard({
             <button
               type="button"
               onClick={() => onCancel(reservation.reservationId)}
+              disabled={reservation.timerStage == 'meetup_confirmed'}
               className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
