@@ -26,4 +26,7 @@ public class Reservation
     public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
     public DateTime? MeetupConfirmedAt { get; set; }
     public ICollection<Meetup> Meetups { get; set; } = new List<Meetup>();
+
+    public DateTime? HandoverConfirmedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }
