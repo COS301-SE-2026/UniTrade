@@ -701,18 +701,14 @@ export const listingsService = {
 
     const listingIds = [...new Set(completed.map((r) => r.listingId))];
     const conditionMap = new Map<string, string>();
-    const imageMap = new Map<string, string>();
 
     await Promise.all(
       listingIds.map(async (listingId) => {
         try {
           const detail = await listingsService.getById(listingId);
           conditionMap.set(listingId, detail.condition);
-          const firstImage = detail.images?.[0]?.url || '';
-          imageMap.set(listingId, firstImage);
         } catch {
           conditionMap.set(listingId, 'Unknown');
-          imageMap.set(listingId, '');
         }
       }),
     );
@@ -770,7 +766,7 @@ export const listingsService = {
       status: 'Completed' as const,
       rating: theReview?.rating ?? 0,
       _createdAtIso: r.createdAt,
-      imageUrl: imageMap.get(r.listing.listingId) ?? '',
+      imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
     }
   });
 },
