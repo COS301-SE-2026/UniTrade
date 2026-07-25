@@ -688,7 +688,7 @@ export const listingsService = {
   },
 
   getCompletedOrders: async (): Promise<OrderItem[]> => {
-    const res = await getReservations({role: 'buyer'});
+    const res = await getReservations({role: 'seller'});
     if(!res.success){
       throw new Error(res.error.message ?? 'Failed to load your orders');
     }
@@ -762,7 +762,7 @@ export const listingsService = {
       transactionId: transactionId ?? null,
       refNum: toRefNum(r.reservationId),
       title: r.listing.title,
-      condition: conditionMap.get(r.listingId) ?? 'Unknown',
+      condition: conditionMap.get(r.listing.listingId) ?? 'Unknown',
       sellerName: r.counterParty.name,
       sellerInitials: r.counterParty.initials,
       price: r.listing.price,
@@ -770,7 +770,7 @@ export const listingsService = {
       status: 'Completed' as const,
       rating: theReview?.rating ?? 0,
       _createdAtIso: r.createdAt,
-      imageUrl: imageMap.get(r.listingId) ?? '',
+      imageUrl: imageMap.get(r.listing.listingId) ?? '',
     }
   });
 },
