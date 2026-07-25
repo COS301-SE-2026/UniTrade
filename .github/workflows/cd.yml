@@ -3,7 +3,7 @@ name: CD - Deploy to Azure
 on:
   # will make the cd run only if ci passes after testing and change the deploy branch to main
   push:
-    branches: ["feature/backend/unitTesting_p1"]
+    branches: ["main","dev","feature/backend/azureDeployment"]
     paths:
       - "src/backend/**"
       - "src/web/**"
@@ -36,9 +36,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to ACR
-        env:
-          ACR: ${{ secrets.ACR_REGISTRY }}
-        run: az acr login --name "${ACR%%.*}"
+        #env:
+          #ACR: ${{ secrets.ACR_REGISTRY }}
+        #run: az acr login --name "${ACR%%.*}"
+        #ask for acrpush permissions againnnn!!!(didnt grant perm for this), delete github secrts when updated
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{secrets.ACR_REGISTRY}}
+          username: ${{ secrets.ACR_USERNAME}}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Set image tag
         id: set_tag
@@ -61,10 +67,10 @@ jobs:
     environment: staging
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      BACKEND_RG: unitrade-BackEnd
-      FRONTEND_RG: unitrade-FrontEnd
-      BACKEND_APP: unitrade-backend-staging
-      FRONTEND_APP: unitrade-frontend-staging
+      BACKEND_RG: rg-devnexus-staging
+      FRONTEND_RG: rg-devnexus-staging
+      BACKEND_APP: ca-backend-staging
+      FRONTEND_APP: ca-frontend-staging
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -260,10 +266,10 @@ jobs:
     environment: production
     env:
       IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
-      BACKEND_RG: unitrade-BackEnd
-      FRONTEND_RG: unitrade-FrontEnd
-      BACKEND_APP: unitrade-backend
-      FRONTEND_APP: unitrade-frontend
+      BACKEND_RG: rg-devnexus-prod
+      FRONTEND_RG: rg-devnexus-prod
+      BACKEND_APP: ca-backend-prod
+      FRONTEND_APP: ca-frontend-prod
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5

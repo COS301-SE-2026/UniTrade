@@ -285,4 +285,5 @@ public class ReservationService : IReservationService
         Guid userId,
         CancellationToken ct = default
     ) => _reservations.IsPartyToAsync(reservationId, userId, ct);
+
 }
