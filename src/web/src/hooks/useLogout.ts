@@ -12,7 +12,7 @@ export const useLogout = () => {
     try {
       await authService.logout(() => connectionManager.disconnect());
       clearUser();
-      navigate("/login");
+      navigate("/auth/login");
     } catch {
       //error
     }
