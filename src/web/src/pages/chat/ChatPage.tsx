@@ -25,6 +25,7 @@ import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
 import CheckInModal from '../../components/CheckInModal';
 import MeetupCard from '../../components/layout/MeetupCard';
 import type { MeetupProposalPayload } from '../../types/Reservations';
+import { LoadingState } from '../../components/layout/Spinner';
 
 
 function initialsFromName(name: string): string {
@@ -533,9 +534,8 @@ export default function ChatPage() {
                     </div>
                 )}
 
-                {isLoading && (
-                    <p className="text-center text-gray-400">Loading messages...</p>
-                )}
+                {isLoading && <LoadingState message = "Loading messages..." />}
+
                 {isError && (
                     <p className="text-center text-red-500">Failed to load messages</p>
                 )}

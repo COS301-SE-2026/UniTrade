@@ -13,6 +13,7 @@ import {
   IconFilter,
   IconChevronDown,
 } from '@tabler/icons-react'
+import { LoadingState } from '../../components/layout/Spinner'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
@@ -363,8 +364,8 @@ export default function Reservations() {
         />
       </div>
 
-      <div className="flex flex-col gap-4">
-        {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
+      
+        {loading && <LoadingState message = "Fetching listings..." />}    
 
         {!loading && error && (
           <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
@@ -391,6 +392,5 @@ export default function Reservations() {
           />
         ))}
       </div>
-    </div>
   )
 }
