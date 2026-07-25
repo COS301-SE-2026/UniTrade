@@ -6,6 +6,7 @@ import type { Category, Course, ListingMetadata } from "../../types/listing";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
+import { LoadingState } from "../../components/layout/Spinner";
 
 interface ListingData {
   title: string;
@@ -240,13 +241,8 @@ const EditListing: React.FC = () => {
       setSaving(false);
     }
   };
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
-
+  {loading && <LoadingState message = "Loading..." /> } 
+  
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
       <div className="mt-6">

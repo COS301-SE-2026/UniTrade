@@ -17,6 +17,7 @@ import biologyTextbook from "../../assets/bio-textbook.jpg";
 import type { ApiError } from "../../types/Reservations";
 import { useToast } from "../../components/layout/useToast";
 import { useMyListings } from "../../hooks/useMyListings";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function ActionButtons({
   listing,
@@ -231,12 +232,8 @@ export default function MyListings() {
     { key: "sold", label: `Sold (${count("sold")})` },
   ];
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+  {isLoading && <LoadingState message = "Loading..." /> } 
+  
 
   if (error)
     return (
