@@ -18,7 +18,7 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
     const [state, setState] = useState<CheckInState>('requesting');
     const [errorMessage, setErrorMessage] = useState('');
 
-    const mapResponse = (err: any): string => {
+    const mapResponse = (err: unknown): string => {
         const msg = err instanceof Error ? err.message : '';
         if (msg.includes('check_in_window_closed')) {
             return 'The check-in window has closed. You can no longer check in for this meetup.';
