@@ -1,12 +1,14 @@
 
 import { useEffect, useCallback, useState, useMemo} from 'react'
 import { useNavigate } from 'react-router-dom';
-import { Loader2 ,AlertCircle, Star} from 'lucide-react'
+import { AlertCircle, Star} from 'lucide-react'
 import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
 import type { OrderItem } from '../../types/listing';
 import { SummaryCard } from "./Reservation";
 import { ReviewModal } from '../auth/Review';
+import { LoadingState } from '../../components/layout/Spinner';
+
 
 export type OrderFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
@@ -151,14 +153,8 @@ export default function Orders(){
         ))}
       </div>
 
-        {isLoading && (
-          <div className='flex flex-col items-center justify-center py-16 text-slate-500'>
-            <Loader2 className='w-8 h-8 animate-spin mb-2' />
-            <p className='text-sm'>Fetching orders...</p>
-            </div>
-        )}
+      {isLoading && <LoadingState message = "Fetching orders..." />}
     
-
       {error && !isLoading &&(
         <div className='bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between'>
           <div className='flex items-center gap-3'>
