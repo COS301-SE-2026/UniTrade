@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import type { CreateReservationRequest } from '../../types/Reservations'
-
+import type { ReservationListItem} from '../../types/Reservations'
 
 interface MockListing {
   listingId: string;
@@ -19,19 +19,10 @@ interface MockListing {
   images: string[];
 }
 
-interface MockReservation {
-  reservationId: string;
-  listingId: string;
-  reservationStatus: 'active' | 'completed' | 'cancelled';
-  createdAt: string;
-  expiresAt: string;
-  timerStage: string;
-}
-
 let mockListings: MockListing[] = [];
 let nextId = 1;
-let mockReservations: MockReservation[] = [];
-let nextReservationId = 1;
+let mockReservations: ReservationListItem[] = []
+let nextReservationId = 1
 
 export function resetMockListings() {
   mockListings = []
@@ -64,6 +55,29 @@ export function seedMockListing(overrides: Partial<MockListing> = {}) {
   return listing
 }
 
+export function seedMockReservation(overrides: Partial<ReservationListItem> = {}): ReservationListItem {
+  const reservation: ReservationListItem = {
+    reservationId: String(nextReservationId++),
+    listingId: '1',
+    buyerId: 'buyer-1',
+    sellerId: 'seller-1',
+    reservationStatus: 'active',
+    timerStage: 'awaiting_seller',
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+    sellerAcknowledgedAt: null,
+    handoverConfirmedAt: null,
+    completedAt: null,
+    counterParty: { userId: 'buyer-1', name: 'Test Buyer', initials: 'TB' },
+    listing: { title: 'Chemistry Textbook - 3rd Ed', price: 250, imagePath: '' },
+    unreadCount: 0,
+    lastMessagePreview: null,
+    lastMessageAt: null,
+    ...overrides,
+  }
+  mockReservations.push(reservation)
+  return reservation
+}
 export const listingLifecycleHandlers = [
 
 
@@ -174,14 +188,29 @@ export const browseAndReserveHandlers = [
       return HttpResponse.json({ error: 'already_reserved' }, { status: 409 })
     }
 
-    const reservation: MockReservation = {
+    const reservation: ReservationListItem = {
       reservationId: String(nextReservationId++),
       listingId: body.listingId,
+      buyerId: 'buyer-1',
+      sellerId: listing?.sellerId ?? 'seller-1',
       reservationStatus: 'active',
+      timerStage: 'awaiting_seller',
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      timerStage: 'awaiting_seller',
-    };
+      sellerAcknowledgedAt: null,
+      handoverConfirmedAt: null,
+      completedAt: null,
+      counterParty: { userId: listing?.sellerId ?? 'seller-1', name: 'Test Seller', initials: 'TS' },
+      listing: {
+        title: listing?.title ?? 'Unknown listing',
+        price: listing?.price ?? 0,
+        imagePath: '',
+      },
+      unreadCount: 0,
+      lastMessagePreview: null,
+      lastMessageAt: null,
+    }
+
     mockReservations.push(reservation)
     return HttpResponse.json(reservation, { status: 201 })
   }),
@@ -213,5 +242,31 @@ export const browseAndReserveHandlers = [
 
     return HttpResponse.json({ items, total: items.length });
   }),
+
 ]
 
+export const sellerReservationHandlers = [
+  http.get('http://localhost:5000/api/reservations/', ({request}) => {
+    const url = new URL(request.url)
+    const role = url.searchParams.get('role')
+    const items = mockReservations.filter(r =>
+      role === 'seller' ? r.sellerId === 'seller-1': r.buyerId === 'buyer-1'
+    )
+    return HttpResponse.json({items, total: items.length})
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/acknowledge', ({ params }) => {
+    const reservation = mockReservations.find(r => r.reservationId === params.id)
+    if (!reservation) return new HttpResponse(null, {status: 404})
+      reservation.timerStage = 'coordinating'
+    reservation.sellerAcknowledgedAt = new Date().toISOString()
+    return HttpResponse.json(reservation)
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/cancel', ({ params }) => {
+    const reservation = mockReservations.find(r => r.reservationId === params.id)
+    if (!reservation) return new HttpResponse(null, {status: 404})
+      reservation.reservationStatus = 'cancelled'
+    return HttpResponse.json(reservation)
+  })
+]
