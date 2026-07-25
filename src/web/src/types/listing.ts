@@ -221,3 +221,19 @@ export interface OrderItem {
   _createdAtIso: string;
   imageUrl: string;
 }
+
+export interface SaleItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  buyerName: string;
+  buyerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
+}
