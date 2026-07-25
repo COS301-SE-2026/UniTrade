@@ -191,7 +191,7 @@ export default function MySales(){
         <img
         src = {sale.imageUrl || '/placeholder-book.png'}
         alt = {sale.title}
-        onClick={() => navigate(`/buyer/orders/${sale.id}`)}
+        onClick={() => navigate(`/seller/sales/${sale.id}`)}
         className = "w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
         />
 
@@ -258,7 +258,7 @@ export default function MySales(){
                       {sale.date}
                     </p>
                   <button 
-                  onClick = {() => navigate(`/buyer/orders/${sale.id}`)}
+                  onClick = {() => navigate(`/seller/sales/${sale.id}`)}
                   className = "px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
                   >
                     View details
