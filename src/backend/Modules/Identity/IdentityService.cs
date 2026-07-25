@@ -323,7 +323,9 @@ public class IdentityService : IIdentityService
         }
 
         //*user here follows User Model not schema
-        var user = await _users.GetByEmailAsync(NormaliseEmail(loginDto.Email.Trim().ToLowerInvariant()));
+        var user = await _users.GetByEmailAsync(
+            NormaliseEmail(loginDto.Email.Trim().ToLowerInvariant())
+        );
         //tasks: query db, verify password and get email, gen. token, then return a response
         if (user == null || user.IsDeleted)
         {
@@ -417,9 +419,8 @@ public class IdentityService : IIdentityService
                     DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
                     YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
                     University = getUser.StudentProfile?.University?.Name ?? string.Empty,
-                    SellerTrustScore = getUser.StudentProfile?.SellerTrustScore?? 0,
-                    BuyerReliabilityScore = getUser.StudentProfile?.BuyerReliabilityScore?? 0,
-                    
+                    SellerTrustScore = getUser.StudentProfile?.SellerTrustScore ?? 0,
+                    BuyerReliabilityScore = getUser.StudentProfile?.BuyerReliabilityScore ?? 0,
                 },
             };
         }
@@ -496,5 +497,22 @@ public class IdentityService : IIdentityService
             Guid.Parse(userId),
             "User deleted their account"
         );
+    }
+
+    public string GenerateHubToken(string userId)
+    {
+        var secret =
+            _config["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Jwt__Secret is not configured");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            audience: "chat-hub",
+            claims: new[] { new Claim("sub", userId) },
+            expires: DateTime.UtcNow.AddSeconds(60),
+            signingCredentials: creds
+        );
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

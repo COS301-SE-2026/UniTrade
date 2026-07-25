@@ -9,7 +9,10 @@ import type {
   WishlistResponse,
   WishlistListing,
   MeetupStatusResponse,
-  ProposeMeetupPayload
+  ProposeMeetupPayload,
+  UserReviewsResponse,
+  SubmitReviewPayload,
+  Review,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
@@ -598,4 +601,29 @@ getSimilarListings: async (listing: ListingDetail, limit = 2): Promise<SimilarLi
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
   },
+
+  getReviewsForUser: async (userId: string) : Promise<UserReviewsResponse> => {
+    const res = await fetch(`${getApiUrl()}/reviews?userId=${userId}`, {
+      credentials: "include",
+    });
+    if (!res.ok){
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to fetch reviews");
+    }
+    return res.json();
+  },
+
+  submitReview: async (payload: SubmitReviewPayload): Promise<Review> => {
+    const res = await fetch(`${getApiUrl()}/reviews`,{
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type": "application/json"},
+      body : JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to submit review");
+    }
+    return res.json();
+  }
 };
