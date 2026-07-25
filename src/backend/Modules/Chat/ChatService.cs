@@ -4,20 +4,21 @@ using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Reservations.Models.Dto;
-using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
+using Modules.SharedKernel;
+
 
 namespace Modules.Chat;
 
 public class ChatService : IChatService
 {
-    private readonly IReservationRepository _reservations; //using Isuserpat of reseravtion func
+    private readonly IReservationMembership _membership;
     private readonly IChatRepository _chatRepo;
 
-    public ChatService(IChatRepository chatRepo, IReservationRepository reservations)
+    public ChatService(IChatRepository chatRepo, IReservationMembership membership)
     {
         _chatRepo = chatRepo;
-        _reservations = reservations;
+        _membership = membership;
     }
 
     public async Task<ChatMessageDto> SendAsync(
@@ -33,7 +34,7 @@ public class ChatService : IChatService
             throw new ArgumentException("Message content cannot be empty");
         }
 
-        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, senderId, ct);
+        var isAuthorised = await _membership.IsPartyToAsync(reservationId, senderId, ct);
 
         if (!isAuthorised)
         {
@@ -50,23 +51,15 @@ public class ChatService : IChatService
             }
         }
 
-        //block buyer/seller if seller not acked
-        var reservation = await _reservations.GetByIdAsync(reservationId, ct);
-
-        if (reservation is not null && reservation.ReservationStatus == ReservationState.Cancelled)
+        var status=await _membership.CheckMessagingAllowedAsync(reservationId,senderId,ct);
+        switch(status)
         {
-            throw new ChatException(ChatErrors.ReservationCancelled);
-        }
+            case ReservationStatusMessage.ReservationCancelled:
+                throw new ChatException(ChatErrors.ReservationCancelled);
 
-        if (
-            reservation is not null
-            && reservation.BuyerId == senderId
-            && reservation.SellerAcknowledgedAt is null
-        )
-        {
-            throw new ChatException(ChatErrors.BuyerWaitingAck);
+            case ReservationStatusMessage.BuyerWaitingForSellerAck:
+                throw new ChatException(ChatErrors.BuyerWaitingAck);
         }
-
         var result = new ChatMessage
         {
             ReservationId = reservationId,
@@ -127,7 +120,7 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, callerId, ct);
+        var isAuthorised = await _membership.IsPartyToAsync(reservationId, callerId, ct);
 
         if (!isAuthorised)
         {
@@ -152,7 +145,7 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, readerId, ct);
+        var isAuthorised = await _membership.IsPartyToAsync(reservationId, readerId, ct);
 
         if (!isAuthorised)
         {
@@ -204,7 +197,7 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        if (!await _membership.IsPartyToAsync(reservationId, senderId, ct))
         {
             throw new ChatException(ChatErrors.Forbidden);
         }
@@ -251,7 +244,7 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        if (!await _membership.IsPartyToAsync(reservationId, senderId, ct))
         {
             throw new ChatException(ChatErrors.Forbidden);
         }

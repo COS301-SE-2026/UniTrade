@@ -285,4 +285,29 @@ public class ReservationService : IReservationService
         Guid userId,
         CancellationToken ct = default
     ) => _reservations.IsPartyToAsync(reservationId, userId, ct);
+
+
+    public Task<ReservationStatusMessage> CheckMessagingAllowedAsync(Guid reservationId,Guid senderId, CancellationToken)
+    {
+        //block buyer/seller if seller not acked
+        var reservation = await GetByIdAsync(reservationId, ct);
+
+        if(reservation is null)
+        {
+            return ReservationStatusMessage.Allowed;
+        }
+
+        if (reservation.ReservationStatus == ReservationState.Cancelled)
+        {
+            return ReservationStatusMessage.ReservationCancelled;
+        }
+
+        if (reservation.BuyerId == senderId && reservation.SellerAcknowledgedAt is null)
+        {
+            throw new ChatException(ChatErrors.BuyerWaitingAck);
+        }
+
+        return ReservationStatusMessage.Allowed;
+    }
+
 }
