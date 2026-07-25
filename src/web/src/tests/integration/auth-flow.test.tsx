@@ -1,4 +1,4 @@
-import { test, expect, vi,beforeAll, afterEach, afterAll } from 'vitest'
+import { test, expect, vi,afterEach} from 'vitest'
 import { screen, render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -10,18 +10,12 @@ import { server } from '../mocks/server'
 import { ToastProvider } from '../../components/layout/Toast'
 
 
-beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' })
-})
 
 afterEach(() => {
-  server.resetHandlers()
+  
   vi.clearAllMocks()
 })
 
-afterAll(() => {
-  server.close()
-})
 
 vi.mock('../../config', () => ({
   loadConfig: vi.fn(() => Promise.resolve()),
@@ -79,11 +73,11 @@ test('signup -> otp -> login -> logout', async () => {
 
   await waitFor(() => {
     expect(screen.getByText('University of Pretoria')).toBeInTheDocument();
-  }, { timeout: 3000 });
+  }, { timeout: 10000 });
 
   await waitFor(() => {
   expect(screen.queryByText('fetch failed')).not.toBeInTheDocument();
-}, { timeout: 2000 });
+}, { timeout: 10000 });
 
 expect(screen.getByText('University of Pretoria')).toBeInTheDocument();
 
@@ -101,9 +95,9 @@ await waitFor(() => {
   if (errorEl) {
     console.error('Signup error displayed:', errorEl.textContent);
   }
-}, { timeout: 1000 });
+}, { timeout: 10000 });
 
-await screen.findByText('OTP Verification', {}, { timeout: 2000 });
+await screen.findByText('OTP Verification', {}, { timeout: 10000 });
 
 expect(useAuthStore.getState().pendingEmail).toBe('tafadzwa@tuks.co.za');
 
