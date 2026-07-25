@@ -15,6 +15,8 @@ import {
     IconChevronDown,
 } from '@tabler/icons-react'
 import { getApiUrl } from '../../config'
+import { LoadingState } from '../../components/layout/Spinner'
+
 type ItemStatus = 'Active' | 'Expired' | 'Completed' | 'Reserved' | 'Cancelled';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
@@ -375,7 +377,8 @@ export default function Reservations() {
                         </button>
                     </div>
                 )}
-                {loading && <p className="text-sm text-gray-400">Loading reservations...</p>}
+                {loading && <LoadingState message = "Loading..." /> } 
+                
 
                 {!loading && error && sorted.length === 0 && (
                     <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
