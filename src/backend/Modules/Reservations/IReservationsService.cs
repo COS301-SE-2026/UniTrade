@@ -43,8 +43,6 @@ public interface IReservationService
     // this is the same as your is user reserved, could change the naming though
     Task<bool> IsPartyToAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
 
-    Task<ReservationStatusMessage> CheckMessagingAllowedAsync(Guid reservationId,Guid senderId, CancellationToken);
-
 
     Task<IReadOnlyList<ReservationDto>> ExpireDueAsync(
         DateTime asOf,

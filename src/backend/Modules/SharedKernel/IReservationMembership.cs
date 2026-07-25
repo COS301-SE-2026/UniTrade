@@ -8,6 +8,6 @@ public enum ReservationStatusMessage{
 public interface IReservationMembership
 {
     Task<bool> IsPartyToAsync(Guid reservationId, Guid userId, CancellationToken ct = default);
-    Task<ReservationStatusMessage> CheckMessagingAllowedAsync(Guid reservationId,Guid senderId, CancellationToken);
+    Task<ReservationStatusMessage> CheckMessagingAllowedAsync(Guid reservationId,Guid senderId, CancellationToken ct =default);
 
 }

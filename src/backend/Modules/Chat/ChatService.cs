@@ -4,7 +4,6 @@ using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Reservations.Models.Dto;
-using Modules.Reservations.StateMachine;
 using Modules.SharedKernel;
 
 
