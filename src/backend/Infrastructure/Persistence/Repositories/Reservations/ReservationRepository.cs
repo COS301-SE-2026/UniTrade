@@ -68,6 +68,29 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             ct
         );
 
+    public async Task<ReservationStatusMessage> CheckMessagingAllowedAsync(Guid reservationId,Guid senderId, CancellationToken ct =default)
+    {
+        //block buyer/seller if seller not acked
+        var reservation = await _db.Reservations.AsNoTracking().FirstOrDefaultAsync(r=>r.ReservationId==reservationId,ct);
+
+        if(reservation is null)
+        {
+            return ReservationStatusMessage.Allowed;
+        }
+
+        if (reservation.ReservationStatus == ReservationState.Cancelled)
+        {
+            return ReservationStatusMessage.ReservationCancelled;
+        }
+
+        if (reservation.BuyerId == senderId && reservation.SellerAcknowledgedAt is null)
+        {
+            return ReservationStatusMessage.BuyerWaitingForSellerAck;
+        }
+
+        return ReservationStatusMessage.Allowed;
+    }
+
     public async Task AddAsync(Reservation reservation, CancellationToken ct = default)
     {
         await _db.Reservations.AddAsync(reservation, ct);
