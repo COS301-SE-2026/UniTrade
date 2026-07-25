@@ -82,6 +82,7 @@ export default function App() {
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
+        <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />

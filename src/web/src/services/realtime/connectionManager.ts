@@ -44,16 +44,14 @@ class ConnectionManager {
       );
 
       conn.on("ListingReserved", (p: { listingId: string }) =>{
-        console.log("[realtime] ListingReleased received",p);
       
         this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));}
       );
       conn.on("ListingReleased", (p: { listingId: string }) =>
       {
-          console.log("[realtime] ListingReleased received",p);
+      
         this.listingListeners.forEach((cb) => cb(p.listingId, "released"));}
       );
-
       conn.on("pin_generated", (e: {reservationId: string; pin: string}) =>
       this.pinGeneratedListeners.forEach((cb) => cb(e)),
     );
