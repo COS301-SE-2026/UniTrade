@@ -123,6 +123,7 @@ public class MeetupService : IMeetupService
             AgreedLatitude = details.Lat,
             AgreedLongitude = details.Lng,
             AgreedTime = details.ProposedTime,
+            CreatedAt = now,
             CheckinWindowClosesAt =
                 details.ProposedTime + ReservationStateMachine.CheckinWindowAfterMeetup,
             Status = "scheduled",
@@ -235,11 +236,14 @@ public class MeetupService : IMeetupService
             AgreedLatitude: meetup.AgreedLatitude,
             AgreedLongitude: meetup.AgreedLongitude,
             AgreedTime: meetup.AgreedTime,
+            CreatedAt: meetup.CreatedAt,
             CheckinWindowOpensAt: opensAt,
             CheckinWindowClosesAt: meetup.CheckinWindowClosesAt,
             CheckInWindowOpen: MeetupStateMachine.IsCheckInWindowOpen(meetup, now),
             BuyerCheckedIn: meetup.BuyerCheckedIn,
+            BuyerCheckedInAt: meetup.BuyerCheckinTime,
             SellerCheckedIn: meetup.SellerCheckedIn,
+            SellerCheckedInAt: meetup.SellerCheckinTime,
             PaymentUnlocked: MeetupStateMachine.IsPaymentUnlocked(meetup),
             Status: meetup.Status
         );
@@ -319,6 +323,7 @@ public class MeetupService : IMeetupService
             TimerStage: ReservationStateMachine.DeriveTimerStage(r),
             ExpiresAt: r.ExpiresAt,
             CreatedAt: r.CreatedAt,
+            CompletedAt: r.CompletedAt,
             CounterParty: null
         );
 }

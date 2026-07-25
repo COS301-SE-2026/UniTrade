@@ -192,7 +192,8 @@ public class TransactionController : ControllerBase
 
         return Ok(
             new
-            {   transactionId= tx.TransactionId,
+            {
+                transactionId = tx.TransactionId,
                 transactionStatus = tx.TransactionStatus,
                 pinStatus = tx.PinStatus,
 

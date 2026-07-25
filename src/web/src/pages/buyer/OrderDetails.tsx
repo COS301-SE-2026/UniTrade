@@ -1,284 +1,261 @@
-import {useEffect, useState} from 'react';
-import { useNavigate,useParams,Link } from 'react-router-dom';
-import { Search, Bell,Sun,MessageSquare,Download,AlertTriangle,AlertCircle,ChevronRight,Star,Loader2} from 'lucide-react';
-import { listingsService } from '../../services/listingsService';
-import { formatPrice} from '../../utils/formatters';
-import type { Reservation} from '../../types/Reservations';
-import { useAuthStore } from '../../store/useAuthStore';
-import type {ListingDetail, MeetupStatusResponse, Review,} from '../../types/listing'
-import { getReservationById, getTransactionStatus } from '../../services/reservationService';
-
-function toRefNum(reservationId: string): string {
-  return `#${reservationId.slice(0,8).toUpperCase()}`
-}
-
-function formatDate(iso: string) : string{
-  return new Date(iso).toLocaleDateString('en-ZA', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { IconChevronRight, IconStar } from "@tabler/icons-react";
+import { getReservationById, getTransactionStatus } from "../../services/reservationService";
+import type { TransactionStatusResponse } from "../../services/reservationService";
+import { listingsService } from "../../services/listingsService";
+import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse, Review } from "../../types/listing";
+import type { Reservation } from "../../types/Reservations";
 
 export default function OrderDetails() {
-    const navigate=useNavigate();
-    const { reservationId } = useParams<{reservationId:string}> ();
-    const [reservation, setReservation ]= useState<Reservation | null>(null);
-    const [listing, setListing ]= useState<ListingDetail | null>(null);
-  const [review, setReview ]= useState<Review | null>(null);
-const [meetup, setMeetup ]= useState<MeetupStatusResponse | null>(null);
+    const { reservationId } = useParams<{ reservationId: string }>();
 
-    const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const [reservation, setReservation] = useState<Reservation | null>(null);
+    const [listing, setListing] = useState<ListingDetail | null>(null)
+    const [meetup, setMeetup] = useState<MeetupStatusResponse | null>(null);
+    const [transaction, setTransaction] = useState<TransactionStatusResponse | null>(null);
+    const [sellerReviews, setSellerReviews] = useState<UserReviewsResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  const currentUserId = useAuthStore.getState().user?.id;
-  const isBuyer = reservation ? reservation.buyerId === currentUserId : true;
-  const backPath = isBuyer ? '/buyer/orders' : '/seller/sales';
-  const backLabel  = isBuyer ? 'My Orders' : 'My Sales';
 
-  useEffect(() => {
-    if (!reservationId)  return;
-    let cancelled = false;
-    setIsLoading(true);
-    setError(null);
+    useEffect(() => {
+        const loadOrder = async () => {
+            if (!reservationId) {
+                setError('No order Id provided');
+                setLoading(false);
+                return;
+            }
 
-    (async () => {
-      try{
-        const result =await getReservationById(reservationId);
-        if(!result.success) {
-          throw new Error ( result.error.message ?? 'Failt to load this order.');
-        }
-        if (cancelled) return;
-        setReservation(result.data);
+            try {
+                const resResult = await getReservationById(reservationId);
+                if (!resResult.success) throw new Error(resResult.error?.message || 'Failed to load reservation');
+                const resData = resResult.data;
+                setReservation(resData);
 
-        const [listingDetail, reviews, txStatus, meetupStatus] = await Promise.all([
-listingsService.getById(result.data.listingId), 
-listingsService.getReviewsForUser(result.data.sellerId),
-getTransactionStatus(reservationId),
-listingsService.getMeetupStatus(reservationId)
-        ])
-          if (cancelled) return;
-          setListing(listingDetail);
-          setMeetup(meetupStatus);
+                const listingData = await listingsService.getById(resData.listingId);
+                setListing(listingData);
 
-          if (txStatus.success&& txStatus.data.transactionId)
-          {
-            const theReview = reviews.reviews.find(
-              (r) => r.transactionId === txStatus.data.transactionId && r.reviewType === 'buyer_to_seller',
-            ) ?? null;
-            setReview(theReview);
-          }} catch(err) {
-            if(!cancelled) {
-              setError(err instanceof Error ? err.message :
-                'Failed to lload this order.');
-              }}finally{ if(!cancelled) setIsLoading(false);
+                const [meetupResult, txResult, reviewsResult] = await Promise.allSettled([
+                    listingsService.getMeetupStatus(reservationId),
+                    getTransactionStatus(reservationId),
+                    listingsService.getReviewsForUser(resData.sellerId),
+                ]);
 
-              }
-            })();
-            return() => { cancelled = true;}
-          },[reservationId])
+                if (meetupResult.status === 'fulfilled') setMeetup(meetupResult.value);
+                if (txResult.status === 'fulfilled' && txResult.value.success) setTransaction(txResult.value.data);
+                if (reviewsResult.status === 'fulfilled') setSellerReviews(reviewsResult.value);
+            } catch (err: any) {
+                setError(err.message || 'Failed to load order')
+            } finally {
+                setLoading(false);
+            }
+        };
 
-          if(!reservationId) {
-            return <div className="p-8 text-center text-slate-500">
-              No order specified.</div>}
+        loadOrder();
+    }, [reservationId]);
 
-            const itemPrice = listing?.price ?? 0;
-            const totalPaid = itemPrice;
-     return (
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-slate-200 shirnk-0">
-          <div className='relative w-96'>
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-            type="text"
-            placeholder='search...'
-            className='w-full pl-9 pr-4 py-2 bg-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500' />
+    if (loading) {
+        return <div className="text-slate-500">Loading order details....</div>;
+    }
 
-          </div>
-          <div className="flex items-center gap-4 text-slate-600">
-            <button className='p-2 hover:bg-slate-100 rounded-full transition-colors'>
-              <Bell className='w-5 h-5'/>
-            </button>
-            <button className='p-2 hover:bg-slate-100 rounded-full transition-colors'>
-              <Sun className='w-5 h-5'/>
-            </button>
-          </div>
-        </header>
-
-    <div className='p-8 max-w-6xl w-full mx-auto space-y-6'>
-      <div className="flex item-center justify-between">
-        <nav className='flex items-center gap-2 text-sm font-medium'>
-          <Link to ={backPath} className='text-blue-600 hover:underline'>{backLabel}</Link>
-          <ChevronRight className='w-4 h-4 text-slate-400' />
-          <span className="text-slate-600 font-semibold">{toRefNum(reservationId)}</span>
-       </nav>
-       {reservation &&(
-        <span className={`text-xs px-4 py-1.5 rounded-full font-semibold ${
-          reservation.reservationStatus === 'completed' 
-          ? 'bg-emerald-200 text-emerald-800'
-          : 'bg-amber-100 text-amber-700'}`}>
-          {reservation.reservationStatus === 'completed' ? 'Completed' : reservation.reservationStatus}
-          </span>
-        )}
-          </div>
-
-          {isLoading && (
-            <div className='flex flex-col items-center justify-center py-24 text-slate-500'>
-              <Loader2 className='w-8 h-8 animate-spin mb-2'/>
-             <p className = "text-sm">Fetching order details...</p>
+    if (error || !reservation || !listing) {
+        return (
+            <div className="text-center">
+                <p className="text-red-600 mb-4">{error || 'Order not found'}</p>
+                <Link to="/buyer/orders" className="text-blue-600 hover:underline">
+                    Back to My Orders
+                </Link>
             </div>
-          )}
+        );
+    }
 
-          {!isLoading && error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex-items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
-              <span className="text-sm font-medium">{error}
+    const formatDate = (iso?: string | null) =>
+        iso ? new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '_';
+
+    const formatDateTime = (iso?: string | null) =>
+        iso
+            ? new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) +
+            ', ' +
+            new Date(iso).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
+            : '_';
+
+    const myReview: Review | undefined = sellerReviews?.reviews.find(
+        (r) =>
+            r.reviewType === 'buyer_to_seller' &&
+            r.reviewerId === reservation.buyerId &&
+            (!transaction?.transactionId || r.transactionId === transaction.transactionId),
+    );
+
+    const sellerReceivedReviews = sellerReviews?.reviews.filter((r) => r.reviewType === 'buyer_to_seller') ?? [];
+    const sellerAvgRating =
+        sellerReceivedReviews.length > 0
+            ? Math.round((sellerReceivedReviews.reduce((sum, r) => sum + r.rating, 0) /
+                sellerReceivedReviews.length) * 10) / 10 : null;
+
+    const timelineSteps = [
+        { title: 'Listing reserved', time: formatDateTime(reservation.createdAt), done: true },
+        { title: 'Meetup arranged', time: meetup ? formatDateTime(meetup.createdAt) : '_', done: !!meetup },
+        { title: 'Buyer checked in', time: meetup?.buyerCheckedIn ? formatDateTime(meetup.buyerCheckedInAt) : '_', done: !!meetup?.buyerCheckedInAt },
+        { title: 'Seller checked in', time: meetup?.sellerCheckedIn ? formatDateTime(meetup.sellerCheckedInAt) : '_', done: !!meetup?.sellerCheckedIn },
+        { title: 'Payment completed', time: transaction?.transactionStatus === 'completed' ? 'Completed' : '_', done: transaction?.transactionStatus === 'completed' },
+        { title: 'Order completed', time: reservation.reservationStatus === 'completed' ? 'Completed' : '_', done: reservation.reservationStatus === 'completed' },
+    ];
+
+    return (
+        <div className="max-w-6xl w-full mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+                <nav className="flex items-center gap-2 text-sm font-medium">
+                    <Link to="/buyer/orders" className="text-blue-600 hover:underline">
+                        My Orders
+                    </Link>
+                    <IconChevronRight className="w-4 h-4 text-slate-400" />
+                    <span className="text-slate-600 font-semibold">{listing.title}</span>
+                </nav>
+                <span className="bg-emerald-100 text-emerald-700 text-xs px-4 py-1.5 rounded-full font-semibold">
+                    {reservation.reservationStatus === 'completed' ? 'Completed' : reservation.reservationStatus}
                 </span>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-7 space-y-6">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                            Item
+                        </h3>
+                        <div className="flex gap-5">
+                            <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0">
+                                {listing.images?.[0] ? (
+                                    <img src={listing.images[0].url} alt={listing.title} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white text-xs">
+                                        No Image
+                                    </div>
+
+                                )}
+                            </div>
+                            <div className="space-y-1">
+                                <h4 className="font-bold text-xl text-slate-900">{listing.title}</h4>
+                                <p className="text-sm text-slate-600">Condition: {listing.condition}</p>
+                                <p className="text-sm text-slate-600">Category: {listing.category}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                            Order Timeline
+                        </h3>
+                        <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                            {timelineSteps.map((step, idx) => (
+                                <div key={idx} className="relative">
+                                    <div
+                                        className={`absolute -left-8 top-1 w-5 h-5 rounded-full flex items-center justify-center ring-4 ring-white ${step.done ? 'bg-emerald-500' : 'bg-slate-300'
+                                            }`}
+                                    />
+                                    <p className={`text-sm font-medium ${step.done ? 'text-slate-800' : 'text-slate-400'}`}>{step.title}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{step.time}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                            Your review
+                        </h3>
+                        {myReview ? (
+                            <>
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="flex">
+                                        {[...Array(5)].map((_, i) => (
+                                            <IconStar
+                                                key={i}
+                                                className={`w-5 h-5 ${i < myReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-sm text-slate-500">{myReview.rating} out of 5 stars</span>
+                                </div>
+                                <p className="text-slate-600 text-sm leading-relaxed">{myReview.comment || 'No comment left.'}</p>
+                            </>
+                        ) : (
+                            <p className="text-sm text-slate-500">You haven't left a review for this order yet.</p>
+                        )}
+                    </div>
                 </div>
-                  )}
-          
-          {!isLoading && !error && reservation && reservation.reservationStatus !== 'completed' && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm">
-              this reservation is not complete, full order details are'nt available.
-              <button onClick={() => navigate(isBuyer
-                ? `/buyer/reservations/${reservationId}`
-                : `/seller/reservations/${reservationId}`,
-              )} className='underline font-semibold'> the reservation page
-              </button>
-              .
-              </div>
-          )}
-{!isLoading && !error && reservation && listing && (
- 
-  <div className='gid grid-cols-1 lg:gid-cols-2 gap-6'>
-  <div className="space-y-6">
-    <div className="bg-white rounded-xl p- border border-slate-200 shadow-sm">
-      <h3 className='text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2'>
-        Item
-        </h3>
-        <div className="flex items-start gap-4">
-        <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden shrink-0 flex items-center"> 
-             {listing.images?.[0]?.url ? (
-              <img 
-              src={listing.images[0].url}
-              alt={listing.title}
-              className='w-full h-full object-cover'  />
-             ) : (
-              <span className="text-xs text-white">
-                No image
-              </span>
-             )}
-             </div>
-             <div className='space-y-1'>
-              <h4 className='font-bold text-slate-800 text-base'>{listing.title}</h4>
-             <p className='text-xs text-slate-500'>Condition: {listing.condition}</p>
-            <p className='text-xs text-slate-500'>Category: {listing.category}</p>
-            <p className='text-xs text-slate-500'>Module Code:{listing.courseCode || ''}</p>
-          </div></div>
 
+                <div className="lg:col-span-5 space-y-6">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                            Receipt
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-600">Item price</span>
+                                <span className="font-medium">R{listing.price.toLocaleString('en-ZA')}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-600">Platform fee</span>
+                                <span className="font-medium">R0.00</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-600">Payment method</span>
+                                <span className="font-medium">PayFast</span>
+                            </div>
+                            <div className="pt-4 border-t border-slate-200 flex justify-between font-semibold text-base">
+                                <span>Total Paid</span>
+                                <span>R{listing.price.toLocaleString('en-ZA')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                            Seller
+                        </h3>
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="w-10 h-10 bg-navy-800 text-white rounded-full flex items-center justify-center font-bold">
+                                {reservation.counterParty?.initials || '_'}
+                            </div>
+                            <div>
+                                <p className="font-semibold">{reservation.counterParty?.name || 'Unknown seller'}</p>
+                                <p className="text-xs text-slate-500">{listing.seller?.university || '_'}</p>
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center mb-3 text-sm">
+                            <span className="text-slate-600">Seller rating</span>
+                            <span className="font-medium">{sellerAvgRating !== null ? `${sellerAvgRating} / 5` : 'No ratings yet'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-slate-600">Total Sales</span>
+                            <span className="font-medium">{sellerReceivedReviews.length}</span>
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                            Order Info
+                        </h3>
+                        <div className="space-y-4 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-slate-600">Order ID</span>
+                                <span className="font-medium">#{reservation.reservationId}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600">Date Placed</span>
+                                <span className="font-medium">{formatDate(reservation.createdAt)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600">Collected On</span>
+                                <span className="font-medium">{meetup ? formatDate(meetup.agreedTime) : '_'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600">Meetup location</span>
+                                <span className="font-medium text-right">{meetup?.agreedLocationName || '_'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-          <div className='bg-white-rounded-xl p-5 border border-slate-200 shadow-sm'>
-          <h3 className='text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2'>{isBuyer ? 'You reviewed:' : 'Buyer reviewed:'}</h3>
-{review ? (<>
-
-<div className='flex items-center gap-2 mb-2'>
-            <div className='flex items-center gap-0.5'>
-              {[...Array(5)].map((_, i) => (
-<Star key={i} className={`w-4 h-4 ${ i<review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
-              ))}
-              </div>
-              <span className="text-xs text-slate-400">{review.rating} out of 5 stars </span>
-              </div>
-              {review.comment && (
-                <p className='text-xs text-slate-600 leading-relaxed'>{review.comment}</p>
-              )}
-              </>
-):(
-  <p className='text-xs text-slate-500'>
-    {isBuyer
-    ? "You haven't reviewed this order yet" : "The buyer has not left a review for this sale yet."}
-    </p>
-)}
-</div> </div>
-
-      <div className='space-y-6'>
-        <div className='bg-white-rounded-xl p-5 border border-slate-200 shadow-sm'>
-          <h3 className='text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2'>Receipt</h3>
-        <div className='space-y-3 text-xs'>
-          <div className='flex justify-between text-slate-600'>
-            <span>Item price</span>
-  <span className='font-semibold text-slate-800'>{formatPrice(itemPrice)}</span>
-  </div>
-
- <div className='flex justify-between text-slate-600'>
-            <span>Platform fee</span>
-  <span className='font-semibold text-slate-800'>nix </span>
-  </div>
-  <div className='flex justify-between text-slate-600'>
-            <span>Payment method </span>
-  <span className='font-semibold text-slate-800'>Payfast </span>
-  </div>
-      <div className='pt-3 border-t order-slate-100 flex justify-between font-bold text-slate-900 text-sm'>
-<span>Total Paid</span>
-   <span>{formatPrice(totalPaid)}</span>
-      </div>
-      </div>
-      </div>
-         <div className='bg-white-rounded-xl p-5 border border-slate-200 shadow-sm'>
-          <h3 className='text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2'>Order Info</h3>
-          <div className="space-y-3 text-xs">
-            <div className='flex justify-between text-slate-600'>
-               <span>Order ID</span>
-                 <span className='font-semibold text-slate-800'>{toRefNum(reservationId)} </span>
-                 </div>
-                 <div className='flex justify-between text-slate-600'>
-                  <span>Date Placed</span>
-                  <span className='font-semibold text-slate-800'>
-                    {formatDate(reservation.createdAt)}
-                  </span>
-                  </div>
-                  <div className='flex justify-between text-slate-600'>
-                     <span>Collected On</span>
-                 <span className='font-semibold text-slate-800'>mock </span>
-                 </div>
-                   <div className='flex justify-between text-slate-600'>
-                     <span>Meetup location</span>
-                 <span className='font-semibold text-slate-800'>{meetup?.agreedLocationName ?? 'Not specified'} </span>
-                 </div>
-                 </div>
-                 </div>
-
-                     <div className='bg-white-rounded-xl p-5 border border-slate-200 shadow-sm'>
-          <h3 className='text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2'>Actions</h3>
-             <div className='space-y-3'>
-              <button
-              onClick={() => navigate(`/${isBuyer ? 'buyer' : 'seller'}/messages/${reservationId}`)}
-              className='w-full py-2.5 bg-[#0F224A] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2  hover:bg-slate-800 transition-coours'>
-                <MessageSquare className='w-4 h-4'/>
-                <span> {isBuyer ? 'Message Seller' : 'Message Buyer'}</span></button>    
-             <button 
-          disabled
-title="Not available yet"
-className='w-full py-2.5 bg-white border border-slate-300 text-slate-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-not-allowed'
-          >
-          <Download className='w-4 h-4'/>
-                  <span>Download receipt</span>
-                  </button>
-                  <button
-                  disabled
-                  title="Not available yet"
-                  className='w-full py-2.5 bg-white border border-rose-200 text-rose-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-not-allowed'>
-<AlertTriangle className='w-4 h-4' />
-          <span>Report an issue</span>
-                    </button>
-          </div>
-          </div>
-          </div>
-          </div>
-          )}
-    </div>
-    </main>
-  );
+    )
 }

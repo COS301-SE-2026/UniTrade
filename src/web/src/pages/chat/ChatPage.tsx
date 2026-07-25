@@ -135,44 +135,6 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
-/*const MeetupProposalCard: React.FC<{
-    message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
-    isOwnMessage: boolean;
-}> = ({ message, isOwnMessage }) => {
-    const { proposedLocation, proposedTime } = message.payload;
-    const date = new Date(proposedTime);
-
-    return (
-        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} gap-1.5`}>
-            <span className="text-xs text-gray-400 px-1">{message.content}</span>
-            <div className="w-full max-w-[280px] bg-[#003366] text-white rounded-2xl overflow-hidden shadow">
-                <div className="p-4">
-                    <div className="uppercase text-[10px] tracking-widest font-semibold text-white/70 mb-3">
-                        Meetup Proposal
-                    </div>
-                    <div className="flex gap-3">
-                        <IconMapPin size={18} className="mt-0.5" />
-                        <p className="font-medium">{proposedLocation}</p>
-                    </div>
-                    <div className="flex gap-3 mt-3">
-                        <IconCalendar size={18} className="mt-0.5" />
-                        <p>
-                            {date.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric' })} •{' '}
-                            {date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                        </p>
-                    </div>
-                </div>
-                <div className="border-t border-white/20 flex text-sm font-medium">
-                    <button type="button" disabled className="flex-1 py-3 hover:bg-white/10 transition-colors text-white/70">Decline</button>
-                    <div className="w-px bg-white/20" />
-                    <button type="button" disabled className="flex-1 py-3 hover:bg-white/10 transition-colors">Accept</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-*/
-
 const MeetupResponseBubble: React.FC<{
     message: Extract<ClientChatMessage, { messageType: "meetup_response" }>;
 }> = ({ message }) => (
@@ -307,7 +269,7 @@ export default function ChatPage() {
             }
         } for (const msg of sortedMessages) {
             if (msg.messageType === 'meetup_response' && msg.payload?.ProposalMessageId) {
-                console.log('Response payload', msg.payload);
+        
                 const id = msg.payload.ProposalMessageId.toString();
                 if (id in map) {
                     map[id] = msg.payload.Accepted ? 'accepted' : 'declined';
@@ -393,13 +355,6 @@ export default function ChatPage() {
         }
     };
 
-    /* console.log('Meetup proposal submitted:', {
-         proposedLocation: values.location,
-         proposedTime,
-     });
-     setIsProposingMeetup(false);
- };
- */
 
     const handleRespondMeetup = async (proposalMessageId: number, status: MeetupStatus) => {
         const key = proposalMessageId.toString();

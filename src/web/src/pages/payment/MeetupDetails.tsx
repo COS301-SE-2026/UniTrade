@@ -138,7 +138,6 @@ export default function MeetupDetails() {
       return;
     }
     const { sandbox_url, fields } = result.data;
-    console.log('Payfast response:', result.data); //not to me(Tafadzwa)- make sure to remove this
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = sandbox_url;

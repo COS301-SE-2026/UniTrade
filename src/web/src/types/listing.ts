@@ -166,6 +166,7 @@ export interface MeetupStatusResponse {
   agreedLatitude: number
   agreedLongitude: number
   agreedTime: string
+  createdAt: string
   checkinWindowClosesAt: string
   checkInWindowOpen: boolean
   buyerCheckedIn: boolean
@@ -173,6 +174,8 @@ export interface MeetupStatusResponse {
   paymentUnlocked: boolean
   status: string
   checkinWindowOpensAt: string
+  buyerCheckedInAt: string | null
+  sellerCheckedInAt: string | null
 }
 
 export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
@@ -214,6 +217,22 @@ export interface OrderItem {
   price: number;
   date: string;
   status: 'Completed' | 'Pending' | 'Cancelled';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
+}
+
+export interface SaleItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  buyerName: string;
+  buyerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed';
   rating: number;
   _createdAtIso: string;
   imageUrl: string;

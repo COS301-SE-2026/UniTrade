@@ -25,4 +25,9 @@ public class Meetup
 
     public string Status { get; set; } = "scheduled";
     public Reservation Reservation { get; set; } = null!;
+
+    public DateTime? BuyerCheckedInAt { get; set; }
+    public DateTime? SellerCheckedInAt { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 }

@@ -82,15 +82,15 @@ export default function App() {
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
+        <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/orders/:id" element={<OrderDetails />} />
+          <Route path="/seller/sales" element={<Sales />} />
           <Route path="/seller/sales/:id" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
-          <Route path="/buyer/orders" element={<Orders/>} />
-          <Route path="/seller/sales/:id" element={<Sales />} />
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
@@ -104,8 +104,6 @@ export default function App() {
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
-         
-          
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
             <Route path=":reservationId" element={<ChatPage />} />
