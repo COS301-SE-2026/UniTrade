@@ -276,6 +276,7 @@ public class ReservationService(
             TimerStage: ReservationStateMachine.DeriveTimerStage(r),
             ExpiresAt: r.ExpiresAt,
             CreatedAt: r.CreatedAt,
+            CompletedAt: r.CompletedAt,
             CounterParty: counterParty
         );
     }
