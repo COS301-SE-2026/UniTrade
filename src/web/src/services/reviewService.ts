@@ -20,7 +20,9 @@ async function handleResponse<T>(res: Response): Promise<Result<T>> {
     const body = await res.json();
     code = body.error ?? body.code ?? code;
     message = body.message;
-  } catch {}
+  } catch {
+    //
+  }
 
   return { success: false, error: { code, message, status: res.status } };
 }

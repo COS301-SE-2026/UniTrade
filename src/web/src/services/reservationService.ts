@@ -16,9 +16,11 @@ import type { TransactionRequestResponse } from '../types/Reservations';
 //import type { MeetupDetailsResponse } from '../types/meetup';
 
 export interface TransactionStatusResponse {
+    transactionId: string | null
     transactionStatus: 'none' | 'completed' | string;
     pinStatus: 'pending' | 'confirmed' | null;
     pin: string | null;
+    paidAt: string | null
 }
 
 async function handleResponse<T>(res: Response): Promise<Result<T>>{

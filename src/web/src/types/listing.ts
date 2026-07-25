@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -166,6 +166,7 @@ export interface MeetupStatusResponse {
   agreedLatitude: number
   agreedLongitude: number
   agreedTime: string
+  createdAt: string
   checkinWindowClosesAt: string
   checkInWindowOpen: boolean
   buyerCheckedIn: boolean
@@ -173,6 +174,8 @@ export interface MeetupStatusResponse {
   paymentUnlocked: boolean
   status: string
   checkinWindowOpensAt: string
+  buyerCheckedInAt: string | null
+  sellerCheckedInAt: string | null
 }
 
 export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
@@ -201,4 +204,20 @@ export interface SubmitReviewPayload {
   transactionId: string
   rating: number
   comment?: string 
+}
+
+export interface OrderItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  sellerName: string;
+  sellerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
 }

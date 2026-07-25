@@ -14,6 +14,8 @@ export interface Reservation {
     createdAt: string;
     sellerAcknowledgedAt?:string |null;
     counterParty: ReservationCounterparty | null;
+    handoverConfirmedAt: string | null
+    completedAt: string | null
 }
 
 export interface ReservationCounterparty {
