@@ -503,6 +503,8 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SellerAcknowledgedAt);
             entity.Property(x => x.BuyerRespondedAt);
+            entity.Property(x => x.HandoverConfirmedAt);
+            entity.Property(x => x.CompletedAt);
             entity.Property(x => x.ExpiresAt).IsRequired();
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
             entity.Property(x =>x.TwoHourWarningSentAt);
@@ -698,6 +700,7 @@ public class AppDbContext : DbContext
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasDefaultValue("pending");
+            entity.Property(x => x.PaidAt);
             entity.Property(x => x.PinHash).HasMaxLength(255);
             entity.Property(x => x.PinAttempts).HasDefaultValue(0);
             entity
@@ -723,12 +726,15 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AgreedLatitude).HasPrecision(9, 6).IsRequired();
             entity.Property(x => x.AgreedLongitude).HasPrecision(9, 6).IsRequired();
             entity.Property(x => x.AgreedTime).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity.Property(x => x.BuyerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.BuyerCheckedInAt);
             entity.Property(x => x.BuyerCheckinLatitude).HasPrecision(9, 6);
             entity.Property(x => x.BuyerCheckinLongitude).HasPrecision(9, 6);
 
             entity.Property(x => x.SellerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.SellerCheckedInAt);
             entity.Property(x => x.SellerCheckinLatitude).HasPrecision(9, 6);
             entity.Property(x => x.SellerCheckinLongitude).HasPrecision(9, 6);
 
