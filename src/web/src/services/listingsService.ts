@@ -688,7 +688,7 @@ export const listingsService = {
   },
 
   getCompletedOrders: async (): Promise<OrderItem[]> => {
-    const res = await getReservations({role: 'seller'});
+    const res = await getReservations({role: 'buyer'});
     if(!res.success){
       throw new Error(res.error.message ?? 'Failed to load your orders');
     }
@@ -772,7 +772,7 @@ export const listingsService = {
 },
 
   getCompletedSales: async (): Promise<SaleItem[]> => {
-    const res = await getReservations({role: 'buyer'});
+    const res = await getReservations({role: 'seller'});
     if(!res.success){
       throw new Error(res.error.message ?? 'Failed to load your sales');
     }
