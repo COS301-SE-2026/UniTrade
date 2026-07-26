@@ -1,11 +1,13 @@
 
 import { useEffect, useCallback, useState, useMemo} from 'react'
 import { useNavigate } from 'react-router-dom';
-import { Loader2 ,AlertCircle, Star} from 'lucide-react'
+import { AlertCircle, Star} from 'lucide-react'
 import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
 import type { SaleItem } from '../../types/listing';
 import { SummaryCard } from "../buyer/Reservation";
+import { LoadingState } from '../../components/layout/Spinner';
+import { ReviewModal } from '../auth/Review';
 
 
 export type SaleFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
@@ -53,6 +55,10 @@ export default function MySales(){
   const navigate=useNavigate()
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviewTarget,setReviewTarget] = useState<{
+    transactionId: string
+    revieweeName: string
+  } | null>(null);
 
   const load= useCallback(async () => {
     setIsLoading(true);
@@ -147,12 +153,7 @@ export default function MySales(){
         ))}
       </div>
 
-        {isLoading && (
-          <div className='flex flex-col items-center justify-center py-16 text-slate-500'>
-            <Loader2 className='w-8 h-8 animate-spin mb-2' />
-            <p className='text-sm'>Fetching sales...</p>
-            </div>
-        )}
+      {isLoading && <LoadingState message = "Fetching sales..." />}
     
 
       {error && !isLoading &&(
@@ -240,12 +241,26 @@ export default function MySales(){
                 </span>
                 </>
 
-                ) : (
-                  < span className="text-xs text-gray-400">
-                    Not yet reviewed by buyer
+                ) : sale.transactionId ? (
+                  <button
+                  type = "button"
+                  onClick = {(e) => {
+                    e.stopPropagation();
+                    setReviewTarget({
+                      transactionId: sale.transactionId as string,
+                      revieweeName: sale.buyerName,
+                    });
+                  }}
+                  className = "flex items-center gap-1 text-xs font-semibold text-navy-700 hover:underline"
+                  >
+                    <Star className = "w-4 h-4 text-navy-700" />
+                    Rate this buyer
+                  </button>
+                  ) : (
+                  <span className = "text-xs text-gray-400">
+                    Review unavailable
                   </span>
                 )}
-
               </div>
               </div>
 
@@ -269,6 +284,20 @@ export default function MySales(){
           ))}
       </div>
       )}
+
+      {reviewTarget && (
+              <ReviewModal
+              isOpen = {!!reviewTarget}
+              onClose = {() => setReviewTarget(null)}
+              transactionId= {reviewTarget.transactionId}
+              revieweeName= {reviewTarget.revieweeName}
+              revieweeLabel = "buyer"
+              onSubmitted={() => {
+                setReviewTarget(null)
+                load()
+              }}
+              />
+            )}
     </div>
     );
 }
