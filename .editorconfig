@@ -1,0 +1,60 @@
+root = true
+
+# General
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{ts,tsx,js,jsx,json,css,html}]
+indent_size = 2
+
+
+# C# files
+[*.cs]
+
+## Private fields must be _camelCase
+dotnet_naming_rule.private_fields_camel_case.severity = error # fine
+dotnet_naming_rule.private_fields_camel_case.symbols = private_fields  # fine
+dotnet_naming_rule.private_fields_camel_case.style = underscore_camel_case # fine
+
+#### Core EditorConfig Options ####
+
+# Indentation
+indent_size = 4  # fine
+
+
+
+#### Naming styles ####
+
+# Naming rules
+
+dotnet_naming_rule.interfaces_prefixed_i.severity = error  # fine
+dotnet_naming_rule.interfaces_prefixed_i.symbols = interface_types  # fine
+dotnet_naming_rule.interfaces_prefixed_i.style = prefix_i_pascal_case  # fine
+
+dotnet_naming_rule.types_and_members_pascal_case.severity = error #fine
+dotnet_naming_rule.types_and_members_pascal_case.symbols = types_and_members #fine
+dotnet_naming_rule.types_and_members_pascal_case.style = pascal_case #fine
+
+# Symbol specifications
+dotnet_naming_symbols.private_fields.applicable_kinds = field  # fine
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private  # fine
+
+dotnet_naming_symbols.interface_types.applicable_kinds = interface  # fine
+
+dotnet_naming_symbols.types_and_members.applicable_kinds = class,struct,enum,method,property,event #fine
+
+# Naming styles
+
+dotnet_naming_style.underscore_camel_case.required_prefix = _  # fine
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case  # fine
+ 
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case #fine
+
+dotnet_naming_style.prefix_i_pascal_case.required_prefix = I #fine
+dotnet_naming_style.prefix_i_pascal_case.capitalization = pascal_case #fine
+

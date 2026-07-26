@@ -13,7 +13,7 @@ namespace Api.Controllers;
 [Route("api/reservations")]
 public class TransactionController : ControllerBase
 {
-    private readonly ITransactionsService _Transactions;
+    private readonly ITransactionsService _transactionsService;
     private readonly IReservationRepository _reservations;
     private readonly ITransactionRepository _transactions;
 
@@ -23,7 +23,7 @@ public class TransactionController : ControllerBase
         ITransactionRepository transactions
     )
     {
-        _Transactions = Transactions;
+        _transactionsService = Transactions;
         _reservations = reservations;
         _transactions = transactions;
     }
@@ -45,7 +45,7 @@ public class TransactionController : ControllerBase
 
         try
         {
-            var result = await _Transactions.CreatesTransactionReq(reservationId, buyerId, ct);
+            var result = await _transactionsService.CreatesTransactionReq(reservationId, buyerId, ct);
             return Ok(new { sandbox_url = result.ProcessUrl, fields = result.Fields });
         }
         catch (TransactionException ex)
@@ -86,7 +86,7 @@ public class TransactionController : ControllerBase
             return BadRequest();
         }
 
-        if (!_Transactions.VerifySignature(rawBody, receivedSign))
+        if (!_transactionsService.VerifySignature(rawBody, receivedSign))
         {
             return BadRequest("invalid_signature");
         }
@@ -114,7 +114,7 @@ public class TransactionController : ControllerBase
         if (fields.GetValueOrDefault("payment_status") == "COMPLETE")
         {
             var pfTransactionId = fields.GetValueOrDefault("pf_payment_id") ?? "";
-            await _Transactions.ConfirmTransactionAsync(reservationId, pfTransactionId, ct);
+            await _transactionsService.ConfirmTransactionAsync(reservationId, pfTransactionId, ct);
         }
 
         return Ok();
@@ -139,7 +139,7 @@ public class TransactionController : ControllerBase
 
         try
         {
-            await _Transactions.VerifyPinAsync(reservationId, sellerId, request.Pin, ct);
+            await _transactionsService.VerifyPinAsync(reservationId, sellerId, request.Pin, ct);
             return Ok();
         }
         catch (TransactionException ex)
@@ -211,7 +211,7 @@ public class TransactionController : ControllerBase
 
         try
         {
-            var pin = await _Transactions.GetPendingPinAsync(reservationId, buyerId, ct);
+            var pin = await _transactionsService.GetPendingPinAsync(reservationId, buyerId, ct);
             return Ok(new { pin });
         }
         catch (TransactionException ex)
