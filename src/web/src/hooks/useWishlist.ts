@@ -10,9 +10,7 @@ export const useWishlist = () =>
   useEffect(() => {
     connectionManager.connect().catch(() => {});
     const unsubscribe= connectionManager.onListingChanged((listingId, event) => {
-       console.log("[useWishlist] event received",listingId,event);
       queryClient.setQueryData<WishlistResponse>(["wishlist"], (old) => {
-         console.log("[useWishlist] old cache",old);
          return old && {
         ...old,
         listings: old.listings.map((l) =>

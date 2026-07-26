@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { verifyPin } from '../../services/reservationService';
 
 export default function EnterPin() {
@@ -72,7 +72,7 @@ export default function EnterPin() {
         const result = await verifyPin(reservationId, currentPinStr);
         setIsVerifying(false);
         if (result.success) {
-            navigate('/payment/payment-complete?reservationId=${reservationId}');
+            navigate(`/payment/payment-complete?reservationId=${reservationId}`);
         } else {
             const message =
                 result.error.code === 'too_many_attempts'

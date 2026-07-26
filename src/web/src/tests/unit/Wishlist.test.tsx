@@ -2,7 +2,7 @@ import {render, screen, fireEvent} from '@testing-library/react';
 import Wishlist from '../../pages/buyer/Wishlist';
 import { useWishlist } from '../../hooks/useWishlist';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { listingsService } from '../../services/listingsService';
 import { createReservation } from '../../services/reservationService';
 import type React from 'react';
@@ -21,8 +21,8 @@ interface SummaryCardMockProps {
 
 
 const navigateMock = vi.fn();
-vi.mock('react-router-dom', async () => {
-    const path = await vi.importActual<typeof import ('react-router-dom')>('react-router-dom');
+vi.mock('react-router', async () => {
+    const path = await vi.importActual<typeof import ('react-router')>('react-router');
     return {
         ...path,
         useNavigate: () => navigateMock,
