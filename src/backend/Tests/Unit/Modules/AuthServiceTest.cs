@@ -408,4 +408,20 @@ public class IdentityServiceTests
         Assert.Equal("Bob", dto.FirstName);
         Assert.Equal("bob@uni.ac.za", dto.Email);
     }
+
+    [Theory]
+    [InlineData("u12345678@tuks.co.za", "u12345678@tuks.co.za")]
+    [InlineData("u12345678\uff20tuks.co.za", "u12345678@tuks.co.za")]
+    [InlineData("u123\u200b45678@tuks.co.za", "u12345678@tuks.co.za")]
+    [InlineData("u1234\u00d5678@tuks.co.za", "u12345678@tuks.co.za")]
+    [InlineData("u12345678\u2060@tuks.co.za", "u12345678@tuks.co.za")]
+    [InlineData("\ufeffu12345678@tuks.co.za", "u12345678@tuks.co.za")]
+    public void NormaliseEmail_folds_and_strips(string input, string expected)
+    {
+        //IdentityService.NormaliseDomain(input).Should().Be(expected);
+    }
+
+    
+
+
 }
