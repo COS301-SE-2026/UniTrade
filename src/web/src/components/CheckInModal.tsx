@@ -15,7 +15,9 @@ interface CheckInModalProps {
 }
 
 export default function CheckInModal({ reservationId, meetupLocation, onClose }: CheckInModalProps) {
-    const [state, setState] = useState<CheckInState>('requesting');
+    const [state, setState] = useState<CheckInState>(() =>
+        'geolocation' in navigator ? 'requesting' : 'unsupported'
+    );
     const [errorMessage, setErrorMessage] = useState('');
 
     const mapResponse = (err: unknown): string => {
@@ -73,11 +75,9 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
     };
 
     useEffect(() => {
-        if (!('geolocation' in navigator)) {
-            setState('unsupported');
-            return;
-        }
+        if (state === 'unsupported') return;
         checkLocation();
+
     }, [checkLocation]);
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
