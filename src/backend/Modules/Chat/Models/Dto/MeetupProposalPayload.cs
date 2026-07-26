@@ -1,4 +1,4 @@
-namespace Modules.Reservations.Models.Dto;
+namespace Modules.Chat.Models.Dto;
 
 public record MeetupProposalPayload(
     string LocationName,

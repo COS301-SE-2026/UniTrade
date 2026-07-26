@@ -1,4 +1,4 @@
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useParams } from "react-router";
 import ConversationsSidebar from "./layout/ConversationsSidebar";
 
 export default function ChatLayout({ role }: { role: 'buyer' | 'seller' }) {

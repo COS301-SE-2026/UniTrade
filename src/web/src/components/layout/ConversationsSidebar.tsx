@@ -1,4 +1,4 @@
-import {NavLink, useParams} from 'react-router-dom';
+import {NavLink, useParams} from 'react-router';
 import { useReservationsList } from '../../hooks/useReservationsList';
 import type { ReservationListItem } from '../../types/Reservations';
 import { useUnreadRealtime } from '../../hooks/useUnreadRealtime';
