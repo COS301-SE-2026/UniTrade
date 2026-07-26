@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
-import type { CreateReservationRequest } from '../../types/Reservations'
+import type { CreateReservationRequest, ChatMessage } from '../../types/Reservations'
 import type { ReservationListItem} from '../../types/Reservations'
+import type { ProposeMeetupPayload } from '../../types/listing';
 
 interface MockListing {
   listingId: string;
@@ -18,11 +19,19 @@ interface MockListing {
   metadata: Record<string, unknown> | null;
   images: string[];
 }
+interface AcceptMeetupRequestBody {
+  proposalMessageId: number
+}
 
 let mockListings: MockListing[] = [];
 let nextId = 1;
 let mockReservations: ReservationListItem[] = []
 let nextReservationId = 1
+let mockMessages: ChatMessage[] = []
+
+export function resetMockMessages() {
+  mockMessages = []
+}
 
 export function resetMockListings() {
   mockListings = []
@@ -243,6 +252,21 @@ export const browseAndReserveHandlers = [
     return HttpResponse.json({ items, total: items.length });
   }),
 
+  
+
+]
+
+export const chatHandlers =[
+http.get('http://localhost:5000/api/reservations/:id/messages', ({ params}) => {
+    const items = mockMessages.filter(m => m.reservationId === params.id)
+    return HttpResponse.json({ items, hasMore: false, oldestMessageId: items[0]?.messageId ?? null })
+  }),
+
+  http.get('http://localhost:5000/api/reservations/:id', ({params}) => {
+     const reservation = mockReservations.find(r => r.reservationId === params.id)
+     if (!reservation) return new HttpResponse(null, { status: 404})
+      return HttpResponse.json(reservation)
+  }),
 ]
 
 export const sellerReservationHandlers = [
@@ -269,4 +293,51 @@ export const sellerReservationHandlers = [
       reservation.reservationStatus = 'cancelled'
     return HttpResponse.json(reservation)
   })
+]
+
+export const meetupHandlers = [
+  http.get('https://nominatim.openstreetmap.org/reverse', () => {
+    return HttpResponse.json({ display_name: 'Merensky Library, Lynnwood Road, Pretoria'})
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/meetup/propose', async ({params, request}) => {
+    const body = await request.json() as ProposeMeetupPayload
+    const message: ChatMessage = {
+      messageId: Date.now(),
+      reservationId: String(params.id),
+      senderId: 'buyer-1',
+      clientKey: null,
+      sentAt: new Date().toISOString(),
+      readAt: null,
+      messageType: 'meetup_proposal' as const,
+      content: 'Meetup proposed',
+      payload: {
+        LocationName: body.locationName,
+        ProposedTime: body.proposedTime,
+        lat: body.lat,
+        Lng: body.lng,
+        status: 'pending',
+      },
+    }
+    mockMessages.push(message)
+    return HttpResponse.json({ status: 'pending'})
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/meetup/accept', async ({ params,request}) => {
+    const body = await request.json() as AcceptMeetupRequestBody
+    //const proposal = mockMessages.find(m => m.messageId === body.proposalMessageId)
+    const message:ChatMessage = {
+      messageId: Date.now(),
+      reservationId: String(params.id),
+      senderId: 'buyer-1',
+      clientKey: null,
+      sentAt: new Date().toISOString(),
+      readAt: null,
+      messageType: 'meetup_response' as const,
+      content: 'Meetup accepted',
+      payload: { Accepted: true, ProposalMessageId: body.proposalMessageId},
+    }
+    mockMessages.push(message)
+    return HttpResponse.json({ status: 'accepted'})
+  }),
 ]

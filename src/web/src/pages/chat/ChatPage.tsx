@@ -562,6 +562,7 @@ export default function ChatPage() {
                     <button
                         onClick={handleSend}
                         disabled={!draft.trim()}
+                        aria-label="Send message"
                         className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
                     >
                         <IconSend size={18} />
