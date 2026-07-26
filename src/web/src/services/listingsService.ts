@@ -809,16 +809,19 @@ export const listingsService = {
       }),
     );
 
-    const sellerId = useAuthStore.getState().user?.id;
-    let sellerReviews: Review[] = [];
-    if(sellerId){
-      try{
-          const data = await listingsService.getReviewsForUser(sellerId);
-          sellerReviews= data.reviews.filter((r) => r.reviewType === 'buyer_to_seller');
+    const buyerIds = [...new Set(completed.map((r) => r.counterParty.userId))];
+    const reviewsMap = new Map<string, Review[]>();
+    await Promise.all(
+      buyerIds.map(async (buyerId) => {
+        try {
+          const data = await listingsService.getReviewsForUser(buyerId);
+          reviewsMap.set(buyerId, data.reviews);
         } catch {
-          sellerReviews = [];
+          reviewsMap.set(buyerId, []);
         }
-    }
+      })
+    );
+
 
       function toRefNum(reservationId: string): string {
         return `#${reservationId.slice(0,8).toUpperCase()}`;
@@ -834,8 +837,9 @@ export const listingsService = {
 
       return completed.map((r: any) => {
       const transactionId = txMap.get(r.reservationId);
+      const buyerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
-      ? sellerReviews.find((rev) => rev.transactionId === transactionId)
+      ? buyerReviews.find((rev) => rev.transactionId === transactionId)
       : undefined;
 
     return {
