@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { listingsService } from '../../services/listingsService'

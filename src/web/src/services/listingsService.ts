@@ -683,7 +683,7 @@ export const listingsService = {
         });
       }
 
-      return completed.map((r: any) => {
+      return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
@@ -695,7 +695,7 @@ export const listingsService = {
       transactionId: transactionId ?? null,
       refNum: toRefNum(r.reservationId),
       title: r.listing.title,
-      condition: conditionMap.get(r.listing.listingId) ?? 'Unknown',
+      condition: conditionMap.get(r.listingId) ?? 'Unknown',
       sellerName: r.counterParty.name,
       sellerInitials: r.counterParty.initials,
       price: r.listing.price,
@@ -771,7 +771,7 @@ export const listingsService = {
         });
       }
 
-      return completed.map((r: any) => {
+      return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const buyerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId

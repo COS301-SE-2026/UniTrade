@@ -1,6 +1,6 @@
 import { IconBell, IconSun, IconMoon, IconSearch } from '@tabler/icons-react';
 import { useThemeStore } from '../../store/useThemeStore';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
 
 export default function Topbar() {

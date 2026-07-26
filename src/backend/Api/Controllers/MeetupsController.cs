@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Reservations;
-using Modules.Reservations.Models.Dto;
+using Modules.Chat.Models.Dto;
 
 namespace Api.Controllers;
 

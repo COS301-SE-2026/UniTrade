@@ -1,5 +1,5 @@
 import { useEffect} from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { connectionManager } from '../../services/realtime/connectionManager';
 
 export default function ConfirmPayment() {

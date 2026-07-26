@@ -1,10 +1,4 @@
-using System.Globalization;
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
-using Microsoft.Extensions.Configuration;
-using Modules.Identity.Models.Dto;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
@@ -19,53 +13,19 @@ public class TransactionService : ITransactionsService
     private readonly IReservationRepository _reservations;
     private readonly ITransactionRepository _transactions;
     private readonly IBroadCastService _broadcast;
-    private static readonly Regex HexEscape = new(@"%[0-9a-f]{2}", RegexOptions.Compiled); //added this because currently payfast if failing because the signature is not a match hence transform the signature to uppercase for the match tom pass
-
-    ///***chech if this causes circular dependency or effect the arch/////
-    private readonly string _merchantId;
-    private readonly string _merchantKey;
-    private readonly string _sandboxUrl;
-    private readonly string _passphrase;
-    private readonly string _notifyUrl;
-    private readonly string _returnUrl;
-    private readonly string _cancelUrl;
-
-    private static string PayfastUrlEncode(string value)
-    {
-        var encoded = HttpUtility.UrlEncode(value);
-        return HexEscape.Replace(encoded, m => m.Value.ToUpperInvariant());
-    }
+    private readonly IPaymentGateway _paymentGateway;
 
     public TransactionService(
         IReservationRepository reservations,
-        IConfiguration config,
+        IPaymentGateway paymentGateway,
         IBroadCastService broadcast,
         ITransactionRepository transactions
     )
     {
         _reservations = reservations;
-        _merchantId = (
-            config["PayFast:MerchantId"]
-            ?? throw new InvalidOperationException("Merchant Id not configured")
-        ).Trim();
-        _merchantKey = (
-            config["PayFast:MerchantKey"]
-            ?? throw new InvalidOperationException("Merchant Key not configured")
-        ).Trim();
-        _sandboxUrl = (
-            config["PayFast:SandboxUrl"]
-            ?? throw new InvalidOperationException("Sandbox Url not configured")
-        ).Trim();
-        _passphrase = (
-            config["PayFast:Passphrase"]
-            ?? throw new InvalidOperationException("Passphrase not configured")
-        ).Trim();
-
-        _notifyUrl = (config["PayFast:NotifyUrl"] ?? "").Trim();
-        _returnUrl = (config["PayFast:ReturnUrl"] ?? "").Trim();
-        _cancelUrl = (config["PayFast:CancelUrl"] ?? "").Trim();
         _transactions = transactions;
         _broadcast = broadcast;
+        _paymentGateway = paymentGateway;
     }
 
     public async Task<TransactionRequestDto> CreatesTransactionReq(
@@ -88,102 +48,21 @@ public class TransactionService : ITransactionsService
         }
 
         var listing = reservation.ReservationListings.First().Listing;
-        var buyer = reservation.Buyer;
+        var buyer =
+            reservation.Buyer
+            ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
-        var fields = BuildFields(reservation.ReservationId, listing.Title, listing.Price, buyer);
-        var signature = GenerateSignature(fields);
-
-        var fieldsWithSign = new Dictionary<string, string>(fields) { ["signature"] = signature };
-
-        return new TransactionRequestDto(_sandboxUrl, fieldsWithSign);
+        return _paymentGateway.CreatePaymentRequest(
+            reservation.ReservationId,
+            listing.Title,
+            listing.Price,
+            buyer.FirstName ?? "",
+            buyer.Email ?? ""
+        );
     }
 
-    private List<KeyValuePair<string, string>> BuildFields(
-        Guid reservationId,
-        string listingTitle,
-        decimal price,
-        Modules.Identity.Models.User buyer
-    )
-    {
-        var fields = new List<KeyValuePair<string, string>>
-        {
-            new("merchant_id", _merchantId),
-            new("merchant_key", _merchantKey),
-            new("return_url", $"{_returnUrl}?reservationId={reservationId}"),
-            new("cancel_url", _cancelUrl),
-            new("notify_url", _notifyUrl),
-            new("name_first", buyer.FirstName ?? ""),
-            new("email_address", buyer.Email ?? ""),
-            new("m_payment_id", reservationId.ToString()),
-            new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
-            new("item_name", Truncate(listingTitle, 100)),
-        };
-        return fields
-            .Select(f => new KeyValuePair<string, string>(f.Key, f.Value.Trim()))
-            .Where(f => !string.IsNullOrEmpty(f.Value))
-            .ToList();
-    }
-
-    private string GenerateSignature(List<KeyValuePair<string, string>> fields)
-    {
-        var sb = new StringBuilder();
-
-        foreach (var (key, value) in fields)
-        {
-            sb.Append($"{key}={PayfastUrlEncode(value)}&");
-        }
-
-        if (!string.IsNullOrEmpty(_passphrase))
-        {
-            sb.Append($"passphrase={PayfastUrlEncode(_passphrase)}");
-        }
-        else
-        {
-            sb.Length -= 1;
-        }
-
-        Console.WriteLine($"[PayFast Signature Debug] Raw string: {sb}");
-
-        using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
-
-        var result = Convert.ToHexString(hash).ToLowerInvariant();
-        Console.WriteLine($"[PayFast Signature Debug] Computed: {result}");
-
-        return result;
-    }
-
-    private static string Truncate(string value, int maxLength) =>
-        value.Length <= maxLength ? value : value[..maxLength];
-
-    public bool VerifySignature(List<KeyValuePair<string, string>> itnFields, string receivedSign)
-    {
-        var fields = itnFields.Where(f => f.Key != "signature").ToList();
-        var Gensignature = GenerateSignature(fields);
-        return Gensignature == receivedSign.ToLowerInvariant();
-    }
-
-    public bool VerifySignatureRaw(string rawBody, string receivedSign)
-    {
-        var withoutSignature = Regex.Replace(rawBody, @"(^|&)signature=[^&]*(&|$)", "$1").Trim('&');
-
-        var sb = new StringBuilder(withoutSignature);
-        if (!string.IsNullOrEmpty(_passphrase))
-        {
-            sb.Append($"&passphrase={PayfastUrlEncode(_passphrase)}");
-        }
-
-        Console.WriteLine($"[ITN Debug] String to hash: {sb}");
-
-        using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
-        var computed = Convert.ToHexString(hash).ToLowerInvariant();
-
-        Console.WriteLine($"[ITN Debug] Computed:  {computed}");
-        Console.WriteLine($"[ITN Debug] Received:  {receivedSign.ToLowerInvariant()}");
-
-        return computed == receivedSign.ToLowerInvariant();
-    }
+    public bool VerifySignature(string rawBody, string receivedSign) =>
+        _paymentGateway.VerifySignature(rawBody, receivedSign);
 
     public async Task ConfirmTransactionAsync(
         Guid reservationId,
@@ -203,7 +82,6 @@ public class TransactionService : ITransactionsService
         }
 
         var pin = GeneratePin();
-        var pinHash = HashPin(pin);
         var listing = reservation.ReservationListings.First().Listing;
 
         if (existing is null)
@@ -221,7 +99,6 @@ public class TransactionService : ITransactionsService
 
         existing.PayFastTransactionId = payfastTransactionId;
         existing.TransactionStatus = "completed";
-        existing.PinHash = pinHash;
         existing.Pin = pin;
         existing.PinStatus = "pending";
 
@@ -233,36 +110,34 @@ public class TransactionService : ITransactionsService
             new { reservationId, pin }
         );
     }
- 
-   public async Task<string> GetPendingPinAsync(
-    Guid reservationId,
-    Guid buyerId,
-    CancellationToken ct = default
-   )
-   {
-    var reservation = await _reservations.GetByIdAsync(reservationId, ct)
-     ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
-     if (reservation.BuyerId != buyerId) 
-     {
-        throw new TransactionException(TransactionErrors.NotBuyer);
-     }
-
-     var tx =
-         await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
-         ?? throw new TransactionException("transaction_not_found");
-
-    if (tx.PinStatus != "pending")
+    public async Task<string> GetPendingPinAsync(
+        Guid reservationId,
+        Guid buyerId,
+        CancellationToken ct = default
+    )
     {
-        throw new TransactionException("pin_not_pending");
+        var reservation =
+            await _reservations.GetByIdAsync(reservationId, ct)
+            ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+
+        if (reservation.BuyerId != buyerId)
+        {
+            throw new TransactionException(TransactionErrors.NotBuyer);
+        }
+
+        var tx =
+            await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
+            ?? throw new TransactionException("transaction_not_found");
+
+        if (tx.PinStatus != "pending")
+        {
+            throw new TransactionException("pin_not_pending");
+        }
+
+        return tx.Pin;
     }
 
-    var pin = GeneratePin();
-    tx.PinHash = HashPin(pin);
-    await _transactions.SaveAsync(ct);
-
-    return pin;
-   }
     public async Task VerifyPinAsync(
         Guid reservationId,
         Guid sellerId,
@@ -288,7 +163,7 @@ public class TransactionService : ITransactionsService
             throw new TransactionException("too_many_attempts");
         }
 
-        if (HashPin(pin) != tx.PinHash)
+        if (pin != tx.Pin)
         {
             tx.PinAttempts += 1;
             await _transactions.SaveAsync(ct);
@@ -297,6 +172,7 @@ public class TransactionService : ITransactionsService
 
         tx.PinStatus = "confirmed";
         tx.PinEnteredAt = DateTime.UtcNow;
+        tx.Pin = null;
 
         var reservation =
             await _reservations.GetByIdTrackedAsync(reservationId, ct)
@@ -312,12 +188,4 @@ public class TransactionService : ITransactionsService
 
     private static string GeneratePin() =>
         RandomNumberGenerator.GetInt32(100000, 999999).ToString();
-
-    private static string HashPin(string pin)
-    {
-        using var sha = SHA256.Create();
-        var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(pin));
-
-        return Convert.ToHexString(hash).ToLowerInvariant();
-    }
 }

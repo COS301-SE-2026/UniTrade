@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "react-router";
 import { IconChevronRight, IconStar } from "@tabler/icons-react";
 import { getReservationById, getTransactionStatus } from "../../services/reservationService";
 import type { TransactionStatusResponse } from "../../services/reservationService";
@@ -54,8 +54,8 @@ export default function OrderDetails() {
                 if (meetupResult.status === 'fulfilled') setMeetup(meetupResult.value);
                 if (txResult.status === 'fulfilled' && txResult.value.success) setTransaction(txResult.value.data);
                 if (reviewsResult.status === 'fulfilled') setSellerReviews(reviewsResult.value);
-            } catch (err: any) {
-                setError(err.message || 'Failed to load order')
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to load order')
             } finally {
                 setLoading(false);
             }

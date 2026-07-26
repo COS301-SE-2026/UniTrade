@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useParams } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/useAuthStore";

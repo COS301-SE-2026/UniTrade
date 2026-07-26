@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingMetadata } from "../../types/listing";
@@ -166,18 +166,18 @@ const EditListing: React.FC = () => {
     setNewFiles((prev) => prev.filter((_, i) => i !== idx));
     setNewPreviews((prev) => prev.filter((_, i) => i !== idx));
   };
- 
-  const { showToast} = useToast();
+
+  const { showToast } = useToast();
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const incoming = Array.from(e.target.files ?? []);
 
     const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
     if (oversized.length > 0) {
-      const eror =  `Some files exceed the ${MAX_SIZE_MB}MB limit: ${oversized
-          .map((f) => f.name)
-          .join(", ")}`
+      const eror = `Some files exceed the ${MAX_SIZE_MB}MB limit: ${oversized
+        .map((f) => f.name)
+        .join(", ")}`
       setError(
-       eror
+        eror
       );
       showToast('error', eror)
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -297,8 +297,8 @@ const EditListing: React.FC = () => {
                         handleChange("dimensions", "");
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
-                          ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                        ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                         }`}
                     >
                       {getDisplayCategory(cat.name)}
@@ -317,6 +317,8 @@ const EditListing: React.FC = () => {
                 >
                   <input
                     type="text"
+                    id="edit-title-input"
+                    data-testid="edit-title-input"
                     value={formData.title}
                     onChange={(e) => handleChange("title", e.target.value)}
                     className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"

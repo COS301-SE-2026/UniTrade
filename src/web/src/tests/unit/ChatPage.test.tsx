@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, within, waitFor} from '@testing-library/react';
-import { MemoryRouter, Routes, Route} from 'react-router-dom';
+import { MemoryRouter, Routes, Route} from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, it, expect, describe} from 'vitest';
 import ChatPage from '../../pages/chat/ChatPage';
@@ -39,8 +39,8 @@ interface MeetupCardMockProps {
 }
 
 const navigateMock = vi.fn();
-vi.mock('react-router-dom', async() => {
-    const path = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+vi.mock('react-router', async() => {
+    const path = await vi.importActual<typeof import('react-router')>('react-router');
     return {
         ...path,
         useNavigate: () => navigateMock,
