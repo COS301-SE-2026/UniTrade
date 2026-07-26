@@ -104,6 +104,12 @@ public class TransactionService : ITransactionsService
             "pin_generated",
             new { reservationId, pin }
         );
+
+        await _broadcast.SendToUserAsync(
+            reservation.SellerId,
+            "payment_completed",
+            new {reservationId}
+        );
     }
 
     public async Task VerifyPinAsync(
