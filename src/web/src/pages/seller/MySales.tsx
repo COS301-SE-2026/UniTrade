@@ -10,7 +10,7 @@ import { SummaryCard } from "../buyer/Reservation";
 import { ReviewModal } from '../auth/Review';
 
 
-export type SaleFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
+export type SaleFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
 
 function isThisSemester(iso: string): boolean {
   //for now 

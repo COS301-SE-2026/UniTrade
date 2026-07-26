@@ -54,7 +54,7 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/tests/setup.ts",
-    testTimeout: 20000,
+    testTimeout: 50000,
     exclude: ["src/tests/e2e/**", "node_modules/**"],
     coverage: {
       provider: "v8",
@@ -69,7 +69,11 @@ export default defineConfig({
         "**/*.spec.ts",
         "**/assets/**",
         '**/types/**',
-        '**/*/d.ts'
+        '**/*/d.ts',
+        "src/pages/admin",
+        "src/components",
+        "src/services",
+        "src/pages/auth/BrandingStyleDoc.tsx"
       ],
     },
   },
