@@ -1,5 +1,5 @@
 import { render, screen, act, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import EnterPin from '../../pages/payment/EnterPin';
 import { verifyPin } from '../../services/reservationService';
@@ -12,8 +12,8 @@ interface EnterPinLocationState {
 const mockNavigate = vi.fn();
 let locationState: EnterPinLocationState = { reservationId: 'r123' };
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -25,7 +25,6 @@ vi.mock('../../services/reservationService', () => ({
   verifyPin: vi.fn(),
 }));
 
-// Helper: matches text split across multiple text nodes (e.g. "00:" "59" "s")
 const getByTextContent = (text: string) =>
   screen.getByText((_, el) => el?.textContent === text);
 
@@ -164,7 +163,7 @@ describe('EnterPin', () => {
       await Promise.resolve();
     });
     expect(mockNavigate).toHaveBeenCalledWith(
-      '/payment/payment-complete?reservationId=${reservationId}'
+      '/payment/payment-complete?reservationId=r123'
     );
   });
 
@@ -211,7 +210,7 @@ describe('EnterPin', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
-        await act(async () => {
+    await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
     expect(getByTextContent('00:57s')).toBeInTheDocument();
