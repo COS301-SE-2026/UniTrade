@@ -240,7 +240,7 @@ export default function Orders(){
                 ))}
 
                 <span className = "text-xs text-gray-500 ml-1">
-                  You rated this
+                  You rated this.
                 </span>
                 </>
 

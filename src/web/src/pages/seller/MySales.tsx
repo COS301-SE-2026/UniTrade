@@ -6,7 +6,7 @@ import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
 import type { SaleItem } from '../../types/listing';
 import { SummaryCard } from "../buyer/Reservation";
-
+import { ReviewModal } from '../auth/Review';
 
 export type SaleFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
@@ -53,6 +53,10 @@ export default function MySales(){
   const navigate=useNavigate()
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+    const [reviewTarget, setReviewTarget] = useState<{
+      transactionId: string
+      revieweeName: string
+    } | null>(null);
 
   const load= useCallback(async () => {
     setIsLoading(true);
@@ -117,7 +121,7 @@ export default function MySales(){
         icon = {null}
         />
         <SummaryCard
-        label = "Reviews received"
+        label = "Sales rated"
         value = {stats.reviewsReceived}
         icon = {null}
         />
@@ -236,16 +240,30 @@ export default function MySales(){
                 ))}
 
                 <span className = "text-xs text-gray-500 ml-1">
-                  The buyer reviewed this sale
+                  You rated this buyer.
                 </span>
                 </>
 
+                ) : sale.transactionId ? (
+                  <button 
+                  type = "button"
+                  onClick = {(e) => {
+                    e.stopPropagation();
+                    setReviewTarget({
+                      transactionId: sale.transactionId as string,
+                      revieweeName: sale.buyerName,
+                    });
+                  }}
+                  className = "flex items-center gap-1 text-xs font-semibold text-navy-700 hover:underline"
+                  >
+                    <Star className = "w-4 h-4 text-navy-700" />
+                    Rate this buyer
+                  </button>
                 ) : (
-                  < span className="text-xs text-gray-400">
-                    Not yet reviewed by buyer
+                  <span className = "text-xs text-gray-400">
+                    Review unavailable
                   </span>
                 )}
-
               </div>
               </div>
 
@@ -265,9 +283,23 @@ export default function MySales(){
                   </button>
                 </div>
               </div>
+
             </div>
           ))}
       </div>
+      )}
+            {reviewTarget && (
+        <ReviewModal
+        isOpen = {!!reviewTarget}
+        onClose = {() => setReviewTarget(null)}
+        transactionId= {reviewTarget.transactionId}
+        revieweeName= {reviewTarget.revieweeName}
+        revieweeLabel = "buyer"
+        onSubmitted={() => {
+          setReviewTarget(null)
+          load()
+        }}
+        />
       )}
     </div>
     );
