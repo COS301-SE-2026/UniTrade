@@ -8,7 +8,7 @@ import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse, Review }
 import type { Reservation } from "../../types/Reservations";
 
 export default function OrderDetails() {
-    const { reservationId } = useParams<{ reservationId: string }>();
+    const { id: reservationId } = useParams<{ id: string }>();
 
     const [reservation, setReservation] = useState<Reservation | null>(null);
     const [listing, setListing] = useState<ListingDetail | null>(null)
