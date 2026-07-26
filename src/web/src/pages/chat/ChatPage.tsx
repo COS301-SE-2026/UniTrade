@@ -107,7 +107,7 @@ const TextMessageBubble: React.FC<{
                             )}
                             {message.status === "failed" && (
                                 <button onClick={onRetry} className="text-red-500 underline">
-                                    failed . retry
+                                    failed. Please retry.
                                 </button>
                             )}
                             {(!message.status || message.status === "sent") &&
@@ -217,11 +217,7 @@ function MessageBubble({
         case "meetup_response":
             return <MeetupResponseBubble message={message} />;
         default:
-            return (
-                <div className="text-center text-xs text-gray-400 py-2">
-                    Unsupported message
-                </div>
-            );
+            return null;
     }
 }
 
@@ -236,8 +232,7 @@ export default function ChatPage() {
     const location = useLocation();
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
-    const isSeller = window.location.pathname.startsWith("/seller");
-    const role = isSeller ? "seller" : "buyer";
+
     const currentUserId = user?.id ?? "me";
 
     const {
@@ -299,6 +294,8 @@ export default function ChatPage() {
         enabled: !!reservationId,
     });
 
+     const isSeller = reservation ? reservation.sellerId === user?.id : window.location.pathname.startsWith("/seller");
+    const role = isSeller ? "seller" : "buyer";
     const { data: listing } = useQuery({
         queryKey: ["listing", reservation?.listingId],
         queryFn: () => listingsService.getById(reservation!.listingId),
@@ -471,7 +468,7 @@ export default function ChatPage() {
                                 </span>
                             </div>
                             <p className="text-sm font-semibold text-gray-900">
-                                R {listing.price}
+                                R {listing.price.toFixed(2)}
                             </p>
                         </div>
                         <button

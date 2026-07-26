@@ -11,19 +11,6 @@ export interface MeetupProposalPayload {
     //proposedByUserId?: string;
 }
 
-export interface MeetupDetailsResponse {
-    meetupId: number,
-    agreedLocationName: string;
-    agreedLatitude: number;
-    agreedLongitude: number;
-    agreedTime: string,
-    checkinWindowClosesAt: string;
-    checkInWindowOpen: boolean;
-    buyerCheckedIn: boolean;
-    sellerCheckedIn: boolean;
-    paymentUnlocked: boolean;
-    status: string;
-}
 
 export interface MeetupFormValues {
     date: string;

@@ -7,9 +7,10 @@ import { listingsService } from '../../services/listingsService';
 import { formatPrice } from '../../utils/formatters';
 import type { SaleItem } from '../../types/listing';
 import { SummaryCard } from "../buyer/Reservation";
+import { ReviewModal } from '../auth/Review';
 
 
-export type SaleFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
+export type SaleFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
 
 function isThisSemester(iso: string): boolean {
   //for now 
@@ -50,6 +51,10 @@ function ConditionBadge({ condition }: { condition: string }) {
 
 export default function MySales() {
   const [activeTab, setActiveTab] = useState<SaleFilterTab>('all');
+    const [reviewTarget, setReviewTarget] = useState<{
+      transactionId: string
+      revieweeName: string
+    } | null>(null);
 
   const navigate = useNavigate()
   const {
@@ -85,7 +90,7 @@ export default function MySales() {
     const reviewedCount = sales.filter((o) => o.rating > 0).length
 
     return {
-      totalSales, totalEarned, reviewsReceived: `${reviewedCount}/${totalSales}`
+      totalSales, totalEarned, reviewsLeft: `${reviewedCount}/${totalSales}`
     }
   }, [sales])
 
@@ -114,8 +119,8 @@ export default function MySales() {
           icon={null}
         />
         <SummaryCard
-          label="Reviews received"
-          value={stats.reviewsReceived}
+          label="sales rated"
+          value={stats.reviewsLeft}
           icon={null}
         />
       </div>
@@ -230,40 +235,67 @@ export default function MySales() {
                         />
                       ))}
 
-                      <span className="text-xs text-gray-500 ml-1">
-                        The buyer reviewed this sale
+                        <span className="text-xs text-gray-500 ml-1">
+                          You rated this buyer
+                        </span>
+                      </>
+  
+                    ) : sale.transactionId ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReviewTarget({
+                            transactionId: sale.transactionId as string,
+                            revieweeName: sale.buyerName,
+                          });
+                        }}
+                        className="flex items-center gap-1 text-xs font-semibold text-navy-700 hover:underline"
+                      >
+                        <Star className="w-4 h-4 text-navy-700" />
+                        Rate this buyer
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-400">
+                        Review unavailable
                       </span>
-                    </>
-
-                  ) : (
-                    < span className="text-xs text-gray-400">
-                      Not yet reviewed by buyer
-                    </span>
-                  )}
-
+                    )}
+                  </div>
+                </div>
+  
+                <div className="text-right space-y-3">
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">
+                      {formatPrice(sale.price)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {sale.date}
+                    </p>
+                    <button
+                      onClick={() => navigate(`/seller/sales/${sale.id}`)}
+                      className="px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    >
+                      View details
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div className="text-right space-y-3">
-                <div>
-                  <p className="text-lg font-bold text-gray-900">
-                    {formatPrice(sale.price)}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {sale.date}
-                  </p>
-                  <button
-                    onClick={() => navigate(`/seller/sales/${sale.id}`)}
-                    className="px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
-                  >
-                    View details
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      {reviewTarget && (
+              <ReviewModal
+                isOpen={!!reviewTarget}
+                onClose={() => setReviewTarget(null)}
+                transactionId={reviewTarget.transactionId}
+                revieweeName={reviewTarget.revieweeName}
+                revieweeLabel="buyer"
+                onSubmitted={() => {
+                  setReviewTarget(null)
+                  refetch()
+                }}
+              />
+            )}
     </div>
   );
 }
