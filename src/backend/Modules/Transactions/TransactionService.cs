@@ -157,6 +157,12 @@ public class TransactionService : ITransactionsService
 
         await _transactions.SaveAsync(ct);
         await _reservations.SaveAsync(ct);
+
+        await _broadcast.SendToUserAsync(
+            reservation.BuyerId,
+            "reservation_completed",
+            new {reservationId}
+        );
     }
 
     private static string GeneratePin() =>
