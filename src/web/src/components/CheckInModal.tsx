@@ -74,6 +74,7 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
 
     useEffect(() => {
         if (!('geolocation' in navigator)) {
+            setState('unsupported');
             return;
         }
         checkLocation();
@@ -166,7 +167,7 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold text-sm tracking widest rounded-2xl hover:bg-gray-200 transition-colors"
+                                className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold text-sm tracking-widest rounded-2xl hover:bg-gray-200 transition-colors"
                             >
                                 CANCEL
                             </button>
@@ -174,7 +175,7 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
                                 <button
                                     type="button"
                                     onClick={requestLocation}
-                                    className="flex-1 py-3 bg-[#003366] text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-gray-200 transition-colors "
+                                    className="flex-1 py-3 bg-[#003366] text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-[#002244] transition-colors "
                                 >
                                     TRY AGAIN
                                 </button>
