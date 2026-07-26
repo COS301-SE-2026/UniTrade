@@ -50,10 +50,6 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
                     );
                     setState('success');
                 } catch (err) {
-                    console.log('Error type', typeof err);
-                    console.log('Error value', err);
-                    console.log('Error message', err instanceof Error ? err.message : "not an error");
-
                     setErrorMessage(mapResponse(err));
                     setState('error');
                 }

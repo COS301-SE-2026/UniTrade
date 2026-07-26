@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "react-router";
 import { IconChevronRight, IconStar } from "@tabler/icons-react";
 import { getReservationById, getTransactionStatus } from "../../services/reservationService";
 import type { TransactionStatusResponse } from "../../services/reservationService";

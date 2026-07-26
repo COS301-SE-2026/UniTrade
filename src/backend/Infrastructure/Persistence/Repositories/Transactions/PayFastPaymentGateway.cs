@@ -1,17 +1,16 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Extensions.Configuration;
 using Modules.Transactions;
 using Modules.Transactions.Models.Dto;
 
-namespace  Infrastructure.Transactions;
+namespace Infrastructure.Transactions;
 
-
-public class PayFastPaymentGateway: IPaymentGateway
+public class PayFastPaymentGateway : IPaymentGateway
 {
-    
     private readonly string _merchantId;
     private readonly string _merchantKey;
     private readonly string _sandboxUrl;
@@ -22,7 +21,7 @@ public class PayFastPaymentGateway: IPaymentGateway
 
     public PayFastPaymentGateway(IConfiguration config)
     {
-         _merchantId =
+        _merchantId =
             config["PayFast:MerchantId"]
             ?? throw new InvalidOperationException("Merchant Id not configured");
         _merchantKey =
@@ -38,12 +37,17 @@ public class PayFastPaymentGateway: IPaymentGateway
         _notifyUrl = config["PayFast:NotifyUrl"] ?? "";
         _returnUrl = config["PayFast:ReturnUrl"] ?? "";
         _cancelUrl = config["PayFast:CancelUrl"] ?? "";
-
     }
 
-    public TransactionRequestDto CreatePaymentRequest(Guid reservationId,string listingTitle,decimal amount, string buyerFirstName,string buyerEmail)
+    public TransactionRequestDto CreatePaymentRequest(
+        Guid reservationId,
+        string listingTitle,
+        decimal amount,
+        string buyerFirstName,
+        string buyerEmail
+    )
     {
-        var fields = BuildFields(reservationId,listingTitle,amount, buyerFirstName, buyerEmail);
+        var fields = BuildFields(reservationId, listingTitle, amount, buyerFirstName, buyerEmail);
         var signature = GenerateSignature(fields);
 
         var fieldsWithSign = new Dictionary<string, string>(fields) { ["signature"] = signature };
@@ -63,8 +67,8 @@ public class PayFastPaymentGateway: IPaymentGateway
         {
             new("merchant_id", _merchantId),
             new("merchant_key", _merchantKey),
-            new("return_url", _returnUrl),
-            new("cancel_url", _cancelUrl),
+            new("return_url", $"{_returnUrl}?reservationId={reservationId}"),
+            new("cancel_url", $"{_cancelUrl}?reservationId={reservationId}"),
             new("notify_url", _notifyUrl),
             new("name_first", buyerFirstName ?? ""),
             new("email_address", buyerEmail ?? ""),
@@ -81,12 +85,12 @@ public class PayFastPaymentGateway: IPaymentGateway
 
         foreach (var (key, value) in fields)
         {
-            sb.Append($"{key}={HttpUtility.UrlEncode(value)}&");
+            sb.Append($"{key}={PayFastEncode(value)}&");
         }
 
         if (!string.IsNullOrEmpty(_passphrase))
         {
-            sb.Append($"passphrase={HttpUtility.UrlEncode(_passphrase)}");
+            sb.Append($"passphrase={PayFastEncode(_passphrase)}");
         }
         else
         {
@@ -102,13 +106,30 @@ public class PayFastPaymentGateway: IPaymentGateway
     private static string Truncate(string value, int maxLength) =>
         value.Length <= maxLength ? value : value[..maxLength];
 
-    public bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign)
+    public bool VerifySignature(string rawBody, string receivedSign)
     {
-        var fields = itnFields
-            .Where(f => f.Key != "signature" && !string.IsNullOrEmpty(f.Value))
-            .ToList();
-        var Gensignature = GenerateSignature(fields);
-        return Gensignature == receivedSign.ToLowerInvariant();
+        var baseString = String.Join(
+            "&",
+            rawBody
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Where(p => !p.StartsWith("signature=", StringComparison.Ordinal))
+        );
+        if (!string.IsNullOrEmpty(_passphrase))
+        {
+            baseString += $"&passphrase={PayFastEncode(_passphrase)}";
+        }
+        using var md5 = MD5.Create();
+        var hash = Convert
+            .ToHexString(md5.ComputeHash(Encoding.UTF8.GetBytes(baseString)))
+            .ToLowerInvariant();
+
+        return hash == receivedSign.ToLowerInvariant();
     }
 
+    private static string PayFastEncode(string value) =>
+        Regex.Replace(
+            HttpUtility.UrlEncode(value) ?? string.Empty,
+            "%[0-9a-f]{2}",
+            m => m.Value.ToUpperInvariant()
+        );
 }

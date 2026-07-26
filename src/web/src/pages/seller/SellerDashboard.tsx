@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore'
 import {
   IconPlus, IconDots, IconCalendar, IconShoppingBag,

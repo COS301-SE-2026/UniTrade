@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, AlertCircle, Star } from 'lucide-react'
 import { listingsService } from '../../services/listingsService';

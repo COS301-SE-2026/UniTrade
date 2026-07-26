@@ -5,11 +5,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modules.Transactions;
 using Modules.Transactions.Models.Dto;
 using Xunit;
-using Microsoft.Extensions.Configuration;
 
 namespace Api.Tests.Integration.Api;
 
@@ -71,7 +71,7 @@ public class ControllerTests : IClassFixture<WebApplicationFactory<Program>>
             );
         }
 
-        public bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign)
+        public bool VerifySignature(string rawBody, string receivedSign)
         {
             return true;
         }
