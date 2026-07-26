@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
 import type { WishlistListing, BrowseCondition, WishlistResponse } from "../../types/listing";

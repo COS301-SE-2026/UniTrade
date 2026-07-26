@@ -1,6 +1,11 @@
 import { setupServer } from 'msw/node'
-//import { listingLifecycleHandlers} from './handlers'
+import { listingLifecycleHandlers, browseAndReserveHandlers } from './handlers'
 import { authHandlers } from './authHandlers'
-//import { browseAndReserveHandlers } from './handlers'
+import { sellerReservationHandlers } from './handlers'
 
-export const server = setupServer(...authHandlers,)
+export const server = setupServer(
+  ...listingLifecycleHandlers,
+  ...browseAndReserveHandlers,
+  ...sellerReservationHandlers,
+  ...authHandlers,
+)

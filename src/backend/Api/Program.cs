@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
 using Api.BackgroundServices;
@@ -18,6 +17,7 @@ using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;
+using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.SignalR;
@@ -195,8 +195,8 @@ builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFcmPushService, FcmPushService>();
+builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
 
-var acsConn = builder.Configuration["Acs:ConnectionString"];
 builder.Services.AddSingleton(
     new EmailClient(
         builder.Configuration["Acs:ConnectionString"]

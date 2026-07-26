@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
 import type {

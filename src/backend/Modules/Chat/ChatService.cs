@@ -5,19 +5,18 @@ using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
 using Modules.Notifications;
-using Modules.Reservations.Models.Dto;
-using Modules.Reservations.Repositories;
-using Modules.Reservations.StateMachine;
+using Modules.SharedKernel;
 
 namespace Modules.Chat;
 
 public class ChatService : IChatService
 {
-    private readonly IReservationRepository _reservations; //using Isuserpat of reseravtion func
+    private readonly IReservationMembership _membership;
     private readonly IChatRepository _chatRepo;
     private readonly IChatNotifier _notifier;
     private readonly INotificationDispatcher _pushNotifier;
     private readonly ILogger<ChatService> _logger;
+
     private static readonly TimeSpan SouthAfricaOffset = TimeSpan.FromHours(2);
 
     private static DateTime ToSouthAfricaTime(DateTime utc) =>
@@ -25,14 +24,14 @@ public class ChatService : IChatService
 
     public ChatService(
         IChatRepository chatRepo,
-        IReservationRepository reservations,
+        IReservationMembership membership,
         IChatNotifier notifier,
         INotificationDispatcher pushNotifier,
         ILogger<ChatService> logger
     )
     {
         _chatRepo = chatRepo;
-        _reservations = reservations;
+        _membership = membership;
         _notifier = notifier;
         _pushNotifier = pushNotifier;
         _logger = logger;
@@ -51,11 +50,11 @@ public class ChatService : IChatService
             throw new ArgumentException("Message content cannot be empty");
         }
 
-        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, senderId, ct);
+        var isAuthorised = await _membership.IsPartyToAsync(reservationId, senderId, ct);
 
         if (!isAuthorised)
         {
-            throw new ChatException(ChatErrors.Forbidden); // i change dit because of sonarqube
+            throw new ChatException(ChatErrors.Forbidden); // i changes it  because of sonarqube
         }
 
         if (!string.IsNullOrWhiteSpace(clientKey))
@@ -68,17 +67,14 @@ public class ChatService : IChatService
             }
         }
 
-        //block buyer/seller if seller not acked
-        var reservation = await _reservations.GetByIdAsync(reservationId, ct);
-
-        if (reservation is not null && reservation.ReservationStatus == ReservationState.Cancelled)
+        var status = await _membership.CheckMessagingAllowedAsync(reservationId, senderId, ct);
+        switch (status)
         {
-            throw new ChatException(ChatErrors.ReservationCancelled);
-        }
+            case ReservationStatusMessage.ReservationCancelled:
+                throw new ChatException(ChatErrors.ReservationCancelled);
 
-        if (reservation is not null && reservation.SellerAcknowledgedAt is null)
-        {
-            throw new ChatException(ChatErrors.BuyerWaitingAck);
+            case ReservationStatusMessage.BuyerWaitingForSellerAck:
+                throw new ChatException(ChatErrors.BuyerWaitingAck);
         }
 
         var result = new ChatMessage
@@ -93,7 +89,7 @@ public class ChatService : IChatService
 
         try
         {
-            await _chatRepo.AddAsync(result);
+            await _chatRepo.AddAsync(result, ct);
             await _chatRepo.SaveAsync(ct);
         }
         catch (DbUpdateException ex)
@@ -113,19 +109,19 @@ public class ChatService : IChatService
         }
 
         var dto = ToDto(result);
+
         try
         {
-            var recipientId =
-                reservation.BuyerId == senderId ? reservation.SellerId : reservation.BuyerId;
-
+            var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
+            var receivingPartyId = parties.BuyerId == senderId ? parties.SellerId : parties.BuyerId;
             var preview = content.Length > 100 ? content[..100] + "..." : content;
-            await _pushNotifier.NotifyAsync(recipientId, NotificationTypes.Chat, preview, ct);
+            await _pushNotifier.NotifyAsync(receivingPartyId, NotificationTypes.Chat, preview, ct);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Chat push failed for reservation: {ReservationId}", reservationId);
         }
-        return ToDto(result);
+        return dto;
     }
 
     public async Task<ChatMessageDto> SendSystemAsync(
@@ -142,17 +138,26 @@ public class ChatService : IChatService
             Content = content,
             SentAt = DateTime.UtcNow,
         };
-        await _chatRepo.AddAsync(result);
+        await _chatRepo.AddAsync(result, ct);
         await _chatRepo.SaveAsync(ct);
+
         var dto = ToDto(result);
 
-        var reservation = await _reservations.GetByIdAsync(reservationId, ct);
-        if (reservation is null)
+        try
         {
-            throw new InvalidOperationException("Reservation not found");
+            var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
+            var receivingPartyIds = new[] { parties.BuyerId, parties.SellerId };
+            await _notifier.MessageCreatedAsync(dto, receivingPartyIds, ct);
         }
-        var recipientIds = new[] { reservation.BuyerId, reservation.SellerId };
-        await _notifier.MessageCreatedAsync(dto, recipientIds, ct);
+        catch (Exception e)
+        {
+            _logger.LogError(
+                e,
+                "Failed to broadcast system message for reservation {ReservationId}",
+                reservationId
+            );
+        }
+
         return dto;
     }
 
@@ -164,15 +169,12 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, callerId, ct);
+        var isAuthorised = await _membership.IsPartyToAsync(reservationId, callerId, ct);
 
         if (!isAuthorised)
         {
             throw new ChatException(ChatErrors.Forbidden);
         }
-
-        //create repo func for this
-        // var query=_chatRepo.ChatMessages.Where()
 
         var rows = await _chatRepo.GetHistoryAsync(reservationId, before, limit + 1, ct); // to check whether theres oldies remaining
 
@@ -189,13 +191,13 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        var isAuthorised = await _reservations.IsPartyToAsync(reservationId, readerId, ct);
+        var isAuthorised = await _membership.IsPartyToAsync(reservationId, readerId, ct);
 
         if (!isAuthorised)
         {
             throw new ChatException(ChatErrors.Forbidden);
         }
-        return await _chatRepo.MarkReadAsync(reservationId, readerId, upToMessageId);
+        return await _chatRepo.MarkReadAsync(reservationId, readerId, upToMessageId, ct);
     }
 
     public Task<int> GetUnreadCountAsync(
@@ -241,7 +243,7 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        if (!await _membership.IsPartyToAsync(reservationId, senderId, ct))
         {
             throw new ChatException(ChatErrors.Forbidden);
         }
@@ -267,23 +269,20 @@ public class ChatService : IChatService
 
         try
         {
-            var reservation = await _reservations.GetByIdAsync(reservationId, ct);
-            if (reservation is not null)
-            {
-                var recipientIds = new[] { reservation.BuyerId, reservation.SellerId };
-
-                await _notifier.MessageCreatedAsync(dto, recipientIds, ct);
-            }
+            var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
+            var receivingPartyIds = new[] { parties.BuyerId, parties.SellerId };
+            await _notifier.MessageCreatedAsync(dto, receivingPartyIds, ct);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
             _logger.LogError(
-                ex,
+                e,
                 "Failed to broadcast meetup proposal for reservation {ReservationId}",
                 reservationId
             );
         }
-        return ToDto(message);
+
+        return dto;
     }
 
     public async Task<ChatMessageDto?> GetMessageAsync(
@@ -309,7 +308,7 @@ public class ChatService : IChatService
         CancellationToken ct = default
     )
     {
-        if (!await _reservations.IsPartyToAsync(reservationId, senderId, ct))
+        if (!await _membership.IsPartyToAsync(reservationId, senderId, ct))
         {
             throw new ChatException(ChatErrors.Forbidden);
         }
@@ -338,27 +337,23 @@ public class ChatService : IChatService
 
         await _chatRepo.AddAsync(result, ct);
         await _chatRepo.SaveAsync(ct);
-
         var dto = ToDto(result);
 
         try
         {
-            var reservation = await _reservations.GetByIdAsync(reservationId, ct);
-            if (reservation is not null)
-            {
-                var recipientIds = new[] { reservation.BuyerId, reservation.SellerId };
-
-                await _notifier.MessageCreatedAsync(dto, recipientIds, ct);
-            }
+            var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
+            var receivingPartyIds = new[] { parties.BuyerId, parties.SellerId };
+            await _notifier.MessageCreatedAsync(dto, receivingPartyIds, ct);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
             _logger.LogError(
-                ex,
+                e,
                 "Failed to broadcast meetup response for reservation {ReservationId}",
                 reservationId
             );
         }
-        return ToDto(result);
+
+        return dto;
     }
 }

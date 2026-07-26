@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { CheckCircle2, Lock } from 'lucide-react';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getTransactionStatus } from '../../services/reservationService';

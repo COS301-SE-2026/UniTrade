@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { authService } from "../services/authService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useAuthStore } from "../store/useAuthStore";
 import { connectionManager } from "../services/realtime/connectionManager";
 

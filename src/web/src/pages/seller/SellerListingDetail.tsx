@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { IconCheck } from "@tabler/icons-react";
 import type React from "react";
 import { listingsService } from "../../services/listingsService";
