@@ -1,45 +1,46 @@
 import { getApiUrl } from "../config";
 
 export interface RegisterPayload {
-  firstName: string
-  lastName: string
-  email: string
-  university: string
-  degreeProgram: string
-  yearOfStudy: string
-  password: string
+  firstName: string;
+  lastName: string;
+  email: string;
+  university: string;
+  degreeProgram: string;
+  yearOfStudy: string;
+  password: string;
 }
 
 export interface LoginPayload {
-  Email: string
-  Password: string
+  Email: string;
+  Password: string;
 }
 
 export interface MeResponse {
   user: {
-    userId: string
-    firstName: string
-    lastName: string
-    email: string
-    userRole: 'student' | 'admin'
-   // university?: string
-  }
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    userRole: "student" | "admin";
+    // university?: string
+  };
   std: {
-    verificationStatus: string
-    degreeProgram: string
-    yearOfStudy: number
-    university: string
-  }
+    verificationStatus: string;
+    degreeProgram: string;
+    yearOfStudy: number;
+    university: string;
+  };
 }
 
 export interface UpdateProfilePayload {
-   firstName: string
-    lastName: string
-    yearOfStudy: number
-    degreeProgram: string
+  firstName: string;
+  lastName: string;
+  yearOfStudy: number;
+  degreeProgram: string;
 }
 
-export interface University { //defines the exact shape of the university data coming back for backend
+export interface University {
+  //defines the exact shape of the university data coming back for backend
   universityId: string;
   name: string;
   emailDomain: string;
@@ -48,113 +49,111 @@ export interface University { //defines the exact shape of the university data c
 export const authService = {
   register: async (payload: RegisterPayload): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(payload),
-    })
+    });
     if (!res.ok) {
-      const data = await res.json()
-      throw new Error(data.error ?? 'server_error')
+      const data = await res.json();
+      throw new Error(data.error ?? "server_error");
     }
   },
 
   verifyOtp: async (email: string, otp: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/auth/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email, otp }),
-    })
+    });
     if (!res.ok) {
-      const data = await res.json()
-      throw new Error(data.error ?? 'server_error')
+      const data = await res.json();
+      throw new Error(data.error ?? "server_error");
     }
   },
 
   resendOtp: async (email: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/auth/resend-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email }),
-    })
+    });
     if (!res.ok) {
-      const data = await res.json()
-      throw new Error(data.error ?? 'server_error')
+      const data = await res.json();
+      throw new Error(data.error ?? "server_error");
     }
   },
 
   login: async (payload: LoginPayload): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(payload),
-    })
+    });
     if (!res.ok) {
-      const data = await res.json()
+      const data = await res.json();
 
-      throw new Error(data.error ?? 'server_error')
+      throw new Error(data.error ?? "server_error");
     }
   },
 
   getMe: async (): Promise<MeResponse> => {
     const res = await fetch(`${getApiUrl()}/users/me`, {
-      credentials: 'include',
-    })
+      credentials: "include",
+    });
     if (!res.ok) {
-      throw new Error('unauthenticated')
+      throw new Error("unauthenticated");
     }
-    return res.json()
+    return res.json();
   },
 
   updateProfile: async (payload: UpdateProfilePayload): Promise<void> => {
-    const res = await fetch(`${getApiUrl()}/users/profile`,{
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+    const res = await fetch(`${getApiUrl()}/users/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(payload),
-    })
+    });
 
-    if(!res.ok)
-    {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.error ?? 'server_error')
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
     }
   },
 
   deleteAccount: async (): Promise<void> => {
-     const res = await fetch(`${getApiUrl()}/users/account`,{
-      method: 'DELETE',
-      credentials: 'include',})
-  if(!res.ok)
-    {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.error ?? 'server_error')
+    const res = await fetch(`${getApiUrl()}/users/account`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
     }
   },
 
-
-  logout: async (): Promise<void> => {
+  logout: async (stopConnection: () => Promise<void>): Promise<void> => {
     await fetch(`${getApiUrl()}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    })
+      method: "POST",
+      credentials: "include",
+    });
+    await stopConnection();
   },
 
-  getUniversities: async(): Promise<University[]> => {
-    
+  getUniversities: async (): Promise<University[]> => {
     const res = await fetch(`${getApiUrl()}/universities`, {
-      method: 'GET',
+      method: "GET",
       //headers: { 'Content-Type': 'application/json'},
-      credentials: 'include'
+      credentials: "include",
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to load Universities');
+      throw new Error(errorData.message || "Failed to load Universities");
     }
     const json = await res.json();
     return json.data || [];
   },
-}
+};

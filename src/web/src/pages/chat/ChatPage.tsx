@@ -1,22 +1,32 @@
-import React, { useRef, useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { IconSend, IconCheck, IconPaperclip } from "@tabler/icons-react";
-import { useAuthStore } from "../../store/useAuthStore";
-import { useChatMessages } from "../../hooks/useChatMessages";
-import { useReservationRealtime } from "../../hooks/useReservationRealtime";
-import { useSendMessage } from "../../hooks/useSendMessage";
-import type { ClientChatMessage } from "../../types/chat";
-import { connectionManager } from "../../services/realtime/connectionManager";
-import { getReservationById } from "../../services/reservationService";
-import { listingsService } from "../../services/listingsService";
-import MeetupCard from "../../components/layout/MeetupCard";
-import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
+import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    combineDateAndTime, type MeetupFormValues, type MeetupStatus,
-} from "../../types/meetup";
-import { queryKeys } from "../../lib/queryKeys";
+    IconSend,
+    IconCheck,
+    //IconMapPin,
+    //IconCalendar,
+    IconPaperclip,
+    IconArrowLeft,
+    IconEye,
+} from '@tabler/icons-react';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useChatMessages } from '../../hooks/useChatMessages';
+import { useReservationRealtime } from '../../hooks/useReservationRealtime';
+import { useSendMessage } from '../../hooks/useSendMessage';
+import type { ClientChatMessage } from '../../types/chat';
+import { connectionManager } from '../../services/realtime/connectionManager';
+import { getReservationById } from '../../services/reservationService';
+import { listingsService } from '../../services/listingsService';
+import type { MeetupStatus } from '../../types/meetup';
+import { combineDateAndTime, type MeetupFormValues } from '../../types/meetup';
+import { queryKeys } from '../../lib/queryKeys';
+import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
 import CheckInModal from '../../components/CheckInModal';
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import MeetupCard from '../../components/layout/MeetupCard';
+import type { MeetupProposalPayload } from '../../types/Reservations';
+
+
 function initialsFromName(name: string): string {
     return name
         .split(" ")
@@ -124,50 +134,12 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
-const MeetupProposalCard: React.FC<{
-    message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
-    isOwnMessage: boolean;
-}> = ({ message, isOwnMessage }) => {
-    const { proposedLocation, proposedTime } = message.payload;
-    const date = new Date(proposedTime);
-
-    return (
-        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} gap-1.5`}>
-            <span className="text-xs text-gray-400 px-1">{message.content}</span>
-            <div className="w-full max-w-[280px] bg-[#003366] text-white rounded-2xl overflow-hidden shadow">
-                <div className="p-4">
-                    <div className="uppercase text-[10px] tracking-widest font-semibold text-white/70 mb-3">
-                        Meetup Proposal
-                    </div>
-                    <div className="flex gap-3">
-                        <IconMapPin size={18} className="mt-0.5" />
-                        <p className="font-medium">{proposedLocation}</p>
-                    </div>
-                    <div className="flex gap-3 mt-3">
-                        <IconCalendar size={18} className="mt-0.5" />
-                        <p>
-                            {date.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric' })} •{' '}
-                            {date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                        </p>
-                    </div>
-                </div>
-                <div className="border-t border-white/20 flex text-sm font-medium">
-                    <button type="button" disabled className="flex-1 py-3 hover:bg-white/10 transition-colors text-white/70">Decline</button>
-                    <div className="w-px bg-white/20" />
-                    <button type="button" disabled className="flex-1 py-3 hover:bg-white/10 transition-colors">Accept</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 const MeetupResponseBubble: React.FC<{
     message: Extract<ClientChatMessage, { messageType: "meetup_response" }>;
 }> = ({ message }) => (
     <div className="flex justify-center py-2">
         <span
-            className={`text-xs font-semibold px-5 py-1.5 rounded-full ${message.payload.accepted
+            className={`text-xs font-semibold px-5 py-1.5 rounded-full ${message.payload.Accepted
                 ? "bg-green-100 text-green-700"
                 : "bg-red-100 text-red-600"
                 }`}
@@ -182,7 +154,7 @@ function MessageBubble({
     currentUserId,
     counterpartyInitials,
     onRetry,
-    meetupOverrides,
+    proposalStatusMap,
     respondingKey,
     onRespondMeetup,
     onCheckIn,
@@ -191,7 +163,7 @@ function MessageBubble({
     currentUserId: string;
     counterpartyInitials: string;
     onRetry: (clientId: string, content: string) => void;
-    meetupOverrides: Record<string, MeetupStatus>;
+    proposalStatusMap: Record<string, MeetupStatus>;
     respondingKey: string | null;
     onRespondMeetup: (proposalMessageId: number, status: MeetupStatus) => void;
     onCheckIn: (location: string) => void;
@@ -212,10 +184,8 @@ function MessageBubble({
             return <SystemMessageBubble message={message} />;
         case "meetup_proposal": {
             const key = message.messageId?.toString() ?? message.clientId ?? "";
-            const serverStatus =
-                (message.payload as { status?: MeetupStatus }).status ?? "pending";
-            const status = meetupOverrides[key] ?? serverStatus;
-            const payload = message.payload as any;
+            const status = proposalStatusMap[key] ?? "pending";
+            const payload = message.payload as MeetupProposalPayload;
             const location = payload.LocationName || payload.proposedLocation || "";
             const proposedTime = payload.ProposedTime || payload.proposedTime || "";
             const proposalMessageId = message.messageId;
@@ -286,10 +256,36 @@ export default function ChatPage() {
         [messages],
     );
 
+    const proposalStatusMap = React.useMemo(() => {
+        const map: Record<string, MeetupStatus> = {};
+
+        for (const msg of sortedMessages) {
+
+            if (msg.messageType === 'meetup_proposal') {
+                const key = msg.messageId?.toString() ?? msg.clientId ?? '';
+                map[key] = 'pending';
+
+            }
+        } for (const msg of sortedMessages) {
+            if (msg.messageType === 'meetup_response' && msg.payload?.ProposalMessageId) {
+        
+                const id = msg.payload.ProposalMessageId.toString();
+                if (id in map) {
+                    map[id] = msg.payload.Accepted ? 'accepted' : 'declined';
+
+                }
+
+            }
+        }
+
+        return map;
+    }, [sortedMessages]);
+
+
     const meetupConfirmed = sortedMessages.some(
         (message) =>
             message.messageType === "meetup_response" &&
-            message.payload?.accepted === true,
+            message.payload?.Accepted === true,
     );
 
     const { data: reservation } = useQuery({
@@ -311,9 +307,13 @@ export default function ChatPage() {
 
     const locationState = location.state as ChatLocationState | null;
     const counterpartyName =
-        locationState?.counterpartyName ?? "Conversation!!!!";
+        reservation?.counterParty?.name ??
+        locationState?.counterpartyName ??
+        "Conversation partner";
     const counterpartyInitials =
-        locationState?.counterpartyInitials ?? initialsFromName(counterpartyName);
+        reservation?.counterParty?.initials ??
+        locationState?.counterpartyInitials ??
+        initialsFromName(counterpartyName);
     const isAwaitingAck = reservation?.timerStage === "awaiting_seller";
     const isCancelled = reservation?.reservationStatus === "cancelled";
 
@@ -323,15 +323,13 @@ export default function ChatPage() {
     const [isProposingMeetup, setIsProposingMeetup] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    const [meetupOverrides, setMeetupOverrides] = useState<
-        Record<string, MeetupStatus>
-    >({});
     const [respondingKey, setRespondingKey] = useState<string | null>(null);
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
     const [isSendingProposal, setIsSendingProposal] = useState(false);
 
 
+    void isProposingMeetup;
+    void checkInLocation; // change when FE2 fixes
 
     const handleProposeMeetup = async (values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);
@@ -356,13 +354,6 @@ export default function ChatPage() {
         }
     };
 
-    /* console.log('Meetup proposal submitted:', {
-         proposedLocation: values.location,
-         proposedTime,
-     });
-     setIsProposingMeetup(false);
- };
- */
 
     const handleRespondMeetup = async (proposalMessageId: number, status: MeetupStatus) => {
         const key = proposalMessageId.toString();
@@ -371,14 +362,38 @@ export default function ChatPage() {
             if (status === "accepted") {
                 await listingsService.acceptMeetup(reservationId!, proposalMessageId);
 
-                setMeetupOverrides((prev) => ({ ...prev, [key]: status }));
+                const proposalMessage = sortedMessages.find(
+                    (m) => m.messageId === proposalMessageId,
+                );
+                const payload = proposalMessage?.payload as MeetupProposalPayload | undefined;;
+
+                const meetupLocation =
+                    payload?.LocationName || payload?.proposedLocation || '';
+                const meetupTime =
+                    payload?.ProposedTime || payload?.proposedTime || '';
+                const meetupLat = payload?.Lat;
+                const meetupLng = payload?.Lng;
+
+                navigate(`/payment/meetup`, {
+                    state: {
+                        reservationId,
+                        role,
+                        counterpartyName,
+                        counterpartyInitials,
+                        meetupLocation,
+                        meetupTime,
+                        meetupLat,
+                        meetupLng,
+                        listingTitle: listing?.title,
+                        listingPrice: listing?.price,
+                    },
+                });
             } else if (status === "declined") {
-                setMeetupOverrides((prev) => ({ ...prev, [key]: status }));
+                await listingsService.declineMeetup(reservationId!, proposalMessageId);
             }
         } catch (err) {
             console.error("Failed to respond to meetup:", err);
-        }
-        finally {
+        } finally {
             setRespondingKey(null);
         }
     };
@@ -417,8 +432,14 @@ export default function ChatPage() {
         return <div className="p-8 text-center">No reservation specified.</div>;
 
     return (
-        <div className="h-full flex flex-col bg-white overflow-hidden">
+        <div className="h-full w-full flex flex-col bg-white overflow-hidden">
+
             <div className="px-5 py-4 border-b flex items-center gap-3 shrink-0">
+                <button
+                    onClick={() => navigate(`/${isSeller ? 'seller' : 'buyer'}/messages`)}
+                    className="md:hidden text-gray-400 hover:text-gray-600 shrink-0">
+                    <IconArrowLeft size={20} />
+                </button>
                 <Avatar initials={counterpartyInitials} />
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -454,16 +475,15 @@ export default function ChatPage() {
                             </p>
                         </div>
                         <button
-                            onClick={() =>
-                                navigate(
-                                    isSeller
-                                        ? `/seller/reservations/${reservationId}`
-                                        : `/buyer/reservations/${reservationId}`,
-                                )
-                            }
-                            className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
+                            onClick={() => navigate(
+                                isSeller
+                                    ? `/seller/reservations/${reservationId}`
+                                    : `/buyer/reservations/${reservationId}`
+                            )}
+                            className="bg-[#003366] text-white text-xs font-bold px-2 py-2 sm:px-4 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
                         >
-                            View Reservation
+                            <span className="hidden sm:inline">View Reservation</span>
+                            <IconEye size={16} className="sm:hidden" />
                         </button>
                     </div>
                 )}
@@ -490,7 +510,7 @@ export default function ChatPage() {
                                 currentUserId={currentUserId}
                                 counterpartyInitials={counterpartyInitials}
                                 onRetry={retry}
-                                meetupOverrides={meetupOverrides}
+                                proposalStatusMap={proposalStatusMap}
                                 respondingKey={respondingKey}
                                 onRespondMeetup={handleRespondMeetup}
                                 onCheckIn={setCheckInLocation}
@@ -509,7 +529,7 @@ export default function ChatPage() {
                         disabled={meetupConfirmed}
                         className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
                     ${meetupConfirmed
-                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                ? "bg-green-100 text-green-700 cursor-not-allowed"
                                 : "bg-[#003366] text-white hover:bg-[#002244]"
                             }`}
                     >

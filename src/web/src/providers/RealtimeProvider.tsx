@@ -6,10 +6,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Reservation, ReservationListItem } from "../types/Reservations";
 import type { ClientChatMessage } from "../types/chat";
 import type { ChatMessage } from "../types/Reservations";
+import { registerForPushN, onForegroundMessage } from "../services/fcmService";
+import { useToast } from "../components/layout/useToast";
+
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
-
+  const { showToast } = useToast();
   useEffect(() => {
     if (!user) {
       return;
@@ -18,7 +21,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       .connect()
       .catch((e) => console.error("hub connect failed", e));
 
-    const onOnline = () => void connectionManager.connect().catch(() => {});
+    const onOnline = () => void connectionManager.connect().catch(() => { });
     window.addEventListener("online", onOnline);
 
     return () => {
@@ -26,6 +29,37 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       void connectionManager.disconnect();
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const alreadyRegistered = sessionStorage.getItem("pushRegistered");
+    if (!alreadyRegistered) {
+      registerForPushN()
+        .then(() => {
+          sessionStorage.setItem("pushRegistered", "true");
+
+        })
+        .catch((err) => {
+          console.error("Push token failes", err);
+          sessionStorage.setItem("pushAttempted", "true");
+        })
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const unsubscribe = onForegroundMessage((title, body) => {
+      showToast("info", `${title}: ${body}`);
+      // note to FE: play some sound.
+    });
+    return unsubscribe;
+  }, [user, showToast]);
 
   useEffect(() => {
     const offMessage = connectionManager.onMessageReceived(
@@ -59,9 +93,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         (old = []) =>
           old.map((m) =>
             m.senderId !== e.readBy &&
-            m.messageId != null &&
-            m.messageId <= e.upToMessageId &&
-            m.readAt == null
+              m.messageId != null &&
+              m.messageId <= e.upToMessageId &&
+              m.readAt == null
               ? { ...m, readAt: new Date().toISOString() }
               : m,
           ),
@@ -77,12 +111,12 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
               old?.map((item) =>
                 item.reservationId === updated.reservationId
                   ? {
-                      ...item,
-                      reservationStatus: updated.reservationStatus,
-                      timerStage: updated.timerStage,
-                      expiresAt: updated.expiresAt,
-                      sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
-                    }
+                    ...item,
+                    reservationStatus: updated.reservationStatus,
+                    timerStage: updated.timerStage,
+                    expiresAt: updated.expiresAt,
+                    sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
+                  }
                   : item,
               ),
           );

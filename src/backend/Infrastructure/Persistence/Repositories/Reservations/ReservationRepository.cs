@@ -15,7 +15,7 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     public Task<Reservation?> GetByIdAsync(Guid reservationId, CancellationToken ct = default) =>
         _db
             .Reservations.AsNoTracking()
-            .Include(r => r.ReservationListings)
+            .Include(r => r.ReservationListings).ThenInclude(rl => rl.Listing) 
             .Include(r => r.Buyer)
             .Include(r => r.Seller)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
@@ -135,5 +135,22 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             ?? throw new InvalidOperationException($"Reservation {reservationId} not found");
 
         return new ReservationParties(r.BuyerId, r.SellerId);
+    }
+    public Task<IReadOnlyList<Reservation>> GetDueForTwoHourWarningAsync(
+        DateTime asOfTime,
+        int batchSize,
+        CancellationToken ct
+    )
+    {
+        return _db
+            .Reservations.Where(r =>
+                r.ReservationStatus == ReservationState.Active
+                && r.TwoHourWarningSentAt == null
+                && r.ExpiresAt <= asOfTime.AddHours(2)
+                && r.ExpiresAt > asOfTime
+            )
+            .Take(batchSize)
+            .ToListAsync(ct)
+            .ContinueWith(t => (IReadOnlyList<Reservation>)t.Result, ct);
     }
 }

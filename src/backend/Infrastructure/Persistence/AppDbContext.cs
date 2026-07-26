@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Modules.Identity.Models;
@@ -53,6 +54,9 @@ public class AppDbContext : DbContext
 
     // Reviews
     public DbSet<Review> Reviews => Set<Review>();
+
+    // Device Tokens
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     //constants - sonarqube
     private readonly string NowString = "now()";
@@ -499,9 +503,12 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SellerAcknowledgedAt);
             entity.Property(x => x.BuyerRespondedAt);
+            entity.Property(x => x.HandoverConfirmedAt);
+            entity.Property(x => x.CompletedAt);
             entity.Property(x => x.ExpiresAt).IsRequired();
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
-
+            entity.Property(x =>x.TwoHourWarningSentAt);
+            
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint(
@@ -693,6 +700,7 @@ public class AppDbContext : DbContext
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasDefaultValue("pending");
+            entity.Property(x => x.PaidAt);
             entity.Property(x => x.PinHash).HasMaxLength(255);
             entity.Property(x => x.PinAttempts).HasDefaultValue(0);
             entity
@@ -718,12 +726,15 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AgreedLatitude).HasPrecision(9, 6).IsRequired();
             entity.Property(x => x.AgreedLongitude).HasPrecision(9, 6).IsRequired();
             entity.Property(x => x.AgreedTime).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
 
             entity.Property(x => x.BuyerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.BuyerCheckedInAt);
             entity.Property(x => x.BuyerCheckinLatitude).HasPrecision(9, 6);
             entity.Property(x => x.BuyerCheckinLongitude).HasPrecision(9, 6);
 
             entity.Property(x => x.SellerCheckedIn).HasDefaultValue(false).IsRequired();
+            entity.Property(x => x.SellerCheckedInAt);
             entity.Property(x => x.SellerCheckinLatitude).HasPrecision(9, 6);
             entity.Property(x => x.SellerCheckinLongitude).HasPrecision(9, 6);
 
@@ -790,6 +801,33 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.TransactionId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+        // Device tokens
+
+        modelBuilder.Entity<DeviceToken>(entity =>
+        {
+            entity.HasKey(x => x.DeviceTokenId);
+            entity.Property(x => x.DeviceTokenId).HasDefaultValueSql("gen_random_uuid()").ValueGeneratedOnAdd();
+
+            entity.Property(x => x.Token).HasMaxLength(512).IsRequired();
+            entity.Property(x => x.Platform).HasMaxLength(10).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString);
+            entity.Property(x => x.LastSeenAt).HasDefaultValueSql(NowString);
+
+            entity
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "chk_device_platform",
+                    "platform IN ('web', 'android', 'ios')"
+                );
+            });
+            entity.HasIndex(x => x.Token).IsUnique();
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_device_tokens_user");
         });
     }
 }

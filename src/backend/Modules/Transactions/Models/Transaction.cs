@@ -14,5 +14,7 @@ public class Transaction
     public DateTime? PinEnteredAt{get;set;}
     public string PinStatus{get;set;}="pending";
     public DateTime CreatedAt{get;set;}=DateTime.UtcNow;
+    public string? Pin {get; set; }
+    public DateTime? PaidAt { get; set; }
 
 }

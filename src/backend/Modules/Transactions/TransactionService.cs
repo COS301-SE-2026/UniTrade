@@ -1,7 +1,4 @@
-using System.Globalization;
 using System.Security.Cryptography;
-using System.Text;
-using Modules.Identity.Models.Dto;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
@@ -28,7 +25,7 @@ public class TransactionService : ITransactionsService
         _reservations = reservations;
         _transactions = transactions;
         _broadcast = broadcast;
-        _paymentGateway=paymentGateway;
+        _paymentGateway = paymentGateway;
     }
 
     public async Task<TransactionRequestDto> CreatesTransactionReq(
@@ -51,14 +48,22 @@ public class TransactionService : ITransactionsService
         }
 
         var listing = reservation.ReservationListings.First().Listing;
-        var buyer = reservation.Buyer ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+        var buyer =
+            reservation.Buyer
+            ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
-        return _paymentGateway.CreatePaymentRequest(reservation.ReservationId,listing.Title,listing.Price,buyer.FirstName ?? "",buyer.Email ?? "");
-
+        return _paymentGateway.CreatePaymentRequest(
+            reservation.ReservationId,
+            listing.Title,
+            listing.Price,
+            buyer.FirstName ?? "",
+            buyer.Email ?? ""
+        );
     }
 
-    public bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign) => _paymentGateway.VerifySignature(itnFields,receivedSign);
-        
+    public bool VerifySignature(string rawBody, string receivedSign) =>
+        _paymentGateway.VerifySignature(rawBody, receivedSign);
+
     public async Task ConfirmTransactionAsync(
         Guid reservationId,
         string payfastTransactionId,
@@ -77,7 +82,6 @@ public class TransactionService : ITransactionsService
         }
 
         var pin = GeneratePin();
-        var pinHash = HashPin(pin);
         var listing = reservation.ReservationListings.First().Listing;
 
         if (existing is null)
@@ -95,15 +99,43 @@ public class TransactionService : ITransactionsService
 
         existing.PayFastTransactionId = payfastTransactionId;
         existing.TransactionStatus = "completed";
-        existing.PinHash = pinHash;
+        existing.Pin = pin;
         existing.PinStatus = "pending";
 
         await _transactions.SaveAsync(ct);
+
         await _broadcast.SendToUserAsync(
             reservation.BuyerId,
             "pin_generated",
             new { reservationId, pin }
         );
+    }
+
+    public async Task<string> GetPendingPinAsync(
+        Guid reservationId,
+        Guid buyerId,
+        CancellationToken ct = default
+    )
+    {
+        var reservation =
+            await _reservations.GetByIdAsync(reservationId, ct)
+            ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+
+        if (reservation.BuyerId != buyerId)
+        {
+            throw new TransactionException(TransactionErrors.NotBuyer);
+        }
+
+        var tx =
+            await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
+            ?? throw new TransactionException("transaction_not_found");
+
+        if (tx.PinStatus != "pending")
+        {
+            throw new TransactionException("pin_not_pending");
+        }
+
+        return tx.Pin;
     }
 
     public async Task VerifyPinAsync(
@@ -131,7 +163,7 @@ public class TransactionService : ITransactionsService
             throw new TransactionException("too_many_attempts");
         }
 
-        if (HashPin(pin) != tx.PinHash)
+        if (pin != tx.Pin)
         {
             tx.PinAttempts += 1;
             await _transactions.SaveAsync(ct);
@@ -140,6 +172,7 @@ public class TransactionService : ITransactionsService
 
         tx.PinStatus = "confirmed";
         tx.PinEnteredAt = DateTime.UtcNow;
+        tx.Pin = null;
 
         var reservation =
             await _reservations.GetByIdTrackedAsync(reservationId, ct)
@@ -155,12 +188,4 @@ public class TransactionService : ITransactionsService
 
     private static string GeneratePin() =>
         RandomNumberGenerator.GetInt32(100000, 999999).ToString();
-
-    private static string HashPin(string pin)
-    {
-        using var sha = SHA256.Create();
-        var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(pin));
-
-        return Convert.ToHexString(hash).ToLowerInvariant();
-    }
 }

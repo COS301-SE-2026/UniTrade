@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Modules.Transactions;
 using Modules.Transactions.Models.Dto;
 using Xunit;
+using Microsoft.Extensions.Configuration;
 
 namespace Api.Tests.Integration.Api;
 

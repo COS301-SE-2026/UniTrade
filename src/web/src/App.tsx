@@ -9,7 +9,9 @@ import UploadListing from "./pages/seller/UploadListing";
 import EditListing from "./pages/seller/EditListing";
 
 import HomePage from "./pages/auth/HomePage";
-import BuyerDashboard from "./pages/buyer/BuyerDashboard";
+import Orders from "./pages/buyer/Orders";
+import Sales from "./pages/seller/MySales"
+import OrderDetails from "./pages/buyer/OrderDetails";
 import ListingDetail from "./pages/buyer/ListingDetail";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -36,6 +38,7 @@ import GeneratePin from "./pages/payment/GeneratePin";
 import EnterPin from "./pages/payment/EnterPin";
 import PaymentComplete from "./pages/payment/PaymentComplete";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
+import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
 function RedirectToMessages({ role }: { role: "buyer" | "seller" }) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
@@ -78,12 +81,16 @@ export default function App() {
         <Route path="/verify-otp" element={<OTP_verification />} />
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
+        <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
+        <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
 
         <Route element={<AppLayout />}>
-          <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+          <Route path="/buyer/orders" element={<Orders />} />
+          <Route path="/buyer/orders/:id" element={<OrderDetails />} />
+          <Route path="/seller/sales" element={<Sales />} />
+          <Route path="/seller/sales/:id" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
-          <Route path="/buyer/BuyerDashboard" element={<BuyerDashboard />} />
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
@@ -97,10 +104,6 @@ export default function App() {
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
-          <Route
-            path="/orders"
-            element={<Navigate to="/buyer/dashboard" replace />}
-          />
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
             <Route path=":reservationId" element={<ChatPage />} />

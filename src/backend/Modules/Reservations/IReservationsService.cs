@@ -48,4 +48,9 @@ public interface IReservationService
         DateTime asOf,
         CancellationToken ct = default
     );
+
+    Task<IReadOnlyList<ReservationDto>> SendTwoHourWarningsAsync(
+        DateTime asOfTime,
+        CancellationToken ct
+    );
 }

@@ -16,6 +16,7 @@ using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Transactions;
+using Infrastructure.Realtime;
 using Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
@@ -30,6 +31,7 @@ using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
+using Modules.Notifications.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
@@ -41,7 +43,6 @@ using Modules.Reviews;
 using Modules.Reviews.Repositories;
 using Modules.SharedKernel;
 using Modules.Transactions;
-using Modules.Transactions.Models.Dto;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
@@ -163,7 +164,7 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
-builder.Services.AddScoped<INotificationsService, AcsEmailService>();
+builder.Services.AddScoped<IEmailService, AcsEmailService>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
@@ -191,6 +192,11 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
 builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
+builder.Services.AddSingleton<ConnectionTracker>();
+builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+builder.Services.AddScoped<IFcmPushService, FcmPushService>();
+
+var acsConn = builder.Configuration["Acs:ConnectionString"];
 builder.Services.AddSingleton(
     new EmailClient(
         builder.Configuration["Acs:ConnectionString"]
@@ -263,6 +269,20 @@ builder
 
 var app = builder.Build();
 
+app.Use(
+    async (context, next) =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/reservations/itn"))
+            context.Request.EnableBuffering();
+        await next();
+    }
+);
+
+FirebaseInitializer.Initialize(
+    app.Configuration,
+    app.Environment,
+    app.Services.GetRequiredService<ILogger<Program>>()
+);
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

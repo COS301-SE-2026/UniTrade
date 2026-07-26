@@ -54,4 +54,22 @@ public class WishlistRepository : IWishlistRepository
     {
         await _db.WishlistItems.Where(w => w.ListingId == listingId).ExecuteDeleteAsync(ct);
     }
+
+    public async Task SuppressAllForListingAsync(Guid listingId, Guid reservationId, CancellationToken ct =default)
+    {
+        var now = DateTime.UtcNow;
+        await _db.WishlistItems.Where(w => w.ListingId == listingId && w.SuppressedAt == null)
+        .ExecuteUpdateAsync(setters => setters.SetProperty(w => w.SuppressedAt, now)
+        .SetProperty(w => w.SuppressedByReservationId, reservationId), ct);
+        
+    }
+
+        public async Task RestoreForReservationAsync(Guid reservationId, CancellationToken ct =default)
+    {
+        await _db.WishlistItems.Where(w => w.SuppressedByReservationId ==reservationId)
+        .ExecuteUpdateAsync(setters => setters
+        .SetProperty(w => w.SuppressedAt, (DateTime?)null)
+        .SetProperty(w => w.SuppressedByReservationId, (Guid?)null), ct);
+        
+    }
 }

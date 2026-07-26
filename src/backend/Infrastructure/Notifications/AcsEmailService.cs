@@ -8,7 +8,7 @@ namespace Infrastructure.Notifications;
 
 public sealed class NotificationException(string code) : Exception(code) { }
 
-public class AcsEmailService : INotificationsService
+public class AcsEmailService : IEmailService
 {
     private readonly EmailClient _emailClient;
     private readonly ILogger<AcsEmailService> _logger;
