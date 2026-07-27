@@ -130,7 +130,7 @@ jobs:
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}"  \
               "otp-secret=${{secrets.OTP_SECRET}}" \
-              "firebase-creds=${{secrets.FIREBASE_CREDENTIALS}}"
+              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -328,7 +328,7 @@ jobs:
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}" \
               "otp-secret=${{secrets.OTP_SECRET}}" \
-              "firebase-creds=${{secrets.FIREBASE_CREDENTIALS}}"
+              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
               
 
           az containerapp update \
