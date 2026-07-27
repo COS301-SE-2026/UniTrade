@@ -69,6 +69,35 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             ct
         );
 
+    public async Task<ReservationStatusMessage> CheckMessagingAllowedAsync(
+        Guid reservationId,
+        Guid senderId,
+        CancellationToken ct = default
+    )
+    {
+        //block buyer/seller if seller not acked
+        var reservation = await _db
+            .Reservations.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
+
+        if (reservation is null)
+        {
+            return ReservationStatusMessage.Allowed;
+        }
+
+        if (reservation.ReservationStatus == ReservationState.Cancelled)
+        {
+            return ReservationStatusMessage.ReservationCancelled;
+        }
+
+        if (reservation.BuyerId == senderId && reservation.SellerAcknowledgedAt is null)
+        {
+            return ReservationStatusMessage.BuyerWaitingForSellerAck;
+        }
+
+        return ReservationStatusMessage.Allowed;
+    }
+
     public async Task AddAsync(Reservation reservation, CancellationToken ct = default)
     {
         await _db.Reservations.AddAsync(reservation, ct);
@@ -92,6 +121,21 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             .Take(batchSize)
             .ToListAsync(ct);
 
+    public async Task<ReservationParties> GetReservationPartiesAsync(
+        Guid reservationId,
+        CancellationToken ct = default
+    )
+    {
+        var r =
+            await _db
+                .Reservations.AsNoTracking()
+                .Where(r => r.ReservationId == reservationId)
+                .Select(r => new { r.BuyerId, r.SellerId })
+                .FirstOrDefaultAsync(ct)
+            ?? throw new InvalidOperationException($"Reservation {reservationId} not found");
+
+        return new ReservationParties(r.BuyerId, r.SellerId);
+    }
     public Task<IReadOnlyList<Reservation>> GetDueForTwoHourWarningAsync(
         DateTime asOfTime,
         int batchSize,

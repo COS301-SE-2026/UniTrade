@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { verifyPin } from '../../services/reservationService';
 
 export default function EnterPin() {
@@ -24,7 +24,10 @@ export default function EnterPin() {
     }, [timeLeft]);
 
     const handleChange = (index: number, value: string) => {
-        if (!/^\d*$/.test(value)) return;
+        if (!/^\d*$/.test(value)) {
+            setPin(prev => [...prev]);
+            return;
+        }
         const newPin = [...pin];
         newPin[index] = value.slice(-1);
         setPin(newPin);
@@ -35,7 +38,7 @@ export default function EnterPin() {
     };
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-        if (e.key === 'Backspace' && !pin[index] && index > 0) {
+        if (e.key === 'Backspace' && index > 0) {
             inputRefs.current[index - 1]?.focus();
         }
     };
@@ -49,11 +52,15 @@ export default function EnterPin() {
         inputRefs.current[Math.min(pasted.length, 5)]?.focus();
     };
 
-    const handleClear = () => {
+    const clearPin = () => {
         setPin(['', '', '', '', '', '']);
-        setError(null);
         inputRefs.current[0]?.focus();
-    };
+    }
+    /*const handleClear = () => {
+        clearPin()
+        setError(null);
+        
+    };*/
 
     const currentPinStr = pin.join('');
     const isComplete = pin.every(d => d !== '');
@@ -65,14 +72,14 @@ export default function EnterPin() {
         const result = await verifyPin(reservationId, currentPinStr);
         setIsVerifying(false);
         if (result.success) {
-            navigate('/payment/payment-complete?reservationId=${reservationId}');
+            navigate(`/payment/payment-complete?reservationId=${reservationId}`);
         } else {
             const message =
                 result.error.code === 'too_many_attempts'
                     ? 'Too many incorrect attempts. Please contact support.'
                     : 'Incorrect PIN. Please try again.';
             setError(message);
-            handleClear();
+            clearPin();
         }
     };
 
@@ -108,11 +115,10 @@ export default function EnterPin() {
                             onChange={e => handleChange(index, e.target.value)}
                             onKeyDown={e => handleKeyDown(index, e)}
                             onPaste={handlePaste}
-                            className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all duration-150 ${
-                                digit
-                                    ? 'border-[#00aaff] text-slate-800 bg-white'
-                                    : 'border-[#00aaff]/60 text-slate-800 bg-white'
-                            } focus:border-[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`}
+                            className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all duration-150 ${digit
+                                ? 'border-[#00aaff] text-slate-800 bg-white'
+                                : 'border-[#00aaff]/60 text-slate-800 bg-white'
+                                } focus:border-[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`}
                         />
                     ))}
                 </div>
@@ -122,11 +128,10 @@ export default function EnterPin() {
                 <button
                     onClick={handleVerify}
                     disabled={!isComplete || isVerifying}
-                    className={`w-full max-w-xs py-4 rounded-full text-white font-bold text-lg tracking-wide transition-all ${
-                        isComplete && !isVerifying
-                            ? 'bg-[#0d2a5c] hover:bg-[#081e42] cursor-pointer active:scale-[0.99]'
-                            : 'bg-[#0d2a5c]/50 cursor-not-allowed'
-                    }`}
+                    className={`w-full max-w-xs py-4 rounded-full text-white font-bold text-lg tracking-wide transition-all ${isComplete && !isVerifying
+                        ? 'bg-[#0d2a5c] hover:bg-[#081e42] cursor-pointer active:scale-[0.99]'
+                        : 'bg-[#0d2a5c]/50 cursor-not-allowed'
+                        }`}
                 >
                     {isVerifying ? 'Verifying...' : 'Verify PIN'}
                 </button>
@@ -134,4 +139,3 @@ export default function EnterPin() {
         </div>
     );
 }
- 

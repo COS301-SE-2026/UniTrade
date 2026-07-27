@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     IconSend,
@@ -108,7 +108,7 @@ const TextMessageBubble: React.FC<{
                             )}
                             {message.status === "failed" && (
                                 <button onClick={onRetry} className="text-red-500 underline">
-                                    failed . retry
+                                    failed. Please retry.
                                 </button>
                             )}
                             {(!message.status || message.status === "sent") &&
@@ -218,11 +218,7 @@ function MessageBubble({
         case "meetup_response":
             return <MeetupResponseBubble message={message} />;
         default:
-            return (
-                <div className="text-center text-xs text-gray-400 py-2">
-                    Unsupported message
-                </div>
-            );
+            return null;
     }
 }
 
@@ -237,8 +233,7 @@ export default function ChatPage() {
     const location = useLocation();
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
-    const isSeller = window.location.pathname.startsWith("/seller");
-    const role = isSeller ? "seller" : "buyer";
+
     const currentUserId = user?.id ?? "me";
 
     const {
@@ -300,6 +295,8 @@ export default function ChatPage() {
         enabled: !!reservationId,
     });
 
+     const isSeller = reservation ? reservation.sellerId === user?.id : window.location.pathname.startsWith("/seller");
+    const role = isSeller ? "seller" : "buyer";
     const { data: listing } = useQuery({
         queryKey: ["listing", reservation?.listingId],
         queryFn: () => listingsService.getById(reservation!.listingId),
@@ -472,7 +469,7 @@ export default function ChatPage() {
                                 </span>
                             </div>
                             <p className="text-sm font-semibold text-gray-900">
-                                R {listing.price}
+                                R {listing.price.toFixed(2)}
                             </p>
                         </div>
                         <button
@@ -562,6 +559,7 @@ export default function ChatPage() {
                     <button
                         onClick={handleSend}
                         disabled={!draft.trim()}
+                        aria-label="Send message"
                         className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
                     >
                         <IconSend size={18} />

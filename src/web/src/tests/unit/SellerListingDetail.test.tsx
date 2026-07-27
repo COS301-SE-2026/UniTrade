@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SellerListingDetail from '../../pages/seller/SellerListingDetail'
 import { listingsService } from '../../services/listingsService'
@@ -13,8 +13,8 @@ vi.mock('../../services/listingsService', () => ({
 }))
 
 const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router')
   return { ...actual, useNavigate: () => mockNavigate }
 })
 

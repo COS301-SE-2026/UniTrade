@@ -63,8 +63,6 @@ public class TransactionController : ControllerBase
     [HttpPost("itn")]
     public async Task<IActionResult> HandleItn(CancellationToken ct)
     {
-        Console.WriteLine("[ITN Debug] VERSION-CHECK-2 — MemoryStream approach running");
-
         Request.Body.Position = 0;
         string rawBody;
         using (var ms = new MemoryStream())
@@ -74,8 +72,6 @@ public class TransactionController : ControllerBase
             using var reader = new StreamReader(ms, Encoding.UTF8);
             rawBody = await reader.ReadToEndAsync(ct);
         }
-
-        Console.WriteLine($"[ITN Debug] rawBody length: {rawBody.Length}, content: '{rawBody}'");
 
         var fields = rawBody
             .Split('&', StringSplitOptions.RemoveEmptyEntries)
@@ -90,7 +86,7 @@ public class TransactionController : ControllerBase
             return BadRequest();
         }
 
-        if (!_Transactions.VerifySignatureRaw(rawBody, receivedSign))
+        if (!_Transactions.VerifySignature(rawBody, receivedSign))
         {
             return BadRequest("invalid_signature");
         }

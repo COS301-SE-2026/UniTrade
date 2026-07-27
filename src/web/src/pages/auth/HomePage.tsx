@@ -13,7 +13,7 @@ import {
 import logo from "../../assets/logo.jpeg"
 import Apple from "../../assets/Apple.png"
 import Play from "../../assets/Play.png"
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Reveal } from '../../components/layout/Reveal';
 
 

@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
-import type { CreateReservationRequest } from '../../types/Reservations'
-
+import type { CreateReservationRequest, ChatMessage } from '../../types/Reservations'
+import type { ReservationListItem} from '../../types/Reservations'
+import type { ProposeMeetupPayload } from '../../types/listing';
 
 interface MockListing {
   listingId: string;
@@ -18,20 +19,19 @@ interface MockListing {
   metadata: Record<string, unknown> | null;
   images: string[];
 }
-
-interface MockReservation {
-  reservationId: string;
-  listingId: string;
-  reservationStatus: 'active' | 'completed' | 'cancelled';
-  createdAt: string;
-  expiresAt: string;
-  timerStage: string;
+interface AcceptMeetupRequestBody {
+  proposalMessageId: number
 }
 
 let mockListings: MockListing[] = [];
 let nextId = 1;
-let mockReservations: MockReservation[] = [];
-let nextReservationId = 1;
+let mockReservations: ReservationListItem[] = []
+let nextReservationId = 1
+let mockMessages: ChatMessage[] = []
+
+export function resetMockMessages() {
+  mockMessages = []
+}
 
 export function resetMockListings() {
   mockListings = []
@@ -64,6 +64,29 @@ export function seedMockListing(overrides: Partial<MockListing> = {}) {
   return listing
 }
 
+export function seedMockReservation(overrides: Partial<ReservationListItem> = {}): ReservationListItem {
+  const reservation: ReservationListItem = {
+    reservationId: String(nextReservationId++),
+    listingId: '1',
+    buyerId: 'buyer-1',
+    sellerId: 'seller-1',
+    reservationStatus: 'active',
+    timerStage: 'awaiting_seller',
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+    sellerAcknowledgedAt: null,
+    handoverConfirmedAt: null,
+    completedAt: null,
+    counterParty: { userId: 'buyer-1', name: 'Test Buyer', initials: 'TB' },
+    listing: { title: 'Chemistry Textbook - 3rd Ed', price: 250, imagePath: '' },
+    unreadCount: 0,
+    lastMessagePreview: null,
+    lastMessageAt: null,
+    ...overrides,
+  }
+  mockReservations.push(reservation)
+  return reservation
+}
 export const listingLifecycleHandlers = [
 
 
@@ -174,14 +197,29 @@ export const browseAndReserveHandlers = [
       return HttpResponse.json({ error: 'already_reserved' }, { status: 409 })
     }
 
-    const reservation: MockReservation = {
+    const reservation: ReservationListItem = {
       reservationId: String(nextReservationId++),
       listingId: body.listingId,
+      buyerId: 'buyer-1',
+      sellerId: listing?.sellerId ?? 'seller-1',
       reservationStatus: 'active',
+      timerStage: 'awaiting_seller',
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      timerStage: 'awaiting_seller',
-    };
+      sellerAcknowledgedAt: null,
+      handoverConfirmedAt: null,
+      completedAt: null,
+      counterParty: { userId: listing?.sellerId ?? 'seller-1', name: 'Test Seller', initials: 'TS' },
+      listing: {
+        title: listing?.title ?? 'Unknown listing',
+        price: listing?.price ?? 0,
+        imagePath: '',
+      },
+      unreadCount: 0,
+      lastMessagePreview: null,
+      lastMessageAt: null,
+    }
+
     mockReservations.push(reservation)
     return HttpResponse.json(reservation, { status: 201 })
   }),
@@ -213,5 +251,93 @@ export const browseAndReserveHandlers = [
 
     return HttpResponse.json({ items, total: items.length });
   }),
+
+  
+
 ]
 
+export const chatHandlers =[
+http.get('http://localhost:5000/api/reservations/:id/messages', ({ params}) => {
+    const items = mockMessages.filter(m => m.reservationId === params.id)
+    return HttpResponse.json({ items, hasMore: false, oldestMessageId: items[0]?.messageId ?? null })
+  }),
+
+  http.get('http://localhost:5000/api/reservations/:id', ({params}) => {
+     const reservation = mockReservations.find(r => r.reservationId === params.id)
+     if (!reservation) return new HttpResponse(null, { status: 404})
+      return HttpResponse.json(reservation)
+  }),
+]
+
+export const sellerReservationHandlers = [
+  http.get('http://localhost:5000/api/reservations/', ({request}) => {
+    const url = new URL(request.url)
+    const role = url.searchParams.get('role')
+    const items = mockReservations.filter(r =>
+      role === 'seller' ? r.sellerId === 'seller-1': r.buyerId === 'buyer-1'
+    )
+    return HttpResponse.json({items, total: items.length})
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/acknowledge', ({ params }) => {
+    const reservation = mockReservations.find(r => r.reservationId === params.id)
+    if (!reservation) return new HttpResponse(null, {status: 404})
+      reservation.timerStage = 'coordinating'
+    reservation.sellerAcknowledgedAt = new Date().toISOString()
+    return HttpResponse.json(reservation)
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/cancel', ({ params }) => {
+    const reservation = mockReservations.find(r => r.reservationId === params.id)
+    if (!reservation) return new HttpResponse(null, {status: 404})
+      reservation.reservationStatus = 'cancelled'
+    return HttpResponse.json(reservation)
+  })
+]
+
+export const meetupHandlers = [
+  http.get('https://nominatim.openstreetmap.org/reverse', () => {
+    return HttpResponse.json({ display_name: 'Merensky Library, Lynnwood Road, Pretoria'})
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/meetup/propose', async ({params, request}) => {
+    const body = await request.json() as ProposeMeetupPayload
+    const message: ChatMessage = {
+      messageId: Date.now(),
+      reservationId: String(params.id),
+      senderId: 'buyer-1',
+      clientKey: null,
+      sentAt: new Date().toISOString(),
+      readAt: null,
+      messageType: 'meetup_proposal' as const,
+      content: 'Meetup proposed',
+      payload: {
+        LocationName: body.locationName,
+        ProposedTime: body.proposedTime,
+        lat: body.lat,
+        Lng: body.lng,
+        status: 'pending',
+      },
+    }
+    mockMessages.push(message)
+    return HttpResponse.json({ status: 'pending'})
+  }),
+
+  http.post('http://localhost:5000/api/reservations/:id/meetup/accept', async ({ params,request}) => {
+    const body = await request.json() as AcceptMeetupRequestBody
+    //const proposal = mockMessages.find(m => m.messageId === body.proposalMessageId)
+    const message:ChatMessage = {
+      messageId: Date.now(),
+      reservationId: String(params.id),
+      senderId: 'buyer-1',
+      clientKey: null,
+      sentAt: new Date().toISOString(),
+      readAt: null,
+      messageType: 'meetup_response' as const,
+      content: 'Meetup accepted',
+      payload: { Accepted: true, ProposalMessageId: body.proposalMessageId},
+    }
+    mockMessages.push(message)
+    return HttpResponse.json({ status: 'accepted'})
+  }),
+]

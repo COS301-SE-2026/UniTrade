@@ -13,7 +13,7 @@ import {
   IconSend,
   IconX,
 } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import AlexAvatar from './AlexAvatar.tsx';
 import logo from "../../assets/logo.jpeg"
 

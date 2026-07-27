@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import girl from '../../assets/girl.png'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'

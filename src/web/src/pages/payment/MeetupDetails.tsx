@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { useState } from 'react';
 import CheckInModal from '../../components/CheckInModal';
 import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
@@ -27,6 +27,7 @@ interface MeetupDetailsState {
 function formatMeetupTime(iso?: string): string {
   if (!iso) return 'Time to be confirmed';
   const date = new Date(iso);
+  if (isNaN(date.getTime())) return 'Invalid Date';
   return date.toLocaleDateString('en-ZA', {
     weekday: undefined,
     month: 'short',
@@ -100,7 +101,7 @@ export default function MeetupDetails() {
 
   const isLoading = !!reservationId && (isReservationLoading || isMeetupLoading || (!!reservation && isListingLoading));
 
-  const counterpartyName = navState.counterpartyName ?? 'Seller';
+  const counterpartyName = navState.counterpartyName ?? (isSeller ? 'Buyer' : 'Seller');
   const meetupLocation = meetup?.agreedLocationName ?? navState.meetupLocation ?? 'Location to be confirmed';
   const meetupTime = meetup?.agreedTime ?? navState.meetupTime;
   const price = navState.listingPrice ?? listing?.price;
@@ -180,7 +181,7 @@ export default function MeetupDetails() {
             </button>
             <div >
               <h1 className="text-xl text-white font-bold">Meetup Details</h1>
-              <p className="text-xs text-white/80"> Review your transaction before completing payment</p>
+              <p className="text-xs text-white/80"> { isSeller ? 'Review your meetup details and confirm the transaction' : 'Review your transaction before completing payment'}</p>
             </div>
 
           </div>
@@ -297,7 +298,8 @@ export default function MeetupDetails() {
                     <>
                       <button
                         onClick={() => setShowCheckIn(true)}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                        disabled={!!timeRemaining}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                       >
                         <MapPin className="w-4 h-4" /> Check In at Meetup
                       </button>
@@ -326,7 +328,8 @@ export default function MeetupDetails() {
                   {!meetup?.sellerCheckedIn ? (
                     <button
                       onClick={() => setShowCheckIn(true)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                      disabled={!!timeRemaining}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                     >
                       <MapPin className="w-4 h-4" /> Check In at Meetup
                     </button>
