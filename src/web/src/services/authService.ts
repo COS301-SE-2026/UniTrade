@@ -22,7 +22,7 @@ export interface MeResponse {
     lastName: string
     email: string
     userRole: 'student' | 'admin'
-   //// university?: string
+   ///university?: string
   }
   std: {
     verificationStatus: string
