@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter} from "react-router-dom";
+import { MemoryRouter} from "react-router";
 import { describe, it, expect, vi,beforeEach} from 'vitest'
 import GeneratePin from "../../pages/payment/GeneratePin";
 
@@ -10,8 +10,8 @@ interface GeneratePinLocationState {
 const mockNavigate = vi.fn();
 let locationState: GeneratePinLocationState = { pin: '' };
 
-vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+    const actual = await vi.importActual('react-router');
     return {
         ...actual,
         useNavigate: () => mockNavigate,
