@@ -39,7 +39,7 @@ vi.mock('../../pages/buyer/Reservation', () => ({
     ),
 }))
 
-vi.mock('../../components/auth/Review', () => ({
+vi.mock('../../pages/auth/Review', () => ({
     ReviewModal: ({
         isOpen,
         onClose,
@@ -204,6 +204,78 @@ describe('Orders', () => {
         expect(screen.getByText('Rated Book')).toBeInTheDocument()
         expect(screen.queryByText('Unrated Book')).not.toBeInTheDocument()
     })
+
+
+    it('navigates to order details when the order image is clicked', async () => {
+        mockedGetCompletedOrders.mockResolvedValue([makeOrder({ id: '42' })])
+
+        const user = userEvent.setup()
+        renderOrders()
+
+        const image = await screen.findByAltText('Introduction to computer science')
+        await user.click(image)
+
+        expect(mockNavigate).toHaveBeenCalledWith('/buyer/orders/42')
+    })
+
+    it('navigates to order details when "View details" is clicked', async () => {
+        mockedGetCompletedOrders.mockResolvedValue([makeOrder({ id: '42' })])
+
+        const user = userEvent.setup()
+        renderOrders()
+
+        await screen.findByText('Introduction to computer science')
+        await user.click(screen.getByRole('button', { name: 'View details' }))
+
+        expect(mockNavigate).toHaveBeenCalledWith('/buyer/orders/42')
+    })
+
+    it('shows filled stars and "You rated this" for reviewed orders', async () => {
+        mockedGetCompletedOrders.mockResolvedValue([makeOrder({ rating: 3 })])
+
+        renderOrders()
+
+        expect(await screen.findByText('You rated this')).toBeInTheDocument()
+        expect(
+            screen.queryByRole('button', { name: /Rate this seller/i })
+        ).not.toBeInTheDocument()
+    })
+
+    it('shows the "Rate this seller" button when there are no rated orders within the transaction id', async() => {
+        mockedGetCompletedOrders.mockResolvedValue([
+            makeOrder({rating: 0, transactionId: 'txn-99'}),
+
+        ])
+
+        renderOrders()
+
+        expect(
+            await screen.findByRole('button', {name: /Rate this seller/i})
+        ).toBeInTheDocument()
+    })
+
+    it('opens the review modal when "Rate this seller " is clicked ', async() => {
+        mockedGetCompletedOrders.mockResolvedValue([
+            makeOrder({
+                rating: 0,
+                transactionId: 'txn-99',
+                sellerName: 'Zee Shazi'
+            }),
+        ])
+
+        const user = userEvent.setup()
+        renderOrders()
+
+        const rateButton = await screen.findByRole('button', {
+            name: /Rate this seller/i,
+        })
+        await user.click(rateButton)
+
+        expect(await screen.getByTestId('review-modal')).toBeInTheDocument()
+        expect(screen.getByText('Reviewing Zee Shazi')).toBeInTheDocument()
+    })
+
+
 
 
 })
