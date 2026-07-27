@@ -129,7 +129,8 @@ jobs:
               "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}"  \
-              "otp-secret=${{secrets.OTP_SECRET}}" 
+              "otp-secret=${{secrets.OTP_SECRET}}" \
+              "firebase-creds=${{secrets.FIREBASE_CREDENTIALS}}"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -141,7 +142,8 @@ jobs:
                 "Jwt__Secret=secretref:jwt-secret" \
                 "Otp__Secret=secretref:otp-secret" \
                 "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL_STAGING }}" \
-                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
+                "Firebase__CredentialsJson=secretref:firebase-creds"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -325,7 +327,8 @@ jobs:
               "db-conn=${{ secrets.DB_CONNECTION_STRING_PROD}}" \
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}" \
-              "otp-secret=${{secrets.OTP_SECRET}}"
+              "otp-secret=${{secrets.OTP_SECRET}}" \
+              "firebase-creds=${{secrets.FIREBASE_CREDENTIALS}}"
               
 
           az containerapp update \
@@ -338,7 +341,8 @@ jobs:
                 "Jwt__Secret=secretref:jwt-secret" \
                 "Otp__Secret=secretref:otp-secret" \
                 "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL }}" \
-                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
+                "Firebase__CredentialsJson=secretref:firebase-creds"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
