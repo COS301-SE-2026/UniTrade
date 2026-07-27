@@ -13,12 +13,15 @@ public class TransactionRepository : ITransactionRepository
     public Task<Transaction?> GetByReservationIdAsync(
         Guid reservationId,
         CancellationToken ct = default
-    ) => _db.Transactions.AsNoTracking().FirstOrDefaultAsync(t => t.ReservationId == reservationId);
+    ) =>
+        _db
+            .Transactions.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.ReservationId == reservationId, ct);
 
     public Task<Transaction?> GetByReservationIdTrackedAsync(
         Guid reservationId,
         CancellationToken ct = default
-    ) => _db.Transactions.FirstOrDefaultAsync(t => t.ReservationId == reservationId);
+    ) => _db.Transactions.FirstOrDefaultAsync(t => t.ReservationId == reservationId, ct);
 
     public async Task AddAsync(Transaction transaction, CancellationToken ct = default) =>
         await _db.Transactions.AddAsync(transaction, ct);

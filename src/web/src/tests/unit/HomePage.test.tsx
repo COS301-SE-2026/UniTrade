@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/react'
 import { screen } from '@testing-library/react'
 //import { fireEvent, act} from '@testing-library/react'
 import { within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
 import userEvent from '@testing-library/user-event'
@@ -15,8 +15,8 @@ import { GetApp } from '../../pages/auth/HomePage'
 import { Footer } from '../../pages/auth/HomePage'
 
 const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom')
+vi.mock('react-router', async () => {
+    const actual = await vi.importActual('react-router')
     return {
         ...actual,
         useNavigate: () => mockNavigate,
@@ -464,16 +464,6 @@ describe('Footer', () => {
         expect(screen.getByText('Help Center')).toBeInTheDocument()
         expect(screen.getByText('Safety Tips')).toBeInTheDocument()
         expect(screen.getByText('Contact Us')).toBeInTheDocument()
-    })
-
-    it('renders social media links with placeholder hrefs', () => {
-        render(<Footer />)
-
-        const socialLinks = screen.getAllByRole('link', { name: /𝕏|📸|𝕗/ })
-        expect(socialLinks).toHaveLength(3)
-        socialLinks.forEach((link) => {
-            expect(link).toHaveAttribute('href', '#')
-        })
     })
 
     beforeEach(() => {

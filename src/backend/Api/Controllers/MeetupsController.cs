@@ -1,10 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modules.Chat;
-using Modules.Chat.Models.Dto;
 using Modules.Reservations;
-using Modules.Reservations.Models.Dto;
+using Modules.Chat.Models.Dto;
 
 namespace Api.Controllers;
 
@@ -16,7 +14,6 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
     private readonly IMeetupService _meetups = meetups;
 
     private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-    private bool IsVerified => User.FindFirst("verification_status")?.Value == "verified";
 
     // POST /api/reservations/__/meetup
     [HttpPost("propose")]
@@ -95,6 +92,27 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
         }
     }
 
+    // POST /api/reservations/{id}/meetup/decline
+    [HttpPost("decline")]
+    public async Task<IActionResult> Decline(
+        Guid reservationId,
+        [FromBody] RespondMeetupRequest body,
+        CancellationToken ct = default
+    )
+    {
+        try
+        {
+            return Ok(
+                await _meetups.DeclineAsync(reservationId, CallerId, body.ProposalMessageId, ct)
+            );
+        }
+        catch (ReservationException ex)
+        {
+            return MapError(ex);
+        }
+    }
+
+    // decline proposal, and put for location change, add a edit unconfirmed meeutp, one a meetup is confirmed disacrd he other one
     private IActionResult MapError(ReservationException ex) =>
         ex.Message switch
         {

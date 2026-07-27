@@ -9,5 +9,6 @@ public record ReservationDto(
     string TimerStage,
     DateTime ExpiresAt,
     DateTime CreatedAt,
+    DateTime? CompletedAt,
     CounterPartyDto? CounterParty
 );

@@ -1,9 +1,8 @@
+using Infrastructure.Realtime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Modules.Chat;
-using Modules.Chat.Models;
 using Modules.Chat.Models.Dto;
-using Modules.Reservations;
 using Modules.Reservations.Repositories;
 
 namespace Api.Hubs;
@@ -12,24 +11,47 @@ namespace Api.Hubs;
 public class ChatHub : Hub
 {
     private readonly IReservationRepository _reservation; //add this mdoule.reserv folder+ using
-
+    private readonly ConnectionTracker _tracker;
     private readonly IChatService _chatService;
 
-    public ChatHub(IReservationRepository reservations, IChatService chatService)
+    public ChatHub(
+        IReservationRepository reservations,
+        IChatService chatService,
+        ConnectionTracker tracker
+    )
     {
         _reservation = reservations;
         _chatService = chatService;
+        _tracker = tracker;
     }
 
     //standard func acc to signalR rules
     public override Task OnConnectedAsync()
     {
+        var userId = GetUserId() ?? throw new HubException("Unauthorised");
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            throw new HubException("Invalid user identifier");
+        }
         if (string.IsNullOrEmpty(GetUserId()))
         {
             Context.Abort();
         }
+        _tracker.Add(userGuid, Context.ConnectionId);
 
         return base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var userId = GetUserId() ?? throw new HubException("Unauthorised");
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            throw new HubException("Invalid user identifier");
+        }
+
+        _tracker.Remove(userGuid, Context.ConnectionId);
+        await base.OnDisconnectedAsync(exception);
     }
 
     //joining of reservation rooms
@@ -98,7 +120,14 @@ public class ChatHub : Hub
             throw new HubException(ex.Message);
         }
 
-        await Clients.OthersInGroup(GroupName(reservationId)).SendAsync("ReceiveMessage", message);
+        var reservation = await _reservation.GetByIdAsync(reservationId, Context.ConnectionAborted);
+        if (reservation is not null)
+        {
+            var recipientId =
+                reservation.BuyerId == senderId ? reservation.SellerId : reservation.BuyerId;
+            await Clients.User(recipientId.ToString()).SendAsync("ReceiveMessage", message);
+        }
+
         return message;
     }
 
@@ -130,17 +159,28 @@ public class ChatHub : Hub
 
         if (counter > 0)
         {
-            await Clients
-                .OthersInGroup(GroupName(reservationId))
-                .SendAsync(
-                    "MessagesRead",
-                    new
-                    {
-                        reservationId,
-                        upToMessageId,
-                        readBy = userId,
-                    }
-                );
+            var reservation = await _reservation.GetByIdAsync(
+                reservationId,
+                Context.ConnectionAborted
+            );
+            if (reservation is not null)
+            {
+                var senderId = Guid.Parse(userId);
+
+                var recipientId =
+                    reservation.BuyerId == senderId ? reservation.SellerId : reservation.BuyerId;
+                await Clients
+                    .User(recipientId.ToString())
+                    .SendAsync(
+                        "MessagesRead",
+                        new
+                        {
+                            reservationId,
+                            upToMessageId,
+                            readBy = userId,
+                        }
+                    );
+            }
         }
     }
 

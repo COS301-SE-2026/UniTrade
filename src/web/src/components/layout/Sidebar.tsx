@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router'
 import { clsx } from 'clsx'
 import {
   IconLayoutDashboard,
@@ -20,6 +20,7 @@ import { authService } from '../../services/authService'
 import { useState, useEffect, useRef } from 'react'
 import { useReservationsList } from '../../hooks/useReservationsList'
 import { useUnreadRealtime } from '../../hooks/useUnreadRealtime'
+import { connectionManager } from '../../services/realtime/connectionManager'
 
 interface NavItem {
   label: string
@@ -39,8 +40,8 @@ const buyerNav: NavSection[] = [
     items: [
       { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />},
-      { label: 'My Wishlist', to: 'buyer/wishlist', icon: <IconHeart size={18} /> },
+      { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} />},
+      { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
       { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} />},
     ],
   },
@@ -199,7 +200,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await authService.logout()
+      await authService.logout(() => connectionManager.disconnect());
     } catch {
        //Inacase there is an api call frontend doesn't fail
     } finally {

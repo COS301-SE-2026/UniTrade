@@ -186,4 +186,19 @@ public class AuthController : ControllerBase
             };
         }
     }
+
+    [HttpGet("hub-token")]
+    [Authorize]
+    public IActionResult HubToken()
+    {
+        var userId =
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(new { token = _identityService.GenerateHubToken(userId) });
+    }
 }

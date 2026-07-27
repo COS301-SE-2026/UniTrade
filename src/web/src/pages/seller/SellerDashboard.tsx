@@ -1,15 +1,22 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useState} from 'react';
+import { useNavigate } from 'react-router';
 import { useAuthStore } from '../../store/useAuthStore'
 import {
   IconPlus, IconDots, IconCalendar, IconShoppingBag,
   IconCurrencyDollar,
   IconClock,
+  IconStar,
 } from '@tabler/icons-react';
+import { ReviewModal } from '../auth/Review';
 
 const SellerDashboard: React.FC = () => {
   const { user } = useAuthStore()
   const navigate = useNavigate();
+
+  const [reviewTarget, setReviewTarget] = useState<{
+    transactionId: string 
+    revieweeName: string 
+  } | null>(null)
 
   const recentOrders = [
     { id: '11001', date: '2026-04-22', customer: 'Sabira', status: 'Pending', color: 'bg-yellow-100 text-yellow-700', reservationId: 'r1' },
@@ -115,6 +122,21 @@ const SellerDashboard: React.FC = () => {
                   <td className="py-3">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${order.color}`}>
                       {order.status}
+                      {order.status === 'Delivered'&& (
+                        <button 
+                        type = "button"
+                        onClick = {(e) => {
+                          e.stopPropagation()
+                          setReviewTarget({
+                            transactionId: order.reservationId,
+                            revieweeName: order.customer,
+                          })
+                        }}
+                        className = "flex items-center gap-1 text-[10px] font-semibold text-[#00aaff] hover:underline mt-1"
+                        >
+                          <IconStar size={10} /> Leave a Review 
+                        </button>
+                      )}
                     </span>
                   </td>
                 </tr>
@@ -149,6 +171,17 @@ const SellerDashboard: React.FC = () => {
         </div>
 
       </div>
+
+      {reviewTarget && (
+        <ReviewModal
+        isOpen = {!!reviewTarget}
+        onClose = {() => setReviewTarget(null)}
+        transactionId={reviewTarget.transactionId}
+        revieweeName={reviewTarget.revieweeName}
+        revieweeLabel="buyer"
+        onSubmitted={() => setReviewTarget(null)}
+        />
+      )}
     </div>
   );
 };

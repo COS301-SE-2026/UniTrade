@@ -21,5 +21,10 @@ public interface ITransactionsService
         string pin,
         CancellationToken ct = default
     );
-    bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign);
+    bool VerifySignature(string rawBody, string receivedSign);
+    Task<string> GetPendingPinAsync(
+        Guid reservationId,
+        Guid buyerId,
+        CancellationToken ct = default
+    );
 }

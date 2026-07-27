@@ -1,10 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useNavigate, useParams, useLocation } from 'react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     IconSend,
     IconCheck,
+    //IconMapPin,
+    //IconCalendar,
     IconPaperclip,
+    IconArrowLeft,
+    IconEye,
 } from '@tabler/icons-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useChatMessages } from '../../hooks/useChatMessages';
@@ -14,33 +18,22 @@ import type { ClientChatMessage } from '../../types/chat';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
-import type { ConnectionState } from '../../types/hubConnection';
-import MeetupCard from '../../components/layout/MeetupCard';
+import type { MeetupStatus } from '../../types/meetup';
+import { combineDateAndTime, type MeetupFormValues } from '../../types/meetup';
+import { queryKeys } from '../../lib/queryKeys';
 import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
-import { combineDateAndTime, type MeetupFormValues, type MeetupStatus } from '../../types/meetup';
 import CheckInModal from '../../components/CheckInModal';
+import MeetupCard from '../../components/layout/MeetupCard';
+import type { MeetupProposalPayload } from '../../types/Reservations';
 
-
-
-
-function connectionStatusLabel(state: ConnectionState): string {
-    switch (state) {
-        case 'Connected':
-            return 'online';
-        case 'Reconnecting':
-            return 'reconnecting…';
-        default:
-            return 'offline';
-    }
-}
 
 function initialsFromName(name: string): string {
     return name
-        .split(' ')
+        .split(" ")
         .filter(Boolean)
         .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? '')
-        .join('');
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("");
 }
 
 function formatDateDivider(iso: string): string {
@@ -54,12 +47,12 @@ function formatDateDivider(iso: string): string {
         a.getMonth() === b.getMonth() &&
         a.getDate() === b.getDate();
 
-    if (isSameDay(date, today)) return 'Today';
-    if (isSameDay(date, yesterday)) return 'Yesterday';
-    return date.toLocaleDateString('en-ZA', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
+    if (isSameDay(date, today)) return "Today";
+    if (isSameDay(date, yesterday)) return "Yesterday";
+    return date.toLocaleDateString("en-ZA", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
     });
 }
 
@@ -77,27 +70,30 @@ const Avatar: React.FC<{ initials: string }> = ({ initials }) => (
     </div>
 );
 
-
 const TextMessageBubble: React.FC<{
-    message: Extract<ClientChatMessage, { messageType: 'text' }>;
+    message: Extract<ClientChatMessage, { messageType: "text" }>;
     isOwnMessage: boolean;
     counterpartyInitials: string;
     onRetry?: () => void;
 }> = ({ message, isOwnMessage, counterpartyInitials, onRetry }) => {
     const time = new Date(message.sentAt).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
+        hour: "2-digit",
+        minute: "2-digit",
     });
 
     return (
-        <div className={`flex items-end gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+        <div
+            className={`flex items-end gap-2 ${isOwnMessage ? "justify-end" : "justify-start"}`}
+        >
             {!isOwnMessage && <Avatar initials={counterpartyInitials} />}
 
-            <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[70%]`}>
+            <div
+                className={`flex flex-col ${isOwnMessage ? "items-end" : "items-start"} max-w-[70%]`}
+            >
                 <div
                     className={`px-4 py-2.5 text-[15px] leading-relaxed shadow-sm rounded-3xl ${isOwnMessage
-                        ? 'bg-[#003366] text-white rounded-br-none'
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                        ? "bg-[#003366] text-white rounded-br-none"
+                        : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
                         }`}
                 >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -106,17 +102,20 @@ const TextMessageBubble: React.FC<{
                     <span>{time}</span>
                     {isOwnMessage && (
                         <>
-                            {message.status === 'sending' && <span className="italic">sending...</span>}
-                            {message.status === 'failed' && (
+                            {message.status === "sending" && (
+                                <span className="italic">sending...</span>
+                            )}
+                            {message.status === "failed" && (
                                 <button onClick={onRetry} className="text-red-500 underline">
                                     failed . retry
                                 </button>
                             )}
-                            {(!message.status || message.status === 'sent') && (
-                                message.readAt ?
-                                    <IconCheck size={13} className="text-sky-400" /> :
+                            {(!message.status || message.status === "sent") &&
+                                (message.readAt ? (
+                                    <IconCheck size={13} className="text-sky-400" />
+                                ) : (
                                     <IconCheck size={13} className="text-gray-300" />
-                            )}
+                                ))}
                         </>
                     )}
                 </div>
@@ -126,7 +125,7 @@ const TextMessageBubble: React.FC<{
 };
 
 const SystemMessageBubble: React.FC<{
-    message: Extract<ClientChatMessage, { messageType: 'system' }>;
+    message: Extract<ClientChatMessage, { messageType: "system" }>;
 }> = ({ message }) => (
     <div className="flex justify-center py-2">
         <span className="bg-gray-100 text-gray-500 text-xs px-4 py-1 rounded-full">
@@ -135,50 +134,16 @@ const SystemMessageBubble: React.FC<{
     </div>
 );
 
-/*const MeetupProposalCard: React.FC<{
-    message: Extract<ClientChatMessage, { messageType: 'meetup_proposal' }>;
-    isOwnMessage: boolean;
-}> = ({ message, isOwnMessage }) => {
-    const { proposedLocation, proposedTime } = message.payload;
-    const date = new Date(proposedTime);
-
-    return (
-        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} gap-1.5`}>
-            <span className="text-xs text-gray-400 px-1">{message.content}</span>
-            <div className="w-full max-w-[280px] bg-[#003366] text-white rounded-2xl overflow-hidden shadow">
-                <div className="p-4">
-                    <div className="uppercase text-[10px] tracking-widest font-semibold text-white/70 mb-3">
-                        Meetup Proposal
-                    </div>
-                    <div className="flex gap-3">
-                        <IconMapPin size={18} className="mt-0.5" />
-                        <p className="font-medium">{proposedLocation}</p>
-                    </div>
-                    <div className="flex gap-3 mt-3">
-                        <IconCalendar size={18} className="mt-0.5" />
-                        <p>
-                            {date.toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric' })} •{' '}
-                            {date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                        </p>
-                    </div>
-                </div>
-                <div className="border-t border-white/20 flex text-sm font-medium">
-                    <button type="button" disabled className="flex-1 py-3 hover:bg-white/10 transition-colors text-white/70">Decline</button>
-                    <div className="w-px bg-white/20" />
-                    <button type="button" disabled className="flex-1 py-3 hover:bg-white/10 transition-colors">Accept</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-*/
-
 const MeetupResponseBubble: React.FC<{
-    message: Extract<ClientChatMessage, { messageType: 'meetup_response' }>;
+    message: Extract<ClientChatMessage, { messageType: "meetup_response" }>;
 }> = ({ message }) => (
     <div className="flex justify-center py-2">
-        <span className={`text-xs font-semibold px-5 py-1.5 rounded-full ${message.payload.accepted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
-            }`}>
+        <span
+            className={`text-xs font-semibold px-5 py-1.5 rounded-full ${message.payload.Accepted
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-600"
+                }`}
+        >
             {message.content}
         </span>
     </div>
@@ -189,7 +154,7 @@ function MessageBubble({
     currentUserId,
     counterpartyInitials,
     onRetry,
-    meetupOverrides,
+    proposalStatusMap,
     respondingKey,
     onRespondMeetup,
     onCheckIn,
@@ -198,15 +163,15 @@ function MessageBubble({
     currentUserId: string;
     counterpartyInitials: string;
     onRetry: (clientId: string, content: string) => void;
-    meetupOverrides: Record<string, MeetupStatus>;
+    proposalStatusMap: Record<string, MeetupStatus>;
     respondingKey: string | null;
-    onRespondMeetup: ( proposalMessageId: number, status: MeetupStatus) => void;
+    onRespondMeetup: (proposalMessageId: number, status: MeetupStatus) => void;
     onCheckIn: (location: string) => void;
 }) {
     const isOwnMessage = message.senderId === currentUserId;
 
     switch (message.messageType) {
-        case 'text':
+        case "text":
             return (
                 <TextMessageBubble
                     message={message}
@@ -215,43 +180,48 @@ function MessageBubble({
                     onRetry={() => onRetry(message.clientId!, message.content)}
                 />
             );
-        case 'system':
+        case "system":
             return <SystemMessageBubble message={message} />;
-        case 'meetup_proposal': {
-            const key =  message.messageId?.toString() ?? message.clientId ?? '';
-            const serverStatus = (message.payload as {status?: MeetupStatus}).status ?? 'pending';
-            const status = meetupOverrides[key] ?? serverStatus;
-            const payload = message.payload as any;
-            const location = payload.LocationName || payload.proposedLocation || '';
-            const proposedTime = payload.ProposedTime || payload.proposedTime || '';
+        case "meetup_proposal": {
+            const key = message.messageId?.toString() ?? message.clientId ?? "";
+            const status = proposalStatusMap[key] ?? "pending";
+            const payload = message.payload as MeetupProposalPayload;
+            const location = payload.LocationName || payload.proposedLocation || "";
+            const proposedTime = payload.ProposedTime || payload.proposedTime || "";
             const proposalMessageId = message.messageId;
 
             return (
                 <MeetupCard
-                location={location}
-                time = {proposedTime}
-                status = {status}
-                isOwnMessage={isOwnMessage}
-                caption = {message.content}
-                isResponding = {respondingKey === key}
-                onAccept={() => {
-                    if (proposalMessageId) {
-                        onRespondMeetup(proposalMessageId,'accepted');
+                    location={location}
+                    time={proposedTime}
+                    status={status}
+                    isOwnMessage={isOwnMessage}
+                    caption={message.content}
+                    isResponding={respondingKey === key}
+                    onAccept={() => {
+                        if (proposalMessageId) {
+                            onRespondMeetup(proposalMessageId, "accepted");
+                        }
+                    }}
+                    onDecline={() => {
+                        if (proposalMessageId) {
+                            onRespondMeetup(proposalMessageId, "declined");
+                        }
+                    }}
+                    onCheckIn={
+                        status === "accepted" ? () => onCheckIn(location) : undefined
                     }
-                }}
-                onDecline={() => {
-                    if(proposalMessageId) {
-                         onRespondMeetup(proposalMessageId, 'declined');
-                    }
-                }}
-                onCheckIn={status === 'accepted' ? () => onCheckIn(location) : undefined}
                 />
             );
         }
-        case 'meetup_response':
+        case "meetup_response":
             return <MeetupResponseBubble message={message} />;
         default:
-            return <div className="text-center text-xs text-gray-400 py-2">Unsupported message</div>;
+            return (
+                <div className="text-center text-xs text-gray-400 py-2">
+                    Unsupported message
+                </div>
+            );
     }
 }
 
@@ -265,74 +235,110 @@ export default function ChatPage() {
     const { reservationId } = useParams<{ reservationId: string }>();
     const location = useLocation();
     const { user } = useAuthStore();
-    const isSeller = window.location.pathname.startsWith('/seller');
-    const currentUserId = user?.id ?? 'me';
+    const queryClient = useQueryClient();
+    const isSeller = window.location.pathname.startsWith("/seller");
+    const role = isSeller ? "seller" : "buyer";
+    const currentUserId = user?.id ?? "me";
 
-    const { data: messages = [], isLoading, isError, refetch } = useChatMessages(reservationId!);
+    const {
+        data: messages = [],
+        isLoading,
+        isError, refetch,
+    } = useChatMessages(reservationId!);
     useReservationRealtime(reservationId!);
     const { send, retry } = useSendMessage(reservationId!);
 
     const sortedMessages = React.useMemo(
-        () => [...messages].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()),
-        [messages]
+        () =>
+            [...messages].sort(
+                (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime(),
+            ),
+        [messages],
     );
 
-    const meetupConfirmed = sortedMessages.some (
+    const proposalStatusMap = React.useMemo(() => {
+        const map: Record<string, MeetupStatus> = {};
 
-        (message) => 
-            message.messageType === "meetup_response" && 
-        message.payload?.accepted === true
+        for (const msg of sortedMessages) {
+
+            if (msg.messageType === 'meetup_proposal') {
+                const key = msg.messageId?.toString() ?? msg.clientId ?? '';
+                map[key] = 'pending';
+
+            }
+        } for (const msg of sortedMessages) {
+            if (msg.messageType === 'meetup_response' && msg.payload?.ProposalMessageId) {
+        
+                const id = msg.payload.ProposalMessageId.toString();
+                if (id in map) {
+                    map[id] = msg.payload.Accepted ? 'accepted' : 'declined';
+
+                }
+
+            }
+        }
+
+        return map;
+    }, [sortedMessages]);
+
+
+    const meetupConfirmed = sortedMessages.some(
+        (message) =>
+            message.messageType === "meetup_response" &&
+            message.payload?.Accepted === true,
     );
-
 
     const { data: reservation } = useQuery({
-        queryKey: ['reservation', reservationId],
+        queryKey: ["reservation", reservationId],
         queryFn: async () => {
             const result = await getReservationById(reservationId!);
-            if (!result.success) throw new Error(result.error.message ?? 'Failed to load reservation');
+            if (!result.success)
+                throw new Error(result.error.message ?? "Failed to load reservation");
             return result.data;
         },
         enabled: !!reservationId,
     });
 
-
-
     const { data: listing } = useQuery({
-        queryKey: ['listing', reservation?.listingId],
+        queryKey: ["listing", reservation?.listingId],
         queryFn: () => listingsService.getById(reservation!.listingId),
         enabled: !!reservation?.listingId,
     });
 
     const locationState = location.state as ChatLocationState | null;
-    const counterpartyName = locationState?.counterpartyName ?? 'Conversation!!!!';
-    const counterpartyInitials = locationState?.counterpartyInitials ?? initialsFromName(counterpartyName);
-    const isCancelled=reservation?.reservationStatus==='cancelled';
-    const isBuyerWaitingAck=!isSeller&&!reservation?.sellerAcknowledgedAt;
+    const counterpartyName =
+        reservation?.counterParty?.name ??
+        locationState?.counterpartyName ??
+        "Conversation partner";
+    const counterpartyInitials =
+        reservation?.counterParty?.initials ??
+        locationState?.counterpartyInitials ??
+        initialsFromName(counterpartyName);
+    const isAwaitingAck = reservation?.timerStage === "awaiting_seller";
+    const isCancelled = reservation?.reservationStatus === "cancelled";
 
-    const inputDisabled=isCancelled||isBuyerWaitingAck;
+    const inputDisabled = isCancelled || isAwaitingAck;
 
-    const messageForAckOrCancel=isCancelled ? 'Reservation was cancelled.' :isBuyerWaitingAck?'Waiting for seller to accept reservation' :null;
-
-    const [connectionState, setConnectionState] = useState<ConnectionState>(connectionManager.getState());
-    useEffect(() => connectionManager.onStateChange(setConnectionState), []);
-
-    const [draft, setDraft] = useState('');
+    const [draft, setDraft] = useState("");
     const [isProposingMeetup, setIsProposingMeetup] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    const [meetupOverrides, setMeetupOverrides] = useState<Record<string, MeetupStatus>>({});
     const [respondingKey, setRespondingKey] = useState<string | null>(null);
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
+    const [isSendingProposal, setIsSendingProposal] = useState(false);
 
 
-    const handleProposeMeetup = async(values: MeetupFormValues) => {
+    void isProposingMeetup;
+    void checkInLocation; // change when FE2 fixes
+
+    const handleProposeMeetup = async (values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);
-        if(new Date(proposedTime) <= new Date()) {
+        if (new Date(proposedTime) <= new Date()) {
             alert('Please select a time in the future');
             return;
         }
-        try{
+        setIsSendingProposal(true);
+        try {
             await listingsService.proposeMeetup(reservationId!, {
                 locationName: values.location.name,
                 lat: values.location.lat,
@@ -341,71 +347,105 @@ export default function ChatPage() {
             });
             setIsProposingMeetup(false);
             refetch();
-        } catch(err) {
+        } catch (err) {
             console.error('Failed to propose meetup:', err);
-        } 
+        } finally {
+            setIsSendingProposal(false);
+        }
     };
 
-       /* console.log('Meetup proposal submitted:', {
-            proposedLocation: values.location,
-            proposedTime,
-        });
-        setIsProposingMeetup(false);
-    };
-    */
 
-    const handleRespondMeetup = async ( proposalMessageId: number, status: MeetupStatus) => {
+    const handleRespondMeetup = async (proposalMessageId: number, status: MeetupStatus) => {
         const key = proposalMessageId.toString();
-        setRespondingKey(key)
+        setRespondingKey(key);
         try {
-            if(status === 'accepted') {
+            if (status === "accepted") {
                 await listingsService.acceptMeetup(reservationId!, proposalMessageId);
 
-                
-                setMeetupOverrides((prev) => ({...prev, [key]: status}));
-            } else if (status === 'declined') {
-                
-                setMeetupOverrides((prev) => ({...prev, [key]: status}));
+                const proposalMessage = sortedMessages.find(
+                    (m) => m.messageId === proposalMessageId,
+                );
+                const payload = proposalMessage?.payload as MeetupProposalPayload | undefined;;
+
+                const meetupLocation =
+                    payload?.LocationName || payload?.proposedLocation || '';
+                const meetupTime =
+                    payload?.ProposedTime || payload?.proposedTime || '';
+                const meetupLat = payload?.Lat;
+                const meetupLng = payload?.Lng;
+
+                navigate(`/payment/meetup`, {
+                    state: {
+                        reservationId,
+                        role,
+                        counterpartyName,
+                        counterpartyInitials,
+                        meetupLocation,
+                        meetupTime,
+                        meetupLat,
+                        meetupLng,
+                        listingTitle: listing?.title,
+                        listingPrice: listing?.price,
+                    },
+                });
+            } else if (status === "declined") {
+                await listingsService.declineMeetup(reservationId!, proposalMessageId);
             }
         } catch (err) {
-            console.error('Failed to respond to meetup:', err);
+            console.error("Failed to respond to meetup:", err);
+        } finally {
+            setRespondingKey(null);
         }
     };
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [sortedMessages]);
 
     useEffect(() => {
         if (!reservationId || sortedMessages.length === 0) return;
-        const readable = sortedMessages.filter(m => m.status !== 'sending' && m.status !== 'failed');
+        const readable = sortedMessages.filter(
+            (m) => m.status !== "sending" && m.status !== "failed",
+        );
         if (readable.length === 0) return;
         const last = readable[readable.length - 1];
         if (last.messageId) {
-            connectionManager.markRead(reservationId, last.messageId).catch(() => { });
+            connectionManager
+                .markRead(reservationId, last.messageId)
+                .then(() =>
+                    queryClient.invalidateQueries({
+                        queryKey: queryKeys.reservations(role),
+                    }),
+                )
+                .catch(() => { });
         }
-    }, [reservationId, sortedMessages]);
+    }, [reservationId, sortedMessages, role, queryClient]);
 
     const handleSend = () => {
-        if (!draft.trim() ||inputDisabled) return;
+        if (!draft.trim() || inputDisabled) return;
         send(draft.trim());
-        setDraft('');
+        setDraft("");
         inputRef.current?.focus();
     };
 
-    if (!reservationId) return <div className="p-8 text-center">No reservation specified.</div>;
+    if (!reservationId)
+        return <div className="p-8 text-center">No reservation specified.</div>;
 
     return (
-        <div className="h-full flex flex-col bg-white overflow-hidden">
+        <div className="h-full w-full flex flex-col bg-white overflow-hidden">
 
             <div className="px-5 py-4 border-b flex items-center gap-3 shrink-0">
+                <button
+                    onClick={() => navigate(`/${isSeller ? 'seller' : 'buyer'}/messages`)}
+                    className="md:hidden text-gray-400 hover:text-gray-600 shrink-0">
+                    <IconArrowLeft size={20} />
+                </button>
                 <Avatar initials={counterpartyInitials} />
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <p className="font-semibold text-gray-900 truncate">{counterpartyName}</p>
-                        <span className="text-xs text-emerald-600 shrink-0">
-                            {connectionStatusLabel(connectionState)}
-                        </span>
+                        <p className="font-semibold text-gray-900 truncate">
+                            {counterpartyName}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -426,9 +466,13 @@ export default function ChatPage() {
                                     Listing
                                 </span>
                                 <span className="text-[10px] text-gray-400">•</span>
-                                <span className="text-xs text-gray-500 truncate">{listing.title}</span>
+                                <span className="text-xs text-gray-500 truncate">
+                                    {listing.title}
+                                </span>
                             </div>
-                            <p className="text-sm font-semibold text-gray-900">R {listing.price}</p>
+                            <p className="text-sm font-semibold text-gray-900">
+                                R {listing.price}
+                            </p>
                         </div>
                         <button
                             onClick={() => navigate(
@@ -436,28 +480,37 @@ export default function ChatPage() {
                                     ? `/seller/reservations/${reservationId}`
                                     : `/buyer/reservations/${reservationId}`
                             )}
-                            className="bg-[#003366] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
+                            className="bg-[#003366] text-white text-xs font-bold px-2 py-2 sm:px-4 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
                         >
-                            View
+                            <span className="hidden sm:inline">View Reservation</span>
+                            <IconEye size={16} className="sm:hidden" />
                         </button>
                     </div>
                 )}
 
-                {isLoading && <p className="text-center text-gray-400">Loading messages...</p>}
-                {isError && <p className="text-center text-red-500">Failed to load messages</p>}
+                {isLoading && (
+                    <p className="text-center text-gray-400">Loading messages...</p>
+                )}
+                {isError && (
+                    <p className="text-center text-red-500">Failed to load messages</p>
+                )}
 
                 {sortedMessages.map((msg, i) => {
                     const prev = sortedMessages[i - 1];
-                    const showDivider = !prev || formatDateDivider(prev.sentAt) !== formatDateDivider(msg.sentAt);
+                    const showDivider =
+                        !prev ||
+                        formatDateDivider(prev.sentAt) !== formatDateDivider(msg.sentAt);
                     return (
                         <React.Fragment key={msg.clientId ?? msg.messageId}>
-                            {showDivider && <DateDivider label={formatDateDivider(msg.sentAt)} />}
+                            {showDivider && (
+                                <DateDivider label={formatDateDivider(msg.sentAt)} />
+                            )}
                             <MessageBubble
                                 message={msg}
                                 currentUserId={currentUserId}
                                 counterpartyInitials={counterpartyInitials}
                                 onRetry={retry}
-                                meetupOverrides={meetupOverrides}
+                                proposalStatusMap={proposalStatusMap}
                                 respondingKey={respondingKey}
                                 onRespondMeetup={handleRespondMeetup}
                                 onCheckIn={setCheckInLocation}
@@ -468,46 +521,70 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
-                <button
-                    type="button"
-                    onClick = {() => setIsProposingMeetup(true)}
-                    disabled = {meetupConfirmed}
-                    className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
-                    ${
-                        meetupConfirmed
-                        ? "bg-[#003366] text-white opacity-50 cursor-not-allowed"
-                        : "bg-[#003366] text-white hover:bg-[#002244]"
-                    }`}
-                >
-                    SCHEDULE A MEETUP
-                </button>
-            </div>
-            {messageForAckOrCancel ? (<div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
-                {messageForAckOrCancel}
+            {reservation?.reservationStatus === "active" && !isAwaitingAck && (
+                <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => setIsProposingMeetup(true)}
+                        disabled={meetupConfirmed}
+                        className={`w-full py-3 font-bold text-sm tracking-widest rounded-2xl transition-colors
+                    ${meetupConfirmed
+                                ? "bg-green-100 text-green-700 cursor-not-allowed"
+                                : "bg-[#003366] text-white hover:bg-[#002244]"
+                            }`}
+                    >
+                        {meetupConfirmed ? "Meetup confirmed" : "SCHEDULE A MEETUP"}
+                    </button>
                 </div>
-            ):(
-            <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
-                <button type="button" className="text-gray-400 p-1">
-                    <IconPaperclip size={22} />
-                </button>
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Type a message..."
-                    className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
+            )}
+            {isCancelled || isAwaitingAck ? (
+                <div className="p-4 border-t bg-gray-50 text-center text-sm text-gray-500 shrink-0">
+                    {isCancelled
+                        ? "Reservation was cancelled."
+                        : isSeller
+                            ? "Accept this reservation to start chatting."
+                            : "Waiting for seller to accept reservation"}
+                </div>
+            ) : (
+                <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
+                    <button type="button" className="text-gray-400 p-1">
+                        <IconPaperclip size={22} />
+                    </button>
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                        placeholder="Type a message..."
+                        className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
+                    />
+                    <button
+                        onClick={handleSend}
+                        disabled={!draft.trim()}
+                        className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
+                    >
+                        <IconSend size={18} />
+                    </button>
+                </div>
+            )}
+
+
+            {isProposingMeetup && (
+                <MeetupProposalForm
+                    onCancel={() => setIsProposingMeetup(false)}
+                    onSubmit={handleProposeMeetup}
+                    isSubmitting={isSendingProposal}
                 />
-                <button
-                    onClick={handleSend}
-                    disabled={!draft.trim()}
-                    className="w-11 h-11 bg-[#003366] disabled:bg-gray-300 text-white rounded-2xl flex items-center justify-center hover:bg-[#002244] transition-colors"
-                >
-                    <IconSend size={18} />
-                </button>
-            </div>)}
+            )}
+
+            {checkInLocation && (
+                <CheckInModal
+                    reservationId={reservationId!}
+                    meetupLocation={checkInLocation}
+                    onClose={() => setCheckInLocation(null)}
+                />
+            )}
         </div>
     );
 }

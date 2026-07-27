@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
@@ -217,10 +217,10 @@ const UploadListing: React.FC = () => {
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#0F2D5E] tracking-tight">
+        <h2 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Create New Listing
         </h2>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-sm text-gray-400 mt-1 flex items-center gap-1.5">
           Fill in the details below to list your item.
         </p>
       </div>

@@ -15,7 +15,7 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     public Task<Reservation?> GetByIdAsync(Guid reservationId, CancellationToken ct = default) =>
         _db
             .Reservations.AsNoTracking()
-            .Include(r => r.ReservationListings)
+            .Include(r => r.ReservationListings).ThenInclude(rl => rl.Listing) 
             .Include(r => r.Buyer)
             .Include(r => r.Seller)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
@@ -25,7 +25,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
         CancellationToken ct = default
     ) =>
         _db
-            .Reservations.Include(r => r.ReservationListings).ThenInclude(r1=>r1.Listing)//added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
+            .Reservations.Include(r => r.ReservationListings)
+                .ThenInclude(r1 => r1.Listing) //added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
 
     public async Task<IReadOnlyList<Reservation>> ListForBuyerAsync(
@@ -68,6 +69,35 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             ct
         );
 
+    public async Task<ReservationStatusMessage> CheckMessagingAllowedAsync(
+        Guid reservationId,
+        Guid senderId,
+        CancellationToken ct = default
+    )
+    {
+        //block buyer/seller if seller not acked
+        var reservation = await _db
+            .Reservations.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
+
+        if (reservation is null)
+        {
+            return ReservationStatusMessage.Allowed;
+        }
+
+        if (reservation.ReservationStatus == ReservationState.Cancelled)
+        {
+            return ReservationStatusMessage.ReservationCancelled;
+        }
+
+        if (reservation.BuyerId == senderId && reservation.SellerAcknowledgedAt is null)
+        {
+            return ReservationStatusMessage.BuyerWaitingForSellerAck;
+        }
+
+        return ReservationStatusMessage.Allowed;
+    }
+
     public async Task AddAsync(Reservation reservation, CancellationToken ct = default)
     {
         await _db.Reservations.AddAsync(reservation, ct);
@@ -90,4 +120,37 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             .OrderBy(r => r.ExpiresAt)
             .Take(batchSize)
             .ToListAsync(ct);
+
+    public async Task<ReservationParties> GetReservationPartiesAsync(
+        Guid reservationId,
+        CancellationToken ct = default
+    )
+    {
+        var r =
+            await _db
+                .Reservations.AsNoTracking()
+                .Where(r => r.ReservationId == reservationId)
+                .Select(r => new { r.BuyerId, r.SellerId })
+                .FirstOrDefaultAsync(ct)
+            ?? throw new InvalidOperationException($"Reservation {reservationId} not found");
+
+        return new ReservationParties(r.BuyerId, r.SellerId);
+    }
+    public Task<IReadOnlyList<Reservation>> GetDueForTwoHourWarningAsync(
+        DateTime asOfTime,
+        int batchSize,
+        CancellationToken ct
+    )
+    {
+        return _db
+            .Reservations.Where(r =>
+                r.ReservationStatus == ReservationState.Active
+                && r.TwoHourWarningSentAt == null
+                && r.ExpiresAt <= asOfTime.AddHours(2)
+                && r.ExpiresAt > asOfTime
+            )
+            .Take(batchSize)
+            .ToListAsync(ct)
+            .ContinueWith(t => (IReadOnlyList<Reservation>)t.Result, ct);
+    }
 }

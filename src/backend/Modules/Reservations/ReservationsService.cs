@@ -1,5 +1,8 @@
+using Microsoft.Extensions.Logging;
 using Modules.Chat;
+using Modules.Listings;
 using Modules.Listings.Repositories;
+using Modules.Notifications;
 using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
@@ -8,31 +11,29 @@ using Modules.Wishlist;
 
 namespace Modules.Reservations;
 
-public class ReservationService : IReservationService
+public class ReservationService(
+    IReservationRepository reservations,
+    IListingRepository listings,
+    IChatService chat,
+    IBroadCastService broadcast,
+    IReservationRealTime realtime,
+    IListingNotifier listingNotifier,
+    INotificationDispatcher pushNotifier,
+    ILogger<ReservationService> logger,
+    IWishlistService wishlist,
+    TimeProvider clock
+) : IReservationService
 {
-    private readonly IListingRepository _listings;
-    private readonly IReservationRepository _reservations;
-    private readonly IChatService _chat;
-    private readonly IBroadCastService _broadcast;
-    private readonly IWishlistService _wishlist;
-    private readonly TimeProvider _clock;
-
-    public ReservationService(
-        IReservationRepository reservations,
-        IListingRepository listings,
-        IChatService chat,
-        IBroadCastService broadcast,
-        IWishlistService wishlist,
-        TimeProvider clock
-    )
-    {
-        _reservations = reservations;
-        _listings = listings;
-        _chat = chat;
-        _broadcast = broadcast;
-        _wishlist = wishlist;
-        _clock = clock;
-    }
+    private readonly IListingRepository _listings = listings;
+    private readonly IReservationRepository _reservations = reservations;
+    private readonly IChatService _chat = chat;
+    private readonly IBroadCastService _broadcast = broadcast;
+    private readonly IReservationRealTime _realtime = realtime;
+    private readonly IListingNotifier _listingNotifier = listingNotifier;
+    private readonly IWishlistService _wishlist = wishlist;
+    private readonly INotificationDispatcher _pushNotifier = pushNotifier;
+    private readonly ILogger<ReservationService> _logger = logger;
+    private readonly TimeProvider _clock = clock;
 
     public async Task<ReservationDto> CreateAsync(
         Guid listingId,
@@ -67,15 +68,20 @@ public class ReservationService : IReservationService
         };
 
         await _reservations.AddAsync(reservation, ct);
-
+        await _reservations.SaveAsync(ct);
+        await _listingNotifier.ListingReservedAsync(listingId, ct);
         await _chat.SendSystemAsync(
             reservation.ReservationId,
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
-        await _reservations.SaveAsync(ct);
-        await _wishlist.CleanForListingAsync(listingId, ct);
-
+        await _wishlist.SuppressForListingAsync(listingId, reservation.ReservationId, ct);
+        await GuardedPushAsync(
+            listing.SellerId,
+            NotificationTypes.ReservationStatus,
+            $"A buyer is interested in \"{listing.Title}\".",
+            ct
+        );
         return MapToDto(reservation, listingId: listingId);
     }
 
@@ -90,12 +96,12 @@ public class ReservationService : IReservationService
             ?? throw new ReservationException(ReservationErrors.NotFound);
 
         ReservationStateMachine.Acknowledge(r, callerId, _clock.GetUtcNow().UtcDateTime);
-
-        if (callerId==r.SellerId)
+        await _reservations.SaveAsync(ct);
+        if (callerId == r.SellerId)
         {
             await _chat.SendSystemAsync(
                 reservationId,
-                "You have accepted this reservation request",
+                "This reservation was accepted by the seller.",
                 ct
             );
         }
@@ -108,10 +114,16 @@ public class ReservationService : IReservationService
             );
         }
 
-        await _reservations.SaveAsync(ct);
-
+        var dto = MapToDto(r);
+        await _realtime.ReservationUpdatedAsync(dto, ct);
         await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
 
+        await GuardedPushAsync(
+            r.BuyerId,
+            NotificationTypes.ReservationStatus,
+            "The seller confirmed they can sell this item",
+            ct
+        );
         return MapToDto(r);
     }
 
@@ -131,6 +143,8 @@ public class ReservationService : IReservationService
         {
             await _listings.ReleaseAsync(rl.ListingId, ct);
         }
+         
+         await _wishlist.RestoreForReservationAsync(reservationId, ct);
 
         var whoIsThis = callerId == r.BuyerId ? "buyer" : "seller";
         await _chat.SendSystemAsync(
@@ -140,8 +154,22 @@ public class ReservationService : IReservationService
         );
 
         await _reservations.SaveAsync(ct);
+        foreach (var rl in r.ReservationListings)
+        {
+            await _listingNotifier.ListingReleasedAsync(rl.ListingId, ct);
+        }
+
+        var dto = MapToDto(r, callerId);
+        await _realtime.ReservationUpdatedAsync(dto, ct);
         await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
 
+        var recipient = callerId == r.BuyerId ? r.SellerId : r.BuyerId;
+        await GuardedPushAsync(
+            recipient,
+            NotificationTypes.ReservationStatus,
+            $"The {whoIsThis} cancelled the reservation.",
+            ct
+        );
         return MapToDto(r, callerId);
     }
 
@@ -248,6 +276,7 @@ public class ReservationService : IReservationService
             TimerStage: ReservationStateMachine.DeriveTimerStage(r),
             ExpiresAt: r.ExpiresAt,
             CreatedAt: r.CreatedAt,
+            CompletedAt: r.CompletedAt,
             CounterParty: counterParty
         );
     }
@@ -273,10 +302,23 @@ public class ReservationService : IReservationService
                 await _listings.ReleaseAsync(rl.ListingId, ct);
             }
 
+            await _wishlist.RestoreForReservationAsync(reservation.ReservationId, ct);
+
             await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
         }
+
         await _reservations.SaveAsync(ct);
+
+        foreach (var reservation in reservationsThatShouldExpire)
+        {
+            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
+            await _realtime.ReservationUpdatedAsync(MapToDto(reservation), ct);
+            foreach (var rl in reservation.ReservationListings)
+            {
+                await _listingNotifier.ListingReleasedAsync(rl.ListingId, ct);
+            }
+        }
         return expired;
     }
 
@@ -285,4 +327,60 @@ public class ReservationService : IReservationService
         Guid userId,
         CancellationToken ct = default
     ) => _reservations.IsPartyToAsync(reservationId, userId, ct);
+
+    private async Task GuardedPushAsync(
+        Guid userId,
+        string type,
+        string message,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            await _pushNotifier.NotifyAsync(userId, type, message, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Push failed for user {UserId}, type {Type}", userId, type);
+        }
+    }
+
+    public async Task<IReadOnlyList<ReservationDto>> SendTwoHourWarningsAsync(
+        DateTime asOfTime,
+        CancellationToken ct
+    )
+    {
+        var dueReservations = await _reservations.GetDueForTwoHourWarningAsync(asOfTime, 100, ct);
+        var dueCount = dueReservations.Count;
+
+        if (dueCount == 0)
+        {
+            return Array.Empty<ReservationDto>();
+        }
+
+        foreach (var reservation in dueReservations)
+        {
+            reservation.TwoHourWarningSentAt = asOfTime;
+        }
+        await _reservations.SaveAsync(ct);
+
+        var results = new List<ReservationDto>();
+        foreach (var reservation in dueReservations)
+        {
+            await GuardedPushAsync(
+                reservation.BuyerId,
+                NotificationTypes.ReservationStatus,
+                "Your reservation expires in about 2 hours.",
+                ct
+            );
+            await GuardedPushAsync(
+                reservation.SellerId,
+                NotificationTypes.ReservationStatus,
+                "A reservation in your listing expires in about 2 hours.",
+                ct
+            );
+            results.Add(MapToDto(reservation));
+        }
+        return results;
+    }
 }

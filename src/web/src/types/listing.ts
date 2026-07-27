@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -161,11 +161,79 @@ export interface ProposeMeetupPayload {
 }
 
 export interface MeetupStatusResponse {
-  proposalMessageId: number 
-  locationName: string
-  lat : number 
-  lng : number 
-  proposedTime : string 
-  status : MeetupStatus
-  checkedInAt?: string | null
+  meetupId: number
+  agreedLocationName: string
+  agreedLatitude: number
+  agreedLongitude: number
+  agreedTime: string
+  createdAt: string
+  checkinWindowClosesAt: string
+  checkInWindowOpen: boolean
+  buyerCheckedIn: boolean
+  sellerCheckedIn: boolean
+  paymentUnlocked: boolean
+  status: string
+  checkinWindowOpensAt: string
+  buyerCheckedInAt: string | null
+  sellerCheckedInAt: string | null
+}
+
+export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
+
+export interface Review {
+  reviewId: number
+  transactionId: string
+  reviewerId: string
+  revieweeId: string
+  reviewType: string
+  rating: number
+  comment : string | null
+  createdAt: string
+
+
+}
+
+export interface UserReviewsResponse {
+  userId: string
+  sellerScore: number 
+  buyerScore: number
+  reviews: Review[]
+}
+
+export interface SubmitReviewPayload {
+  transactionId: string
+  rating: number
+  comment?: string 
+}
+
+export interface OrderItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  sellerName: string;
+  sellerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
+}
+
+export interface SaleItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  buyerName: string;
+  buyerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
 }

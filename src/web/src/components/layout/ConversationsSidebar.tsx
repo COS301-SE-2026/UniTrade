@@ -1,8 +1,8 @@
-import {NavLink, useParams} from 'react-router-dom';
+import {NavLink, useParams} from 'react-router';
 import { useReservationsList } from '../../hooks/useReservationsList';
 import type { ReservationListItem } from '../../types/Reservations';
 import { useUnreadRealtime } from '../../hooks/useUnreadRealtime';
-
+import { getApiUrl } from '../../config';
 
 
 function relativeTime(iso: string): string {
@@ -20,6 +20,7 @@ export default function ConversationsSidebar ({role}: {role: 'buyer' | 'seller'}
     const {data: reservations = [], isLoading} = useReservationsList(role);
     useUnreadRealtime(role);
     const {reservationId: activeId} = useParams<{reservationId: string}>();
+    const apiOrigin = getApiUrl().split('/api')[0];
 
 const active = reservations
     .filter((r: ReservationListItem) => r.reservationStatus === 'active' || r.reservationStatus=='cancelled')
@@ -33,7 +34,7 @@ const active = reservations
     })
 
     return (
-        <div className = "w-72 shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
+        <div className = "w-full md:w-72 md:shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
             <div className = "px-4 py-3 border-b border-gray-100">
                 <h2 className="text-sm font-bold text-gray-800 text-xl">
                     Messages
@@ -71,8 +72,17 @@ const active = reservations
                             isActive ? 'bg-gray-200' : ''
                         }`}
                     >
-                        <div className="w-9 h-9 rounded-full bg-[#003366]/10 flex items-center justify-center text-[#003366] text-xs font-bold shrink-0">
+                        <div className="relative shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[#003366]/10 flex items-center justify-center text-[#003366] text-xs font-bold">
                         {r.counterParty.initials}
+                        </div>
+                        {r.listing.imagePath && (
+                            <img
+                              src={`${apiOrigin}${r.listing.imagePath}`}
+                              alt={r.listing.title}
+                              className="absolute -bottom-4 -right-1 w-8 h-8 rounded-full object-cover border-2 border-white"
+                              />
+                        )}
                         </div>
                         <div className = "flex-1 min-w-0">
                             <div className = "flex items-center justify-between gap-2">
@@ -87,6 +97,9 @@ const active = reservations
                                     {relativeTime(timestamp)}
                                 </span>
                             </div>
+                            <p className={`text-xs truncate ${hasUnread ? 'text-gray-800 font-semibold' : 'text-gray-600 font-medium'}`}>
+                                Listing: {r.listing.title}
+                            </p>
                             <div className="flex items-center justify-between gap-2 mt-0.5">
                                 <p className={`text-xs truncate ${hasUnread ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
                                     {preview}

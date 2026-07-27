@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 import { listingsService } from '../../services/listingsService'
 
 vi.mock('../../services/listingsService', () => ({
@@ -11,16 +13,16 @@ vi.mock('../../services/listingsService', () => ({
 }))
 
 const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom')
+vi.mock('react-router', async () => {
+    const actual = await vi.importActual('react-router')
     return { ...actual, useNavigate: () => mockNavigate }
 })
 
+const mockShowToast = vi.fn()
 vi.mock('../../components/layout/useToast', () => ({
-    useToast: () => ({
-        showToast: vi.fn(),
-    }),
+    useToast: () => ({ showToast: mockShowToast }),
 }))
+
 import MyListings from '../../pages/seller/MyListings'
 
 const mockListings = {
@@ -34,10 +36,19 @@ const mockListings = {
 }
 
 const renderMyListings = () => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: false,
+            },
+        },
+    })
     render(
-        <MemoryRouter>
-            <MyListings />
-        </MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter>
+                <MyListings />
+            </MemoryRouter>
+        </QueryClientProvider>
     )
 }
 
@@ -155,7 +166,7 @@ describe('MyListings', () => {
         vi.mocked(listingsService.getMyListings).mockRejectedValueOnce(new Error('Network error'))
         renderMyListings()
         await waitFor(() => {
-            expect(screen.getByText('Failed to load listings')).toBeInTheDocument()
+            expect(screen.getByText('Network error')).toBeInTheDocument()
         })
     })
 
@@ -246,18 +257,18 @@ describe('MyListings - actions', () => {
 
     it('shows an error when deleting a listing fails', async () => {
         vi.spyOn(window, 'confirm').mockReturnValue(true)
-        vi.mocked(listingsService.deleteListing).mockRejectedValue(new Error('Delete failed'))
+        vi.mocked(listingsService.deleteListing).mockRejectedValue(new Error('fail'))
 
         renderMyListings()
         await waitFor(() => {
             expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
         })
 
-        const deleteButtons = screen.getAllByLabelText('Delete listing')
+        const deleteButtons = await screen.findAllByRole('button', { name: /delete listing/i })
         fireEvent.click(deleteButtons[0])
 
         await waitFor(() => {
-            expect(screen.getByText('Failed to delete listing')).toBeInTheDocument()
+            expect(mockShowToast).toHaveBeenCalledWith('error', 'Failed to delete Listing')
         })
 
         vi.restoreAllMocks()
