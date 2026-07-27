@@ -198,8 +198,40 @@ describe('filtering by the condition of the listing', () => {
         expect(screen.queryByText('Poor Item')).not.toBeInTheDocument();
     });
 
+})
+
+describe ('reserving a listing', () => {
+    beforeEach(() => {
+        mockWishlist({
+            listings: [makeListing ({id:'10'})],
+            total :150,
+        })
+    })
+
+    it('navigates to reservation on a successful reserve', async() => {
+        vi.mocked(createReservation).mockResolvedValueOnce({success: true} as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+        await vi.waitFor(() => {
+            expect(navigateMock).toHaveBeenCalledWith('/buyer/reservations');
+        })
+
+    })
+
+    it('disables the reservation button and shows "Unavailable for a non-live listing', () =>{
+     mockWishlist({
+            listings: [makeListing ({id:'10', status:'reserved'})],
+            total :150,
+        })
+        renderWishlist();
+        const reserveButton = screen.getByRole('button', {name: /unavailable/i})
+        expect(reserveButton).toBeDisabled();
+    })
 
 })
+
+
 
 
 
