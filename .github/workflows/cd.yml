@@ -36,15 +36,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to ACR
-        #env:
-          #ACR: ${{ secrets.ACR_REGISTRY }}
-        #run: az acr login --name "${ACR%%.*}"
-        #ask for acrpush permissions againnnn!!!(didnt grant perm for this), delete github secrts when updated
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{secrets.ACR_REGISTRY}}
-          username: ${{ secrets.ACR_USERNAME}}
-          password: ${{ secrets.ACR_PASSWORD }}
+        env:
+          ACR: ${{ secrets.ACR_REGISTRY }}
+        run: az acr login --name "${ACR%%.*}"
+        # ask for acrpush permissions againnnn!!!(didnt grant perm for this), delete github secrts when updated
+        # uses: azure/docker-login@v1
+        # with:
+        #   login-server: ${{secrets.ACR_REGISTRY}}
+        #   username: ${{ secrets.ACR_USERNAME}}
+        #   password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Set image tag
         id: set_tag
