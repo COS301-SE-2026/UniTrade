@@ -25,6 +25,7 @@ class ConnectionManager {
   private readonly listingListeners = new Set<(listingId: string, event: "reserved" | "released") => void>();
   private readonly pinGeneratedListeners = new Set<(e: { reservationId: string; pin: string }) => void>();
   private readonly paymentCompletedListeners = new Set<(e: { reservationId: string }) => void>();
+  private readonly pinConfirmedListeners = new Set<(e: { reservationId: string }) => void>();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -43,6 +44,9 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
+      conn.on("pin_confirmed", (e: { reservationId: string }) =>
+        this.pinConfirmedListeners.forEach((cb) => cb(e)),
+      );
       conn.on("ListingReserved", (p: { listingId: string }) => {
 
         this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));
@@ -132,6 +136,10 @@ class ConnectionManager {
   onListingChanged(cb: (listingId: string, event: "reserved" | "released") => void): Unsubscribe {
     this.listingListeners.add(cb);
     return () => this.listingListeners.delete(cb);
+  }
+  onPinConfirmed(callback: (e: { reservationId: string }) => void): Unsubscribe {
+    this.pinConfirmedListeners.add(callback);
+    return () => this.pinConfirmedListeners.delete(callback);
   }
   async sendMessage(
     reservationId: string,

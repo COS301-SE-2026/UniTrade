@@ -135,16 +135,16 @@ export default function MeetupDetails() {
         if (result.success) setTxStatus(result.data);
       });
     });
-    /*const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
       if (e.reservationId !== reservationId) return;
       getTransactionStatus(reservationId).then((result) => {
         if (result.success) setTxStatus(result.data);
       });
-    });*/
+    });
     return () => {
       off();
       offPin();
-      //offPinConfirmed();
+      offPinConfirmed();
     };
   }, [reservationId, isSeller]);
 
