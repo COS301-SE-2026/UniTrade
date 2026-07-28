@@ -323,11 +323,27 @@ expect(updater(undefined)).toBeUndefined();
             fireEvent.click(screen.getByRole('button', {name: /remove/i}))
             await vi.waitFor(() =>
             {
-                expect(screen.getByRole('button',{name: /^remove$/i})).not.toBeDisabled();
+                expect(screen.getByRole('button', {name: /^remove$/i})).not.toBeDisabled();
             });
-            expect(queryClient.setQueryData).not.toHaveBeenCalled()
+            expect(queryClient.setQueryData).not.toHaveBeenCalled();
         })
         })      
+
+    it('navigates to the listing detail page when the image is clicked', () => {
+        mockWishlist({
+            listings: [makeListing({ id: '10'})],
+            total: 150,
+        });
+        renderWishlist();
+
+        fireEvent.click(screen.getByAltText('Calculus'));
+        expect(navigateMock).toHaveBeenCalledWith('/listings/10');
+    });
+
+  
+
+
+
 
 
 
