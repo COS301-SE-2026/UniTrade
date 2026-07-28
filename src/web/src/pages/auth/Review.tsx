@@ -4,9 +4,6 @@ import type { Review as ReviewData } from '../../types/listing'
 import { reviewerRoleLabel } from '../../types/reviewStats'
 import type { ReviewType } from '../../types/listing'
 
-
-
-
 function timeAgo(dateString: string): string {
     const date = new Date(dateString)
     const diffDays = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
