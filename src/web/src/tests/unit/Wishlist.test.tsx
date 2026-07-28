@@ -340,6 +340,33 @@ expect(updater(undefined)).toBeUndefined();
         expect(navigateMock).toHaveBeenCalledWith('/listings/10');
     });
 
+      describe('sorting', () => {
+        beforeEach(() => {
+            mockWishlist({
+                listings: [
+                    makeListing({ id: '47', title: 'ListA', price: 300, addedAt: '2026-07-04'}),
+                    makeListing({ id: '49', title: 'ListB', price: 300, addedAt: '2026-07-07'}),
+                    makeListing({ id: '51', title: 'ListC', price: 300, addedAt: '2026-07-14'}),
+                ],
+                total: 900,
+            })
+        })
+
+        function titleOrder() {
+            return screen.getAllByText(/^(ListA|ListB|ListC)$/).map((el) => el.textContent);
+        }
+
+        it('sorts by price, low to high', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Price low'));
+
+            expect(titleOrder()).toEqual(['ListA','ListB','ListC']);
+        })
+
+        
+    })
+
   
 
 
