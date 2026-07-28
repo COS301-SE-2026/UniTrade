@@ -281,6 +281,56 @@ vi.mocked(createReservation).mockResolvedValueOnce({
         expect(reserveButton).toBeDisabled();
     })
 
+    describe('removing a listing', () => {
+        it('calls removeFromWishlist and updates the cache on success', async() =>{
+            mockWishlist({
+                listings: [makeListing({
+                    id: '10'})],
+                    total : 150,
+            })
+            renderWishlist();
+
+            fireEvent.click(screen.getByRole('button', { name: /remove/i}))
+            await vi. waitFor(() => {
+               expect(listingsService.removeFromWishlist).toHaveBeenCalledWith('10');
+            })
+            expect(queryClient.setQueryData).toHaveBeenCalledWith(
+                ['wishlist'],
+                expect.any(Function),
+            );
+
+            const updater = vi.mocked(queryClient.setQueryData).mock.calls[0][1] as (
+                old: WishlistResponse | undefined,
+            ) => WishlistResponse | undefined;
+
+            const before: WishlistResponse = {
+                listings: [makeListing({ id: '10'}), makeListing({ id: '11'})],
+                total: 2,
+            };
+            const after = updater(before);
+        expect(after?.listings.map((l) => l.id)).toEqual(['11'])
+    expect(after?.total).toBe(1);
+expect(updater(undefined)).toBeUndefined();
+        })
+
+        it('resets the removing state without removing the item when the request fails', async() => {
+            vi.mocked(listingsService.removeFromWishlist).mockRejectedValueOnce(new Error('boom'));
+            mockWishlist({
+                listings: [makeListing({ id: '10'})],
+                total: 150,
+            })
+            renderWishlist();
+            fireEvent.click(screen.getByRole('button', {name: /remove/i}))
+            await vi.waitFor(() =>
+            {
+                expect(screen.getByRole('button',{name: /^remove$/i})).not.toBeDisabled();
+            });
+            expect(queryClient.setQueryData).not.toHaveBeenCalled()
+        })
+        })      
+
+
+
 
 
 
