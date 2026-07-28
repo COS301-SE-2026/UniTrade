@@ -5,12 +5,14 @@ import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
 import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
+import { useQueryClient } from "@tanstack/react-query";
 interface ApiError {
   message: string;
 }
 
 const UploadListing: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -160,6 +162,7 @@ const UploadListing: React.FC = () => {
         metadata,
       });
       await listingsService.uploadImages(listingId, files);
+      queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
       showToast('success', 'Listing uploaded successfully');
       navigate("/seller/listings");
     } catch (err: unknown) {
@@ -204,6 +207,7 @@ const UploadListing: React.FC = () => {
         await listingsService.uploadImages(listingId, files);
       }
       navigate("/seller/listings");
+      queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
       showToast('success', 'Listing saved successfully');
     } catch (err: unknown) {
       const error = err as ApiError;
