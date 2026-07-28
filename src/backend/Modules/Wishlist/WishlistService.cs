@@ -96,7 +96,7 @@ public class WishlistService : IWishlistService
                     Edition = l.BookDetails.Edition,
                 },
             ListingStatus: l.ListingStatus,
-            IsBundle: l.isBundle ?? false,
+            IsBundle: l.IsBundle ?? false,
             ViewCount: l.ViewCount ?? 0,
             CreatedAt: l.CreatedAt,
             UpdatedAt: l.UpdatedAt,

@@ -85,7 +85,7 @@ public class ListingServiceTests
     public async Task GetByIdAsync_MapsIsBundle_AsFalse_WhenNull()
     {
         var listing = AListing();
-        listing.isBundle = null;
+        listing.IsBundle = null;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
@@ -111,7 +111,7 @@ public class ListingServiceTests
     public async Task GetByIdAsync_MapsIsBundle_AsTrue_WhenSet()
     {
         var listing = AListing();
-        listing.isBundle = true;
+        listing.IsBundle = true;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
@@ -1071,7 +1071,7 @@ public class ListingServiceTests
             Price = price,
             Condition = condition,
             ListingStatus = "live",
-            isBundle = false,
+            IsBundle = false,
             ViewCount = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,

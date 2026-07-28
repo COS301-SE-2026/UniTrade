@@ -312,7 +312,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.RejectionReason);
 
-            entity.Property(x => x.isBundle).HasDefaultValue(false);
+            entity.Property(x => x.IsBundle).HasDefaultValue(false);
             entity.Property(x => x.ViewCount).HasDefaultValue(0);
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
