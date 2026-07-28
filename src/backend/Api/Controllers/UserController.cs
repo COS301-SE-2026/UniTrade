@@ -12,7 +12,7 @@ namespace Api.Controllers;
 public class UserController(IIdentityService identityService) : ControllerBase
 {
     private readonly IIdentityService _identityService = identityService;
-    private const string ServerErrorMessage = "server_error";
+    private const string _serverErrorMessage = "server_error";
 
     [HttpGet("me")]
     [Authorize]
@@ -67,12 +67,12 @@ public class UserController(IIdentityService identityService) : ControllerBase
                 "degree_program_required" => UnprocessableEntity(
                     new { error = "degree_program_required" }
                 ),
-                _ => StatusCode(500, new { error = ServerErrorMessage }),
+                _ => StatusCode(500, new { error = _serverErrorMessage }),
             };
         }
         catch (Exception)
         {
-            return StatusCode(500, new { error = ServerErrorMessage });
+            return StatusCode(500, new { error = _serverErrorMessage });
         }
     }
 
@@ -104,12 +104,12 @@ public class UserController(IIdentityService identityService) : ControllerBase
             return ex.Message switch
             {
                 "not_found" => NotFound(new { error = "user_not_found" }),
-                _ => StatusCode(500, new { error = ServerErrorMessage }),
+                _ => StatusCode(500, new { error = _serverErrorMessage }),
             };
         }
         catch (Exception)
         {
-            return StatusCode(500, new { error = ServerErrorMessage });
+            return StatusCode(500, new { error = _serverErrorMessage });
         }
     }
 

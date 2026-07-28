@@ -143,8 +143,8 @@ public class ReservationService(
         {
             await _listings.ReleaseAsync(rl.ListingId, ct);
         }
-         
-         await _wishlist.RestoreForReservationAsync(reservationId, ct);
+
+        await _wishlist.RestoreForReservationAsync(reservationId, ct);
 
         var whoIsThis = callerId == r.BuyerId ? "buyer" : "seller";
         await _chat.SendSystemAsync(

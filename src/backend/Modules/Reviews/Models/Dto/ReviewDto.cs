@@ -15,7 +15,7 @@ public record ReviewDto(
 
 public record UserReviewDto(
     Guid UserId,
-    decimal SellerScore, // to be used as the avg of buyer_to_seller reviews
-    decimal BuyerScore,
+    decimal? SellerScore, // to be used as the avg of buyer_to_seller reviews
+    decimal? BuyerScore,
     IReadOnlyList<ReviewDto> Reviews
 );
