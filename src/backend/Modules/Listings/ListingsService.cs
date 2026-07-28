@@ -12,7 +12,7 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
 
-    private static readonly HashSet<string> SellerAllowedStatuses = new()
+    private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
         "live",
         "draft",
@@ -258,7 +258,7 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
-        if (!SellerAllowedStatuses.Contains(newStatus))
+        if (!_sellerAllowedStatuses.Contains(newStatus))
         {
             throw new ArgumentException("invalid_status");
         }

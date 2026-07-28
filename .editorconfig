@@ -16,14 +16,14 @@ indent_size = 2
 [*.cs]
 
 ## Private fields must be _camelCase
-dotnet_naming_rule.private_fields_camel_case.severity = error # fine
-dotnet_naming_rule.private_fields_camel_case.symbols = private_fields  # fine
-dotnet_naming_rule.private_fields_camel_case.style = underscore_camel_case # fine
+dotnet_naming_rule.private_fields_camel_case.severity = error 
+dotnet_naming_rule.private_fields_camel_case.symbols = private_fields  
+dotnet_naming_rule.private_fields_camel_case.style = underscore_camel_case 
 
 #### Core EditorConfig Options ####
 
 # Indentation
-indent_size = 4  # fine
+indent_size = 4  
 
 
 
@@ -31,30 +31,32 @@ indent_size = 4  # fine
 
 # Naming rules
 
-dotnet_naming_rule.interfaces_prefixed_i.severity = error  # fine
-dotnet_naming_rule.interfaces_prefixed_i.symbols = interface_types  # fine
-dotnet_naming_rule.interfaces_prefixed_i.style = prefix_i_pascal_case  # fine
+dotnet_naming_rule.interfaces_prefixed_i.severity = error  
+dotnet_naming_rule.interfaces_prefixed_i.symbols = interface_types  
+dotnet_naming_rule.interfaces_prefixed_i.style = prefix_i_pascal_case  
 
-dotnet_naming_rule.types_and_members_pascal_case.severity = error #fine
-dotnet_naming_rule.types_and_members_pascal_case.symbols = types_and_members #fine
-dotnet_naming_rule.types_and_members_pascal_case.style = pascal_case #fine
+dotnet_naming_rule.types_and_members_pascal_case.severity = error 
+dotnet_naming_rule.types_and_members_pascal_case.symbols = types_and_members 
+dotnet_naming_rule.types_and_members_pascal_case.style = pascal_case 
 
 # Symbol specifications
-dotnet_naming_symbols.private_fields.applicable_kinds = field  # fine
-dotnet_naming_symbols.private_fields.applicable_accessibilities = private  # fine
+dotnet_naming_symbols.private_fields.applicable_kinds = field  
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private  
 
-dotnet_naming_symbols.interface_types.applicable_kinds = interface  # fine
+dotnet_naming_symbols.interface_types.applicable_kinds = interface  
 
-dotnet_naming_symbols.types_and_members.applicable_kinds = class,struct,enum,method,property,event #fine
+dotnet_naming_symbols.types_and_members.applicable_kinds = class,struct,enum,method,property,event 
 
 # Naming styles
 
-dotnet_naming_style.underscore_camel_case.required_prefix = _  # fine
-dotnet_naming_style.underscore_camel_case.capitalization = camel_case  # fine
+dotnet_naming_style.underscore_camel_case.required_prefix = _  
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case  
  
 
-dotnet_naming_style.pascal_case.capitalization = pascal_case #fine
+dotnet_naming_style.pascal_case.capitalization = pascal_case 
 
-dotnet_naming_style.prefix_i_pascal_case.required_prefix = I #fine
-dotnet_naming_style.prefix_i_pascal_case.capitalization = pascal_case #fine
+dotnet_naming_style.prefix_i_pascal_case.required_prefix = I 
+dotnet_naming_style.prefix_i_pascal_case.capitalization = pascal_case 
 
+[**/Migrations/*.cs]
+generated_code = true

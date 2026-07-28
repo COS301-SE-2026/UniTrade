@@ -37,7 +37,6 @@ public class WishlistService : IWishlistService
             await _listings.GetByIdAsync(listingId)
             ?? throw new WishlistException(WishlistErrors.ListingNotFound);
 
-
         if (listing.ListingStatus is "reserved" or "sold" or "removed")
         {
             throw new WishlistException(WishlistErrors.ListingUnavailable);
@@ -122,9 +121,14 @@ public class WishlistService : IWishlistService
         return new WishlistItemDto(w.WishlistId, w.ListingId, w.AddedAt, listing);
     }
 
-    public async Task SuppressForListingAsync(Guid listingId, Guid reservationId, CancellationToken ct = default) =>
-    await _wishlist.SuppressAllForListingAsync(listingId,reservationId, ct);
-    public async Task RestoreForReservationAsync(Guid reservationId, CancellationToken ct = default) =>
-    await _wishlist.RestoreForReservationAsync(reservationId,ct);
+    public async Task SuppressForListingAsync(
+        Guid listingId,
+        Guid reservationId,
+        CancellationToken ct = default
+    ) => await _wishlist.SuppressAllForListingAsync(listingId, reservationId, ct);
 
+    public async Task RestoreForReservationAsync(
+        Guid reservationId,
+        CancellationToken ct = default
+    ) => await _wishlist.RestoreForReservationAsync(reservationId, ct);
 }

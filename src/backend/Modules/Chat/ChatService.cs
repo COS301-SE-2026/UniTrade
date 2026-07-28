@@ -17,10 +17,10 @@ public class ChatService : IChatService
     private readonly INotificationDispatcher _pushNotifier;
     private readonly ILogger<ChatService> _logger;
 
-    private static readonly TimeSpan SouthAfricaOffset = TimeSpan.FromHours(2);
+    private static readonly TimeSpan _southAfricaOffset = TimeSpan.FromHours(2);
 
     private static DateTime ToSouthAfricaTime(DateTime utc) =>
-        DateTime.SpecifyKind(utc, DateTimeKind.Utc).Add(SouthAfricaOffset);
+        DateTime.SpecifyKind(utc, DateTimeKind.Utc).Add(_southAfricaOffset);
 
     public ChatService(
         IChatRepository chatRepo,

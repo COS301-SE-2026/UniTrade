@@ -59,7 +59,7 @@ public class AppDbContext : DbContext
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     //constants - sonarqube
-    private readonly string NowString = "now()";
+    private readonly string _nowString = "now()";
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -314,11 +314,11 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.isBundle).HasDefaultValue(false);
             entity.Property(x => x.ViewCount).HasDefaultValue(0);
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             entity
                 .Property(x => x.UpdatedAt)
-                .HasDefaultValueSql(NowString)
+                .HasDefaultValueSql(_nowString)
                 .ValueGeneratedOnAddOrUpdate();
 
             entity
@@ -478,7 +478,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.IsPrimary).HasDefaultValue(false).IsRequired();
 
-            entity.Property(x => x.UploadedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             entity
                 .HasOne(x => x.Listing)
@@ -506,9 +506,9 @@ public class AppDbContext : DbContext
             entity.Property(x => x.HandoverConfirmedAt);
             entity.Property(x => x.CompletedAt);
             entity.Property(x => x.ExpiresAt).IsRequired();
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
-            entity.Property(x =>x.TwoHourWarningSentAt);
-            
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.TwoHourWarningSentAt);
+
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint(
@@ -576,7 +576,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.ClientKey).HasMaxLength(64);
             entity.Property(x => x.Content).IsRequired();
             entity.Property(x => x.Payload).HasColumnType("jsonb");
-            entity.Property(x => x.SentAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.SentAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
             entity.Property(x => x.ReadAt);
 
             entity.ToTable(t =>
@@ -636,7 +636,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.IsRead).HasDefaultValue(false).IsRequired();
 
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             entity.ToTable(t =>
             {
@@ -708,7 +708,7 @@ public class AppDbContext : DbContext
                 .HasMaxLength(255)
                 .IsRequired()
                 .HasDefaultValue("pending");
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             entity.HasIndex(x => x.ReservationId).HasDatabaseName("ix_transactions_reservation");
 
@@ -726,7 +726,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AgreedLatitude).HasPrecision(9, 6).IsRequired();
             entity.Property(x => x.AgreedLongitude).HasPrecision(9, 6).IsRequired();
             entity.Property(x => x.AgreedTime).IsRequired();
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             entity.Property(x => x.BuyerCheckedIn).HasDefaultValue(false).IsRequired();
             entity.Property(x => x.BuyerCheckedInAt);
@@ -777,7 +777,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.ReviewType).IsRequired().HasMaxLength(20);
 
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             entity.ToTable(t =>
             {
@@ -807,12 +807,15 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DeviceToken>(entity =>
         {
             entity.HasKey(x => x.DeviceTokenId);
-            entity.Property(x => x.DeviceTokenId).HasDefaultValueSql("gen_random_uuid()").ValueGeneratedOnAdd();
+            entity
+                .Property(x => x.DeviceTokenId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .ValueGeneratedOnAdd();
 
             entity.Property(x => x.Token).HasMaxLength(512).IsRequired();
             entity.Property(x => x.Platform).HasMaxLength(10).IsRequired();
-            entity.Property(x => x.CreatedAt).HasDefaultValueSql(NowString);
-            entity.Property(x => x.LastSeenAt).HasDefaultValueSql(NowString);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString);
+            entity.Property(x => x.LastSeenAt).HasDefaultValueSql(_nowString);
 
             entity
                 .HasOne(x => x.User)
@@ -831,4 +834,3 @@ public class AppDbContext : DbContext
         });
     }
 }
-

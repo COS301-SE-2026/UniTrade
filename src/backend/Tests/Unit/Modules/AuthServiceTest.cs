@@ -8,6 +8,7 @@ using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
+using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
@@ -18,6 +19,7 @@ using Moq;
 using Xunit;
 using UniversityDto = Modules.Identity.Models.DTO.University;
 using UniversityEntity = Modules.ReferenceData.University.University;
+
 namespace UniTrade.Tests.Unit.Modules;
 
 [Trait("Category", "Unit")]
@@ -31,6 +33,10 @@ public class IdentityServiceTests
     private readonly Mock<IConfiguration> _configMock;
     private readonly IdentityService _service;
 
+    private readonly Mock<IVerificationRepository> _verificationRepositoryMock;
+    private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly VerificationService _verificationService;
+
     public IdentityServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
@@ -41,11 +47,19 @@ public class IdentityServiceTests
         _configMock
             .Setup(c => c["Jwt:Secret"])
             .Returns("super_secret_key_that_is_at_least_32_bytes_long_12345!!");
-
+        _configMock.Setup(c => c["Otp:Secret"]).Returns("ut-otp-secret");
         _service = new IdentityService(
             _userRepositoryMock.Object,
             _universityRepositoryMock.Object,
             _listingRepositoryMock.Object,
+            _configMock.Object
+        );
+        _verificationRepositoryMock = new Mock<IVerificationRepository>();
+        _emailServiceMock = new Mock<IEmailService>();
+        _verificationService = new VerificationService(
+            _verificationRepositoryMock.Object,
+            _userRepositoryMock.Object,
+            _emailServiceMock.Object,
             _configMock.Object
         );
     }
@@ -413,15 +427,247 @@ public class IdentityServiceTests
     [InlineData("u12345678@tuks.co.za", "u12345678@tuks.co.za")]
     [InlineData("u12345678\uff20tuks.co.za", "u12345678@tuks.co.za")]
     [InlineData("u123\u200b45678@tuks.co.za", "u12345678@tuks.co.za")]
-    [InlineData("u1234\u00d5678@tuks.co.za", "u12345678@tuks.co.za")]
     [InlineData("u12345678\u2060@tuks.co.za", "u12345678@tuks.co.za")]
     [InlineData("\ufeffu12345678@tuks.co.za", "u12345678@tuks.co.za")]
     public void NormaliseEmail_folds_and_strips(string input, string expected)
     {
-        //IdentityService.NormaliseDomain(input).Should().Be(expected);
+        Assert.Equal(expected, IdentityService.NormaliseEmail(input));
     }
 
-    
+    [Theory]
+    [InlineData("tuks\uff0eco\uff0eza", "tuks.co.za")]
+    [InlineData("tuks\u3002co\u3002za", "tuks.co.za")]
+    [InlineData("tuks\uff61co\uff61za", "tuks.co.za")]
+    [InlineData("tuks.co.za", "tuks.co.za")]
+    public void NormaliseEmail_FoldsDotHomoglyphs(string input, string expected)
+    {
+        Assert.Equal(expected, IdentityService.NormaliseDomain(input));
+    }
 
+    [Fact]
+    public async Task RegisterAsync_RejectsHomoglyphEmail_WhenRealDomainNotWhitelisted()
+    {
+        var dto = ARegisterDto("u12345678@tuks\uff0eco.za");
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("tuks.co.za"))
+            .ReturnsAsync((UniversityEntity?)null);
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((User?)null);
 
+        var exception = await Assert.ThrowsAsync<IdentityException>(() =>
+            _service.RegisterAsync(dto)
+        );
+
+        Assert.Equal("invalid_domain", exception.Message);
+        _userRepositoryMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("u12345678\uff20tuks.co.za")]
+    [InlineData("u12345678@tuks\uff0eco\uff0eza")]
+    [InlineData("u12345678@tuks\u3002co\u3002za")]
+    [InlineData("u12345678@tuks\uff61co\uff61za")]
+    [InlineData("u1234\u200b5678@tuks.co.za")]
+    [InlineData("u12345678@TuKs.Co.Za")]
+    public async Task RegisterAsync_FoldsHomoglyphEmail_AndResolvesToRealUniversity(
+        string dirtyEmail
+    )
+    {
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("tuks.co.za"))
+            .ReturnsAsync(new UniversityEntity());
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+
+        var result = await _service.RegisterAsync(ARegisterDto(dirtyEmail));
+
+        Assert.Equal("u12345678@tuks.co.za", result.Email);
+        Assert.Equal("u12345678", result.StudentProfile!.StudentNumber);
+        _universityRepositoryMock.Verify(r => r.GetByDomainAsync("tuks.co.za"), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_NfcNormalisesDecomposedCharacters_BeforePunycode()
+    {
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("xn--tuk-eza.co.za"))
+            .ReturnsAsync(new UniversityEntity());
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+
+        await _service.RegisterAsync(ARegisterDto("u12345678@tuks\u0301.co.za"));
+
+        _universityRepositoryMock.Verify(r => r.GetByDomainAsync("xn--tuk-eza.co.za"), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_ConvertsUnicodeDomainToPunycode_ForAllowListLookup()
+    {
+        var dto = ARegisterDto("u12345678@tuk\u015B.co.za");
+
+        _universityRepositoryMock
+            .Setup(r => r.GetByDomainAsync("xn--tuk-eza.co.za"))
+            .ReturnsAsync(new UniversityEntity());
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.Equal("u12345678@tuk\u015B.co.za", result.Email);
+        _universityRepositoryMock.Verify(r => r.GetByDomainAsync("xn--tuk-eza.co.za"), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(1, 2)]
+    [InlineData(2, 4)]
+    [InlineData(3, 8)]
+    [InlineData(5, 32)]
+    [InlineData(8, 256)]
+    [InlineData(10, 900)]
+    [InlineData(11, 900)]
+    public async Task VerifyAsync_AppliesExponentialBackoff_WhenRetryimhWIthinWindow(
+        int prevFailureCount,
+        int expectedDelaySeconds
+    )
+    {
+        var record = FailingReqRecord(
+            totalAttempts: prevFailureCount,
+            lastAttempt: DateTime.UtcNow
+        );
+        _verificationRepositoryMock
+            .Setup(r => r.GetCurrentByUserIdAsync(record.UserId))
+            .ReturnsAsync(record);
+
+        var exception = await Assert.ThrowsAsync<VerificationException>(() =>
+            _verificationService.VerifyAsync(record.UserId, "000000")
+        );
+
+        var parts = exception.Message.Split(':');
+        Assert.Equal("too_many_attempts", parts[0]);
+
+        var waitSeconds = int.Parse(parts[1]);
+        Assert.InRange(waitSeconds, expectedDelaySeconds - 1, expectedDelaySeconds);
+        _verificationRepositoryMock.Verify(
+            r => r.UpdateAsync(It.IsAny<VerificationRequest>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task VerifyAsync_AppliesNoDelayWhenNoPriorFailures()
+    {
+        var record = FailingReqRecord(totalAttempts: 0, lastAttempt: DateTime.UtcNow);
+        _verificationRepositoryMock
+            .Setup(r => r.GetCurrentByUserIdAsync(record.UserId))
+            .ReturnsAsync(record);
+
+        var exception = await Assert.ThrowsAsync<VerificationException>(() =>
+            _verificationService.VerifyAsync(record.UserId, "000000")
+        );
+
+        Assert.Equal("invalid_otp", exception.Message);
+        Assert.Equal(1, record.AttemptNumber);
+
+        _verificationRepositoryMock.Verify(r => r.UpdateAsync(record), Times.Once);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_DelayNeverExceeds15Minutes_WhenFauilureCountsAreHigh()
+    {
+        var record = FailingReqRecord(totalAttempts: 40, lastAttempt: DateTime.UtcNow);
+        _verificationRepositoryMock
+            .Setup(r => r.GetCurrentByUserIdAsync(record.UserId))
+            .ReturnsAsync(record);
+
+        var exception = await Assert.ThrowsAsync<VerificationException>(() =>
+            _verificationService.VerifyAsync(record.UserId, "000000")
+        );
+
+        var waitSeconds = int.Parse(exception.Message.Split(':')[1]);
+        Assert.InRange(waitSeconds, 899, 900);
+    }
+
+    [Fact]
+    public async Task ResendAsync_ResetsPreOtpAttempts_ButPreservesCumulatoveBackoff()
+    {
+        var record = new VerificationRequest
+        {
+            UserId = Guid.NewGuid(),
+            OtpVerifiedAt = null,
+            OtpSentAt = DateTime.UtcNow.AddMinutes(-5),
+            AttemptNumber = 2,
+            TotalAttemptCount = 5,
+            OtpResendCount = 0,
+        };
+
+        _verificationRepositoryMock
+            .Setup(r => r.GetCurrentByUserIdAsync(record.UserId))
+            .ReturnsAsync(record);
+        _verificationRepositoryMock
+            .Setup(r => r.UpdateAsync(It.IsAny<VerificationRequest>()))
+            .Returns(Task.CompletedTask);
+        _emailServiceMock
+            .Setup(e => e.SendOtpEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        await _verificationService.ResendAsync(record.UserId, "u12345678@tuks.co.za");
+        Assert.Equal(0, record.AttemptNumber);
+        Assert.Equal(5, record.TotalAttemptCount!.Value);
+    }
+
+    [Fact]
+    public async Task ResendAsync_Throws_WhenWIthinCooldown()
+    {
+        var record = new VerificationRequest
+        {
+            UserId = Guid.NewGuid(),
+            OtpVerifiedAt = null,
+            OtpSentAt = DateTime.UtcNow.AddSeconds(-10),
+        };
+        _verificationRepositoryMock
+            .Setup(r => r.GetCurrentByUserIdAsync(record.UserId))
+            .ReturnsAsync(record);
+
+        var exception = await Assert.ThrowsAsync<VerificationException>(() =>
+            _verificationService.ResendAsync(record.UserId, "u12345678@tuks.co.za")
+        );
+        Assert.Equal("cooldown_active", exception.Message);
+    }
+
+    private static RegisterDto ARegisterDto(string email) =>
+        new()
+        {
+            Email = email,
+            Password = "SafePassword78(*)",
+            YearOfStudy = 3,
+            FirstName = "Registerer",
+            LastName = "RegistersLName",
+            PhoneNumber = "0773882746",
+            DegreeProgram = "Computer Science",
+        };
+
+    private static VerificationRequest FailingReqRecord(
+        int totalAttempts,
+        DateTime lastAttempt,
+        int attemptNumber = 0
+    ) =>
+        new()
+        {
+            UserId = Guid.NewGuid(),
+            OtpCodeHash = Convert.ToBase64String(new byte[32]),
+            OtpExpiresAt = DateTime.UtcNow.AddMinutes(5),
+            OtpVerifiedAt = null,
+            AttemptNumber = attemptNumber,
+            TotalAttemptCount = totalAttempts,
+            LastAttemptAt = lastAttempt,
+            Status = "otp_pending",
+            IsCurrent = true,
+        };
 }
