@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import type { CreateReservationRequest, ChatMessage } from '../../types/Reservations'
 import type { ReservationListItem} from '../../types/Reservations'
 import type { ProposeMeetupPayload } from '../../types/listing';
+import type { Review } from '../../types/listing';
 
 interface MockListing {
   listingId: string;
@@ -23,6 +24,27 @@ interface AcceptMeetupRequestBody {
   proposalMessageId: number
 }
 
+interface MockTransaction {
+  reservationId: string
+  transactionId: string | null
+  transactionStatus: 'none' | 'completed' | string
+  pinStatus: 'pending' | 'confirmed' | null
+  pin: string | null
+  paidAt: string | null 
+}
+
+let mockTransactions: MockTransaction[] = []
+let mockReviews: Review[] = []
+
+export function resetMockTransactions() {
+  mockTransactions = []
+}
+
+export function resetMockReviews() {
+  mockReviews = []
+}
+
+
 let mockListings: MockListing[] = [];
 let nextId = 1;
 let mockReservations: ReservationListItem[] = []
@@ -41,6 +63,68 @@ export function resetMockReservations() {
   mockReservations = []
   nextReservationId = 1
 }
+
+export function seedMockTransaction(overrides: Partial<MockTransaction> = {}): MockTransaction{
+  const tx: MockTransaction = {
+    reservationId: '1',
+    transactionId: `txn-${overrides.reservationId ?? '1'}`,
+    transactionStatus: 'completed',
+    pinStatus: 'confirmed',
+    pin: null,
+    paidAt: new Date().toISOString(),
+    ...overrides,
+  }
+  mockTransactions.push(tx)
+  return tx
+}
+
+export function seedMockReview(overrides: Partial<Review> = {}): Review {
+  const review = {
+    reviewId: String(Date.now()),
+    reviewType: 'buyer_to_seller',
+    reviewerId: 'buyer-1',
+    revieweeId: 'seller-1',
+    transactionId: 'txn-1',
+    rating: 5,
+    comment: 'Great transaction, really easy to communicate with the seller',
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  } as Review
+  mockReviews.push(review)
+  return review
+
+}
+
+export const orderFlowHandlers = [
+  http.get('http://localhost:5000/api/reservations/:id/transaction-status', ({ params }) => {
+    const tx = mockTransactions.find(t => t.reservationId === params.id)
+    if (!tx) {
+      return HttpResponse.json({
+        transactionId: null,
+        transactionStatus: 'none',
+        pinStatus: null,
+        pin: null,
+        paidAt: null,
+      })
+    }
+    return HttpResponse.json(tx)
+  }),
+
+  http.get('http://localhost:5000/api/reviews/users/:userId', ({ params }) => {
+    const reviews = mockReviews.filter(r => r.revieweeId === params.userId)
+    return HttpResponse.json({ reviews })
+  }),
+
+  http.post('http://localhost:5000/api/reviews', async ({ request }) => {
+    const body = await request.json() as Partial<Review>
+    const review = seedMockReview(body)
+    return HttpResponse.json(review, { status: 201 })
+  }),
+
+  http.get('http://localhost:5000/api/reservations/:id/meetup', () => {
+    return new HttpResponse(null, { status: 404 })
+  }),
+]
 
 export function seedMockListing(overrides: Partial<MockListing> = {}) {
   const listing = {
