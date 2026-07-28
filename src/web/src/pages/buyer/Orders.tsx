@@ -1,6 +1,6 @@
 
 import { useEffect, useCallback, useState, useMemo} from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { AlertCircle, Star} from 'lucide-react'
 import { listingsService } from '../../services/listingsService';
 import { formatPrice} from '../../utils/formatters';
