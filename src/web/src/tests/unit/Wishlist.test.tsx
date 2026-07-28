@@ -345,10 +345,10 @@ expect(updater(undefined)).toBeUndefined();
             mockWishlist({
                 listings: [
                     makeListing({ id: '47', title: 'ListA', price: 300, addedAt: '2026-07-04'}),
-                    makeListing({ id: '49', title: 'ListB', price: 300, addedAt: '2026-07-07'}),
-                    makeListing({ id: '51', title: 'ListC', price: 300, addedAt: '2026-07-14'}),
+                    makeListing({ id: '49', title: 'ListB', price: 100, addedAt: '2026-07-17'}),
+                    makeListing({ id: '51', title: 'ListC', price: 200, addedAt: '2026-07-14'}),
                 ],
-                total: 900,
+                total: 600,
             })
         })
 
@@ -361,10 +361,33 @@ expect(updater(undefined)).toBeUndefined();
             fireEvent.click(screen.getByText(/sort by/i));
             fireEvent.click(screen.getByText('Price low'));
 
-            expect(titleOrder()).toEqual(['ListA','ListB','ListC']);
+            expect(titleOrder()).toEqual(['ListB','ListC','ListA']);
+        })
+        
+        it('sorts by price, high to low', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Price high'));
+
+            expect(titleOrder()).toEqual(['ListA','ListC','ListB']);
+        })
+        
+        it('sorts by date added,most recent first', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Date added'));
+
+            expect(titleOrder()).toEqual(['ListB','ListC','ListA']);
         })
 
-        
+        it('closes the sort dropdown after selecting an option', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Price low'));
+
+            expect(screen.queryByText('Price high')).not.toBeInTheDocument();
+            
+        })
     })
 
   
