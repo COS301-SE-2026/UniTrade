@@ -155,7 +155,13 @@ jobs:
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-              "VITE_API_URL=${{ secrets.VITE_API_URL_STAGING }}"
+              "VITE_API_URL=${{ secrets.VITE_API_URL_STAGING }}" \
+              "FIREBASE_API_KEY=${{secrets.VITE_FIREBASE_API_KEY}}" \
+              "FIREBASE_AUTH_DOMAIN=${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}" \
+              "FIREBASE_PROJECT_ID=${{secrets.VITE_FIREBASE_PROJECT_ID}}" \
+              "FIREBASE_SENDER_ID=${{secrets.VITE_FIREBASE_SENDER_ID}}" \
+              "FIREBASE_APP_ID=${{secrets.VITE_FIREBASE_APP_ID}}" \
+              "FIREBASE_VAPID_KEY=${{secrets.VITE_FIREBASE_VAPID_KEY}}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
       - name: Wait for backend revision to be Running
         run: |
@@ -354,7 +360,13 @@ jobs:
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-              "VITE_API_URL=${{ secrets.VITE_API_URL }}"
+              "VITE_API_URL=${{ secrets.VITE_API_URL }}" \
+              "FIREBASE_API_KEY=${{secrets.VITE_FIREBASE_API_KEY}}" \
+              "FIREBASE_AUTH_DOMAIN=${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}" \
+              "FIREBASE_PROJECT_ID=${{secrets.VITE_FIREBASE_PROJECT_ID}}" \
+              "FIREBASE_SENDER_ID=${{secrets.VITE_FIREBASE_SENDER_ID}}" \
+              "FIREBASE_APP_ID=${{secrets.VITE_FIREBASE_APP_ID}}" \
+              "FIREBASE_VAPID_KEY=${{secrets.VITE_FIREBASE_VAPID_KEY}}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Health check production backend (green)
