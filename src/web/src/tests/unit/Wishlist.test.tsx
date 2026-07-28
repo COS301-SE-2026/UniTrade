@@ -1,4 +1,4 @@
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen, fireEvent, findByText} from '@testing-library/react';
 import Wishlist from '../../pages/buyer/Wishlist';
 import { useWishlist } from '../../hooks/useWishlist';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -219,7 +219,59 @@ describe ('reserving a listing', () => {
 
     })
 
-    it('disables the reservation button and shows "Unavailable for a non-live listing', () =>{
+    it('shows a self-reserve error message', async () =>
+    {
+        vi.mocked(createReservation).mockResolvedValueOnce({
+            success: false,
+            error: { code: 'self_reserve'},
+        }as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', {name: /reserve/i }));
+
+        expect(await screen.findByText('You cant reserve your own listing.')).toBeInTheDocument();
+    });
+
+    it('shows an already-reserved error message', async () => {
+        vi.mocked(createReservation).mockResolvedValueOnce({
+                  success: false,
+            error: { code: 'already_reserved'},
+        }as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', { name: /reserve/i }))
+
+        expect(
+            await screen.findByText('Sorry, This Item has already been reserved by someone else'),).toBeInTheDocument();
+        })
+
+        it('shows the server-provided message for an unrecognised error code', async() =>{
+            vi.mocked(createReservation).mockResolvedValueOnce({
+                success: false,
+                error: {
+                    code: 'weird_error', message: 'Something unexpected happened'},
+
+                }as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', { name: /reserve/i }))
+        expect(await screen.findByText('Something unexpected happened')).toBeInTheDocument();
+            })
+        it('falls back to a generic message when no error message is provided', async ()=>{
+vi.mocked(createReservation).mockResolvedValueOnce({
+  success: false,
+                error: {
+                    code: 'weird_error'},
+
+                }as unknown as ReservationResult);
+        renderWishlist();
+ fireEvent.click(screen.getByRole('button', { name: /reserve/i }))
+        expect(await screen.findByText('Could not reserve this item.')).toBeInTheDocument();
+            })
+        });
+
+
+    it('disables the reservation button and shows "Unavailable" for a non-live listing', () =>{
      mockWishlist({
             listings: [makeListing ({id:'10', status:'reserved'})],
             total :150,
@@ -229,7 +281,7 @@ describe ('reserving a listing', () => {
         expect(reserveButton).toBeDisabled();
     })
 
-})
+
 
 
 
