@@ -9,6 +9,7 @@ import {
   formatCondition,
 } from "../../utils/formatters";
 import type { SellerListingDetail as SellerListingDetailType } from "../../types/listing";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function DetailRow({
   label,
@@ -65,12 +66,8 @@ export default function SellerListingDetail() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+  {loading && <LoadingState message = "Loading..." /> } 
+  
 
   if (error || !listing)
     return (

@@ -266,7 +266,9 @@ export default function HelpCenter() {
       title: 'Buyer Protection', 
       description: 'Whats covered is something goes wrong.',
       details: [
-        "still need to add this lol "
+        "Because payments only happens after you have inspected the item in person at the meetup, you are never paying for something sight-unseen, you can decide to now go through with the payment. ",
+        "If a problem still comes up , use 'Report a Problem'  to flag it to our admin team.",
+        "An admin will review the situation - including your chat history and any details from both sides and then after that to decide on the next steps , which may include restricting an account or removing a listing.",
 
       ] },
     { icon: <IconStar size={22} className="text-[#003366]" />, 
