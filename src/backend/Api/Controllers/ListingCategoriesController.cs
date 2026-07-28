@@ -1,13 +1,12 @@
-using Modules.Listings.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Listings.Models;
+using Modules.Listings.Repositories;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("api/listing-categories")]
-
 public class ListingCategoriesController : ControllerBase
 {
     private readonly IListingRepository _listingsrepo;

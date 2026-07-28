@@ -31,8 +31,8 @@ public class IdentityService : IIdentityService
     private readonly IListingRepository _listings;
     private readonly IConfiguration _config;
 
-    private const string StudentRole = "student";
-    private const string PendingStatus = "pending";
+    private const string _studentRole = "student";
+    private const string _pendingStatus = "pending";
 
     public IdentityService(
         IUserRepository users,
@@ -105,7 +105,7 @@ public class IdentityService : IIdentityService
             throw currentStatus switch
             {
                 "verified" => new IdentityException("email_taken"),
-                PendingStatus => new IdentityException("otp_already_sent"),
+                _pendingStatus => new IdentityException("otp_already_sent"),
                 _ => new IdentityException("email_taken"),
             };
         }
@@ -121,7 +121,7 @@ public class IdentityService : IIdentityService
             Email = normalisedEmail,
             PhoneNumber = dto.PhoneNumber ?? "",
             PasswordHash = passwordHash,
-            Role = StudentRole,
+            Role = _studentRole,
 
             StudentProfile = new StudentProfile
             {
@@ -338,20 +338,20 @@ public class IdentityService : IIdentityService
         }
         string verificationStatus;
 
-        if (user.Role == StudentRole)
+        if (user.Role == _studentRole)
         {
             if (user.StudentProfile != null)
             {
-                verificationStatus = user.StudentProfile.VerificationStatus ?? PendingStatus;
+                verificationStatus = user.StudentProfile.VerificationStatus ?? _pendingStatus;
             }
             else
             {
-                verificationStatus = PendingStatus;
+                verificationStatus = _pendingStatus;
             }
         }
         else
         {
-            verificationStatus = PendingStatus;
+            verificationStatus = _pendingStatus;
         }
 
         return TokenGenerator(user, verificationStatus);
@@ -375,7 +375,7 @@ public class IdentityService : IIdentityService
             new Claim("role", user.Role),
         };
 
-        if (user.Role == StudentRole)
+        if (user.Role == _studentRole)
         {
             claims.Add(new Claim("verification_status"!, verificationStatus!));
         }
@@ -398,7 +398,7 @@ public class IdentityService : IIdentityService
             throw new IdentityException("not_found");
         }
 
-        if (getUser.Role == StudentRole)
+        if (getUser.Role == _studentRole)
         {
             //make a student dto
             return new
@@ -415,7 +415,7 @@ public class IdentityService : IIdentityService
                 Std = new StudentDto
                 {
                     VerificationStatus =
-                        getUser.StudentProfile?.VerificationStatus ?? PendingStatus,
+                        getUser.StudentProfile?.VerificationStatus ?? _pendingStatus,
                     DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
                     YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
                     University = getUser.StudentProfile?.University?.Name ?? string.Empty,

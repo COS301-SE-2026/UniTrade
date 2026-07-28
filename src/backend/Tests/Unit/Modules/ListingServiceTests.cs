@@ -85,7 +85,7 @@ public class ListingServiceTests
     public async Task GetByIdAsync_MapsIsBundle_AsFalse_WhenNull()
     {
         var listing = AListing();
-        listing.isBundle = null;
+        listing.IsBundle = null;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
@@ -111,7 +111,7 @@ public class ListingServiceTests
     public async Task GetByIdAsync_MapsIsBundle_AsTrue_WhenSet()
     {
         var listing = AListing();
-        listing.isBundle = true;
+        listing.IsBundle = true;
         _repo.Setup(r => r.GetByIdAsync(listing.ListingId)).ReturnsAsync(listing);
 
         var result = await _sut.GetByIdAsync(listing.ListingId);
@@ -883,6 +883,176 @@ public class ListingServiceTests
         Assert.Single(dto.Images);
     }
 
+    [Theory]
+    [InlineData("live", "draft")]
+    [InlineData("live", "removed")]
+    [InlineData("draft", "live")]
+    [InlineData("draft", "removed")]
+    [InlineData("removed", "live")]
+    public async Task UpdateStatusAsync_AllowsSellerTransitions_BetweenOpenStatuses(
+        string from,
+        string to
+    )
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(
+            sellerId: seller,
+            images: new List<ListingImage> { new() { ImageId = 1 } }
+        );
+        listing.ListingStatus = from;
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync(listing);
+
+        var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, to);
+
+        Assert.True(result);
+        Assert.Equal(to, listing.ListingStatus);
+        _repo.Verify(r => r.SaveAsync(), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("reserved")]
+    [InlineData("sold")]
+    [InlineData("pending")]
+    [InlineData("rejected")]
+    [InlineData("low_visibilty")]
+    [InlineData("random_listing_status")]
+    public async Task UpdateStatusAsync_ThrowsInvalidStatus_WhenStatusIsNotSellerSettable(
+        string status
+    )
+    {
+        var listing = AListing();
+        listing.ListingStatus = "live";
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            _sut.UpdateStatusAsync(listing.ListingId, listing.SellerId, status)
+        );
+        Assert.Equal("invalid_status", exception.Message);
+        _repo.Verify(r => r.GetByIdTrackedAsync(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("reserved")]
+    [InlineData("sold")]
+    [InlineData("pending")]
+    [InlineData("rejected")]
+    public async Task UpdateStatusAsync_ThrowsStatusLocked_WhenCurrentStatusIsLocked(
+        string currStatus
+    )
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(
+            sellerId: seller,
+            images: new List<ListingImage> { new() { ImageId = 1 } }
+        );
+        listing.ListingStatus = currStatus;
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync(listing);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _sut.UpdateStatusAsync(listing.ListingId, listing.SellerId, "live")
+        );
+        Assert.Equal("status_locked", exception.Message);
+        _repo.Verify(r => r.SaveAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ThrowsForbidden_WhenNotOwner()
+    {
+        var sellerId = Guid.NewGuid();
+        var listing = AListing(sellerId: sellerId);
+        listing.ListingStatus = "live";
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _sut.UpdateStatusAsync(listing.ListingId, Guid.NewGuid(), "draft")
+        );
+        Assert.Equal("forbidden", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_RejectsListingToGoLive_WhenNoImages()
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(
+            sellerId: seller,
+            description: "listing with a description",
+            images: new List<ListingImage>()
+        );
+        listing.ListingStatus = "draft";
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _sut.UpdateStatusAsync(listing.ListingId, seller, "live")
+        );
+        Assert.Equal("images_required", exception.Message);
+        _repo.Verify(r => r.SaveAsync(), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public async Task UpdateStatusAsync_RejectsListingToGoLive_WhenBlackDescription(string blank)
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(
+            sellerId: seller,
+            description: blank,
+            images: new List<ListingImage> { new() { ImageId = 1 } }
+        );
+
+        listing.ListingStatus = "draft";
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _sut.UpdateStatusAsync(listing.ListingId, seller, "live")
+        );
+        Assert.Equal("description_required", exception.Message);
+        _repo.Verify(r => r.SaveAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ToDraft_AllowedWhenNoImages()
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(sellerId: seller, images: new List<ListingImage>());
+        listing.ListingStatus = "live";
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, "draft");
+        Assert.True(result);
+        Assert.Equal("draft", listing.ListingStatus);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ListingGoesLive_WhenImagesAndDescriptionPresent()
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(
+            sellerId: seller,
+            description: "Describing listing",
+            images: new List<ListingImage> { new() { ImageId = 1 } }
+        );
+        listing.ListingStatus = "draft";
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, "live");
+        Assert.True(result);
+        Assert.Equal("live", listing.ListingStatus);
+        _repo.Verify(r => r.SaveAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ToRemoved_AllowedWhenNoImagesOrDescription()
+    {
+        var seller = Guid.NewGuid();
+        var listing = AListing(sellerId: seller, description: "", images: new List<ListingImage>());
+        listing.ListingStatus = "live";
+        _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, "removed");
+        Assert.True(result);
+        Assert.Equal("removed", listing.ListingStatus);
+    }
+
     private static Listing AListing(
         string title = "Sample",
         string description = "desc",
@@ -901,7 +1071,7 @@ public class ListingServiceTests
             Price = price,
             Condition = condition,
             ListingStatus = "live",
-            isBundle = false,
+            IsBundle = false,
             ViewCount = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,

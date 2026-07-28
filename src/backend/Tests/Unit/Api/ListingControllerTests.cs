@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Api.Controllers;
@@ -12,7 +13,7 @@ using Modules.SharedKernel;
 using Moq;
 using Xunit;
 
-namespace Api.Tests;
+namespace UniTrade.Tests.Unit.Api;
 
 [Trait("Category", "Unit")]
 public class ListingControllerTests
@@ -70,11 +71,6 @@ public class ListingControllerTests
             Seller: null
         );
 
-    // PUT /api/listings/{id} Update
-
-
-    // DELETE /api/listings/{id} Delete
-
     // GET /api/listings GetAll
     [Fact]
     public async Task GetAll_ReturnsOkWithPagedResult()
@@ -111,9 +107,95 @@ public class ListingControllerTests
         Assert.Same(dto, ok.Value);
     }
 
-    // POST /api/listings/images UploadImages
+    [Theory]
+    [InlineData(-5)]
+    [InlineData(0)]
+    public async Task Create_AllowDraft_WithNonPositivePrice(decimal price)
+    {
+        var callerId = AuthenticateEnvoker();
+        var dto = ADraftDto(price: price);
+        _service
+            .Setup(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId))
+            .ReturnsAsync(ASummaryDto());
 
-    // Helper
+        var result = await _sut.Create(dto);
+
+        Assert.IsType<OkObjectResult>(result);
+        _service.Verify(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId));
+    }
+
+    [Fact]
+    public async Task Create_AllowDraft_WithMissingCondition()
+    {
+        var callerId = AuthenticateEnvoker();
+        var dto = ADraftDto(condition: "");
+        _service
+            .Setup(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId))
+            .ReturnsAsync(ASummaryDto());
+
+        var result = await _sut.Create(dto);
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Create_RejectsDraft_WithMissingTitle()
+    {
+        AuthenticateEnvoker();
+        var dto = ADraftDto(title: "");
+
+        var result = await _sut.Create(dto);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        _service.Verify(
+            s => s.CreateListings(It.IsAny<CreateListingDto>(), It.IsAny<Guid>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Create_AllowsLive_WhenPriceAndCOnditionPresent()
+    {
+        var callerId = AuthenticateEnvoker();
+        var dto = ADraftDto(condition: "good", price: 12m);
+        _service
+            .Setup(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId))
+            .ReturnsAsync(ASummaryDto());
+
+        var result = await _sut.Create(dto);
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    private Guid AuthenticateEnvoker()
+    {
+        var callerId = Guid.NewGuid();
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(new[] { new Claim("sub", callerId.ToString()) }, "AuthTesting")
+        );
+        _sut.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = user },
+        };
+        return callerId;
+    }
+
+    private static CreateListingDto ADraftDto(
+        string title = "Product",
+        string condition = "good",
+        decimal price = 100m
+    ) =>
+        new()
+        {
+            Title = title,
+            Description = "desc",
+            Price = price,
+            Condition = condition,
+            CourseId = null,
+            ListingStatus = "draft",
+            IsBundle = false,
+            Images = new List<CreateListingImageDto>(),
+        };
 
     private static CreateListingDto ACreateDto(
         string title = "Product",
