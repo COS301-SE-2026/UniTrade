@@ -8,7 +8,7 @@ public class ReservationExpiryWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ReservationExpiryWorker> _logger;
-    private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
 
     public ReservationExpiryWorker(
         IServiceScopeFactory scopeFactory,
@@ -21,7 +21,7 @@ public class ReservationExpiryWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        using var timer = new PeriodicTimer(Interval);
+        using var timer = new PeriodicTimer(_interval);
 
         do
         {
