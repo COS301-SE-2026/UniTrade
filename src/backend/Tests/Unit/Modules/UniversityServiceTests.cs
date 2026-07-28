@@ -30,7 +30,10 @@ public class UniversityServiceTests
             {
                 UniversityId = 2,
                 Name = "University of Pretoria",
-                EmailDomain = "tuks.co.za",
+                EmailDomains = new List<UniversityEmailDomain>
+                {
+                    new() { EmailDomain = "tuks.co.za", IsActive = true },
+                },
                 IsActive = true,
             },
         };
@@ -40,7 +43,7 @@ public class UniversityServiceTests
 
         Assert.NotNull(result);
         Assert.Single(result);
-        Assert.Equal("tuks.co.za", result[0].Email_domain);
+        Assert.Equal("tuks.co.za", (IAsyncEnumerable<char>?)result[0].Email_domains);
         Assert.True(result[0].Is_Active);
     }
 

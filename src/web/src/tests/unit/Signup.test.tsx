@@ -236,7 +236,7 @@ describe('Signup page', () => {
       expect(screen.getByRole('combobox')).toBeDisabled()
 
       resolveUnis!([
-        { universityId: '1', name: 'University of Cape Town', emailDomain: 'uct.ac.za' }
+        { universityId: '1', name: 'University of Cape Town', emailDomains: ['uct.ac.za'] }
       ])
       await screen.findByText('University of Cape Town')
       expect(screen.getByRole('combobox')).not.toBeDisabled()

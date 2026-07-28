@@ -33,6 +33,7 @@ public class AppDbContext : DbContext
 
     // Reference data
     public DbSet<University> Universities => Set<University>();
+    public DbSet<UniversityEmailDomain> UniversityEmailDomains => Set<UniversityEmailDomain>();
     public DbSet<Course> Courses => Set<Course>();
 
     // Reservations and chat messages
@@ -181,10 +182,24 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Name).IsRequired();
 
             entity.Property(x => x.IsActive).HasDefaultValue(true);
+        });
+
+        // University email domains
+        modelBuilder.Entity<UniversityEmailDomain>(entity =>
+        {
+            entity.HasKey(x => x.DomainId);
+
+            entity.Property(x => x.DomainId).ValueGeneratedOnAdd();
 
             entity.Property(x => x.EmailDomain).IsRequired();
-
             entity.HasIndex(x => x.EmailDomain).IsUnique();
+            entity.Property(x => x.IsActive).HasDefaultValue(true);
+
+            entity
+                .HasOne(x => x.University)
+                .WithMany(u => u.EmailDomains)
+                .HasForeignKey(x => x.UniversityId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Course
