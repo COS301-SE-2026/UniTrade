@@ -120,14 +120,32 @@ export default function MeetupDetails() {
       if (result.success) setTxStatus(result.data);
     });
 
-    connectionManager.connect().catch((e) => console.error('connect failed', e));
+    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
+
     const off = connectionManager.onPaymentCompleted((e) => {
       if (e.reservationId !== reservationId) return;
       getTransactionStatus(reservationId).then((result) => {
         if (result.success) setTxStatus(result.data);
       });
     });
-    return () => off();
+
+    const offPin = connectionManager.onPinGenerated((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });
+    /*const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });*/
+    return () => {
+      off();
+      offPin();
+      //offPinConfirmed();
+    };
   }, [reservationId, isSeller]);
 
   const handlePayNow = async () => {
@@ -185,7 +203,7 @@ export default function MeetupDetails() {
             </button>
             <div >
               <h1 className="text-xl text-white font-bold">Meetup Details</h1>
-              <p className="text-xs text-white/80"> { isSeller ? 'Review your meetup details and confirm the transaction' : 'Review your transaction before completing payment'}</p>
+              <p className="text-xs text-white/80"> {isSeller ? 'Review your meetup details and confirm the transaction' : 'Review your transaction before completing payment'}</p>
             </div>
 
           </div>

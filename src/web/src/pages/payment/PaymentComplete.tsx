@@ -32,6 +32,7 @@ export default function PaymentComplete() {
     tick();*/
 
 
+    
     connectionManager.connect().catch((e) => console.error('connect failed', e));
 
     const off = connectionManager.onPinGenerated((e) => {

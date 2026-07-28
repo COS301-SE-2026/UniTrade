@@ -23,8 +23,8 @@ class ConnectionManager {
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
   private readonly listingListeners = new Set<(listingId: string, event: "reserved" | "released") => void>();
-  private readonly pinGeneratedListeners = new Set<(e: { reservationId: string; pin: string}) => void>();
-  private readonly paymentCompletedListeners = new Set<(e: { reservationId: string}) => void>();
+  private readonly pinGeneratedListeners = new Set<(e: { reservationId: string; pin: string }) => void>();
+  private readonly paymentCompletedListeners = new Set<(e: { reservationId: string }) => void>();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -43,22 +43,23 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
-      conn.on("ListingReserved", (p: { listingId: string }) =>{
-      
-        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));}
-      );
-      conn.on("ListingReleased", (p: { listingId: string }) =>
-      {
-      
-        this.listingListeners.forEach((cb) => cb(p.listingId, "released"));}
-      );
-      conn.on("pin_generated", (e: {reservationId: string; pin: string}) =>
-      this.pinGeneratedListeners.forEach((cb) => cb(e)),
-    );
+      conn.on("ListingReserved", (p: { listingId: string }) => {
 
-    conn.on("payment_completed", (e: { reservationId: string}) =>
-    this.paymentCompletedListeners.forEach((cb) => cb(e)),
-  );
+        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));
+      }
+      );
+      conn.on("ListingReleased", (p: { listingId: string }) => {
+
+        this.listingListeners.forEach((cb) => cb(p.listingId, "released"));
+      }
+      );
+      conn.on("pin_generated", (e: { reservationId: string; pin: string }) =>
+        this.pinGeneratedListeners.forEach((cb) => cb(e)),
+      );
+
+      conn.on("payment_completed", (e: { reservationId: string }) =>
+        this.paymentCompletedListeners.forEach((cb) => cb(e)),
+      );
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
@@ -102,7 +103,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
     }
   }
   async disconnect(): Promise<void> {
@@ -156,12 +157,12 @@ class ConnectionManager {
     return () => this.stateListeners.delete(callback);
   }
 
-  onPinGenerated(callback: (e: {reservationId: string; pin: string}) => void): Unsubscribe {
+  onPinGenerated(callback: (e: { reservationId: string; pin: string }) => void): Unsubscribe {
     this.pinGeneratedListeners.add(callback);
     return () => this.pinGeneratedListeners.delete(callback);
   }
-  
-  onPaymentCompleted(callback: (e: { reservationId: string}) => void): Unsubscribe {
+
+  onPaymentCompleted(callback: (e: { reservationId: string }) => void): Unsubscribe {
     this.paymentCompletedListeners.add(callback);
     return () => this.paymentCompletedListeners.delete(callback);
   }

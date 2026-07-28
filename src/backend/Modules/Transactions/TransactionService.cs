@@ -109,6 +109,11 @@ public class TransactionService : ITransactionsService
             "pin_generated",
             new { reservationId, pin }
         );
+        await _broadcast.SendToUserAsync(
+            reservation.SellerId,
+            "payment_completed",
+            new { reservationId }
+        );
     }
 
     public async Task<string> GetPendingPinAsync(
@@ -184,6 +189,17 @@ public class TransactionService : ITransactionsService
 
         await _transactions.SaveAsync(ct);
         await _reservations.SaveAsync(ct);
+
+        await _broadcast.SendToUserAsync(
+            reservation.BuyerId,
+            "pin_confirmed",
+            new { reservationId }
+        );
+        await _broadcast.SendToUserAsync(
+            reservation.SellerId,
+            "pin_confirmed",
+            new { reservationId }
+        );
     }
 
     private static string GeneratePin() =>
