@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Xunit;
 using Api.Tests.Integration;
+using Xunit;
 
 namespace Api.Tests.Integration.Infrastructure;
 
