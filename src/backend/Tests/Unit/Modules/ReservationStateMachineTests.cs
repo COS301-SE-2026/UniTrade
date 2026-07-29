@@ -318,14 +318,42 @@ public class ReservationStateMachineTests
     public void CanSellerRelease_TwelveHourBoundary(int hoursElapsed,int minutesElapsed,bool expected)
     {
         var elapsed=TimeSpan.FromHours(hoursElapsed)+TimeSpan.FromMinutes(minutesElapsed);
-        var r=MakeReservation(buyerRespondedAt:null, sellerAcknowledgedAt:DateTime.Now-elapsed;
+        var r=MakeReservation(buyerRespondedAt:null, sellerAcknowledgedAt:DateTime.Now-elapsed);
 
         var result=ReservationStateMachine.CanSellerRelease(r,DateTime.Now);
 
         Assert.Equal(expected,result);
     }
 
+    //expired rsv
+    [Fact]
+    public void Expire_StatusAlreadyTerminal_ThrowsAlreadyTerminal()
+    {
+        var r=MakeReservation(status:ReservationStatus.Cancelled,expiresAt:DateTime.Now.AddHours(-1));
+        Assert.Throws<ReservationEception>(()=> ReservationStateMachine.Expire(r,DateTime.Now));
+    }
 
+    [Fact]
+    public void Expire_ExpiresInTheFuture_ThrowsNotYetExpired()
+    {
+        var r=MakeRSV(expiresAt:Now.AddMinutes(1));
+        Assert.Throws<ReservationException>(()=>ReservationStateMachine.Expire(r, DateTime.Now));
+    }
+
+    [Fact]
+    public void Expire_ExpiresAtExactlyNow_SucceedsAndStatusBecomesExpired()
+    {
+        var r=MakeRSV(expiresAt:DateTime.Now);
+        ReservationStateMachine.Expire(r,DateTime.Now);
+        Assert.Equal(ReservationState.Expired,r.ReservationStatus);
+    }
+
+    [Fact]
+    public void Expire_ExpiresAtInThepast_StatusBecomesExpired()
+    {
+        var r=MakeRSV(expiresAt:DateTime.Now.AddMinutes(-1));
+        Assert.Equal(ReservationState.Expired,r.ReservationStatus);
+    }
 
 
 
