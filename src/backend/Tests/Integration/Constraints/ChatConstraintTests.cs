@@ -8,6 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Xunit;
 
 namespace UniTrade.Tests.Integration.Constraints;
+
 [Trait("Category", "Integration")]
 [Collection("DatabaseCollection")]
 
