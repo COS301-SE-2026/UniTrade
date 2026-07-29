@@ -57,3 +57,23 @@ test('buyer can view and reserve a seller\'s listing', async ({ browser, request
     await buyerPage.waitForURL(/\/buyer\/reservations/);
     await expect(buyerPage).toHaveURL(/\/buyer\/reservations/);
 });
+
+test('reservation fitler narrows the list to the selected status', async ({browser, request}) => {
+    const buyerContext = await browser.newContext();
+    const buyerPage = await buyerContext.newPage();
+
+    await signupAndLogin(buyerPage, request, { email: uniqueEmail('buyer-filter') });
+    await buyerPage.waitForURL(/\/buyer\/listings/);
+
+    await buyerPage.goto('/buyer/reservations');
+
+    await buyerPage.getByRole('button', { name: /filter/i }).click();
+    await buyerPage.getByRole('button', { name: /^cancelled$/i }).click();
+
+    await expect(buyerPage.getByText(/no reservations found/i)).toBeVisible();
+    await expect(
+        buyerPage.getByText(/there are no reservations with "cancelled" status/i)
+    ).toBeVisible();
+
+    await buyerContext.close();
+})
