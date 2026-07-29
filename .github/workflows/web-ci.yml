@@ -85,7 +85,11 @@ jobs:
 
       - name: Run unit tests with coverage
         working-directory: src/web
-        run: npm run test:run -- --coverage
+        run: npm run test:unit:cov
+
+      - name: Run integration tests with coverage
+        working-directory: src/web
+        run: npm run test:integration:cov
       
       - name: Validate Frontend docker image
         working-directory: src/web
