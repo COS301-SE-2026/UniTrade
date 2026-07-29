@@ -13,6 +13,8 @@ import { connectionManager } from '../../services/realtime/connectionManager';
 import { getMaxLength } from '@testing-library/user-event/dist/cjs/utils/index.js';
 import { queryClient } from '../../lib/queryClient';
 import ReservationDetails from '../../pages/buyer/ReservationDetails';
+import { field } from 'firebase/firestore/pipelines';
+import { executeQuery } from 'firebase/data-connect';
 
 const navigateMock = vi.fn();
 vi.mock('react-router', async() => {
@@ -186,4 +188,39 @@ beforeEach(() => {
         expect(payButton).toBeDisabled();
      })
 
+     it('submits a transaction request when pay is clicked and payment is unlocked', async() => {
+        vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(
+            meetupFixture({ buyerCheckedIn: true, paymentUnlocked: true})
+        );
+        vi.mocked(createTransactionRequest).mockResolvedValue({
+            success:true,
+            data: { sandbox_url: 'https://sandbox.payfast.co.za', fields: {amount: '250.00'}},
+        } as unknown as Awaited<ReturnType<typeof createTransactionRequest>>);
+
+        const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(()=> {})
+        renderMeetupDetails();
+
+        const payButton= await screen.findByRole('button', { name: /pay r250\.00/i});
+        fireEvent.click(payButton);
+        await waitFor(() => {
+            expect(createTransactionRequest).toHaveBeenCalledWith('REF441');
+        })
+
+    await waitFor(() => {
+        expect(submitSpy).toHaveBeenCalled();
     })
+    submitSpy.mockRestore();
+        })
+
+        it('Shows R when no pice is available', async ()=>{
+            vi.mocked(listingsService.getById).mockResolvedValue(
+                listingFixture({ price: undefined}) as unknown as Awaited<ReturnType<typeof listingsService.getById>>,
+            );
+            renderMeetupDetails({ reservationId: 'REF441', role: 'buyer'});
+        
+        expect(await screen.findByText('R-')).toBeInTheDocument();
+
+        });
+    });
+
+  
