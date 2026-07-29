@@ -287,3 +287,41 @@ beforeEach(() => {
     
     })
         })
+
+    describe('meetup time formatting', () =>{
+        it('shows message when no time is available',async() => {
+         vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(
+            meetupFixture({ agreedTime: undefined}) as unknown as 
+            Awaited<ReturnType<typeof listingsService.getMeetupStatus>>,
+        );  
+        renderMeetupDetails();  
+        expect(await screen.findByText('Time to be confirmed')).toBeInTheDocument();
+        })
+
+        it('shows invalid date for malformed non-emty time', async() => {
+            vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(
+                meetupFixture({ agreedTime: 'somefake'}) as unknown as 
+            Awaited<ReturnType<typeof listingsService.getMeetupStatus>>,
+            );
+             renderMeetupDetails();
+            expect(await screen.findByText('Invalid Date')).toBeInTheDocument();
+
+        })
+    })
+
+    it('renders the map when coordinates are available, and a fallback message when they are not', async() => {
+        renderMeetupDetails();
+        expect(await screen.findByTestId('location-picker')).toBeInTheDocument();
+    })
+     it('shows the map-unavailable message for no coordinates provided',async() => {
+        vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(
+                meetupFixture({ agreeLatitude: undefined, agreedLongitude:undefined}) as unknown as 
+            Awaited<ReturnType<typeof listingsService.getMeetupStatus>>,
+            );
+             renderMeetupDetails({ reservationId : 'REF441', role: 'buyer'});
+            expect(await screen.findByText(/Map preview not available/i)).toBeInTheDocument();
+
+        })
+
+    
+     
