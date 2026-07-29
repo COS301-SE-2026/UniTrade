@@ -4,7 +4,7 @@ import { signupAndLogin, uniqueEmail } from './helpers/auth';
 
 test('seller can edit a listing\'s title and price', async ({ page, request }) => {
     const originalTitle = `E2E Edit Listing ${Date.now()}`;
-    const updatedTitle = `${originalTitle} (Updated)`;
+    const updatedTitle = `E2E Edit Listing UPDATED ${Date.now()}`;
     const sellerEmail = uniqueEmail('seller');
 
     await signupAndLogin(page, request, { email: sellerEmail });
@@ -12,7 +12,7 @@ test('seller can edit a listing\'s title and price', async ({ page, request }) =
     await page.getByText('Switch', { exact: true }).click();
     await page.waitForURL(/\/seller\/listings/);
 
-    await page.getByText('New Listing', { exact: true }).click();
+    await page.getByRole('button', { name: 'New Listing' }).click();
     await page.waitForURL(/\/seller\/upload/);
 
     await page.getByTestId('category-buttons').locator('button').first().click();
@@ -26,7 +26,7 @@ test('seller can edit a listing\'s title and price', async ({ page, request }) =
     );
 
     await page.getByRole('button', {name: /^submit listing$/i}).click();
-    await page.waitForURL(/\/seller\/editListing\/.+/);
+    await page.waitForURL(/\/seller\/listings/);
     await expect(page.getByText(originalTitle)).toBeVisible();
 
 
@@ -42,9 +42,9 @@ test('seller can edit a listing\'s title and price', async ({ page, request }) =
     await page.getByRole('button', { name: /^save changes$/i }).click();
 
     await page.waitForURL(/\/seller\/listings/);
-    await expect(page.getByText(updatedTitle)).toBeVisible();
+    await expect(page.getByText(updatedTitle)).toBeVisible({timeout: 10000});
     await expect(page.getByText(originalTitle, { exact: true })).not.toBeVisible();
-    await expect(page.getByText('R 300', { exact: false })).toBeVisible();
+    await expect(page.getByText('R300', { exact: false }).last()).toBeVisible();
 });
 
 test('cancelling out of edit discards changes', async ({ page, request }) => {
@@ -55,7 +55,7 @@ test('cancelling out of edit discards changes', async ({ page, request }) => {
     await page.getByText('Switch', { exact: true }).click();
     await page.waitForURL(/\/seller\/listings/);
 
-    await page.getByText('New Listing', { exact: true }).click();
+    await page.getByRole('button', { name: 'New Listing' }).click();
     await page.waitForURL(/\/seller\/upload/);
 
     await page.getByTestId('category-buttons').locator('button').first().click();
@@ -65,7 +65,7 @@ test('cancelling out of edit discards changes', async ({ page, request }) => {
 
     await page.setInputFiles(
         'input[type="file"]',
-        'src/tests/e3e/fixtures/test-image.jpg'
+        'src/tests/e2e/fixtures/test-image.jpg'
     );
 
     await page.getByRole('button', { name: /^submit listing$/i }).click();

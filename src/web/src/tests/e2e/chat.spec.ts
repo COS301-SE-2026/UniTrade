@@ -15,7 +15,10 @@ test('chat is locked for both the seller and the buyer until the seller accepts 
     await signupAndLogin(sellerPage, request, {email: uniqueEmail('seller')});
 
     await sellerPage.getByText('Switch', {exact: true}).click();
-    await sellerPage.waitForURL(/\seller\/upload/);
+    await sellerPage.waitForURL(/\/seller\/listings/);
+
+    await sellerPage.getByRole('link', { name: 'New Listing' }).click();
+    await sellerPage.waitForURL(/\/seller\/upload/);
 
     await sellerPage.getByTestId('category-buttons').locator('button').first().click();
     await sellerPage.getByPlaceholder('Title').fill(listingTitle);

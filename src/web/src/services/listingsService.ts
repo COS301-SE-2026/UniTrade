@@ -250,6 +250,7 @@ export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
     const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       credentials: "include",
+      cache: "no-store",
     });
     //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
     if (!res.ok) throw new Error("Failed to fetch listing");
@@ -287,6 +288,7 @@ export const listingsService = {
 
     const res = await fetch(`${getApiUrl()}/listings?sellerId=${user.id}`, {
       credentials: "include",
+      cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch listings");
 
