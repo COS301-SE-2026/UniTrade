@@ -66,7 +66,7 @@ public class ReviewService : IReviewService
         await _reviews.AddAsync(review, ct);
         await _reviews.SaveAsync(ct);
 
-        // NOTE TO FUTURE SELF: MANUAL TRIGGER INSERTION TO THE MIGRATION FILE
+        // NOTE TO FUTURE SELF(ZS): MANUAL TRIGGER INSERTION TO THE MIGRATION FILE
         return MapToDo(review);
     }
 
@@ -75,21 +75,19 @@ public class ReviewService : IReviewService
         var reviews = await _reviews.GetForUserAsync(userId, ct);
 
         var buyerRevScore = reviews
-            .Where(r => r.ReviewType == "buyer_to_seller")
-            .Select(r => (decimal)r.Rating)
-            .DefaultIfEmpty(0)
+            .Where(r => r.ReviewType == "seller_to_buyer")
+            .Select(r => (decimal?)r.Rating)
             .Average();
 
         var sellerRevScore = reviews
-            .Where(r => r.ReviewType == "seller_to_buyer")
-            .Select(r => (decimal)r.Rating)
-            .DefaultIfEmpty(0)
+            .Where(r => r.ReviewType == "buyer_to_seller")
+            .Select(r => (decimal?)r.Rating)
             .Average();
 
         return new UserReviewDto(
             UserId: userId,
-            SellerScore: Math.Round(sellerRevScore, 2),
-            BuyerScore: Math.Round(buyerRevScore, 2),
+            SellerScore: sellerRevScore.HasValue ? Math.Round(sellerRevScore.Value, 2) : null,
+            BuyerScore: buyerRevScore.HasValue ? Math.Round(buyerRevScore.Value, 2) : null,
             Reviews: reviews.Select(MapToDo).ToList()
         );
     }

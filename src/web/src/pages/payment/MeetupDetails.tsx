@@ -9,6 +9,7 @@ import LocationPicker from '../../components/layout/LocationPicker';
 import { useEffect } from 'react';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
+import { LoadingState } from '../../components/layout/Spinner';
 
 interface MeetupDetailsState {
   reservationId?: string;
@@ -186,12 +187,7 @@ export default function MeetupDetails() {
     );
   }
 
-  if (isLoading && !navState.meetupLocation) {
-    return <div className="p-8 text-center text-slate-500">Loading meetup details....</div>;
-  }
-
-
-
+  {isLoading && !navState.meetupLocation && <LoadingState message = "Loading meetup details..." /> } 
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">

@@ -13,7 +13,7 @@ function toRefNum(reservationId: string): string {
       }
 
 export default function OrderDetails() {
-    const { reservationId } = useParams<{ reservationId: string }>();
+    const { id: reservationId } = useParams<{ id: string }>();
 
     const [reservation, setReservation] = useState<Reservation | null>(null);
     const [listing, setListing] = useState<ListingDetail | null>(null)

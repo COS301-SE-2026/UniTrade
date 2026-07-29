@@ -16,9 +16,9 @@ public class VerificationService : IVerificationService
     private readonly IUserRepository _users;
     private readonly IEmailService _emails;
     private readonly IConfiguration _config;
-    private const int OTP_EXPIRY_MINUTES = 5;
-    private const int MAX_ATTEMPTS = 3;
-    private const int RESEND_COOLDOWN_SECONDS = 60;
+    private const int _otpExpiryMinutes = 5;
+    private const int _maxAttempts = 3;
+    private const int _resendCooldownSeconds = 60;
 
     public VerificationService(
         IVerificationRepository verifications,
@@ -58,7 +58,7 @@ public class VerificationService : IVerificationService
 
             OtpCodeHash = hash,
             OtpSentAt = DateTime.UtcNow,
-            OtpExpiresAt = DateTime.UtcNow.AddMinutes(OTP_EXPIRY_MINUTES),
+            OtpExpiresAt = DateTime.UtcNow.AddMinutes(_otpExpiryMinutes),
 
             AttemptNumber = 0,
             OtpResendCount = 0,
@@ -88,7 +88,7 @@ public class VerificationService : IVerificationService
             throw new VerificationException("already_verified");
         }
 
-        if (record.AttemptNumber >= MAX_ATTEMPTS)
+        if (record.AttemptNumber >= _maxAttempts)
         {
             throw new VerificationException("otp_invalidated_resend_required");
         }
@@ -123,7 +123,7 @@ public class VerificationService : IVerificationService
             record.LastAttemptAt = DateTime.UtcNow;
             await _verifications.UpdateAsync(record);
 
-            if (record.AttemptNumber >= MAX_ATTEMPTS)
+            if (record.AttemptNumber >= _maxAttempts)
             {
                 throw new VerificationException("otp_invalidated_resend_required");
             }
@@ -160,7 +160,7 @@ public class VerificationService : IVerificationService
         }
         if (
             record.OtpSentAt != null
-            && (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < RESEND_COOLDOWN_SECONDS
+            && (DateTime.UtcNow - record.OtpSentAt.Value).TotalSeconds < _resendCooldownSeconds
         )
             throw new VerificationException("cooldown_active");
 
@@ -169,7 +169,7 @@ public class VerificationService : IVerificationService
 
         record.OtpCodeHash = hash;
         record.OtpSentAt = DateTime.UtcNow;
-        record.OtpExpiresAt = DateTime.UtcNow.AddMinutes(OTP_EXPIRY_MINUTES);
+        record.OtpExpiresAt = DateTime.UtcNow.AddMinutes(_otpExpiryMinutes);
         record.OtpResendCount = (record.OtpResendCount ?? 0) + 1;
         record.AttemptNumber = 0;
 

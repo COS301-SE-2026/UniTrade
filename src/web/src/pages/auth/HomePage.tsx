@@ -218,7 +218,7 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
     stage === 'thinking'
       ? 'bg-navy-700'
       : stage === 'answer'
-        ? 'bg-blue-400 shadon-lg shadow-green-500/30'
+        ? 'bg-blue-400 shadow-lg shadow-green-500/30'
         : 'bg-blue-400'
   return (
     <div
@@ -373,7 +373,7 @@ export function Thesolution() {
         <div className="text-center mb-12">
           <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
           <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">
-            Everything a student markerplace needs
+            Everything a student market-place needs
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">Built specifically for SA campus life</p>
         </div>
@@ -382,7 +382,7 @@ export function Thesolution() {
           {[
             { icon: <IconShield size={28} />, title: "Verified students only", description: "Every user is verified against their university student email. No outsiders, no scammers - just you campus community." },
             { icon: <IconMapPin size={28} />, title: "Meet on campus", description: "Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS." },
-            { icon: <IconLock size={28} />, title: "Secure payments via OZOW", description: "Pay instantly at the meetup using OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
+            { icon: <IconLock size={28} />, title: "Secure payments via Payfast", description: "Pay instantly at the meetup using Payfast. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
             { icon: <IconRobot size={28} />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
             { icon: <IconPackage size={28} />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
             { icon: <IconStar size={28} />, title: "Trust and reputation", description: "Every buyer and seller builds a reputation score from real transactions. See ratings and reviews rates before you commit." },
@@ -402,7 +402,7 @@ export function Howitworks() {
     { number: 1, title: "Browse listings", description: "Search by course code, university or category. Filter by condition and price" },
     { number: 2, title: "Reserve the item", description: "Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup." },
     { number: 3, title: "Meet on Campus", description: "Agree on a campus location. Both parties check in on arrival for accountability." },
-    { number: 4, title: "Inspect and pay", description: "Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done." },
+    { number: 4, title: "Inspect and pay", description: "Check the item first. Satisfied? Pay via PayFast and confirm with a PIN. Done." },
   ];
 
   return (

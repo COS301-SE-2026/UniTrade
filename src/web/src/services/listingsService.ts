@@ -102,6 +102,69 @@ const mockMyListings: ListingSummary[] = [
   },
 ];
 
+/*const mockListingDetail: ListingDetail = {
+  id: "1",
+  title: "Calculus - Early Transcendentals",
+  description:
+    "Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP.",
+  price: 280,
+  condition: "new",
+  category: "book",
+  status: "live",
+  courseCode: "WTW114",
+  courseId: 1076,
+  university: "University of Pretoria",
+  tags: ["WTW114", "First Year", "University of Pretoria"],
+  metadata: null,
+  images: [
+    { id: "1", url: biologyTextbook, isPrimary: true },
+    { id: "2", url: biologyTextbook, isPrimary: false },
+    { id: "3", url: biologyTextbook, isPrimary: false },
+  ],
+  views: 42,
+  listedAt: "2026-05-07T09:14:00Z",
+  sellerId: "seller-1",
+  sellerName: "Langa Vakalisa",
+  sellerInitials: "LV",
+  sellerRating: 4.9,
+  sellerResponseRate: 98,
+  sellerTotalListings: 12,
+  isReserved: false,
+  aiScore: 78,
+  aiLabel: "low_risk",
+  reviews: [
+    {
+      id: "r1",
+      initials: "ZS",
+      name: "Zelamene S.",
+      stars: 5,
+      text: "Item was exactly as described.",
+      date: "2026-05-03T00:00:00Z",
+    },
+    {
+      id: "r2",
+      initials: "SK",
+      name: "Sabira K.",
+      stars: 4,
+      text: "Book was in good condition.",
+      date: "2026-04-28T00:00:00Z",
+    },
+  ],
+  similarListings: [
+    {
+      id: "2",
+      title: "Calculus - Early Transcendentals 3rd Ed",
+      meta: "UP · R120",
+      condition: "good",
+    },
+    {
+      id: "3",
+      title: "Linear Algebra - 6th Ed",
+      meta: "UP · R120",
+      condition: "fair",
+    },
+  ],
+};*/
 
 const mockSellerListingDetail: SellerListingDetail = {
   id: "4",
@@ -683,7 +746,7 @@ export const listingsService = {
         });
       }
 
-      return completed.map((r) => {
+      return completed.map((r: any) => {
       const transactionId = txMap.get(r.reservationId);
       const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
@@ -695,7 +758,7 @@ export const listingsService = {
       transactionId: transactionId ?? null,
       refNum: toRefNum(r.reservationId),
       title: r.listing.title,
-      condition: conditionMap.get(r.listingId) ?? 'Unknown',
+      condition: conditionMap.get(r.listing.listingId) ?? 'Unknown',
       sellerName: r.counterParty.name,
       sellerInitials: r.counterParty.initials,
       price: r.listing.price,
@@ -752,12 +815,13 @@ export const listingsService = {
       buyerIds.map(async (buyerId) => {
         try {
           const data = await listingsService.getReviewsForUser(buyerId);
-          reviewsMap.set(buyerId, data.reviews.filter((r) => r.reviewType === 'seller_to_buyer' ));
+          reviewsMap.set(buyerId, data.reviews);
         } catch {
           reviewsMap.set(buyerId, []);
         }
-        }),
-      );
+      })
+    );
+
 
       function toRefNum(reservationId: string): string {
         return `#${reservationId.slice(0,8).toUpperCase()}`;
@@ -771,7 +835,7 @@ export const listingsService = {
         });
       }
 
-      return completed.map((r) => {
+      return completed.map((r: any) => {
       const transactionId = txMap.get(r.reservationId);
       const buyerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId

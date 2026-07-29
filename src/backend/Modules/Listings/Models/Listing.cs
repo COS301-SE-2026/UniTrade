@@ -34,7 +34,7 @@ public class Listing
     public decimal? AiRiskScore { get; set; }
     public string? AiRiskLevel { get; set; }
     public int? VisibilityScore { get; set; }
-    public bool? isBundle { get; set; }
+    public bool? IsBundle { get; set; }
     public string? RejectionReason { get; set; }
     public int? ViewCount { get; set; }
 

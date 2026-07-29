@@ -467,6 +467,12 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<bool?>("IsBundle")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_bundle");
+
                     b.Property<string>("ListingStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -513,12 +519,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(100)
                         .HasColumnName("visibility_score");
-
-                    b.Property<bool?>("isBundle")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_bundle");
 
                     b.HasKey("ListingId")
                         .HasName("pk_listings");

@@ -15,6 +15,7 @@ import {
 import { useToast } from "../../components/layout/useToast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function CategoryCard({
   title,
@@ -236,12 +237,7 @@ export default function BrowseAllListing() {
     setShowMoreCategories(false);
   };
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+  {isLoading && <LoadingState message = "Fetching listings ..." />}
 
   if (error)
     return (

@@ -7,5 +7,4 @@ public class ListingCategory
     public bool IsActive { get; set; } = true;
 
     public ICollection<Listing> Listings { get; set; } = new List<Listing>();
-
 }
