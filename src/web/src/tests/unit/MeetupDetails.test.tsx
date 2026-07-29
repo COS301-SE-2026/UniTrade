@@ -252,4 +252,38 @@ beforeEach(() => {
         const pinButton = await screen.findByRole('button', { name: /enter buyer's pin/i})
         fireEvent.click(pinButton);
         expect(navigateMock).toHaveBeenCalledWith('/payment/buyer-pin', {state: { reservationId: 'REF441' }});
-    });})
+    });
+
+    it('shows transaction complete once the pin is confirmed', async() => {
+        vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(meetupFixture ({ sellerCheckedIn:  true}));
+        vi.mocked(getTransactionStatus).mockResolvedValue({
+            success: true,
+            data: { transactionId: '47', transactionStatus:'completed', pinStatus: 'confirmed'},
+        }as unknown as Awaited<ReturnType<typeof getTransactionStatus>>);
+        renderMeetupDetails(sellerState);
+        expect(await screen.findByText('Transaction complete.')).toBeInTheDocument();
+    })
+    it('shows the waiting message once checked in but before payment', async () => {
+        vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(meetupFixture ({ sellerCheckedIn:  true}));
+         renderMeetupDetails(sellerState);
+         expect(await screen.findByText(/Waiting for the buyer to complete payment/i)).toBeInTheDocument();
+    });
+    it('subscribes to payment-completed events and refetches transaction statuses on match',async() =>{
+    let capturedHandler: ((e: { reservationId: string }) => void) | undefined;
+    vi.mocked(connectionManager.onPaymentCompleted).mockImplementation((cb) => {
+        capturedHandler = cb;
+        return vi.fn();
+    })
+
+    renderMeetupDetails(sellerState);
+    await waitFor(() => expect(connectionManager.connect).toHaveBeenCalled());
+
+    vi.mocked(getTransactionStatus).mockClear();
+    capturedHandler?.({ reservationId: 'REF441'});
+    await waitFor(() => {
+        expect(getTransactionStatus).toHaveBeenCalledWith('REF441');
+
+    })
+    
+    })
+        })
