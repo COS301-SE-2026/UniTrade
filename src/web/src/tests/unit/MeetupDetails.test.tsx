@@ -221,6 +221,35 @@ beforeEach(() => {
         expect(await screen.findByText('R-')).toBeInTheDocument();
 
         });
-    });
+    })
+    describe('seller view', () => {
+        const sellerState ={ reservationId: 'REF441', role: 'seller', counterpartyName: 'Sabira Karie'}
 
-  
+            it('shows the seller side headers', async () => {
+           renderMeetupDetails(sellerState);
+           expect(await screen.findByText('Sabira Karie')) .toBeInTheDocument();
+           expect(screen.getByText(/Review your meetup details and confirm the transaction/i)).toBeInTheDocument();
+           expect(screen.getByRole('heading',{name: 'Buyer'})).toBeInTheDocument();
+
+        });
+
+        it('shows the check-in button before seller checks in ', async() => {
+               renderMeetupDetails(sellerState);
+
+            const checkInButton = await screen.findByRole('button', { name: /check in at meetup/i});
+            expect(checkInButton).toBeInTheDocument();}
+          );
+
+
+    it('renders enter buyer pin page and navigates to payment complete',async ()=> {
+        vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(meetupFixture({ sellerCheckedIn: true}))
+        vi.mocked(getTransactionStatus).mockResolvedValue({
+            success: true,
+            data: { transactionId: '44',transactionStatus: 'completed', pinStatus:'pending'},
+        }as unknown as Awaited<ReturnType<typeof getTransactionStatus>>);
+        
+        renderMeetupDetails(sellerState);
+        const pinButton = await screen.findByRole('button', { name: /enter buyer's pin/i})
+        fireEvent.click(pinButton);
+        expect(navigateMock).toHaveBeenCalledWith('/payment/buyer-pin', {state: { reservationId: 'REF441' }});
+    });})
