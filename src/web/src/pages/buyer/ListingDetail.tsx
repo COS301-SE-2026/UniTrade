@@ -105,38 +105,38 @@ export default function ListingDetail() {
         <span>{listing.title}</span>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
 
-        <div className="col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <div className="relative w-full h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
-            onClick={() => activeImage && setLightboxOpen(true)}>
+            <div className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
+              onClick={() => activeImage && setLightboxOpen(true)}>
               {activeImage ? (
-              <>
+                <>
 
-                <img src={activeImage} 
-                alt={listing.title} 
-                className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-full">
-                Click to view full image
-                </span>
+                  <img src={activeImage}
+                    alt={listing.title}
+                    className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-full">
+                      Click to view full image
+                    </span>
                   </div>
-                  </>
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="text-4xl">None</span>
                 </div>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
               {listing.images.map(img => (
                 <div
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
-                      ? 'border-navy-700 dark:border-white'
-                      : 'border-transparent'
+                  className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
+                    ? 'border-navy-700 dark:border-white'
+                    : 'border-transparent'
                     }`}
                 >
                   {img.url ? (
@@ -148,12 +148,12 @@ export default function ListingDetail() {
               ))}
             </div>
           </div>
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-            <h1 className="text-lg font-bold text-navy-700 dark:text-white mb-1">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
+            <h1 className="text-base sm:text-lg font-bold text-navy-700 dark:text-white mb-1">
               {listing.title}
             </h1>
             <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-2xl font-bold text-navy-700 dark:text-white">
+              <span className="text-xl sm:text-2xl font-bold text-navy-700 dark:text-white">
                 {formatPrice(listing.price)}
               </span>
             </div>
@@ -209,7 +209,7 @@ export default function ListingDetail() {
             <DetailRow label="Views" value={listing.views} />
           </div>
         </div>
-        <div className="col-span-1 space-y-4">
+        <div className="lg:col-span-1 space-y-4">
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller</h3>
@@ -254,14 +254,15 @@ export default function ListingDetail() {
               </div>
             )}
 
-            <button
-              onClick={handleReserve}
-              disabled={reserving || reserved}
-              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 mb-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <IconBookmark size={16} />
-              {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
-            </button>
+              <button
+                onClick={handleReserve}
+                disabled={reserving || reserved}
+                className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <IconBookmark size={16} />
+                {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
+              </button>
+            
 
             <button className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
               <IconHeart size={16} /> Add to wishlist
@@ -322,20 +323,20 @@ export default function ListingDetail() {
 
       {lightboxOpen && activeImage && (
         <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
-        onClick={() => setLightboxOpen(false)}
-        >
-          <button 
           onClick={() => setLightboxOpen(false)}
-          className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none">
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none">
             &times;
-            </button>
-              <img 
-              src={activeImage}
-              alt={listing.title}
-              className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-              />
-           </div>
+          </button>
+          <img
+            src={activeImage}
+            alt={listing.title}
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   )

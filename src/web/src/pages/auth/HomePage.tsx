@@ -11,8 +11,6 @@ import {
   IconPoint,
 } from '@tabler/icons-react'
 import logo from "../../assets/logo.jpeg"
-import Apple from "../../assets/Apple.png"
-import Play from "../../assets/Play.png"
 import { useNavigate } from 'react-router';
 import { Reveal } from '../../components/layout/Reveal';
 
@@ -224,7 +222,7 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
         : 'bg-blue-400'
   return (
     <div
-     data-testid="alex-avatar-container"
+      data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
@@ -289,10 +287,6 @@ function Firstpage() {
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
-              <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
-              MADE FOR SA UNIVERSITY STUDENTS
-            </div>
             <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
                animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
               Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
@@ -480,70 +474,61 @@ export function BuyersSellers() {
   )
 }
 
-export function GetApp() {
-  return (
-    <div className="bg-navy-700 py-16">
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
-        <p className="text-blue-200 mt-3">Available on IOS and Android</p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
-          <a href="#" className="block">
-            <img
-              src={Apple}
-              alt="Download on the App Store"
-              className="h-14"
-            />
-          </a>
-          <a href="#" className="block">
-            <img
-              src={Play}
-              alt="GET IT ON Google Play"
-              className="h-14"
-            />
-          </a>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export function Footer() {
   const navigate = useNavigate();
+
   return (
-    <footer className="bg-white text-gray">
-  <div className="max-w-7xl mx-auto px-10 py-16 flex justify-between items-start">
-    {/* Left */}
-    <div>
-      <p className="text-xs">CONTACT INFO</p>
-      <p className="text-sm">devenexus28@gmail.com</p>
-    </div>
+    <footer className="w-full bg-navy-900 text-white">
+      <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col items-center justify-center text-center gap-6">
 
-    {/* Right */}
-    <div>
-      <p className="text-xs mb-4">SUPPORT</p>
-      <ul className="flex flex-col gap-1">
-        <li
-          onClick={() => navigate('/auth/help-center')}
-          className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-        >
-          Help Center
-        </li>
-        <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">
-          Safety Tips
-        </li>
-        <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">
-          Contact Us
-        </li>
-      </ul>
-    </div>
-  </div>
+        <p className="flex items-center gap-3 text-xs sm:text-sm text-gray-300 font-medium">
+          <span>+27 123 456 789</span>
+          <span className="text-gray-500">|</span>
+          <a
+            href="mailto:devenexus28@gmail.com"
+            className="hover:text-white transition-colors underline-offset-2 hover:underline"
+          >
+            devenexus28@gmail.com
+          </a>
+        </p>
 
-  <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
-    © 2026 UniTrade. All rights reserved. Made for South African students.
-  </div>
-</footer>
-  )
+        <p className="text-xs text-gray-400">
+          © 2026 UniTrade. All rights reserved. Made for South African students.
+        </p>
+
+        <div className="w-16 h-[1px] bg-white/10" />
+
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[10px] tracking-wider uppercase text-gray-400 font-semibold">
+            Support
+          </p>
+          <ul className="flex flex-wrap items-center justify-center gap-6 text-xs text-gray-300">
+            <li>
+              <button
+                onClick={() => navigate('/auth/help-center')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                Help Center
+              </button>
+            </li>
+            <li>
+              <button className="hover:text-white transition-colors cursor-pointer">
+                Safety Tips
+              </button>
+            </li>
+            <li>
+              <button className="hover:text-white transition-colors cursor-pointer">
+                Contact Us
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </footer>
+  );
 }
 
 export default function HomePage() {
@@ -555,7 +540,7 @@ export default function HomePage() {
       <Thesolution />
       <Howitworks />
       <BuyersSellers />
-      <GetApp />
+
       <Footer />
     </div>
   )
