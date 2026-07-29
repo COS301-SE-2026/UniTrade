@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
@@ -43,7 +44,7 @@ public class UniversityServiceTests
 
         Assert.NotNull(result);
         Assert.Single(result);
-        Assert.Equal("tuks.co.za", (IAsyncEnumerable<char>?)result[0].Email_domains);
+        Assert.Equal("tuks.co.za", result[0].Email_domains.Single());
         Assert.True(result[0].Is_Active);
     }
 
