@@ -169,7 +169,8 @@ export default function MeetupDetails() {
     );
   }
 
-  {isLoading && !navState.meetupLocation && <LoadingState message = "Loading meetup details..." /> } 
+  if(isLoading && !navState.meetupLocation)
+    {return  <LoadingState message = "Loading meetup details..." /> } 
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
@@ -281,13 +282,13 @@ export default function MeetupDetails() {
                   <strong>Safety Guarantee:</strong>{' '}
                   {!isSeller ? (
                     <>
-                      Your funds are held securely by UniTrade and will only be released once you supply a PIN to{' '}
-                      {counterpartyName} at the physical meetup.
+                      Payments are secured with Payfast. Once you enter the PIN given by{' '}
+                      {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   ) : (
                     <>
-                      Your funds are held securely by UniTrade and will only be released to you once you enter the PIN given by{' '}
-                      {counterpartyName} at the physical meetup.
+                       Payments are secured with Payfast. Once you provide the PIN to{' '}
+                      {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   )}
                 </p>

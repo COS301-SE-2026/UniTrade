@@ -298,7 +298,7 @@ export default function Wishlist() {
         />
       </div>
 
-      {isLoading && <LoadingState message = "Loading wishlist ..." />}
+      {isLoading && <LoadingState message = "Loading wishlist..." />}
 
         {!isLoading && error && (
           <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
