@@ -45,7 +45,7 @@ vi.mock('../../services/realtime/connectionManager', () => ({
 
 vi.mock('../../components/CheckInModal', () => ({
     default: ({ onClose, reservationId, meetupLocation}:{onClose: () => void; reservationId: string; meetupLocation: string }) => (
-        <div data-testingid="check-in-modal">
+        <div data-testid="check-in-modal">
             <span>Checking in for {reservationId} at {meetupLocation}</span>
             <button onClick={onClose}>Close check-in</button>
         </div>
@@ -133,7 +133,7 @@ beforeEach(() => {
     navigateMock.mockClear();
     })
 
-    it('shows a fallback and navigates back when no reservationId is prodvided', () => {
+    it('shows a fallback and navigates back when no reservationId is provided', () => {
         renderMeetupDetails(null);
         expect(
             screen.getByText(/We couldn't find the details for this meetup/i),).toBeInTheDocument();
@@ -159,8 +159,31 @@ beforeEach(() => {
 
             const checkInButton = await screen.findByRole('button', { name: /check in at meetup/i});
             expect(checkInButton).toBeDisabled();}
+          );
 
+     it('opens CheckInModal and refetched on close', async() => {
+        renderMeetupDetails();
+        const checkInButton = await screen.findByRole('button', { name: /check in at meetup/i});
+        fireEvent.click(checkInButton);
 
-            );
+        expect(screen.getByTestId('check-in-modal')).toBeInTheDocument();
+        vi.mocked(listingsService.getMeetupStatus).mockClear();
+
+        fireEvent.click(screen.getByRole('button', {name: /close check-in/i}));
+        expect(screen.queryByTestId('check-in-modal')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(listingsService.getMeetupStatus).toHaveBeenCalled();
+        })
+
+     })
+
+     it('it shows pay button once checked in, disabled until payment is unlocked', async() => {
+        vi.mocked(listingsService.getMeetupStatus).mockResolvedValue(
+            meetupFixture({ buyerCheckedIn: true, paymentUnlocked: false})
+        )
+        renderMeetupDetails();
+        const payButton = await screen.findByRole('button', { name: /pay r250\.00/i})
+        expect(payButton).toBeDisabled();
+     })
 
     })
