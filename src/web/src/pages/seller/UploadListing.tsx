@@ -258,7 +258,7 @@ const UploadListing: React.FC = () => {
                 <span className="block text-xs font-semibold text-slate-500 mb-2">
                   Category
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2" data-testid="category-buttons">
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
