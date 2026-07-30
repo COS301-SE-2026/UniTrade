@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { MemoryRouter} from "react-router";
 import { describe, it, expect, vi,beforeEach} from 'vitest'
 import GeneratePin from "../../pages/payment/GeneratePin";
