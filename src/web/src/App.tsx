@@ -33,7 +33,6 @@ import ChatLayout from "./components/ChatLayout";
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 import MeetupDetails from "./pages/payment/MeetupDetails";
 import Redirect from "./pages/payment/Redirect";
-import ConfirmPayment from "./pages/payment/ConfirmPayment";
 import GeneratePin from "./pages/payment/GeneratePin";
 import EnterPin from "./pages/payment/EnterPin";
 import PaymentComplete from "./pages/payment/PaymentComplete";
@@ -86,9 +85,9 @@ export default function App() {
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
-          <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
+          <Route path="/buyer/orders/:id" element={<OrderDetails />} />
           <Route path="/seller/sales" element={<Sales />} />
-          <Route path="/seller/sales/:reservationId" element={<OrderDetails />} />
+          <Route path="/seller/sales/:id" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
           <Route path="/buyer/listings" element={<BrowseListings />} />
@@ -123,7 +122,7 @@ export default function App() {
 
           <Route path="/payment/meetup" element={<MeetupDetails />} />
           <Route path="/payment/payfast-redirect" element={<Redirect />} />
-          <Route path="/payment/confirming" element={<ConfirmPayment />} />
+      
           <Route path="/payment/generate-pin" element={<GeneratePin />} />
           <Route path="/payment/buyer-pin" element={<EnterPin />} />
           <Route path="/payment/payment-complete" element={<PaymentComplete />} />

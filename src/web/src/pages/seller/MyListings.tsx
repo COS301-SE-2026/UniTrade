@@ -232,7 +232,9 @@ export default function MyListings() {
     { key: "sold", label: `Sold (${count("sold")})` },
   ];
 
-  {isLoading && <LoadingState message = "Loading..." /> } 
+   if (isLoading) {
+    return <LoadingState message="Loading..." />;
+  }
   
 
   if (error)

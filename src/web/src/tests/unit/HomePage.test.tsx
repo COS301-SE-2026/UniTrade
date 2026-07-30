@@ -377,7 +377,7 @@ describe('Thesolution', () => {
         const expected = [
             'Verified students only',
             'Meet on campus',
-            'Secure payments via PayFast',
+            'Secure payments via Payfast',
             'AI listing verification',
             'Bundle packs',
             'Trust and reputation',

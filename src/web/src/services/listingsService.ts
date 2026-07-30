@@ -342,8 +342,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -690,8 +690,8 @@ export const listingsService = {
   },
 
   getCompletedOrders: async (): Promise<OrderItem[]> => {
-    const res = await getReservations({role: 'buyer'});
-    if(!res.success){
+    const res = await getReservations({ role: 'buyer' });
+    if (!res.success) {
       throw new Error(res.error.message ?? 'Failed to load your orders');
     }
 
@@ -699,7 +699,7 @@ export const listingsService = {
       (r) => r.reservationStatus === 'completed',
     );
 
-    if(completed.length === 0) return [];
+    if (completed.length === 0) return [];
 
     const listingIds = [...new Set(completed.map((r) => r.listingId))];
     const conditionMap = new Map<string, string>();
@@ -733,49 +733,49 @@ export const listingsService = {
         } catch {
           reviewsMap.set(sellerId, []);
         }
-        }),
-      );
+      }),
+    );
 
-      function toRefNum(reservationId: string): string {
-        return `#${reservationId.slice(0,8).toUpperCase()}`;
-      }
+    function toRefNum(reservationId: string): string {
+      return `#${reservationId.slice(0, 8).toUpperCase()}`;
+    }
 
-      function formatOrderDate(iso: string): string {
-        return new Date(iso).toLocaleDateString('en-ZA', {
-          day : 'numeric',
-          month: 'short',
-          year: 'numeric'
-        });
-      }
+    function formatOrderDate(iso: string): string {
+      return new Date(iso).toLocaleDateString('en-ZA', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
 
-      return completed.map((r: any) => {
+    return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
-      ? sellerReviews.find((rev) => rev.transactionId === transactionId)
-      : undefined;
+        ? sellerReviews.find((rev) => rev.transactionId === transactionId)
+        : undefined;
 
-    return {
-      id: r.reservationId,
-      transactionId: transactionId ?? null,
-      refNum: toRefNum(r.reservationId),
-      title: r.listing.title,
-      condition: conditionMap.get(r.listing.listingId) ?? 'Unknown',
-      sellerName: r.counterParty.name,
-      sellerInitials: r.counterParty.initials,
-      price: r.listing.price,
-      date: formatOrderDate(r.createdAt),
-      status: 'Completed' as const,
-      rating: theReview?.rating ?? 0,
-      _createdAtIso: r.createdAt,
-      imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
-    }
-  });
-},
+      return {
+        id: r.reservationId,
+        transactionId: transactionId ?? null,
+        refNum: toRefNum(r.reservationId),
+        title: r.listing.title,
+        condition: conditionMap.get(r.listingId) ?? 'Unknown',
+        sellerName: r.counterParty.name,
+        sellerInitials: r.counterParty.initials,
+        price: r.listing.price,
+        date: formatOrderDate(r.createdAt),
+        status: 'Completed' as const,
+        rating: theReview?.rating ?? 0,
+        _createdAtIso: r.createdAt,
+        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
+      }
+    });
+  },
 
   getCompletedSales: async (): Promise<SaleItem[]> => {
-    const res = await getReservations({role: 'seller'});
-    if(!res.success){
+    const res = await getReservations({ role: 'seller' });
+    if (!res.success) {
       throw new Error(res.error.message ?? 'Failed to load your sales');
     }
 
@@ -783,22 +783,22 @@ export const listingsService = {
       (r) => r.reservationStatus === 'completed',
     );
 
-    if(completed.length === 0) return [];
+    if (completed.length === 0) return [];
 
     const listingIds = [...new Set(completed.map((r) => r.listingId))];
     const conditionMap = new Map<string, string>();
- 
+
 
     await Promise.all(
       listingIds.map(async (listingId) => {
         try {
           const detail = await listingsService.getById(listingId);
           conditionMap.set(listingId, detail.condition);
-         
-       
+
+
         } catch {
           conditionMap.set(listingId, 'Unknown');
-        
+
         }
       }),
     );
@@ -825,41 +825,41 @@ export const listingsService = {
     );
 
 
-      function toRefNum(reservationId: string): string {
-        return `#${reservationId.slice(0,8).toUpperCase()}`;
-      }
+    function toRefNum(reservationId: string): string {
+      return `#${reservationId.slice(0, 8).toUpperCase()}`;
+    }
 
-      function formatOrderDate(iso: string): string {
-        return new Date(iso).toLocaleDateString('en-ZA', {
-          day : 'numeric',
-          month: 'short',
-          year: 'numeric'
-        });
-      }
+    function formatOrderDate(iso: string): string {
+      return new Date(iso).toLocaleDateString('en-ZA', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
 
-      return completed.map((r: any) => {
+    return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const buyerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
-      ? buyerReviews.find((rev) => rev.transactionId === transactionId)
-      : undefined;
+        ? buyerReviews.find((rev) => rev.transactionId === transactionId)
+        : undefined;
 
-    return {
-      id: r.reservationId,
-      transactionId: transactionId ?? null,
-      refNum: toRefNum(r.reservationId),
-      title: r.listing.title,
-      condition: conditionMap.get(r.listingId) ?? 'Unknown',
-      buyerName: r.counterParty.name,
-      buyerInitials: r.counterParty.initials,
-      price: r.listing.price,
-      date: formatOrderDate(r.createdAt),
-      status: 'Completed' as const,
-      rating: theReview?.rating ?? 0,
-      _createdAtIso: r.createdAt,
-      imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
-    }
-  });
-},
+      return {
+        id: r.reservationId,
+        transactionId: transactionId ?? null,
+        refNum: toRefNum(r.reservationId),
+        title: r.listing.title,
+        condition: conditionMap.get(r.listingId) ?? 'Unknown',
+        buyerName: r.counterParty.name,
+        buyerInitials: r.counterParty.initials,
+        price: r.listing.price,
+        date: formatOrderDate(r.createdAt),
+        status: 'Completed' as const,
+        rating: theReview?.rating ?? 0,
+        _createdAtIso: r.createdAt,
+        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
+      }
+    });
+  },
 
 }

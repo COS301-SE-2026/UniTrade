@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router'
+import { NavLink, useNavigate, useLocation } from 'react-router'
 import { clsx } from 'clsx'
 import {
   IconLayoutDashboard,
@@ -160,11 +160,21 @@ function UserPopover({
   )
 }
 export default function Sidebar() {
-  const { user, viewMode, toggleViewMode, clearUser } = useAuthStore()
+ const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
   const navigate = useNavigate()
+  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [ShowPopover, setShowPopover] = useState(false)
   
+
+    useEffect(() => {
+    if (user?.role !== 'student') return
+    if (location.pathname.startsWith('/seller') && viewMode !== 'seller') {
+      setViewMode('seller')
+    } else if (location.pathname.startsWith('/buyer') && viewMode !== 'buyer') {
+      setViewMode('buyer')
+    }
+  }, [location.pathname, user?.role, viewMode, setViewMode])
 
   const messageRole = viewMode === 'buyer' ? 'buyer' : 'seller'
   const { data: reservations = []} = useReservationsList(messageRole, {

@@ -187,7 +187,9 @@ export default function MeetupDetails() {
     );
   }
 
-  {isLoading && !navState.meetupLocation && <LoadingState message = "Loading meetup details..." /> } 
+  if (isLoading && !navState.meetupLocation) {
+    return <LoadingState message="Loading meetup details..." />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">

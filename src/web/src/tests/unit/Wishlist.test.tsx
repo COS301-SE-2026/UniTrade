@@ -124,7 +124,7 @@ it('shows a loading message when waiting for the wishlist to load', () => {
     mockWishlist(undefined, true, null);
 
     renderWishlist();
-    expect(screen.getByText('Loading your wishlist....')).toBeInTheDocument();
+    expect(screen.getByText('Loading wishlist ...')).toBeInTheDocument();
 });
 
 it('shows an empty state when there are no listings in your wishlist ', () => {
