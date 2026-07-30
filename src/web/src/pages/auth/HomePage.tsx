@@ -11,8 +11,6 @@ import {
   IconPoint,
 } from '@tabler/icons-react'
 import logo from "../../assets/logo.jpeg"
-import Apple from "../../assets/Apple.png"
-import Play from "../../assets/Play.png"
 import { useNavigate } from 'react-router';
 import { Reveal } from '../../components/layout/Reveal';
 
@@ -40,7 +38,7 @@ interface ProblemCardProps {
 export function ProblemCard({ icon, title, description }: ProblemCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
-      <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+      <div data-testid="card-icon" className="w-11 h-11 bg-white text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white text-lg mb-2">{title}</h3>
@@ -220,11 +218,11 @@ export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
     stage === 'thinking'
       ? 'bg-navy-700'
       : stage === 'answer'
-        ? 'bg-blue-400 shadon-lg shadow-green-500/30'
+        ? 'bg-blue-400 shadow-lg shadow-green-500/30'
         : 'bg-blue-400'
   return (
     <div
-     data-testid="alex-avatar-container"
+      data-testid="alex-avatar-container"
       className={`relative flex flex-col items-center ${className}`}
       onClick={onClick}
       role="img"
@@ -289,10 +287,6 @@ function Firstpage() {
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
-              <span className="bg-green-400 w-2 h-2 rounded-full animate-pulse"></span>
-              MADE FOR SA UNIVERSITY STUDENTS
-            </div>
             <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
                animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
               Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
@@ -379,7 +373,7 @@ export function Thesolution() {
         <div className="text-center mb-12">
           <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
           <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">
-            Everything a student markerplace needs
+            Everything a student market-place needs
           </h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">Built specifically for SA campus life</p>
         </div>
@@ -388,7 +382,7 @@ export function Thesolution() {
           {[
             { icon: <IconShield size={28} />, title: "Verified students only", description: "Every user is verified against their university student email. No outsiders, no scammers - just you campus community." },
             { icon: <IconMapPin size={28} />, title: "Meet on campus", description: "Every transaction happens in person at a campus location you both agree on. Inspect before you pay ALWAYS." },
-            { icon: <IconLock size={28} />, title: "Secure payments via OZOW", description: "Pay instantly at the meetup using OZOW. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
+            { icon: <IconLock size={28} />, title: "Secure payments via Payfast", description: "Pay instantly at the meetup using Payfast. No cash handling (unless there is an agreement with the seller), no bank transfer - just a quick scan and a PIN confirmation." },
             { icon: <IconRobot size={28} />, title: "AI listing verification", description: "Every listing is scanned by AI before going live. Fake photos and duplicate listings are caught before buyers ever see them." },
             { icon: <IconPackage size={28} />, title: "Bundle packs", description: "First year? Reserve a full set of textbooks from one seller in a single transaction. No need to meet 10 different people." },
             { icon: <IconStar size={28} />, title: "Trust and reputation", description: "Every buyer and seller builds a reputation score from real transactions. See ratings and reviews rates before you commit." },
@@ -408,7 +402,7 @@ export function Howitworks() {
     { number: 1, title: "Browse listings", description: "Search by course code, university or category. Filter by condition and price" },
     { number: 2, title: "Reserve the item", description: "Express interest to hold the item for 24 hours. Chat with the seller to arrange a meetup." },
     { number: 3, title: "Meet on Campus", description: "Agree on a campus location. Both parties check in on arrival for accountability." },
-    { number: 4, title: "Inspect and pay", description: "Check the item first. Satisfied? Pay via OZOW and confirm with a PIN. Done." },
+    { number: 4, title: "Inspect and pay", description: "Check the item first. Satisfied? Pay via PayFast and confirm with a PIN. Done." },
   ];
 
   return (
@@ -480,71 +474,61 @@ export function BuyersSellers() {
   )
 }
 
-export function GetApp() {
-  return (
-    <div className="bg-navy-700 py-16">
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-white text-4xl font-bold">GET THE APP</h2>
-        <p className="text-blue-200 mt-3">Available on IOS and Android</p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
-          <a href="#" className="block">
-            <img
-              src={Apple}
-              alt="Download on the App Store"
-              className="h-14"
-            />
-          </a>
-          <a href="#" className="block">
-            <img
-              src={Play}
-              alt="GET IT ON Google Play"
-              className="h-14"
-            />
-          </a>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export function Footer() {
   const navigate = useNavigate();
+
   return (
-    <footer className="bg-white text-gray">
-  <div className="max-w-7xl mx-auto px-10 py-16 flex justify-between items-start">
-    {/* Left */}
-    <div>
-      <p className="text-xs">CONTACT INFO</p>
-      <p className="text-sm mt-2">+27 123 456 789</p>
-      <p className="text-sm">devenexus28@gmail.com</p>
-    </div>
+    <footer className="w-full bg-navy-900 text-white">
+      <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col items-center justify-center text-center gap-6">
 
-    {/* Right */}
-    <div>
-      <p className="text-xs mb-4">SUPPORT</p>
-      <ul className="flex flex-col gap-1">
-        <li
-          onClick={() => navigate('/auth/help-center')}
-          className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer"
-        >
-          Help Center
-        </li>
-        <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">
-          Safety Tips
-        </li>
-        <li className="text-xs text-gray-500 hover:text-[#003366] cursor-pointer">
-          Contact Us
-        </li>
-      </ul>
-    </div>
-  </div>
+        <p className="flex items-center gap-3 text-xs sm:text-sm text-gray-300 font-medium">
+          <span>+27 123 456 789</span>
+          <span className="text-gray-500">|</span>
+          <a
+            href="mailto:devenexus28@gmail.com"
+            className="hover:text-white transition-colors underline-offset-2 hover:underline"
+          >
+            devenexus28@gmail.com
+          </a>
+        </p>
 
-  <div className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
-    © 2026 UniTrade. All rights reserved. Made for South African students.
-  </div>
-</footer>
-  )
+        <p className="text-xs text-gray-400">
+          © 2026 UniTrade. All rights reserved. Made for South African students.
+        </p>
+
+        <div className="w-16 h-[1px] bg-white/10" />
+
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[10px] tracking-wider uppercase text-gray-400 font-semibold">
+            Support
+          </p>
+          <ul className="flex flex-wrap items-center justify-center gap-6 text-xs text-gray-300">
+            <li>
+              <button
+                onClick={() => navigate('/auth/help-center')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                Help Center
+              </button>
+            </li>
+            <li>
+              <button className="hover:text-white transition-colors cursor-pointer">
+                Safety Tips
+              </button>
+            </li>
+            <li>
+              <button className="hover:text-white transition-colors cursor-pointer">
+                Contact Us
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </footer>
+  );
 }
 
 export default function HomePage() {
@@ -556,7 +540,7 @@ export default function HomePage() {
       <Thesolution />
       <Howitworks />
       <BuyersSellers />
-      <GetApp />
+
       <Footer />
     </div>
   )

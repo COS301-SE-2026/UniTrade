@@ -11,7 +11,7 @@ import { act } from 'react'
 import { ProblemCard, Theproblem, Thesolution } from '../../pages/auth/HomePage'
 import { IconShield } from '@tabler/icons-react'
 import { BenefitList, BuyersSellers } from '../../pages/auth/HomePage'
-import { GetApp } from '../../pages/auth/HomePage'
+
 import { Footer } from '../../pages/auth/HomePage'
 
 const mockNavigate = vi.fn()
@@ -174,10 +174,6 @@ describe('Firstpage', () => {
         })
         await user.click(loginbuton)
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Login')
-    })
-    it('renders the badge text', async () => {
-        renderHomePage()
-        expect(screen.getByText('MADE FOR SA UNIVERSITY STUDENTS')).toBeInTheDocument()
     })
     it('renders the first page text', async () => {
         renderHomePage()
@@ -381,7 +377,7 @@ describe('Thesolution', () => {
         const expected = [
             'Verified students only',
             'Meet on campus',
-            'Secure payments via OZOW',
+            'Secure payments via Payfast',
             'AI listing verification',
             'Bundle packs',
             'Trust and reputation',
@@ -423,31 +419,6 @@ describe('BuyersSellers', () => {
         const sellersList = sellersHeading.parentElement!
         expect(within(sellersList).getAllByRole('listitem')).toHaveLength(6)
         expect(within(sellersList).getByText(/AI scans your photos/i)).toBeInTheDocument()
-    })
-})
-
-describe('GetApp', () => {
-    it('renders Apple and Play store images', () => {
-        render(<GetApp />)
-
-        const appleImg = screen.getByAltText('Download on the App Store')
-        const playImg = screen.getByAltText('GET IT ON Google Play')
-
-        expect(appleImg).toBeInTheDocument()
-        expect(playImg).toBeInTheDocument()
-
-        expect(appleImg).toHaveAttribute('src', expect.stringMatching(/.+/))
-        expect(playImg).toHaveAttribute('src', expect.stringMatching(/.+/))
-    })
-
-    it('store badges link to their respective placeholder href', () => {
-        render(<GetApp />)
-
-        const appleLink = screen.getByAltText('Download on the App Store').closest('a')
-        const playLink = screen.getByAltText('GET IT ON Google Play').closest('a')
-
-        expect(appleLink).toHaveAttribute('href', '#')
-        expect(playLink).toHaveAttribute('href', '#')
     })
 })
 

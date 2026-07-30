@@ -1,0 +1,45 @@
+import { Page, APIRequestContext, expect } from '@playwright/test';
+
+export function uniqueEmail(prefix = 'e2e') {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}@tuks.co.za`;
+}
+
+export async function signupAndLogin(
+  page: Page,
+  request: APIRequestContext,
+  { email, password = 'Tafadzwa123!' }: { email: string; password?: string }
+) {
+  await page.goto('/auth/Signup');
+
+  await page.locator('input[name="firstName"]').fill('Test');
+  await page.locator('input[name="lastName"]').fill('User');
+  await page.locator('input[name="email"]').fill(email);
+
+  const universitySelect = page.locator('select[name="university"]');
+  await expect(universitySelect.locator('option').nth(1)).not.toHaveText('', { timeout: 10000 });
+  await universitySelect.selectOption({ index: 1 });
+
+  await page.locator('input[name="yearOfStudy"]').fill('2');
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole('button', { name: /^signup$/i }).click();
+
+  await page.waitForURL(/verify-otp/);
+
+  const otpResponse = await request.get(
+    `http://localhost:8080/api/dev/otp?email=${encodeURIComponent(email)}`
+  );
+  const { otp } = await otpResponse.json();
+
+  const otpInputs = page.locator('input[maxlength="1"]');
+  for (let i = 0; i < 6; i++) {
+    await otpInputs.nth(i).fill(otp[i]);
+  }
+  await page.getByRole('button', { name: /^verify otp$/i }).click();
+  await page.waitForURL(/\/auth\/Login/);
+
+  await page.locator('input[name="email"]').fill(email);
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole('button', { name: /^login$/i }).click();
+
+  await page.waitForURL(/\/buyer\/listings/);
+}

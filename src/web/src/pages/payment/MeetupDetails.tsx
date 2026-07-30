@@ -9,6 +9,7 @@ import LocationPicker from '../../components/layout/LocationPicker';
 import { useEffect } from 'react';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
+import { LoadingState } from '../../components/layout/Spinner';
 
 interface MeetupDetailsState {
   reservationId?: string;
@@ -26,6 +27,7 @@ interface MeetupDetailsState {
 function formatMeetupTime(iso?: string): string {
   if (!iso) return 'Time to be confirmed';
   const date = new Date(iso);
+  if (isNaN(date.getTime())) return 'Invalid Date';
   return date.toLocaleDateString('en-ZA', {
     weekday: undefined,
     month: 'short',
@@ -99,7 +101,7 @@ export default function MeetupDetails() {
 
   const isLoading = !!reservationId && (isReservationLoading || isMeetupLoading || (!!reservation && isListingLoading));
 
-  const counterpartyName = navState.counterpartyName ?? 'Seller';
+  const counterpartyName = navState.counterpartyName ?? (isSeller ? 'Buyer' : 'Seller');
   const meetupLocation = meetup?.agreedLocationName ?? navState.meetupLocation ?? 'Location to be confirmed';
   const meetupTime = meetup?.agreedTime ?? navState.meetupTime;
   const price = navState.listingPrice ?? listing?.price;
@@ -120,13 +122,32 @@ export default function MeetupDetails() {
     });
 
     connectionManager.connect().catch((e) => console.error('connect failed', e));
-    const off = connectionManager.onPinGenerated((e) => {
+    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
+
+    const off = connectionManager.onPaymentCompleted((e) => {
       if (e.reservationId !== reservationId) return;
       getTransactionStatus(reservationId).then((result) => {
         if (result.success) setTxStatus(result.data);
       });
     });
-    return () => off();
+
+    const offPin = connectionManager.onPinGenerated((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });
+    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });
+    return () => {
+      off();
+      offPin();
+      offPinConfirmed();
+    };
   }, [reservationId, isSeller]);
 
   const handlePayNow = async () => {
@@ -168,11 +189,8 @@ export default function MeetupDetails() {
   }
 
   if (isLoading && !navState.meetupLocation) {
-    return <div className="p-8 text-center text-slate-500">Loading meetup details....</div>;
+    return <LoadingState message="Loading meetup details..." />;
   }
-
-
-
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
@@ -184,7 +202,7 @@ export default function MeetupDetails() {
             </button>
             <div >
               <h1 className="text-xl text-white font-bold">Meetup Details</h1>
-              <p className="text-xs text-white/80"> Review your transaction before completing payment</p>
+              <p className="text-xs text-white/80"> {isSeller ? 'Review your meetup details and confirm the transaction' : 'Review your transaction before completing payment'}</p>
             </div>
 
           </div>
@@ -285,7 +303,6 @@ export default function MeetupDetails() {
                   {!isSeller ? (
                     <>
                       Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup. 
-                      {counterpartyName} at the physical meetup.
                     </>
                   ) : (
                     <>
@@ -300,7 +317,8 @@ export default function MeetupDetails() {
                     <>
                       <button
                         onClick={() => setShowCheckIn(true)}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                        disabled={!!timeRemaining}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                       >
                         <MapPin className="w-4 h-4" /> Check In at Meetup
                       </button>
@@ -329,7 +347,8 @@ export default function MeetupDetails() {
                   {!meetup?.sellerCheckedIn ? (
                     <button
                       onClick={() => setShowCheckIn(true)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                      disabled={!!timeRemaining}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                     >
                       <MapPin className="w-4 h-4" /> Check In at Meetup
                     </button>

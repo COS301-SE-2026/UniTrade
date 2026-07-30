@@ -15,6 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
+import { LoadingState } from '../../components/layout/Spinner';
 
 type SortOption = "Date added" | "Price low" | "Price high";
 
@@ -297,10 +298,7 @@ export default function Wishlist() {
         />
       </div>
 
-      <div className="flex flex-col gap-4">
-        {isLoading && (
-          <p className="text-sm text-gray-400">Loading your wishlist....</p>
-        )}
+      {isLoading && <LoadingState message = "Loading wishlist ..." />}
 
         {!isLoading && error && (
           <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
@@ -329,6 +327,5 @@ export default function Wishlist() {
           />
         ))}
       </div>
-    </div>
   );
 }

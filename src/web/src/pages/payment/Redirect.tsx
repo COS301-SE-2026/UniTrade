@@ -7,7 +7,7 @@ const navigate = useNavigate();
 
 useEffect(() => {
 const timer = setTimeout(() =>{
-navigate('/payment/confirming'); //comment out for testing
+navigate('/payment/confirming');
 }, 2500);
 return() => clearTimeout(timer);
 }, [navigate]);

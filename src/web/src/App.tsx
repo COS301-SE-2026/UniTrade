@@ -33,7 +33,6 @@ import ChatLayout from "./components/ChatLayout";
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 import MeetupDetails from "./pages/payment/MeetupDetails";
 import Redirect from "./pages/payment/Redirect";
-import ConfirmPayment from "./pages/payment/ConfirmPayment";
 import GeneratePin from "./pages/payment/GeneratePin";
 import EnterPin from "./pages/payment/EnterPin";
 import PaymentComplete from "./pages/payment/PaymentComplete";
@@ -123,13 +122,14 @@ export default function App() {
 
           <Route path="/payment/meetup" element={<MeetupDetails />} />
           <Route path="/payment/payfast-redirect" element={<Redirect />} />
-          <Route path="/payment/confirming" element={<ConfirmPayment />} />
+      
           <Route path="/payment/generate-pin" element={<GeneratePin />} />
           <Route path="/payment/buyer-pin" element={<EnterPin />} />
           <Route path="/payment/payment-complete" element={<PaymentComplete />} />
 
           <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
           <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
+          <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
         </Route>
       </Routes>
     </RealtimeProvider>

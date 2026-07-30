@@ -15,6 +15,7 @@ export default function PaymentComplete() {
     if (!reservationId) return;
     const goAndEnterPin = () => navigate('/payment/buyer-pin', { state: { reservationId } });
 
+    
     connectionManager.connect().catch((e) => console.error('connect failed', e));
 
     const off = connectionManager.onPaymentCompleted((e) => {

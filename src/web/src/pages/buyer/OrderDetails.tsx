@@ -6,9 +6,14 @@ import type { TransactionStatusResponse } from "../../services/reservationServic
 import { listingsService } from "../../services/listingsService";
 import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse, Review } from "../../types/listing";
 import type { Reservation } from "../../types/Reservations";
+import { useAuthStore } from "../../store/useAuthStore";
+
+function toRefNum(reservationId: string): string {
+        return `#${reservationId.slice(0,8).toUpperCase()}`;
+      }
 
 export default function OrderDetails() {
-    const { reservationId } = useParams<{ reservationId: string }>();
+    const { id: reservationId } = useParams<{ id: string }>();
 
     const [reservation, setReservation] = useState<Reservation | null>(null);
     const [listing, setListing] = useState<ListingDetail | null>(null)
@@ -18,6 +23,10 @@ export default function OrderDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const currentUserId = useAuthStore.getState().user?.id;
+    const isBuyer = reservation ? reservation.buyerId === currentUserId : true;
+    const backPath = isBuyer ? "/buyer/orders" : "/seller/sales";
+    const backLabel = isBuyer ? "My Orders" : "My Sales";
 
     useEffect(() => {
         const loadOrder = async () => {
@@ -63,8 +72,8 @@ export default function OrderDetails() {
         return (
             <div className="text-center">
                 <p className="text-red-600 mb-4">{error || 'Order not found'}</p>
-                <Link to="/buyer/orders" className="text-blue-600 hover:underline">
-                    Back to My Orders
+                <Link to={backPath} className="text-blue-600 hover:underline">
+                    Back to {backLabel}
                 </Link>
             </div>
         );
@@ -106,8 +115,8 @@ export default function OrderDetails() {
         <div className="max-w-6xl w-full mx-auto space-y-6">
             <div className="flex items-center justify-between">
                 <nav className="flex items-center gap-2 text-sm font-medium">
-                    <Link to="/buyer/orders" className="text-blue-600 hover:underline">
-                        My Orders
+                    <Link to={backPath} className="text-blue-600 hover:underline">
+                        {backLabel}
                     </Link>
                     <IconChevronRight className="w-4 h-4 text-slate-400" />
                     <span className="text-slate-600 font-semibold">{listing.title}</span>
@@ -161,7 +170,7 @@ export default function OrderDetails() {
                     </div>
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
-                            Your review
+                            {isBuyer ? "Your review" : "Buyer's review"}
                         </h3>
                         {myReview ? (
                             <>
@@ -179,7 +188,8 @@ export default function OrderDetails() {
                                 <p className="text-slate-600 text-sm leading-relaxed">{myReview.comment || 'No comment left.'}</p>
                             </>
                         ) : (
-                            <p className="text-sm text-slate-500">You haven't left a review for this order yet.</p>
+                            <p className="text-sm text-slate-500">{isBuyer ? "You haven't left a review for this order yet." :
+                                "The buyer hasn't left a review for this sale yet."}</p>
                         )}
                     </div>
                 </div>
@@ -211,17 +221,19 @@ export default function OrderDetails() {
 
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
-                            Seller
+                           {isBuyer ? "Seller": "Buyer"} 
                         </h3>
                         <div className="flex items-center gap-3 mb-5">
                             <div className="w-10 h-10 bg-navy-800 text-white rounded-full flex items-center justify-center font-bold">
                                 {reservation.counterParty?.initials || '_'}
                             </div>
                             <div>
-                                <p className="font-semibold">{reservation.counterParty?.name || 'Unknown seller'}</p>
-                                <p className="text-xs text-slate-500">{listing.seller?.university || '_'}</p>
+                                <p className="font-semibold">{reservation.counterParty?.name ||(isBuyer ?  'Unknown seller': 'Unknown buyer')}</p>
+                               {isBuyer && ( <p className="text-xs text-slate-500">{listing.seller?.university || '_'}</p>
+                               )}
                             </div>
                         </div>
+                        {isBuyer && (<>
                         <div className="flex justify-between items-center mb-3 text-sm">
                             <span className="text-slate-600">Seller rating</span>
                             <span className="font-medium">{sellerAvgRating !== null ? `${sellerAvgRating} / 5` : 'No ratings yet'}</span>
@@ -230,6 +242,8 @@ export default function OrderDetails() {
                             <span className="text-slate-600">Total Sales</span>
                             <span className="font-medium">{sellerReceivedReviews.length}</span>
                         </div>
+                        </>
+                        )}
                     </div>
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
@@ -238,7 +252,7 @@ export default function OrderDetails() {
                         <div className="space-y-4 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-slate-600">Order ID</span>
-                                <span className="font-medium">#{reservation.reservationId}</span>
+                                <span className="font-medium">{toRefNum(reservation.reservationId)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-slate-600">Date Placed</span>

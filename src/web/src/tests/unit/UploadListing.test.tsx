@@ -6,6 +6,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { waitFor } from "@testing-library/react";
 import type { Course } from '../../types/listing';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 
 vi.mock('../../services/listingsService', () => ({
@@ -30,13 +31,22 @@ vi.mock('../../components/layout/useToast', () => ({
 }))
 import UploadListing from '../../pages/seller/UploadListing';
 
-const renderUpload = () =>
+const renderUpload = () => {
+         const queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false,
+                },
+            },
+        })
   render(
+    <QueryClientProvider client={queryClient}>
     <MemoryRouter>
       <UploadListing />
     </MemoryRouter>
+    </QueryClientProvider>
   )
-
+}
 
 const { mockCategories, mockCourses } = vi.hoisted(() => ({
   mockCategories: [

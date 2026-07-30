@@ -164,7 +164,15 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
-builder.Services.AddScoped<IEmailService, AcsEmailService>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<AcsEmailService>();
+    builder.Services.AddScoped<IEmailService, TestEmailService>();
+}
+else
+{
+    builder.Services.AddScoped<IEmailService, AcsEmailService>();
+}
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();

@@ -4,8 +4,6 @@
 
 ### The trusted peer-to-peer marketplace for South African university students
 
-<img src="src/web/src/assets/group_photo.jpeg" alt="DevNexus Team" width="80%" />
-
 <br/>
 
 <!-- CI/CD Status Pipeline Badges -->
@@ -308,54 +306,13 @@ UniTrade/
 
 We are **DevNexus**, a team of five final-year Computer Science students from the University of Pretoria, building UniTrade as our COS301 Capstone Project.
 
-<table>
-  <tr>
-    <td align="center" width="200">
-      <strong>Zelamene Shazi</strong><br/>
-      <em>Project Lead · Backend </em><br/><br/>
-      Leads system architecture and backend development. Specialises in API design, cybersecurity, and database management.<br/><br/>
-      <strong>Skills:</strong> C#, Java, C++, React.js, TypeScript, PostgreSQL<br/><br/>
-      <a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3B2Wnqg7D8SCurqukglrl%2B0A%3D%3D">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Sabira Karie</strong><br/>
-      <em>Backend</em><br/><br/>
-      Focuses on cybersecurity, system assurance, and DevOps pipelines. Brings deep understanding of networks and system design.<br/><br/>
-      <strong>Skills:</strong> Java, C++, TypeScript, Angular, NextJS, PostgreSQL<br/><br/>
-      <a href="https://www.linkedin.com/in/saira-kaire-666365378/">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Mahadio Tlaka</strong><br/>
-      <em>Frontend</em><br/><br/>
-      Frontend specialist with a passion for user-centred design. Combines analytical thinking with a flair for building elegant interfaces.<br/><br/>
-      <strong>Skills:</strong> React.js, TypeScript, JavaScript, NextJS, CSS, Java<br/><br/>
-      <a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Langa Vakalisa</strong><br/>
-      <em>Frontend</em><br/><br/>
-      Versatile full-stack developer with a focus on performance, scalability, and optimised database architecture.<br/><br/>
-      <strong>Skills:</strong> Java, C++, NextJS, JavaScript, PostgreSQL, PyTorch<br/><br/>
-      <a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7?trk=contact-info">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Tafadzwa Musiiwa</strong><br/>
-      <em>Frontend</em><br/><br/>
-      Broad skill set across frontend development, AI/ML, and quality assurance. Research-driven and adaptable across the full stack.<br/><br/>
-      <strong>Skills:</strong> React.js, TypeScript, JavaScript, NestJS, NextJS, PostgreSQL<br/><br/>
-      <a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9?utm_source=share_via&utm_content=profile&utm_medium=member_android">LinkedIn</a>
-    </td>
-  </tr>
-</table>
-
-## Role Allocation
-
-| Role | Team Member(s) |
-|---|---|
-| Project Manager / Scrum Master | Zelamene Shazi |
-| Backend Development | Zelamene Shazi,Sabira Karie |
-| Frontend (Web & Mobile) | Tafadzwa Musiiwa, Langa Vakalisa, Mahadio Tlaka |
-
+| Name | Image | Role | Links |
+|---|---|---|---|
+| **Zelamene Shazi** | <img src="src/web/src/assets/Zee.jpeg" width="80" /> | Project Lead · Backend | [LinkedIn](https://www.linkedin.com/in/zelamene-shazi-66ab142b6/) |
+| **Sabira Karie** | <img src="src/web/src/assets/Sabira.jpeg" width="80" /> | Backend | [LinkedIn](https://www.linkedin.com/in/saira-kaire-666365378/) |
+| **Mahadio Tlaka** | <img src="src/web/src/assets/Didi.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/mahadio-tlaka-419a12393/) |
+| **Langa Vakalisa** | <img src="src/web/src/assets/Langa.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7) |
+| **Tafadzwa Musiiwa** | <img src="src/web/src/assets/Tafadzwa.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9) |
 ---
 ## Development Approach
 
