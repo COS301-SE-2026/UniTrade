@@ -87,6 +87,12 @@ jobs:
         working-directory: src/web
         run: npm run test:run -- --coverage
       
+      - name: Upload coverage to Codecov
+        uses: codecov/codcov-action@v4
+        with:
+          files: src/web/coverage/lcov.info
+          fail_ci_if_error: true
+      
       - name: Validate Frontend docker image
         working-directory: src/web
         run: docker build -t unitrade-web-ci .
