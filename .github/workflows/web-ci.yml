@@ -92,7 +92,7 @@ jobs:
         run: npm run test:integration:cov
       
       - name: Upload coverage to Codecov
-        uses: codecov/codcov-action@v4
+        uses: codecov/codecov-action@v4
         with:
           files: src/web/coverage/lcov.info
           fail_ci_if_error: true
