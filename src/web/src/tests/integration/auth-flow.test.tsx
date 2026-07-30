@@ -69,7 +69,7 @@ test('signup -> otp -> login -> logout', async () => {
 
   await user.type(screen.getByPlaceholderText('First Name'), 'Tafadzwa')
   await user.type(screen.getByPlaceholderText('Last Name'), 'M')
-  await user.type(screen.getByPlaceholderText('Email'), 'tafadzwa@tuks.co.za')
+  await user.type(screen.getByPlaceholderText('Student Email'), 'tafadzwa@tuks.co.za')
 
   await waitFor(() => {
     expect(screen.getByText('University of Pretoria')).toBeInTheDocument();

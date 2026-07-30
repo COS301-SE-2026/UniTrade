@@ -60,7 +60,7 @@ const fillRequiredFields = async (overrides: Record<string, string> = {}) => {
 
   await user.type(screen.getByPlaceholderText('First Name'), fields.firstName)
   await user.type(screen.getByPlaceholderText('Last Name'), fields.lastName)
-  await user.type(screen.getByPlaceholderText('Email'), fields.email)
+  await user.type(screen.getByPlaceholderText('Student Email'), fields.email)
   await screen.findByText('Select University');
   await user.selectOptions(screen.getByRole('combobox'), 'University of Cape Town')
   await user.type(screen.getByPlaceholderText('Year of Study'), fields.yearOfStudy)
@@ -85,7 +85,7 @@ describe('Signup page', () => {
       renderSignup()
       expect(screen.getByPlaceholderText('First Name')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('Last Name')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Email')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Student Email')).toBeInTheDocument()
       expect(screen.getByRole('combobox')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('Year of Study')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()

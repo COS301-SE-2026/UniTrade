@@ -86,9 +86,9 @@ export default function App() {
 
         <Route element={<AppLayout />}>
           <Route path="/buyer/orders" element={<Orders />} />
-          <Route path="/buyer/orders/:id" element={<OrderDetails />} />
+          <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
           <Route path="/seller/sales" element={<Sales />} />
-          <Route path="/seller/sales/:id" element={<OrderDetails />} />
+          <Route path="/seller/sales/:reservationId" element={<OrderDetails />} />
           <Route path="/buyer/listings/:id" element={<ListingDetail />} />{" "}
           {/*the id can be anything for now since the data is hardcoded*/}
           <Route path="/buyer/listings" element={<BrowseListings />} />

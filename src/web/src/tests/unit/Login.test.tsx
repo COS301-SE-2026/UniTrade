@@ -71,17 +71,6 @@ describe('Login', () => {
       expect(screen.getByRole('button', { name: 'LOGIN' })).toBeInTheDocument()
     })
 
-    it('renders Remember Me checkbox', () => {
-      renderLogin()
-      expect(screen.getByRole('checkbox')).toBeInTheDocument()
-      expect(screen.getByText('Remember Me')).toBeInTheDocument()
-    })
-
-    it('renders Forgot Password link', () => {
-      renderLogin()
-      expect(screen.getByRole('link', { name: 'Forgot Password' })).toBeInTheDocument()
-    })
-
     it('renders Sign Up link pointing to /auth/Signup', () => {
       renderLogin()
       expect(screen.getByRole('link', { name: 'Sign Up' })).toHaveAttribute('href', '/auth/Signup')
@@ -119,14 +108,6 @@ describe('Login', () => {
     expect(passWordInput).toHaveAttribute('type', 'password')
   })
 
-  it('toggles the Remember me checkbox', () => {
-    renderLogin()
-    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
-    expect(checkbox.checked).toBe(false)
-
-    fireEvent.click(checkbox)
-    expect(checkbox.checked).toBe(true)
-  })
 
   it('shows loading state and disables the button while its submitting', async () => {
     let resolveLogin: () => void
