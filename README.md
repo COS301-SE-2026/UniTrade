@@ -15,6 +15,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
+[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 
 <br/>
 
@@ -90,7 +91,63 @@ UniTrade provides a structured, verified marketplace where students can list, br
 ![Google Maps](https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)
 
 ---
+### Team - DevNexus
+<table>
+<tr>
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Zee.jpeg" width="200">
 
+  <br/>
+  <b>Zelamene Shazi</b><br />
+  <sub>Team Lead. BackEnd</sub><br/><br/>
+  <a href="https://github.com/Zelamene"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+<td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Sabira.jpeg" width="200">
+
+  <br/>
+  <b>Sabira Karie</b><br />
+  <sub>Team Lead. BackEnd</sub><br/><br/>
+  <a href="https://github.com/Sabira-k-commits"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/saira-kaire-666365378/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Didi.jpeg" width="200">
+
+  <br/>
+  <b>Mahadio Tlaka</b><br />
+  <sub>FrontEnd</sub><br/><br/>
+  <a href="https://github.com/diditlaka"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Langa.jpeg" width="200">
+
+  <br/>
+  <b>Langa Vakalisa</b><br />
+  <sub>FrontEnd</sub><br/><br/>
+  <a href="https://github.com/langa-vk"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+ <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Tafadzwa.jpeg" width="200">
+
+  <br/>
+  <b>Tafadzwa Musiiwa</b><br />
+  <sub>FrontEnd. Integration</sub><br/><br/>
+  <a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+  </tr>
+  </table>
+  
 ## Documentation
 | Document | Link |
 | --- | --- |
@@ -302,18 +359,7 @@ UniTrade/
 └── UniTrade.sln
 ```
 ---
-## Team — DevNexus
 
-We are **DevNexus**, a team of five final-year Computer Science students from the University of Pretoria, building UniTrade as our COS301 Capstone Project.
-
-| Name | Image | Role | Links |
-|---|---|---|---|
-| **Zelamene Shazi** | <img src="src/web/src/assets/Zee.jpeg" width="80" /> | Project Lead · Backend | [LinkedIn](https://www.linkedin.com/in/zelamene-shazi-66ab142b6/) |
-| **Sabira Karie** | <img src="src/web/src/assets/Sabira.jpeg" width="80" /> | Backend | [LinkedIn](https://www.linkedin.com/in/saira-kaire-666365378/) |
-| **Mahadio Tlaka** | <img src="src/web/src/assets/Didi.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/mahadio-tlaka-419a12393/) |
-| **Langa Vakalisa** | <img src="src/web/src/assets/Langa.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7) |
-| **Tafadzwa Musiiwa** | <img src="src/web/src/assets/Tafadzwa.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9) |
----
 ## Development Approach
 
 UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:
