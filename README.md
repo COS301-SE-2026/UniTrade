@@ -179,12 +179,24 @@ UniTrade provides a structured, verified marketplace where students can list, br
 <details>
   <summary>Demo 1 Documentation</summary>
 
-  [![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
-[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
-[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
-[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
-[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
-[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+  <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf">
+    <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=round-square" height="40">
+  </a>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+    <br/><br/>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+    <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+</p>
 
 </details>
 
