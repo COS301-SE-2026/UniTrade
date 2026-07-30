@@ -300,7 +300,7 @@ function Firstpage() {
 
             <div className="grid grid-cols-3 gap-6 mt-12
                 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
-              <Stat number="+5" label="SA UNIVERSITIES" />
+              <Stat number="5+" label="SA UNIVERSITIES" />
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
             </div>

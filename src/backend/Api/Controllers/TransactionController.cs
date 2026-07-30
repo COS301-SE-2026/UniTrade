@@ -132,14 +132,14 @@ public class TransactionController : ControllerBase
     {
         var userIdClaim =
             User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var sellerId))
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var buyerId))
         {
             return Unauthorized();
         }
 
         try
         {
-            await _transactionsService.VerifyPinAsync(reservationId, sellerId, request.Pin, ct);
+            await _transactionsService.VerifyPinAsync(reservationId, buyerId, request.Pin, ct);
             return Ok();
         }
         catch (TransactionException ex)
@@ -147,7 +147,7 @@ public class TransactionController : ControllerBase
             return ex.Code switch
             {
                 "transaction_not_found" => NotFound(new { code = ex.Code }),
-                "not_seller" => Forbid(),
+                "not_buyer" => Forbid(),
                 "too_many_attempts" => BadRequest(new { code = ex.Code }),
                 "invalid_pin" => BadRequest(new { code = ex.Code }),
                 _ => BadRequest(new { code = ex.Code }),
@@ -184,7 +184,7 @@ public class TransactionController : ControllerBase
             return Forbid();
         }
 
-        var pin = (tx.BuyerId == userId && tx.TransactionStatus == "completed") ? tx.Pin : null;
+        var pin = (tx.SellerId == userId && tx.TransactionStatus == "completed") ? tx.Pin : null;
 
         return Ok(
             new
@@ -204,14 +204,14 @@ public class TransactionController : ControllerBase
     {
         var userIdClaim =
             User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var buyerId))
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var sellerId))
         {
             return Unauthorized();
         }
 
         try
         {
-            var pin = await _transactionsService.GetPendingPinAsync(reservationId, buyerId, ct);
+            var pin = await _transactionsService.GetPendingPinAsync(reservationId, sellerId, ct);
             return Ok(new { pin });
         }
         catch (TransactionException ex)
@@ -219,7 +219,7 @@ public class TransactionController : ControllerBase
             return ex.Code switch
             {
                 TransactionErrors.ReservationNotFound => NotFound(new { code = ex.Code }),
-                TransactionErrors.NotBuyer => Forbid(),
+                "not_seller" => Forbid(),
                 "transaction_not_found" => NotFound(new { code = ex.Code }),
                 "pin_not_pending" => BadRequest(new { code = ex.Code }),
                 _ => BadRequest(new { code = ex.Code }),
