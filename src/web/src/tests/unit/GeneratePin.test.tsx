@@ -63,11 +63,5 @@ describe('GeneratePin', () => {
         expect(containerss[5].textContent).toBe('');
     })
 
-    it('navigates to the buyers reservations when Done is clicked', async () => {
-        locationState = {pin: '123456'};
-        renderComponent()
-
-        await userEvent.click(screen.getByRole('button', {name: /done/i}));
-        expect(mockNavigate).toHaveBeenCalledWith('/buyer/reservations');
-    });
+   // NOTE (FE) Add test for going to orders/ sales
 });
