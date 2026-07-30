@@ -36,15 +36,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to ACR
-        #env:
-          #ACR: ${{ secrets.ACR_REGISTRY }}
-        #run: az acr login --name "${ACR%%.*}"
-        #ask for acrpush permissions againnnn!!!(didnt grant perm for this), delete github secrts when updated
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{secrets.ACR_REGISTRY}}
-          username: ${{ secrets.ACR_USERNAME}}
-          password: ${{ secrets.ACR_PASSWORD }}
+        env:
+          ACR: ${{ secrets.ACR_REGISTRY }}
+        run: az acr login --name "${ACR%%.*}"
+        # ask for acrpush permissions againnnn!!!(didnt grant perm for this), delete github secrts when updated
+        # uses: azure/docker-login@v1
+        # with:
+        #   login-server: ${{secrets.ACR_REGISTRY}}
+        #   username: ${{ secrets.ACR_USERNAME}}
+        #   password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Set image tag
         id: set_tag
@@ -129,7 +129,8 @@ jobs:
               "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}"  \
-              "otp-secret=${{secrets.OTP_SECRET}}" 
+              "otp-secret=${{secrets.OTP_SECRET}}" \
+              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -141,7 +142,8 @@ jobs:
                 "Jwt__Secret=secretref:jwt-secret" \
                 "Otp__Secret=secretref:otp-secret" \
                 "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL_STAGING }}" \
-                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
+                "Firebase__CredentialsJson=secretref:firebase-creds"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -153,7 +155,13 @@ jobs:
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-              "VITE_API_URL=${{ secrets.VITE_API_URL_STAGING }}"
+              "VITE_API_URL=${{ secrets.VITE_API_URL_STAGING }}" \
+              "FIREBASE_API_KEY=${{secrets.VITE_FIREBASE_API_KEY}}" \
+              "FIREBASE_AUTH_DOMAIN=${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}" \
+              "FIREBASE_PROJECT_ID=${{secrets.VITE_FIREBASE_PROJECT_ID}}" \
+              "FIREBASE_SENDER_ID=${{secrets.VITE_FIREBASE_SENDER_ID}}" \
+              "FIREBASE_APP_ID=${{secrets.VITE_FIREBASE_APP_ID}}" \
+              "FIREBASE_VAPID_KEY=${{secrets.VITE_FIREBASE_VAPID_KEY}}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
       - name: Wait for backend revision to be Running
         run: |
@@ -325,7 +333,8 @@ jobs:
               "db-conn=${{ secrets.DB_CONNECTION_STRING_PROD}}" \
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}" \
-              "otp-secret=${{secrets.OTP_SECRET}}"
+              "otp-secret=${{secrets.OTP_SECRET}}" \
+              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
               
 
           az containerapp update \
@@ -338,7 +347,8 @@ jobs:
                 "Jwt__Secret=secretref:jwt-secret" \
                 "Otp__Secret=secretref:otp-secret" \
                 "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL }}" \
-                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}"
+                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
+                "Firebase__CredentialsJson=secretref:firebase-creds"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -350,7 +360,13 @@ jobs:
               --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-              "VITE_API_URL=${{ secrets.VITE_API_URL }}"
+              "VITE_API_URL=${{ secrets.VITE_API_URL }}" \
+              "FIREBASE_API_KEY=${{secrets.VITE_FIREBASE_API_KEY}}" \
+              "FIREBASE_AUTH_DOMAIN=${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}" \
+              "FIREBASE_PROJECT_ID=${{secrets.VITE_FIREBASE_PROJECT_ID}}" \
+              "FIREBASE_SENDER_ID=${{secrets.VITE_FIREBASE_SENDER_ID}}" \
+              "FIREBASE_APP_ID=${{secrets.VITE_FIREBASE_APP_ID}}" \
+              "FIREBASE_VAPID_KEY=${{secrets.VITE_FIREBASE_VAPID_KEY}}"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Health check production backend (green)
