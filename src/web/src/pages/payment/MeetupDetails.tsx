@@ -120,7 +120,7 @@ export default function MeetupDetails() {
     });
 
     connectionManager.connect().catch((e) => console.error('connect failed', e));
-    const off = connectionManager.onPaymentCompleted((e) => {
+    const off = connectionManager.onPinGenerated((e) => {
       if (e.reservationId !== reservationId) return;
       getTransactionStatus(reservationId).then((result) => {
         if (result.success) setTxStatus(result.data);
@@ -284,13 +284,12 @@ export default function MeetupDetails() {
                   <strong>Safety Guarantee:</strong>{' '}
                   {!isSeller ? (
                     <>
-                      Your funds are held securely by UniTrade and will only be released once you supply a PIN to{' '}
+                      Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup. 
                       {counterpartyName} at the physical meetup.
                     </>
                   ) : (
                     <>
-                      Your funds are held securely by UniTrade and will only be released to you once you enter the PIN given by{' '}
-                      {counterpartyName} at the physical meetup.
+                      Show your PIN to {counterpartyName} at the physical meetup. The sale completes once they enter it.
                     </>
                   )}
                 </p>
@@ -336,10 +335,10 @@ export default function MeetupDetails() {
                     </button>
                   ) : txStatus?.transactionStatus === 'completed' && txStatus?.pinStatus === 'pending' ? (
                     <button
-                      onClick={() => navigate('/payment/buyer-pin', { state: { reservationId } })}
+                      onClick={() => navigate('/payment/generate-pin', { state: { pin: txStatus.pin, reservationId } })}
                       className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                     >
-                      <Lock className="w-4 h-4" /> Enter Buyer's PIN
+                      <Lock className="w-4 h-4" /> Show PIN to Buyer
                     </button>
                   ) : txStatus?.pinStatus === 'confirmed' ? (
                     <p className="text-center text-sm text-emerald-700 bg-emerald-50 rounded-xl py-3 px-4">

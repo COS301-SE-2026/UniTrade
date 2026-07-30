@@ -105,15 +105,20 @@ public class TransactionService : ITransactionsService
         await _transactions.SaveAsync(ct);
 
         await _broadcast.SendToUserAsync(
-            reservation.BuyerId,
+            reservation.SellerId,
             "pin_generated",
             new { reservationId, pin }
+        );
+        await _broadcast.SendToUserAsync(
+            reservation.BuyerId,
+            "payment_completed",
+            new { reservationId }
         );
     }
 
     public async Task<string> GetPendingPinAsync(
         Guid reservationId,
-        Guid buyerId,
+        Guid sellerId,
         CancellationToken ct = default
     )
     {
@@ -121,7 +126,7 @@ public class TransactionService : ITransactionsService
             await _reservations.GetByIdAsync(reservationId, ct)
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
-        if (reservation.BuyerId != buyerId)
+        if (reservation.SellerId != sellerId)
         {
             throw new TransactionException(TransactionErrors.NotBuyer);
         }
@@ -140,7 +145,7 @@ public class TransactionService : ITransactionsService
 
     public async Task VerifyPinAsync(
         Guid reservationId,
-        Guid sellerId,
+        Guid buyerId,
         string pin,
         CancellationToken ct = default
     )
@@ -148,9 +153,9 @@ public class TransactionService : ITransactionsService
         var tx =
             await _transactions.GetByReservationIdTrackedAsync(reservationId, ct)
             ?? throw new TransactionException("transaction_not_found");
-        if (tx.SellerId != sellerId)
+        if (tx.BuyerId != buyerId)
         {
-            throw new TransactionException("not_seller");
+            throw new TransactionException("not_buyer");
         }
 
         if (tx.PinStatus == "confirmed")
@@ -184,6 +189,8 @@ public class TransactionService : ITransactionsService
 
         await _transactions.SaveAsync(ct);
         await _reservations.SaveAsync(ct);
+
+        await _broadcast.SendToUserAsync(tx.SellerId, "pin_confirmed", new { reservationId });
     }
 
     private static string GeneratePin() =>
