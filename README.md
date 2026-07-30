@@ -149,14 +149,45 @@ UniTrade provides a structured, verified marketplace where students can list, br
   </table>
   
 ## Documentation
-| Document | Link |
-| --- | --- |
-| SRS Document| [https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf](https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd-Mahadio/docs/requirements/UniTrade_SRS_Demo_1.pdf)|
-| WireFrames| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf|
-| Figma_Doc (WireFrames) | https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Plan2?node-id=0-1&t=d203OEm1RvksQhm1-1|
-| Branding_Style_Doc | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade%20%E2%80%93%20Brand%20Style%20Guide.pdf |
-| Architecture_Diagram| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/diagrams/Architecture_Diagram.png |
-|BrandingStyleDoc (HTML) | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade-Brand-Style-Guide.html|
+## Demo 2
+<br>
+
+<details>
+  <summary><strong>Software Requirements Specifications</summary>
+</details>
+<details>
+  <summary><strong>Software Architecture Specifications</summary>
+</details>
+<details>
+  <summary><strong>Coding Standards</summary>
+</details>
+<details>
+  <summary><strong>Testing Policy</summary>
+</details>
+<details>
+  <summary><strong>User Manual</summary>
+</details>
+<details>
+  <summary><strong>Brand Style Guide</summary>
+</details>
+<details>
+  <summary><strong>Figma Document</summary>
+</details>
+
+## Demo 1
+
+<details>
+  <summary>Demo 1 Documentation</summary>
+
+  [![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+[![Software Requirements Specification](https://img.shields.io/badge/Software%20Requirements%20Specification-View%20Document-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf)
+
+</details>
+
 
 ## Project Structure
 
