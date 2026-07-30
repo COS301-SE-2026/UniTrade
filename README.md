@@ -1,4 +1,10 @@
 <div align="center">
+<br>
+  
+<img src="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/diagrams/Transaprent%20Logo.png">
+
+<br>
+
 
 # UniTrade
 
@@ -31,22 +37,33 @@
 </div>
 
 ---
+
+<div align="center">
+  
 # UniTrade
+</div>
 
 A web and mobile marketplace for South African university students to buy and sell second-hand academic materials safely and affordably.
 
+<div align="center">
+
 ## The problem
+</div>
 
 University students in South Africa face significant financial pressure, from high tuition fees, rising living costs, and expensive prescribed textbooks. The current alternatives are bleak: buy new materials at full price, or rely on informal peer networks that are unreliable, unverified, and often unsafe.
 There is currently no structured and trusted platform where students can safely exchange academic materials with confidence.
 
+<div align="center">
+  
 ## What UniTrade does
-
+</div>
 
 UniTrade provides a structured, verified marketplace where students can list, browse, and purchase used academic materials directly from peers at their institution. Every user is verified as an active, currently enrolled student before they can transact, ensuring the platform remains trusted and scalable.
 
-
+<div align="center">
+  
 ## Key Features
+</div>
 
 | Feature | Description |
 |---|---|
@@ -59,7 +76,8 @@ UniTrade provides a structured, verified marketplace where students can list, br
 | **Multi-Channel Notifications** | Push notifications (FCM) and transactional emails (Resend) |
 
 ---
-
+<div align="center">
+  
 ## Tech Stack
 
 ### Frontend
@@ -89,8 +107,12 @@ UniTrade provides a structured, verified marketplace where students can list, br
 ![Azure](https://img.shields.io/badge/Azure_Computer_Vision-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
 ![Google Maps](https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)
+</div>
 
 ---
+
+<div align="center">
+  
 ### Team - DevNexus
 <table>
 <tr>
@@ -147,8 +169,14 @@ UniTrade provides a structured, verified marketplace where students can list, br
   </td>
   </tr>
   </table>
+  </div>
+
+<div align="center">
   
 ## Documentation
+
+</div>
+
 ## Demo 2
 <br>
 
@@ -173,6 +201,8 @@ UniTrade provides a structured, verified marketplace where students can list, br
 <details>
   <summary><strong>Figma Document</summary>
 </details>
+
+
 
 ## Demo 1
 
@@ -430,7 +460,12 @@ UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:
 
 ## Contact
 
-📧 [devnexus28@gmail.com](mailto:devnexus28@gmail.com)
+<div align="center">
+
+[![Email Badge](https://img.shields.io/badge/Email-devnexus28%40gmail.com-blue?style=for-the-badge&logo=gmail&logoColor=white)](mailto:devnexus28@gmail.com)
+
+</div>
+
 
 ---
 
