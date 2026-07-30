@@ -15,7 +15,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
-[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)]([https://codecov.io/gh/COS301-SE-2026/UniTrade](https://app.codecov.io/gh/COS301-SE-2026/UniTrade/tree/feature%2FFrontEnd))
+[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 
 <br/>
 
