@@ -837,11 +837,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UniversityId"));
 
-                    b.Property<string>("EmailDomain")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("email_domain");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -856,11 +851,44 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("UniversityId")
                         .HasName("pk_universities");
 
+                    b.ToTable("universities", "unitrade");
+                });
+
+            modelBuilder.Entity("Modules.ReferenceData.University.UniversityEmailDomain", b =>
+                {
+                    b.Property<int>("DomainId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("domain_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DomainId"));
+
+                    b.Property<string>("EmailDomain")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email_domain");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<int>("UniversityId")
+                        .HasColumnType("integer")
+                        .HasColumnName("university_id");
+
+                    b.HasKey("DomainId")
+                        .HasName("pk_university_email_domains");
+
                     b.HasIndex("EmailDomain")
                         .IsUnique()
-                        .HasDatabaseName("ix_universities_email_domain");
+                        .HasDatabaseName("ix_university_email_domains_email_domain");
 
-                    b.ToTable("universities", "unitrade");
+                    b.HasIndex("UniversityId")
+                        .HasDatabaseName("ix_university_email_domains_university_id");
+
+                    b.ToTable("university_email_domains", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
@@ -1432,6 +1460,18 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_courses_universities_university_id");
                 });
 
+            modelBuilder.Entity("Modules.ReferenceData.University.UniversityEmailDomain", b =>
+                {
+                    b.HasOne("Modules.ReferenceData.University.University", "University")
+                        .WithMany("EmailDomains")
+                        .HasForeignKey("UniversityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_university_email_domains_universities_university_id");
+
+                    b.Navigation("University");
+                });
+
             modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
                 {
                     b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
@@ -1546,6 +1586,11 @@ namespace Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Modules.Listings.Models.ListingCategory", b =>
                 {
                     b.Navigation("Listings");
+                });
+
+            modelBuilder.Entity("Modules.ReferenceData.University.University", b =>
+                {
+                    b.Navigation("EmailDomains");
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>

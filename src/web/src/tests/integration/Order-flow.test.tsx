@@ -27,7 +27,7 @@ function renderApp(initialRoute: string) {
                 <MemoryRouter initialEntries={[initialRoute]}>
                     <Routes>
                         <Route path="/buyer/orders" element={<Orders />} />
-                        <Route path="/buyer/orders/:id" element={<OrderDetails />} />
+                        <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
                     </Routes>
                 </MemoryRouter>
             </ToastProvider>

@@ -103,8 +103,8 @@ const Signup: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email</label>
-              <input type="text" inputMode="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Student Email</label>
+              <input type="text" inputMode="email" name="email" placeholder="Student Email" value={formData.email} onChange={handleChange} required
                 className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
             </div>
 
@@ -116,8 +116,8 @@ const Signup: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={uniLoading}
-                className="w-full rounded-xl border border-sky-300 py-3 focus: border-sky-500 focus:outline-none
-                 focus:ring-sky-500 transition-all disabled:opacity-60">
+                className={`w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1
+                 focus:ring-sky-500 transition-all disabled:opacity-60 ${formData.university === ""? "text-gray-400" : "text-gray-900"}`}>
                 <option value="">
                   {uniLoading
                     ? 'Loading universities...'

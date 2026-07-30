@@ -23,6 +23,7 @@ interface AuthStore {
   setPendingEmail: (email: string) => void
   clearPendingEmail: () => void
   toggleViewMode: () => void
+  setViewMode: (mode: ViewMode) => void
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -41,6 +42,7 @@ export const useAuthStore = create<AuthStore>()(
     if (user?.role !== 'student') return
     set({ viewMode: viewMode === 'buyer' ? 'seller' : 'buyer' })
   },
+  setViewMode: (mode) => set({ viewMode: mode}),
 }),
 {
   name: 'unitrade-auth',

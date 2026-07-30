@@ -38,7 +38,7 @@ interface ProblemCardProps {
 export function ProblemCard({ icon, title, description }: ProblemCardProps) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
-      <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+      <div data-testid="card-icon" className="w-11 h-11 bg-white text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="font-semibold text-navy-700 dark:text-white text-lg mb-2">{title}</h3>
@@ -300,7 +300,7 @@ function Firstpage() {
 
             <div className="grid grid-cols-3 gap-6 mt-12
                 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
-              <Stat number="+5" label="SA UNIVERSITIES" />
+              <Stat number="5+" label="SA UNIVERSITIES" />
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
             </div>

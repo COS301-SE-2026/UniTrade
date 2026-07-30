@@ -66,7 +66,9 @@ export default function SellerListingDetail() {
     }
   };
 
-  {loading && <LoadingState message = "Loading..." /> } 
+   if (loading) {
+    return <LoadingState message="Loading..." />;
+  }
   
 
   if (error || !listing)

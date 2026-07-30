@@ -22,7 +22,10 @@ public class UniversityService : IUniversityService
             {
                 University_ID = u.UniversityId,
                 Name = u.Name,
-                Email_domain = u.EmailDomain,
+                Email_domains = u
+                    .EmailDomains.Where(d => d.IsActive)
+                    .Select(d => d.EmailDomain)
+                    .ToList(),
                 Is_Active = u.IsActive,
             })
             .ToList();
