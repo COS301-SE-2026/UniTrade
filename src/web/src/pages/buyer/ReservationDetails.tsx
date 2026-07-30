@@ -344,7 +344,7 @@ export default function ReservationDetails() {
       ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
       : "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200";
 
-  /*//const statusBadge = isCancelled
+  /*///const statusBadge = isCancelled
     ? { className: "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100", text: "Cancelled" }
     : isUrgent || isExpired
       ? { className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300", text: "Expiring soon" }
