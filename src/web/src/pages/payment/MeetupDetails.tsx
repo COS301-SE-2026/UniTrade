@@ -9,6 +9,7 @@ import LocationPicker from '../../components/layout/LocationPicker';
 import { useEffect } from 'react';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
+import { LoadingState } from '../../components/layout/Spinner';
 
 interface MeetupDetailsState {
   reservationId?: string;
@@ -121,13 +122,32 @@ export default function MeetupDetails() {
     });
 
     connectionManager.connect().catch((e) => console.error('connect failed', e));
+    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
+
     const off = connectionManager.onPaymentCompleted((e) => {
       if (e.reservationId !== reservationId) return;
       getTransactionStatus(reservationId).then((result) => {
         if (result.success) setTxStatus(result.data);
       });
     });
-    return () => off();
+
+    const offPin = connectionManager.onPinGenerated((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });
+    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+      if (e.reservationId !== reservationId) return;
+      getTransactionStatus(reservationId).then((result) => {
+        if (result.success) setTxStatus(result.data);
+      });
+    });
+    return () => {
+      off();
+      offPin();
+      offPinConfirmed();
+    };
   }, [reservationId, isSeller]);
 
   const handlePayNow = async () => {
@@ -169,11 +189,8 @@ export default function MeetupDetails() {
   }
 
   if (isLoading && !navState.meetupLocation) {
-    return <div className="p-8 text-center text-slate-500">Loading meetup details....</div>;
+    return <LoadingState message="Loading meetup details..." />;
   }
-
-
-
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12">
@@ -185,7 +202,7 @@ export default function MeetupDetails() {
             </button>
             <div >
               <h1 className="text-xl text-white font-bold">Meetup Details</h1>
-              <p className="text-xs text-white/80"> { isSeller ? 'Review your meetup details and confirm the transaction' : 'Review your transaction before completing payment'}</p>
+              <p className="text-xs text-white/80"> {isSeller ? 'Review your meetup details and confirm the transaction' : 'Review your transaction before completing payment'}</p>
             </div>
 
           </div>
@@ -285,13 +302,11 @@ export default function MeetupDetails() {
                   <strong>Safety Guarantee:</strong>{' '}
                   {!isSeller ? (
                     <>
-                      Your funds are held securely by UniTrade and will only be released once you supply a PIN to{' '}
-                      {counterpartyName} at the physical meetup.
+                      Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup. 
                     </>
                   ) : (
                     <>
-                      Your funds are held securely by UniTrade and will only be released to you once you enter the PIN given by{' '}
-                      {counterpartyName} at the physical meetup.
+                      Show your PIN to {counterpartyName} at the physical meetup. The sale completes once they enter it.
                     </>
                   )}
                 </p>
@@ -339,10 +354,10 @@ export default function MeetupDetails() {
                     </button>
                   ) : txStatus?.transactionStatus === 'completed' && txStatus?.pinStatus === 'pending' ? (
                     <button
-                      onClick={() => navigate('/payment/buyer-pin', { state: { reservationId } })}
+                      onClick={() => navigate('/payment/generate-pin', { state: { pin: txStatus.pin, reservationId } })}
                       className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                     >
-                      <Lock className="w-4 h-4" /> Enter Buyer's PIN
+                      <Lock className="w-4 h-4" /> Show PIN to Buyer
                     </button>
                   ) : txStatus?.pinStatus === 'confirmed' ? (
                     <p className="text-center text-sm text-emerald-700 bg-emerald-50 rounded-xl py-3 px-4">

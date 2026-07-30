@@ -43,7 +43,7 @@ export interface University {
   //defines the exact shape of the university data coming back for backend
   universityId: string;
   name: string;
-  emailDomain: string;
+  emailDomains: string[];
 }
 
 export const authService = {

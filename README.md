@@ -4,8 +4,6 @@
 
 ### The trusted peer-to-peer marketplace for South African university students
 
-<img src="src/web/src/assets/group_photo.jpeg" alt="DevNexus Team" width="80%" />
-
 <br/>
 
 <!-- CI/CD Status Pipeline Badges -->
@@ -17,6 +15,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
+[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 
 <br/>
 
@@ -92,16 +91,115 @@ UniTrade provides a structured, verified marketplace where students can list, br
 ![Google Maps](https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)
 
 ---
+### Team - DevNexus
+<table>
+<tr>
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Zee.jpeg" width="200">
 
+  <br/>
+  <b>Zelamene Shazi</b><br />
+  <sub>Team Lead. BackEnd</sub><br/><br/>
+  <a href="https://github.com/Zelamene"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+<td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Sabira.jpeg" width="200">
+
+  <br/>
+  <b>Sabira Karie</b><br />
+  <sub>Team Lead. BackEnd</sub><br/><br/>
+  <a href="https://github.com/Sabira-k-commits"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/saira-kaire-666365378/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Didi.jpeg" width="200">
+
+  <br/>
+  <b>Mahadio Tlaka</b><br />
+  <sub>FrontEnd</sub><br/><br/>
+  <a href="https://github.com/diditlaka"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Langa.jpeg" width="200">
+
+  <br/>
+  <b>Langa Vakalisa</b><br />
+  <sub>FrontEnd</sub><br/><br/>
+  <a href="https://github.com/langa-vk"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+ <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Tafadzwa.jpeg" width="200">
+
+  <br/>
+  <b>Tafadzwa Musiiwa</b><br />
+  <sub>FrontEnd. Integration</sub><br/><br/>
+  <a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+  </tr>
+  </table>
+  
 ## Documentation
-| Document | Link |
-| --- | --- |
-| SRS Document| [https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf](https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd-Mahadio/docs/requirements/UniTrade_SRS_Demo_1.pdf)|
-| WireFrames| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf|
-| Figma_Doc (WireFrames) | https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Plan2?node-id=0-1&t=d203OEm1RvksQhm1-1|
-| Branding_Style_Doc | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade%20%E2%80%93%20Brand%20Style%20Guide.pdf |
-| Architecture_Diagram| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/diagrams/Architecture_Diagram.png |
-|BrandingStyleDoc (HTML) | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade-Brand-Style-Guide.html|
+## Demo 2
+<br>
+
+<details>
+  <summary><strong>Software Requirements Specifications</summary>
+</details>
+<details>
+  <summary><strong>Software Architecture Specifications</summary>
+</details>
+<details>
+  <summary><strong>Coding Standards</summary>
+</details>
+<details>
+  <summary><strong>Testing Policy</summary>
+</details>
+<details>
+  <summary><strong>User Manual</summary>
+</details>
+<details>
+  <summary><strong>Brand Style Guide</summary>
+</details>
+<details>
+  <summary><strong>Figma Document</summary>
+</details>
+
+## Demo 1
+
+<details>
+  <summary>Demo 1 Documentation</summary>
+
+  <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf">
+    <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=round-square" height="40">
+  </a>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+    <br/><br/>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+    <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+</p>
+
+</details>
+
 
 ## Project Structure
 
@@ -304,59 +402,7 @@ UniTrade/
 └── UniTrade.sln
 ```
 ---
-## Team — DevNexus
 
-We are **DevNexus**, a team of five final-year Computer Science students from the University of Pretoria, building UniTrade as our COS301 Capstone Project.
-
-<table>
-  <tr>
-    <td align="center" width="200">
-      <strong>Zelamene Shazi</strong><br/>
-      <em>Project Lead · Backend </em><br/><br/>
-      Leads system architecture and backend development. Specialises in API design, cybersecurity, and database management.<br/><br/>
-      <strong>Skills:</strong> C#, Java, C++, React.js, TypeScript, PostgreSQL<br/><br/>
-      <a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3B2Wnqg7D8SCurqukglrl%2B0A%3D%3D">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Sabira Karie</strong><br/>
-      <em>Backend</em><br/><br/>
-      Focuses on cybersecurity, system assurance, and DevOps pipelines. Brings deep understanding of networks and system design.<br/><br/>
-      <strong>Skills:</strong> Java, C++, TypeScript, Angular, NextJS, PostgreSQL<br/><br/>
-      <a href="https://www.linkedin.com/in/saira-kaire-666365378/">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Mahadio Tlaka</strong><br/>
-      <em>Frontend</em><br/><br/>
-      Frontend specialist with a passion for user-centred design. Combines analytical thinking with a flair for building elegant interfaces.<br/><br/>
-      <strong>Skills:</strong> React.js, TypeScript, JavaScript, NextJS, CSS, Java<br/><br/>
-      <a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Langa Vakalisa</strong><br/>
-      <em>Frontend</em><br/><br/>
-      Versatile full-stack developer with a focus on performance, scalability, and optimised database architecture.<br/><br/>
-      <strong>Skills:</strong> Java, C++, NextJS, JavaScript, PostgreSQL, PyTorch<br/><br/>
-      <a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7?trk=contact-info">LinkedIn</a>
-    </td>
-    <td align="center" width="200">
-      <strong>Tafadzwa Musiiwa</strong><br/>
-      <em>Frontend</em><br/><br/>
-      Broad skill set across frontend development, AI/ML, and quality assurance. Research-driven and adaptable across the full stack.<br/><br/>
-      <strong>Skills:</strong> React.js, TypeScript, JavaScript, NestJS, NextJS, PostgreSQL<br/><br/>
-      <a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9?utm_source=share_via&utm_content=profile&utm_medium=member_android">LinkedIn</a>
-    </td>
-  </tr>
-</table>
-
-## Role Allocation
-
-| Role | Team Member(s) |
-|---|---|
-| Project Manager / Scrum Master | Zelamene Shazi |
-| Backend Development | Zelamene Shazi,Sabira Karie |
-| Frontend (Web & Mobile) | Tafadzwa Musiiwa, Langa Vakalisa, Mahadio Tlaka |
-
----
 ## Development Approach
 
 UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:

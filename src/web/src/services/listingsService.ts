@@ -102,6 +102,69 @@ const mockMyListings: ListingSummary[] = [
   },
 ];
 
+/*const mockListingDetail: ListingDetail = {
+  id: "1",
+  title: "Calculus - Early Transcendentals",
+  description:
+    "Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP.",
+  price: 280,
+  condition: "new",
+  category: "book",
+  status: "live",
+  courseCode: "WTW114",
+  courseId: 1076,
+  university: "University of Pretoria",
+  tags: ["WTW114", "First Year", "University of Pretoria"],
+  metadata: null,
+  images: [
+    { id: "1", url: biologyTextbook, isPrimary: true },
+    { id: "2", url: biologyTextbook, isPrimary: false },
+    { id: "3", url: biologyTextbook, isPrimary: false },
+  ],
+  views: 42,
+  listedAt: "2026-05-07T09:14:00Z",
+  sellerId: "seller-1",
+  sellerName: "Langa Vakalisa",
+  sellerInitials: "LV",
+  sellerRating: 4.9,
+  sellerResponseRate: 98,
+  sellerTotalListings: 12,
+  isReserved: false,
+  aiScore: 78,
+  aiLabel: "low_risk",
+  reviews: [
+    {
+      id: "r1",
+      initials: "ZS",
+      name: "Zelamene S.",
+      stars: 5,
+      text: "Item was exactly as described.",
+      date: "2026-05-03T00:00:00Z",
+    },
+    {
+      id: "r2",
+      initials: "SK",
+      name: "Sabira K.",
+      stars: 4,
+      text: "Book was in good condition.",
+      date: "2026-04-28T00:00:00Z",
+    },
+  ],
+  similarListings: [
+    {
+      id: "2",
+      title: "Calculus - Early Transcendentals 3rd Ed",
+      meta: "UP · R120",
+      condition: "good",
+    },
+    {
+      id: "3",
+      title: "Linear Algebra - 6th Ed",
+      meta: "UP · R120",
+      condition: "fair",
+    },
+  ],
+};*/
 
 const mockSellerListingDetail: SellerListingDetail = {
   id: "4",
@@ -187,6 +250,7 @@ export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
     const res = await fetch(`${getApiUrl()}/listings/${id}`, {
       credentials: "include",
+      cache: "no-store",
     });
     //const res = await fetch(`${getApiUrl()}/listings/${id}`, { credentials: "include" });
     if (!res.ok) throw new Error("Failed to fetch listing");
@@ -224,6 +288,7 @@ export const listingsService = {
 
     const res = await fetch(`${getApiUrl()}/listings?sellerId=${user.id}`, {
       credentials: "include",
+      cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch listings");
 
@@ -277,8 +342,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -625,8 +690,8 @@ export const listingsService = {
   },
 
   getCompletedOrders: async (): Promise<OrderItem[]> => {
-    const res = await getReservations({role: 'buyer'});
-    if(!res.success){
+    const res = await getReservations({ role: 'buyer' });
+    if (!res.success) {
       throw new Error(res.error.message ?? 'Failed to load your orders');
     }
 
@@ -634,7 +699,7 @@ export const listingsService = {
       (r) => r.reservationStatus === 'completed',
     );
 
-    if(completed.length === 0) return [];
+    if (completed.length === 0) return [];
 
     const listingIds = [...new Set(completed.map((r) => r.listingId))];
     const conditionMap = new Map<string, string>();
@@ -668,49 +733,49 @@ export const listingsService = {
         } catch {
           reviewsMap.set(sellerId, []);
         }
-        }),
-      );
+      }),
+    );
 
-      function toRefNum(reservationId: string): string {
-        return `#${reservationId.slice(0,8).toUpperCase()}`;
-      }
+    function toRefNum(reservationId: string): string {
+      return `#${reservationId.slice(0, 8).toUpperCase()}`;
+    }
 
-      function formatOrderDate(iso: string): string {
-        return new Date(iso).toLocaleDateString('en-ZA', {
-          day : 'numeric',
-          month: 'short',
-          year: 'numeric'
-        });
-      }
+    function formatOrderDate(iso: string): string {
+      return new Date(iso).toLocaleDateString('en-ZA', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
 
-      return completed.map((r) => {
+    return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
-      ? sellerReviews.find((rev) => rev.transactionId === transactionId)
-      : undefined;
+        ? sellerReviews.find((rev) => rev.transactionId === transactionId)
+        : undefined;
 
-    return {
-      id: r.reservationId,
-      transactionId: transactionId ?? null,
-      refNum: toRefNum(r.reservationId),
-      title: r.listing.title,
-      condition: conditionMap.get(r.listingId) ?? 'Unknown',
-      sellerName: r.counterParty.name,
-      sellerInitials: r.counterParty.initials,
-      price: r.listing.price,
-      date: formatOrderDate(r.createdAt),
-      status: 'Completed' as const,
-      rating: theReview?.rating ?? 0,
-      _createdAtIso: r.createdAt,
-      imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
-    }
-  });
-},
+      return {
+        id: r.reservationId,
+        transactionId: transactionId ?? null,
+        refNum: toRefNum(r.reservationId),
+        title: r.listing.title,
+        condition: conditionMap.get(r.listingId) ?? 'Unknown',
+        sellerName: r.counterParty.name,
+        sellerInitials: r.counterParty.initials,
+        price: r.listing.price,
+        date: formatOrderDate(r.createdAt),
+        status: 'Completed' as const,
+        rating: theReview?.rating ?? 0,
+        _createdAtIso: r.createdAt,
+        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
+      }
+    });
+  },
 
   getCompletedSales: async (): Promise<SaleItem[]> => {
-    const res = await getReservations({role: 'seller'});
-    if(!res.success){
+    const res = await getReservations({ role: 'seller' });
+    if (!res.success) {
       throw new Error(res.error.message ?? 'Failed to load your sales');
     }
 
@@ -718,22 +783,22 @@ export const listingsService = {
       (r) => r.reservationStatus === 'completed',
     );
 
-    if(completed.length === 0) return [];
+    if (completed.length === 0) return [];
 
     const listingIds = [...new Set(completed.map((r) => r.listingId))];
     const conditionMap = new Map<string, string>();
- 
+
 
     await Promise.all(
       listingIds.map(async (listingId) => {
         try {
           const detail = await listingsService.getById(listingId);
           conditionMap.set(listingId, detail.condition);
-         
-       
+
+
         } catch {
           conditionMap.set(listingId, 'Unknown');
-        
+
         }
       }),
     );
@@ -752,48 +817,49 @@ export const listingsService = {
       buyerIds.map(async (buyerId) => {
         try {
           const data = await listingsService.getReviewsForUser(buyerId);
-          reviewsMap.set(buyerId, data.reviews.filter((r) => r.reviewType === 'seller_to_buyer' ));
+          reviewsMap.set(buyerId, data.reviews);
         } catch {
           reviewsMap.set(buyerId, []);
         }
-        }),
-      );
+      })
+    );
 
-      function toRefNum(reservationId: string): string {
-        return `#${reservationId.slice(0,8).toUpperCase()}`;
-      }
 
-      function formatOrderDate(iso: string): string {
-        return new Date(iso).toLocaleDateString('en-ZA', {
-          day : 'numeric',
-          month: 'short',
-          year: 'numeric'
-        });
-      }
+    function toRefNum(reservationId: string): string {
+      return `#${reservationId.slice(0, 8).toUpperCase()}`;
+    }
 
-      return completed.map((r) => {
+    function formatOrderDate(iso: string): string {
+      return new Date(iso).toLocaleDateString('en-ZA', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const buyerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
       const theReview = transactionId
-      ? buyerReviews.find((rev) => rev.transactionId === transactionId)
-      : undefined;
+        ? buyerReviews.find((rev) => rev.transactionId === transactionId)
+        : undefined;
 
-    return {
-      id: r.reservationId,
-      transactionId: transactionId ?? null,
-      refNum: toRefNum(r.reservationId),
-      title: r.listing.title,
-      condition: conditionMap.get(r.listingId) ?? 'Unknown',
-      buyerName: r.counterParty.name,
-      buyerInitials: r.counterParty.initials,
-      price: r.listing.price,
-      date: formatOrderDate(r.createdAt),
-      status: 'Completed' as const,
-      rating: theReview?.rating ?? 0,
-      _createdAtIso: r.createdAt,
-      imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
-    }
-  });
-},
+      return {
+        id: r.reservationId,
+        transactionId: transactionId ?? null,
+        refNum: toRefNum(r.reservationId),
+        title: r.listing.title,
+        condition: conditionMap.get(r.listingId) ?? 'Unknown',
+        buyerName: r.counterParty.name,
+        buyerInitials: r.counterParty.initials,
+        price: r.listing.price,
+        date: formatOrderDate(r.createdAt),
+        status: 'Completed' as const,
+        rating: theReview?.rating ?? 0,
+        _createdAtIso: r.createdAt,
+        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
+      }
+    });
+  },
 
 }

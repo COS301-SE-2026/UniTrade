@@ -17,14 +17,14 @@ public interface ITransactionsService
     );
     Task VerifyPinAsync(
         Guid reservationId,
-        Guid sellerId,
+        Guid buyerId,
         string pin,
         CancellationToken ct = default
     );
     bool VerifySignature(string rawBody, string receivedSign);
     Task<string> GetPendingPinAsync(
         Guid reservationId,
-        Guid buyerId,
+        Guid sellerId,
         CancellationToken ct = default
     );
 }

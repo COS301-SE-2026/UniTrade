@@ -9,6 +9,7 @@ import {
   formatCondition,
 } from "../../utils/formatters";
 import type { SellerListingDetail as SellerListingDetailType } from "../../types/listing";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function DetailRow({
   label,
@@ -65,12 +66,10 @@ export default function SellerListingDetail() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+   if (loading) {
+    return <LoadingState message="Loading..." />;
+  }
+  
 
   if (error || !listing)
     return (
@@ -81,21 +80,21 @@ export default function SellerListingDetail() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-gray-400">
+      <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
         <span
-          className="text-[#00aaff] cursor-pointer hover:underline"
+          className="text-[#00aaff] cursor-pointer hover:underline flex-shrink-0"
           onClick={() => navigate("/seller/listings")}
         >
           My Listings
         </span>
         <span>›</span>
-        <span className="text-navy-700 dark:text-white">{listing.title}</span>
+        <span className="text-navy-700 dark:text-white truncate">{listing.title}</span>
       </div>
 
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 space-y-4">
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <div className=" relative w-full h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-3 sm:p-4">
+            <div className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
               onClick={() => listing.images && setLightboxOpen(true)}>
               {listing.images && listing.images.length > 0 ? (
                 <>
@@ -110,31 +109,34 @@ export default function SellerListingDetail() {
                 </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-4xl">No image</span>
+                  <span className="text-2xl sm:text-4xl text-gray-400">No image</span>
                 </div>
               )}
             </div>
-            <div className="flex gap-2">
-              {listing.images.map((img, i) => (
-                <img
-                  key={i}
-                  src={img}
-                  alt={`thumbnail ${i + 1}`}
-                  onClick={() => setSelectedImg(i)}
-                  className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${selectedImg === i
-                    ? "border-navy-700 dark:border-white"
-                    : "border-transparent"
-                    }`}
-                />
-              ))}
-            </div>
+            {listing.images && listing.images.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                {listing.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img}
+                    alt={`thumbnail ${i + 1}`}
+                    onClick={() => setSelectedImg(i)}
+                    className={`w-16 h-14 sm:w-20 sm:h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors flex-shrink-0 ${selectedImg === i
+                      ? "border-navy-700 dark:border-white"
+                      : "border-transparent"
+                      }`}
+                  />
+                ))}
+              </div>
+            )}
+
           </div>
 
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
-            <h1 className="text-lg font-bold text-navy-700 dark:text-white mb-1">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
+            <h1 className="text-base sm:text-lg font-bold text-navy-700 dark:text-white mb-1">
               {listing.title}
             </h1>
-            <p className="text-2xl font-bold text-navy-700 dark:text-white mb-3">
+            <p className="text-xl sm:text-2xl font-bold text-navy-700 dark:text-white mb-3">
               {formatPrice(listing.price)}
             </p>
 
@@ -142,17 +144,17 @@ export default function SellerListingDetail() {
               <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 <IconCheck size={10} /> {formatCondition(listing.condition)}
               </span>
-              {listing.category === 'book' && courseCode && (
+              {listing.category === "book" && courseCode && (
                 <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
                   {courseCode}
                 </span>
               )}
-              {listing.category === 'electronics' && listing.metadata?.brand && (
+              {listing.category === "electronics" && listing.metadata?.brand && (
                 <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
                   {listing.metadata.brand}
                 </span>
               )}
-              {listing.category === 'furniture' && listing.metadata?.dimensions && (
+              {listing.category === "furniture" && listing.metadata?.dimensions && (
                 <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
                   {listing.metadata.dimensions}
                 </span>
@@ -178,13 +180,13 @@ export default function SellerListingDetail() {
                 </span>
               }
             />
-            {listing.category === 'electronics' && listing.metadata?.brand && (
+            {listing.category === "electronics" && listing.metadata?.brand && (
               <DetailRow label="Brand" value={listing.metadata.brand} />
             )}
-            {listing.category === 'furniture' && listing.metadata?.dimensions && (
+            {listing.category === "furniture" && listing.metadata?.dimensions && (
               <DetailRow label="Dimensions" value={listing.metadata.dimensions} />
             )}
-            {listing.category === 'book' && courseCode && (
+            {listing.category === "book" && courseCode && (
               <DetailRow label="Course Code" value={courseCode} />
             )}
             <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
@@ -192,12 +194,12 @@ export default function SellerListingDetail() {
           </div>
         </div>
 
-        <div className="col-span-1 space-y-4">
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
               Listing Verifications Detail
             </h3>
-            <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12 gap-4 text-center">
               <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-navy-600 animate-pulse" />
               <div className="space-y-2">
                 <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
@@ -210,14 +212,14 @@ export default function SellerListingDetail() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
               Actions
             </h3>
             <button
               onClick={() => navigate(`/seller/editListing/${id}`)}
               disabled={listing.isReserved || listing.status === "sold"}
-              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover-navy-700"
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Edit Listing
             </button>
@@ -225,7 +227,7 @@ export default function SellerListingDetail() {
             <button
               onClick={handleDelete}
               disabled={listing.isReserved || listing.status === "sold"}
-              className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowd disabled:hover:bg-red-50"
+              className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Delete Listing
             </button>
@@ -233,13 +235,15 @@ export default function SellerListingDetail() {
         </div>
       </div>
 
-      {lightboxOpen && listing.images[selectedImg] && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
+      {lightboxOpen && listing.images && listing.images[selectedImg] && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
           onClick={() => setLightboxOpen(false)}
         >
           <button
             onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none">
+            className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none"
+          >
             &times;
           </button>
           <img

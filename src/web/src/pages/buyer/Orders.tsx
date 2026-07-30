@@ -1,56 +1,29 @@
 
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
-import { Loader2, AlertCircle, Star } from 'lucide-react'
+import { AlertCircle, Star } from 'lucide-react'
 import { listingsService } from '../../services/listingsService';
 import { formatPrice } from '../../utils/formatters';
-import type { OrderItem } from '../../types/listing';
+import { useQuery } from '@tanstack/react-query';
 import { SummaryCard } from "./Reservation";
 import { ReviewModal } from '../auth/Review';
+import { LoadingState } from '../../components/layout/Spinner';
+
 
 export type OrderFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
 
 function isThisSemester(iso: string): boolean {
-  //for now 
   const mockMonth = new Date()
   mockMonth.setMonth(mockMonth.getMonth() - 3)
   return new Date(iso) >= mockMonth
 }
 
-const conditionColours: Record<
-  string,
-  { bg: string; text: string; dot: string }
-> = {
-  like_new: {
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    dot: "bg-emerald-500",
-  },
-  Good: {
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    dot: "bg-emerald-500",
-  },
-  Fair: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
-  Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
-};
 
-function ConditionBadge({ condition }: { condition: string }) {
-  const s = conditionColours[condition] ?? conditionColours.Fair;
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${s.text}`}
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-      {condition}
-    </span>
-  );
-}
+
 
 export default function Orders() {
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
-  
+
   const navigate = useNavigate()
 
   const [reviewTarget, setReviewTarget] = useState<{
@@ -63,16 +36,12 @@ export default function Orders() {
     isLoading,
     error,
     refetch,
-  } = useQuery<OrderItem[]>({
+  } = useQuery({
     queryKey: ['orders', 'completed'],
     queryFn: () => listingsService.getCompletedOrders(),
   });
 
-  const errorMessage = error
-    ? error instanceof Error
-      ? error.message
-      : 'An error occured while loading your orders.'
-    : null;
+  const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your orders.';
 
   const filteredOrders = useMemo(() => {
     switch (activeTab) {
@@ -149,15 +118,9 @@ export default function Orders() {
         ))}
       </div>
 
-      {isLoading && (
-        <div className='flex flex-col items-center justify-center py-16 text-slate-500'>
-          <Loader2 className='w-8 h-8 animate-spin mb-2' />
-          <p className='text-sm'>Fetching orders...</p>
-        </div>
-      )}
+      {isLoading && <LoadingState message="Fetching orders..." />}
 
-
-      {errorMessage && !isLoading && (
+      {error && !isLoading && (
         <div className='bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between'>
           <div className='flex items-center gap-3'>
             <AlertCircle className='w-5 h-5 text-rose-500 shrink-0' />
@@ -171,7 +134,7 @@ export default function Orders() {
           </button>
         </div>)}
 
-      {!isLoading && !errorMessage && filteredOrders.length === 0 && (
+      {!isLoading && !error && filteredOrders.length === 0 && (
         <div className='bg-white rounded-xl border border-gray-200 p-8 text-center'>
           <p className='text-sm font-semibold text-gray-700'>
             No orders found
@@ -183,7 +146,7 @@ export default function Orders() {
       )}
 
 
-      {!isLoading && !errorMessage && filteredOrders.length > 0 && (
+      {!isLoading && !error && filteredOrders.length > 0 && (
         <div className='flex flex-col gap-4'>
           {filteredOrders.map((order) => (
             <div
@@ -207,7 +170,7 @@ export default function Orders() {
                     <p className="text-sm font-bold text-gray-800 truncate">
                       {order.title}
                     </p>
-                    <ConditionBadge condition={order.condition} />
+
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
                     Collected {order.date} . Ref: {order.refNum}

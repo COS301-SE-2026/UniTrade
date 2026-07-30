@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent} from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event"
+import { QueryClientProvider } from '@tanstack/react-query'
+import { createTestQueryClient } from '../test-utils'
 vi.mock("@tabler/icons-react", () => ({
-    IconUpload: () => <svg data-testid="icon-upload" />,
-    IconCheck: () => <svg data-testid="icon-check" />,
-    IconX: () => <svg data-testid="icon-x" />,
+  IconUpload: () => <svg data-testid="icon-upload" />,
+  IconCheck: () => <svg data-testid="icon-check" />,
+  IconX: () => <svg data-testid="icon-x" />,
 }));
 
 vi.mock("../../components/layout/useToast", () => ({
@@ -14,25 +16,25 @@ vi.mock("../../components/layout/useToast", () => ({
 }));
 
 const {
-    getListingsCategories,
-    getById,
-    getCourse,
-    updateListing,
-    uploadImages,
-    searchCourses,
-    mockNavigate,
-    routeParams,
+  getListingsCategories,
+  getById,
+  getCourse,
+  updateListing,
+  uploadImages,
+  searchCourses,
+  mockNavigate,
+  routeParams,
 } = vi.hoisted(() => ({
-    getListingsCategories: vi.fn(),
-    getCourse: vi.fn(),
-    getById: vi.fn(),
-    updateListing: vi.fn(),
-    uploadImages: vi.fn(),
-    searchCourses: vi.fn(),
-    mockNavigate: vi.fn(),
-    routeParams: {
-        id: "123" as string | undefined
-    },
+  getListingsCategories: vi.fn(),
+  getCourse: vi.fn(),
+  getById: vi.fn(),
+  updateListing: vi.fn(),
+  uploadImages: vi.fn(),
+  searchCourses: vi.fn(),
+  mockNavigate: vi.fn(),
+  routeParams: {
+    id: "123" as string | undefined
+  },
 }));
 
 vi.mock("../../services/listingsService", () => ({
@@ -56,16 +58,17 @@ vi.mock("react-router", async (importOriginal) => {
 });
 
 vi.mock("@tabler/icons-react", () => ({
-    IconUpload: () => <svg data-testid="icon-upload" />,
-    IconCheck: () => <svg data-testid="icon-check" />,
-    IconX: () => <svg data-testid="icon-x" />,
+  IconUpload: () => <svg data-testid="icon-upload" />,
+  IconCheck: () => <svg data-testid="icon-check" />,
+  IconX: () => <svg data-testid="icon-x" />,
 }));
 
 vi.mock("../../assets/bio-textbook.jpg", () => ({
-    default: "bio-textbook-fallback.jpg",
+  default: "bio-textbook-fallback.jpg",
 }));
 
 import EditListing from "../../pages/seller/EditListing";
+
 
 const mockCategories = [
   { id: 1, name: "book" },
@@ -88,75 +91,86 @@ const baseListing = {
   ],
 };
 
-function makeFile(name: string, sizeBytes: number, type="image/png") {
-    const file = new File(["a"], name, { type });
-    Object.defineProperty(file, "size", {value: sizeBytes});
-    return file;
+function makeFile(name: string, sizeBytes: number, type = "image/png") {
+  const file = new File(["a"], name, { type });
+  Object.defineProperty(file, "size", { value: sizeBytes });
+  return file;
 }
 
 function getImageGrid(container: HTMLElement) {
-    const grid = container.querySelector("div.grid.grid-cols-4");
-    if (!grid) throw new Error("Image grid not found - check componet markup");
-    return grid;
+  const grid = container.querySelector("div.grid.grid-cols-4");
+  if (!grid) throw new Error("Image grid not found - check componet markup");
+  return grid;
 }
 
 async function renderAndLoad(listingOverrides: Partial<typeof baseListing> = {}) {
-    getListingsCategories.mockResolvedValue(mockCategories);
+  getListingsCategories.mockResolvedValue(mockCategories);
 
-    const listing = { ...baseListing, ...listingOverrides};
-    getById.mockResolvedValue(listing);
+  const listing = { ...baseListing, ...listingOverrides };
+  getById.mockResolvedValue(listing);
 
-    getCourse.mockResolvedValue({
-       courseId: listing.courseId,
-       courseCode: listing.courseCode,
-       courseName: "Mock Course",
-       faculty: "Mock Faculty",
-    })
-    const rendered = render(<EditListing />);
-    await waitFor(() =>
-    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
-);
+  getCourse.mockResolvedValue({
+    courseId: listing.courseId,
+    courseCode: listing.courseCode,
+    courseName: "Mock Course",
+    faculty: "Mock Faculty",
+  })
 
-return rendered;
+  const rendered = render(
+    <QueryClientProvider client={createTestQueryClient()}>
+      <EditListing />
+    </QueryClientProvider>
+  );
+
+
+  await waitFor(() =>
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument()
+  );
+
+  return rendered;
 }
 
 beforeEach(() => {
-    vi.clearAllMocks();
-    routeParams.id = "123";
-    globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
-    globalThis.URL.revokeObjectURL = vi.fn();
+  vi.clearAllMocks();
+  routeParams.id = "123";
+  globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
+  globalThis.URL.revokeObjectURL = vi.fn();
 
-    getCourse.mockResolvedValue({
-      courseId: 0,
-      courseCode: "",
-      courseName: "",
-      faculty: "",
-    });
-    searchCourses.mockResolvedValue([]);
+  getCourse.mockResolvedValue({
+    courseId: 0,
+    courseCode: "",
+    courseName: "",
+    faculty: "",
+  });
+  searchCourses.mockResolvedValue([]);
 });
 
 afterEach(() => {
-    vi.restoreAllMocks();
+  vi.restoreAllMocks();
 })
 
 describe("Initial loding, data fethcing", () => {
-    it ("shows a loading indicator while the api calls are pedning", async () =>  {
-        let resolveGetById: (v: unknown) => void;
-        getListingsCategories.mockResolvedValue(mockCategories);
-        getById.mockImplementation(
-            () => new Promise((res) => (resolveGetById = res)),
-        );
-
-        render(<EditListing />);
-
-        expect(screen.getByText(/loading/i)).toBeInTheDocument();
-        resolveGetById!(baseListing);
-        await waitFor(() => 
-        expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+  it("shows a loading indicator while the api calls are pedning", async () => {
+    let resolveGetById: (v: unknown) => void;
+    getListingsCategories.mockResolvedValue(mockCategories);
+    getById.mockImplementation(
+      () => new Promise((res) => (resolveGetById = res)),
     );
-    });
 
-it("renders the form pre-filled once both calls resolve", async () => {
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <EditListing />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    resolveGetById!(baseListing);
+    await waitFor(() =>
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+    );
+  });
+
+  it("renders the form pre-filled once both calls resolve", async () => {
     await renderAndLoad();
 
     expect(screen.getByDisplayValue(baseListing.title)).toBeInTheDocument();
@@ -170,7 +184,11 @@ it("renders the form pre-filled once both calls resolve", async () => {
     getListingsCategories.mockRejectedValue(new Error("network error"));
     getById.mockResolvedValue(baseListing);
 
-    render(<EditListing />);
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <EditListing />
+      </QueryClientProvider>
+    );
 
     await waitFor(() =>
       expect(screen.getByText(/failed to load categories/i)).toBeInTheDocument(),
@@ -181,12 +199,16 @@ it("renders the form pre-filled once both calls resolve", async () => {
     getListingsCategories.mockResolvedValue(mockCategories);
     getById.mockRejectedValue(new Error("not found"));
 
-    render(<EditListing />);
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <EditListing />
+      </QueryClientProvider>
+    );
 
     await waitFor(() =>
       expect(screen.getByText(/failed to load listing/i)).toBeInTheDocument(),
     );
-    // loading must still clear even on failure, since it's set in .finally
+
     expect(screen.queryByText(/^loading/i)).not.toBeInTheDocument();
   });
 
@@ -198,7 +220,7 @@ it("renders the form pre-filled once both calls resolve", async () => {
   });
 
   it("populates the course input from the resolved course code on load", async () => {
-   
+
     await renderAndLoad()
 
     const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
@@ -304,11 +326,11 @@ describe("Form field bindings", () => {
   it("updates the course input value when the user types a new module code", async () => {
     const user = userEvent.setup();
     searchCourses.mockResolvedValue([
-      { courseId: 114, courseCode: "WTW114", courseName: "Calculus", faculty: "Science"},
+      { courseId: 114, courseCode: "WTW114", courseName: "Calculus", faculty: "Science" },
     ]);
 
 
-    await renderAndLoad({ category: "book", courseCode: ""});
+    await renderAndLoad({ category: "book", courseCode: "" });
     const courseInput = screen.getByPlaceholderText(/module \(e\.g\. cos110\)/i);
 
     await user.clear(courseInput)
@@ -505,14 +527,14 @@ describe("Save flow", () => {
   it("calls updateListing with the correctly mapped payload", async () => {
     const user = userEvent.setup();
     updateListing.mockResolvedValue(undefined);
-      searchCourses.mockResolvedValue([
-    { courseId: 301, courseCode: "301", courseName: "Mock Course 301", faculty: "Mock" },
-  ]);
+    searchCourses.mockResolvedValue([
+      { courseId: 301, courseCode: "301", courseName: "Mock Course 301", faculty: "Mock" },
+    ]);
 
     await renderAndLoad({ category: "book", courseCode: "301" });
 
-    await waitFor(() => 
-    expect(screen.getByText(/module selected/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/module selected/i)).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalledTimes(1));
@@ -568,14 +590,14 @@ describe("Save flow", () => {
     updateListing.mockResolvedValue(undefined);
 
     searchCourses.mockResolvedValue([
-      { courseId: 114, courseCode: "114", courseName: "Mock Course 114", faculty: "Mock"},
+      { courseId: 114, courseCode: "114", courseName: "Mock Course 114", faculty: "Mock" },
     ]);
 
     await renderAndLoad({ category: "book", courseCode: "114" });
-    
+
     await waitFor(() =>
-    expect(screen.getByText(/module selected/i)).toBeInTheDocument(),
-  );
+      expect(screen.getByText(/module selected/i)).toBeInTheDocument(),
+    );
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalled());
@@ -694,7 +716,11 @@ describe("Save flow", () => {
     routeParams.id = undefined;
     getListingsCategories.mockResolvedValue(mockCategories);
 
-    render(<EditListing />);
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <EditListing />
+      </QueryClientProvider>
+    );
 
     await waitFor(() => expect(getListingsCategories).toHaveBeenCalled());
     expect(getById).not.toHaveBeenCalled();
@@ -735,7 +761,7 @@ describe("Confirmation summary", () => {
     fireEvent.change(fileInput, { target: { files: [makeFile("x.png", 1000)] } });
 
     await waitFor(() => {
-     
+
       const grid = getImageGrid(container);
       const allImgs = Array.from(container.querySelectorAll("img"));
       const summaryImgs = allImgs.filter(

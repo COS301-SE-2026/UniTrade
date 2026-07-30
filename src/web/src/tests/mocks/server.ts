@@ -4,6 +4,7 @@ import { authHandlers } from './authHandlers'
 import { sellerReservationHandlers } from './handlers'
 import { chatHandlers } from './handlers'
 import { meetupHandlers } from './handlers'
+import { orderFlowHandlers } from './handlers'
 
 export const server = setupServer(
   ...listingLifecycleHandlers,
@@ -12,4 +13,5 @@ export const server = setupServer(
   ...chatHandlers,
   ...meetupHandlers,
   ...authHandlers,
+  ...orderFlowHandlers,
 )

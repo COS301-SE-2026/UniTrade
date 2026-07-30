@@ -15,6 +15,7 @@ import {
 import { useToast } from "../../components/layout/useToast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function CategoryCard({
   title,
@@ -114,7 +115,8 @@ function ListingCard({
   };
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors">
+    <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
+      data-testid="listing-card">
       <img
         src={listing.image}
         alt={listing.title}
@@ -235,12 +237,9 @@ export default function BrowseAllListing() {
     setShowMoreCategories(false);
   };
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+  if (isLoading) {
+    return <LoadingState message="Loading listings..." />;
+  }
 
   if (error)
     return (
