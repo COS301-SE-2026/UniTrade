@@ -163,7 +163,7 @@ describe('EnterPin', () => {
       await Promise.resolve();
     });
     expect(mockNavigate).toHaveBeenCalledWith(
-      '/payment/payment-complete?reservationId=r123'
+      '/payment/payment-complete?reservationId=r123&role=buyer'
     );
   });
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
@@ -30,7 +31,10 @@ public class UniversityServiceTests
             {
                 UniversityId = 2,
                 Name = "University of Pretoria",
-                EmailDomain = "tuks.co.za",
+                EmailDomains = new List<UniversityEmailDomain>
+                {
+                    new() { EmailDomain = "tuks.co.za", IsActive = true },
+                },
                 IsActive = true,
             },
         };
@@ -40,7 +44,7 @@ public class UniversityServiceTests
 
         Assert.NotNull(result);
         Assert.Single(result);
-        Assert.Equal("tuks.co.za", result[0].Email_domain);
+        Assert.Equal("tuks.co.za", result[0].Email_domains.Single());
         Assert.True(result[0].Is_Active);
     }
 

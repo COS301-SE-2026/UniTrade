@@ -191,7 +191,7 @@ describe('Firstpage', () => {
 
     it('renders the University stats with correct number and label', async () => {
         renderHomePage()
-        expect(screen.getByText('+5')).toBeInTheDocument()
+        expect(screen.getByText('5+')).toBeInTheDocument()
         expect(screen.getByText('SA UNIVERSITIES')).toBeInTheDocument()
     })
 

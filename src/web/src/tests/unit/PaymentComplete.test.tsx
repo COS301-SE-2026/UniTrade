@@ -1,10 +1,10 @@
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter} from "react-router";
+import { MemoryRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaymentComplete from "../../pages/payment/PaymentComplete";
 import { connectionManager } from "../../services/realtime/connectionManager";
-import { getTransactionStatus, getPendingPin } from "../../services/reservationService";
+import { getTransactionStatus } from "../../services/reservationService";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { QueryClient } from '@tanstack/react-query'
 import type { TransactionStatusResponse } from "../../services/reservationService";
@@ -15,7 +15,6 @@ let searchParams = new URLSearchParams();
 
 interface PinGeneratedEvent {
     reservationId: string;
-    pin: string;
 }
 
 vi.mock('react-router', async () => {
@@ -29,14 +28,13 @@ vi.mock('react-router', async () => {
 
 vi.mock('../../services/realtime/connectionManager', () => ({
     connectionManager: {
-        connect: vi.fn(),
-        onPinGenerated: vi.fn(),
+        connect: vi.fn().mockResolvedValue(undefined),
+        onPaymentCompleted: vi.fn().mockReturnValue(vi.fn()),
     },
 }));
 
 vi.mock('../../services/reservationService', () => ({
     getTransactionStatus: vi.fn(),
-    getPendingPin: vi.fn(),
 }));
 
 const mockApiError = { code: 'TEST_ERROR', message: 'Test error', status: 400 };
@@ -57,7 +55,7 @@ describe('PaymentComplete', () => {
         searchParams = new URLSearchParams();
     });
 
-const renderComponent = (reservationId: string | null = '123') => {
+    const renderComponent = (reservationId: string | null = '123') => {
         const queryClient = new QueryClient({
             defaultOptions: {
                 queries: {
@@ -92,7 +90,7 @@ const renderComponent = (reservationId: string | null = '123') => {
 
     it('connects to the connection manager', () => {
         vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
-        vi.mocked(connectionManager.onPinGenerated).mockReturnValue(vi.fn());
+        vi.mocked(connectionManager.onPaymentCompleted).mockReturnValue(vi.fn());
         vi.mocked(getTransactionStatus).mockResolvedValue({ success: false, error: mockApiError });
 
         renderComponent('abc');
@@ -102,7 +100,7 @@ const renderComponent = (reservationId: string | null = '123') => {
 
     it('shows a waiting message when the transaction is still ongoing', async () => {
         vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
-        vi.mocked(connectionManager.onPinGenerated).mockReturnValue(vi.fn());
+        vi.mocked(connectionManager.onPaymentCompleted).mockReturnValue(vi.fn());
         vi.mocked(getTransactionStatus).mockResolvedValue({
             success: true,
             data: mockTransactionStatus({ transactionStatus: 'pending' }),
@@ -113,66 +111,36 @@ const renderComponent = (reservationId: string | null = '123') => {
         await screen.findByText(/waiting for payment confirmation/i);
     });
 
-    it('sets isConfirmed when status is completed, fetches pin and displays it', async () => {
+    it('navigates to buyer-pin when transaction is completed but pin not confirmed', async () => {
         vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
-        vi.mocked(connectionManager.onPinGenerated).mockReturnValue(vi.fn());
+        vi.mocked(connectionManager.onPaymentCompleted).mockReturnValue(vi.fn());
         vi.mocked(getTransactionStatus).mockResolvedValue({
             success: true,
-            data: mockTransactionStatus({ transactionStatus: 'completed' }),
-        });
-        vi.mocked(getPendingPin).mockResolvedValue({
-            success: true,
-            data: { pin: '123456' },
+            data: mockTransactionStatus({ transactionStatus: 'completed', pinStatus: 'pending' }),
         });
         renderComponent('txn2');
-        expect(screen.getByText(/waiting for payment confirmation/i)).toBeInTheDocument();
-        const generateBtn = await screen.findByRole('button', { name: /generate pin/i });
-        expect(generateBtn).toBeInTheDocument();
-        await userEvent.click(generateBtn);
-        expect(mockNavigate).toHaveBeenCalledWith('/payment/generate-pin', { state: { pin: '123456' } });
-    });
 
-    it('handles completed status but no piin immediately', async () => {
-        vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
-        const listeners: ((event: PinGeneratedEvent) => void)[] = [];
-        vi.mocked(connectionManager.onPinGenerated).mockImplementation((cb: (event: PinGeneratedEvent) => void) => {
-            listeners.push(cb);
-            return vi.fn();
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith('/payment/buyer-pin', { state: { reservationId: 'txn2' } });
         });
-        vi.mocked(getTransactionStatus).mockResolvedValue({
-            success: true,
-            data: mockTransactionStatus({ transactionStatus: 'completed'}),
-            
-        });
-        vi.mocked(getPendingPin).mockResolvedValue({ success: true, data: {pin: ''}});
-        renderComponent('txn3');
-        await screen.findByText(/finalizing your transaction/i);
-
-        act(() => {
-            listeners[0]({ reservationId: 'txn3', pin: '123456'});
-        });
-
-        const btn = await screen.findByRole('button', { name: /generate pin/i});
-        await userEvent.click(btn);
-        expect(mockNavigate).toHaveBeenCalledWith('/payment/generate-pin', { state: {pin: '123456'}});
     });
 
     it('ignores WebSocket events for other reservatio IDs', async () => {
         vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
         const listeners: ((event: PinGeneratedEvent) => void)[] = [];
 
-        vi.mocked(connectionManager.onPinGenerated).mockImplementation((cb: (event: PinGeneratedEvent) => void) => {
+        vi.mocked(connectionManager.onPaymentCompleted).mockImplementation((cb: (event: PinGeneratedEvent) => void) => {
             listeners.push(cb);
             return vi.fn();
         });
         vi.mocked(getTransactionStatus).mockResolvedValue({
             success: true,
-            data: mockTransactionStatus({ transactionStatus: 'pending'}),
+            data: mockTransactionStatus({ transactionStatus: 'pending' }),
         });
 
         renderComponent('txn4');
         act(() => {
-            listeners[0]({ reservationId: 'other', pin: '246810'});
+            listeners[0]({ reservationId: 'other' });
         });
 
         expect(screen.getByText(/waiting for payment confirmation/i)).toBeInTheDocument();
@@ -181,24 +149,14 @@ const renderComponent = (reservationId: string | null = '123') => {
     it('successfully unsubscribes from connectioManaager', () => {
         const unsubssribe = vi.fn();
         vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
-        vi.mocked(connectionManager.onPinGenerated).mockReturnValue(unsubssribe);
-        vi.mocked(getTransactionStatus).mockResolvedValue({ success: false, error: mockApiError});
+        vi.mocked(connectionManager.onPaymentCompleted).mockReturnValue(unsubssribe);
+        vi.mocked(getTransactionStatus).mockResolvedValue({ success: false, error: mockApiError });
 
-        const {unmount} = renderComponent('txn5');
+        const { unmount } = renderComponent('txn5');
         unmount();
         expect(unsubssribe).toHaveBeenCalledTimes(1);
     });
 
-    it('disabled generate pin button whne the pin is null after payment compeltion', async () => {
-        vi.mocked(connectionManager.connect).mockResolvedValue(undefined);
-        vi.mocked(connectionManager.onPinGenerated).mockReturnValue(vi.fn());
-        vi.mocked(getTransactionStatus).mockResolvedValue({
-            success: true,
-            data: mockTransactionStatus({ transactionStatus: 'completed'}),
-        });
-        vi.mocked(getPendingPin).mockResolvedValue({ success: false, error: mockApiError});
-        renderComponent('txn6');
-        await screen.findByText(/finalizing your transaction/i);
-        expect(screen.queryByRole('button')).not.toBeInTheDocument();
-    });
+    // NOTE(FE): test shows completion screem when pin status is conformed, handles websocker event when payment completes, shows the screen when status is conformed
+
 })

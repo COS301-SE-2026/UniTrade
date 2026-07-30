@@ -262,7 +262,7 @@ export default function Profile() {
             <div className="flex items-center gap-1.5 justify-end mt-0.5">
               <StarRating value={Math.round(averageRating)} readOnly size={16} />
               <span className="text-sm font-bold text-navy-900">
-                {averageRating.toFixed(1)}
+                {averageRating != null ? averageRating.toFixed(1) : '0.0'}
               </span>
             </div>
             <p className="text-[11px] text-gray-400 mt-0.5">
@@ -275,11 +275,11 @@ export default function Profile() {
           <div className="px-4 py-3 flex items-center gap-6 border-b border-gray-50">
             <div>
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">As Seller</p>
-              <p className="text-sm font-bold text-navy-900">{ratingAsSeller(reviewData).toFixed(1)} ★</p>
+              <p className="text-sm font-bold text-navy-900">{(ratingAsSeller(reviewData) ?? 0).toFixed(1)} ★</p>
             </div>
             <div>
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">As Buyer</p>
-              <p className="text-sm font-bold text-navy-900">{ratingAsBuyer(reviewData).toFixed(1)} ★</p>
+              <p className="text-sm font-bold text-navy-900">{(ratingAsBuyer(reviewData) ?? 0).toFixed(1)} ★</p>
             </div>
           </div>
         )}
@@ -301,17 +301,22 @@ export default function Profile() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
-        <ProfileRow
-          icon={<IconHistory size={19} />}
-          label="View Activity History"
-          onClick={() => navigate("/activity")}
-        />
 
-        <ProfileRow
-          icon={<IconShieldLock size={19} />}
-          label="Privacy & Security"
-          onClick={() => navigate("/profile/privacy")}
-        />
+        <div className="pointer-events-none opacity-50">
+          <ProfileRow
+            icon={<IconHistory size={19} />}
+            label="View Activity History"
+            onClick={() => navigate("/activity")}
+          />
+        </div>
+
+        <div className="pointer-events-none opacity-50">
+          <ProfileRow
+            icon={<IconShieldLock size={19} />}
+            label="Privacy & Security"
+            onClick={() => navigate("/profile/privacy")}
+          />
+        </div>
 
 
         <ProfileRow
@@ -326,9 +331,8 @@ export default function Profile() {
           label="Logout"
           onClick={logout}
         />
+
       </div>
-
-
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">

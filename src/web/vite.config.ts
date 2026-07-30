@@ -1,49 +1,49 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import {VitePWA } from "vite-plugin-pwa";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  plugins: [react(),
+  plugins: [
+    react(),
     VitePWA({
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'firebase-messaging-sw.js',
+      strategies: "injectManifest",
+      srcDir: "public",
+      filename: "firebase-messaging-sw.js",
 
-      devOptions:{
+      devOptions: {
         enabled: true,
         //type: 'module'
-
       },
-      manifest:{
-        name: 'Unitrade Campus Marketplace',
-        short_name: 'UniTrade',
-        description: 'Secure student-to-student campus marketplace with escrow protections.',
-        theme_color:'#262262',
-        background_color: '#f3f4f6',
-        display: 'standalone',
-        start_url:'/',
+      manifest: {
+        name: "UniTrade",
+        short_name: "UniTrade",
+        description: "Secure student-to-student campus marketplace.",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/",
         icons: [
           {
-            src: 'icons/icon-192.png',
-            sizes: '192x192',
-            type:'image/png'
-          },{
-
-             src: 'icons/icon-512.png',
-            sizes: '512x512',
-            type:'image/png'
-          },{
-
-             src: 'icons/icon-512.png',
-            sizes: '512x512',
-            type:'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      }
-    })
-
+            src: "icons/web-app-manifest-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "icons/web-app-manifest-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "icons/web-app-manifest-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      includeAssets: ["icons/favicon.ico", "icons/favicon-96x96.png"],
+    }),
   ],
 
   server: {
