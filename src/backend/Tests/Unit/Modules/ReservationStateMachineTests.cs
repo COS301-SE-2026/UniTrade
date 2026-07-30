@@ -8,6 +8,7 @@ using System;
 
 namespace Tests.Unit.Modules.ReservationStateMachineTests;
 
+[Trait("Category", "Unit")]
 public class ReservationStateMachineTests
 {
 
@@ -354,6 +355,52 @@ public class ReservationStateMachineTests
         var r=MakeRSV(expiresAt:DateTime.Now.AddMinutes(-1));
         Assert.Equal(ReservationState.Expired,r.ReservationStatus);
     }
+
+
+    //confirmmeetup
+
+    [Fact]
+    public void ConfirmMeetup_ReservationNotActive_ThrowsNotActive()
+    {
+        var r=MakeRSV(status: ReservationState.Cancelled);
+
+        Assert.Throws<ReservationException>(()=> ReservationStateMachine.ConfirmMeetup(r,DateTime.Now));
+    }
+
+    [Fact]
+    public void ConfirmMeetup_AlreadyConfirmed_ThrowsMeetupAlreadyConfirmed()
+    {
+        var r=MakeRSV(meetupConfirmedAt:DateTime.Now.AddHours(-1));
+
+        Assert.Throws<ReservationException>(()=>ReservationStateMachine.ConfirmMeetup(r,DateTIme.Now));
+    }
+
+    [Fact]
+    public void ConfirmMeetup_ValidCall_SetsMeetupConfirmedAt()
+    {
+        var r=MakeRSV(meetupConfirmedAt:null);
+        ReservationStateMachine.ConfirmMeetup(r,DateTime.Now);
+        Assert.Equal(DateTIme.Now,r.MeetupConfirmedAt);
+    }
+
+    //istimerpaused
+    [Fact]
+    public void IsTimerPaused_MeetupConfirmedNull_ReturnsFalse()
+    {
+        var r=MakeRSV(meetupConfirmedAt:null);
+        Assert.False(ReservationStateMachine.IsTimerPaused(r));
+    }
+
+    [Fact]
+    public void IsTimerPaused_MeetupConfirmedSet_ReturnsTrue()
+    {
+        var r=MakeRSV(meetupConfirmedAt:DateTime.Now.AddMinutes(-5));
+        Assert.True(ReservationStateMachine.IsTimerPaused(r));
+    }
+
+
+    
+
 
 
 
