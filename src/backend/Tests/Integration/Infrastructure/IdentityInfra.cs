@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Xunit;
 using Api.Tests.Integration;
+using Xunit;
 
 namespace Api.Tests.Integration.Infrastructure;
 
@@ -21,7 +21,7 @@ public class InfrastructureTests
         var connectionString = _fixture.ConnectionString;
         Assert.NotNull(connectionString);
         Assert.Contains("Database", connectionString);
-        
+
         await Task.CompletedTask;
     }
 }

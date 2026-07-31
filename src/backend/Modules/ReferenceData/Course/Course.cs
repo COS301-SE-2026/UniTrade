@@ -8,6 +8,4 @@ public class Course
     public string CourseName { get; set; } = null!;
 
     public string Faculty { get; set; } = null!;
-
-
 }

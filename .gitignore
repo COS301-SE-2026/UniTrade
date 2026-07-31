@@ -44,3 +44,9 @@ coveragereport/
 #Helper scripts 
 convenienceScript.sh
 
+#SonarQube
+.sonarqube/
+
+# Firebase
+*firebase-adminsdk*.json
+msbuild.binlog

@@ -1,0 +1,136 @@
+name: E2E Tests
+
+on:
+    workflow_call:
+    pull_request:
+        branches: ["dev", "main"]
+    push:
+        branches-ignore: ["main", "dev"]
+    
+concurrency:
+    group: e2e-ci-${{github.workflow}}-${{github.ref}}
+    cancel-in-progress: true
+
+jobs:
+    e2e-tests:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+            - name: Setup Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+              with:
+                node-version: "20.x"
+                cache: "npm"
+                cache-dependency-path: "src/web/package-lock.json"
+
+            - name: Install frontend dependencies
+              working-directory: src/web
+              run: npm ci --ignore-scripts
+
+            - name: Install Playwright browsers
+              working-directory: src/web
+              run: npx playwright install --with-deps
+            
+            - name: Start db, backend, frontend
+              working-directory: infra/docker
+              env:
+                POSTGRES_PASSWORD: ci_pass_28
+                POSTGRES_USER_ID: unitrade_admin
+                DB_NAME: unitrade_app
+                APP_USER_ID: ci_pass_28
+                APP_USER_PASSWORD: ci_app_pass_28
+
+                Jwt__Secret: ${{ secrets.JWT_SECRET }}
+                Otp__Secret: ${{ secrets.OTP_SECRET }}
+                Acs__SenderAddress: ${{ secrets.ACS_SENDER_ADDRESS }}
+                Acs__ConnectionString: ${{ secrets.ACS__CONNECTIONSTRING }}
+                Firebase__CredentialsJson: ${{ secrets.FIREBASE_CREDENTIALS }}
+                PayFast__MerchantId: ${{ secrets.PayFast__MerchantId }}
+                PayFast__MerchantKey: ${{ secrets.PayFast__MerchantKey }}
+                PayFast__SandboxUrl: ${{ secrets.PayFast__SandboxUrl }}
+                PayFast__PassPhrase: ${{ secrets.PayFast__PassPhrase }}
+                PayFast__NotifyUrl: ${{ secrets.PayFast__NotifyUrl }}
+                PayFast__ReturnUrl: ${{ secrets.PayFast__ReturnUrl }}
+                PayFast__CancelUrl: ${{ secrets.PayFast__CancelUrl }}
+
+                VITE_API_URL: "http://localhost:8080"
+                FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+                FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+                FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+                FIREBASE_SENDER_ID: ${{ secrets.VITE_FIREBASE_SENDER_ID }}
+                FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+                FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+            
+              run: docker compose up -d --build db backend frontend
+
+            - name: Wait for backend to be healthy
+              run: |
+                for i in $(seq 1 30); do
+                    if curl -sf http://localhost:8080/health > /dev/null; then
+                        echo "Backend is up"; exit 0
+                    fi
+                    echo "Waiting for backend ... ($i/30)"; sleep 5
+                done
+                echo "Backend failed to be healthy in time"; exit 1
+            - name: Waiting for frontend to be serving
+              run: |
+                for i in $(seq 1 20); do
+                    if curl -sf http://localhost:3000/config.json > /dev/null; then
+                        echo "Frontend is up"; exit 0
+                    fi
+                    echo "Waiting for frontend ... ($i/30)"; sleep 5
+                done
+                echo "Frontend did not become healthy in time"; exit 1
+  
+            - name: Setup .NET
+              uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+              with:
+                dotnet-version: "10.0.x"
+
+            - name: Apply migrations to e2e DB
+              working-directory: src/backend/Api
+              env:
+                ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=unitrade_app;Username=unitrade_admin;Password=ci_pass_28"
+                Acs__ConnectionString: ${{ secrets.ACS__CONNECTIONSTRING }}
+                Jwt__Secret: ${{ secrets.JWT_SECRET }}
+              run: |
+                dotnet tool install --global dotnet-ef
+                dotnet restore ../../../UniTrade.sln
+                dotnet ef database update --project ../Infrastructure --startup-project .
+            
+            - name: Run E2E tests
+              working-directory: src/web
+              env:
+                BASE_URL: "http://localhost:3000"
+              run: npm run test:e2e
+            
+            - name: Dump container logs on failure event
+              if: failure()
+              working-directory: infra/docker
+              run: docker compose logs --no-color > e2e-container-logs.txt
+
+            - name: Upload container logs
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+              with:
+                name: e2e-container-logs
+                path: infra/docker/e2e-container-logs.txt
+                retention-days: 7
+
+            - name: Upload Playwright report
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+              with:
+                name: playwright-report
+                path: src/web/playwright-report
+                retention-days: 7
+
+            - name: Compose down containers
+              if: always()
+              working-directory: infra/docker
+              run: docker compose down -v
+                
