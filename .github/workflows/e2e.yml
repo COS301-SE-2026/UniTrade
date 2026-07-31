@@ -97,6 +97,7 @@ jobs:
                 ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=unitrade_app;Username=unitrade_admin;Password=ci_pass_28"
               run: |
                 dotnet tool install --global dotnet-ef
+                dotnet restore ../../../UniTrade.sln
                 dotnet ef database update --project ../Infrastructure --startup-project .
             
             - name: Run E2E tests
