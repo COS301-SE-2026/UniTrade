@@ -75,7 +75,7 @@ describe('Reservation pag', () => {
     it('shows a loading indicator when the fetching is happenign', () => {
         mockGetReservations.mockReturnValue(new Promise(() => { }));
         render(<Reservations />)
-        expect(screen.getByText(/loading reservations/i)).toBeInTheDocument();
+        expect(screen.getByText(/fetching listings/i)).toBeInTheDocument();
     });
 
     it('shows an error message and a toast when the fetch fails', async () => {

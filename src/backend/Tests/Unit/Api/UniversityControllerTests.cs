@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Api.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Modules.ReferenceData.University;
@@ -35,14 +35,14 @@ public class UniversityControllerTests
             {
                 University_ID = 2,
                 Name = "University of Pretoria",
-                Email_domain = "tuks.co.za",
+                Email_domains = new List<string> { "tuks.co.za" },
                 Is_Active = true,
             },
             new()
             {
                 University_ID = 1,
                 Name = "University of Witwatersrand",
-                Email_domain = "wits.ac.za",
+                Email_domains = new List<string> { "wits.ac.za" },
                 Is_Active = true,
             },
         };

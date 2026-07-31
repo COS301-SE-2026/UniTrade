@@ -14,9 +14,16 @@ function todayISODate(): string {
     return new Date().toISOString().split('T')[0];
 }
 
+function currentTime(): string {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
 export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }: MeetupProposalFormProps) {
     const [date, setDate] = useState(todayISODate());
-    const [time, setTime] = useState('12:00');
+    const [time, setTime] = useState(currentTime);
     const [locationName, setLocationName] = useState('');
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [nameEdited, setNameEdited] = useState(false);

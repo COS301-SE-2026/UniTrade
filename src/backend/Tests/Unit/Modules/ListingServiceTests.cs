@@ -914,7 +914,7 @@ public class ListingServiceTests
     [InlineData("sold")]
     [InlineData("pending")]
     [InlineData("rejected")]
-    [InlineData("low_visibilty")]
+    [InlineData("low_visibility")]
     [InlineData("random_listing_status")]
     public async Task UpdateStatusAsync_ThrowsInvalidStatus_WhenStatusIsNotSellerSettable(
         string status
@@ -1053,6 +1053,7 @@ public class ListingServiceTests
         Assert.Equal("removed", listing.ListingStatus);
     }
 
+    // trigger
     private static Listing AListing(
         string title = "Sample",
         string description = "desc",

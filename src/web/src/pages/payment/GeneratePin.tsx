@@ -1,22 +1,64 @@
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { connectionManager } from '../../services/realtime/connectionManager';
+import { getPendingPin } from '../../services/reservationService';
 
 export default function GeneratePin() {
     const navigate = useNavigate();
     const location = useLocation();
-    const pin = (location.state as { pin?: string })?.pin ?? '';
-    const pinDigits = pin.padEnd(6, ' ').split('');
+    const state = (location.state as { pin?: string; reservationId?: string }) ?? {};
+    const reservationId = state.reservationId;
 
-    const handleDone = () => {
-        navigate('/buyer/reservations');
-    };
+    const [pin, setPin] = useState<string>(state.pin ?? '');
+    const [confirmed, setConfirmed] = useState(false);
+
+    useEffect(() => {
+        connectionManager.connect().catch((e) => console.error('connect failed', e));
+
+        if (!state.pin && reservationId) {
+            getPendingPin(reservationId).then((result) => {
+                if (result.success) {
+                    setPin(result.data.pin);
+                }
+                else if (result.error?.code === 'pin_not_pending') {
+                    setConfirmed(true);
+                }
+            });
+        }
+
+        if (!reservationId) {
+            return;
+        }
+        const off = connectionManager.onPinConfirmed((e) => {
+            if (e.reservationId !== reservationId) return;
+            setConfirmed(true);
+        });
+        return () => off();
+    }, [reservationId, state.pin]);
+    useEffect(() => {
+        if (confirmed && reservationId) {
+            navigate(`/payment/payment-complete?reservationId=${reservationId}&role=seller`, { replace: true });
+
+        }
+    }, [confirmed, reservationId, navigate]);
+
+    if (!pin && !confirmed) {
+        return (
+            <div className='min-h-screen flex items-center justify-center text-slate-500'>
+                No PIN available. Make sure the buyer has completed payment.
+            </div>
+        );
+
+    }
 
     if (!pin) {
         return (
             <div className="min-h-screen flex items-center justify-center text-slate-500">
-                No PIN available. Please complete payment first.
+                No PIN available. Make sure the buyer has completed payment.
             </div>
         );
     }
+    const pinDigits = pin.padEnd(6, ' ').split('');
 
     return (
         <div className="min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4">
@@ -26,7 +68,7 @@ export default function GeneratePin() {
                         Transaction PIN
                     </h1>
                     <p className="text-sm text-slate-500 font-medium">
-                        Present this pin to the seller upon transaction completion.
+                        Show this PIN to the buyer. They enter it to complete the sale.
                     </p>
                 </div>
 
@@ -40,14 +82,10 @@ export default function GeneratePin() {
                         </div>
                     ))}
                 </div>
-
-                <button
-                    onClick={handleDone}
-                    className="w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer"
-                >
-                    Done
-                </button>
+                <p className='text-center text-sm text-slate-500 max-w-xs'>Waiting for the buyer to enter this PIN...</p>
             </div>
         </div>
     );
 }
+
+

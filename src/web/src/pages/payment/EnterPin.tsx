@@ -72,7 +72,7 @@ export default function EnterPin() {
         const result = await verifyPin(reservationId, currentPinStr);
         setIsVerifying(false);
         if (result.success) {
-            navigate(`/payment/payment-complete?reservationId=${reservationId}`);
+            navigate(`/payment/payment-complete?reservationId=${reservationId}&role=buyer`);
         } else {
             const message =
                 result.error.code === 'too_many_attempts'
@@ -95,7 +95,7 @@ export default function EnterPin() {
                         PIN Verification
                     </h1>
                     <p className="text-sm text-slate-500 font-medium">
-                        Please enter the pin given by the buyer
+                        Enter the PIN shown by the seller
                     </p>
                 </div>
                 {error && (

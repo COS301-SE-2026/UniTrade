@@ -1,62 +1,54 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { CheckCircle2, Lock } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getTransactionStatus } from '../../services/reservationService';
-import { getPendingPin } from '../../services/reservationService';
 
 export default function PaymentComplete() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reservationId = searchParams.get('reservationId');
-
-  const [pin, setPin] = useState<string | null>(null);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [view, setView] = useState<'loading' | 'waiting' | 'complete'>('loading');
+  const role = searchParams.get('role') as 'buyer' | 'seller' | null;
 
   useEffect(() => {
     if (!reservationId) return;
-    /*let cancelled = false, attempts =0 ;
+    const goAndEnterPin = () => navigate('/payment/buyer-pin', { state: { reservationId } });
 
-    const tick = async () => {
-      const result = await getTransactionStatus(reservationId);
-      if (cancelled) return;
-      if (result.success && result.data.transactionStatus === 'completed') {
-        setIsConfirmed(true);
-        if(result.data.pin) {
-          setPin(result.data.pin);
-          return;
-        }
-      }
-      if (attempts++ < 15) setTimeout(tick, 2000);
-    };
-    tick();*/
-
-
+    
     connectionManager.connect().catch((e) => console.error('connect failed', e));
 
-    const off = connectionManager.onPinGenerated((e) => {
+    const off = connectionManager.onPaymentCompleted((e) => {
       if (e.reservationId !== reservationId) return;
-      setPin(e.pin);
-      setIsConfirmed(true);
+      goAndEnterPin();
     });
 
-        getTransactionStatus(reservationId).then((result) => {
-      if (result.success && result.data.transactionStatus === 'completed') {
-        setIsConfirmed(true);
-        getPendingPin(reservationId).then((pinResult) => {
-          if (pinResult.success) setPin(pinResult.data.pin);
-        });
+    getTransactionStatus(reservationId).then((result) => {
+      if (!result.success) {
+        setView('waiting');
+        return;
       }
+      if (result.data.pinStatus === 'confirmed') {
+        setView('complete');
+      }
+      else if (result.data.transactionStatus === 'completed') {
+        goAndEnterPin();
+      }
+      else setView('waiting');
+
+
     });
 
 
-  return () => off();
-  }, [reservationId]);
 
-  const handleGeneratePin = () => {
-    if (!pin) return;
-    navigate('/payment/generate-pin', { state: { pin } });
-  };
+    return () => off();
+  }, [reservationId, navigate]);
+
+  const isSeller = role === 'seller';
+  const buttonLabel = isSeller ? 'View your Sales' : 'View your Orders';
+  const redirectPath = isSeller ? '/seller/sales' : '/buyer/orders';
+  const doneState = "Transaction Complete!";
+  const completionMessage = isSeller ? "The buyer has entered the PIN. The sale is complete. Thanks for using UniTrade." : "You've confirmed receipt. Thanks for using UniTrade."
 
   if (!reservationId) {
     return (
@@ -73,38 +65,29 @@ export default function PaymentComplete() {
       </div>
     );
   }
+  if (view === 'complete') {
+    return (
+      <div className='min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4 gap-8'>
+        <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center border-4 border-emerald-100 text-emerald-500"><CheckCircle2 className='w-14 h-14' />
+
+        </div>
+        <div className='text-center space-y-2'>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight">{doneState}</h1>
+
+          <p className="text-sm text-slate-500 font-medium">
+            {completionMessage}
+          </p>
+        </div>
+        <button onClick={() => navigate(redirectPath)} className='w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer'>{buttonLabel}</button>
+
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4 gap-8">
-      <div className="flex justify-center">
-        <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center border-4 border-emerald-100 text-emerald-500 animate-pulse">
-          <CheckCircle2 className="w-14 h-14" />
-        </div>
-      </div>
-
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight">
-          Payment Complete!
-        </h1>
-        <p className="text-sm text-slate-500 font-medium">
-          Funds have been released to the seller.
-        </p>
-      </div>
-
-      {isConfirmed ? (
-        pin ? (
-          <button
-            onClick={handleGeneratePin}
-            className="w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <Lock className="w-5 h-5" /> Generate PIN
-          </button>
-        ) : (
-          <p className="text-sm text-slate-500">Finalizing your transaction, one moment...</p>
-        )
-      ) : (
-        <p className="text-sm text-slate-500">Waiting for payment confirmation from PayFast...</p>
-      )}
+    <div className='min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4 gap-8'>
+      <div className="w-20 h-20 rounded-full border-4 border-slate-200 border-t-blue-900 animate-spin" />
+      <p className='text-sm text-slate-500 font-medium'>Waiting for payment confirmation from PayFast...</p>
     </div>
   );
 }

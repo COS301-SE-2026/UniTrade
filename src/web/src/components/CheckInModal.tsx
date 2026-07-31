@@ -82,7 +82,7 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
             <div
-                className="w-full max-w-md bg-white rounded-t-3xl p-6 pb-8 shadow-xl text-center"
+                className="w-full max-w-md bg-white rounded-3xl p-6 pb-8 shadow-xl text-center"
                 onClick={(e) => e.stopPropagation()}
             >
                 {state === 'requesting' && (
@@ -107,7 +107,7 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
                         <h2 className="text-lg font-bold text-gray-900 mb-1">You're checked in!
                         </h2>
                         <p className="text-sm text-gray-500 mb-6">
-                            We have let the other person know that you have arrived at {meetupLocation}.
+                            You have successfully arrived at {meetupLocation}.
                         </p>
                         <button
                             type="button"

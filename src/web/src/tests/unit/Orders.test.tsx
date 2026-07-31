@@ -5,11 +5,13 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import Orders from '../../pages/buyer/Orders'
 import { listingsService } from '../../services/listingsService'
 import type { OrderItem } from '../../types/listing'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { createTestQueryClient } from '../test-utils'
 
 const mockNavigate = vi.fn()
 
-vi.mock('react-router-dom', async() => {
-    const path = await vi.importActual('react-router-dom')
+vi.mock('react-router', async() => {
+    const path = await vi.importActual('react-router')
     return{
         ...path,
         useNavigate: () => mockNavigate,
@@ -92,9 +94,11 @@ const makeOrder = (overrides: Partial<OrderItem> = {}): OrderItem =>
 
 const renderOrders = () =>
     render (
+        <QueryClientProvider client={createTestQueryClient()}>
         <MemoryRouter>
             <Orders />
         </MemoryRouter>
+        </QueryClientProvider>
     )
 
 const mockedGetCompletedOrders = vi.mocked(listingsService.getCompletedOrders)

@@ -22,9 +22,18 @@ class ConnectionManager {
   private readonly messageListeners = new Set<(m: ChatMessage) => void>();
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
-  private readonly listingListeners = new Set<(listingId: string, event: "reserved" | "released") => void>();
-  private readonly pinGeneratedListeners = new Set<(e: { reservationId: string; pin: string}) => void>();
-  private readonly paymentCompletedListeners = new Set<(e: { reservationId: string}) => void>();
+  private readonly listingListeners = new Set<
+    (listingId: string, event: "reserved" | "released" | "created") => void
+  >();
+  private readonly pinGeneratedListeners = new Set<
+    (e: { reservationId: string; pin: string }) => void
+  >();
+  private readonly paymentCompletedListeners = new Set<
+    (e: { reservationId: string }) => void
+  >();
+  private readonly pinConfirmedListeners = new Set<
+    (e: { reservationId: string }) => void
+  >();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -43,22 +52,28 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
-      conn.on("ListingReserved", (p: { listingId: string }) =>{
-      
-        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));}
+      conn.on("ListingReserved", (p: { listingId: string }) => {
+        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));
+      });
+      conn.on("pin_confirmed", (e: { reservationId: string }) =>
+        this.pinConfirmedListeners.forEach((cb) => cb(e)),
       );
-      conn.on("ListingReleased", (p: { listingId: string }) =>
-      {
-      
-        this.listingListeners.forEach((cb) => cb(p.listingId, "released"));}
+      conn.on("ListingReserved", (p: { listingId: string }) => {
+        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));
+      });
+      conn.on("ListingReleased", (p: { listingId: string }) => {
+        this.listingListeners.forEach((cb) => cb(p.listingId, "released"));
+      });
+      conn.on("ListingCreated", (p: { listingId: string }) => {
+        this.listingListeners.forEach((cb) => cb(p.listingId, "created"));
+      });
+      conn.on("pin_generated", (e: { reservationId: string; pin: string }) =>
+        this.pinGeneratedListeners.forEach((cb) => cb(e)),
       );
-      conn.on("pin_generated", (e: {reservationId: string; pin: string}) =>
-      this.pinGeneratedListeners.forEach((cb) => cb(e)),
-    );
 
-    conn.on("payment_completed", (e: { reservationId: string}) =>
-    this.paymentCompletedListeners.forEach((cb) => cb(e)),
-  );
+      conn.on("payment_completed", (e: { reservationId: string }) =>
+        this.paymentCompletedListeners.forEach((cb) => cb(e)),
+      );
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
@@ -128,9 +143,17 @@ class ConnectionManager {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);
   }
-  onListingChanged(cb: (listingId: string, event: "reserved" | "released") => void): Unsubscribe {
+  onListingChanged(
+    cb: (listingId: string, event: "reserved" | "released" | "created") => void,
+  ): Unsubscribe {
     this.listingListeners.add(cb);
     return () => this.listingListeners.delete(cb);
+  }
+  onPinConfirmed(
+    callback: (e: { reservationId: string }) => void,
+  ): Unsubscribe {
+    this.pinConfirmedListeners.add(callback);
+    return () => this.pinConfirmedListeners.delete(callback);
   }
   async sendMessage(
     reservationId: string,
@@ -156,12 +179,16 @@ class ConnectionManager {
     return () => this.stateListeners.delete(callback);
   }
 
-  onPinGenerated(callback: (e: {reservationId: string; pin: string}) => void): Unsubscribe {
+  onPinGenerated(
+    callback: (e: { reservationId: string; pin: string }) => void,
+  ): Unsubscribe {
     this.pinGeneratedListeners.add(callback);
     return () => this.pinGeneratedListeners.delete(callback);
   }
-  
-  onPaymentCompleted(callback: (e: { reservationId: string}) => void): Unsubscribe {
+
+  onPaymentCompleted(
+    callback: (e: { reservationId: string }) => void,
+  ): Unsubscribe {
     this.paymentCompletedListeners.add(callback);
     return () => this.paymentCompletedListeners.delete(callback);
   }

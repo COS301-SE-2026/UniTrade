@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { MemoryRouter} from "react-router";
 import { describe, it, expect, vi,beforeEach} from 'vitest'
 import GeneratePin from "../../pages/payment/GeneratePin";
@@ -63,11 +62,5 @@ describe('GeneratePin', () => {
         expect(containerss[5].textContent).toBe('');
     })
 
-    it('navigates to the buyers reservations when Done is clicked', async () => {
-        locationState = {pin: '123456'};
-        renderComponent()
-
-        await userEvent.click(screen.getByRole('button', {name: /done/i}));
-        expect(mockNavigate).toHaveBeenCalledWith('/buyer/reservations');
-    });
+   // NOTE (FE) Add test for going to orders/ sales
 });

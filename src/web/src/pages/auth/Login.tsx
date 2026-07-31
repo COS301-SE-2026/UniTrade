@@ -107,14 +107,6 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center space-x-2 cursor-pointer text-gray-600">
-                <input type="checkbox" className="h-4 w-4 rounded-full border-sky-300 text-sky-600 focus:ring-sky-500" />
-                <span>Remember Me</span>
-              </label>
-              <a href="#" className="font-bold text-sky-900 hover:underline">Forgot Password</a>
-            </div>
-
             <button type="submit" disabled={loading}
               className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50">
               {loading ? 'Logging in...' : 'LOGIN'}

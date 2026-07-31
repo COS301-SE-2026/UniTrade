@@ -1,10 +1,10 @@
 
-import { useEffect, useCallback, useState, useMemo} from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Star} from 'lucide-react'
+import { AlertCircle, Star } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
-import { formatPrice} from '../../utils/formatters';
-import type { SaleItem } from '../../types/listing';
+import { formatPrice } from '../../utils/formatters';
 import { SummaryCard } from "../buyer/Reservation";
 import { LoadingState } from '../../components/layout/Spinner';
 import { ReviewModal } from '../auth/Review';
@@ -48,34 +48,25 @@ function ConditionBadge({ condition }: { condition: string}) {
     </span>
   );
 }
-
 export default function MySales(){
   const [activeTab, setActiveTab] = useState<SaleFilterTab>('all');
-  const [sales, setSales] = useState<SaleItem[]>([]);
-  const navigate=useNavigate()
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reviewTarget,setReviewTarget] = useState<{
+  const navigate = useNavigate()
+  const [reviewTarget, setReviewTarget] = useState<{
     transactionId: string
     revieweeName: string
   } | null>(null);
 
-  const load= useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try{
-      const data = await listingsService.getCompletedSales();
-      setSales(data);
-    }catch (err:any){
-      setError(err instanceof Error ? err.message : 'An error occured while loading your sales.');
-      }finally{
-        setIsLoading(false);
-      }
-    }, []);
+  const {
+    data: sales = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['sales', 'completed'],
+    queryFn: () => listingsService.getCompletedSales(),
+  });
 
-    useEffect(() => {
-      load();
-    }, [load]);
+  const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your sales.';
 
     const filteredSales = useMemo(() => {
       switch(activeTab) {
@@ -160,10 +151,10 @@ export default function MySales(){
         <div className='bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between'>
           <div className='flex items-center gap-3'>
             <AlertCircle className='w-5 h-5 text-rose-500 shrink-0' />
-            <span className='text-sm font-medium'>{error}</span>
+            <span className='text-sm font-medium'>{errorMessage}</span>
           </div>
       <button 
-      onClick={load}
+      onClick={() => refetch()}
       className='px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors'
       >
         Retry
@@ -294,7 +285,7 @@ export default function MySales(){
               revieweeLabel = "buyer"
               onSubmitted={() => {
                 setReviewTarget(null)
-                load()
+                refetch()
               }}
               />
             )}

@@ -62,7 +62,7 @@ describe('config', () => {
         const { loadConfig, getApiUrl} = await import('../../config');
         await loadConfig();
 
-        expect(getApiUrl()).toBe(mockConfig.apiUrl)
+        expect(getApiUrl()).toBe(`${mockConfig.apiUrl}/api`)
     });
 
     it('getApiUrl throws if config has not been loaded', async () => {
