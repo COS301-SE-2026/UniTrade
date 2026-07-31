@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router'
 import { clsx } from 'clsx'
 import {
   IconLayoutDashboard,
@@ -12,9 +12,15 @@ import {
   IconPackage,
   IconChevronLeft,
   IconChevronRight,
+  IconX,
+  IconShoppingBag,IconHeart, IconBookmark, IconMessage, IconUser
 } from '@tabler/icons-react'
 import { useAuthStore } from '../../store/useAuthStore'
-import { useState } from 'react'
+import { authService } from '../../services/authService'
+import { useState, useEffect, useRef } from 'react'
+import { useReservationsList } from '../../hooks/useReservationsList'
+import { useUnreadRealtime } from '../../hooks/useUnreadRealtime'
+import { connectionManager } from '../../services/realtime/connectionManager'
 
 interface NavItem {
   label: string
@@ -34,19 +40,19 @@ const buyerNav: NavSection[] = [
     items: [
       { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      /*{ label: 'My Orders', to: '/orders', icon: <IconShoppingBag size={18} />, badge: 3 },
-      { label: 'My Wishlist', to: '/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'Reserved', to: '/reserved', icon: <IconBookmark size={18} />, badge: 2 },*/
+      { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} />},
+      { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
+      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} />},
     ],
   },
-  /*{
+  {
     heading: 'Account',
     items: [
-      { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
-      { label: 'Profile', to: '/profile', icon: <IconUser size={18} /> },
-      { label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      { label: 'Messages', to: '/buyer/messages', icon: <IconMessage size={18} />, badge: 5 },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      ///{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
-  },*/
+  },
 ]
 
 const sellerNav: NavSection[] = [
@@ -56,16 +62,18 @@ const sellerNav: NavSection[] = [
       { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
       { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
+      { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} />},
+      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} />},
     ],
   },
-  /*{
+  {
     heading: 'Account',
     items: [
-      { label: 'Messages', to: '/messages', icon: <IconMessage size={18} />, badge: 5 },
-      { label: 'Profile', to: '/profile', icon: <IconUser size={18} /> },
-      { label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
+      { label: 'Messages', to: '/seller/messages', icon: <IconMessage size={18} />, badge: 5 },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      ////{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
-  },*/
+  },
 ]
 
 const adminNav: NavSection[] = [
@@ -88,10 +96,96 @@ const adminNav: NavSection[] = [
   },
 ]
 
+interface UserPopoverProps {
+  name: string
+  initials: string
+  roleLabel: string
+  onClose: () => void
+  onLogout: () => void 
+  
+}
+function UserPopover({
+  name, initials, roleLabel, onClose, onLogout,
+}: UserPopoverProps){
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent){
+      if (ref.current && !ref.current.contains(e.target as Node)){
+        onClose()
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [onClose])
+
+  return (
+    <div 
+    ref={ref}
+    className="absolute bottom-16 left-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50"
+    >
+      <div className="flex items-center justify-end mb-4">
+        
+        <button
+        onClick={onClose}
+        className="text-gray-400 hover:text-gray-600"
+        aria-label="Close"
+        >
+          <IconX size={18} />
+        </button>
+      </div>
+      <div className="flex items-center gap-3 mb-5">
+        <button
+
+          className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+        >
+          {initials}
+        </button>
+        
+        <div>
+          <p className="text-sm font-semibold text-gray-900">{name}</p>
+          <p className="text-sm text-sky-400">{roleLabel}</p>
+        </div>
+      </div>
+      <button
+      onClick={onLogout}
+      className="w-full bg-navy-700 text-white font-semibold text-sm rounded-full py-2.5 hover:bg-navy-500 transition-colors"
+      >
+        LOGOUT
+      </button>
+      <p 
+      //onClick={auth/Terms-and-conditions}
+      className="text-center text-xs text-gray-400 mt-3">Terms and conditions</p>
+    </div>
+  )
+}
 export default function Sidebar() {
-  const { user, viewMode, toggleViewMode } = useAuthStore()
+ const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
   const navigate = useNavigate()
+  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [ShowPopover, setShowPopover] = useState(false)
+  
+
+    useEffect(() => {
+    if (user?.role !== 'student') return
+    if (location.pathname.startsWith('/seller') && viewMode !== 'seller') {
+      setViewMode('seller')
+    } else if (location.pathname.startsWith('/buyer') && viewMode !== 'buyer') {
+      setViewMode('buyer')
+    }
+  }, [location.pathname, user?.role, viewMode, setViewMode])
+
+  const messageRole = viewMode === 'buyer' ? 'buyer' : 'seller'
+  const { data: reservations = []} = useReservationsList(messageRole, {
+    enabled: user?.role === 'student',
+  })
+  useUnreadRealtime(messageRole)
+
+   const unreadTotal = reservations
+    .filter((r) => r.reservationStatus === 'active')
+    .reduce((sum, r) => sum + (r.unreadCount ?? 0), 0)
+
 
   let sections: NavSection[] = []
   if (user?.role === 'admin') {
@@ -100,6 +194,13 @@ export default function Sidebar() {
     sections = viewMode === 'buyer' ? buyerNav : sellerNav
   }
 
+  sections = sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) =>
+    item.label === 'Messages' ? { ...item, badge: unreadTotal } : item
+  ),
+  }))
+
   const handleSwitch = () => {
     if (user?.role !== 'student') return
     const newMode = viewMode === 'buyer' ? 'seller' : 'buyer'
@@ -107,6 +208,17 @@ export default function Sidebar() {
     navigate(newMode === 'buyer' ? '/buyer/listings' : '/seller/listings')
   }
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout(() => connectionManager.disconnect());
+    } catch {
+       //Inacase there is an api call frontend doesn't fail
+    } finally {
+      clearUser()
+      setShowPopover(false)
+      navigate('/auth/login')
+    }
+  }
   return (
     <aside
       className={clsx(
@@ -197,21 +309,36 @@ export default function Sidebar() {
 
       {user && (
         <div
+          className="relative">
+          <div 
+          onClick={() => setShowPopover((prev) => !prev)}
           className={clsx(
-            'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden',
+            'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
             collapsed && 'justify-center'
           )}
-        >
-          <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
-            {user.initials}
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-[12px] font-semibold truncate">{user.name}</p>
-              <p className="text-[10px] text-white/50 capitalize">
-                {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'}
-              </p>
+          >
+            <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
+              {user.initials}
             </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold truncate">{user.name}</p>
+                <p className="text=[10px] text-white/50 capitalize">
+                {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'} 
+                </p>
+                </div>
+            )}
+          </div>
+          {ShowPopover && (
+            <UserPopover 
+              name={user.name}
+               initials={user.initials}
+               roleLabel={
+                user.role === 'admin' ? 'Admin Account' : viewMode === 'buyer' ? 'Buyer Account' : 'Seller Account'
+               }
+               onClose={() => setShowPopover(false)}
+               onLogout={handleLogout}
+               />
           )}
         </div>
       )}

@@ -1,6 +1,6 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected'
-export type ListingCondition = 'like_new' | 'good' | 'fair' | 'worn'
-export type ListingCategory = 'textbook' | 'electronics' | 'lab_equipment' | 'stationery' | 'other'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
+export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
+export type ListingMetadata = Record<string, string> | null
 
 export interface ListingImage {
   id: string
@@ -20,7 +20,8 @@ export interface SellerReview {
 export interface SimilarListing {
   id: string
   title: string
-  meta: string
+  price: number
+  image: string
   condition: ListingCondition
 }
 
@@ -30,25 +31,28 @@ export interface ListingDetail {
   description: string
   price: number
   condition: ListingCondition
-  category: ListingCategory
+  category: string
   status: ListingStatus
   courseCode: string
-  university: string
-  tags: string[]
+  courseId: number
+  //university: string
+  //tags: string[]
   images: ListingImage[]
   views: number
   listedAt: string
   sellerId: string
-  sellerName: string
-  sellerInitials: string
-  sellerRating: number
-  sellerResponseRate: number
-  sellerTotalListings: number
-  isReserved: boolean
-  aiScore: number | null
-  aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
-  reviews: SellerReview[]
-  similarListings: SimilarListing[]
+  //sellerName: string
+  //sellerInitials: string
+  //sellerRating: number
+  //sellerResponseRate: number
+  //sellerTotalListings: number
+  //isReserved: boolean
+  //aiScore: number | null
+  //aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
+  //reviews: SellerReview[]
+  //similarListings: SimilarListing[]
+  metadata: ListingMetadata
+  seller: ListingSellerInfo | null
 }
 
 export interface ListingSummary {
@@ -77,7 +81,8 @@ export interface SellerListingDetail {
   title: string
   price: number
   condition: ListingCondition
-  category: ListingCategory
+  category: string
+  courseId: number | null
   courseCode: string
   listedAt: string
   views: number
@@ -89,22 +94,146 @@ export interface SellerListingDetail {
   aiLabel: 'Low Risk' | 'Medium Risk' | 'High Risk' | null
   isReserved: boolean
   timeline: TimelineStep[]
+  metadata: ListingMetadata
 }
 
-export type BrowseCondition = 'Good' | 'Fair' | 'Poor'
-export type BrowseCategory = 'Textbooks' | 'Electronics' | 'Lab Equipment' | 'Stationary'
+export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
+
 
 export interface BrowseListing {
   id: string
   image: string
   title: string
   module: string
-  category: BrowseCategory
+  courseId: number | null
+  category: string
   price: number
   condition: BrowseCondition
+  metadata: ListingMetadata
+  sellerId: string
 }
 
 export interface BrowseListingsResponse {
   listings: BrowseListing[]
   total: number
+}
+
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface Course {
+  courseId: number;
+  courseCode: string;
+  courseName: string;
+  faculty: string;
+}
+
+export interface ListingSellerInfo {
+  sellerId: string
+  firstName: string
+  lastName: string
+  fullName: string
+  university: string | null
+  activeListingCount: number
+}
+
+export interface WishlistListing extends BrowseListing {
+  status : ListingStatus
+  addedAt: string
+  sellerName: string | null
+}
+
+export interface WishlistResponse {
+  listings: WishlistListing[]
+  total: number
+}
+
+export type MeetupStatus = 'pending' | 'accepted' | 'declined'
+
+export interface ProposeMeetupPayload {
+  locationName: string
+  lat: number 
+  lng : number 
+  proposedTime : string 
+}
+
+export interface MeetupStatusResponse {
+  meetupId: number
+  agreedLocationName: string
+  agreedLatitude: number
+  agreedLongitude: number
+  agreedTime: string
+  createdAt: string
+  checkinWindowClosesAt: string
+  checkInWindowOpen: boolean
+  buyerCheckedIn: boolean
+  sellerCheckedIn: boolean
+  paymentUnlocked: boolean
+  status: string
+  checkinWindowOpensAt: string
+  buyerCheckedInAt: string | null
+  sellerCheckedInAt: string | null
+}
+
+export type ReviewType = 'buyer_to_seller' | 'seller_to_buyer'
+
+export interface Review {
+  reviewId: number
+  transactionId: string
+  reviewerId: string
+  revieweeId: string
+  reviewType: string
+  rating: number
+  comment : string | null
+  createdAt: string
+
+
+}
+
+export interface UserReviewsResponse {
+  userId: string
+  sellerScore: number 
+  buyerScore: number
+  reviews: Review[]
+}
+
+export interface SubmitReviewPayload {
+  transactionId: string
+  rating: number
+  comment?: string 
+}
+
+export interface OrderItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  sellerName: string;
+  sellerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
+}
+
+export interface SaleItem {
+  id: string;
+  transactionId: string | null;
+  refNum: string;
+  title: string;
+  condition: string;
+  buyerName: string;
+  buyerInitials: string;
+  price: number;
+  date: string;
+  status: 'Completed';
+  rating: number;
+  _createdAtIso: string;
+  imageUrl: string;
 }

@@ -1,41 +1,48 @@
-import React from 'react';
-import {useNavigate} from 'react-router-dom';
-import {useAuthStore} from '../../store/useAuthStore'
+import React, {useState} from 'react';
+import { useNavigate } from 'react-router';
+import { useAuthStore } from '../../store/useAuthStore'
 import {
-  IconPlus, IconDots, IconCalendar,IconShoppingBag,
+  IconPlus, IconDots, IconCalendar, IconShoppingBag,
   IconCurrencyDollar,
   IconClock,
-  } from '@tabler/icons-react';
+  IconStar,
+} from '@tabler/icons-react';
+import { ReviewModal } from '../auth/Review';
 
 const SellerDashboard: React.FC = () => {
   const { user } = useAuthStore()
   const navigate = useNavigate();
 
+  const [reviewTarget, setReviewTarget] = useState<{
+    transactionId: string 
+    revieweeName: string 
+  } | null>(null)
+
   const recentOrders = [
-    {id: '11001', date: '2026-04-22', customer: 'Sabira',   status: 'Pending',   color: 'bg-yellow-100 text-yellow-700'},
-    {id: '11002', date: '2026-04-20', customer: 'Mahadio',  status: 'Delivered', color: 'bg-green-100 text-green-700'},
-    {id: '11003', date: '2026-03-11', customer: 'Tafadzwa', status: 'Delivered', color: 'bg-green-100 text-green-700'},
-    {id: '111004',date: '2026-03-07', customer: 'Zelemane', status: 'Delivered', color: 'bg-green-100 text-green-700'},
-    {id: '11005', date: '2025-09-26', customer: 'Langa',    status: 'Cancelled', color: 'bg-red-100 text-red-600'},
+    { id: '11001', date: '2026-04-22', customer: 'Sabira', status: 'Pending', color: 'bg-yellow-100 text-yellow-700', reservationId: 'r1' },
+    { id: '11002', date: '2026-04-20', customer: 'Mahadio', status: 'Delivered', color: 'bg-green-100 text-green-700', reservationId: 'r2'},
+    { id: '11003', date: '2026-03-11', customer: 'Tafadzwa', status: 'Delivered', color: 'bg-green-100 text-green-700', reservationId: 'r3'},
+    { id: '111004', date: '2026-03-07', customer: 'Zelemane', status: 'Delivered', color: 'bg-green-100 text-green-700', reservationId: 'r4'},
+    { id: '11005', date: '2025-09-26', customer: 'Langa', status: 'Cancelled', color: 'bg-red-100 text-red-600',reservationId: 'r5'},
   ];
 
-   const salesDays = [
-    { day: 'Tuesday',   amount: 'R1,584', width: '88%' },
-    { day: 'Monday',    amount: 'R1,296', width: '72%' },
-    { day: 'Sunday',    amount: 'R1,080', width: '60%' },
-    { day: 'Saturday',  amount: 'R1,440', width: '80%' },
-    { day: 'Friday',    amount: 'R990',   width: '55%' },
-    { day: 'Thursday',  amount: 'R1,224', width: '68%' },
-    { day: 'Wednesday', amount: 'R810',   width: '45%' },
+  const salesDays = [
+    { day: 'Tuesday', amount: 'R1,584', width: '88%' },
+    { day: 'Monday', amount: 'R1,296', width: '72%' },
+    { day: 'Sunday', amount: 'R1,080', width: '60%' },
+    { day: 'Saturday', amount: 'R1,440', width: '80%' },
+    { day: 'Friday', amount: 'R990', width: '55%' },
+    { day: 'Thursday', amount: 'R1,224', width: '68%' },
+    { day: 'Wednesday', amount: 'R810', width: '45%' },
   ];
 
   return (
     <div className="flex flex-col gap-6">
-    <header>
-      <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight uppercase">
-        Welcome {user?.name?.split(' ')[0] ?? 'Back'}
-      </h1>
-    </header>
+      <header>
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight uppercase">
+          Welcome {user?.name?.split(' ')[0] ?? 'Back'}
+        </h1>
+      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
@@ -107,13 +114,29 @@ const SellerDashboard: React.FC = () => {
             </thead>
             <tbody className="text-sm">
               {recentOrders.map((order) => (
-                <tr key={order.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                <tr key={order.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/seller/reservations/${order.reservationId}/chat`)}>
                   <td className="py-3 font-semibold text-gray-800">{order.id}</td>
                   <td className="py-3 text-gray-400 text-xs">{order.date}</td>
                   <td className="py-3 text-gray-600">{order.customer}</td>
                   <td className="py-3">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${order.color}`}>
                       {order.status}
+                      {order.status === 'Delivered'&& (
+                        <button 
+                        type = "button"
+                        onClick = {(e) => {
+                          e.stopPropagation()
+                          setReviewTarget({
+                            transactionId: order.reservationId,
+                            revieweeName: order.customer,
+                          })
+                        }}
+                        className = "flex items-center gap-1 text-[10px] font-semibold text-[#00aaff] hover:underline mt-1"
+                        >
+                          <IconStar size={10} /> Leave a Review 
+                        </button>
+                      )}
                     </span>
                   </td>
                 </tr>
@@ -130,7 +153,7 @@ const SellerDashboard: React.FC = () => {
             </button>
           </div>
 
-           <div className="space-y-3">
+          <div className="space-y-3">
             {salesDays.map(({ day, amount, width }) => (
               <div key={day} className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 w-20 shrink-0">{day}</span>
@@ -148,6 +171,17 @@ const SellerDashboard: React.FC = () => {
         </div>
 
       </div>
+
+      {reviewTarget && (
+        <ReviewModal
+        isOpen = {!!reviewTarget}
+        onClose = {() => setReviewTarget(null)}
+        transactionId={reviewTarget.transactionId}
+        revieweeName={reviewTarget.revieweeName}
+        revieweeLabel="buyer"
+        onSubmitted={() => setReviewTarget(null)}
+        />
+      )}
     </div>
   );
 };

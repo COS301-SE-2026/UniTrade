@@ -1,0 +1,25 @@
+using Microsoft.AspNetCore.SignalR;
+using Modules.Reservations;
+using Modules.Reservations.Models.Dto;
+using Api.Hubs;
+namespace Api.Notifiers;
+
+public class ReservationRealTimeService : IReservationRealTime
+{
+    private readonly IHubContext<ChatHub> _hubContext;
+
+    public ReservationRealTimeService(IHubContext<ChatHub> hubContext)
+    {
+        _hubContext = hubContext;
+    }
+
+    public async Task ReservationUpdatedAsync(
+        ReservationDto reservation,
+        CancellationToken ct = default
+    )
+    {
+        await _hubContext
+            .Clients.Users(reservation.BuyerId.ToString(), reservation.SellerId.ToString())
+            .SendAsync("ReservationUpdated", reservation, ct);
+    }
+}

@@ -1,26 +1,27 @@
+using System.Collections.Generic;
+using System.Text.Json;
 using Modules.Listings.Models.Dto;
 
 namespace Modules.Listings.Models.Dto;
 
-public record ListingSummaryDto
-(
+public record ListingSummaryDto(
     Guid ListingId,
     Guid SellerId,
-     //string SellerName,
-     string Title,
-     string Description,
-     decimal Price,
-     string Condition,
-     string ListingType,
-     int? CourseId,
-     string? Isbn,
-     string? Author,
-     string? Edition,
-     string ListingStatus,  
-    bool IsBundle, int ViewCount,
-
-     DateTime CreatedAt,
-     DateTime UpdatedAt,
-
-     IReadOnlyList<ListingImageDto> Images
+    //string SellerName,
+    string Title,
+    string Description,
+    decimal Price,
+    string Condition,
+    int? CourseId,
+    int CategoryId,
+    string CategoryName,
+    JsonElement? Metadata,
+    BookDetailsDto? BookDetails,
+    string ListingStatus,
+    bool IsBundle,
+    int ViewCount,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    IReadOnlyList<ListingImageDto> Images,
+    SellerInfoDto? Seller
 );

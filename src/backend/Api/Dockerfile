@@ -18,8 +18,13 @@ RUN dotnet publish  src/backend/Api/Api.csproj -c $BUILD_CONFIGURATION -o /app/p
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
 COPY --from=build /app/publish .
+USER app
 ENTRYPOINT ["dotnet", "Api.dll"]
