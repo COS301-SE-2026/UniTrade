@@ -1,8 +1,9 @@
 name: Web Frontend CI
 
 on:
+  workflow_call:
   push:
-    branches: ["**"]
+    branches-ignore: ["dev", "main"]
     paths:
       - "src/web/**"
       - ".github/workflows/web-ci.yml"

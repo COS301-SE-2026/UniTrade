@@ -95,7 +95,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 
 ### Database
-![Microsoft SQL Server](https://img.shields.io/badge/Microsoft_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
+![PostgresSQL Server](https://img.shields.io/badge/PostgresSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 
 ### Cloud & DevOps
@@ -182,6 +182,10 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 <details>
   <summary><strong>Software Requirements Specifications</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SRS_Document.pdf">
+    <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
 </details>
 <details>
   <summary><strong>Software Architecture Specifications</summary>
@@ -191,15 +195,37 @@ UniTrade provides a structured, verified marketplace where students can list, br
 </details>
 <details>
   <summary><strong>Testing Policy</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Testing_Policy.pdf">
+    <img src="https://img.shields.io/badge/Testing_Policy-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
 </details>
 <details>
   <summary><strong>User Manual</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/User_Manual%20(2).pdf">
+    <img src="https://img.shields.io/badge/User_Manual-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
 </details>
 <details>
   <summary><strong>Brand Style Guide</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Brand-style-doc.pdf">
+    <img src="https://img.shields.io/badge/Brand_Style_Guide-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
 </details>
 <details>
   <summary><strong>Figma Document</summary>
+    
+  <p align="center">
+  <a href="https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Capstone-wireframes?node-id=0-1&t=TGxL1XFTdsDd1qtU-1">
+    <img src="https://img.shields.io/badge/Figma_Document-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+
 </details>
 
 
@@ -276,30 +302,7 @@ UniTrade/
 │   │   ├── .env.example
 │   │   ├── Dockerfile
 │   │   └── package.json
-│   │
-│   ├── mobile/                            # React Native
-│   │   ├── src/
-│   │   │   ├── assets/
-│   │   │   ├── components/
-│   │   │   ├── features/
-│   │   │   │   ├── auth/
-│   │   │   │   ├── listings/
-│   │   │   │   ├── reservations/
-│   │   │   │   ├── chat/
-│   │   │   │   ├── payments/
-│   │   │   │   └── profile/
-│   │   │   ├── hooks/
-│   │   │   ├── navigation/
-│   │   │   ├── services/
-│   │   │   ├── store/
-│   │   │   ├── types/
-│   │   │   └── utils/
-│   │   ├── tests/
-│   │   │   ├── unit/                      # Individual component tests (Jest)
-│   │   │   ├── integration/               # Multi-component + service layer tests (RTL)
-│   │   │   └── e2e/                       # Device/simulator flows (Detox)
-│   │   ├── .env.example
-│   │   └── package.json
+|   |
 │   │
 │   └── backend/                           # C# — Modular Monolith
 │       ├── Api/                  # Entry point — controllers, middleware, startup

@@ -89,7 +89,7 @@ export default function Orders() {
           icon={null}
         />
         <SummaryCard
-          label="Reviews left"
+          label="Reviews received"
           value={stats.reviewsLeft}
           icon={null}
         />

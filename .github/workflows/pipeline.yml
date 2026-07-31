@@ -1,0 +1,28 @@
+name: UniTrade Pipeline
+on:
+    push:
+        branches: ["main", "dev"]
+    workflow_dispatch:
+permissions:
+    id-token: write
+    contents: read
+concurrency:
+    group: pipeline-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs: 
+    backend-ci:
+        uses: ./.github/workflows/backend-ci.yml
+        secrets: inherit
+    web-ci:
+        uses: ./.github/workflows/web-ci.yml
+        secrets: inherit
+    e2e:
+        needs: [backend-ci, web-ci]
+        uses: ./.github/workflows/e2e.yml
+        secrets: inherit
+
+    deploy:
+        needs: [e2e]
+        uses: ./.github/workflows/cd.yml
+        secrets: inherit
