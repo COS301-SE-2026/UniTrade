@@ -95,6 +95,8 @@ jobs:
               working-directory: src/backend/Api
               env:
                 ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=unitrade_app;Username=unitrade_admin;Password=ci_pass_28"
+                Acs__ConnectionString: ${{ secrets.ACS__CONNECTIONSTRING }}
+                Jwt__Secret: ${{ secrets.JWT_SECRET }}
               run: |
                 dotnet tool install --global dotnet-ef
                 dotnet restore ../../../UniTrade.sln
