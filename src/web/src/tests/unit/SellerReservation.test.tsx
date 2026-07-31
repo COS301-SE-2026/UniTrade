@@ -104,5 +104,111 @@ describe('Reservations page', () => {
         expect(screen.getByText('Network request failed')).toBeInTheDocument()
     })
  
+    test('renders a reservation card with title, price, counterparty, and status', () => {
+        vi.mocked(useReservationsList).mockReturnValue({
+            data: [makeReservation()],
+            isLoading: false,
+            isError: false,
+            error: null,
+        } as any)
+ 
+        renderReservations()
+ 
+        expect(screen.getByText('Calculus Textbook')).toBeInTheDocument()
+        expect(screen.getByText('Langa Vakalisa')).toBeInTheDocument()
+        expect(screen.getByText('R250', { selector: 'span' })).toBeInTheDocument()
+        expect(screen.getByText('Active')).toBeInTheDocument()
+    })
+ 
+    test('summary cards reflect only active reservations', () => {
+        vi.mocked(useReservationsList).mockReturnValue({
+            data: [
+                makeReservation({ reservationId: 'a', reservationStatus: 'active', timerStage: 'awaiting_seller', listing: { title: 'Book A', price: 100, imagePath: null } as any }),
+                makeReservation({ reservationId: 'b', reservationStatus: 'active', timerStage: 'coordinating', listing: { title: 'Book B', price: 200, imagePath: null } as any }),
+                makeReservation({ reservationId: 'c', reservationStatus: 'completed', timerStage: 'meetup_confirmed', listing: { title: 'Book C', price: 300, imagePath: null } as any }),
+            ],
+            isLoading: false,
+            isError: false,
+            error: null,
+        } as any)
+ 
+        renderReservations()
+ 
+
+        expect(screen.getByText('2')).toBeInTheDocument()
+
+        expect(screen.getByText('1')).toBeInTheDocument()
+
+        expect(screen.getByText('R300', { selector: 'p' })).toBeInTheDocument()
+    })
+ 
+    test('filters reservations by status', async () => {
+        const user = userEvent.setup()
+        vi.mocked(useReservationsList).mockReturnValue({
+            data: [
+                makeReservation({ reservationId: 'a', reservationStatus: 'active', listing: { title: 'Active Item', price: 100, imagePath: null } as any }),
+                makeReservation({ reservationId: 'b', reservationStatus: 'completed', timerStage: 'meetup_confirmed', listing: { title: 'Completed Item', price: 200, imagePath: null } as any }),
+            ],
+            isLoading: false,
+            isError: false,
+            error: null,
+        } as any)
+ 
+        renderReservations()
+ 
+        expect(screen.getByText('Active Item')).toBeInTheDocument()
+        expect(screen.getByText('Completed Item')).toBeInTheDocument()
+ 
+        await user.click(screen.getByRole('button', { name: /filter/i }))
+        await user.click(screen.getByRole('button', { name: 'Completed' }))
+ 
+        expect(screen.queryByText('Active Item')).not.toBeInTheDocument()
+        expect(screen.getByText('Completed Item')).toBeInTheDocument()
+    })
+ 
+    test('sorts reservations by price', async () => {
+        const user = userEvent.setup()
+        vi.mocked(useReservationsList).mockReturnValue({
+            data: [
+                makeReservation({ reservationId: 'a', listing: { title: 'Expensive Item', price: 500, imagePath: null } as any }),
+                makeReservation({ reservationId: 'b', listing: { title: 'Cheap Item', price: 50, imagePath: null } as any }),
+            ],
+            isLoading: false,
+            isError: false,
+            error: null,
+        } as any)
+ 
+        renderReservations()
+ 
+        await user.click(screen.getByRole('button', { name: /sort by/i }))
+        await user.click(screen.getByRole('button', { name: 'Price low' }))
+ 
+        const titles = screen.getAllByText(/Item$/).map((el) => el.textContent)
+        expect(titles).toEqual(['Cheap Item', 'Expensive Item'])
+    })
+ 
+    test('acknowledging a reservation calls the service and invalidates the query cache', async () => {
+        const user = userEvent.setup()
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+ 
+        vi.mocked(useReservationsList).mockReturnValue({
+            data: [makeReservation({ timerStage: 'awaiting_seller' })],
+            isLoading: false,
+            isError: false,
+            error: null,
+        } as any)
+        vi.mocked(acknowledgeReservatioin).mockResolvedValue({ success: true } as any)
+ 
+        renderReservations(queryClient)
+ 
+        await user.click(screen.getByRole('button', { name: /accept reservation/i }))
+ 
+        await waitFor(() => {
+            expect(acknowledgeReservatioin).toHaveBeenCalledWith('res-1')
+        })
+        expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['reservations', 'seller'] })
+    })
+ 
 
 })
