@@ -1,12 +1,7 @@
 name: CD - Deploy to Azure
 
 on:
-  # will make the cd run only if ci passes after testing and change the deploy branch to main
-  push:
-    branches: ["main","dev","feature/backend/azureDeployment"]
-    paths:
-      - "src/backend/**"
-      - "src/web/**"
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -39,12 +34,6 @@ jobs:
         env:
           ACR: ${{ secrets.ACR_REGISTRY }}
         run: az acr login --name "${ACR%%.*}"
-        # ask for acrpush permissions againnnn!!!(didnt grant perm for this), delete github secrts when updated
-        # uses: azure/docker-login@v1
-        # with:
-        #   login-server: ${{secrets.ACR_REGISTRY}}
-        #   username: ${{ secrets.ACR_USERNAME}}
-        #   password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Set image tag
         id: set_tag
