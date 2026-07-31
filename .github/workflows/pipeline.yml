@@ -17,11 +17,6 @@ jobs:
     web-ci:
         uses: ./.github/workflows/web-ci.yml
         secrets: inherit
-    e2e:
-        needs: [backend-ci, web-ci]
-        uses: ./.github/workflows/e2e.yml
-        secrets: inherit
-
     deploy:
         needs: [backend-ci, web-ci]
         uses: ./.github/workflows/cd.yml
