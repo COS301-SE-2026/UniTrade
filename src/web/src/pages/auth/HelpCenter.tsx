@@ -20,7 +20,7 @@ import {
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router';
 import AlexAvatar from './AlexAvatar.tsx';
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/Transaprent Logo.png"
 
 interface QuickLinkItem {
   icon: React.ReactNode;
@@ -50,18 +50,20 @@ function Navbar() {
             className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
             <IconArrowLeft size={20} />
           </button>
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
-            <img
-              src={logo}
-              alt="UniTrade Logo"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src =
-                  "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
-              }}
-            />
+          <div className="flex items-end gap-2">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <img
+                src={logo}
+                alt="UniTrade Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+                }}
+              />
+            </div>
+            <h1 className="font-bold text-navy-700 dark:text-white text-3xl leading-none">UniTrade</h1>
           </div>
-          <h1 className="font-bold text-navy-700 dark:text-white text-3xl mb-2">UniTrade</h1>
         </div>
       </div>
     </nav>

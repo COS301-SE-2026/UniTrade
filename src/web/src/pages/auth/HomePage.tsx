@@ -10,7 +10,7 @@ import {
   IconArrowRight,
   IconPoint,
 } from '@tabler/icons-react'
-import logo from "../../assets/logo.jpeg"
+import logo from "../../assets/Transaprent Logo.png"
 import { useNavigate } from 'react-router';
 import { Reveal } from '../../components/layout/Reveal';
 
@@ -120,18 +120,20 @@ function Navbar() {
     <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
       <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
-            <img
-              src={logo}
-              alt="UniTrade Logo"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src =
-                  "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
-              }}
-            />
+          <div className="flex items-end gap-2">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <img
+                src={logo}
+                alt="UniTrade Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+                }}
+              />
+            </div>
+            <h1 className="font-bold text-navy-700 dark:text-white text-3xl leading-none">UniTrade</h1>
           </div>
-          <h1 className="font-bold text-navy-700 dark:text-white text-3xl mb-2">UniTrade</h1>
         </div>
 
 

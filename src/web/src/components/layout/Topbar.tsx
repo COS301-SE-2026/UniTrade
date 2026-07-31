@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
 
 export default function Topbar() {
-  const { isDark, toggle } = useThemeStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [inputValue, setInputValue] = useState(searchParams.get('q') || '');
@@ -40,16 +39,6 @@ export default function Topbar() {
           onChange={(e) => setInputValue(e.target.value)}
           className="bg-transparent outline-none text-[12.5px] text-gray-700 dark:text-white placeholder:text-gray-400 w-full"
         />
-      </div>
-
-      <div className="ml-auto flex items-center gap-4">
-        <button className="relative text-gray-500 dark:text-white/70 hover:text-gray-800 dark:hover:text-white transition-colors" aria-label="Notifications">
-          <IconBell size={20} />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#00aaff] rounded-full text-[9px] text-white font-bold flex items-center justify-center">3</span>
-        </button>
-        <button onClick={toggle} className="text-gray-500 dark:text-white/70 hover:text-gray-800 dark:hover:text-white transition-colors" aria-label="Toggle dark mode">
-          {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
-        </button>
       </div>
     </header>
   );
