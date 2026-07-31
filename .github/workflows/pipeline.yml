@@ -23,6 +23,6 @@ jobs:
         secrets: inherit
 
     deploy:
-        needs: [e2e]
+        needs: [backend-ci, web-ci]
         uses: ./.github/workflows/cd.yml
         secrets: inherit
