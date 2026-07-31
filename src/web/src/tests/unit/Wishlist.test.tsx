@@ -1,4 +1,4 @@
-import {render, screen, fireEvent, findByText} from '@testing-library/react';
+import {render, screen, fireEvent} from '@testing-library/react';
 import Wishlist from '../../pages/buyer/Wishlist';
 import { useWishlist } from '../../hooks/useWishlist';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
