@@ -302,30 +302,7 @@ UniTrade/
 │   │   ├── .env.example
 │   │   ├── Dockerfile
 │   │   └── package.json
-│   │
-│   ├── mobile/                            # React Native
-│   │   ├── src/
-│   │   │   ├── assets/
-│   │   │   ├── components/
-│   │   │   ├── features/
-│   │   │   │   ├── auth/
-│   │   │   │   ├── listings/
-│   │   │   │   ├── reservations/
-│   │   │   │   ├── chat/
-│   │   │   │   ├── payments/
-│   │   │   │   └── profile/
-│   │   │   ├── hooks/
-│   │   │   ├── navigation/
-│   │   │   ├── services/
-│   │   │   ├── store/
-│   │   │   ├── types/
-│   │   │   └── utils/
-│   │   ├── tests/
-│   │   │   ├── unit/                      # Individual component tests (Jest)
-│   │   │   ├── integration/               # Multi-component + service layer tests (RTL)
-│   │   │   └── e2e/                       # Device/simulator flows (Detox)
-│   │   ├── .env.example
-│   │   └── package.json
+|   |
 │   │
 │   └── backend/                           # C# — Modular Monolith
 │       ├── Api/                  # Entry point — controllers, middleware, startup
