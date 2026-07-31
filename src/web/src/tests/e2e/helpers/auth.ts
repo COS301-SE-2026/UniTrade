@@ -39,10 +39,10 @@ export async function signupAndLogin(
     await page.waitForTimeout(500);
   }
   expect(otp, "OTP was never stored").toBeTruthy();
-
+  const code = otp!;
   const otpInputs = page.locator('input[maxlength="1"]');
   for (let i = 0; i < 6; i++) {
-    await otpInputs.nth(i).fill(otp[i]);
+    await otpInputs.nth(i).fill(code[i]);
   }
   await page.getByRole("button", { name: /^verify otp$/i }).click();
   await page.waitForURL(/\/auth\/Login/);
