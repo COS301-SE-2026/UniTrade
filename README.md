@@ -25,9 +25,6 @@
 
 <br/>
 
-[Live Demo](#) · [Report a Bug](https://github.com/COS301-SE-2026/UniTrade/issues) · [Request a Feature](https://github.com/COS301-SE-2026/UniTrade/issues)
-
-<br/><br/>
 
 
 <sub>
@@ -186,12 +183,23 @@ UniTrade provides a structured, verified marketplace where students can list, br
   <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SRS_Document.pdf">
     <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
+     </p>
 </details>
 <details>
   <summary><strong>Software Architecture Specifications</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SAS.pdf">
+    <img src="https://img.shields.io/badge/SAS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
 </details>
 <details>
   <summary><strong>Coding Standards</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/CODING_%20STANDARDS.pdf">
+    <img src="https://img.shields.io/badge/Coding_Standards-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
 </details>
 <details>
   <summary><strong>Testing Policy</summary>
@@ -201,6 +209,16 @@ UniTrade provides a structured, verified marketplace where students can list, br
   </a>
      </p>
 </details>
+
+<details>
+  <summary><strong>API Contracts</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/API_Contracts.pdf">
+    <img src="https://img.shields.io/badge/API_Contracts-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+    
 <details>
   <summary><strong>User Manual</summary>
          <p align="center">
@@ -209,14 +227,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
   </a>
      </p>
 </details>
-<details>
-  <summary><strong>Brand Style Guide</summary>
-     <p align="center">
-  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Brand-style-doc.pdf">
-    <img src="https://img.shields.io/badge/Brand_Style_Guide-View%20Document-04B4FD?style=for-the-badge" height="40">
-  </a>
-     </p>
-</details>
+
 <details>
   <summary><strong>Figma Document</summary>
     
@@ -226,6 +237,24 @@ UniTrade provides a structured, verified marketplace where students can list, br
   </a>
      </p>
 
+</details>
+<details>
+  <summary><strong>Brand Style Guide Deployed</summary>
+    
+  <p align="center">
+  <a href="https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/Brand-style-doc">
+    <img src="https://img.shields.io/badge/Brand_Style_Deployed-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+
+</details>
+<details>
+  <summary><strong>Brand Style Guide PDF</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Brand-style-doc.pdf">
+    <img src="https://img.shields.io/badge/Brand_Style_Guide-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
 </details>
 
 
