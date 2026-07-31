@@ -1,6 +1,7 @@
 
 import { useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
+import { IconSearch } from '@tabler/icons-react';
 
 export default function Topbar() {
   const [searchParams, setSearchParams] = useSearchParams();
