@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 namespace Api;
+
 static class AuthEventsFactory
 {
-    public static JwtBearerEvents CreateJwtEvents()=> new()
-    {
-        OnMessageReceived = ctx =>
+    public static JwtBearerEvents CreateJwtEvents() =>
+        new()
+        {
+            OnMessageReceived = ctx =>
             {
                 if (ctx.HttpContext.Request.Path.StartsWithSegments("/chathub"))
                 {
@@ -41,5 +44,5 @@ static class AuthEventsFactory
             {
                 return Task.CompletedTask;
             },
-    };
+        };
 }
