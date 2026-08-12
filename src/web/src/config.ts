@@ -23,7 +23,7 @@ export async function loadConfig(): Promise<AppConfig> {
   const loaded: AppConfig = await res.json();
 
   const parsed = new URL(loaded.apiUrl);
-  const allowedProtocols = ["https"];
+  const allowedProtocols = ["https:", "http:"];
   if (!allowedProtocols.includes(parsed.protocol)) {
     throw new Error(`Invalid apiUrl protocol`);
   }
