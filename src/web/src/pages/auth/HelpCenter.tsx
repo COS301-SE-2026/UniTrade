@@ -46,6 +46,7 @@ function Navbar() {
       <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
+            type='button'
             onClick={() => navigate(-1)}
             className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
             <IconArrowLeft size={20} />
@@ -73,10 +74,10 @@ function Navbar() {
 function QuickLinkOverlay({
   link,
   onClose,
-}: {
+}: Readonly<{
   link: QuickLinkItem;
   onClose: () => void;
-}) {
+}>) {
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 "
@@ -98,6 +99,7 @@ function QuickLinkOverlay({
             </div>
           </div>
           <button
+            type='button'
             onClick={onClose}
             aria-label="Close"
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors flex-shrink-0"
@@ -472,6 +474,7 @@ export default function HelpCenter() {
                   className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
                 >
                   <button
+                    type='button'
                     onClick={() => toogleFaq(index)}
                     className="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-800 hover:bg-gray-50 transition-colors"
                   >
@@ -504,6 +507,7 @@ export default function HelpCenter() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
+            type='button'
             onClick={() => setChatOpen(true)}
             className="bg-white border border-gray-200/80 rounded-xl p-5 flex items-center gap-4 hover:border-gray-300 hover:shadow-xs transition-all text-left group"
           >
@@ -547,6 +551,7 @@ export default function HelpCenter() {
                 <div className="text-xs text-gray-400">Unitrade Help Assistant</div>
               </div>
               <button
+                type='button'
                 onClick={() => setChatOpen(false)}
                 aria-label="Close chat"
                 className="ml-auto w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
@@ -596,6 +601,7 @@ export default function HelpCenter() {
                 style={{ maxHeight: 80 }}
               />
               <button
+                type='button'
                 onClick={sendMessage}
                 disabled={isLoading || !inputValue.trim()}
                 aria-label="Send message"

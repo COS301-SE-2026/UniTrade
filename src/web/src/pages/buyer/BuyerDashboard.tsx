@@ -22,13 +22,13 @@ function StatCard({
   subText,
   subColour,
   icon,
-}: {
+}: Readonly<{
   title: string;
   value: string;
   subText: string;
   subColour: string;
   icon: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
@@ -48,11 +48,11 @@ function ProductCard({
   title,
   price,
   image,
-}: {
+}: Readonly<{
   title: string;
   price: number;
   image: string;
-}) {
+}>) {
   return (
     <div className="border border-gray-200 rounded-xl p-3 flex flex-col gap-3">
       <img
@@ -63,10 +63,10 @@ function ProductCard({
       <p className="text-sm font-semibold text-gray-800">{title}</p>
       <p className="text-sm text-gray-500">{formatPrice(price)}</p>
 
-      <button className="w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
+      <button type='button' className="w-full py-2 bg-[#003366] text-white text-sm font-semibold rounded-lg hover:bg-[#002244] transition-colors">
         Reserve
       </button>
-      <button className="w-full py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+      <button type='button' className="w-full py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
         Add to Wishlist
       </button>
     </div>
@@ -86,7 +86,7 @@ function OrderRow({
   price: number
   status: 'Collected' | 'Pending' | 'Cancelled'
   image: string
-  onReview?: () => void 
+  onReview?: () => void
 }) {
 
   const statusStyles = {
@@ -117,14 +117,14 @@ function OrderRow({
         </span>
         {status === 'Collected' && onReview && (
           <button
-          type = "button"
-          onClick = {(e) => {
-            e.stopPropagation()
-            onReview()
-          }}
-          className = "flex items-center gap-1 text-[10px] font-semibold text-[#00aaff] hover:underline mt-1"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onReview()
+            }}
+            className="flex items-center gap-1 text-[10px] font-semibold text-[#00aaff] hover:underline mt-1"
           >
-            <IconStar size = {10} /> Leave a Review 
+            <IconStar size={10} /> Leave a Review
           </button>
         )}
       </div>
@@ -178,14 +178,14 @@ export default function BuyerDashboard() {
   ];
 
   const recentOrders = [
-    { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '',reservationId: 'r1' },
-    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '',reservationId: 'r2' },
-    { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '',reservationId: 'r3'},
+    { title: 'Biology Textbook', date: '2 May 2026', price: 1200, status: 'Collected' as const, image: products[0]?.image ?? '', reservationId: 'r1' },
+    { title: 'Lab Coat', date: '5 May 2026', price: 50, status: 'Pending' as const, image: products[2]?.image ?? '', reservationId: 'r2' },
+    { title: 'Laptop', date: '4 May 2026', price: 5000, status: 'Cancelled' as const, image: products[1]?.image ?? '', reservationId: 'r3' },
   ]
 
   const [reviewTarget, setReviewTarget] = useState<{
-    transactionId : string 
-    revieweeName : string
+    transactionId: string
+    revieweeName: string
   } | null>(null)
 
 
@@ -208,17 +208,17 @@ export default function BuyerDashboard() {
               Suggested For You
             </h2>
             <div className="flex gap-2">
-              <button className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">
+              <button type='button' className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">
                 Filter <IconChevronDown size={12} />
               </button>
-              <button className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">
+              <button type='button' className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50">
                 Sort <IconChevronDown size={12} />
               </button>
             </div>
           </div>
 
           <div className="flex justify-end mb-2">
-            <button
+            <button type='button'
               className="text-xs text-[#00aaff] hover:underline flex items-center gap-1"
               onClick={() => navigate("/buyer/listings")}
             >
@@ -253,13 +253,13 @@ export default function BuyerDashboard() {
 
       {reviewTarget && (
         <ReviewModal
-          isOpen = {!!reviewTarget}
-          onClose = {() => setReviewTarget(null)}
+          isOpen={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
           transactionId={reviewTarget.transactionId}
           revieweeName={reviewTarget.revieweeName}
           revieweeLabel="seller"
           onSubmitted={() => setReviewTarget(null)}
-              />
+        />
       )}
     </div>
   );

@@ -88,7 +88,7 @@ export default function OTPVerification() {
     <div className="min-h-screen bg-gray-50 dark:bg-navy-900 flex flex-col">
       <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 dark:border-white/10">
         <span className="text-base font-bold text-navy-700 dark:text-white">UniTrade</span>
-        <button onClick={toggle} className="text-gray-500 dark:text-white/70 hover:text-navy-700 dark:hover:text-white transition-colors" aria-label="Toggle dark mode">
+        <button type='button' onClick={toggle} className="text-gray-500 dark:text-white/70 hover:text-navy-700 dark:hover:text-white transition-colors" aria-label="Toggle dark mode">
           {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
         </button>
       </header>
@@ -146,8 +146,8 @@ export default function OTPVerification() {
                   onClick={handleResend}
                   disabled={!resendActive}
                   className={`font-semibold mt-0.5 transition-colors ${resendActive
-                      ? 'text-navy-700 dark:text-white cursor-pointer hover:text-[#00aaff]'
-                      : 'text-gray-300 dark:text-white/20 cursor-not-allowed'
+                    ? 'text-navy-700 dark:text-white cursor-pointer hover:text-[#00aaff]'
+                    : 'text-gray-300 dark:text-white/20 cursor-not-allowed'
                     }`}
                 >
                   Resend
@@ -156,11 +156,12 @@ export default function OTPVerification() {
             </div>
 
             <button
+              type='button'
               onClick={handleVerify}
               disabled={!isComplete || loading}
               className={`w-full py-4 rounded-2xl text-white font-bold text-sm tracking-wide transition-all ${isComplete && !loading
-                  ? 'bg-navy-700 hover:bg-navy-600 cursor-pointer active:scale-[0.99]'
-                  : 'bg-navy-700/40 cursor-not-allowed'
+                ? 'bg-navy-700 hover:bg-navy-600 cursor-pointer active:scale-[0.99]'
+                : 'bg-navy-700/40 cursor-not-allowed'
                 }`}
             >
               {loading ? 'Verifying...' : 'Verify OTP'}

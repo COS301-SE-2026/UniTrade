@@ -14,10 +14,10 @@ import { LoadingState } from "../../components/layout/Spinner";
 function DetailRow({
   label,
   value,
-}: {
+}: Readonly<{
   label: string;
   value: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="flex justify-between items-center py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
       <span className="text-xs text-gray-400">{label}</span>
@@ -66,10 +66,10 @@ export default function SellerListingDetail() {
     }
   };
 
-   if (loading) {
+  if (loading) {
     return <LoadingState message="Loading..." />;
   }
-  
+
 
   if (error || !listing)
     return (
@@ -217,6 +217,7 @@ export default function SellerListingDetail() {
               Actions
             </h3>
             <button
+              type='button'
               onClick={() => navigate(`/seller/editListing/${id}`)}
               disabled={listing.isReserved || listing.status === "sold"}
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -225,6 +226,7 @@ export default function SellerListingDetail() {
             </button>
 
             <button
+              type='button'
               onClick={handleDelete}
               disabled={listing.isReserved || listing.status === "sold"}
               className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -241,6 +243,7 @@ export default function SellerListingDetail() {
           onClick={() => setLightboxOpen(false)}
         >
           <button
+            type='button'
             onClick={() => setLightboxOpen(false)}
             className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none"
           >

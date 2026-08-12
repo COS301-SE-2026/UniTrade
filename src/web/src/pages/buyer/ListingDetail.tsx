@@ -10,7 +10,7 @@ import { formatPrice, formatDate, formatCondition } from '../../utils/formatters
 import type { ListingDetail as ListingDetailType, SimilarListing } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
 
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-white/5 last:border-0">
       <span className="text-xs text-gray-400">{label}</span>
@@ -254,21 +254,22 @@ export default function ListingDetail() {
               </div>
             )}
 
-              <button
-                onClick={handleReserve}
-                disabled={reserving || reserved}
-                className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <IconBookmark size={16} />
-                {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
-              </button>
-            
+            <button
+              type='button'
+              onClick={handleReserve}
+              disabled={reserving || reserved}
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <IconBookmark size={16} />
+              {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
+            </button>
 
-            <button className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+
+            <button type='button' className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
               <IconHeart size={16} /> Add to wishlist
             </button>
 
-            <button
+            <button type='button'
               disabled
               className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
@@ -326,6 +327,7 @@ export default function ListingDetail() {
           onClick={() => setLightboxOpen(false)}
         >
           <button
+            type='button'
             onClick={() => setLightboxOpen(false)}
             className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none">
             &times;

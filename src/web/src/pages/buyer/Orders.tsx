@@ -98,11 +98,12 @@ export default function Orders() {
       <div className="flex items-center gap-2">
         {(['all', 'semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
           <button
+            type='button'
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
-                ? 'bg-navy-700 text-white'
-                : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
+              ? 'bg-navy-700 text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
               }`}
           >
             {
@@ -127,6 +128,7 @@ export default function Orders() {
             <span className='text-sm font-medium'>{errorMessage}</span>
           </div>
           <button
+            type='button'
             onClick={() => refetch()}
             className='px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors'
           >
@@ -189,12 +191,12 @@ export default function Orders() {
                 <div className="flex items-center gap-1 pt-1">
                   {order.rating > 0 ? (
                     <>
-                      {[...Array(5)].map((_, i) => (
+                      {[...new Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`w-4 h-4 ${i < order.rating
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-gray-300'
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-gray-300'
                             }`}
                         />
                       ))}
@@ -236,6 +238,7 @@ export default function Orders() {
                     {order.date}
                   </p>
                   <button
+                    type='button'
                     onClick={() => navigate(`/buyer/orders/${order.id}`)}
                     className="px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
                   >

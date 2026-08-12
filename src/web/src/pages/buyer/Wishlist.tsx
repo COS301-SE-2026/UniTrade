@@ -52,10 +52,10 @@ function ConditionBadge({ condition }: { condition: BrowseCondition }) {
 function WishlistCard({
   listing,
   onRemoved,
-}: {
+}: Readonly<{
   listing: WishlistListing;
   onRemoved: (id: string) => void;
-}) {
+}>) {
   const navigate = useNavigate();
   const [reserving, setReserving] = useState(false);
   const [reserved, setReserved] = useState(false);
@@ -180,7 +180,7 @@ export default function Wishlist() {
 
   const handleRemoved = (id: string) => {
     queryClient.setQueryData<WishlistResponse>(["wishlist"], (old) =>
-      old && { ...old, listings: old.listings.filter((l) => l.id !== id), total: old.total-1},
+      old && { ...old, listings: old.listings.filter((l) => l.id !== id), total: old.total - 1 },
     );
   };
 
@@ -239,6 +239,7 @@ export default function Wishlist() {
                   ["Date added", "Price low", "Price high"] as SortOption[]
                 ).map((opt) => (
                   <button
+                    type='button'
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -268,6 +269,7 @@ export default function Wishlist() {
                 {(["All", "like_new", "Good", "Fair", "Poor"] as const).map(
                   (opt) => (
                     <button
+                      type='button'
                       key={opt}
                       onClick={() => {
                         setConditionFilter(opt);
@@ -298,34 +300,34 @@ export default function Wishlist() {
         />
       </div>
 
-      {isLoading && <LoadingState message = "Loading wishlist ..." />}
+      {isLoading && <LoadingState message="Loading wishlist ..." />}
 
-        {!isLoading && error && (
-          <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
-            <p className="text-sm font-semibold text-rose-600">
-              {error instanceof Error ? error.message : "Failed to listings"}
-            </p>
-          </div>
-        )}
+      {!isLoading && error && (
+        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+          <p className="text-sm font-semibold text-rose-600">
+            {error instanceof Error ? error.message : "Failed to listings"}
+          </p>
+        </div>
+      )}
 
-        {!isLoading && !error && sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-700">
-              Your wishlist is empty
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Browse listings and tap "Add to Wishlist" to save items here.
-            </p>
-          </div>
-        )}
+      {!isLoading && !error && sorted.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">
+            Your wishlist is empty
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Browse listings and tap "Add to Wishlist" to save items here.
+          </p>
+        </div>
+      )}
 
-        {sorted.map((listing) => (
-          <WishlistCard
-            key={listing.id}
-            listing={listing}
-            onRemoved={handleRemoved}
-          />
-        ))}
-      </div>
+      {sorted.map((listing) => (
+        <WishlistCard
+          key={listing.id}
+          listing={listing}
+          onRemoved={handleRemoved}
+        />
+      ))}
+    </div>
   );
 }

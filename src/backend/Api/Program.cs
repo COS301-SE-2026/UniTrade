@@ -15,6 +15,7 @@ using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
+using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;

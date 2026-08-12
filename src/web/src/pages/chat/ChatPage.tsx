@@ -107,7 +107,7 @@ const TextMessageBubble: React.FC<{
                                 <span className="italic">sending...</span>
                             )}
                             {message.status === "failed" && (
-                                <button onClick={onRetry} className="text-red-500 underline">
+                                <button type='button' onClick={onRetry} className="text-red-500 underline">
                                     failed. Please retry.
                                 </button>
                             )}
@@ -159,7 +159,7 @@ function MessageBubble({
     respondingKey,
     onRespondMeetup,
     onCheckIn,
-}: {
+}: Readonly<{
     message: ClientChatMessage;
     currentUserId: string;
     counterpartyInitials: string;
@@ -168,7 +168,7 @@ function MessageBubble({
     respondingKey: string | null;
     onRespondMeetup: (proposalMessageId: number, status: MeetupStatus) => void;
     onCheckIn: (location: string) => void;
-}) {
+}>) {
     const isOwnMessage = message.senderId === currentUserId;
 
     switch (message.messageType) {
@@ -264,7 +264,7 @@ export default function ChatPage() {
             }
         } for (const msg of sortedMessages) {
             if (msg.messageType === 'meetup_response' && msg.payload?.ProposalMessageId) {
-        
+
                 const id = msg.payload.ProposalMessageId.toString();
                 if (id in map) {
                     map[id] = msg.payload.Accepted ? 'accepted' : 'declined';
@@ -295,7 +295,7 @@ export default function ChatPage() {
         enabled: !!reservationId,
     });
 
-     const isSeller = reservation ? reservation.sellerId === user?.id : window.location.pathname.startsWith("/seller");
+    const isSeller = reservation ? reservation.sellerId === user?.id : window.location.pathname.startsWith("/seller");
     const role = isSeller ? "seller" : "buyer";
     const { data: listing } = useQuery({
         queryKey: ["listing", reservation?.listingId],
@@ -429,7 +429,7 @@ export default function ChatPage() {
         <div className="h-full w-full flex flex-col bg-white overflow-hidden">
 
             <div className="px-5 py-4 border-b flex items-center gap-3 shrink-0">
-                <button
+                <button type='button'
                     onClick={() => navigate(`/${isSeller ? 'seller' : 'buyer'}/messages`)}
                     className="md:hidden text-gray-400 hover:text-gray-600 shrink-0">
                     <IconArrowLeft size={20} />
@@ -468,7 +468,7 @@ export default function ChatPage() {
                                 R {listing.price.toFixed(2)}
                             </p>
                         </div>
-                        <button
+                        <button type='button'
                             onClick={() => navigate(
                                 isSeller
                                     ? `/seller/reservations/${reservationId}`
@@ -482,7 +482,7 @@ export default function ChatPage() {
                     </div>
                 )}
 
-                {isLoading && <LoadingState message = "Loading messages..." />}
+                {isLoading && <LoadingState message="Loading messages..." />}
 
                 {isError && (
                     <p className="text-center text-red-500">Failed to load messages</p>
@@ -552,7 +552,7 @@ export default function ChatPage() {
                         placeholder="Type a message..."
                         className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
                     />
-                    <button
+                    <button type='button'
                         onClick={handleSend}
                         disabled={!draft.trim()}
                         aria-label="Send message"

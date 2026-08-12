@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Chat;
@@ -142,5 +143,5 @@ public class ReservationsController : ControllerBase
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
-    public record CreateReservationRequest(Guid ListingId);
+    public record CreateReservationRequest([property: JsonRequired] Guid ListingId);
 }

@@ -20,7 +20,7 @@ interface StatProps {
   label: string;
 }
 
-function Stat({ number, label }: StatProps) {
+function Stat({ number, label }: Readonly<StatProps>) {
   return (
     <div className="text-center">
       <p className="text-2xl font-bold text-white mx-5">{number}</p>
@@ -35,7 +35,7 @@ interface ProblemCardProps {
   description: string;
 }
 
-export function ProblemCard({ icon, title, description }: ProblemCardProps) {
+export function ProblemCard({ icon, title, description }: Readonly<ProblemCardProps>) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
       <div data-testid="card-icon" className="w-11 h-11 bg-white text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -53,7 +53,7 @@ interface SolutionCardProps {
   description: string;
 }
 
-export function SolutionCard({ icon, title, description }: SolutionCardProps) {
+export function SolutionCard({ icon, title, description }: Readonly<SolutionCardProps>) {
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-100 dark:border-white/10 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
       <div data-testid="card-icon" className="w-11 h-11 bg-navy-700 text-white rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
@@ -71,7 +71,7 @@ interface StepProps {
   description: string;
 }
 
-export function Step({ number, title, description }: StepProps) {
+export function Step({ number, title, description }: Readonly<StepProps>) {
   return (
     <div className="flex-1 relative">
       <div className="flex items-center gap-4">
@@ -92,7 +92,7 @@ interface BenefitListProps {
   items: string[];
 }
 
-export function BenefitList({ title, items }: BenefitListProps) {
+export function BenefitList({ title, items }: Readonly<BenefitListProps>) {
   return (
     <div className="bg-white dark:bg-navy-800 rounded-2xl p-8 border border-gray-100 dark:border-white/10">
       <h3 className="font-semibold text-navy-700 dark:text-white mb-6 flex items-center gap-2">
@@ -147,12 +147,14 @@ function Navbar() {
 
         <div className="flex items-center gap-4">
           <button
+           type='button'
             onClick={() => navigate('/auth/Signup')}
             className="bg-navy-700 hover:bg-navy-600 text-white px-6 py-2.5 text-sm font-semibold rounded-full transition-colors">
             Get Started
           </button>
 
           <button
+           type='button'
             className="md:hidden"
             data-testid="mobile-menu-toggle"
             aria-label="Toggle menu"
@@ -189,7 +191,7 @@ interface AlexAvatarProps {
   onClick?: () => void;
 }
 
-export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
+export function AlexAvatar({ className = '', onClick }: Readonly<AlexAvatarProps>) {
   const [stage, setStage] = useState<AvatarStage>('thinking');
   const [cycleKey, setCycleKey] = useState(0);
 
@@ -309,6 +311,7 @@ function Firstpage() {
 
             <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <button
+               type='button'
                 onClick={() => navigate('/auth/Signup')}
                 className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 SIGNUP
@@ -316,6 +319,7 @@ function Firstpage() {
               </button>
 
               <button
+               type='button'
                 onClick={() => navigate('/auth/Login')}
                 className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 LOGIN
@@ -509,6 +513,7 @@ export function Footer() {
           <ul className="flex flex-wrap items-center justify-center gap-6 text-xs text-gray-300">
             <li>
               <button
+               type='button'
                 onClick={() => navigate('/auth/help-center')}
                 className="hover:text-white transition-colors cursor-pointer"
               >
@@ -516,7 +521,7 @@ export function Footer() {
               </button>
             </li>
             <li>
-              <button className="hover:text-white transition-colors cursor-pointer">
+              <button  type='button' className="hover:text-white transition-colors cursor-pointer">
                 Safety Tips
               </button>
             </li>

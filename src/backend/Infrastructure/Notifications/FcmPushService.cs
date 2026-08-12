@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
 
+namespace Infrastructure.Notifications;
+
 public class FcmPushService : IFcmPushService
 {
     private readonly IDeviceTokenRepository _tokens;

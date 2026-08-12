@@ -106,7 +106,7 @@ interface UserPopoverProps {
 }
 function UserPopover({
   name, initials, roleLabel, onClose, onLogout,
-}: UserPopoverProps) {
+}: Readonly<UserPopoverProps>) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -127,6 +127,7 @@ function UserPopover({
       <div className="flex items-center justify-end mb-4">
 
         <button
+          type='button'
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600"
           aria-label="Close"
@@ -136,7 +137,7 @@ function UserPopover({
       </div>
       <div className="flex items-center gap-3 mb-5">
         <button
-
+          type='button'
           className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
         >
           {initials}
@@ -148,6 +149,7 @@ function UserPopover({
         </div>
       </div>
       <button
+        type='button'
         onClick={onLogout}
         className="w-full bg-navy-700 text-white font-semibold text-sm rounded-full py-2.5 hover:bg-navy-500 transition-colors"
       >
@@ -238,6 +240,7 @@ export default function Sidebar() {
               if (item.label === 'Switch' && user?.role === 'student') {
                 return (
                   <button
+                    type='button'
                     key={item.to}
                     onClick={handleSwitch}
                     className={clsx(
@@ -332,6 +335,7 @@ export default function Sidebar() {
       )}
 
       <button
+        type='button'
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-navy-700 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors z-10"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

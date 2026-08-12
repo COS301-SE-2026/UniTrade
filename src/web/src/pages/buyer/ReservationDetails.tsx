@@ -454,11 +454,9 @@ export default function ReservationDetails() {
           <SectionCard title="Item">
             <div className="flex gap-4 mb-5">
               <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
-                {listingDetail?.images?.[0]?.url ||
-                  listingDetail?.images?.[0]?.url ? (
+                {listingDetail?.images?.[0]?.url ? (
                   <img
                     src={
-                      listingDetail?.images?.[0]?.url ??
                       listingDetail?.images?.[0]?.url
                     }
                     alt={listingDetail?.title ?? "Listing image"}

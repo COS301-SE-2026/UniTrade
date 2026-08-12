@@ -24,16 +24,17 @@ function ActionButtons({
   onDelete,
   onSubmit,
   submitting,
-}: {
+}: Readonly<{
   listing: ListingSummary;
   onDelete: (id: string) => void;
   onSubmit: (id: string) => void;
   submitting: boolean;
-}) {
+}>) {
   const navigate = useNavigate();
 
   const deleteBtn = (
     <button
+      type='button'
       onClick={() => onDelete(listing.id)}
       aria-label="Delete listing"
       className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
@@ -46,12 +47,14 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
           View
         </button>
         <button
+          type='button'
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -66,6 +69,7 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => onSubmit(listing.id)}
           disabled={submitting}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
@@ -73,6 +77,7 @@ function ActionButtons({
           {submitting ? "Submitting...." : "Submit"}
         </button>
         <button
+          type='button'
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -86,10 +91,11 @@ function ActionButtons({
   if (listing.status === "rejected") {
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-        <button className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap">
+        <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap">
           Resubmit
         </button>
         <button
+          type='button'
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -104,18 +110,21 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
           View
         </button>
         <button
+          type='button'
           disabled
           className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full cursor-not-allowed whitespace-nowrap"
         >
           Edit
         </button>
         <button
+          type='button'
           disabled
           aria-label="Delete listing"
           className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-2 rounded-full cursor-not-allowed flex-shrink-0"
@@ -129,6 +138,7 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 fle-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
@@ -232,10 +242,10 @@ export default function MyListings() {
     { key: "sold", label: `Sold (${count("sold")})` },
   ];
 
-   if (isLoading) {
+  if (isLoading) {
     return <LoadingState message="Loading..." />;
   }
-  
+
 
   if (error)
     return (
@@ -258,6 +268,7 @@ export default function MyListings() {
           </p>
         </div>
         <button
+          type='button'
           onClick={() => navigate("/seller/upload")}
           className="flex items-center justify-center gap-2 bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors w-full sm:w-auto"
         >
@@ -306,6 +317,7 @@ export default function MyListings() {
       <div className="flex gap-2 flex-wrap">
         {tabs.map((tab) => (
           <button
+            type='button'
             key={tab.key}
             onClick={() => {
               setActiveTab(tab.key);
@@ -410,6 +422,7 @@ export default function MyListings() {
           {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
             (page) => (
               <button
+                type='button'
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page

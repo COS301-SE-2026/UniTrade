@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, } from "react";
-import { useState } from "react";
+import React, { useEffect, useRef, useState} from "react";
 
 const fontDisplay = "font-['Fraunces', _Georgia, _serif]";
 const fontBody = "font-['Inter', _sans-serif]";
@@ -110,7 +109,7 @@ interface StatProps {
     label: string;
 }
 
-function Stat({ stat, label }: StatProps) {
+function Stat({ stat, label }: Readonly<StatProps>) {
     return (
         <div className="text-center">
             <p className="text-2xl font-bold text-white mx-5">{label}</p>
@@ -141,6 +140,7 @@ function Navabar() {
                     <a href="#changelog" className="hover:text-navy-500 dark:hover:text-blue-400 transition-colors">Changelog</a>
 
                     <button
+                        type='button'
                         className="md:hidden"
                         data-testid="mobile-menu-toggle"
                         aria-label="Toggle menu"
@@ -178,7 +178,7 @@ interface AlexAvatarProps {
     onClick?: () => void;
 }
 
-export function AlexAvatar({ className = '', onClick }: AlexAvatarProps) {
+export function AlexAvatar({ className = '', onClick }: Readonly<AlexAvatarProps>) {
     return (
         <div
             data-testid="alex-avatar-container"
@@ -218,7 +218,7 @@ function Firstpage() {
                 <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
                     <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
                         <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
-                            
+
                         </div>
                         <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
                animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
@@ -320,7 +320,7 @@ export function ColourPaletteSection() {
             title="Colour Palette"
             description={
                 <>
-                    
+
                 </>
             }
         >

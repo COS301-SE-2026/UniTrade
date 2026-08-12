@@ -16,7 +16,7 @@ function timeAgo(dateString: string): string {
     return `${diffYears} year${diffYears > 1 ? 's' : ''} ago`
 }
 
-export function ReviewList({reviews} : {reviews: ReviewData[]}){
+export function ReviewList({reviews} : Readonly<{reviews: ReviewData[]}>){
     if (reviews.length === 0) {
     return (
       <div className="px-4 py-8 text-center">
@@ -60,7 +60,7 @@ export function ReviewModal({
     revieweeName,
     revieweeLabel,
     onSubmitted,
-}: ReviewModalProps) {
+}: Readonly<ReviewModalProps>) {
     if(!isOpen) return null 
 
     return (
@@ -74,6 +74,7 @@ export function ReviewModal({
                         </h3>
                     </div>
                     <button
+                     type='button'
                     onClick = {onClose}
                     className = "text-gray-400 hover:text-gray-600 transition-colors"
                     aria-label = "Close"

@@ -21,7 +21,7 @@ type ItemStatus = 'Active' | 'Expired' | 'Completed' | 'Reserved' | 'Cancelled';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
     if (!status) return null;
     const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -79,7 +79,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
     meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
     return (
         <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
             <span className="text-navy-700">{icon}</span>
@@ -92,7 +92,7 @@ function SummaryCard({ label, value, icon }: { label: string; value: string; ico
     );
 }
 
-function StageTag({ stage }: { stage: TimerStage }) {
+function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
     const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
     return (
         <span className={
@@ -101,7 +101,7 @@ function StageTag({ stage }: { stage: TimerStage }) {
         </span>)
 }
 
-function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }
+function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>
 ) {
 
     if (msRemaining <= 0) return null;
@@ -119,11 +119,11 @@ function ReservationCard({
     reservation,
     onAcknowledge,
     onCancel,
-}: {
+}: Readonly<{
     reservation: ReservationListItem
     onAcknowledge: (id: string) => void
     onCancel: (id: string) => void
-}) {
+}>) {
     const navigate = useNavigate()
     const [, forceTick] = useState(0)
 
@@ -211,6 +211,7 @@ function ReservationCard({
                         </button>
                         {isActive && reservation.timerStage !== 'coordinating' && (
                             <button
+                                type='button'
                                 onClick={() => onCancel(reservation.reservationId)}
                                 className=" py-2 px-3 border border-gray-300 text-rose-600 text-xs
                 font-semibold rounded-lg hover:bg-rose-50 transition-colors" >
@@ -312,6 +313,7 @@ export default function Reservations() {
                             <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                                 {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
                                     <button
+                                        type='button'
                                         key={opt}
                                         onClick={() => {
                                             setSortOption(opt);
@@ -339,6 +341,7 @@ export default function Reservations() {
                             <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                                 {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
                                     <button
+                                        type='button'
                                         key={opt}
                                         onClick={() => {
                                             setStatusFilter(opt);
@@ -371,14 +374,15 @@ export default function Reservations() {
                     <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center justify-between">
                         <p className="text-sm font-semibold text-rose-600">{actionError}</p>
                         <button
+                            type='button'
                             onClick={() => setActionError(null)}
                             className="text-rose-400 hover:text-rose-600 text-sm font-bold px-2">
                             ✕
                         </button>
                     </div>
                 )}
-                {loading && <LoadingState message = "Loading..." /> } 
-                
+                {loading && <LoadingState message="Loading..." />}
+
 
                 {!loading && error && sorted.length === 0 && (
                     <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
@@ -400,7 +404,7 @@ export default function Reservations() {
                     />
                 ))}
 
-               
+
             </div>
 
         </div>
