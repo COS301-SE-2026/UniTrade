@@ -34,6 +34,52 @@ function formatMeetupTime(iso?: string): string {
     day: 'numeric',
   }) + `, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
 }
+
+function useTransactionStatus(reservationId: string | undefined, isSeller: boolean) {
+  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
+
+  useEffect(() => {
+    if (!reservationId || !isSeller) {
+      return;
+    }
+
+    const refresh = () => {
+      getTransactionStatus(reservationId).then((r) => {
+        if (r.success) {
+          setTxStatus(r.data);
+        }
+      });
+    };
+
+    refresh();
+    connectionManager.connect().catch((e) => console.error('connect failed', e));
+    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
+
+    const off = connectionManager.onPaymentCompleted((e) => {
+      if (e.reservationId === reservationId) {
+
+        refresh();
+
+      }
+
+    });
+
+    const offPin = connectionManager.onPinGenerated((e) => {
+      if (e.reservationId === reservationId) refresh();
+    });
+    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+      if (e.reservationId === reservationId) refresh();
+    });
+    return () => {
+      off();
+      offPin();
+      offPinConfirmed();
+    };
+  }, [reservationId, isSeller]);
+
+
+  return txStatus;
+}
 export default function MeetupDetails() {
   const navigate = useNavigate();
 
@@ -43,7 +89,6 @@ export default function MeetupDetails() {
   const isSeller = navState.role === 'seller'
   const reservationId = navState.reservationId;
   const [showCheckIn, setShowCheckIn] = useState(false);
-  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
 
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
@@ -114,41 +159,7 @@ export default function MeetupDetails() {
         ? { lat: navState.meetupLat, lng: navState.meetupLng }
         : null;
 
-  useEffect(() => {
-    if (!reservationId || !isSeller) return;
-
-    getTransactionStatus(reservationId).then((result) => {
-      if (result.success) setTxStatus(result.data);
-    });
-
-    connectionManager.connect().catch((e) => console.error('connect failed', e));
-    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
-
-    const off = connectionManager.onPaymentCompleted((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-
-    const offPin = connectionManager.onPinGenerated((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-    return () => {
-      off();
-      offPin();
-      offPinConfirmed();
-    };
-  }, [reservationId, isSeller]);
+  const txStatus = useTransactionStatus(reservationId, isSeller);
 
   const handlePayNow = async () => {
     if (!reservationId) return;
@@ -302,7 +313,7 @@ export default function MeetupDetails() {
                   <strong>Safety Guarantee:</strong>{' '}
                   {!isSeller ? (
                     <>
-                      Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup. 
+                      Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup.
                     </>
                   ) : (
                     <>

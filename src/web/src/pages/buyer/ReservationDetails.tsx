@@ -11,7 +11,10 @@ import {
 } from "@tabler/icons-react";
 import type { Reservation } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
-import { cancelReservation, getReservationById } from "../../services/reservationService";
+import {
+  cancelReservation,
+  getReservationById,
+} from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
 import { useQuery } from "@tanstack/react-query";
 
@@ -22,23 +25,56 @@ interface CountdownResult {
   isUrgent: boolean;
   isExpired: boolean;
 }
-type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
+type ItemStatus = "Active" | "Expired" | "Cancelled" | "Completed" | "Reserved";
 function StatusBadge({ status }: { status: string }) {
   if (!status) return null;
-  const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
+  const normalizedStatus = (status.charAt(0).toUpperCase() +
+    status.slice(1).toLowerCase()) as ItemStatus;
 
-  const config: Record<ItemStatus, { bg: string; text: string; dot: string; label: string }> = {
-    Active: { bg: 'bg-emerald-50', text: 'text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Active' },
-    Completed: { bg: 'bg-blue-50', text: 'text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Completed' },
-    Expired: { bg: 'bg-gray-50', text: 'text-gray-700 border-gray-200', dot: 'bg-gray-500', label: 'Expired' },
-    Cancelled: { bg: 'bg-rose-50', text: 'text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
-    Reserved: { bg: 'bg-amber-50', text: 'text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Reserved' },
+  const config: Record<
+    ItemStatus,
+    { bg: string; text: string; dot: string; label: string }
+  > = {
+    Active: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700 border-emerald-200",
+      dot: "bg-emerald-500",
+      label: "Active",
+    },
+    Completed: {
+      bg: "bg-blue-50",
+      text: "text-blue-700 border-blue-200",
+      dot: "bg-blue-500",
+      label: "Completed",
+    },
+    Expired: {
+      bg: "bg-gray-50",
+      text: "text-gray-700 border-gray-200",
+      dot: "bg-gray-500",
+      label: "Expired",
+    },
+    Cancelled: {
+      bg: "bg-rose-50",
+      text: "text-rose-700 border-rose-200",
+      dot: "bg-rose-500",
+      label: "Cancelled",
+    },
+    Reserved: {
+      bg: "bg-amber-50",
+      text: "text-amber-700 border-amber-200",
+      dot: "bg-amber-500",
+      label: "Reserved",
+    },
   };
-  const currentConfig = config[normalizedStatus] || config['Expired'];
+  const currentConfig = config[normalizedStatus] || config["Expired"];
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${currentConfig.bg} ${currentConfig.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.dot} ${normalizedStatus === 'Active' ? 'animate-pulse' : ''}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${currentConfig.bg} ${currentConfig.text}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${currentConfig.dot} ${normalizedStatus === "Active" ? "animate-pulse" : ""}`}
+      />
       {currentConfig.label}
     </span>
   );
@@ -83,7 +119,6 @@ function useCountdown(expiresAt: string): CountdownResult {
 
 function formatCurrency(amount: number): string {
   return "R " + amount.toLocaleString("en-ZA");
-
 }
 
 function formatDate(iso: string): string {
@@ -102,7 +137,6 @@ function formatTime(iso: string): string {
   });
 }
 
-
 function SectionCard({
   title,
   children,
@@ -120,13 +154,7 @@ function SectionCard({
   );
 }
 
-function InfoRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-400 dark:border-navy-700 last:border-b-0">
       <span className="text-sm text-gray-500 dark:text-navy-100">{label}</span>
@@ -168,21 +196,52 @@ function ActionButton({
     </button>
   );
 }
-
+function getCountdownClasses(isCancelled: boolean, isExpired: boolean, isUrgent: boolean): string {
+  if (isCancelled || isExpired) {
+    return "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100";
+  }
+  if (isUrgent) {
+    return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
+  }
+  return "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200";
+}
+function deriveLabels(
+  reservation: Reservation,
+  isSeller: boolean,
+  isCancelling: boolean,
+) {
+  let cancelLabel: string;
+  if (isCancelling) {
+    cancelLabel = "Cancelling...";
+  } else if (!isSeller) {
+    cancelLabel = "Cancel";
+  } else {
+    cancelLabel =
+      reservation.timerStage === "awaiting_seller"
+        ? "Reject"
+        : "Cancel Reservation";
+  }
+  return {
+    messageLabel: isSeller ? "Message Buyer" : "Message Seller",
+    cancelLabel,
+    otherPartyLabel: isSeller ? "Buyer" : "Seller",
+  };
+}
 export default function ReservationDetails() {
-
-  const { showToast} = useToast();
+  const { showToast } = useToast();
   const { reservationId } = useParams<{ reservationId: string }>();
   const navigate = useNavigate();
-  const isSeller = window.location.pathname.startsWith('/seller');
+  const isSeller = window.location.pathname.startsWith("/seller");
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
-  const [listingDetail, setListingDetail] = useState<ListingDetail | null>(null);
+  const [listingDetail, setListingDetail] = useState<ListingDetail | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const { data: meetup} = useQuery({
-    queryKey: ['meetup', reservationId],
+  const { data: meetup } = useQuery({
+    queryKey: ["meetup", reservationId],
     queryFn: () => listingsService.getMeetupStatus(reservationId!),
     enabled: !!reservationId,
   });
@@ -195,12 +254,13 @@ export default function ReservationDetails() {
 
     setError(null);
 
-
-    //I should change once the endpoint to get each reservation by id is available 
+    //I should change once the endpoint to get each reservation by id is available
     const result = await getReservationById(reservationId);
 
     if (!result.success) {
-      setError(result.error.message ?? "Something went wrong. Please try again.");
+      setError(
+        result.error.message ?? "Something went wrong. Please try again.",
+      );
       setIsLoading(false);
       return;
     }
@@ -213,7 +273,6 @@ export default function ReservationDetails() {
     } catch {
       //nothing
     }
-
 
     setIsLoading(false);
   }, [reservationId]);
@@ -233,37 +292,41 @@ export default function ReservationDetails() {
     };
   }, [loadReservation]);
 
-  const { label: countdownLabel, isUrgent, isExpired } = useCountdown(
-    reservation?.expiresAt ?? new Date().toISOString(),
-  );
+  const {
+    label: countdownLabel,
+    isUrgent,
+    isExpired,
+  } = useCountdown(reservation?.expiresAt ?? new Date().toISOString());
   const handleMessageCounterparty = () => {
     if (!reservation) return;
-    navigate(`/${isSeller ? 'seller' : 'buyer'}/messages/${reservation.reservationId}`, {
-      state: {
-        counterpartyName: reservation.counterParty?.name,
-        counterpartyInitials: reservation.counterParty?.initials,
+    navigate(
+      `/${isSeller ? "seller" : "buyer"}/messages/${reservation.reservationId}`,
+      {
+        state: {
+          counterpartyName: reservation.counterParty?.name,
+          counterpartyInitials: reservation.counterParty?.initials,
+        },
       },
-    });
+    );
   };
 
   const handleCompletePayment = () => {
     if (!reservation) return;
-    navigate('/payment/meetup', {
+    navigate("/payment/meetup", {
       state: {
         reservationId: reservation.reservationId,
-        role: isSeller ? 'seller' : 'buyer',
+        role: isSeller ? "seller" : "buyer",
         counterPartyName: otherPartyName,
         counterpartyInitials: otherPartyInitials,
         listingTitle: listingDetail?.title,
         listingPrice: listingDetail?.price,
-      }
-    })
+      },
+    });
   };
 
   const handleViewListing = () => {
     if (reservation) navigate(`/buyer/listings/${reservation.listingId}`);
   };
-
 
   const handleCancel = async () => {
     if (!reservation) return;
@@ -271,32 +334,38 @@ export default function ReservationDetails() {
     const result = await cancelReservation(reservation.reservationId);
     if (result.success) {
       setReservation((prev) =>
-        prev ? { ...prev, reservationStatus: result.data.reservationStatus } : prev,
+        prev
+          ? { ...prev, reservationStatus: result.data.reservationStatus }
+          : prev,
       );
-      showToast('success', isSeller ? 'Reservation cancelled' : 'Reservation cancelled successfully.');
-      
+      showToast(
+        "success",
+        isSeller
+          ? "Reservation cancelled"
+          : "Reservation cancelled successfully.",
+      );
     } else {
-      showToast (
-        'error',
-        result.error.code === 'release_too_early'
-        ? 'You can only cancel after 12 hours of buyer silence.'
-        : result.error.message ?? 'Failed to cancel reservation.'
+      showToast(
+        "error",
+        result.error.code === "release_too_early"
+          ? "You can only cancel after 12 hours of buyer silence."
+          : (result.error.message ?? "Failed to cancel reservation."),
       );
     }
     setIsCancelling(false);
   };
 
   const handleViewMeetupDetails = () => {
-     if (!reservation) return;
-     navigate('/payment/meetup', {
+    if (!reservation) return;
+    navigate("/payment/meetup", {
       state: {
         reservationId: reservation.reservationId,
-        role: isSeller ? 'seller' : 'buyer',
+        role: isSeller ? "seller" : "buyer",
         counterpartyName: otherPartyName,
         listingTitle: listingDetail?.title,
         listingPrice: listingDetail?.price,
       },
-     });
+    });
   };
 
   if (isLoading) {
@@ -309,7 +378,6 @@ export default function ReservationDetails() {
       </div>
     );
   }
-
 
   if (error || !reservation) {
     return (
@@ -338,66 +406,65 @@ export default function ReservationDetails() {
   const expiresDate = new Date(reservation.expiresAt);
   const createdDate = new Date(reservation.createdAt);
 
-  const countdownClasses = isCancelled || isExpired
-    ? "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100"
-    : isUrgent
-      ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-      : "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200";
-
+  const { messageLabel, cancelLabel, otherPartyLabel } = deriveLabels(reservation, isSeller, isCancelling);
+  const countdownClasses = getCountdownClasses(isCancelled, isExpired, isUrgent);
   /*const statusBadge = isCancelled
     ? { className: "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100", text: "Cancelled" }
     : isUrgent || isExpired
       ? { className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300", text: "Expiring soon" }
       : { className: "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200", text: "Reserved" };*/
 
+  const canCancel =
+    !isCancelled && !isCancelling && (isSeller || !isCoordinating);
 
-
-  const messageLabel = isSeller ? "Message Buyer" : "Message Seller";
-  const cancelLabel = isCancelling ? "Cancelling..." : isSeller ? (reservation.timerStage === "awaiting_seller" ? "Reject" : "Cancel Reservation") : "Cancel";
-  const canCancel = !isCancelled && !isCancelling && (isSeller || !isCoordinating);
-
-  const otherPartyLabel = isSeller ? "Buyer" : "Seller";
   const otherPartyName = reservation.counterParty?.name ?? otherPartyLabel;
   const otherPartyInitials = reservation.counterParty?.initials ?? otherPartyLabel[0];
-
 
   return (
     <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <nav className="flex items-center gap-1.5 text-sm">
-          <Link to={isSeller ? "/seller/reservations" : "/buyer/reservations"}
-            className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+          <Link
+            to={isSeller ? "/seller/reservations" : "/buyer/reservations"}
+            className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+          >
             My Reservations
           </Link>
           <IconChevronRight size={16} className="text-gray-400" />
-          <span className="font-semibold text-navy-900-dark:text-white">
+          <span className="font-semibold text-navy-900 dark:text-white">
             {listingDetail?.title}
           </span>
         </nav>
 
         {!isCancelled && !isMeetupConfirmed && (
-
           <div className="text-right">
-            <p
-              className="test-sm text-gray-500 dark:text-navy-100 mb-1.5">
+            <p className="text-sm text-gray-500 dark:text-navy-100 mb-1.5">
               Expires in
             </p>
-            <span className={`inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap  ${countdownClasses}`}>
+            <span
+              className={`inline-block rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap  ${countdownClasses}`}
+            >
               {countdownLabel}
             </span>
-          </div>)}
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="flex flex-col gap-6">
           <SectionCard title="Item">
             <div className="flex gap-4 mb-5">
               <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
-                {listingDetail?.images?.[0]?.url || listingDetail?.images?.[0]?.url ? (
+                {listingDetail?.images?.[0]?.url ||
+                  listingDetail?.images?.[0]?.url ? (
                   <img
-                    src={listingDetail?.images?.[0]?.url ?? listingDetail?.images?.[0]?.url}
+                    src={
+                      listingDetail?.images?.[0]?.url ??
+                      listingDetail?.images?.[0]?.url
+                    }
                     alt={listingDetail?.title ?? "Listing image"}
                     className="w-full h-full object-cover"
-                  />) : (
+                  />
+                ) : (
                   <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
                     {listingDetail?.title ?? "Listing"}
                   </span>
@@ -413,7 +480,6 @@ export default function ReservationDetails() {
                 <p className="text-sm text-gray-500 dark:text-navy-100">
                   Category: {listingDetail?.category ?? "Textbooks"}
                 </p>
-
               </div>
             </div>
 
@@ -428,10 +494,15 @@ export default function ReservationDetails() {
             <InfoRow
               label="Status"
               value={
-                <span className={"inline-block rounded-full px-2.5 py-1 text-xs font-semibold "}>
+                <span
+                  className={
+                    "inline-block rounded-full px-2.5 py-1 text-xs font-semibold "
+                  }
+                >
                   <StatusBadge status={reservation.reservationStatus} />
                 </span>
-              } />
+              }
+            />
           </SectionCard>
 
           <SectionCard title="Actions">
@@ -440,14 +511,21 @@ export default function ReservationDetails() {
                 icon={<IconMessageCircle size={16} />}
                 label={messageLabel}
                 onClick={handleMessageCounterparty}
-                variant="primary" />
-              
-              {!isSeller &&(
-              <ActionButton
-                icon={<IconDownload size={16} />}
-                label="Complete Payment"
-                onClick={handleCompletePayment}
-                disabled={isSeller || isCancelled || isExpired || !meetup?.buyerCheckedIn} />
+                variant="primary"
+              />
+
+              {!isSeller && (
+                <ActionButton
+                  icon={<IconDownload size={16} />}
+                  label="Complete Payment"
+                  onClick={handleCompletePayment}
+                  disabled={
+                    isSeller ||
+                    isCancelled ||
+                    isExpired ||
+                    !meetup?.buyerCheckedIn
+                  }
+                />
               )}
 
               <ActionButton
@@ -483,22 +561,37 @@ export default function ReservationDetails() {
                   {otherPartyName}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-navy-100">
-
                   {!isSeller && listingDetail?.seller?.university
                     ? `${listingDetail.seller.university} student`
                     : "Student"}
                 </p>
-              </div></div>
+              </div>
+            </div>
             <InfoRow label={`${otherPartyLabel} rating`} value="-" />
-            {!isSeller &&(
-            <InfoRow label="Total Sales" value={listingDetail?.seller?.activeListingCount} />
+            {!isSeller && (
+              <InfoRow
+                label="Total Sales"
+                value={listingDetail?.seller?.activeListingCount}
+              />
             )}
           </SectionCard>
           <SectionCard title="Reservation Info">
-            <InfoRow label="Reservation ID" value={"#" + reservation.reservationId} />
-            <InfoRow label="Date Reserved" value={formatDate(createdDate.toISOString())} />
-            <InfoRow label="Expiry Date" value={formatDate(expiresDate.toISOString())} />
-            <InfoRow label="Expiry Time" value={formatTime(expiresDate.toISOString())} />
+            <InfoRow
+              label="Reservation ID"
+              value={"#" + reservation.reservationId}
+            />
+            <InfoRow
+              label="Date Reserved"
+              value={formatDate(createdDate.toISOString())}
+            />
+            <InfoRow
+              label="Expiry Date"
+              value={formatDate(expiresDate.toISOString())}
+            />
+            <InfoRow
+              label="Expiry Time"
+              value={formatTime(expiresDate.toISOString())}
+            />
           </SectionCard>
         </div>
       </div>

@@ -98,7 +98,6 @@ public class PayFastPaymentGateway : IPaymentGateway
         }
 
         var preHash = sb.ToString();
-        Console.WriteLine($"[PayFast DEBUG] Pre-hash string: {preHash}");
         using var md5 = MD5.Create();
         var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
 

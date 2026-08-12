@@ -223,7 +223,7 @@ function renderWithProviders(ui: React.ReactElement, initialEntry = '/buyer/mess
 
 it('page renders without crashing or lagging', async () => {
     renderWithProviders(<ChatPage />);
-    await screen.findByPlaceholderText('Type a message...');
+    expect(await screen.findByPlaceholderText('Type a message...')).toBeInTheDocument();
 })
 
 describe('header and navigation', () => {

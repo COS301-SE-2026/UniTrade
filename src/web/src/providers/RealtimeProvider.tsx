@@ -43,7 +43,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
         })
         .catch((err) => {
-          console.error("Push token failes", err);
+          console.error("Push token failed", err);
           sessionStorage.setItem("pushAttempted", "true");
         })
     }

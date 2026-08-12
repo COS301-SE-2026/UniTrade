@@ -33,7 +33,7 @@ jobs:
 
             - name: Install Playwright browsers
               working-directory: src/web
-              run: npx playwright install --with-deps
+              run: npx --no-install playwright install --with-deps
             
             - name: Start db, backend, frontend
               working-directory: infra/docker

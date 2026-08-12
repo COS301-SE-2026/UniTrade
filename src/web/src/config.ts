@@ -22,6 +22,11 @@ export async function loadConfig(): Promise<AppConfig> {
   if (!res.ok) throw new Error("Failed to load runtime config");
   const loaded: AppConfig = await res.json();
 
+  const parsed = new URL(loaded.apiUrl);
+  const allowedProtocols = ["https"];
+  if (!allowedProtocols.includes(parsed.protocol)) {
+    throw new Error(`Invalid apiUrl protocol`);
+  }
   config = loaded;
   return loaded;
 }
