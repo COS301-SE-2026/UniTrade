@@ -43,6 +43,7 @@ export function getApiUrl(): string {
   if (!config)
     throw new Error("Config not loaded, call the loadConfig() first");
   return `${config.apiUrl}/api`; // if local use config.apiUrl, when deploying us `${config.apiUrl}/api`
+  // this suddenly works on local.. so they maybe something that breaks in deployment
 }
 
 export function getFirebaseConfig(): FireBaseConfig {
