@@ -18,9 +18,6 @@ function isThisSemester(iso: string): boolean {
   return new Date(iso) >= mockMonth
 }
 
-
-
-
 export default function Orders() {
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
 
