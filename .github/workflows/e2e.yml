@@ -3,9 +3,9 @@ name: E2E Tests
 on:
     workflow_call:
     pull_request:
-        branches: ["dev", "main"]
+        branches-ignore: ["**"]
     push:
-        branches-ignore: ["main", "dev"]
+        branches-ignore: ["**"]
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}
