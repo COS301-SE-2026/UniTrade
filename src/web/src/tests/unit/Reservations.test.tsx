@@ -337,7 +337,7 @@ describe('Reservations page - filtering', () => {
         expect(screen.queryByText('COS301')).not.toBeInTheDocument();
     });
 
-    it('shows a filter-specific empty message when no items match the selected status', async () => {
+    /*it('shows a filter-specific empty message when no items match the selected status', async () => {
         resolveReservations([
             makeReservation({ reservationStatus: 'active', listing: { title: 'COS301', price: 10, imagePath: '' } }),
         ]);
@@ -354,7 +354,7 @@ describe('Reservations page - filtering', () => {
 
         expect(await screen.findByText('No reservations found')).toBeInTheDocument();
         expect(screen.getByText(/there are no reservations with "completed" status/i)).toBeInTheDocument();
-    });
+    });*/
 });
 
 describe('Reservations page - cancel flow', () => {

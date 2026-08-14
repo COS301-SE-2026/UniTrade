@@ -389,8 +389,8 @@ const filtered = useMemo(() => {
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
             <p className="text-sm font-semibold text-gray-700">No reservations found</p>
             <p className="text-xs text-gray-400 mt-1">
-              {statusFilter !== "All"
-                ? `There are no reservations with "${statusFilter}" status.`
+              {searchQuery
+                ? `There are no reservation with "${searchQuery} found.`
                 : "Reserve items from listings to see them here."}
             </p>
           </div>
