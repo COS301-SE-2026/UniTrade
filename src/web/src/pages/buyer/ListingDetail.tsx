@@ -323,7 +323,7 @@ export default function ListingDetail() {
                       {item.image ? (
                         <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-lg">📚</div>
+                        <div className="w-full h-full flex items-center justify-center text-lg">No Image available</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
