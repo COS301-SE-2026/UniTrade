@@ -70,7 +70,7 @@ describe('Profile', () => {
 
     it('should render user name and initials', async () => {
         renderProfile()
-        expect(await screen.getByText(mockUser.name)).toBeInTheDocument()
+        expect(screen.getByText(mockUser.name)).toBeInTheDocument()
         expect(screen.getByText(mockUser.initials)).toBeInTheDocument()
     })
 

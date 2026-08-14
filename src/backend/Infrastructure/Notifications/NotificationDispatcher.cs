@@ -47,13 +47,15 @@ public class NotificationDispatcher : INotificationDispatcher
 
         await _db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
-            "Notify: user={UserId}, online={IsOnline}, type={Type}",
-            userId,
-            _tracker.IsOnline(userId),
-            type
-        );
-
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Notify: user={UserId}, online={IsOnline}, type={Type}",
+                userId,
+                _tracker.IsOnline(userId),
+                type
+            );
+        }
         if (_tracker.IsOnline(userId))
         {
             return;
