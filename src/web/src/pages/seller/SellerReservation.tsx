@@ -405,6 +405,17 @@ export default function Reservations() {
                     </div>
                 )}
 
+                    {!loading && filtered.length === 0 && (
+                    <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+                        <p className="text-sm font-semibold text-rose-600">{error}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                            {searchQuery
+                                ? `There are no reservations with "${searchQuery}" found.`
+                                : "List more items so they can be reserved."}
+                        </p>
+                    </div>
+                )}
+
                 {sorted.map((reservation: ReservationListItem) => (
                     <ReservationCard
                         key={reservation.reservationId}

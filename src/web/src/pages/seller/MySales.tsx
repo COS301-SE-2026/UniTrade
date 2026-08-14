@@ -186,7 +186,9 @@ export default function MySales(){
             No sales found 
           </p>
           <p className='text-xs text-gray-400 mt-1'>
-            There are no sales available for this category.
+            {searchQuery
+            ? `No sales with "${searchQuery}" found.`
+            : 'There are no sales available for this category.'}
           </p>
         </div>
       )}
