@@ -115,7 +115,18 @@ function ListingCard({
   };
 
   return (
-    <button type="button" onClick={onClick} className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
+    <div
+      role="button"
+      aria-label={`View details for ${listing.title}`}
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
       data-testid="listing-card">
 
       <img
@@ -172,7 +183,7 @@ function ListingCard({
           </button>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 

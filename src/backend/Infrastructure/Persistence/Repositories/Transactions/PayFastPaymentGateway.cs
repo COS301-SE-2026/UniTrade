@@ -126,10 +126,15 @@ public class PayFastPaymentGateway : IPaymentGateway
         return hash == receivedSign.ToLowerInvariant();
     }
 
+    private static readonly Regex _urlEncodingRegex = new Regex(
+        "%[0-9a-f]{2}",
+        RegexOptions.None,
+        TimeSpan.FromSeconds(1)
+    );
+
     private static string PayFastEncode(string value) =>
-        Regex.Replace(
+        _urlEncodingRegex.Replace(
             HttpUtility.UrlEncode(value) ?? string.Empty,
-            "%[0-9a-f]{2}",
             m => m.Value.ToUpperInvariant()
         );
 }

@@ -189,7 +189,7 @@ describe('BrowseAllListing', () => {
     it('renders Reserve and Add to Wishlist buttons for each card', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      expect(screen.getAllByRole('button', { name: /add to wishlist/i })).toHaveLength(8)
+      expect(screen.getAllByRole('button', { name: /add to wishlist/i })).toHaveLength(4)
     })
 
     it('renders condition badges with correct text', async () => {
@@ -236,7 +236,7 @@ describe('BrowseAllListing', () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
       // all 4 listings visible
-      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(8)
+      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
     })
 
     it('filters to book only', async () => {
@@ -260,7 +260,7 @@ describe('BrowseAllListing', () => {
       await screen.findByText('Calculus Textbook')
       await userEvent.click(await screen.findByRole('button', { name: 'Textbooks' }))
       await userEvent.click(screen.getByRole('button', { name: 'All' }))
-      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(8)
+      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
     })
   })
 

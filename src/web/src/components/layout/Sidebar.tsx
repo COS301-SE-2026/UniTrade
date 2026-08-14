@@ -317,7 +317,7 @@ export default function Sidebar() {
             aria-haspopup="dialog"
             aria-label='User menu'
             className={clsx(
-              'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
+              'appearance-none border-0', 'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5 text-left', 'leading-normal','w-full',
               collapsed && 'justify-center'
             )}
           >

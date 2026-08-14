@@ -14,6 +14,7 @@ import type { ListingDetail } from "../../types/listing";
 import {
   cancelReservation,
   getReservationById,
+  createTransactionRequest
 } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
 import { useQuery } from "@tanstack/react-query";
@@ -309,19 +310,35 @@ export default function ReservationDetails() {
       },
     );
   };
-
-  const handleCompletePayment = () => {
-    if (!reservation) return;
-    navigate("/payment/meetup", {
-      state: {
-        reservationId: reservation.reservationId,
-        role: isSeller ? "seller" : "buyer",
-        counterPartyName: otherPartyName,
-        counterpartyInitials: otherPartyInitials,
-        listingTitle: listingDetail?.title,
-        listingPrice: listingDetail?.price,
-      },
-    });
+  const [isPaying, setIsPaying] = useState(false);
+  const handleCompletePayment = async () => {
+    if (!reservation || isPaying) return;
+    setIsPaying(true);
+    try {
+      const result = await createTransactionRequest(reservation.reservationId);
+      if (!result.success) {
+        showToast("error", result.error.message ?? "Failed to start payment.");
+        return;
+      }
+      const { sandbox_url, fields } = result.data;
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = sandbox_url;
+      Object.entries(fields).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    } catch {
+      showToast("error", "Could not initiate payment. Please try again.");
+    }
+    finally {
+      setIsPaying(false);
+    }
   };
 
   const handleViewListing = () => {
@@ -515,13 +532,13 @@ export default function ReservationDetails() {
               {!isSeller && (
                 <ActionButton
                   icon={<IconDownload size={16} />}
-                  label="Complete Payment"
+                  label={isPaying ? "Processing..." : "Complete Payment"}
                   onClick={handleCompletePayment}
                   disabled={
                     isSeller ||
                     isCancelled ||
                     isExpired ||
-                    !meetup?.buyerCheckedIn
+                    !meetup?.buyerCheckedIn || !meetup?.paymentUnlocked
                   }
                 />
               )}
