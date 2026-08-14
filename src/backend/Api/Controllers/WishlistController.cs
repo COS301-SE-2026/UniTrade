@@ -59,7 +59,7 @@ public class WishlistController : ControllerBase
         return removed ? NoContent() : NotFound(new { error = WishlistErrors.NotFound });
     }
 
-    private IActionResult MapError(WishlistException ex) =>
+    private ObjectResult MapError(WishlistException ex) =>
         ex.Message switch
         {
             WishlistErrors.ListingNotFound => NotFound(new { error = ex.Message }),

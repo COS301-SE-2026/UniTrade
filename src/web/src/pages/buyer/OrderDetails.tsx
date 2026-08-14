@@ -188,7 +188,7 @@ export default function OrderDetails() {
                             <>
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="flex">
-                                        {[...new Array(5)].map((_, i) => (
+                                        {Array.from({ length: 5 }, (_, i) => (
                                             <IconStar
                                                 key={i}
                                                 className={`w-5 h-5 ${i < myReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}

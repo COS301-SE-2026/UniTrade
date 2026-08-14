@@ -128,7 +128,7 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    private IActionResult MapError(ReservationException ex) =>
+    private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
             ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),

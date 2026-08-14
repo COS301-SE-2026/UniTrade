@@ -114,7 +114,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
     }
 
     // decline proposal, and put for location change, add a edit unconfirmed meeutp, one a meetup is confirmed disacrd he other one
-    private IActionResult MapError(ReservationException ex) =>
+    private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
             ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),

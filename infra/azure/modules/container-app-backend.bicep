@@ -1,4 +1,4 @@
-param projectName string
+//param projectName string
 param environment string
 param location string
 param containerAppsEnvId string
@@ -7,7 +7,7 @@ param placeholderImage string
 
 //param acrUsername string
 //param acrPassword string
-param useManagedIdentity bool=true
+//param useManagedIdentity bool=true
 param useAcrRegistry bool=false
 
 var appName='ca-backend-${environment}'

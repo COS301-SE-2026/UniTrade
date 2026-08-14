@@ -56,7 +56,10 @@ public class ReservationExpiryWorker : BackgroundService
         {
             return;
         }
-        _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
+        }
 
         foreach (var reservation in expired)
         {
