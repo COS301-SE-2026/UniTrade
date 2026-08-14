@@ -9,8 +9,9 @@ import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
 import type { ListingDetail as ListingDetailType, SimilarListing, UserReviewsResponse } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
-import { ratingAsSeller } from '../../types/reviewStats'
+import { ratingAsSeller, computeReputationScore } from '../../types/reviewStats'
 import { ReviewList } from '../auth/Review'
+
 
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -35,6 +36,8 @@ export default function ListingDetail() {
   const [reserveError, setReserveError] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [sellerReviews, setSellerReviews] = useState<UserReviewsResponse | null>(null)
+  
+
 
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -89,6 +92,7 @@ export default function ListingDetail() {
 
   const sellerRating = sellerReviews ? ratingAsSeller(sellerReviews) : null
   const sellerReceivedReviews = sellerReviews?.reviews.filter(r => r.reviewType === 'buyer_to_seller') ?? []
+  const sellerReputationScore = computeReputationScore(sellerReceivedReviews)
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <p className="text-sm text-gray-400">Loading...</p>
@@ -254,7 +258,7 @@ export default function ListingDetail() {
             <div className="grid grid-cols-3 gap-2 mb-4 text-center">
               {[
                 { val: listing.seller?.activeListingCount ?? '—', label: 'Listings' },
-                { val: '—', label: 'Response Rate' },
+                { val: sellerReviews ? sellerReputationScore + '%' : '—', label: 'Reputation Score' },
                 { val: sellerRating != null ? sellerRating.toFixed(1) : '_', label: 'Rating' },
               ].map(({ val, label }) => (
                 <div key={label}>
