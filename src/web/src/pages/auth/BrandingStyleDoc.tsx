@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const fontDisplay = "font-['Fraunces', _Georgia, _serif]";
 const fontBody = "font-['Inter', _sans-serif]";
 
 function useInView<T extends HTMLElement>(threshold = 0.15) {
     const ref = useRef<T | null>(null);
-    const [inView, setInview] = useState(false);
+    const [inView, setInView] = useState(false);
 
     useEffect(() => {
         const node = ref.current;
@@ -13,7 +13,7 @@ function useInView<T extends HTMLElement>(threshold = 0.15) {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    setInview(true);
+                    setInView(true);
                     observer.disconnect();
                 }
             },
@@ -179,19 +179,27 @@ interface AlexAvatarProps {
 }
 
 export function AlexAvatar({ className = '', onClick }: Readonly<AlexAvatarProps>) {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onClick?.()
+        }
+    };
+
     return (
-        <div
-            data-testid="alex-avatar-container"
-            className={`relative flex flex-col items-center ${className}`}
+        <button
+            className={`alex-figure ${className}`}
             onClick={onClick}
-            role="img"
-            aria-label="Alex avatar"
+            onKeyDown={handleKeyDown}
+            type="button"
+            tabIndex={0}
+            aria-label="Chat with Alex"
         >
             <img src={ALEX_IMAGE}
-                alt="Alex Avatar"
-                className="w-ful h-full object-contain"
+                alt="Alex"
+                style={{ width: 160 }}
             />
-        </div>
+        </button>
     )
 }
 function Firstpage() {
@@ -698,10 +706,11 @@ export function UIComponents() {
                 <ComponentBlock title="Form Inputs">
                     <div className="flex flex-col gap-3">
                         <div>
-                            <label className={`mb-1.5 block text-[12px] font-semibold uppercase tracking-wide text-slate-500`}>
+                            <label htmlFor="course-code" className={`mb-1.5 block text-[12px] font-semibold uppercase tracking-wide text-slate-500`}>
                                 Course Code
                             </label>
                             <input
+                                id="course-code"
                                 className={`w-full rounded-[8px] border border-gray-400 px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10`}
                                 defaultValue="BIO121"
                                 readOnly

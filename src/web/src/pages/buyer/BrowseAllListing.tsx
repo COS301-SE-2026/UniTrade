@@ -115,12 +115,12 @@ function ListingCard({
   };
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
+    <button type="button" onClick={onClick} className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
       data-testid="listing-card">
+
       <img
         src={listing.image}
         alt={listing.title}
-        onClick={onClick}
         className="w-full h-48 object-cover"
       />
       <div className="p-4 flex flex-col gap-2 flex-1">
@@ -152,7 +152,11 @@ function ListingCard({
             disabled={reserving || reserved}
             className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {reserved ? "Reserved" : reserving ? "Reserving..." : "Reserve"}
+            {(() => {
+              if (reserved) return 'Reserved';
+              if (reserving) return 'Reserving...';
+              return 'Reserve';
+            })()}
           </button>
           <button
             type='button'
@@ -160,19 +164,18 @@ function ListingCard({
             disabled={wishlisting || wishlisted}
             className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
-            {wishlisted
-              ? "In Wishlist"
-              : wishlisting
-                ? "Adding..."
-                : "Add to Wishlist"}
+            {(() => {
+              if (wishlisted) return 'In Wishlist';
+              if (wishlisting) return 'Adding...';
+              return 'Add to Wishlist';
+            })()}
           </button>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
-type CategoryFilter = "All" | string;
 type ConditionFilter = "All conditions" | BrowseCondition;
 type SortOption = "Newest" | "Oldest" | "Price Low" | "Price High";
 const PAGE_SIZE = 8;
@@ -183,7 +186,7 @@ export default function BrowseAllListing() {
   const searchQuery = searchParams.get('q') || '';
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   const [conditionFilter, setConditionFilter] =
     useState<ConditionFilter>("All conditions");
   const [sortOption, setSortOption] = useState<SortOption>("Newest");

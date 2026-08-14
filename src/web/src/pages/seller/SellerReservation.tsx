@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { acknowledgeReservatioin, cancelReservation } from '../../services/reservationService'
@@ -125,10 +125,10 @@ function ReservationCard({
     onCancel: (id: string) => void
 }>) {
     const navigate = useNavigate()
-    const [, forceTick] = useState(0)
+    const [, forceTick] = useReducer((x: number)=> x+1, 0)
 
     useEffect(() => {
-        const interval = setInterval(() => forceTick((t) => t + 1), 1000)
+        const interval = setInterval(() => forceTick(), 1000)
         return () => clearInterval(interval)
     }, [])
 

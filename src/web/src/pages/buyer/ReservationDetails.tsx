@@ -26,7 +26,7 @@ interface CountdownResult {
   isExpired: boolean;
 }
 type ItemStatus = "Active" | "Expired" | "Cancelled" | "Completed" | "Reserved";
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() +
     status.slice(1).toLowerCase()) as ItemStatus;
@@ -140,10 +140,10 @@ function formatTime(iso: string): string {
 function SectionCard({
   title,
   children,
-}: {
+}: Readonly<{
   title: string;
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="rounded-xl border border-gray-200 dark:border-navy-700 bg-white dark:bg-navy-800 overflow-hidden">
       <h2 className="px-6 py-4 text-base font-bold text-navy-900 dark:text-white border-b border-gray-200 dark:border-navy-700">
@@ -154,7 +154,7 @@ function SectionCard({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+function InfoRow({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-400 dark:border-navy-700 last:border-b-0">
       <span className="text-sm text-gray-500 dark:text-navy-100">{label}</span>
@@ -170,13 +170,13 @@ function ActionButton({
   onClick,
   disabled,
   variant = "default",
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
   disabled?: boolean;
   variant?: "primary" | "danger" | "default";
-}) {
+}>) {
   const variantClasses =
     variant === "primary"
       ? "bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500"

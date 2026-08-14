@@ -88,19 +88,23 @@ export default function ListingDetail() {
       <p className="text-sm text-red-400">{error ?? 'Listing not found'}</p>
     </div>
   )
-
+  const getReserveLabel = () => {
+    if (reserved) return 'Reserved!';
+    if (reserving) return 'Reserving...';
+    return 'Reserve this item';
+  }
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-1.5 text-xs text-gray-400">
-        <span className="text-[#00aaff] cursor-pointer hover:underline"
+        <button type='button' className="text-[#00aaff] cursor-pointer hover:underline"
           onClick={() => navigate('/buyer/dashboard')}>
           Dashboard
-        </span>
+        </button>
         <IconChevronRight size={12} />
-        <span className="text-[#00aaff] cursor-pointer hover:underline"
+        <button type='button' className="text-[#00aaff] cursor-pointer hover:underline"
           onClick={() => navigate('/buyer/listings')}>
           Listings
-        </span>
+        </button>
         <IconChevronRight size={12} />
         <span>{listing.title}</span>
       </div>
@@ -109,7 +113,7 @@ export default function ListingDetail() {
 
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <div className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
+            <button type='button' className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
               onClick={() => activeImage && setLightboxOpen(true)}>
               {activeImage ? (
                 <>
@@ -128,10 +132,10 @@ export default function ListingDetail() {
                   <span className="text-4xl">None</span>
                 </div>
               )}
-            </div>
+            </button>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
               {listing.images.map(img => (
-                <div
+                <button type='button'
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
                   className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
@@ -144,7 +148,7 @@ export default function ListingDetail() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-lg">📚</div>
                   )}
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -261,7 +265,9 @@ export default function ListingDetail() {
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <IconBookmark size={16} />
-              {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
+
+              {getReserveLabel()}
+
             </button>
 
 
@@ -292,7 +298,8 @@ export default function ListingDetail() {
             ) : (
               <div className="space-y-3">
                 {similarListings.map(item => (
-                  <div
+                  <button
+                    type='button'
                     key={item.id}
                     onClick={() => navigate(`/buyer/listings/${item.id}`)}
                     className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-navy-700 rounded-lg p-2 -m-2"
@@ -313,7 +320,7 @@ export default function ListingDetail() {
                     <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                       {formatCondition(item.condition)}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -323,8 +330,9 @@ export default function ListingDetail() {
       </div>
 
       {lightboxOpen && activeImage && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setLightboxOpen(false)}
+        <button type="button" className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 appearance-none border-0"
+          onClick={(e) => { if (e.target === e.currentTarget) setLightboxOpen(false); }}
+          onKeyDown={(e) => { if (e.key === 'Escape') setLightboxOpen(false) }}
         >
           <button
             type='button'
@@ -336,9 +344,8 @@ export default function ListingDetail() {
             src={activeImage}
             alt={listing.title}
             className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </button>
       )}
     </div>
   )

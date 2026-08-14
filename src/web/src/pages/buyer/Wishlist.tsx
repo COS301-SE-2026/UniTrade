@@ -37,7 +37,7 @@ const conditionColours: Record<
   Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
-function ConditionBadge({ condition }: { condition: BrowseCondition }) {
+function ConditionBadge({ condition }: Readonly<{ condition: BrowseCondition }>) {
   const s = conditionColours[condition] ?? conditionColours.Fair;
   return (
     <span
@@ -100,17 +100,22 @@ function WishlistCard({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <img
-        src={listing.image}
-        alt={listing.title}
+      <button
+        type="button"
         onClick={() => navigate(`/listings/${listing.id}`)}
-        className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-      />
-
+        className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
+      >
+        <img
+          src={listing.image}
+          alt={listing.title}
+          className="w-full h-full object-cover"
+        />
+      </button>
       <div className="flex-1 min-w-0">
-        <div
+        <button
+          type="button"
           onClick={() => navigate(`/listings/${listing.id}`)}
-          className="min-w-0 cursor-pointer"
+          className="min-w-0 cursor-pointer group text-left bg-transparent border-0 p-0"
         >
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-bold text-gray-800 truncate">
@@ -125,7 +130,7 @@ function WishlistCard({
             </span>{" "}
             . {listing.category}
           </p>
-        </div>
+        </button>
 
         <div className="flex items-center justify-between gap-4 mt-2 flex-wrap">
           <span className="text-sm font-bold text-gray-800">

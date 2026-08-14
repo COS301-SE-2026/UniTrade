@@ -81,22 +81,27 @@ export default function SellerListingDetail() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
-        <span
-          className="text-[#00aaff] cursor-pointer hover:underline flex-shrink-0"
+        <button
+          type="button"
+          className="text-[#00aaff] cursor-pointer hover:underline flex-shrink-0 bg-transparent border-0 p-0 text-sm"
           onClick={() => navigate("/seller/listings")}
         >
           My Listings
-        </span>
+        </button>
         <span>›</span>
-        <span className="text-navy-700 dark:text-white truncate">{listing.title}</span>
+        <span className="text-navy-700 dark:text-white truncate">
+          {listing.title}
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-3 sm:p-4">
-            <div className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
+            <button
+              type="button"
+              className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group appearance-none border-0 p-0"
               onClick={() => listing.images && setLightboxOpen(true)}>
-              {listing.images && listing.images.length > 0 ? (
+              {listing.images?.length > 0 ? (
                 <>
                   <img src={listing.images[selectedImg]}
                     alt={listing.title}
@@ -112,24 +117,28 @@ export default function SellerListingDetail() {
                   <span className="text-2xl sm:text-4xl text-gray-400">No image</span>
                 </div>
               )}
-            </div>
-            {listing.images && listing.images.length > 0 && (
+            </button>
+            {listing.images?.length > 0 && (
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
                 {listing.images.map((img, i) => (
-                  <img
-                    key={i}
-                    src={img}
-                    alt={`thumbnail ${i + 1}`}
+                  <button type="button"
+                    key={`thumb-${img}`}
                     onClick={() => setSelectedImg(i)}
-                    className={`w-16 h-14 sm:w-20 sm:h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors flex-shrink-0 ${selectedImg === i
+                    className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-colors flex-shrink-0 appearance-none p-0 bg-transparent ${selectedImg === i
                       ? "border-navy-700 dark:border-white"
-                      : "border-transparent"
-                      }`}
-                  />
+                      : "border-transparent"}`}
+
+                  >
+                    <img
+
+                      src={img}
+                      alt={`thumbnail ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
                 ))}
               </div>
             )}
-
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
@@ -235,28 +244,34 @@ export default function SellerListingDetail() {
             </button>
           </div>
         </div>
-      </div>
 
-      {lightboxOpen && listing.images && listing.images[selectedImg] && (
-        <div
-          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setLightboxOpen(false)}
-        >
+
+        {lightboxOpen && listing.images?.[selectedImg] && (
           <button
-            type='button'
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none"
+            type="button"
+            className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 border-0"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setLightboxOpen(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setLightboxOpen(false);
+            }}
           >
-            &times;
+            <button
+              type='button'
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none"
+            >
+              &times;
+            </button>
+            <img
+              src={listing.images?.[selectedImg]}
+              alt={listing.title}
+              className="max-w-full max-h-full object-contain"
+            />
           </button>
-          <img
-            src={listing.images[selectedImg]}
-            alt={listing.title}
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

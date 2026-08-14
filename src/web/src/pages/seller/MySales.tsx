@@ -37,7 +37,7 @@ const conditionColours: Record<
   Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
-function ConditionBadge({ condition }: { condition: string }) {
+function ConditionBadge({ condition }: Readonly<{ condition: string }>) {
   const s = conditionColours[condition] ?? conditionColours.Fair;
   return (
     <span
@@ -66,7 +66,7 @@ export default function MySales() {
     queryFn: () => listingsService.getCompletedSales(),
   });
 
-  const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your sales.';
+  const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading your sales.';
 
   const filteredSales = useMemo(() => {
     switch (activeTab) {
@@ -181,17 +181,23 @@ export default function MySales() {
               key={sale.id}
               className='bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4'
             >
-              <img
-                src={sale.imageUrl || '/placeholder-book.png'}
-                alt={sale.title}
+              <button
+                type='button'
                 onClick={() => navigate(`/seller/sales/${sale.id}`)}
-                className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-              />
+                className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
 
+              >
+                <img
+                  src={sale.imageUrl || '/placeholder-book.png'}
+                  alt={sale.title}
+                  className="w-full h-full object-cover"
+                />
+              </button>
               <div className="flex-1 min-w-0">
-                <div
+                <button
+                  type='button'
                   onClick={() => navigate(`/seller/sales/${sale.id}`)}
-                  className="cursor-pointer"
+                  className="block w-full text-left cursor-pointer bg-transparent border-0 p-0"
                 >
 
                   <div className="flex items-center gap-2 flex-wrap">
@@ -203,7 +209,7 @@ export default function MySales() {
                   <p className="text-xs text-gray-400 mt-0.5">
                     Delivered {sale.date} . Ref: {sale.refNum}
                   </p>
-                </div>
+                </button>
 
                 <div className="flex items-center gap-2 mt-1">
                   <span className="w-5 h-5 rounded-full bg-navy-700 text-white text-[10px] font-bold flex items-center justify-center">
@@ -217,7 +223,7 @@ export default function MySales() {
                 <div className="flex items-center gap-1 pt-1">
                   {sale.rating > 0 ? (
                     <>
-                      {[...new Array(5)].map((_, i) => (
+                      {Array.from({ length: 5 }, (_, i) => (
                         <Star
                           key={i}
                           className={`w-4 h-4 ${i < sale.rating

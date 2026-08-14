@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useReducer, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getReservations, cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
@@ -115,9 +115,9 @@ function ReservationCard({
   onCancel: (id: string) => void
 }>) {
   const navigate = useNavigate()
-  const [, forceTick] = useState(0)
+  const [, forceTick] = useReducer((x: number) => x + 1, 0)
   useEffect(() => {
-    const interval = setInterval(() => forceTick((t) => t + 1), 1000)
+    const interval = setInterval(() => forceTick(), 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -126,21 +126,27 @@ function ReservationCard({
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0];
 
+  const openReservation = () => navigate(`/buyer/reservations/${reservation.reservationId}`)
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <img
-        src={reservation.listing.imagePath
-          ? `${apiOrigin}${reservation.listing.imagePath}`
-          : '/placeholder.png'}
-        alt={reservation.listing.title}
-        onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-        className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-      />
+      <button
+        type='button'
+        onClick={openReservation}
+        className='w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent'
+      >
+        <img
+          src={reservation.listing.imagePath
+            ? `${apiOrigin}${reservation.listing.imagePath}`
+            : '/placeholder.png'}
+          alt={reservation.listing.title}
+        />
+      </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-4">
-          <div
-            onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-            className="min-w-0 cursor-pointer group"
+          <button
+            type='button'
+            onClick={openReservation}
+            className="min-w-0 cursor-pointer group text-left"
           >
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-bold text-gray-800 truncate">
@@ -153,7 +159,7 @@ function ReservationCard({
                 {reservation.counterParty.name}
               </span>
             </p>
-          </div>
+          </button>
           {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
             <div className="text-right flex-shrink-0">
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">
@@ -203,7 +209,7 @@ function ReservationCard({
             <button
               type="button"
               onClick={() => onCancel(reservation.reservationId)}
-              disabled={reservation.timerStage == 'meetup_confirmed'}
+              disabled={reservation.timerStage === 'meetup_confirmed'}
               className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel

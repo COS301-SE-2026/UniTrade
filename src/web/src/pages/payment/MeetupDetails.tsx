@@ -1,12 +1,11 @@
 import { useNavigate, useLocation } from 'react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CheckInModal from '../../components/CheckInModal';
 import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
 import { getReservationById } from '../../services/reservationService';
 import LocationPicker from '../../components/layout/LocationPicker';
-import { useEffect } from 'react';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { LoadingState } from '../../components/layout/Spinner';

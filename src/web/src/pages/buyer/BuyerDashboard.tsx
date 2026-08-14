@@ -80,14 +80,14 @@ function OrderRow({
   status,
   image,
   onReview,
-}: {
+}: Readonly<{
   title: string
   date: string
   price: number
   status: 'Collected' | 'Pending' | 'Cancelled'
   image: string
   onReview?: () => void
-}) {
+}>) {
 
   const statusStyles = {
     Collected: "bg-green-100 text-green-700",
@@ -137,13 +137,11 @@ export default function BuyerDashboard() {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState<BrowseListing[]>([]);
-  const [, setLoading] = useState(true);
 
   useEffect(() => {
     listingsService
       .getBrowseListings()
       .then((data) => setProducts(data.listings.slice(0, 3)))
-      .finally(() => setLoading(false));
   }, []);
 
   const stats = [
@@ -238,15 +236,16 @@ export default function BuyerDashboard() {
             Recent Orders
           </h2>
           {recentOrders.map((order) => (
-            <div
+            <button
+              type='button'
               key={order.title}
-              className="cursor-pointer"
+              className="w-full text-left appearance-none border-0 bg-transparent p-0 m-0 cursor-pointer"
               onClick={() =>
                 navigate(`/buyer/reservations/${order.reservationId}/chat`)
               }
             >
               <OrderRow key={order.title} {...order} />
-            </div>
+            </button>
           ))}
         </div>
       </div>

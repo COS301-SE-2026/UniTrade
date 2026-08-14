@@ -18,8 +18,7 @@ import type { ClientChatMessage } from '../../types/chat';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
-import type { MeetupStatus } from '../../types/meetup';
-import { combineDateAndTime, type MeetupFormValues } from '../../types/meetup';
+import { combineDateAndTime, type MeetupFormValues,type MeetupStatus } from '../../types/meetup';
 import { queryKeys } from '../../lib/queryKeys';
 import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
 import CheckInModal from '../../components/CheckInModal';
@@ -402,8 +401,8 @@ export default function ChatPage() {
             (m) => m.status !== "sending" && m.status !== "failed",
         );
         if (readable.length === 0) return;
-        const last = readable[readable.length - 1];
-        if (last.messageId) {
+        const last = readable.at(-1);
+        if (last?.messageId) {
             connectionManager
                 .markRead(reservationId, last.messageId)
                 .then(() =>

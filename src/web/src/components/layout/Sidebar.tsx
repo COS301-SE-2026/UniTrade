@@ -161,13 +161,22 @@ function UserPopover({
     </div>
   )
 }
+function getUserRoleDisplay(role?: string, viewMode?: string) {
+  if (role === 'admin') return 'Admin';
+  return viewMode === 'buyer' ? 'Buyer' : 'Seller';
+}
 export default function Sidebar() {
   const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
-  const [ShowPopover, setShowPopover] = useState(false)
-
+  const [showPopover, setShowPopover] = useState(false)
+  const roleLabel = (() => {
+    if (user?.role === 'admin') return 'Admin Account';
+    if (viewMode === 'buyer') return 'Buyer Account';
+    return 'Seller Account';
+  })();
+  const roleDisplay = getUserRoleDisplay(user?.role, viewMode);
 
   useEffect(() => {
     if (user?.role !== 'student') return
@@ -301,8 +310,12 @@ export default function Sidebar() {
       {user && (
         <div
           className="relative">
-          <div
+          <button
+            type='button'
             onClick={() => setShowPopover((prev) => !prev)}
+            aria-expanded={showPopover}
+            aria-haspopup="dialog"
+            aria-label='User menu'
             className={clsx(
               'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
               collapsed && 'justify-center'
@@ -315,18 +328,17 @@ export default function Sidebar() {
               <div className="min-w-0">
                 <p className="text-[12px] font-semibold truncate">{user.name}</p>
                 <p className="text=[10px] text-white/50 capitalize">
-                  {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'}
+                  {roleDisplay}
                 </p>
               </div>
             )}
-          </div>
-          {ShowPopover && (
+          </button>
+          {showPopover && (
             <UserPopover
               name={user.name}
               initials={user.initials}
               roleLabel={
-                user.role === 'admin' ? 'Admin Account' : viewMode === 'buyer' ? 'Buyer Account' : 'Seller Account'
-              }
+                roleLabel}
               onClose={() => setShowPopover(false)}
               onLogout={handleLogout}
             />
@@ -347,7 +359,16 @@ export default function Sidebar() {
 }
 
 function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
-  const base = role === 'admin' ? adminNav : role === 'student' ? (viewMode === 'buyer' ? buyerNav : sellerNav) : []
+  let base: NavSection[];
+  if (role === 'admin') {
+    base = adminNav;
+  }
+  else if (role === 'student') {
+    base = viewMode === 'buyer' ? buyerNav : sellerNav;
+  }
+  else {
+    base = [];
+  }
 
   return base.map((section) => ({
     ...section, items: section.items.map((item) =>

@@ -97,7 +97,6 @@ public class PayFastPaymentGateway : IPaymentGateway
             sb.Length -= 1; // why is this wrong-->-1 is invalid cause it throws an out of range exception
         }
 
-        var preHash = sb.ToString();
         using var md5 = MD5.Create();
         var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
 
