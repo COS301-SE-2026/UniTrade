@@ -16,6 +16,7 @@ import {
 } from '@tabler/icons-react'
 import { getApiUrl } from '../../config'
 import { LoadingState } from '../../components/layout/Spinner'
+import { useSearchQuery } from '../../hooks/useSearchQuery'
 
 type ItemStatus = 'Active' | 'Expired' | 'Completed' | 'Reserved' | 'Cancelled';
 type FilterStatus = 'All' | ItemStatus;
@@ -231,6 +232,7 @@ export default function Reservations() {
     const [sortOpen, setSortOpen] = useState(false)
     const [filterOpen, setFilterOpen] = useState(false)
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
+    const searchQuery = useSearchQuery()
 
     const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reserved listings.') : null
     const [actionError, setActionError] = useState<string | null>(null)
@@ -259,11 +261,23 @@ export default function Reservations() {
     }
 
     const filtered = useMemo(() => {
-        if (statusFilter === "All") return reservations;
-        return reservations.filter(
+
+        let result = statusFilter === "All"
+            ? reservations
+            : reservations.filter(
             (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
         );
-    }, [reservations, statusFilter]);
+
+        if (searchQuery) {
+            result = result.filter(
+                (r) =>
+                    r.listing.title.toLowerCase().includes(searchQuery)
+                    
+            )
+        }
+
+        return result
+    }, [reservations, statusFilter, searchQuery]);
 
     const sorted = useMemo(() => {
         const copy = [...filtered];
