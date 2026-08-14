@@ -30,7 +30,7 @@ export async function loadConfig(): Promise<AppConfig> {
   const allowedHosts = [
     "ca-backend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io",
     "ca-backend-staging.calmtree-ce65e53e.southafricanorth.azurecontainerapps.io",
-    "localhost:8080",
+    "localhost:8080","api.example.com",
   ];
   if (!allowedHosts.includes(parsed.host)) {
     throw new Error(`apiUrl host not allowed: ${parsed.host}`);
@@ -42,7 +42,7 @@ export async function loadConfig(): Promise<AppConfig> {
 export function getApiUrl(): string {
   if (!config)
     throw new Error("Config not loaded, call the loadConfig() first");
-  return config.apiUrl; // if local use config.apiUrl, when deploying us `${config.apiUrl}/api`
+  return `${config.apiUrl}/api`; // if local use config.apiUrl, when deploying us `${config.apiUrl}/api`
 }
 
 export function getFirebaseConfig(): FireBaseConfig {
