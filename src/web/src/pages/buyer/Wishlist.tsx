@@ -324,7 +324,10 @@ export default function Wishlist() {
               Your wishlist is empty
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Browse listings and tap "Add to Wishlist" to save items here.
+              {searchQuery
+              ? `No items match "${searchQuery}".`
+              : 'Browse listings and tap "Add to Wishlist" to save items here.' }
+
             </p>
           </div>
         )}
