@@ -1,6 +1,6 @@
 import { Page, APIRequestContext, expect } from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { signupAndLogin, uniqueEmail } from './auth';
 
 const _filename = fileURLToPath(import.meta.url);

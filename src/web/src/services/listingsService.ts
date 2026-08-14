@@ -34,6 +34,18 @@ export function imageUrl(path: string): string {
 
   return `${origin}${path}`;
 }
+function toRefNum(reservationId: string): string {
+  return `#${reservationId.slice(0, 8).toUpperCase()}`;
+}
+
+function formatOrderDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-ZA", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
     new: "like_new",
@@ -736,18 +748,6 @@ export const listingsService = {
       }),
     );
 
-    function toRefNum(reservationId: string): string {
-      return `#${reservationId.slice(0, 8).toUpperCase()}`;
-    }
-
-    function formatOrderDate(iso: string): string {
-      return new Date(iso).toLocaleDateString("en-ZA", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    }
-
     return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
@@ -819,18 +819,6 @@ export const listingsService = {
         }
       }),
     );
-
-    function toRefNum(reservationId: string): string {
-      return `#${reservationId.slice(0, 8).toUpperCase()}`;
-    }
-
-    function formatOrderDate(iso: string): string {
-      return new Date(iso).toLocaleDateString("en-ZA", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    }
 
     return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
