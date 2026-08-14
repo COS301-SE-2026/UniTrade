@@ -10,11 +10,7 @@ import {
 } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
 import { connectionManager } from '../../services/realtime/connectionManager';
-import { getMaxLength } from '@testing-library/user-event/dist/cjs/utils/index.js';
-import { queryClient } from '../../lib/queryClient';
-import ReservationDetails from '../../pages/buyer/ReservationDetails';
-import { field } from 'firebase/firestore/pipelines';
-import { executeQuery } from 'firebase/data-connect';
+
 
 const navigateMock = vi.fn();
 vi.mock('react-router', async() => {

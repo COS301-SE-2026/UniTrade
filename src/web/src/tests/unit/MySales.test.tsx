@@ -1,11 +1,11 @@
-import {render, screen,fireEvent, waitFor } from '@testing-library/react' 
-import { MemoryRouter, useNavigate } from 'react-router-dom'
-import { beforeEach,describe, expect,it,vi } from 'vitest'
+import {render, screen,fireEvent} from '@testing-library/react' 
+import { MemoryRouter} from 'react-router-dom'
+import { beforeEach, expect,it,vi } from 'vitest'
 import MySales from '../../pages/seller/MySales'
 import { listingsService } from '../../services/listingsService'
 import type { SaleItem } from '../../types/listing'
-import type React from 'react';
-import { formatPrice } from '../../utils/formatters'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 
 const navigateMock = vi.fn();
 vi.mock('react-router-dom', async () =>{
@@ -17,7 +17,7 @@ vi.mock('react-router-dom', async () =>{
     }
 })
 
-vi.mock ('../../services.listingsService', () => ({
+vi.mock ('../../services/listingsService', () => ({
     listingsService: {
         getCompletedSales: vi.fn(),
     },
@@ -81,15 +81,19 @@ vi.mock('.../../pages/auth/Review', () => ({
         } as SaleItem;
     }
 
-    function renderMySales() {
-        return render( 
+function renderMySales() {
+    const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+    })
+    return render( 
+        <QueryClientProvider client={queryClient}>
             <MemoryRouter>
                 <MySales />
-                </MemoryRouter>,
+                </MemoryRouter>
+        </QueryClientProvider>,
 
-        )
-    }
-
+    )
+}
     beforeEach(() => {
          vi.mocked(listingsService.getCompletedSales).mockReset();
          navigateMock.mockClear();
@@ -117,3 +121,41 @@ vi.mock('.../../pages/auth/Review', () => ({
 
         expect(await screen.findByText('Calculus Textbook')).toBeInTheDocument();
     })
+        it('falls back to a generic error message for a non-Error rejection', async () => {
+    vi.mocked(listingsService.getCompletedSales).mockRejectedValueOnce('boom');
+
+    renderMySales();
+    expect(
+        await screen.findByText('An error occured while loading your sales.'),
+    ).toBeInTheDocument();
+});
+
+it('renders sale details and summary stats', async () => {
+    vi.mocked(listingsService.getCompletedSales).mockResolvedValue([
+        makeSale({ id: 'res-1',title:'Calculus Textbook', price: 250, rating: 0 }),
+        makeSale({ id: 'res-2',title:'Physics Textbook', price: 150, rating: 5, buyerName: 'Sabira Karie' }),
+    ]);
+
+    renderMySales();
+
+    expect(await screen.findByText('Calculus Textbook')).toBeInTheDocument();
+    expect( screen.getByText('Physics Textbook')).toBeInTheDocument();
+    expect(screen.getByText('Langa Vakalisa')).toBeInTheDocument();
+    expect(screen.getByText('Sabira Karie')).toBeInTheDocument();
+    expect(screen.getByText('2 sales made')).toBeInTheDocument();
+
+
+    const summaryCards = screen.getAllByTestId('summary-card');
+    expect(summaryCards).toHaveLength(3);
+    expect(screen.getByText('R400')).toBeInTheDocument(); 
+    expect(screen.getByText('1/2')).toBeInTheDocument(); 
+});
+
+it('shows singular "sale made" copy for exactly one sale', async () => {
+    vi.mocked(listingsService.getCompletedSales).mockResolvedValue([makeSale()]);
+
+    renderMySales();
+    expect(await screen.findByText('1 sale made')).toBeInTheDocument();
+});
+
+

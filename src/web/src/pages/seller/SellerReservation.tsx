@@ -226,7 +226,6 @@ function ReservationCard({
 export default function Reservations() {
     const queryClient = useQueryClient()
     const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('seller');
-    //const activeReservations = reservations.filter((r: ReservationListItem) => r.reservationStatus === 'active')
     const [sortOption, setSortOption] = useState<SortOption>("Date added")
     const [sortOpen, setSortOpen] = useState(false)
     const [filterOpen, setFilterOpen] = useState(false)
