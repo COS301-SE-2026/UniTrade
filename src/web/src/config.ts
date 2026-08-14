@@ -27,8 +27,16 @@ export async function loadConfig(): Promise<AppConfig> {
   if (!allowedProtocols.includes(parsed.protocol)) {
     throw new Error(`Invalid apiUrl protocol`);
   }
-  config = loaded;
-  return loaded;
+  const allowedHosts = [
+    "ca-backend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io",
+    "ca-backend-staging.calmtree-ce65e53e.southafricanorth.azurecontainerapps.io",
+    "localhost:8080",
+  ];
+  if (!allowedHosts.includes(parsed.host)) {
+    throw new Error(`apiUrl host not allowed: ${parsed.host}`);
+  }
+  config = { ...loaded, apiUrl: parsed.origin };
+  return config;
 }
 
 export function getApiUrl(): string {
