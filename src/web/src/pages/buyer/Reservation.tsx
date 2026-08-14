@@ -14,6 +14,7 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
+import { useSearchQuery } from '../../hooks/useSearchQuery'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
@@ -125,6 +126,7 @@ function ReservationCard({
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0];
+  
 
   const openReservation = () => navigate(`/buyer/reservations/${reservation.reservationId}`)
   return (
@@ -230,6 +232,7 @@ export default function Reservations() {
   const [sortOpen, setSortOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
+  const searchQuery = useSearchQuery()
 
   useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) => {
@@ -254,12 +257,21 @@ export default function Reservations() {
       showToast('success', 'Successfully cancelled the reservation!!');
     }
   }
-  const filtered = useMemo(() => {
-    if (statusFilter === "All") return reservations;
-    return reservations.filter(
-      (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
-    );
-  }, [reservations, statusFilter]);
+const filtered = useMemo(() => {
+  let result = statusFilter === 'All'
+    ? reservations
+    : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
+
+  if (searchQuery) {
+    result = result.filter(
+      (r) =>
+        r.listing.title.toLowerCase().includes(searchQuery) ||
+        r.counterParty.name.toLowerCase().includes(searchQuery)
+    )
+  }
+
+  return result
+}, [reservations, statusFilter, searchQuery])
 
 
   const sorted = useMemo(() => {
@@ -375,11 +387,16 @@ export default function Reservations() {
 
       {loading && <LoadingState message="Fetching listings..." />}
 
-      {!loading && error && (
-        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
-          <p className="text-sm font-semibold text-rose-600">{error}</p>
-        </div>
-      )}
+        {!loading && !error && sorted.length === 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <p className="text-sm font-semibold text-gray-700">No reservations found</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {searchQuery
+                ? `There are no reservation with "${searchQuery} found.`
+                : "Reserve items from listings to see them here."}
+            </p>
+          </div>
+        )}
 
       {!loading && !error && sorted.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">

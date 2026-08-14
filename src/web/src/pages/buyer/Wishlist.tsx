@@ -16,6 +16,7 @@ import {
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
 import { LoadingState } from '../../components/layout/Spinner';
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
 type SortOption = "Date added" | "Price low" | "Price high";
 
@@ -189,13 +190,22 @@ export default function Wishlist() {
     );
   };
 
-  const filtered = useMemo(
-    () =>
-      conditionFilter === "All"
-        ? listings
-        : listings.filter((l) => l.condition === conditionFilter),
-    [listings, conditionFilter],
-  );
+  const searchQuery = useSearchQuery()
+  const filtered = useMemo(() => {
+    let result = conditionFilter === 'All'
+    ? listings
+    : listings.filter((l) => l.condition === conditionFilter)
+
+    if (searchQuery) {
+      result = result.filter(
+        (l) =>
+          l.title.toLowerCase().includes(searchQuery) ||
+        (l.sellerName ?? '').toLowerCase().includes(searchQuery)
+      )
+    }
+
+    return result
+  }, [listings, conditionFilter, searchQuery])
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -315,16 +325,19 @@ export default function Wishlist() {
         </div>
       )}
 
-      {!isLoading && !error && sorted.length === 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-sm font-semibold text-gray-700">
-            Your wishlist is empty
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Browse listings and tap "Add to Wishlist" to save items here.
-          </p>
-        </div>
-      )}
+        {!isLoading && !error && sorted.length === 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <p className="text-sm font-semibold text-gray-700">
+              Your wishlist is empty
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {searchQuery
+              ? `No items match "${searchQuery}".`
+              : 'Browse listings and tap "Add to Wishlist" to save items here.' }
+
+            </p>
+          </div>
+        )}
 
       {sorted.map((listing) => (
         <WishlistCard

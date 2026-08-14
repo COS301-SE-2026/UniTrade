@@ -8,6 +8,7 @@ import { formatPrice } from '../../utils/formatters';
 import { SummaryCard } from "../buyer/Reservation";
 import { LoadingState } from '../../components/layout/Spinner';
 import { ReviewModal } from '../auth/Review';
+import { useSearchQuery } from '../../hooks/useSearchQuery';
 
 
 export type SaleFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
@@ -51,6 +52,7 @@ function ConditionBadge({ condition }: Readonly<{ condition: string }>) {
 export default function MySales() {
   const [activeTab, setActiveTab] = useState<SaleFilterTab>('all');
   const navigate = useNavigate()
+  const searchQuery = useSearchQuery()
   const [reviewTarget, setReviewTarget] = useState<{
     transactionId: string
     revieweeName: string
@@ -68,16 +70,33 @@ export default function MySales() {
 
   const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading your sales.';
 
-  const filteredSales = useMemo(() => {
-    switch (activeTab) {
-      case 'semester': return sales.filter((o) => isThisSemester(o._createdAtIso))
+    const filteredSales = useMemo(() => {
+      let result = sales
+      switch(activeTab) {
+        case 'semester': 
+        result = result.filter((o) => isThisSemester(o._createdAtIso))
+        break
 
-      case 'awaiting': return sales.filter((o) => o.rating === 0)
-      case 'reviewed': return sales.filter((o) => o.rating > 0)
-      default:
-        return sales
-    }
-  }, [sales, activeTab])
+        case 'awaiting' :  
+        result =  result.filter((o) => o.rating === 0)
+        break
+
+        case 'reviewed' :  
+        result =  result.filter((o) => o.rating > 0)
+        break
+
+       
+     }
+ 
+     if (searchQuery) {
+      result = result.filter(
+        (o) =>
+          o.title.toLowerCase().includes(searchQuery) ||
+          o.buyerName.toLowerCase().includes(searchQuery)
+      )
+     }
+     return result
+    }, [sales, activeTab, searchQuery])
 
   const stats = useMemo(() => {
     const totalSales = sales.length
@@ -168,7 +187,9 @@ export default function MySales() {
             No sales found
           </p>
           <p className='text-xs text-gray-400 mt-1'>
-            There are no sales available for this category.
+            {searchQuery
+            ? `No sales with "${searchQuery}" found.`
+            : 'There are no sales available for this category.'}
           </p>
         </div>
       )}

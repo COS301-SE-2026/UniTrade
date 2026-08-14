@@ -7,6 +7,7 @@ import { listingsService } from "../../services/listingsService";
 import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse } from "../../types/listing";
 import type { Reservation } from "../../types/Reservations";
 import { useAuthStore } from "../../store/useAuthStore";
+import { ratingAsSeller } from "../../types/reviewStats";
 
 function toRefNum(reservationId: string): string {
     return `#${reservationId.slice(0, 8).toUpperCase()}`;

@@ -5,8 +5,9 @@ import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
 import { useQuery } from "@tanstack/react-query";
 import { SummaryCard } from "./Reservation";
-import { ReviewModal } from "../auth/Review";
-import { LoadingState } from "../../components/layout/Spinner";
+import { ReviewModal } from '../auth/Review';
+import { LoadingState } from '../../components/layout/Spinner';
+import { useSearchQuery } from '../../hooks/useSearchQuery';
 
 export type OrderFilterTab = "all" | "semester" | "awaiting" | "reviewed";
 
@@ -36,29 +37,41 @@ export default function Orders() {
     queryFn: () => listingsService.getCompletedOrders(),
   });
 
-  const errorMessage =
-    error instanceof Error
-      ? error.message
-      : "An error occured while loading your orders.";
-
+  const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your orders.';
+  const searchQuery = useSearchQuery()
   const filteredOrders = useMemo(() => {
+    let result = orders
     switch (activeTab) {
-      case "semester":
-        return orders.filter((o) => isThisSemester(o._createdAtIso));
+      case 'semester': 
+      result = result.filter((o) => isThisSemester(o._createdAtIso))
+      break
 
-      case "awaiting":
-        return orders.filter((o) => o.rating === 0);
-      case "reviewed":
-        return orders.filter((o) => o.rating > 0);
-      default:
-        return orders;
+      case 'awaiting': 
+      result =  result.filter((o) => o.rating === 0)
+      break
+
+      case 'reviewed': 
+      result =  result.filter((o) => o.rating > 0)
+      break
+
     }
-  }, [orders, activeTab]);
+
+    if (searchQuery) {
+      result = result.filter(
+        (o) =>
+           o.title.toLowerCase().includes(searchQuery) ||
+           o.sellerName.toLowerCase().includes(searchQuery)
+      )
+    }
+
+   return result
+  }, [orders, activeTab, searchQuery])
 
   const stats = useMemo(() => {
-    const totalPurchases = orders.length;
-    const totalSpent = orders.reduce((sum, o) => sum + o.price, 0);
-    const reviewedCount = orders.filter((o) => o.rating > 0).length;
+    const totalPurchases = orders.length
+    const totalSpent = orders.reduce((sum, o) => sum + o.price, 0)
+    const reviewedCount = orders.filter((o) => o.rating > 0).length
+    
 
     return {
       totalPurchases,
