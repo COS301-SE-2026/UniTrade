@@ -7,8 +7,11 @@ import {
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
-import type { ListingDetail as ListingDetailType, SimilarListing } from '../../types/listing'
+import type { ListingDetail as ListingDetailType, SimilarListing, UserReviewsResponse } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
+import { ratingAsSeller } from '../../types/reviewStats'
+//import { ReviewList } from '../auth/Review'
+
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -31,6 +34,7 @@ export default function ListingDetail() {
   const [reserved, setReserved] = useState(false)
   const [reserveError, setReserveError] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [sellerReviews, setSellerReviews] = useState<UserReviewsResponse | null>(null)
 
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -72,11 +76,19 @@ export default function ListingDetail() {
         setActiveImage(
           data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null
         )
+
+        if (data.sellerId) {
+            listingsService.getReviewsForUser(data.sellerId)
+            .then(setSellerReviews)
+            .catch(() => setSellerReviews(null))
+        }
       })
       .catch(() => setError('Failed to load listing'))
       .finally(() => setLoading(false))
   }, [id])
 
+  const sellerRating = sellerReviews ? ratingAsSeller(sellerReviews) : null
+  //const sellerReceivedReviews = sellerReviews?.reviews.filter(r => r.reviewType === 'buyer_to_seller') ?? []
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <p className="text-sm text-gray-400">Loading...</p>
@@ -232,7 +244,7 @@ export default function ListingDetail() {
               {[
                 { val: listing.seller?.activeListingCount ?? '—', label: 'Listings' },
                 { val: '—', label: 'Response Rate' },
-                { val: '—', label: 'Rating' },
+                { val: sellerRating != null ? sellerRating.toFixed(1): '_', label: 'Rating' },
               ].map(({ val, label }) => (
                 <div key={label}>
                   <p className="text-base font-bold text-navy-700 dark:text-white">{val}</p>
