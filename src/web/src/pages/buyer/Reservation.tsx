@@ -14,6 +14,7 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
+import { useSearchQuery } from '../../hooks/useSearchQuery'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
@@ -125,6 +126,7 @@ function ReservationCard({
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0];
+  
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
@@ -224,6 +226,7 @@ export default function Reservations() {
   const [sortOpen, setSortOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
+  const searchQuery = useSearchQuery()
 
   useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) => {
@@ -248,12 +251,21 @@ export default function Reservations() {
       showToast('success', 'Successfully cancelled the reservation!!');
     }
   }
-  const filtered = useMemo(() => {
-    if (statusFilter === "All") return reservations;
-    return reservations.filter(
-      (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
-    );
-  }, [reservations, statusFilter]);
+const filtered = useMemo(() => {
+  let result = statusFilter === 'All'
+    ? reservations
+    : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
+
+  if (searchQuery) {
+    result = result.filter(
+      (r) =>
+        r.listing.title.toLowerCase().includes(searchQuery) ||
+        r.counterParty.name.toLowerCase().includes(searchQuery)
+    )
+  }
+
+  return result
+}, [reservations, statusFilter, searchQuery])
 
 
   const sorted = useMemo(() => {
