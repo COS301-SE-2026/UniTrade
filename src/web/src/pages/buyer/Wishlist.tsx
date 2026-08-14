@@ -16,6 +16,7 @@ import {
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
 import { LoadingState } from '../../components/layout/Spinner';
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
 type SortOption = "Date added" | "Price low" | "Price high";
 
@@ -184,13 +185,22 @@ export default function Wishlist() {
     );
   };
 
-  const filtered = useMemo(
-    () =>
-      conditionFilter === "All"
-        ? listings
-        : listings.filter((l) => l.condition === conditionFilter),
-    [listings, conditionFilter],
-  );
+  const searchQuery = useSearchQuery()
+  const filtered = useMemo(() => {
+    let result = conditionFilter === 'All'
+    ? listings
+    : listings.filter((l) => l.condition === conditionFilter)
+
+    if (searchQuery) {
+      result = result.filter(
+        (l) =>
+          l.title.toLowerCase().includes(searchQuery) ||
+        (l.sellerName ?? '').toLowerCase().includes(searchQuery)
+      )
+    }
+
+    return result
+  }, [listings, conditionFilter, searchQuery])
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
