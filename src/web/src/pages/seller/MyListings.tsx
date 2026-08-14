@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,6 +18,7 @@ import type { ApiError } from "../../types/Reservations";
 import { useToast } from "../../components/layout/useToast";
 import { useMyListings } from "../../hooks/useMyListings";
 import { LoadingState } from "../../components/layout/Spinner";
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
 function ActionButtons({
   listing,
@@ -157,6 +158,7 @@ export default function MyListings() {
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const searchQuery = useSearchQuery()
 
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
@@ -209,10 +211,23 @@ export default function MyListings() {
     }
   };
 
-  const filtered =
-    activeTab === "all"
+  const filtered = useMemo(() => {
+      let result = activeTab === "all"
       ? listings
       : listings.filter((l) => l.status === activeTab);
+
+      if (searchQuery) {
+        result = result.filter(
+          (l) => 
+            l.title.toLowerCase().includes(searchQuery)
+           )
+        
+      }
+
+      return result
+
+  }, [listings, activeTab, searchQuery])
+
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice(
