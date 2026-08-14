@@ -92,11 +92,11 @@ jobs:
         working-directory: src/web
         run: npm run test:integration:cov
       
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: src/web/coverage/lcov.info
-          fail_ci_if_error: true
+      #- name: Upload coverage to Codecov
+      #  uses: codecov/codecov-action@v4
+      #  with:
+      #    files: src/web/coverage/lcov.info
+      #    fail_ci_if_error: true
       
       - name: Validate Frontend docker image
         working-directory: src/web

@@ -7,8 +7,11 @@ import {
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
 import { formatPrice, formatDate, formatCondition } from '../../utils/formatters'
-import type { ListingDetail as ListingDetailType, SimilarListing } from '../../types/listing'
+import type { ListingDetail as ListingDetailType, SimilarListing, UserReviewsResponse } from '../../types/listing'
 import { createReservation } from '../../services/reservationService'
+import { ratingAsSeller } from '../../types/reviewStats'
+import { ReviewList } from '../auth/Review'
+
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -31,6 +34,7 @@ export default function ListingDetail() {
   const [reserved, setReserved] = useState(false)
   const [reserveError, setReserveError] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [sellerReviews, setSellerReviews] = useState<UserReviewsResponse | null>(null)
 
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -72,11 +76,19 @@ export default function ListingDetail() {
         setActiveImage(
           data.images.find(i => i.isPrimary)?.url ?? data.images[0]?.url ?? null
         )
+
+        if (data.sellerId) {
+          listingsService.getReviewsForUser(data.sellerId)
+            .then(setSellerReviews)
+            .catch(() => setSellerReviews(null))
+        }
       })
       .catch(() => setError('Failed to load listing'))
       .finally(() => setLoading(false))
   }, [id])
 
+  const sellerRating = sellerReviews ? ratingAsSeller(sellerReviews) : null
+  const sellerReceivedReviews = sellerReviews?.reviews.filter(r => r.reviewType === 'buyer_to_seller') ?? []
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <p className="text-sm text-gray-400">Loading...</p>
@@ -208,6 +220,17 @@ export default function ListingDetail() {
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
           </div>
+
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
+            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Seller reviews</h3>
+            {sellerReviews === null ? (
+              <p className="text-xs text-gray-400">Loading reviews...</p>
+            ) : sellerReceivedReviews.length === 0 ? (
+              <p className="text-xs text-gray-400">No reviews yet.</p>
+            ) : (
+              <ReviewList reviews={sellerReceivedReviews} />
+            )}
+          </div>
         </div>
         <div className="lg:col-span-1 space-y-4">
 
@@ -232,7 +255,7 @@ export default function ListingDetail() {
               {[
                 { val: listing.seller?.activeListingCount ?? '—', label: 'Listings' },
                 { val: '—', label: 'Response Rate' },
-                { val: '—', label: 'Rating' },
+                { val: sellerRating != null ? sellerRating.toFixed(1) : '_', label: 'Rating' },
               ].map(({ val, label }) => (
                 <div key={label}>
                   <p className="text-base font-bold text-navy-700 dark:text-white">{val}</p>
@@ -254,15 +277,15 @@ export default function ListingDetail() {
               </div>
             )}
 
-              <button
-                onClick={handleReserve}
-                disabled={reserving || reserved}
-                className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <IconBookmark size={16} />
-                {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
-              </button>
-            
+            <button
+              onClick={handleReserve}
+              disabled={reserving || reserved}
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <IconBookmark size={16} />
+              {reserved ? 'Reserved!' : reserving ? 'Reserving...' : 'Reserve this item'}
+            </button>
+
 
             <button className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
               <IconHeart size={16} /> Add to wishlist
@@ -300,7 +323,7 @@ export default function ListingDetail() {
                       {item.image ? (
                         <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-lg">📚</div>
+                        <div className="w-full h-full flex items-center justify-center text-lg">No Image available</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">

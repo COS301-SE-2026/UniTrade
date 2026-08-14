@@ -7,6 +7,7 @@ import { listingsService } from "../../services/listingsService";
 import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse, Review } from "../../types/listing";
 import type { Reservation } from "../../types/Reservations";
 import { useAuthStore } from "../../store/useAuthStore";
+import { ratingAsSeller } from "../../types/reviewStats";
 
 function toRefNum(reservationId: string): string {
         return `#${reservationId.slice(0,8).toUpperCase()}`;
@@ -97,9 +98,7 @@ export default function OrderDetails() {
 
     const sellerReceivedReviews = sellerReviews?.reviews.filter((r) => r.reviewType === 'buyer_to_seller') ?? [];
     const sellerAvgRating =
-        sellerReceivedReviews.length > 0
-            ? Math.round((sellerReceivedReviews.reduce((sum, r) => sum + r.rating, 0) /
-                sellerReceivedReviews.length) * 10) / 10 : null;
+            sellerReviews ? ratingAsSeller(sellerReviews): null;
 
     const timelineSteps = [
         { title: 'Listing reserved', time: formatDateTime(reservation.createdAt), done: true },
