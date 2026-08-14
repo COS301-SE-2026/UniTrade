@@ -302,11 +302,13 @@ export default function MeetupDetails() {
                   <strong>Safety Guarantee:</strong>{' '}
                   {!isSeller ? (
                     <>
-                      Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup. 
+                      Payments are secured with Payfast. Once you enter the PIN given by{' '}
+                      {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   ) : (
                     <>
-                      Show your PIN to {counterpartyName} at the physical meetup. The sale completes once they enter it.
+                       Payments are secured with Payfast. Once you provide the PIN to{' '}
+                      {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   )}
                 </p>
