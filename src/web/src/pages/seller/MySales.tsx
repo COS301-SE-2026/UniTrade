@@ -8,6 +8,7 @@ import { formatPrice } from '../../utils/formatters';
 import { SummaryCard } from "../buyer/Reservation";
 import { LoadingState } from '../../components/layout/Spinner';
 import { ReviewModal } from '../auth/Review';
+import { useSearchQuery } from '../../hooks/useSearchQuery';
 
 
 export type SaleFilterTab = 'all' |'semester' |  'awaiting' | 'reviewed'
@@ -51,6 +52,7 @@ function ConditionBadge({ condition }: { condition: string}) {
 export default function MySales(){
   const [activeTab, setActiveTab] = useState<SaleFilterTab>('all');
   const navigate = useNavigate()
+  const searchQuery = useSearchQuery()
   const [reviewTarget, setReviewTarget] = useState<{
     transactionId: string
     revieweeName: string
@@ -69,15 +71,32 @@ export default function MySales(){
   const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your sales.';
 
     const filteredSales = useMemo(() => {
+      let result = sales
       switch(activeTab) {
-        case 'semester': return sales.filter((o) => isThisSemester(o._createdAtIso))
+        case 'semester': 
+        result = result.filter((o) => isThisSemester(o._createdAtIso))
+        break
 
-        case 'awaiting' :  return sales.filter((o) => o.rating === 0)
-        case 'reviewed' :  return sales.filter((o) => o.rating > 0)
-        default:
-          return sales
+        case 'awaiting' :  
+        result =  result.filter((o) => o.rating === 0)
+        break
+
+        case 'reviewed' :  
+        result =  result.filter((o) => o.rating > 0)
+        break
+
+       
      }
-    }, [sales, activeTab])
+ 
+     if (searchQuery) {
+      result = result.filter(
+        (o) =>
+          o.title.toLowerCase().includes(searchQuery) ||
+          o.buyerName.toLowerCase().includes(searchQuery)
+      )
+     }
+     return result
+    }, [sales, activeTab, searchQuery])
 
     const stats = useMemo(() => {
       const totalSales = sales.length
