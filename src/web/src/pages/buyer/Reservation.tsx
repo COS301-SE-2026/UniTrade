@@ -126,7 +126,7 @@ function ReservationCard({
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0];
-  
+
 
   const openReservation = () => navigate(`/buyer/reservations/${reservation.reservationId}`)
   return (
@@ -257,21 +257,21 @@ export default function Reservations() {
       showToast('success', 'Successfully cancelled the reservation!!');
     }
   }
-const filtered = useMemo(() => {
-  let result = statusFilter === 'All'
-    ? reservations
-    : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
+  const filtered = useMemo(() => {
+    let result = statusFilter === 'All'
+      ? reservations
+      : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
 
-  if (searchQuery) {
-    result = result.filter(
-      (r) =>
-        r.listing.title.toLowerCase().includes(searchQuery) ||
-        r.counterParty.name.toLowerCase().includes(searchQuery)
-    )
-  }
+    if (searchQuery) {
+      result = result.filter(
+        (r) =>
+          r.listing.title.toLowerCase().includes(searchQuery) ||
+          r.counterParty.name.toLowerCase().includes(searchQuery)
+      )
+    }
 
-  return result
-}, [reservations, statusFilter, searchQuery])
+    return result
+  }, [reservations, statusFilter, searchQuery])
 
 
   const sorted = useMemo(() => {
@@ -298,7 +298,18 @@ const filtered = useMemo(() => {
 
     return { activeCount, expiringCount, totalValue }
   }, [reservations])
+  const getEmptyStateMessage = () => {
+    if (searchQuery) {
+      return `There are no reservation with "${searchQuery}" found.`;
 
+    }
+
+    if (statusFilter !== "All") {
+      return `There are no reservations with "${statusFilter}" status.`
+    }
+
+    return "Reserve items from listings to see them here."
+  }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -386,25 +397,16 @@ const filtered = useMemo(() => {
 
 
       {loading && <LoadingState message="Fetching listings..." />}
-
-        {!loading && !error && sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-700">No reservations found</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {searchQuery
-                ? `There are no reservation with "${searchQuery} found.`
-                : "Reserve items from listings to see them here."}
-            </p>
-          </div>
-        )}
-
+      {!loading && error && (
+        <div className='bg-white rounded-xl border border-rose-200 p-6 text-center'>
+          <p className='text-sm font-semibold text-rose-600'>{error}</p>
+        </div>
+      )}
       {!loading && !error && sorted.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
           <p className="text-sm font-semibold text-gray-700">No reservations found</p>
           <p className="text-xs text-gray-400 mt-1">
-            {statusFilter !== "All"
-              ? `There are no reservations with "${statusFilter}" status.`
-              : "Reserve items from listings to see them here."}
+            {getEmptyStateMessage()}
           </p>
         </div>
       )}
