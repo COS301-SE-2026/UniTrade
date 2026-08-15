@@ -9,5 +9,6 @@ public class RegisterDto
     public string Password { get; set; } = null!;
     public int YearOfStudy { get; set; }
     public int UniversityId { get; set; }
+    public DateTime? TermsAcceptedAt { get; set; }
     public string DegreeProgram { get; set; } = null!;
 }

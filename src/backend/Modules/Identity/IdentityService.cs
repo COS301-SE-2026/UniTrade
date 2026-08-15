@@ -122,6 +122,7 @@ public class IdentityService : IIdentityService
             PhoneNumber = dto.PhoneNumber ?? "",
             PasswordHash = passwordHash,
             Role = _studentRole,
+            TermsAcceptedAt = dto.TermsAcceptedAt,
 
             StudentProfile = new StudentProfile
             {
