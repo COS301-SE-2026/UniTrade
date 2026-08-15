@@ -119,7 +119,10 @@ jobs:
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}"  \
               "otp-secret=${{secrets.OTP_SECRET}}" \
-              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
+              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)" \
+              "payfast-passphrase=${{secrets.PAYFAST__PASSPHRASE}}" \
+              "payfast-merchant-key=${{secrets.PAYFAST__MERCHANTKEY}}" \
+              "payfast-merchant-id=${{secrets.PAYFAST__MERCHANTID}}"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -323,7 +326,10 @@ jobs:
               "acs-conn=${{secrets.Acs__ConnectionString}}" \
               "jwt-secret=${{secrets.JWT_Secret}}" \
               "otp-secret=${{secrets.OTP_SECRET}}" \
-              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
+              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)" \
+              "payfast-passphrase=${{secrets.PAYFAST__PASSPHRASE}}" \
+              "payfast-merchant-key=${{secrets.PAYFAST__MERCHANTKEY}}" \
+              "payfast-merchant-id=${{secrets.PAYFAST__MERCHANTID}}"
               
 
           az containerapp update \
