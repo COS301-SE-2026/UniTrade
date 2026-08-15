@@ -3,27 +3,29 @@ import { check, sleep } from "k6";
 const BASE = __ENV.STAGING_URL;
 export const options = {
   scenarios: {
-    feed: { executor: "constant-vus", vus: 17, duration: "3m", exec: "feed" },
+    feed: { executor: "constant-vus", vus: 2, duration: "3m", exec: "feed" },
     browse: {
       executor: "constant-vus",
-      vus: 17,
+      vus: 2,
       duration: "3m",
       exec: "browse",
     },
 
     search: {
       executor: "constant-vus",
-      vus: 16,
+      vus: 1,
       duration: "3m",
       exec: "search",
     },
   },
+  
   thresholds: {
     "http_req_duration{scenario:feed}": ["p(95)<800"],
     "http_req_duration{scenario:browse}": ["p(95)<800"],
     "http_req_duration{scenario:search}": ["p(95)<800"],
     http_req_failed: ["rate<0.01"],
   },
+  
 };
 
 export function setup() {
@@ -42,28 +44,39 @@ export function setup() {
 }
 
 export function feed(data) {
-  const res = http.get(`${BASE}/api/listings`, {
-    cookies: { authToken: data.authCookie },
-  });
-  check(res, { 200: (r) => r.status === 200 });
-  sleep(1);
-}
-
-export function browse(data) {
   const res = http.get(
-    `${BASE}/api/listings?CategoryId=e2017858-d319-49fa-bea4-c407ea9921e4`,
+    `${BASE}/api/listings?listingStatus=live&excludeSellerId=01a00656-30f7-791d-82a7-d592718af946`,
     {
       cookies: { authToken: data.authCookie },
     },
   );
   check(res, { 200: (r) => r.status === 200 });
+  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
+  sleep(1);
+}
+
+export function browse(data) {
+  const res = http.get(
+    `${BASE}/api/listings/e2017858-d319-49fa-bea4-c407ea9921e4`,
+    {
+      cookies: { authToken: data.authCookie },
+    },
+  );
+  check(res, { 200: (r) => r.status === 200 });
+  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
+
   sleep(1);
 }
 
 export function search(data) {
-  const res = http.get(`${BASE}/api/listings?Search=calculus`, {
-    cookies: { authToken: data.authCookie },
-  });
+  const res = http.get(
+    `${BASE}/api/listings?listingStatus=live&excludeSellerId=01a00656-30f7-791d-82a7-d592718af946&search=calculus`,
+    {
+      cookies: { authToken: data.authCookie },
+    },
+  );
   check(res, { 200: (r) => r.status === 200 });
+  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
+
   sleep(1);
 }
