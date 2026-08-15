@@ -52,10 +52,9 @@ public class ReservationExpiryWorker : BackgroundService
         var now = DateTime.UtcNow;
         var expired = await reservations.ExpireDueAsync(now, ct);
 
-        if (expired.Count == 0)
+        if (expired.Count>0)
         {
-            return;
-        }
+        
         _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
 
         foreach (var reservation in expired)
@@ -75,5 +74,13 @@ public class ReservationExpiryWorker : BackgroundService
                 ct
             );
         }
+        }
+        //warning func needs to be implemented
+        //var warned=await reservations.SendTwoHourWarningsAsync(now,ct);
+
+        //if(warned.Count>0)
+        // //{
+        //     _logger.LogInformation("Sent 2 hour warning for {Count} reservation(s)",warned.Count);
+        // }
     }
 }

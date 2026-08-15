@@ -76,7 +76,6 @@ public class ChatService : IChatService
             case ReservationStatusMessage.BuyerWaitingForSellerAck:
                 throw new ChatException(ChatErrors.BuyerWaitingAck);
         }
-
         var result = new ChatMessage
         {
             ReservationId = reservationId,

@@ -1,5 +1,4 @@
 using Modules.Transactions.Models.Dto;
-
 namespace Modules.Transactions;
 
 public interface IPaymentGateway

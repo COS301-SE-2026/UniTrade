@@ -64,6 +64,8 @@ public class TransactionService : ITransactionsService
     public bool VerifySignature(string rawBody, string receivedSign) =>
         _paymentGateway.VerifySignature(rawBody, receivedSign);
 
+    public bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign) => _paymentGateway.VerifySignature(itnFields,receivedSign);
+        
     public async Task ConfirmTransactionAsync(
         Guid reservationId,
         string payfastTransactionId,

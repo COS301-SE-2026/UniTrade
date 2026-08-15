@@ -19,6 +19,7 @@ public class MeetupService : IMeetupService
     private readonly INotificationDispatcher _pushNotifier;
     private readonly ILogger<MeetupService> _logger;
     private readonly TimeProvider _clock;
+    private readonly IBroadCastService _broadcast;
 
     public MeetupService(
         IReservationRepository reservations,
@@ -35,6 +36,7 @@ public class MeetupService : IMeetupService
         _pushNotifier = pushNotifier;
         _logger = logger;
         _clock = clock;
+        _broadcast=broadcast;
     }
 
     public async Task<ChatMessageDto> ProposeAsync(
@@ -196,6 +198,17 @@ public class MeetupService : IMeetupService
         var message = verified
             ? "Checked in."
             : "Checked in. Note: without location, you won't be able to prove you were at the meetup if there's a dispute.";
+
+        var checkinPayload=new{
+            reservationId,
+            meetupId=meetup.MeetupId,
+            checkedInBy=isBuyer ? "buyer":"seller",
+            sellerCheckedIn=meetup.SellerCheckedIn,
+            paymentUnlocked=MeetupStateMachine.IsPaymentUnlocked(meetup),
+        };
+
+        await _broadcast.SendToUserAsync(r.BuyerId,"meetup_checkin",checkinPayload);
+        await _broadcast.SendToUserAsync(r.SellerId,"meetup_checkin",checkinPayload);
 
         // still have to broadcast over the hub so the other party sees they've arrived and the pay button unlock w/o needing a refresh
         return new CheckInResult(
