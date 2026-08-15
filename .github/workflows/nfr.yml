@@ -1,0 +1,35 @@
+name: NFR Fitness Functions
+
+on: 
+    schedule:
+        - cron: "0 1 * * *"
+        - cron: "35 16 * * *"
+    workflow_dispatch:
+
+
+concurrency:
+    group: nfr-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+  performance:   # For QR-01a
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Install k6
+        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065
+      - name: Run performance test
+        env:
+            STAGING_URL: ${{ secrets.VITE_API_URL_STAGING }}
+            K6_TEST_USER_EMAIL: ${{ secrets.K6_TEST_USER_EMAIL }}
+            K6_TEST_USER_PASSWORD: ${{ secrets.K6_TEST_USER_PASSWORD }}
+        run: k6 run --summary-export=perf-summary.json tests/nfr/performance.js
+      - name: Upload summary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: { name: perf-summary, path: perf-summary.json }
+
