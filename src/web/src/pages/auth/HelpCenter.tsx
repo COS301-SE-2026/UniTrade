@@ -233,7 +233,7 @@ export default function HelpCenter() {
       sendMessage();
     }
   };
-
+  
   const quickLinks: QuickLinkItem[] = [
     {
       icon: <IconUpload size={22} className="text-[#003366]" />,
