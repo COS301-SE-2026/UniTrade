@@ -1,21 +1,20 @@
 name: NFR Fitness Functions
 
-on: 
-    schedule:
-        - cron: "0 1 * * *"
-        - cron: "35 16 * * *"
-    workflow_dispatch:
-
+on:
+  schedule:
+    - cron: "0 1 * * *"
+    - cron: "35 16 * * *"
+  workflow_dispatch:
 
 concurrency:
-    group: nfr-${{ github.ref }}
-    cancel-in-progress: true
+  group: nfr-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-  performance:   # For QR-01a
+  performance: # For QR-01a
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -24,17 +23,45 @@ jobs:
         uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065
       - name: Run performance test
         env:
-            STAGING_URL: ${{ secrets.VITE_API_URL_STAGING }}
-            K6_TEST_USER_EMAIL: ${{ secrets.K6_TEST_USER_EMAIL }}
-            K6_TEST_USER_PASSWORD: ${{ secrets.K6_TEST_USER_PASSWORD }}
+          STAGING_URL: ${{ secrets.VITE_API_URL_STAGING }}
+          K6_TEST_USER_EMAIL: ${{ secrets.K6_TEST_USER_EMAIL }}
+          K6_TEST_USER_PASSWORD: ${{ secrets.K6_TEST_USER_PASSWORD }}
         run: k6 run --summary-export=perf-summary.json tests/nfr/performance.js
       - name: Guard - no secrets in summary
         run: |
-            if grep -qE '"authCookie"' perf-summary.json; then
-                echo "::error::token found in summary - it won't be uploaded"; exit 1
-            fi
+          if grep -qE '"authCookie"' perf-summary.json; then
+              echo "::error::token found in summary - it won't be uploaded"; exit 1
+          fi
       - name: Upload summary
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with: { name: perf-summary, path: perf-summary.json }
+  scalability: # for QR-02
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Install k6
+        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065
+      - name: Run baseline vs 2x
+        env:
+          STAGING_URL: ${{ secrets.VITE_API_URL_STAGING }}
+          K6_TEST_USER_EMAIL: ${{ secrets.K6_TEST_USER_EMAIL }}
+          K6_TEST_USER_PASSWORD: ${{ secrets.K6_TEST_USER_PASSWORD }}
 
+        run: k6 run --summary-export=scale-summary.json tests/nfr/scalability.js
+      - name: Assert p95(2x) <= 1.5x baseline
+        run: |
+          B=$(jq -r 'metrics.dur_baseline["p(95)"]' scale-summary.json)
+          P=$(jq -r '.metrics.dur_peak["p(95)"]' scale-summary.json)
+          echo "baseline p95=$B peak p95=$P"
+          awk -v b="$B" -v p="$P" 'BEGIN{ exit !(p <= 1.5*b) }' || { echo "::error::degradation exceeded 1.5x baseline"; exit 1; }
+      - name: Guard - no secrets in summary
+        run: |
+          if grep -qE '"authCookie"' scale-summary.json; then
+              echo "::error::token found in summary - it won't be uploaded"; exit 1
+          fi
+      - name: Upload summary
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: { name: scale-summary, path: scale-summary.json }
