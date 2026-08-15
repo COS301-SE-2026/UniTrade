@@ -9,7 +9,7 @@ interface TermsandConditions {
 
 const theSections = [
     {
-        title: "1. E;igibility & Acceptance",
+        title: "1. Eligibility & Acceptance",
         body: `UniTrade is available to currently enrolled students at recognized South African universities. By creating an account, you confirm that the information you provide is accurate, and that you 
     agree to be bound by these Terms. If you do not agree, unfortunately you may not create an account or use UniTrade.`,
     },
@@ -57,105 +57,84 @@ const theSections = [
 
 ]
 
-export default function TersmAndConditions({
-    isOpen,
-    onAccept,
-    onDecline,
-    readonly = false,
+export default function TermsAndConditionsModal({
+  isOpen,
+  onAccept,
+  onDecline,
 }: TermsandConditions) {
-    const [hasScrolledToEnd, setHasScrolledToEnd] = useState(readonly);
-    const [checked, setChecked] = useState(false)
+  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const [checked, setChecked] = useState(false);
 
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        if (readonly) return;
-        const el = e.currentTarget;
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 24) {
+      setHasScrolledToEnd(true);
+    }
+  };
 
-        if (el.scrollHeight - el.scrollTop - el.clientHeight < 24) {
-            setHasScrolledToEnd(true);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/60 p-4">
-            <div className="flex w-full max-w-2xl rounded-2xl bg-white shadow-xl border border-gray-100 dark:bg-navy-800 dark:border-white/10">
-                <div className="border-b border-gray-100 dark:border-white/10 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-navy-700 dark:text-white">
-                        Terms &amp; Conditions
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        {readonly
-                            ? "UniTrade's current Terms and Conditions."
-                            : "Please read and accept before creating your UniTrade account."
-                        }
-                    </p>
-                </div>
-
-                <div
-                    onScroll={handleScroll}
-                    className="max-h-[60vh] overflow-y-auto px-6 py-4 text-sm leading-related text-gray-700 dark:text-gray-300"
-                >
-                    {theSections.map((s) => (
-                        <div key={s.title} className="mb-4">
-                            <h3 className="mb-1 font-semibold text-navy-700 dark:text-white">
-                                {s.title}
-                            </h3>
-                            <p>{s.body}</p>
-                        </div>
-                    ))}
-                    <p className="text-xs text-gray-400">
-                        Last updated: {new Date().toLocaleDateString("en-ZA")}
-                    </p>
-                </div>
-
-                <div className="border-t border-gray-100 dark:border-white/10 px-6 py-4">
-                    {readonly ? (
-                        <div className="flex justify-end">
-                            <button
-                                onClick={onDecline}
-                                className="rounded-full bg-navy-700 hover:bg-navy-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <label className="mb-3 flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    disabled={!hasScrolledToEnd}
-                                    onChange={(e) => setChecked(e.target.checked)}
-                                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-navy-700 focus:ring-navy-500 disabled:opacity-40"
-                                />
-                                <span>
-                                    I have read and agree to the Terms &amp; Conditions.
-                                    {!hasScrolledToEnd && (
-                                        <span className="ml-1 text-xs text-gray-400">
-                                            (scroll to the bottom enable)
-                                        </span>
-                                    )}
-                                </span>
-                            </label>
-
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    onClick={onDecline}
-                                    className="rounded-full px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={onAccept}
-                                    disabled={!checked}
-                                    className="rounded-full bg-navy-700 hover:bg-navy-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 disabled:hover:bg-gray-300">
-                                    Accept &amp; Continue
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+      <div className="flex w-2xl max-w-2xl flex-col rounded-xl bg-white shadow-2xl">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-navy-900 text-center">
+            Terms &amp; Conditions
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 text-center">
+            Please read and accept before creating your UniTrade account.
+          </p>
         </div>
-    );
+        <div
+          onScroll={handleScroll}
+          className="max-h-[60vh] overflow-y-auto px-6 py-4 text-sm leading-relaxed text-slate-700"
+        >
+          {theSections.map((s) => (
+            <div key={s.title} className="mb-4">
+              <h3 className="mb-1 font-semibold text-navy-800">{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+          <p className="text-xs text-slate-400">
+            Last updated: {new Date().toLocaleDateString("en-ZA")}
+          </p>
+        </div>
+      <div className="border-t border-slate-200 px-6 py-4">
+          <label className="mb-3 flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={checked}
+              disabled={!hasScrolledToEnd}
+              onChange={(e) => setChecked(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-navy-700 focus:ring-navy-600 disabled:opacity-40"
+            />
+            <span>
+              I have read and agree to the Terms &amp; Conditions and Privacy
+              Policy.
+              {!hasScrolledToEnd && (
+                <span className="ml-1 text-xs text-slate-400">
+                  (scroll to the bottom to enable)
+                </span>
+              )}
+            </span>
+          </label>
+        <div className="flex justify-end gap-3">
+            <button
+              onClick={onDecline}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onAccept}
+              disabled={!checked}
+              className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              Accept &amp; Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
