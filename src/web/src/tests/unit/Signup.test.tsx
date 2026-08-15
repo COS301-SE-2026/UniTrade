@@ -16,20 +16,19 @@ vi.mock('../../store/useAuthStore', () => ({
   useAuthStore: () => ({ setPendingEmail: mockSetPendingEmail }),
 }))
 
-vi.mock('../../services/authService', () => {
-  const mockUniversities = [
-    { universityId: '1', name: 'University of Cape Town', emailDomain: 'uct.ac.za' },
-    { universityId: '2', name: 'University of Pretoria', emailDomain: 'up.ac.za' },
-    { universityId: '3', name: 'University of the Witwatersrand', emailDomain: 'wits.ac.za' },
-  ];
-
-  return {
+const {mockUniversities} = vi.hoisted(() => ({
+mockUniversities: [
+    { universityId: '1', name: 'University of Cape Town', emailDomains: ['uct.ac.za'] },
+    { universityId: '2', name: 'University of Pretoria', emailDomains: ['up.ac.za'] },
+    { universityId: '3', name: 'University of the Witwatersrand', emailDomains: ['wits.ac.za'] },
+  ],
+}))
+vi.mock('../../services/authService', () =>   ({
     authService: {
       register: vi.fn(),
       getUniversities: vi.fn().mockResolvedValue(mockUniversities),
     },
-  }
-})
+}))
 
 vi.mock('../../utils/authErrors', () => ({
   getAuthErrorMessage: (msg: string) => `Friendly: ${msg}`,
@@ -40,9 +39,9 @@ vi.mock('../../assets/girl.png', () => ({ default: 'girl.png' }))
 
 import { authService } from '../../services/authService'
 
-const renderSignup = () =>
+const renderSignup = (state?: { termsAcceptedAt?: string }) =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[{ pathname: '/', state }]}>
       <Signup />
     </MemoryRouter>
   )
@@ -71,13 +70,14 @@ const fillRequiredFields = async (overrides: Record<string, string> = {}) => {
 
 describe('Signup page', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
+    vi.mocked(authService.getUniversities).mockResolvedValue(mockUniversities)
   })
 
 
   describe('Rendering', () => {
     it('renders the heading', () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       expect(screen.getByRole('heading', { name: /get started/i })).toBeInTheDocument()
     })
 
@@ -92,12 +92,12 @@ describe('Signup page', () => {
     })
 
     it('renders the optional Degree Program field', () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       expect(screen.getByPlaceholderText('Degree Program')).toBeInTheDocument()
     })
 
     it('renders all university options', async () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await screen.findByText('University of Cape Town')
       const select = screen.getByRole('combobox')
       const options = Array.from(select.querySelectorAll('option')).map(o => o.textContent)
@@ -107,7 +107,7 @@ describe('Signup page', () => {
     })
 
     it('renders the login link', () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       expect(screen.getByRole('link', { name: /login/i })).toHaveAttribute('href', '/auth/Login')
     })
 
@@ -120,7 +120,7 @@ describe('Signup page', () => {
 
   describe('Form interactions', () => {
     it('updates input values as the user types', async () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       const user = userEvent.setup()
       const firstNameInput = screen.getByPlaceholderText('First Name')
 
@@ -129,7 +129,7 @@ describe('Signup page', () => {
     })
 
     it('updates the university select when an option is chosen', async () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       const user = userEvent.setup()
       await screen.findByText('University of Cape Town')
       const select = screen.getByRole('combobox')
@@ -147,7 +147,7 @@ describe('Signup page', () => {
   describe('Successful submission', () => {
     it('calls authService.register with the correct payload', async () => {
       vi.mocked(authService.register).mockResolvedValueOnce(undefined)
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
 
       const fields = await fillRequiredFields()
       fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
@@ -167,7 +167,7 @@ describe('Signup page', () => {
 
     it('saves the pending email in the auth store', async () => {
       vi.mocked(authService.register).mockResolvedValueOnce(undefined)
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await fillRequiredFields({ email: 'langavaks@gmail.com' })
       fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
 
@@ -178,7 +178,7 @@ describe('Signup page', () => {
 
     it('navigates to /verify-otp on success', async () => {
       vi.mocked(authService.register).mockResolvedValueOnce(undefined)
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await fillRequiredFields()
       fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
 
@@ -199,28 +199,28 @@ describe('Signup page', () => {
   })
 
   describe('Loading state', () => {
-    it('disables the submit button while the request is in flight', async () => {
-      vi.mocked(authService.register).mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 200))
-      )
-      renderSignup()
-      await fillRequiredFields()
-      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+  it('disables the submit button while the request is in flight', async () => {
+    vi.mocked(authService.register).mockImplementation(
+      () => new Promise(resolve => setTimeout(resolve, 1000)) // ← increased
+    )
+    renderSignup({ termsAcceptedAt: new Date().toISOString() })
+    await fillRequiredFields()
+    fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
 
-      expect(await screen.findByRole('button', { name: /signing up/i })).toBeDisabled()
-    })
-
-    it('shows "Signing up…" label during the request', async () => {
-      vi.mocked(authService.register).mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 200))
-      )
-      renderSignup()
-      await fillRequiredFields()
-      fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
-
-      expect(await screen.findByText(/signing up/i)).toBeInTheDocument()
-    })
+    expect(await screen.findByRole('button', { name: /signing up/i })).toBeDisabled()
   })
+
+  it('shows "Signing up…" label during the request', async () => {
+    vi.mocked(authService.register).mockImplementation(
+      () => new Promise(resolve => setTimeout(resolve, 1000)) // ← increased
+    )
+    renderSignup({ termsAcceptedAt: new Date().toISOString() })
+    await fillRequiredFields()
+    fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
+
+    expect(await screen.findByText(/signing up/i)).toBeInTheDocument()
+  })
+})
 
   describe('University loading', () => {
     it('shows "Loading universities..." before the request is resolved', async () => {
@@ -230,7 +230,7 @@ describe('Signup page', () => {
 
 
       )
-      renderSignup()
+     renderSignup({ termsAcceptedAt: new Date().toISOString() })
 
       expect(screen.getByText('Loading universities...')).toBeInTheDocument()
       expect(screen.getByRole('combobox')).toBeDisabled()
@@ -247,7 +247,7 @@ describe('Signup page', () => {
         new Error('Network unreachable')
       )
 
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
 
       const matches = await screen.findAllByText('Network unreachable')
       expect(matches).toHaveLength(2)
@@ -258,7 +258,7 @@ describe('Signup page', () => {
     it('shows a fallback error message when a non-Error is thrown', async () => {
       vi.mocked(authService.getUniversities).mockRejectedValueOnce('some string failure')
 
-      renderSignup()
+     renderSignup({ termsAcceptedAt: new Date().toISOString() })
 
       const matches = await screen.findAllByText('Could not load universities')
       expect(matches.length).toBeGreaterThan(0)
@@ -267,7 +267,7 @@ describe('Signup page', () => {
     it('shows a fallback error message when a non-Error is thrown', async () => {
       vi.mocked(authService.getUniversities).mockRejectedValueOnce('some string failure')
 
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
 
       const matches = await screen.findAllByText('Could not load universities')
       expect(matches.length).toBeGreaterThan(0)
@@ -276,7 +276,7 @@ describe('Signup page', () => {
     it('renders no university <option> elements when loading fails', async () => {
       vi.mocked(authService.getUniversities).mockRejectedValueOnce(new Error('boom'))
 
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await screen.findAllByText('boom')
 
       const select = screen.getByRole('combobox')
@@ -288,7 +288,7 @@ describe('Signup page', () => {
 
   describe('Form interactions - additional', () => {
     it('updates the optional degreeProgram field', async () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       const user = userEvent.setup()
       const degreeInput = screen.getByPlaceholderText('Degree Program')
 
@@ -297,7 +297,7 @@ describe('Signup page', () => {
     })
 
     it('toggle password visibility when the eye icon is clicked', async () => {
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       const user = userEvent.setup()
       const passWordInput = screen.getByPlaceholderText('Password')
       const toggleButton = screen.getByRole('button', { name: 'Show password' })
@@ -316,7 +316,7 @@ describe('Signup page', () => {
   describe('Failed submission', () => {
     it('shows a friendly error message when registration fails', async () => {
       vi.mocked(authService.register).mockRejectedValueOnce({ message: 'email_taken' })
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await fillRequiredFields()
 
       fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
@@ -326,7 +326,7 @@ describe('Signup page', () => {
 
     it('does not save pending email or navigate when registratio  fails', async () => {
       vi.mocked(authService.register).mockRejectedValueOnce({ message: 'email_taken' })
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await fillRequiredFields()
 
       fireEvent.submit(screen.getByRole('button', { name: /signup/i }))
@@ -338,7 +338,7 @@ describe('Signup page', () => {
 
     it('re-enables the submit button after a failed request', async () => {
       vi.mocked(authService.register).mockRejectedValueOnce({ message: 'server_error' })
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await fillRequiredFields()
       const btn = screen.getByRole('button', { name: /signup/i })
 
@@ -351,7 +351,7 @@ describe('Signup page', () => {
         .mockRejectedValueOnce({ message: 'email_taken' })
         .mockResolvedValueOnce(undefined)
 
-      renderSignup()
+      renderSignup({ termsAcceptedAt: new Date().toISOString() })
       await fillRequiredFields()
       const btn = screen.getByRole('button', { name: /signup/i })
 

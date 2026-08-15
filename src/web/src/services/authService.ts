@@ -8,6 +8,7 @@ export interface RegisterPayload {
   degreeProgram: string;
   yearOfStudy: string;
   password: string;
+  termsAcceptedAt: string;
 }
 
 export interface LoginPayload {

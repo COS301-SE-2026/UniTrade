@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router'
 import girl from '../../assets/girl.png'
 import { authService } from '../../services/authService'
 import type { University } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
+import TersmAndConditions from '../../components/legal/TermsandConditions'
 
 interface ApiError {
   message: string
@@ -13,6 +14,7 @@ interface ApiError {
 
 const Signup: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { setPendingEmail } = useAuthStore()
   const [formData, setFormData] = useState({
     firstName: '',
@@ -26,6 +28,11 @@ const Signup: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(
+    (location.state as { termsAcceptedAt?: string} | null)?.termsAcceptedAt ?? null
+  )
+  const [showTerms, setShowTerms] = useState(!termsAcceptedAt)
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [uniLoading, setUniloading] = useState(true);
@@ -55,14 +62,27 @@ const Signup: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTermsAccept = () => {
+    setTermsAcceptedAt(new Date().toISOString())
+    setShowTerms(false)
+  }
 
+  const handleTermsDecline = () => {
+    navigate('/')
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if(!termsAcceptedAt) {
+      setShowTerms(true)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      await authService.register(formData)
+      await authService.register({...formData, termsAcceptedAt})
       // save email so OTP page knows who to verify
       setPendingEmail(formData.email)
       navigate('/verify-otp')
@@ -170,7 +190,20 @@ const Signup: React.FC = () => {
                 </button>
               </div>
             </div>
-
+  
+            {!termsAcceptedAt && (
+              <p className="text-xs text-gray-500 text-center">
+                You'll need to accept the{' '}
+                <button 
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="font-semibold text-sky-900 hover:underline"
+                >
+                  Terms &amp; Conditions
+                </button>{' '}
+                before signing up.
+              </p>
+            )}
             <button type="submit" disabled={loading}
               className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50">
               {loading ? 'Signing up...' : 'SIGNUP'}
@@ -186,6 +219,12 @@ const Signup: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-sky-900/80 via-sky-900/40 to-transparent" />
         </div>
       </div>
+
+      <TersmAndConditions
+      isOpen={showTerms}
+      onAccept={handleTermsAccept}
+      onDecline={handleTermsDecline}
+      />
     </div>
   )
 }
