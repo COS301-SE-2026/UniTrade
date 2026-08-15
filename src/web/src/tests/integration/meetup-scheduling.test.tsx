@@ -61,7 +61,14 @@ function renderApp(initialRoute: string) {
         </QueryClientProvider>
     )
 }
-
+function getTomorrowLocalDate(): string {
+    const d = new Date()
+    d.setDate(d.getDate() + 1);
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
 beforeEach(() => {
     resetMockListings()
     resetMockReservations()
@@ -89,8 +96,7 @@ test('buyer proposes a meetup and sees it as pending', async () => {
 
     await user.click(await screen.findByRole('button', { name: /schedule a meetup/i }))
 
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    fireEvent.change(document.querySelector('input[type="date"]')!, { target: { value: tomorrow } })
+    fireEvent.change(document.querySelector('input[type="date"]')!, { target: { value: getTomorrowLocalDate() } })
 
     await user.click(screen.getByRole('button', { name: /set location \(mock\)/i }))
     await waitFor(() => {

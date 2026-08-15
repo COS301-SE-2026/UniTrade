@@ -37,12 +37,15 @@ resource existingServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-pr
 resource databaseOnNewServer 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview'=if(createServer){
     parent: newServer
     name: databaseName
+    
 }
 
 
 resource databaseOnExistingServer 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview'=if(!createServer){
     parent: existingServer
     name: databaseName
+    
+    
 }
 
 

@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, within, waitFor} from '@testing-library/react';
-import { MemoryRouter, Routes, Route} from 'react-router';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { vi, it, expect, describe} from 'vitest';
+import { vi, it, expect, describe } from 'vitest';
 import ChatPage from '../../pages/chat/ChatPage';
 import { useSendMessage } from '../../hooks/useSendMessage';
 import { beforeEach } from 'vitest';
@@ -39,14 +39,14 @@ interface MeetupCardMockProps {
 }
 
 const navigateMock = vi.fn();
-vi.mock('react-router', async() => {
+vi.mock('react-router', async () => {
     const path = await vi.importActual<typeof import('react-router')>('react-router');
     return {
         ...path,
         useNavigate: () => navigateMock,
 
     };
-} );
+});
 
 vi.mock('../../hooks/useReservationRealtime', () => ({
     useReservationRealtime: vi.fn(),
@@ -55,7 +55,7 @@ vi.mock('../../hooks/useReservationRealtime', () => ({
 vi.mock('../../services/realtime/connectionManager', () => ({
     connectionManager: {
         getState: vi.fn(() => 'Connected'),
-        onStateChange: vi.fn(() => () => {}),
+        onStateChange: vi.fn(() => () => { }),
         markRead: vi.fn().mockResolvedValue(undefined),
     },
 }));
@@ -74,7 +74,7 @@ vi.mock('../../services/reservationService', () => ({
 
 vi.mock('../../store/useAuthStore', () => ({
     useAuthStore: vi.fn(() => ({
-        user: {id: 'me'},
+        user: { id: 'me' },
     })),
 }));
 
@@ -88,32 +88,38 @@ vi.mock('../../services/listingsService', () => ({
 }));
 
 vi.mock('../../components/layout/MeetupProposalForm', () => ({
-    default: (props: MeetupProposalFormMockProps) => (
-        <div data-testid = "meetup-proposal-form">
-            <button
-            onClick = {() => 
-                props.onSubmit({
-                    date: '2026-07-31',
-                    time: '10:00',
-                    location: {
-                        name: 'IT-Building',
-                        lat: -25.7,
-                        lng: 28.6
-                    },
-                })
-            }
-            >
-                Submit Proposal
-            </button>
-            <button onClick = {props.onCancel}>
-                Cancel Proposal
-            </button>
-        </div>
-    ),
+    default: (props: MeetupProposalFormMockProps) => {
+        const future = new Date();
+        future.setFullYear(future.getFullYear() + 1);
+        const futureDate = future.toISOString().slice(0, 10);
+        return (
+            <div data-testid="meetup-proposal-form">
+                <button
+                    onClick={() =>
+
+                        props.onSubmit({
+                            date: futureDate,
+                            time: '10:00',
+                            location: {
+                                name: 'IT-Building',
+                                lat: -25.7,
+                                lng: 28.6
+                            },
+                        })
+                    }
+                >
+                    Submit Proposal
+                </button>
+                <button onClick={props.onCancel}>
+                    Cancel Proposal
+                </button>
+            </div>
+        );
+    },
 }));
 
 vi.mock('../../components/CheckInModal', () => ({
-    default: (props:CheckInModalMockProps) => (
+    default: (props: CheckInModalMockProps) => (
         <div data-testid="check-in-modal">
             <span>
                 {props.meetupLocation}
@@ -165,26 +171,26 @@ const defaultReservation: ReservationResult = {
             initials: 'MT',
         },
     },
-}as unknown as ReservationResult;
+} as unknown as ReservationResult;
 
 const defaultListing: ListingResult = {
     id: 'listing-1',
     title: 'Test Listing',
     price: 100,
     images: [],
-} as unknown as  ListingResult;
+} as unknown as ListingResult;
 
 const defaultMessages: ChatMessagesResult = {
     data: [],
     isLoading: false,
     isError: false,
     refetch: vi.fn(),
-}as unknown as  ChatMessagesResult;
+} as unknown as ChatMessagesResult;
 
 const defaultSend: SendMessageResult = {
     send: vi.fn(),
     retry: vi.fn(),
-}as unknown as SendMessageResult;
+} as unknown as SendMessageResult;
 
 beforeEach(() => {
     Element.prototype.scrollIntoView = vi.fn();
@@ -194,7 +200,7 @@ beforeEach(() => {
     vi.mocked(getReservationById).mockReset().mockResolvedValue(defaultReservation);
     vi.mocked(listingsService.getById).mockReset().mockResolvedValue(defaultListing);
     vi.mocked(listingsService.proposeMeetup).mockReset().mockResolvedValue(undefined as unknown as MeetupStatusResponse);
-    vi.mocked(listingsService.acceptMeetup).mockReset().mockResolvedValue(undefined as unknown  as MeetupStatusResponse);
+    vi.mocked(listingsService.acceptMeetup).mockReset().mockResolvedValue(undefined as unknown as MeetupStatusResponse);
     vi.mocked(listingsService.declineMeetup).mockReset().mockResolvedValue(undefined);
     vi.mocked(useChatMessages).mockReset().mockReturnValue(defaultMessages);
     vi.mocked(useSendMessage).mockReset().mockReturnValue(defaultSend);
@@ -202,28 +208,28 @@ beforeEach(() => {
 
 
 function renderWithProviders(ui: React.ReactElement, initialEntry = '/buyer/messages/123') {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
+        },
+    });
 
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route path="/buyer/messages/:reservationId" element={ui} />
-          <Route path="/seller/messages/:reservationId" element={ui} />
-          <Route path="/payment/meetup" element={<div>Payment Page</div>} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
+    return render(
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={[initialEntry]}>
+                <Routes>
+                    <Route path="/buyer/messages/:reservationId" element={ui} />
+                    <Route path="/seller/messages/:reservationId" element={ui} />
+                    <Route path="/payment/meetup" element={<div>Payment Page</div>} />
+                </Routes>
+            </MemoryRouter>
+        </QueryClientProvider>
+    );
 }
 
 it('page renders without crashing or lagging', async () => {
     renderWithProviders(<ChatPage />);
-    await screen.findByPlaceholderText('Type a message...');
+    expect(await screen.findByPlaceholderText('Type a message...')).toBeInTheDocument();
 })
 
 describe('header and navigation', () => {
@@ -239,19 +245,19 @@ describe('header and navigation', () => {
         const backButton = document.querySelector('button.md\\:hidden') as HTMLButtonElement;
         fireEvent.click(backButton);
         expect(navigateMock).toHaveBeenCalledExactlyOnceWith('/buyer/messages');
-    
+
     });
 });
 
 describe('sending messages', () => {
-    it('disables the send button when the draft is empty', async() => {
+    it('disables the send button when the draft is empty', async () => {
         renderWithProviders(<ChatPage />);
         const input = await screen.findByPlaceholderText('Type a message...');
         const sendButton = input.parentElement!.querySelector('button:last-of-type') as HTMLButtonElement;
         expect(sendButton).toBeDisabled();
     });
 
-    it('must send a message when you click the sending button', async() => {
+    it('must send a message when you click the sending button', async () => {
         const sendMock = vi.fn();
         vi.mocked(useSendMessage).mockReturnValue({
             send: sendMock,
@@ -268,13 +274,13 @@ describe('sending messages', () => {
 })
 
 describe('loading and the error states', () => {
-    it('shows a loading sign while the messages are loading', async() => {
+    it('shows a loading sign while the messages are loading', async () => {
         vi.mocked(useChatMessages).mockReturnValue({
             data: [],
             isLoading: true,
             isError: false,
             refetch: vi.fn(),
-        }as unknown as ChatMessagesResult);
+        } as unknown as ChatMessagesResult);
 
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('Loading messages...')).toBeInTheDocument();
@@ -289,12 +295,12 @@ describe('loading and the error states', () => {
         } as unknown as ChatMessagesResult);
 
         renderWithProviders(<ChatPage />);
-        expect(await screen.findByText('Failed to load messages') ).toBeInTheDocument();
+        expect(await screen.findByText('Failed to load messages')).toBeInTheDocument();
     });
 });
 
 describe('reservation meet-up flow within the chatting ', () => {
-    it('must show a waiting message for the buyer when waiting for the seller to accept to the reservation', async() => {
+    it('must show a waiting message for the buyer when waiting for the seller to accept to the reservation', async () => {
         vi.mocked(getReservationById).mockResolvedValue({
             success: true,
             data: {
@@ -307,9 +313,9 @@ describe('reservation meet-up flow within the chatting ', () => {
                     initials: 'MT'
                 },
             },
-        }as ReservationResult);
+        } as ReservationResult);
 
-        renderWithProviders(<ChatPage /> , '/buyer/messages/123');
+        renderWithProviders(<ChatPage />, '/buyer/messages/123');
         expect(
             await screen.findByText('Waiting for seller to accept reservation'),
 
@@ -337,7 +343,7 @@ describe('reservation meet-up flow within the chatting ', () => {
         ).toBeInTheDocument();
     });*/
 
-    it('must show the button that says schedule meetup for a reservation that is active', async() => {
+    it('must show the button that says schedule meetup for a reservation that is active', async () => {
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('SCHEDULE A MEETUP')).toBeInTheDocument();
     });
@@ -386,7 +392,7 @@ describe('listing summary card', () => {
 });
 
 describe('the meetup proposal flow', () => {
-    /*it('opens the proposal form and then submits a new meetup', async() => {
+    it('opens the proposal form and then submits a new meetup', async () => {
         renderWithProviders(<ChatPage />);
         const scheduleButton = await screen.findByText('SCHEDULE A MEETUP');
         fireEvent.click(scheduleButton);
@@ -394,16 +400,16 @@ describe('the meetup proposal flow', () => {
         const form = await screen.findByTestId('meetup-proposal-form');
         fireEvent.click(within(form).getByText('Submit Proposal'));
 
-        await waitFor(() => 
-        expect(listingsService.proposeMeetup).toHaveBeenCalledWith(
-            '123',
-            expect.objectContaining({
-                locationName: 'IT-Building',
-                lat: -25.7,
-                lng: 28.6,
-            }),
-        ),);
-    });*/
+        await waitFor(() =>
+            expect(listingsService.proposeMeetup).toHaveBeenCalledWith(
+                '123',
+                expect.objectContaining({
+                    locationName: 'IT-Building',
+                    lat: -25.7,
+                    lng: 28.6,
+                }),
+            ),);
+    });
 
 
     it('closes the proposal form on cancel', async () => {

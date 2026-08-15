@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Api;
 using Api.BackgroundServices;
 using Api.Hubs;
 using Api.Middleware;
@@ -14,6 +15,7 @@ using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
+using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;
@@ -233,46 +235,7 @@ builder
             ValidateAudience = false,
         };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = ctx =>
-            {
-                if (ctx.HttpContext.Request.Path.StartsWithSegments("/chathub"))
-                {
-                    var accessToken = ctx.Request.Query["access_token"];
-                    if (!string.IsNullOrEmpty(accessToken))
-                    {
-                        ctx.Token = accessToken;
-                        return Task.CompletedTask;
-                    }
-                }
-
-                var token = ctx.Request.Cookies["authToken"];
-                if (!string.IsNullOrEmpty(token))
-                {
-                    ctx.Token = token;
-                }
-                return Task.CompletedTask;
-            },
-            OnAuthenticationFailed = ctx =>
-            {
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = ctx =>
-            {
-                var isHub = ctx.HttpContext.Request.Path.StartsWithSegments("/chathub");
-                var aud = ctx.Principal?.FindFirst("aud")?.Value;
-                if (aud == "chat-hub" && !isHub)
-                {
-                    ctx.Fail("hub token used outside the hub");
-                }
-                return Task.CompletedTask;
-            },
-            OnChallenge = ctx =>
-            {
-                return Task.CompletedTask;
-            },
-        };
+        options.Events = AuthEventsFactory.CreateJwtEvents();
     });
 
 var app = builder.Build();
