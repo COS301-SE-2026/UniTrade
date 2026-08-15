@@ -41,7 +41,7 @@ public class DeviceTokensController(IFcmPushService fcm) : ControllerBase
         {
             return Unauthorized(new { error = "invalid_user_claim" });
         }
-        await _fcm.RegisterTokenAsync(CallerId, body.Token, body.Platform, ct);
+        await _fcm.RegisterTokenAsync(userId, body.Token, body.Platform, ct);
         return Ok(new { message = "Token registered" });
     }
 

@@ -155,18 +155,20 @@ public class ChatRepository : IChatRepository
         var responses = await _db
             .ChatMessages.AsNoTracking()
             .Where(m => m.ReservationId == reservationId && m.MessageType == "meetup_response")
+            .Select(m => m.Payload)
             .ToListAsync(ct);
 
         foreach (var message in responses)
         {
-            if (string.IsNullOrWhiteSpace(message.Payload))
+            if (string.IsNullOrWhiteSpace(message))
                 continue;
 
-            using var json = System.Text.Json.JsonDocument.Parse(message.Payload);
+            using var json = System.Text.Json.JsonDocument.Parse(message);
 
             if (
                 json.RootElement.TryGetProperty("ProposalMessageId", out var id)
-                && id.GetInt32() == proposalMessageId
+                && id.TryGetInt32(out var responseId)
+                && responseId == proposalMessageId
             )
             {
                 return true;
@@ -174,15 +176,5 @@ public class ChatRepository : IChatRepository
         }
 
         return false;
-        /* }=>
-             _db.ChatMessages.AnyAsync(
-                 m =>
-                     m.ReservationId == reservationId
-                     && m.MessageType == "meetup_response"
-                     && EF.Functions.JsonExists(m.Payload!, "ProposalMessageId")
-                     && m.Payload!.Contains($"\"ProposalMessageId\":{proposalMessageId}"),
-                 ct
-             );
-             */
     }
 }

@@ -162,7 +162,7 @@ describe('HelpCenter', () => {
         fireEvent.change(textbox, { target: { value: '   ' } })
         fireEvent.keyDown(textbox, { key: 'Enter' })
 
-        expect(screen.getAllByText(/Hey! I'm Alex/).length).toBe(1)
+        expect(screen.getAllByText(/Hey! I'm Alex/)).toHaveLength(1)
     })
 
     it('shows the fallback reply for an unmatched message', async () => {

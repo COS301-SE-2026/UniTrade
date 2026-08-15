@@ -377,7 +377,7 @@ public class IdentityService : IIdentityService
 
         if (user.Role == _studentRole)
         {
-            claims.Add(new Claim("verification_status"!, verificationStatus!));
+            claims.Add(new Claim("verification_status", verificationStatus!));
         }
 
         //blueprint for the token(form)

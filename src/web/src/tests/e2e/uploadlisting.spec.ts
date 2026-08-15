@@ -11,7 +11,7 @@ test('seller can upload a listing', async ({ page, request }) => {
     await page.getByText('Switch', { exact: true }).click();
     await page.waitForURL(/\/seller\/listings/);
 
-    await page.getByText('New Listing', { exact: true }).click();
+    await page.getByRole('button', {name: 'New Listing'}).click();
     await page.waitForURL(/\/seller\/upload/);
     await page.getByTestId('category-buttons').locator('button').first().click();
 

@@ -3,7 +3,7 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js",
 );
 
-self.__WB_MANIFEST;
+const _precache = self.__WB_MANIFEST;
 
 firebase.initializeApp({
   apiKey: "AIzaSyDuFf0srxj0BURaw-GbbUuJr9a5cJLKCsA",

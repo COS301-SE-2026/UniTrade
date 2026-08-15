@@ -1,10 +1,11 @@
 name: E2E Tests
 
 on:
+    workflow_call:
     pull_request:
-        branches: ["dev", "main"]
+        branches-ignore: ["**"]
     push:
-        branches: ["main", "dev"]
+        branches-ignore: ["**"]
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}
@@ -32,22 +33,22 @@ jobs:
 
             - name: Install Playwright browsers
               working-directory: src/web
-              run: npx playwright install --with-deps
+              run: npx --no-install playwright install --with-deps
             
             - name: Start db, backend, frontend
               working-directory: infra/docker
               env:
-                POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-                POSTGRES_USER_ID: ${{ secrets.POSTGRES_USER_ID }}
-                DB_NAME: ${{ secrets.DB_NAME }}
-                APP_USER_ID: ${{ secrets.APP_USER_ID }}
-                APP_USER_PASSWORD: ${{ secrets.APP_USER_PASSWORD }}
+                POSTGRES_PASSWORD: ci_pass_28
+                POSTGRES_USER_ID: unitrade_admin
+                DB_NAME: unitrade_app
+                APP_USER_ID: ci_pass_28
+                APP_USER_PASSWORD: ci_app_pass_28
 
-                Jwt__Secret: ${{ secrets.Jwt__Secret }}
-                Otp__Secret: ${{ secrets.Otp__Secret }}
-                Acs__SenderAddress: ${{ secrets.Acs__SenderAddress }}
-                Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
-                Firebase__CredentialsJson: ${{ secrets.Firebase__CredentialsJson }}
+                Jwt__Secret: ${{ secrets.JWT_SECRET }}
+                Otp__Secret: ${{ secrets.OTP_SECRET }}
+                Acs__SenderAddress: ${{ secrets.ACS_SENDER_ADDRESS }}
+                Acs__ConnectionString: ${{ secrets.ACS__CONNECTIONSTRING }}
+                Firebase__CredentialsJson: ${{ secrets.FIREBASE_CREDENTIALS }}
                 PayFast__MerchantId: ${{ secrets.PayFast__MerchantId }}
                 PayFast__MerchantKey: ${{ secrets.PayFast__MerchantKey }}
                 PayFast__SandboxUrl: ${{ secrets.PayFast__SandboxUrl }}
@@ -57,12 +58,12 @@ jobs:
                 PayFast__CancelUrl: ${{ secrets.PayFast__CancelUrl }}
 
                 VITE_API_URL: "http://localhost:8080"
-                FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-                FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-                FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-                FIREBASE_SENDER_ID: ${{ secrets.FIREBASE_SENDER_ID }}
-                FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-                FIREBASE_VAPID_KEY: ${{ secrets.FIREBASE_VAPID_KEY }}
+                FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+                FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+                FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+                FIREBASE_SENDER_ID: ${{ secrets.VITE_FIREBASE_SENDER_ID }}
+                FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+                FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
             
               run: docker compose up -d --build db backend frontend
 
@@ -84,7 +85,23 @@ jobs:
                     echo "Waiting for frontend ... ($i/30)"; sleep 5
                 done
                 echo "Frontend did not become healthy in time"; exit 1
+  
+            - name: Setup .NET
+              uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+              with:
+                dotnet-version: "10.0.x"
 
+            - name: Apply migrations to e2e DB
+              working-directory: src/backend/Api
+              env:
+                ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=unitrade_app;Username=unitrade_admin;Password=ci_pass_28"
+                Acs__ConnectionString: ${{ secrets.ACS__CONNECTIONSTRING }}
+                Jwt__Secret: ${{ secrets.JWT_SECRET }}
+              run: |
+                dotnet tool install --global dotnet-ef
+                dotnet restore ../../../UniTrade.sln
+                dotnet ef database update --project ../Infrastructure --startup-project .
+            
             - name: Run E2E tests
               working-directory: src/web
               env:

@@ -88,8 +88,6 @@ expect(screen.getByText('University of Pretoria')).toBeInTheDocument();
 
   await user.click(screen.getByRole('button', { name: /signup/i }))
 
-  await user.click(screen.getByRole('button', { name: /signup/i }));
-
 await waitFor(() => {
   const errorEl = screen.queryByText(/went wrong|error/i);
   if (errorEl) {

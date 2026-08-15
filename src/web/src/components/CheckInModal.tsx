@@ -14,11 +14,21 @@ interface CheckInModalProps {
     onClose: () => void;
 }
 
-export default function CheckInModal({ reservationId, meetupLocation, onClose }: CheckInModalProps) {
+export default function CheckInModal({ reservationId, meetupLocation, onClose }: Readonly<CheckInModalProps>) {
     const [state, setState] = useState<CheckInState>(() =>
         'geolocation' in navigator ? 'requesting' : 'unsupported'
     );
     const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key == 'Escape') {
+                onClose();
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [onClose]);
 
     const mapResponse = (err: unknown): string => {
         const msg = err instanceof Error ? err.message : '';
@@ -78,12 +88,11 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
         if (state === 'unsupported') return;
         checkLocation();
 
-    }, [checkLocation]);
+    }, [checkLocation, state]);
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div
                 className="w-full max-w-md bg-white rounded-3xl p-6 pb-8 shadow-xl text-center"
-                onClick={(e) => e.stopPropagation()}
             >
                 {state === 'requesting' && (
                     <>

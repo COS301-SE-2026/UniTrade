@@ -1,4 +1,10 @@
 <div align="center">
+<br>
+  
+<img src="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/diagrams/Transaprent%20Logo.png">
+
+<br>
+
 
 # UniTrade
 
@@ -9,18 +15,18 @@
 <!-- CI/CD Status Pipeline Badges -->
 [![Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml)
 [![Web Frontend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
-
+<!-- Uptime Monitoring Badges-->
+[![Uptime Status](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=uptime)](https://stats.uptimerobot.com/)
+[![Uptime Ratio (30d)](https://img.shields.io/uptimerobot/ratio/30/m803674174-30a848fbf196d9ea502cdcc3?label=30d%20uptime)](https://stats.uptimerobot.com/)
 <!-- Quality, Licensing & Contribution Badges -->
 [![Vitest Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
+[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 
 <br/>
 
-[Live Demo](#) · [Report a Bug](https://github.com/COS301-SE-2026/UniTrade/issues) · [Request a Feature](https://github.com/COS301-SE-2026/UniTrade/issues)
-
-<br/><br/>
 
 
 <sub>
@@ -30,22 +36,33 @@
 </div>
 
 ---
+
+<div align="center">
+  
 # UniTrade
+</div>
 
 A web and mobile marketplace for South African university students to buy and sell second-hand academic materials safely and affordably.
 
+<div align="center">
+
 ## The problem
+</div>
 
 University students in South Africa face significant financial pressure, from high tuition fees, rising living costs, and expensive prescribed textbooks. The current alternatives are bleak: buy new materials at full price, or rely on informal peer networks that are unreliable, unverified, and often unsafe.
 There is currently no structured and trusted platform where students can safely exchange academic materials with confidence.
 
+<div align="center">
+  
 ## What UniTrade does
-
+</div>
 
 UniTrade provides a structured, verified marketplace where students can list, browse, and purchase used academic materials directly from peers at their institution. Every user is verified as an active, currently enrolled student before they can transact, ensuring the platform remains trusted and scalable.
 
-
+<div align="center">
+  
 ## Key Features
+</div>
 
 | Feature | Description |
 |---|---|
@@ -58,7 +75,8 @@ UniTrade provides a structured, verified marketplace where students can list, br
 | **Multi-Channel Notifications** | Push notifications (FCM) and transactional emails (Resend) |
 
 ---
-
+<div align="center">
+  
 ## Tech Stack
 
 ### Frontend
@@ -76,7 +94,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 
 ### Database
-![Microsoft SQL Server](https://img.shields.io/badge/Microsoft_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
+![PostgresSQL Server](https://img.shields.io/badge/PostgresSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 
 ### Cloud & DevOps
@@ -88,18 +106,187 @@ UniTrade provides a structured, verified marketplace where students can list, br
 ![Azure](https://img.shields.io/badge/Azure_Computer_Vision-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
 ![Google Maps](https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)
+</div>
 
 ---
 
+<div align="center">
+  
+### Team - DevNexus
+<table>
+<tr>
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Zee.jpeg" width="200">
+
+  <br/>
+  <b>Zelamene Shazi</b><br />
+  <sub>Project Lead & Backend Engineer</sub><br/><br/>
+  <a href="https://github.com/Zelamene"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+<td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Sabira.jpeg" width="200">
+
+  <br/>
+  <b>Sabira Karie</b><br />
+  <sub>DevOps & Backend Engineer</sub><br/><br/>
+  <a href="https://github.com/Sabira-k-commits"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/saira-kaire-666365378/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Didi.jpeg" width="200">
+
+  <br/>
+  <b>Mahadio Tlaka</b><br />
+  <sub>Frontend Engineer</sub><br/><br/>
+  <a href="https://github.com/diditlaka"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+
+  <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Langa.jpeg" width="200">
+
+  <br/>
+  <b>Langa Vakalisa</b><br />
+  <sub>Frontend Engineer</sub><br/><br/>
+  <a href="https://github.com/langa-vk"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+ <td align="center" width="20%">
+  
+  <img src="src/web/src/assets/Tafadzwa.jpeg" width="200">
+
+  <br/>
+  <b>Tafadzwa Musiiwa</b><br />
+  <sub>Frontend Lead & Integration Engineer</sub><br/><br/>
+  <a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+  </td>
+  </tr>
+  </table>
+  </div>
+
+<div align="center">
+  
 ## Documentation
-| Document | Link |
-| --- | --- |
-| SRS Document| [https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf](https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd-Mahadio/docs/requirements/UniTrade_SRS_Demo_1.pdf)|
-| WireFrames| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf|
-| Figma_Doc (WireFrames) | https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Plan2?node-id=0-1&t=d203OEm1RvksQhm1-1|
-| Branding_Style_Doc | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade%20%E2%80%93%20Brand%20Style%20Guide.pdf |
-| Architecture_Diagram| https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/diagrams/Architecture_Diagram.png |
-|BrandingStyleDoc (HTML) | https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/UniTrade-Brand-Style-Guide.html|
+
+</div>
+
+## Demo 2
+<br>
+
+<details>
+  <summary><strong>Software Requirements Specifications</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SRS_Document.pdf">
+    <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+<details>
+  <summary><strong>Software Architecture Specifications</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SAS.pdf">
+    <img src="https://img.shields.io/badge/SAS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+<details>
+  <summary><strong>Coding Standards</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/CODING_%20STANDARDS.pdf">
+    <img src="https://img.shields.io/badge/Coding_Standards-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+<details>
+  <summary><strong>Testing Policy</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Testing_Policy.pdf">
+    <img src="https://img.shields.io/badge/Testing_Policy-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+
+<details>
+  <summary><strong>API Contracts</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/API_Contracts.pdf">
+    <img src="https://img.shields.io/badge/API_Contracts-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+    
+<details>
+  <summary><strong>User Manual</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/User_Manual%20(2).pdf">
+    <img src="https://img.shields.io/badge/User_Manual-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+
+<details>
+  <summary><strong>Figma Document</summary>
+    
+  <p align="center">
+  <a href="https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Capstone-wireframes?node-id=0-1&t=TGxL1XFTdsDd1qtU-1">
+    <img src="https://img.shields.io/badge/Figma_Document-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+
+</details>
+<details>
+  <summary><strong>Brand Style Guide Deployed</summary>
+    
+  <p align="center">
+  <a href="https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/Brand-style-doc">
+    <img src="https://img.shields.io/badge/Brand_Style_Deployed-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+
+</details>
+<details>
+  <summary><strong>Brand Style Guide PDF</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Brand-style-doc.pdf">
+    <img src="https://img.shields.io/badge/Brand_Style_Guide-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+
+
+
+## Demo 1
+
+<details>
+  <summary>Demo 1 Documentation</summary>
+
+  <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/requirements/UniTrade_SRS.pdf">
+    <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=round-square" height="40">
+  </a>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+    <br/><br/>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+    <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/documentation/docs/wireframes/Wireframes.pdf">
+    <img src="https://img.shields.io/badge/WireFrames-View-04B4FD?style=round-square" height="40">
+  </a>
+</p>
+
+</details>
+
 
 ## Project Structure
 
@@ -146,30 +333,7 @@ UniTrade/
 │   │   ├── .env.example
 │   │   ├── Dockerfile
 │   │   └── package.json
-│   │
-│   ├── mobile/                            # React Native
-│   │   ├── src/
-│   │   │   ├── assets/
-│   │   │   ├── components/
-│   │   │   ├── features/
-│   │   │   │   ├── auth/
-│   │   │   │   ├── listings/
-│   │   │   │   ├── reservations/
-│   │   │   │   ├── chat/
-│   │   │   │   ├── payments/
-│   │   │   │   └── profile/
-│   │   │   ├── hooks/
-│   │   │   ├── navigation/
-│   │   │   ├── services/
-│   │   │   ├── store/
-│   │   │   ├── types/
-│   │   │   └── utils/
-│   │   ├── tests/
-│   │   │   ├── unit/                      # Individual component tests (Jest)
-│   │   │   ├── integration/               # Multi-component + service layer tests (RTL)
-│   │   │   └── e2e/                       # Device/simulator flows (Detox)
-│   │   ├── .env.example
-│   │   └── package.json
+|   |
 │   │
 │   └── backend/                           # C# — Modular Monolith
 │       ├── Api/                  # Entry point — controllers, middleware, startup
@@ -302,18 +466,7 @@ UniTrade/
 └── UniTrade.sln
 ```
 ---
-## Team — DevNexus
 
-We are **DevNexus**, a team of five final-year Computer Science students from the University of Pretoria, building UniTrade as our COS301 Capstone Project.
-
-| Name | Image | Role | Links |
-|---|---|---|---|
-| **Zelamene Shazi** | <img src="src/web/src/assets/Zee.jpeg" width="80" /> | Project Lead · Backend | [LinkedIn](https://www.linkedin.com/in/zelamene-shazi-66ab142b6/) |
-| **Sabira Karie** | <img src="src/web/src/assets/Sabira.jpeg" width="80" /> | Backend | [LinkedIn](https://www.linkedin.com/in/saira-kaire-666365378/) |
-| **Mahadio Tlaka** | <img src="src/web/src/assets/Didi.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/mahadio-tlaka-419a12393/) |
-| **Langa Vakalisa** | <img src="src/web/src/assets/Langa.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7) |
-| **Tafadzwa Musiiwa** | <img src="src/web/src/assets/Tafadzwa.jpeg" width="80" /> | Frontend | [LinkedIn](https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9) |
----
 ## Development Approach
 
 UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:
@@ -341,7 +494,12 @@ UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:
 
 ## Contact
 
-📧 [devnexus28@gmail.com](mailto:devnexus28@gmail.com)
+<div align="center">
+
+[![Email Badge](https://img.shields.io/badge/Email-devnexus28%40gmail.com-blue?style=for-the-badge&logo=gmail&logoColor=white)](mailto:devnexus28@gmail.com)
+
+</div>
+
 
 ---
 

@@ -39,14 +39,8 @@ public class DeviceTokenRepository : IDeviceTokenRepository
                 ct
             );
         }
-        try
-        {
-            await _db.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateException ex)
-        {
-            throw;
-        }
+
+        await _db.SaveChangesAsync(ct);
     }
 
     public async Task<IReadOnlyList<string>> GetTokensForUserAsync(

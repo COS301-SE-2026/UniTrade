@@ -222,7 +222,7 @@ public class ListingRepository : IListingRepository
                 && (l.ListingStatus == "live" || l.ListingStatus == "pending")
             )
             .ToListAsync();
-        if (!listings.Any())
+        if (listings.Count == 0)
         {
             return;
         }

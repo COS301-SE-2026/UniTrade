@@ -9,7 +9,7 @@ export default function OfflineBanner() {
     return (
         <div className="fixed top-0 left-0 right-0 z-[100000] bg-rose-600 text-white text-sm font-semibold py-2 px-4 flex items-center gap-2 shadow-md">
             <IconWifiOff size={16} />
-            There is no internet connection, Please turn on your data or connect to wifi to continue!!!! - from a loving and caring friend - TAFADZWA!!!!
+            There is no internet connection, Please turn on your data or connect to wifi to continue!
         </div>
     );
 }
