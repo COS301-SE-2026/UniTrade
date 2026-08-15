@@ -107,7 +107,38 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end
-
+  
+  nfr-checks:
+    needs: gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: cipass
+          POSTGRES_USER: ciuser
+          POSTGRES_DB: unitrade_test_ci_nfr_migcheck
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with: {dotnet-version: "10.0.x"} 
+      
+      - name: Migration apply from empty DB (QR-05b)
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=unitrade_test_ci_nfr_migcheck;Username=ciuser;Password=cipass"
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet restore ../../../UniTrade.sln
+          dotnet ef database update --project ../Infrastructure --startup-project .
+        
   code-quality:
     needs: gitleaks
     runs-on: ubuntu-latest
