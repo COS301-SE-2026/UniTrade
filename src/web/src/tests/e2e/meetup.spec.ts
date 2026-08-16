@@ -32,7 +32,11 @@ test.describe("meetup scheduling and check-in", () => {
     const sellerPage = await sellerContext.newPage();
     const buyerPage = await buyerContext.newPage();
 
-    const {reservationId} = await createListingAndReserve(sellerPage, buyerPage, request);
+    const { reservationId } = await createListingAndReserve(
+      sellerPage,
+      buyerPage,
+      request,
+    );
     await scheduleMeetupAndCheckIn(sellerPage, buyerPage, reservationId);
 
     await expect(
@@ -99,11 +103,7 @@ test.describe("meetup scheduling and check-in", () => {
     const sellerPage = await sellerContext.newPage();
     const buyerPage = await buyerContext.newPage();
 
-    const { reservationId } = await createListingAndReserve(
-      sellerPage,
-      buyerPage,
-      request,
-    );
+    await createListingAndReserve(sellerPage, buyerPage, request);
 
     await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
     await expect(
