@@ -2,8 +2,8 @@ name: E2E Tests
 
 on:
     workflow_call:
-    # pull_request:
-    #     branches-ignore: ["**"]
+    pull_request:
+        branches-ignore: ["**"]
     push:
          branches: ["feature/ci-vldn"]
     
