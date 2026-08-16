@@ -2,7 +2,6 @@ import { Page, APIRequestContext, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { signupAndLogin, uniqueEmail } from "./auth";
-import { exec } from "node:child_process";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
