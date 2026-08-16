@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: UniTrade Admin & Disputes Api
+  version: 0.1.0-demo3
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+
+paths:
+  /admin/cases:
+    get:
+      summary: List pending cases, oldest first
+      parameters:
+        - { name: type, in:query, schema: { $ref: '#/components/schemas/'}}
