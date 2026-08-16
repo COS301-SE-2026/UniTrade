@@ -22,6 +22,7 @@ using Infrastructure.Storage;
 using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -254,7 +255,15 @@ builder
         options.Events = AuthEventsFactory.CreateJwtEvents();
     });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 app.Use(
     async (context, next) =>
@@ -280,7 +289,6 @@ else
     app.UseHsts();
 }
 
-app.UseForwardedHeaders();
 
 app.UseRouting();
 app.UseCors("AllowReactApp");
