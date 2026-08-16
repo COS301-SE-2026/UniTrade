@@ -114,6 +114,7 @@ async function openCheckInModal(page: Page): Promise<void> {
 export async function scheduleMeetupAndCheckIn(
   sellerPage: Page,
   buyerPage: Page,
+  reservationId: string,
 ): Promise<void> {
   await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
   await expect(
@@ -146,7 +147,14 @@ export async function scheduleMeetupAndCheckIn(
     buyerPage.getByRole("heading", { name: "Meetup Details" }),
   ).toBeVisible({ timeout: 10000 });
 
-  await openCheckInModal(buyerPage);
+  const buyerCheckInButton = buyerPage.getByRole("button", {name: "Check In at Meetup",});
+  await expect(buyerCheckInButton).toBeEnabled({timeout: 90_000});
+
+  await Promise.all([buyerPage.waitForResponse(
+    (resp)=>resp.url().includes(`reservations/${reservationId}/meetup/check-in`) && resp.request().method() === "POST" ),
+    buyerCheckInButton.click(),
+  ]);
+
   await expect(buyerPage.getByText(/checking your location/i)).toBeVisible();
   await expect(buyerPage.getByText(/you're checked in/i)).toBeVisible({
     timeout: 15000,
@@ -159,7 +167,13 @@ export async function scheduleMeetupAndCheckIn(
     sellerPage.getByRole("heading", { name: "Meetup Details" }),
   ).toBeVisible({ timeout: 10000 });
 
-  await openCheckInModal(sellerPage);
+   const sellerCheckInButton = sellerPage.getByRole("button", {name: "Check In at Meetup",});
+  await expect(sellerCheckInButton).toBeEnabled({timeout: 90_000});
+
+  await Promise.all([sellerPage.waitForResponse(
+    (resp)=>resp.url().includes(`reservations/${reservationId}/meetup/check-in`) && resp.request().method() === "POST" ),
+    sellerCheckInButton.click(),
+  ]);
   await expect(sellerPage.getByText(/checking your location/i)).toBeVisible();
   await expect(sellerPage.getByText(/you're checked in/i)).toBeVisible({
     timeout: 15000,
