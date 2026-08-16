@@ -13,7 +13,7 @@ interface CheckInModalProps {
     reservationId: string;
     onClose: () => void;
 }
-//pls work, now
+//pls work, now, yes payment worked
 export default function CheckInModal({ reservationId, meetupLocation, onClose }: Readonly<CheckInModalProps>) {
     const [state, setState] = useState<CheckInState>(() =>
         'geolocation' in navigator ? 'requesting' : 'unsupported'
