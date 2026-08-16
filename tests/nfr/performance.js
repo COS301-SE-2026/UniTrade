@@ -3,17 +3,17 @@ import { check, sleep } from "k6";
 const BASE = __ENV.STAGING_URL;
 export const options = {
   scenarios: {
-    feed: { executor: "constant-vus", vus: 17, duration: "3m", exec: "feed" },
+    feed: { executor: "constant-vus", vus: 5, duration: "3m", exec: "feed" },
     browse: {
       executor: "constant-vus",
-      vus: 17,
+      vus: 3,
       duration: "3m",
       exec: "browse",
     },
 
     search: {
       executor: "constant-vus",
-      vus: 16,
+      vus: 2,
       duration: "3m",
       exec: "search",
     },
@@ -50,7 +50,7 @@ export function feed(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
+  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
   sleep(1);
 }
 

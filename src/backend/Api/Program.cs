@@ -61,13 +61,25 @@ builder.Configuration.AddEnvironmentVariables();
 
 const string UnknownKey = "unknown";
 
+static Func<HttpContext, RateLimitPartition<string>> DevAwarePolicy(
+    Func<HttpContext, RateLimitPartition<string>> policy
+) =>
+    httpContext =>
+    {
+        if (httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+        {
+            return RateLimitPartition.GetNoLimiter(UnknownKey);
+        }
+        return policy(httpContext);
+    };
+
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy(
         "register",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -77,11 +89,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "login",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -91,11 +104,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "verify-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -105,11 +119,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "resend-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -119,6 +134,7 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.RejectionStatusCode = 429;
@@ -126,13 +142,9 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
-    dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 12;
-    var dataSource = dataSourceBuilder.Build();
-
-    options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+    options
+        .UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"])
+        .UseSnakeCaseNamingConvention();
 });
 
 builder.Services.Configure<JsonOptions>(options =>
