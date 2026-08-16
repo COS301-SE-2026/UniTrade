@@ -1,5 +1,5 @@
 import http from "k6/http";
-import { check } from "k6";
+import { check, sleep } from "k6";
 import { Trend } from "k6/metrics";
 import exec from "k6/execution";
 
@@ -11,15 +11,17 @@ export const options = {
   scenarios: {
     baseline: {
       executor: "constant-vus",
-      vus: 50,
+      vus: 10,
       duration: "3m",
       startTime: "0s",
+      exec: "feed"
     },
     peak: {
       executor: "constant-vus",
-      vus: 100,
+      vus: 20,
       duration: "3m",
       startTime: "3m30s",
+      exec:"feed"
     },
   },
 
@@ -53,6 +55,7 @@ export function feed(data) {
   check(res, { 200: (r) => r.status === 200 });
   if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
   (exec.scenario.name === "baseline" ? BaselineDur : durPeak).add(
-    r.timings.duration,
+    res.timings.duration,
   );
+  sleep(1);
 }
