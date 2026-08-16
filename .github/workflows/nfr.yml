@@ -65,3 +65,15 @@ jobs:
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with: { name: scale-summary, path: scale-summary.json }
+  dast: #for QR-03d
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: OWASP ZAP baseline
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
+        with:
+            target: ${{ secrets.VITE_API_URL_STAGING }}
+            allow_issue_writing: false
+            fail_action: false
+
+

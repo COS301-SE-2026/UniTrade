@@ -3,29 +3,28 @@ import { check, sleep } from "k6";
 const BASE = __ENV.STAGING_URL;
 export const options = {
   scenarios: {
-    feed: { executor: "constant-vus", vus: 2, duration: "3m", exec: "feed" },
+    feed: { executor: "constant-vus", vus: 5, duration: "3m", exec: "feed" },
     browse: {
       executor: "constant-vus",
-      vus: 2,
+      vus: 3,
       duration: "3m",
       exec: "browse",
     },
 
     search: {
       executor: "constant-vus",
-      vus: 1,
+      vus: 2,
       duration: "3m",
       exec: "search",
     },
   },
-  
+
   thresholds: {
     "http_req_duration{scenario:feed}": ["p(95)<800"],
     "http_req_duration{scenario:browse}": ["p(95)<800"],
     "http_req_duration{scenario:search}": ["p(95)<800"],
     http_req_failed: ["rate<0.01"],
   },
-  
 };
 
 export function setup() {
