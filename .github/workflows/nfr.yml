@@ -1,9 +1,9 @@
 name: NFR Fitness Functions
 
 on: 
-    schedule:
-        - cron: "0 1 * * *"
-        - cron: "35 16 * * *"
+    #schedule:
+       # - cron: "0 1 * * *"
+        #- cron: "35 16 * * *"
     workflow_dispatch:
 
 
