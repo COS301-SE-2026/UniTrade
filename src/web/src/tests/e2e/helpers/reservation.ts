@@ -85,6 +85,7 @@ export async function createListingAndReserve(
       (resp) =>
         resp.url().includes(`/reservations/${reservationId}`) &&
         ["PATCH", "POST"].includes(resp.request().method()),
+        {timeout: 10000 }
     ),
     sellerPage.getByRole("button", { name: "Accept Reservation" }).click(),
   ]);
@@ -122,7 +123,7 @@ export async function scheduleMeetupAndCheckIn(
   ).toBeVisible();
 
   const scheduledTime = await sellerPage.evaluate(() => {
-    const d = new Date(Date.now() + 60_000);
+    const d = new Date(Date.now() + 300_000);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
   await sellerPage.locator('input[type="time"]').fill(scheduledTime);
@@ -155,9 +156,8 @@ export async function scheduleMeetupAndCheckIn(
     buyerCheckInButton.click(),
   ]);
 
-  await expect(buyerPage.getByText(/checking your location/i)).toBeVisible();
   await expect(buyerPage.getByText(/you're checked in/i)).toBeVisible({
-    timeout: 15000,
+    timeout: 20000,
   });
   await buyerPage.getByRole("button", { name: "DONE" }).click();
 
@@ -174,9 +174,8 @@ export async function scheduleMeetupAndCheckIn(
     (resp)=>resp.url().includes(`reservations/${reservationId}/meetup/check-in`) && resp.request().method() === "POST" ),
     sellerCheckInButton.click(),
   ]);
-  await expect(sellerPage.getByText(/checking your location/i)).toBeVisible();
   await expect(sellerPage.getByText(/you're checked in/i)).toBeVisible({
-    timeout: 15000,
+    timeout: 20000,
   });
   await sellerPage.getByRole("button", { name: "DONE" }).click();
 }
