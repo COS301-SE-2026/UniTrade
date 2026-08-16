@@ -165,13 +165,10 @@ export async function scheduleMeetupAndCheckIn(
   await expect(buyerPage.getByText(/you're checked in/i)).toBeVisible({
     timeout: 20000,
   });
-  const doneButton = buyerPage.getByRole("button", { name: "DONE" });
-  await expect(doneButton).toBeAttached({ timeout: 10000 });
-  await expect(doneButton).toBeVisible();
+    await buyerPage.waitForTimeout(500);
 
-  await buyerPage.waitForTimeout(500);
+  await buyerPage.getByRole("button", { name: "DONE" }).click({ timeout: 15000 });
 
-  await doneButton.click();
 
   await sellerPage.getByRole("button", { name: "View Reservation" }).click();
   await sellerPage.getByRole("button", { name: "View Meetup Details" }).click();
@@ -195,13 +192,11 @@ export async function scheduleMeetupAndCheckIn(
   await expect(sellerPage.getByText(/you're checked in/i)).toBeVisible({
     timeout: 20000,
   });
-  const doneButton_1 = sellerPage.getByRole("button", { name: "DONE" });
-  await expect(doneButton_1).toBeAttached({ timeout: 10000 });
-  await expect(doneButton_1).toBeVisible();
+    await sellerPage.waitForTimeout(500);
 
-  await sellerPage.waitForTimeout(500);
+  await sellerPage.getByRole("button", { name: "DONE" }).click({ timeout: 10000 });
 
-  await doneButton_1.click();
+
 }
 
 export { dropMapPin, openCheckInModal };
