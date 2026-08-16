@@ -50,7 +50,6 @@ export function feed(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
   sleep(1);
 }
 
@@ -62,8 +61,6 @@ export function browse(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
-
   sleep(1);
 }
 
@@ -75,7 +72,13 @@ export function search(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
 
   sleep(1);
+}
+export function handleSummary(data) {
+  const cleanedUp = { ...data, setup_data: { redacted: true } };
+  return {
+    "perf-summary.json": JSON.stringify(cleanedUp, null, 2),
+    stdout: textSummary(data, { indent: " ", enableColors: false }),
+  };
 }

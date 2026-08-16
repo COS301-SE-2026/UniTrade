@@ -14,14 +14,14 @@ export const options = {
       vus: 10,
       duration: "3m",
       startTime: "0s",
-      exec: "feed"
+      exec: "feed",
     },
     peak: {
       executor: "constant-vus",
       vus: 20,
       duration: "3m",
       startTime: "3m30s",
-      exec:"feed"
+      exec: "feed",
     },
   },
 
@@ -58,4 +58,16 @@ export function feed(data) {
     res.timings.duration,
   );
   sleep(1);
+}
+
+export function handleSummary(data) {
+  const basePeak = data.metrics.dur_baseline.values["p(95)"];
+  const peakOfPeak = data.metrics.dur_peak.values["p(95)"];
+  const ok = peakOfPeak <= basePeak * 1.5;
+
+  const cleanedUp = { ...data, setup_data: { redacted: true } };
+  return {
+    "scale-summary.json": JSON.stringify(cleanedUp, null, 2),
+    stdout: `baseline p95=${basePeak}ms peak p95=${peakOfPeak}ms ${ok ? "OK" : "FAILED"}`,
+  };
 }
