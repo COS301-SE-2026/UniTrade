@@ -69,7 +69,7 @@ test("buyer can view and reserve a seller's listing", async ({
   await expect(buyerPage).toHaveURL(/\/buyer\/reservations/);
 });
 
-test("reservation fitler narrows the list to the selected status", async ({
+test("reservation filter narrows the list to the selected status", async ({
   browser,
   request,
 }) => {

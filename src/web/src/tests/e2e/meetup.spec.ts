@@ -50,7 +50,7 @@ test.describe("meetup scheduling and check-in", () => {
     await buyerContext.close();
   });
 
-  test("buyer cannot  decline a meetup proposal", async ({
+  test("buyer can decline a meetup proposal", async ({
     browser,
     request,
   }) => {
@@ -66,7 +66,11 @@ test.describe("meetup scheduling and check-in", () => {
     await expect(
       sellerPage.getByRole("heading", { name: "Propose a Meetup" }),
     ).toBeVisible();
-    await sellerPage.locator('input[type="time"]').fill("14:00");
+    const scheduledTime = await sellerPage.evaluate(() => {
+      const d = new Date(Date.now() + 300_000);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    });
+    await sellerPage.locator('input[type="time"]').fill(scheduledTime);
     await sellerPage
       .getByPlaceholder("e.g. Merensky Library - Main Entrance")
       .fill("Hatfield Plaza, Pretoria");
@@ -91,7 +95,7 @@ test.describe("meetup scheduling and check-in", () => {
     await buyerContext.close();
   });
 
-  test("check-in card shows a message failor when location is denies", async ({
+  test("check-in card shows a message failure when location is denies", async ({
     browser,
     request,
   }) => {
