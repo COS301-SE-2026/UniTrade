@@ -50,10 +50,7 @@ test.describe("meetup scheduling and check-in", () => {
     await buyerContext.close();
   });
 
-  test("buyer can decline a meetup proposal", async ({
-    browser,
-    request,
-  }) => {
+  test("buyer can decline a meetup proposal", async ({ browser, request }) => {
     const sellerContext = await browser.newContext();
     const buyerContext = await browser.newContext();
 
@@ -107,6 +104,25 @@ test.describe("meetup scheduling and check-in", () => {
     const sellerPage = await sellerContext.newPage();
     const buyerPage = await buyerContext.newPage();
 
+    await buyerPage.addInitScript(() => {
+      Object.defineProperty(window.navigator, "geolocation", {
+        value: {
+          getCurrentPosition: (
+            _success: PositionCallback,
+            error: PositionErrorCallback,
+          ) => {
+            error({
+              code: 1,
+              message: "User denied Geolocation",
+              PERMISSION_DENIED: 1,
+              POSITION_UNAVAILABLE: 2,
+              TIMEOUT: 3,
+            });
+          },
+        },
+        configurable: true,
+      });
+    });
     await createListingAndReserve(sellerPage, buyerPage, request);
 
     await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
