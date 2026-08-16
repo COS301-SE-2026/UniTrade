@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
     IconMapPin,
     IconCheck,
@@ -83,9 +83,12 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
         setErrorMessage('');
         checkLocation();
     };
+    const hasRun = useRef(false);
 
     useEffect(() => {
         if (state === 'unsupported') return;
+        if(hasRun.current) return;
+        hasRun.current = true;
         checkLocation();
 
     }, [checkLocation, state]);
