@@ -1,19 +1,20 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
+import {textSummary} from "https://jslib.k6.io/k6-summary/0.0.4/index.js";
 const BASE = __ENV.STAGING_URL;
 export const options = {
   scenarios: {
-    feed: { executor: "constant-vus", vus: 5, duration: "3m", exec: "feed" },
+    feed: { executor: "constant-vus", vus: 5*4, duration: "3m", exec: "feed" },
     browse: {
       executor: "constant-vus",
-      vus: 3,
+      vus: 3*4,
       duration: "3m",
       exec: "browse",
     },
 
     search: {
       executor: "constant-vus",
-      vus: 2,
+      vus: 2*4,
       duration: "3m",
       exec: "search",
     },

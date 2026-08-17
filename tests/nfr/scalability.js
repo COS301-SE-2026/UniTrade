@@ -11,14 +11,14 @@ export const options = {
   scenarios: {
     baseline: {
       executor: "constant-vus",
-      vus: 10,
+      vus: 40,
       duration: "3m",
       startTime: "0s",
       exec: "feed",
     },
     peak: {
       executor: "constant-vus",
-      vus: 20,
+      vus: 80,
       duration: "3m",
       startTime: "3m30s",
       exec: "feed",
