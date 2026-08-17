@@ -22,6 +22,7 @@ using Infrastructure.Storage;
 using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -61,13 +62,25 @@ builder.Configuration.AddEnvironmentVariables();
 
 const string UnknownKey = "unknown";
 
+static Func<HttpContext, RateLimitPartition<string>> DevAwarePolicy(
+    Func<HttpContext, RateLimitPartition<string>> policy
+) =>
+    httpContext =>
+    {
+        if (httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+        {
+            return RateLimitPartition.GetNoLimiter(UnknownKey);
+        }
+        return policy(httpContext);
+    };
+
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy(
         "register",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -77,11 +90,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "login",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -91,11 +105,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "verify-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -105,11 +120,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "resend-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -119,6 +135,7 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.RejectionStatusCode = 429;
@@ -238,7 +255,15 @@ builder
         options.Events = AuthEventsFactory.CreateJwtEvents();
     });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 app.Use(
     async (context, next) =>
@@ -264,7 +289,6 @@ else
     app.UseHsts();
 }
 
-app.UseForwardedHeaders();
 
 app.UseRouting();
 app.UseCors("AllowReactApp");
