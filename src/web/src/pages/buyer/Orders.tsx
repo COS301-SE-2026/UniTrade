@@ -12,6 +12,7 @@ import { useSearchQuery } from '../../hooks/useSearchQuery';
 
 
 export type OrderFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
+export type OrderSort = 'Newest' | 'Oldest' | 'Price Low' | 'Price High'
 
 function isThisSemester(iso: string): boolean {
   const mockMonth = new Date()
@@ -21,6 +22,7 @@ function isThisSemester(iso: string): boolean {
 
 export default function Orders() {
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
+  const [sortOrder, setSortOrder] = useState<OrderSort>('Newest');
 
   const navigate = useNavigate()
 
@@ -66,8 +68,15 @@ export default function Orders() {
       )
     }
 
-   return result
-  }, [orders, activeTab, searchQuery])
+   return [...result].sort((a, b) => {
+    if( sortOrder === 'Price Low') return a.price - b.price
+    if( sortOrder === 'Price High') return b.price - a.price
+    
+    if( sortOrder === 'Oldest'){ return new Date(a._createdAtIso).getTime() - new Date(b._createdAtIso).getTime()
+   } 
+  return new Date(b._createdAtIso).getTime() - new Date(a._createdAtIso).getTime()
+   })
+  }, [orders, activeTab, searchQuery, sortOrder])
 
   const stats = useMemo(() => {
     const totalPurchases = orders.length
@@ -111,7 +120,8 @@ export default function Orders() {
         />
       </div>
 
-      <div className="flex items-center gap-2">
+     <div className="flex items-center justify-between flex-wrap gap-3">  
+      <div className="flex items-center gap-2 flex-wrap">
         {(['all', 'semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
           <button
             key={tab}
@@ -129,10 +139,25 @@ export default function Orders() {
                   : tab === 'reviewed'
                     ? 'Reviewed'
                     : 'All'
-            }
+            } 
           </button>
         ))}
       </div>
+
+      <div className="flex items-center gap-2">
+        <select
+        value={sortOrder}
+        onChange={(e) => setSortOrder(e.target.value as OrderSort)}
+        className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-none focus:outline-none focus:border-navy-700">
+          <option value="Newest">Sort by: Newest</option>
+          <option value="Oldest">Sort by: Oldest</option>
+          <option value="Price Low">Sort by: Price Low to High</option>
+          <option value="Price High">Sort by: Price High to Low</option>
+        </select>
+        </div>
+        </div>
+
+
 
       {isLoading && <LoadingState message="Fetching orders..." />}
 
