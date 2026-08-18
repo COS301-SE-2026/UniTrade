@@ -58,11 +58,18 @@ export interface ListingQualityEvidence {
 }
 
 export interface ReportListingEvidence {
-
+    listingId: string;
+    reportReason: string;
+    snapshot: ListingSnapshot;
 }
 
 export interface NoShowEvidence {
-
+    meetupId: string;
+    buyerCheckedIn: boolean;
+    sellerCheckedIn: boolean;
+    pinStatus: PinStatus;
+    meetupWindowStart: string;
+    meetupWindowEnd: string;
 }
 
 //the actual listing snapshot 
