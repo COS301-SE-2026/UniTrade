@@ -6,8 +6,6 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react'
 
-import Sidebar from '../../components/layout/Sidebar'
-
 
 interface StatCardProps {
   title: string
@@ -136,10 +134,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
 
   return (
-    <div className = "flex h-screen">
-      <Sidebar />
-    <div className = "flex-1 overflow-y-auto p-6">
-      <div className="space-y-6">
+    <div className="space-y-6">
 
       <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
         WELCOME Admin
@@ -262,14 +257,10 @@ export default function AdminDashboard() {
               title="No show report - Laptop"
               meta="Buyer: TM · Seller: LV · 1 day ago"
             />
-
-    </div>
-    
           </div>
 
         </div>
       </div>
-    </div>
     </div>
   )
 }
