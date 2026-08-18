@@ -236,14 +236,14 @@ export interface FileCaseResponse {
     caseId: string;
 }
 
-export interface GetCaseResponse extends CaseDetail {}
-export interface DecideCaseResponse extends CaseDetail {}
+export type GetCaseResponse = CaseDetail
+export type DecideCaseResponse = CaseDetail
 
 export interface ListAuditResponse {
     entries: AuditEntry[];
     total: number;
 }
-export interface GetListingSnapshotResponse extends ListingSnapshot {}
+export type GetListingSnapshotResponse = ListingSnapshot
 
 export interface ListUsersResponse {
     users: UserListItem[];
