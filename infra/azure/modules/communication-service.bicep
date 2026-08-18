@@ -32,4 +32,5 @@ resource acs 'Microsoft.Communication/communicationServices@2023-04-01'={
 }
 
 output senderAddress string='DoNotReply@${domain.properties.mailFromSenderDomain}'
+@secure()
 output connectionString string=acs.listKeys().primaryConnectionString

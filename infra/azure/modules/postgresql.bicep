@@ -17,7 +17,7 @@ resource newServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview
         tier: 'Burstable'
     }
     properties:{
-        version: 16
+        version: '16'
         administratorLogin: adminUsername
         administratorLoginPassword: adminPassword
         storage:{
@@ -64,6 +64,6 @@ resource firewallOnExistingServer 'Microsoft.DBforPostgreSQL/flexibleServers/fir
     }
 }
 
-output fqdn string =createServer ? newServer.properties.fullyQualifiedDomainName: existingServer.properties.fullyQualifiedDomainName
+output fqdn string =createServer ? newServer!.properties.fullyQualifiedDomainName: existingServer!.properties.fullyQualifiedDomainName
 output serverName string=serverName
 output database string= databaseName
