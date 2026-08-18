@@ -11,10 +11,11 @@ import type {
     ListAuditParams,
     ListAuditResponse,
     GetListingSnapshotResponse,
-    PublishListingResponse,
+    
     PublishListingError,
     UserReputation,
     ListUsersResponse,*/
+    PublishListingResponse,
      DecisionRequest,
      ApiError,
      ListCasesResponse,
@@ -25,6 +26,7 @@ import type {
      ListAuditParams,
     ListAuditResponse,
     GetListingSnapshotResponse,
+    PublishListingError,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -148,4 +150,26 @@ export async function getReservationSnapshot(
     );
 
     return handleResponse<GetListingSnapshotResponse>(res);
+}
+
+export async function publishListing(
+    listingId: string
+): Promise<PublishListingResponse> {
+    const res = await fetch(
+        `${getApiUrl()}/listings/${listingId}/publish`,
+        {method: 'POST', headers: authHeaders()}
+    );
+
+    if (res.status === 403) {
+        const body: PublishListingError = await res.json();
+        const error: ApiError = {
+            status: 403,
+            code: body.error,
+            message: 'Seller must be verified before publishing a listing.',
+        };
+        throw error;
+    }
+
+    return handleResponse<PublishListingResponse>(res)
+
 }
