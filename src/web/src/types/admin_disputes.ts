@@ -249,3 +249,26 @@ export interface ListUsersResponse {
     users: UserListItem[];
     total: number;
 }
+
+export interface ListCasesParams {
+     type?: CaseType;
+     status?: CaseStatus;
+     sort?: 'age' | 'ageDesc';
+     page?: number;
+     limit?: number;
+}
+
+export interface ListAuditParams {
+    entityId?: string;
+    actorId?: string;
+    page?: number;
+    limit?: number;
+}
+
+export interface ListUserParams {
+    verificationStatus?: VerificationStatus;
+    hasStrikes?: boolean;
+    search?: string;
+    page?: number;
+    limit?: number;
+}
