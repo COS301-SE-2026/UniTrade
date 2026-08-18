@@ -169,3 +169,24 @@ export interface ReportListingFiling {
 }
 
 export type DisputeFiling = NoShowFiling | ListingQualityFiling | ReportListingFiling;
+
+export interface Strike {
+    strikeId: string;
+    userId: string;
+    type: Outcome;
+    reason: string;
+    sourceCaseId: string;
+    createdByAdminId: string;
+    createdAt: string;
+}
+
+export interface AuditEntry {
+    id: string;
+    actorId: string;
+    action: string;
+    entityType: string;
+    oldValue?: string;
+    newValue?: string;
+    reason?: string;
+    timestamp: string;
+}
