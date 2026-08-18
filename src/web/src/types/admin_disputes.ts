@@ -190,3 +190,27 @@ export interface AuditEntry {
     reason?: string;
     timestamp: string;
 }
+
+export interface UserReputation {
+    userId: string;
+    name: string;
+    email: string;
+    universityName: string;
+    degree: string;
+    year: number;
+    verificationStatus: VerificationStatus;
+    reviewAverage: number;
+    reviewCount: number;
+    strikes: Strike[];
+}
+
+export interface UserListItem {
+    userId: string;
+    name: string;
+    email: string;
+    degree: string;
+    year: number;
+    verificationStatus: VerificationStatus;
+    reviewAverage: number;
+    strikeCount: number;
+}
