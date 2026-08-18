@@ -214,3 +214,38 @@ export interface UserListItem {
     reviewAverage: number;
     strikeCount: number;
 }
+
+export type PublishListingResponse = Record<string, never>;
+
+export interface PublishListingError {
+    error: 'SELLER_NOT_VERIFIED';
+}
+
+export interface ApiError {
+    status: number;
+    code: string;
+    message: string;
+}
+
+export interface ListCasesResponse {
+    cases: CaseSummary[];
+    total: number;
+}
+
+export interface FileCaseResponse {
+    caseId: string;
+}
+
+export interface GetCaseResponse extends CaseDetail {}
+export interface DecideCaseResponse extends CaseDetail {}
+
+export interface ListAuditResponse {
+    entries: AuditEntry[];
+    total: number;
+}
+export interface GetListingSnapshotResponse extends ListingSnapshot {}
+
+export interface ListUsersResponse {
+    users: UserListItem[];
+    total: number;
+}
