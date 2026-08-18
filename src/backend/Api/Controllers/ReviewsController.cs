@@ -44,7 +44,7 @@ public class ReviewsController : ControllerBase
         return Ok(await _reviews.GetForUserAsync(userId, ct));
     }
 
-    private IActionResult MapError(ReviewException ex) =>
+    private ObjectResult MapError(ReviewException ex) =>
         ex.Message switch
         {
             ReviewErrors.TransactionNotFound => NotFound(new { error = ex.Message }),

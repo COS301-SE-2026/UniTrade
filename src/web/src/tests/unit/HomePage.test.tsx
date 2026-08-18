@@ -1,7 +1,4 @@
-import { fireEvent, render } from '@testing-library/react'
-import { screen } from '@testing-library/react'
-//import { fireEvent, act} from '@testing-library/react'
-import { within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import HomePage from '../../pages/auth/HomePage'
@@ -28,7 +25,18 @@ const renderHomePage = () =>
             <HomePage />
         </MemoryRouter>
     )
+const FirstpageTexts = [
+    "UniTrade is the verified peer-to-peer marketplace for South African students. No shipping, no strangers - just your campus community.",
+    "Buy and sell University materials",
+    'on your campus',
+]
 
+const stats = [
+    ['5+', 'SA UNIVERSITIES'],
+    ['100%', 'VERIFIED STUDENTS'],
+    ['0', 'SHIPPING FEES'],
+
+]
 describe('HomePage', () => {
     it('home page appears up without crashing or lagging', () => {
         renderHomePage()
@@ -175,39 +183,18 @@ describe('Firstpage', () => {
         await user.click(loginbuton)
         expect(mockNavigate).toHaveBeenCalledWith('/auth/Login')
     })
-    it('renders the first page text', async () => {
+    it.each(FirstpageTexts)('renders first page copy: %s', (text) => {
         renderHomePage()
-        expect(screen.getByText('UniTrade is the verified peer-to-peer marketplace for South African students. No shipping, no strangers - just your campus community.')).toBeInTheDocument()
+        expect(screen.getByText(text)).toBeInTheDocument()
     })
 
-    it('renders the first page text', async () => {
+    it.each(stats)('renders stat %s with label %s', (value, label) => {
         renderHomePage()
-        expect(screen.getByText('Buy and sell University materials')).toBeInTheDocument()
-    })
-    it('renders the first page second text', async () => {
-        renderHomePage()
-        expect(screen.getByText('on your campus')).toBeInTheDocument()
+        expect(screen.getByText(value)).toBeInTheDocument()
+        expect(screen.getByText(label)).toBeInTheDocument()
     })
 
-    it('renders the University stats with correct number and label', async () => {
-        renderHomePage()
-        expect(screen.getByText('5+')).toBeInTheDocument()
-        expect(screen.getByText('SA UNIVERSITIES')).toBeInTheDocument()
-    })
-
-    it('renders the verification stats with the correct number and label', async () => {
-        renderHomePage()
-        expect(screen.getByText('100%')).toBeInTheDocument()
-        expect(screen.getByText('VERIFIED STUDENTS')).toBeInTheDocument()
-    })
-
-    it('renders the shipping fees stats with the correct number and label', async () => {
-        renderHomePage()
-        expect(screen.getByText('0')).toBeInTheDocument()
-        expect(screen.getByText('SHIPPING FEES')).toBeInTheDocument()
-    })
-
-    it('inlcudes the Alex Avatar alt text on the page', async () => { //another way for checking if the avatar is on the page
+    it('includes the Alex Avatar alt text on the page', async () => { //another way for checking if the avatar is on the page
         renderHomePage()
         expect(screen.getByAltText(/Alex Avatar/i)).toBeInTheDocument()
     })
@@ -423,6 +410,9 @@ describe('BuyersSellers', () => {
 })
 
 describe('Footer', () => {
+    beforeEach(() => {
+        mockNavigate.mockClear()
+    })
     it('displays contact info', () => {
         render(<Footer />)
 
@@ -437,9 +427,7 @@ describe('Footer', () => {
         expect(screen.getByText('Contact Us')).toBeInTheDocument()
     })
 
-    beforeEach(() => {
-        mockNavigate.mockClear()
-    })
+
 
     it('navigates to the help center page when the text is clicked', async () => {
         const user = userEvent.setup()

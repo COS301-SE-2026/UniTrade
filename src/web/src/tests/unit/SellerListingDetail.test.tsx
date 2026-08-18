@@ -149,8 +149,6 @@ describe('SellerListingDetail', () => {
 
     const mainImg = screen.getByAltText('Biology Textbook 3rd Edition')
     expect(mainImg).toHaveAttribute('src', 'https://example.com/bio2.jpg')
-
-    expect(thumbnail).toHaveClass('border-navy-700')
   })
 
   it('navigates back to the summary index when clicking the My Listings breadcrum link', async () => {

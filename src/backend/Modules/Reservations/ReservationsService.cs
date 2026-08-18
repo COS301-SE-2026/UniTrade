@@ -179,21 +179,21 @@ public class ReservationService(
         CancellationToken ct = default
     )
     {
-        var reservations =
+        var reservation_s =
             role == "buyer"
                 ? await _reservations.ListForBuyerAsync(userId, ct)
                 : await _reservations.ListForSellerAsync(userId, ct);
 
-        if (reservations.Count == 0)
+        if (reservation_s.Count == 0)
         {
             return Array.Empty<ReservationListItemDto>();
         }
 
-        var ids = reservations.Select(r => r.ReservationId);
+        var ids = reservation_s.Select(r => r.ReservationId);
 
         var unread = await _chat.GetUnreadCountsAsync(ids, userId, ct);
         var lastMessages = await _chat.GetLastMessagesAsync(ids, ct);
-        return reservations
+        return reservation_s
             .Select(r =>
             {
                 var lastMsg = lastMessages.GetValueOrDefault(r.ReservationId);

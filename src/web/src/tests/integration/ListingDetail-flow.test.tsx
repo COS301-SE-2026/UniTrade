@@ -1,6 +1,6 @@
 
 import ListingDetail from '../../pages/buyer/ListingDetail'
-import { test,vi } from 'vitest'
+import { expect, test,vi } from 'vitest'
 import { screen, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router'
@@ -33,5 +33,6 @@ test('reserving your own listing (via direct navigation) shows an error', async 
     await screen.findByRole('heading', { name: 'Own Listing For Sale', level: 1 })
     await user.click(screen.getByRole('button', { name: /reserve this item/i }))
 
-    await screen.findByText(/can't reserve your own listing/i)
+    const errorToast = await screen.findByText(/can't reserve your own listing/i)
+    expect(errorToast).toBeInTheDocument()
 })

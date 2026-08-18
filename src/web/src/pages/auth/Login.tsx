@@ -29,7 +29,7 @@ const Login: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
 
     e.preventDefault()
     setLoading(true)
@@ -81,15 +81,15 @@ const Login: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email Address</label>
-              <input type="text" inputMode='email' name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required
+              <label htmlFor='email' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email Address</label>
+              <input id="email" type="text" inputMode='email' name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required
                 className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
+              <label htmlFor="password" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
               <div className="relative">
-                <input type={showPassword ? "text" : "password"}
+                <input id="password" type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Password"
                   value={formData.password}

@@ -1,12 +1,11 @@
 import { useNavigate, useLocation } from 'react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CheckInModal from '../../components/CheckInModal';
 import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
 import { getReservationById } from '../../services/reservationService';
 import LocationPicker from '../../components/layout/LocationPicker';
-import { useEffect } from 'react';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { LoadingState } from '../../components/layout/Spinner';
@@ -27,12 +26,58 @@ interface MeetupDetailsState {
 function formatMeetupTime(iso?: string): string {
   if (!iso) return 'Time to be confirmed';
   const date = new Date(iso);
-  if (isNaN(date.getTime())) return 'Invalid Date';
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
   return date.toLocaleDateString('en-ZA', {
     weekday: undefined,
     month: 'short',
     day: 'numeric',
   }) + `, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+}
+
+function useTransactionStatus(reservationId: string | undefined, isSeller: boolean) {
+  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
+
+  useEffect(() => {
+    if (!reservationId || !isSeller) {
+      return;
+    }
+
+    const refresh = () => {
+      getTransactionStatus(reservationId).then((r) => {
+        if (r.success) {
+          setTxStatus(r.data);
+        }
+      });
+    };
+
+    refresh();
+    connectionManager.connect().catch((e) => console.error('connect failed', e));
+    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
+
+    const off = connectionManager.onPaymentCompleted((e) => {
+      if (e.reservationId === reservationId) {
+
+        refresh();
+
+      }
+
+    });
+
+    const offPin = connectionManager.onPinGenerated((e) => {
+      if (e.reservationId === reservationId) refresh();
+    });
+    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+      if (e.reservationId === reservationId) refresh();
+    });
+    return () => {
+      off();
+      offPin();
+      offPinConfirmed();
+    };
+  }, [reservationId, isSeller]);
+
+
+  return txStatus;
 }
 export default function MeetupDetails() {
   const navigate = useNavigate();
@@ -43,7 +88,6 @@ export default function MeetupDetails() {
   const isSeller = navState.role === 'seller'
   const reservationId = navState.reservationId;
   const [showCheckIn, setShowCheckIn] = useState(false);
-  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
 
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
@@ -114,41 +158,7 @@ export default function MeetupDetails() {
         ? { lat: navState.meetupLat, lng: navState.meetupLng }
         : null;
 
-  useEffect(() => {
-    if (!reservationId || !isSeller) return;
-
-    getTransactionStatus(reservationId).then((result) => {
-      if (result.success) setTxStatus(result.data);
-    });
-
-    connectionManager.connect().catch((e) => console.error('connect failed', e));
-    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
-
-    const off = connectionManager.onPaymentCompleted((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-
-    const offPin = connectionManager.onPinGenerated((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-    return () => {
-      off();
-      offPin();
-      offPinConfirmed();
-    };
-  }, [reservationId, isSeller]);
+  const txStatus = useTransactionStatus(reservationId, isSeller);
 
   const handlePayNow = async () => {
     if (!reservationId) return;
@@ -179,6 +189,7 @@ export default function MeetupDetails() {
           We couldn't find the details for this meetup. Please go back to your conversation and try again.
         </p>
         <button
+          type='button'
           onClick={() => navigate(-1)}
           className="bg-blue-500 hover:bg-blue-900 text-white font-bold py-2.5 px-5 rounded-xl"
         >
@@ -197,7 +208,7 @@ export default function MeetupDetails() {
       <div className="bg-navy-800 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg transition text-white">
+            <button type='button' onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg transition text-white">
               <ChevronLeft className="w-6 h-6" />
             </button>
             <div >
@@ -317,7 +328,7 @@ export default function MeetupDetails() {
                 <div className="space-y-3">
                   {!meetup?.buyerCheckedIn ? (
                     <>
-                      <button
+                      <button type='button'
                         onClick={() => setShowCheckIn(true)}
                         disabled={!!timeRemaining}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
@@ -331,7 +342,7 @@ export default function MeetupDetails() {
                     </>
                   ) : (
                     <>
-                      <button
+                      <button type='button'
                         onClick={handlePayNow}
                         disabled={!meetup?.paymentUnlocked || price == null}
                         className="w-full bg-blue-950 hover:bg-blue-900 disabled:bg-gray-300 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
@@ -348,6 +359,7 @@ export default function MeetupDetails() {
                 <div className="space-y-3">
                   {!meetup?.sellerCheckedIn ? (
                     <button
+                      type='button'
                       onClick={() => setShowCheckIn(true)}
                       disabled={!!timeRemaining}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
@@ -356,6 +368,7 @@ export default function MeetupDetails() {
                     </button>
                   ) : txStatus?.transactionStatus === 'completed' && txStatus?.pinStatus === 'pending' ? (
                     <button
+                      type='button'
                       onClick={() => navigate('/payment/generate-pin', { state: { pin: txStatus.pin, reservationId } })}
                       className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                     >
