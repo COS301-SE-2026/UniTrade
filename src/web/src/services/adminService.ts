@@ -1,7 +1,7 @@
 import { getApiUrl } from "../config";
 
 import type {
-    ListCasesParams,
+     ListCasesParams,
     /*ListCasesResponse,
     GetCaseResponse,
     DecideCaseResponse,
@@ -15,13 +15,15 @@ import type {
     PublishListingError,
     UserReputation,
     ListUsersResponse,*/
-    DecisionRequest,
-    ApiError,
-    ListCasesResponse,
-    GetCaseResponse,
-    DecideCaseResponse,
-    DisputeFiling,
-    FileCaseResponse,
+     DecisionRequest,
+     ApiError,
+     ListCasesResponse,
+     GetCaseResponse,
+     DecideCaseResponse,
+     DisputeFiling,
+     FileCaseResponse,
+     ListAuditParams,
+    ListAuditResponse,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -117,4 +119,21 @@ export async function fileDispute(
     );
 
     return handleResponse<FileCaseResponse>(res);
+}
+
+export async function getAuditEntries(
+    params: ListAuditParams = {}
+): Promise<ListAuditResponse> {
+    const query = new URLSearchParams();
+    if (params.entityId) query.set('entityId', params.entityId);
+    if (params.actorId)  query.set('actorId', params.actorId);
+    if(params.page)      query.set('page', String(params.page));
+    if(params.limit)     query.set('limit', String(params.limit));
+
+    const res = await fetch(
+        `${getApiUrl()}/admin/audit?${query.toString()}`,
+        {method: 'GET', headers: authHeaders()}
+    );
+
+    return handleResponse<ListAuditResponse>(res);
 }
