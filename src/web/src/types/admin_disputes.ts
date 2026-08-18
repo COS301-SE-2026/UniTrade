@@ -147,3 +147,25 @@ export type DisputeDecisionRequest =
     }
 
 export type DecisionRequest = VerificationDecisionRequest | DisputeDecisionRequest;
+
+//dispute filing tuypes 
+export interface NoShowFiling {
+    type: 'now_show';
+    meetupId: string;
+}
+
+export interface ListingQualityFiling {
+    type: 'listing_quality';
+    reservationId: string;
+    sellerRefusedPhotos: boolean;
+    photos?: string[];
+    description?: string; 
+}
+
+export interface ReportListingFiling {
+    type: 'report_listing';
+    listingId: string;
+    reportReason: string;
+}
+
+export type DisputeFiling = NoShowFiling | ListingQualityFiling | ReportListingFiling;
