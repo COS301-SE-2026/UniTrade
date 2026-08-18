@@ -304,7 +304,6 @@ public class ReservationService(
 
             await _wishlist.RestoreForReservationAsync(reservation.ReservationId, ct);
 
-            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
         }
 
