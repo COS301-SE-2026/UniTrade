@@ -24,6 +24,7 @@ import type {
      FileCaseResponse,
      ListAuditParams,
     ListAuditResponse,
+    GetListingSnapshotResponse,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -136,4 +137,15 @@ export async function getAuditEntries(
     );
 
     return handleResponse<ListAuditResponse>(res);
+}
+
+export async function getReservationSnapshot(
+    reservationId: string
+): Promise<GetListingSnapshotResponse> {
+    const res = await fetch(
+        `${getApiUrl()}/reservations/${reservationId}/snapshot`,
+        {method: 'GET', headers: authHeaders()}
+    );
+
+    return handleResponse<GetListingSnapshotResponse>(res);
 }
