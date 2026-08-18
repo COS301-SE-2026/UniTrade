@@ -19,6 +19,9 @@ param useAcrRegistry bool =false
 param grantAcrAccess bool =false
 
 param placeholderImage string='mcr.microsoft.com/k8se/quickstart:latest'
+param deployAcr bool=false
+param postgresServerName string
+param createPostgresServer bool=true
 
 var rgName='rg-${projectName}-${environment}'
 
@@ -26,7 +29,6 @@ resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' existing={
     name:rgName
 }
 
-param deployAcr bool=false
 
 module containerRegistry 'modules/container-registry.bicep'=if(deployAcr){
     name: 'deployAcr-${environment}'
@@ -38,8 +40,9 @@ module containerRegistry 'modules/container-registry.bicep'=if(deployAcr){
 }
 
 resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing=if (!deployAcr){
-    name: acrName
     scope: resourceGroup('rg-${projectName}-dev')
+    name: acrName
+    
 }
 
 var acrLoginServer=deployAcr ? containerRegistry.outputs.loginServer : existingAcr.properties.loginServer
@@ -54,8 +57,7 @@ module containerAppsEnv 'modules/container-apps-env.bicep'={
     }
 }
 
-param postgresServerName string
-param createPostgresServer bool=true
+
 
 module postgresql 'modules/postgresql.bicep'={
     name: 'deploy-postgres-${environment}'
