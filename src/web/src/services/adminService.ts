@@ -2,19 +2,6 @@ import { getApiUrl } from "../config";
 
 import type {
     ListCasesParams,
-    /*ListCasesResponse,
-    GetCaseResponse,
-    DecideCaseResponse,
-    
-    DisputeFiling,
-    FileCaseResponse,
-    ListAuditParams,
-    ListAuditResponse,
-    GetListingSnapshotResponse,
-    
-    PublishListingError,
-    UserReputation,
-    ListUsersResponse,*/
     PublishListingResponse,
     DecisionRequest,
     ApiError,
@@ -29,6 +16,7 @@ import type {
     PublishListingError,
     ListUserParams,
     ListUsersResponse,
+    UserReputation,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -193,4 +181,15 @@ export async function getUsers(
     );
 
     return handleResponse<ListUsersResponse>(res);
+}
+
+export async function getUserReputation(
+    userId: string
+): Promise<UserReputation> {
+    const res = await fetch(
+        `${getApiUrl()}/admin/users/${userId}/reputation`,
+        {method: 'GET', headers: authHeaders()}
+    );
+
+    return handleResponse<UserReputation>(res);
 }
