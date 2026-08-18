@@ -5,7 +5,7 @@ import type {
     /*ListCasesResponse,
     GetCaseResponse,
     DecideCaseResponse,
-    DecisionRequest,
+    
     DisputeFiling,
     FileCaseResponse,
     ListAuditParams,
@@ -15,9 +15,11 @@ import type {
     PublishListingError,
     UserReputation,
     ListUsersResponse,*/
+    DecisionRequest,
     ApiError,
     ListCasesResponse,
     GetCaseResponse,
+    DecideCaseResponse,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -82,4 +84,20 @@ export async function getCaseById(id: string): Promise<GetCaseResponse> {
     )
 
     return handleResponse<GetCaseResponse>(res);
+}
+
+export async function decideCase(
+    id: string,
+    body: DecisionRequest
+): Promise<DecideCaseResponse> {
+    const res = await fetch(
+        `${getApiUrl()}/admin/cases/${id}/decision`,
+        {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(body),
+        }
+    );
+
+    return handleResponse<DecideCaseResponse>(res);
 }
