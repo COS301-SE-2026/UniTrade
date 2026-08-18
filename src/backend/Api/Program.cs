@@ -128,6 +128,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+    if(string.IsNullOrWhiteSpace(connectionString))
+    {
+        connectionString="Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+    }
+
     var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
     dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
     var dataSource = dataSourceBuilder.Build();

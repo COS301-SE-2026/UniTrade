@@ -569,7 +569,7 @@ export const listingsService = {
     }
     return mapWishListItem(await res.json());
   },
-
+//heyy
   removeFromWishlist: async (listingId: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
       method: "DELETE",
