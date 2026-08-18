@@ -304,13 +304,13 @@ public class ListingRepository : IListingRepository
         {
             listing.Images = byListing.TryGetValue(listing.ListingId, out var imgs)
                 ? imgs.Select(i => new ListingImage
-                    {
-                        ImageId = i.ImageId,
-                        ListingId = i.ListingId,
-                        IsPrimary = i.IsPrimary,
-                        ImageData = Array.Empty<byte>(),
-                        ContentType = string.Empty,
-                    })
+                {
+                    ImageId = i.ImageId,
+                    ListingId = i.ListingId,
+                    IsPrimary = i.IsPrimary,
+                    ImageData = Array.Empty<byte>(),
+                    ContentType = string.Empty,
+                })
                     .ToList()
                 : new List<ListingImage>();
         }

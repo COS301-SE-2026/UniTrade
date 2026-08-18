@@ -9,15 +9,19 @@ export async function signupAndLogin(
   request: APIRequestContext,
   { email, password = "Tafadzwa123!" }: { email: string; password?: string },
 ) {
-  await page.goto("/auth/Signup");
+  const universityResponse = page.waitForResponse(
+    (res) => res.url().includes("/api/universities") && res.status() === 200,
+  );
 
+  await page.goto("/auth/Signup");
+  await universityResponse;
   await page.locator('input[name="firstName"]').fill("Test");
   await page.locator('input[name="lastName"]').fill("User");
   await page.locator('input[name="email"]').fill(email);
 
   const universitySelect = page.locator('select[name="university"]');
   await expect(universitySelect.locator("option").nth(1)).not.toHaveText("", {
-    timeout: 10000,
+    timeout: 20000,
   });
   await universitySelect.selectOption({ index: 1 });
 

@@ -2,10 +2,10 @@ name: E2E Tests
 
 on:
     workflow_call:
-    # pull_request:
-    #     branches-ignore: ["**"]
-    # push:
-    #     branches-ignore: [""]
+    pull_request:
+        branches-ignore: ["**"]
+    push:
+         branches: ["feature/ci-vldn"]
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}
