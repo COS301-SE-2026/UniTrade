@@ -84,3 +84,42 @@ export interface ListingSnapshot {
     photoRefs: string[];
     capturedAt: string;
 }
+
+//discriminated union keyed by casetype
+export type TypedCase = 
+    | {
+        type: 'verification';
+        evidence: VerificationEvidence;
+        allowedDecisions: VerificationDecision[];
+    }
+    | {
+        type: 'listing_quality';
+        evidence: ListingQualityEvidence;
+        allowedDecisions: DisputeDecision[]
+    }
+    | {
+        type: 'no_show';
+        evidence: NoShowEvidence;
+        allowedDecisions: DisputeDecision[];
+    };
+
+export interface CaseSummary {
+    caseId: string;
+    type: CaseType;
+    status: CaseStatus;
+    subjectUserId: string;
+    submittedAt: string;
+    ageHours: number;
+}
+
+export interface CaseDetail extends CaseSummary {
+    evidence: TypedCase['evidence'];
+    history: CaseHistoryEntry[];
+}
+
+export interface CaseHistoryEntry {
+    timestamp: string;
+    actor: string;
+    action: string;
+    details?: Record<string, unknown>;
+}
