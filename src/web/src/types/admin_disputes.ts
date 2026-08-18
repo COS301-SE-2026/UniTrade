@@ -40,3 +40,40 @@ export interface AdminTokenClaims {
     exp: number;
     iat: number;
 }
+
+
+//evidence types 
+export interface VerificationEvidence {
+    university: string;
+    degree: string;
+    year: number;
+    email: string;
+    proofDocumentUrl: string; //the url to the actual proof of registration
+}
+
+export interface ListingQualityEvidence {
+    snapshot: ListingSnapshot;
+    photos: string[];
+    sellerRefusedPhotos: boolean;
+}
+
+export interface ReportListingEvidence {
+
+}
+
+export interface NoShowEvidence {
+
+}
+
+//the actual listing snapshot 
+export interface ListingSnapshot {
+    listingId: string;
+    reservationId: string;
+    title: string;
+    description: string;
+    price: number;
+    condition: string;
+    courseTags: string[];
+    photoRefs: string[];
+    capturedAt: string;
+}
