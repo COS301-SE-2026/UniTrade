@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms.Mapping;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,10 @@ public class WishlistController : ControllerBase
 
     // POST /api/wishlist
     [HttpPost]
-    public async Task<IActionResult> Add([FromBody] AddToWishlistRequest request, CancellationToken ct)
+    public async Task<IActionResult> Add(
+        [FromBody] AddToWishlistRequest request,
+        CancellationToken ct
+    )
     {
         try
         {
@@ -55,14 +59,15 @@ public class WishlistController : ControllerBase
         return removed ? NoContent() : NotFound(new { error = WishlistErrors.NotFound });
     }
 
-    private IActionResult MapError(WishlistException ex) => ex.Message switch
-    {
-        WishlistErrors.ListingNotFound => NotFound(new { error = ex.Message }),
-        WishlistErrors.NotFound => NotFound(new { error = ex.Message }),
-        WishlistErrors.AlreadyWishlisted => Conflict(new { error = ex.Message }),
-        WishlistErrors.ListingUnavailable => Conflict(new { error = ex.Message }),
-        _ => StatusCode(500, new { error = "server_error" }),
-    };
+    private ObjectResult MapError(WishlistException ex) =>
+        ex.Message switch
+        {
+            WishlistErrors.ListingNotFound => NotFound(new { error = ex.Message }),
+            WishlistErrors.NotFound => NotFound(new { error = ex.Message }),
+            WishlistErrors.AlreadyWishlisted => Conflict(new { error = ex.Message }),
+            WishlistErrors.ListingUnavailable => Conflict(new { error = ex.Message }),
+            _ => StatusCode(500, new { error = "server_error" }),
+        };
 
-    public record AddToWishlistRequest(Guid ListingId);
+    public record AddToWishlistRequest([property: JsonRequired] Guid ListingId);
 }

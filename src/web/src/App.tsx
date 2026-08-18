@@ -4,7 +4,7 @@ import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/useAuthStore";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
-import OTP_verification from "./pages/auth/OTP_verification";
+import OtpVerification from "./pages/auth/OtpVerification";
 import UploadListing from "./pages/seller/UploadListing";
 import EditListing from "./pages/seller/EditListing";
 
@@ -38,7 +38,7 @@ import EnterPin from "./pages/payment/EnterPin";
 import PaymentComplete from "./pages/payment/PaymentComplete";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
 import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
-function RedirectToMessages({ role }: { role: "buyer" | "seller" }) {
+function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
 }
@@ -77,7 +77,7 @@ export default function App() {
         <Route path="/auth/Login" element={<Login />} />
         <Route path="/auth/Signup" element={<Signup />} />
         <Route path="/auth/HomePage" element={<HomePage />} />
-        <Route path="/verify-otp" element={<OTP_verification />} />
+        <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />

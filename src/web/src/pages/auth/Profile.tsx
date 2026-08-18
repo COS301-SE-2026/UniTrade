@@ -32,9 +32,10 @@ interface ProfileRowProps {
   danger?: boolean;
 }
 
-function ProfileRow({ icon, label, onClick, danger }: ProfileRowProps) {
+function ProfileRow({ icon, label, onClick, danger }: Readonly<ProfileRowProps>) {
   return (
     <button
+      type='button'
       onClick={onClick}
       className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text-left">
 
@@ -53,12 +54,12 @@ function InfoRow({
   icon,
   label,
   value,
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   label: string;
   value: string;
 
-}) {
+}>) {
   return (
     <div className="flex items-center gap-3 px-4 py-3.5">
       <span className="w-9 h-9 rounded-full bg-gray-50 text-navy-700 flex items-center justify-center flex-shrink-0">
@@ -73,7 +74,7 @@ function InfoRow({
   );
 }
 
-function VerificationBadge({ status }: { status: string }) {
+function VerificationBadge({ status }: Readonly<{ status: string }>) {
   const isVerified = status.toLowerCase() === "verified";
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${isVerified ? "bg-emerald-500/80 text-emerald-50" :
@@ -161,6 +162,7 @@ export default function Profile() {
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-start mb-4">
             <button
+              type='button'
               onClick={() => navigate(-1)}
               className="text-white/70 hover:text-white transition-colors mb-2"
               aria-label="Back">
@@ -170,6 +172,7 @@ export default function Profile() {
           </div>
 
           <button
+            type='button'
             onClick={() => navigate("/profile/settings")}
             className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all mt-4"
             aria-label="Settings">
@@ -342,6 +345,7 @@ export default function Profile() {
                 <h3 className="font-bold text-navy-900">Delete Account </h3>
               </div>
               <button
+                type='button'
                 onClick={() => setShowDeleteConfirm(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Close">
@@ -357,11 +361,13 @@ export default function Profile() {
             )}
             <div className="flex gap-3">
               <button
+                type='button'
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1 rounded-full border border-gray-200 text-gray-600 font-semibold text-sm py-2.5 hover:bg-gray-50 transition-colors">
                 Cancel
               </button>
               <button
+                type='button'
                 data-testid="confirm-delete-button"
 
                 onClick={handleDeleteAccount}
