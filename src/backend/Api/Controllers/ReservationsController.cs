@@ -98,6 +98,7 @@ public class ReservationsController : ControllerBase
     // get /api/reservations/{id}
 
     [HttpGet("{id:guid}")]
+    [ResponseCache(NoStore = true)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var dto = await _reservations.GetByIdAsync(id, CallerId, ct);
