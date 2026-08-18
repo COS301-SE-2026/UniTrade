@@ -18,4 +18,16 @@ export type DisputeDecision =
        | 'uphold'
        | 'dismiss'
        | 'request_info'
+
+//assumptions for now as I'm waiting for som confirmation from backend
+export type Outcome = 
+       | 'strike'
+       | 'removeListing'
+       | 'refusalFlag'
+
+export type PinStatus =
+       | 'not_entered'
+       | 'entered_incorrect'
+       | 'entered_correct'
    
+export type VerificationStatus = 'verified' | 'pending' | 'rejected';
