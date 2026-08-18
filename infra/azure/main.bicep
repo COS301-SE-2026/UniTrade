@@ -45,7 +45,7 @@ resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existin
     
 }
 
-var acrLoginServer=deployAcr ? containerRegistry.outputs.loginServer : existingAcr!.properties.loginServer
+var acrLoginServer=deployAcr ? containerRegistry!.outputs.loginServer : existingAcr!.properties.loginServer
 
 module containerAppsEnv 'modules/container-apps-env.bicep'={
     name: 'deploy-cae-${environment}'
