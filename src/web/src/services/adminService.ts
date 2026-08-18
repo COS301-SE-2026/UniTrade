@@ -20,6 +20,8 @@ import type {
     ListCasesResponse,
     GetCaseResponse,
     DecideCaseResponse,
+    DisputeFiling,
+    FileCaseResponse,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -100,4 +102,19 @@ export async function decideCase(
     );
 
     return handleResponse<DecideCaseResponse>(res);
+}
+
+export async function fileDispute(
+    body: DisputeFiling
+): Promise<FileCaseResponse> {
+    const res = await fetch(
+        `${getApiUrl()}/disputes`,
+        {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(body)
+        }
+    );
+
+    return handleResponse<FileCaseResponse>(res);
 }
