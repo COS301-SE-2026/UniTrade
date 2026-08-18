@@ -31,3 +31,12 @@ export type PinStatus =
        | 'entered_correct'
    
 export type VerificationStatus = 'verified' | 'pending' | 'rejected';
+
+//for the admintoken this is not clear, so might change aftetr confirmation from backend
+
+export interface AdminTokenClaims {
+    sub: string;
+    role: 'admin' | 'student';
+    exp: number;
+    iat: number;
+}
