@@ -123,3 +123,27 @@ export interface CaseHistoryEntry {
     action: string;
     details?: Record<string, unknown>;
 }
+
+//decision types
+
+export interface VerificationDecisionRequest {
+    caseType: 'verification';
+    decision: VerificationDecision;
+    reason?: string;
+}
+
+export type DisputeDecisionRequest = 
+    | {
+        caseType: 'listing_quality' | 'report_listing' | 'no_show';
+        decision: 'uphold';
+        outcomes: [Outcome, ...Outcome[]];
+        reason?: string;
+    }
+    | {
+        caseType: 'listing_quality' | 'report_listing' | 'no_show';
+        decision: 'dismiss' | 'request_info';
+        outcomes?: never;
+        reason?: string;
+    }
+
+export type DecisionRequest = VerificationDecisionRequest | DisputeDecisionRequest;
