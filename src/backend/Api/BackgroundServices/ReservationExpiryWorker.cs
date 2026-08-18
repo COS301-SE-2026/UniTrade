@@ -51,6 +51,7 @@ public class ReservationExpiryWorker : BackgroundService
         var hub = scope.ServiceProvider.GetRequiredService<IReservationRealTime>();
         var now = DateTime.UtcNow;
         var expired = await reservations.ExpireDueAsync(now, ct);
+        var warned=await reservations.SendTwoHourWarningsAsync(now,ct);
 
         if (expired.Count>0)
         {
@@ -75,12 +76,10 @@ public class ReservationExpiryWorker : BackgroundService
             );
         }
         }
-        //warning func needs to be implemented
-        //var warned=await reservations.SendTwoHourWarningsAsync(now,ct);
 
-        //if(warned.Count>0)
-        // //{
-        //     _logger.LogInformation("Sent 2 hour warning for {Count} reservation(s)",warned.Count);
-        // }
+        if(warned.Count>0)
+        {
+             _logger.LogInformation("Sent 2 hour warning for {Count} reservation(s)",warned.Count);
+        }
     }
 }
