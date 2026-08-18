@@ -129,7 +129,7 @@ export default function App() {
 
           <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
           <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
-          <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
+          {/* <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} /> */}
         </Route>
       </Routes>
     </RealtimeProvider>

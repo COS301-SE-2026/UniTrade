@@ -1,6 +1,6 @@
 //need to replace this whole file and then putting it inot the listsitngs file 
 //once the backend points are set up
-import textbook from 'assets/bio-textbook.jpg'
+import textbook from '../assets/bio-textbook.jpg'
 
 export type DisputeType = 'no-show' | 'listing-quality' | 'report-listing'
 
