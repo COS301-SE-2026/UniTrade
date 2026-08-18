@@ -1,7 +1,7 @@
 import { getApiUrl } from "../config";
 
 import type {
-     ListCasesParams,
+    ListCasesParams,
     /*ListCasesResponse,
     GetCaseResponse,
     DecideCaseResponse,
@@ -16,17 +16,19 @@ import type {
     UserReputation,
     ListUsersResponse,*/
     PublishListingResponse,
-     DecisionRequest,
-     ApiError,
-     ListCasesResponse,
-     GetCaseResponse,
-     DecideCaseResponse,
-     DisputeFiling,
-     FileCaseResponse,
-     ListAuditParams,
+    DecisionRequest,
+    ApiError,
+    ListCasesResponse,
+    GetCaseResponse,
+    DecideCaseResponse,
+    DisputeFiling,
+    FileCaseResponse,
+    ListAuditParams,
     ListAuditResponse,
     GetListingSnapshotResponse,
     PublishListingError,
+    ListUserParams,
+    ListUsersResponse,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -78,7 +80,7 @@ export async function getCases(
 
     const res = await fetch(
         `${getApiUrl()}/admin/cases?${query.toString()}`,
-        { method: 'GET', headers: authHeaders()}
+        { method: 'GET', headers: authHeaders() }
     );
 
     return handleResponse<ListCasesResponse>(res)
@@ -87,7 +89,7 @@ export async function getCases(
 export async function getCaseById(id: string): Promise<GetCaseResponse> {
     const res = await fetch(
         `${getApiUrl()}/admin/cases/${id}`,
-        { method: 'GET', headers: authHeaders()}
+        { method: 'GET', headers: authHeaders() }
     )
 
     return handleResponse<GetCaseResponse>(res);
@@ -129,13 +131,13 @@ export async function getAuditEntries(
 ): Promise<ListAuditResponse> {
     const query = new URLSearchParams();
     if (params.entityId) query.set('entityId', params.entityId);
-    if (params.actorId)  query.set('actorId', params.actorId);
-    if(params.page)      query.set('page', String(params.page));
-    if(params.limit)     query.set('limit', String(params.limit));
+    if (params.actorId) query.set('actorId', params.actorId);
+    if (params.page) query.set('page', String(params.page));
+    if (params.limit) query.set('limit', String(params.limit));
 
     const res = await fetch(
         `${getApiUrl()}/admin/audit?${query.toString()}`,
-        {method: 'GET', headers: authHeaders()}
+        { method: 'GET', headers: authHeaders() }
     );
 
     return handleResponse<ListAuditResponse>(res);
@@ -146,7 +148,7 @@ export async function getReservationSnapshot(
 ): Promise<GetListingSnapshotResponse> {
     const res = await fetch(
         `${getApiUrl()}/reservations/${reservationId}/snapshot`,
-        {method: 'GET', headers: authHeaders()}
+        { method: 'GET', headers: authHeaders() }
     );
 
     return handleResponse<GetListingSnapshotResponse>(res);
@@ -157,7 +159,7 @@ export async function publishListing(
 ): Promise<PublishListingResponse> {
     const res = await fetch(
         `${getApiUrl()}/listings/${listingId}/publish`,
-        {method: 'POST', headers: authHeaders()}
+        { method: 'POST', headers: authHeaders() }
     );
 
     if (res.status === 403) {
@@ -172,4 +174,23 @@ export async function publishListing(
 
     return handleResponse<PublishListingResponse>(res)
 
+}
+
+export async function getUsers(
+    params: ListUserParams = {}
+): Promise<ListUsersResponse> {
+    const query = new URLSearchParams();
+    if (params.verificationStatus) query.set('verificationStatus',
+        params.verificationStatus);
+    if (params.hasStrikes !== undefined) query.set('hasStrikes', String(params.hasStrikes));
+    if (params.search) query.set('search', params.search);
+    if (params.page) query.set('page', String(params.page));
+    if (params.limit) query.set('limit', String(params.limit));
+
+    const res = await fetch(
+        `${getApiUrl()}/admin/users?${query.toString()}`,
+        { method: 'GET', headers: authHeaders() }
+    );
+
+    return handleResponse<ListUsersResponse>(res);
 }
