@@ -17,6 +17,7 @@ import type {
     ListUsersResponse,*/
     ApiError,
     ListCasesResponse,
+    GetCaseResponse,
 } from '../types/admin_disputes'
 
 //these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
@@ -72,4 +73,13 @@ export async function getCases(
     );
 
     return handleResponse<ListCasesResponse>(res)
+}
+
+export async function getCaseById(id: string): Promise<GetCaseResponse> {
+    const res = await fetch(
+        `${getApiUrl()}/admin/cases/${id}`,
+        { method: 'GET', headers: authHeaders()}
+    )
+
+    return handleResponse<GetCaseResponse>(res);
 }
