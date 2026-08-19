@@ -7,6 +7,8 @@ import Signup from "./pages/auth/Signup";
 import OtpVerification from "./pages/auth/OtpVerification";
 import UploadListing from "./pages/seller/UploadListing";
 import EditListing from "./pages/seller/EditListing";
+import AdminVerificationReview from "./pages/admin/AdminVerificationReview";
+import AdminDisputeReview from "./pages/admin/AdminDisputeReview";
 
 import HomePage from "./pages/auth/HomePage";
 import Orders from "./pages/buyer/Orders";
@@ -84,6 +86,8 @@ export default function App() {
         <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
 
         <Route element={<AppLayout />}>
+          <Route path="/admin/verifications/:id" element={<AdminVerificationReview />} />
+          <Route path="/admin/disputes/:id" element={<AdminDisputeReview />} /> 
           <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
           <Route path="/seller/sales" element={<Sales />} />
