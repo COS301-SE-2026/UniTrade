@@ -55,7 +55,7 @@ DotEnv.Load(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
     )
 );
-ThreadPool.SetMinThreads(workerThreads:100, completionPortThreads: 100);
+ThreadPool.SetMinThreads(workerThreads: 100, completionPortThreads: 100);
 
 var builder = WebApplication.CreateBuilder(args);
 
