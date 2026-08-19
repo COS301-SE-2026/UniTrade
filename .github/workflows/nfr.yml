@@ -69,12 +69,12 @@ jobs:
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with: { name: scale-summary, path: scale-summary.json }
-  dast: #for QR-03d
+  dast-api: #for QR-03d
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: OWASP ZAP baseline
+      - name: OWASP ZAP baseline (API)
         uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
         with:
             target: ${{ secrets.VITE_API_URL_STAGING }}
@@ -82,4 +82,15 @@ jobs:
             fail_action: true
             rules_file_name: '.zap/rules.tsv'
 
-
+  dast-frontend: #for QR-03d
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: OWASP ZAP baseline (frontend)
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
+        with:
+            target: ${{ secrets.FRONTEND_URL_STAGING }}
+            allow_issue_writing: false
+            fail_action: true
+            rules_file_name: '.zap/rules.tsv'

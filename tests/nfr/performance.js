@@ -1,19 +1,20 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
+import {textSummary} from "https://jslib.k6.io/k6-summary/0.0.4/index.js";
 const BASE = __ENV.STAGING_URL;
 export const options = {
   scenarios: {
-    feed: { executor: "constant-vus", vus: 5, duration: "3m", exec: "feed" },
+    feed: { executor: "constant-vus", vus: 5*4, duration: "3m", exec: "feed" },
     browse: {
       executor: "constant-vus",
-      vus: 3,
+      vus: 3*4,
       duration: "3m",
       exec: "browse",
     },
 
     search: {
       executor: "constant-vus",
-      vus: 2,
+      vus: 2*4,
       duration: "3m",
       exec: "search",
     },
@@ -50,7 +51,6 @@ export function feed(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
   sleep(1);
 }
 
@@ -62,8 +62,6 @@ export function browse(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
-
   sleep(1);
 }
 
@@ -75,7 +73,13 @@ export function search(data) {
     },
   );
   check(res, { 200: (r) => r.status === 200 });
-  //if (res.status !== 200) console.log(`${res.status} ${res.request.url}`);
 
   sleep(1);
+}
+export function handleSummary(data) {
+  const cleanedUp = { ...data, setup_data: { redacted: true } };
+  return {
+    "perf-summary.json": JSON.stringify(cleanedUp, null, 2),
+    stdout: textSummary(data, { indent: " ", enableColors: false }),
+  };
 }

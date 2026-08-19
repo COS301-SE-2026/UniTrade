@@ -84,7 +84,7 @@ export async function createListingAndReserve(
     sellerPage.waitForResponse(
       (resp) =>
         resp.url().includes(`/reservations/${reservationId}`) &&
-        ["PATCH", "POST"].includes(resp.request().method()),
+        ["PATCH", "POST"].includes(resp.request().method()) && resp.ok(),
       { timeout: 10000 },
     ),
     sellerPage.getByRole("button", { name: "Accept Reservation" }).click(),
@@ -165,7 +165,6 @@ export async function scheduleMeetupAndCheckIn(
   await expect(buyerPage.getByText(/you're checked in/i)).toBeVisible({
     timeout: 20000,
   });
-    await buyerPage.waitForTimeout(500);
 
   await buyerPage.getByRole("button", { name: "DONE" }).click({ timeout: 15000 });
 
@@ -192,7 +191,6 @@ export async function scheduleMeetupAndCheckIn(
   await expect(sellerPage.getByText(/you're checked in/i)).toBeVisible({
     timeout: 20000,
   });
-    await sellerPage.waitForTimeout(500);
 
   await sellerPage.getByRole("button", { name: "DONE" }).click({ timeout: 10000 });
 
