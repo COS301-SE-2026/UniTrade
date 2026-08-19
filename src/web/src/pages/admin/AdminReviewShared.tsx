@@ -176,4 +176,9 @@ export function DecisionButton({
   )
 }
 
+export function NotesPanel({caseId }: Readonly<caseId: string}>) {
+  const [notes, setNotes] = useState<CaseNote[]>([])
+  
+}
+
 

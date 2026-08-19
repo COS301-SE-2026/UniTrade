@@ -87,6 +87,31 @@ export interface VerificationCase {
   decision?: VerificationDecision
 }
 
+export type ListingRiskLevel = 'High Risk' | 'Medium Risk' | 'Low Risk'
+export type ListingQueueDecision = 'approve' | 'reject' | 'flag'
+
+export interface CaseNote {
+    id:string
+    author: string
+    content: string
+    createdAt: string
+}
+
+export interface ListingQueueItem {
+  id: string
+  title: string
+  moduleCode: string
+  price: string
+  condition: string
+  category: string
+  description: string
+  imageUrl: string
+  risk: ListingRiskLevel
+  riskReasons: string[]
+  submittedAgo: string
+  seller: PersonSummary
+}
+
 export interface UserReputationProfile {
   id: string
   name: string
@@ -119,6 +144,27 @@ const Tafadzwa: PersonSummary = {
     reviewAverage: 4.8,
     reviewCount: 20
 }
+
+const Zelamene: PersonSummary = {
+  id: 'user-4',
+  initials: 'ZS',
+  name: 'Zelamene Shazi',
+  faculty: 'EBIT',
+  reputationScore: 82,
+  reviewAverage: 4.6,
+  reviewCount: 14,
+}
+
+const Sabira: PersonSummary = {
+  id: 'user-3',
+  initials: 'SK',
+  name: 'Sabira Kaire',
+  faculty: 'EBIT',
+  reputationScore: 88,
+  reviewAverage: 4.8,
+  reviewCount: 15,
+}
+
 
 const mockDisputes: DisputeCase[] = [
     {
@@ -209,6 +255,16 @@ const mockVerifications: VerificationCase[] = [
     },
 ]
 
+const sabira: PersonSummary = {
+    id: 'user-3',
+    initials: 'SK',
+    name: 'Sabira Kaire',
+    faculty: 'EBIT',
+    reputationScore: 88,
+    reviewAverage: 4.8,
+    reviewCount: 15,
+}
+
 const mockReputationProfiles: UserReputationProfile[] = [
     {
         id: 'user-1',
@@ -237,6 +293,66 @@ const mockReputationProfiles: UserReputationProfile[] = [
 },
 ]
 
+
+const mockListingQueue: ListingQueueItem[] = [
+  {
+    id: 'LQ-1001',
+    title: 'Chemistry Textbook - 3rd Ed',
+    moduleCode: 'CMY127',
+    price: 'R200',
+    condition: 'Good',
+    category: 'Book',
+    description: 'Chemistry textbook, 3rd edition, some highlighting in the first three chapters. Selling because I switched modules.',
+    imageUrl: textbook,
+    risk: 'High Risk',
+    riskReasons: ['Price is 40% below similar listings', 'Seller account created 2 days ago'],
+    submittedAgo: '2h ago',
+    seller: Tafadzwa,
+  },
+  {
+    id: 'LQ-1002',
+    title: "HP Laptop 15' - Good condition",
+    moduleCode: '-',
+    price: 'R4500',
+    condition: 'Good',
+    category: 'Electronics',
+    description: 'HP Laptop, 15 inch, 8GB RAM, 256GB SSD. Light wear on the lid, works perfectly. Charger included.',
+    imageUrl: textbook,
+    risk: 'High Risk',
+    riskReasons: ['High-value electronics item', 'No proof of ownership attached'],
+    submittedAgo: '4h ago',
+    seller: Zelamene,
+  },
+  {
+    id: 'LQ-1003',
+    title: 'Calculus - Early Transcendentals',
+    moduleCode: 'WTW114',
+    price: 'R350',
+    condition: 'Fair',
+    category: 'Book',
+    description: 'Calculus textbook, some water damage on the back cover but all pages intact and readable.',
+    imageUrl: textbook,
+    risk: 'Medium Risk',
+    riskReasons: ['Condition described as "Fair" — flagged for photo review'],
+    submittedAgo: '8h ago',
+    seller: Tafadzwa,
+  },
+  {
+    id: 'LQ-1004',
+    title: 'Physics Lab Manual 2024',
+    moduleCode: 'PHY114',
+    price: 'R150',
+    condition: 'Good',
+    category: 'Book',
+    description: 'This year\'s lab manual, barely used, no writing inside.',
+    imageUrl: textbook,
+    risk: 'Medium Risk',
+    riskReasons: ['Duplicate title recently listed by another seller'],
+    submittedAgo: '10h ago',
+    seller: Zelamene,
+  },
+]
+
 const delay = <T,>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), 200))
 
 export async function getMockDisputes(): Promise<DisputeCase[]> {
@@ -257,4 +373,43 @@ export async function getMockVerificationById(id: string): Promise<VerificationC
 
 export async function getMockUserReputation(id: string): Promise<UserReputationProfile | undefined> {
   return delay(mockReputationProfiles.find((p) => p.id === id) ?? mockReputationProfiles[0])
+}
+
+
+const mockCaseNotes: Record<string, CaseNote[]> = {
+  'UT-2024-00481': [
+    {
+      id: 'n-1',
+      author: 'Admin User',
+      content: 'Reached out to seller for their side before making a call on this one.',
+      createdAt: '12 May 2026, 15:10',
+    },
+  ],
+}
+
+export async function getMockCaseNotes(caseId: string): Promise<CaseNote[]> {
+  return delay(mockCaseNotes[caseId] ?? [])
+}
+
+export async function addMockCaseNote(caseId: string, content: string, author = 'Admin User'): Promise<CaseNote> {
+  const note: CaseNote = {
+    id: `n-${Date.now()}`,
+    author,
+    content,
+    createdAt: new Date().toLocaleString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+  }
+  mockCaseNotes[caseId] = [...(mockCaseNotes[caseId] ?? []), note]
+  return delay(note)
+}
+
+export async function getMockUsers(): Promise<UserReputationProfile[]> {
+  return delay(mockReputationProfiles)
+}
+
+export async function getMockListingQueue(): Promise<ListingQueueItem[]> {
+  return delay(mockListingQueue)
+}
+
+export async function getMockListingQueueItem(id: string): Promise<ListingQueueItem | undefined> {
+  return delay(mockListingQueue.find((l) => l.id === id))
 }
