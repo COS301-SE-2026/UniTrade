@@ -1,8 +1,11 @@
+import {useEffect, useState} from 'react'
 import {
     IconStar,
     IconStarFilled,
+    IconNote
 } from '@tabler/icons-react'
-import type {PersonSummary} from '../../types/mockAdmin'
+import type {PersonSummary, CaseNote} from '../../types/mockAdmin'
+import { getMockCaseNotes, addMockCaseNote } from '../../types/mockAdmin';
 
 
 export function Breadcrumb({trail}: Readonly<{ trail: string[]}>) {
@@ -176,9 +179,91 @@ export function DecisionButton({
   )
 }
 
-export function NotesPanel({caseId }: Readonly<caseId: string}>) {
+export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
   const [notes, setNotes] = useState<CaseNote[]>([])
-  
+  const [draft, setDraft] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    getMockCaseNotes(caseId).then((data) => {
+      if(active) {
+        setNotes(data)
+        setLoading(false)
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [caseId])
+
+  async function handleAddNote() {
+    const content = draft.trim()
+    if(!content) return 
+    setSaving(true)
+    const note = await addMockCaseNote(caseId, content)
+    setNotes((prev) => [...prev, note])
+    setDraft('')
+    setSaving(false)
+  }
+
+  return (
+    <Panel title="Case Notes">
+      <p className="text-xs text-gray-400 -mt-2 mb-3">
+        Still deciding if we are going to message and create chat functionality or email the other counter parry 
+      </p>
+
+      {loading && <p className="text-sm text-gray-400">Loading notes…</p>}
+
+      {!loading && notes.length === 0 && (
+        <p className="text-sm text-gray-400 mb-3">
+          No notes yet.
+        </p>
+      )}
+
+      {!loading && notes.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {notes.map((note) => (
+            <div
+              key={note.id}
+              className="flex items-start gap-2 p-3 rounded-lg bg-gray-50 dark:bg-navy-700 border border-gray-100 dark:border-white/5"
+            >
+              <IconNote size={15} className="text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-sm text-navy-700 dark:text-white">
+                  {note.content}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {note.author} · {note.createdAt}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Add a note about this case…"
+          rows={2}
+          className="flex-1 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
+        />
+      </div>
+      <div className="flex justify-end mt-2">
+        <button
+          type="button"
+          onClick={handleAddNote}
+          disabled={!draft.trim() || saving}
+          className="bg-navy-700 hover:bg-navy-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+        >
+          {saving ? 'Saving…' : 'Add Note'}
+        </button>
+      </div>
+    </Panel>
+  )
 }
 
 

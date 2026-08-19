@@ -53,7 +53,9 @@ export default function AdminDisputes() {
                 className="w-full flex items-center gap-4 px-5 py-4 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
               >
                 <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-lg flex-shrink-0">
-                  {dispute.item.imageUrl}
+                  {dispute.item.imageUrl && (
+                    <img src={dispute.item.imageUrl} alt={dispute.item.title} className="w-full h-full object-cover" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
