@@ -122,7 +122,15 @@ jobs:
               "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)" \
               "payfast-passphrase=${{secrets.PAYFAST__PASSPHRASE}}" \
               "payfast-merchant-key=${{secrets.PAYFAST__MERCHANTKEY}}" \
+<<<<<<< HEAD
               "payfast-merchant-id=${{secrets.PAYFAST__MERCHANTID}}"
+=======
+              "payfast-merchant-id=${{secrets.PAYFAST__MERCHANTID}}" \
+              "payfast-cancelurl=${{secrets.PAYFAST__CANCELURL}}" \
+              "payfast-notifyurl=${{secrets.PAYFAST__NOTIFYURL}}" \
+              "payfast-sandboxurl=${{secrets.PAYFAST__SANDBOXURL}}" \
+              "payfast-returnurl=${{secrets.PAYFAST__RETURNURL}}"
+>>>>>>> 51c03a3b05495a3f61319f4770e92695f7a28472
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -135,7 +143,14 @@ jobs:
                 "Otp__Secret=secretref:otp-secret" \
                 "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL_STAGING }}" \
                 "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
-                "Firebase__CredentialsJson=secretref:firebase-creds"
+                "Firebase__CredentialsJson=secretref:firebase-creds" \
+                "PayFast__MerchantId=secretref:payfast-merchant-id" \
+                "PayFast__MerchantKey=secretref:payfast-merchant-key" \
+                "PayFast__PassPhrase=secretref:payfast-passphrase" \
+                "PayFast__CancelUrl=secretref:payfast-cancelurl" \
+                "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
+                "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
+                "PayFast__ReturnUrl=secretref:payfast-returnurl" 
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -329,7 +344,11 @@ jobs:
               "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)" \
               "payfast-passphrase=${{secrets.PAYFAST__PASSPHRASE}}" \
               "payfast-merchant-key=${{secrets.PAYFAST__MERCHANTKEY}}" \
-              "payfast-merchant-id=${{secrets.PAYFAST__MERCHANTID}}"
+              "payfast-merchant-id=${{secrets.PAYFAST__MERCHANTID}}" \
+              "payfast-cancelurl=${{secrets.PAYFAST__CANCELURL}}" \
+              "payfast-notifyurl=${{secrets.PAYFAST__NOTIFYURL}}" \
+              "payfast-sandboxurl=${{secrets.PAYFAST__SANDBOXURL}}" \
+              "payfast-returnurl=${{secrets.PAYFAST__RETURNURL}}"
               
 
           az containerapp update \
@@ -343,7 +362,14 @@ jobs:
                 "Otp__Secret=secretref:otp-secret" \
                 "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL }}" \
                 "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
-                "Firebase__CredentialsJson=secretref:firebase-creds"
+                "Firebase__CredentialsJson=secretref:firebase-creds" \
+                "PayFast__MerchantId=secretref:payfast-merchant-id" \
+                "PayFast__MerchantKey=secretref:payfast-merchant-key" \
+                "PayFast__PassPhrase=secretref:payfast-passphrase" \
+                "PayFast__CancelUrl=secretref:payfast-cancelurl" \
+                "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
+                "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
+                "PayFast__ReturnUrl=secretref:payfast-returnurl"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision

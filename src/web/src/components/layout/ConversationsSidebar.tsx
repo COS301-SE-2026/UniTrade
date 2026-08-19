@@ -16,7 +16,7 @@ function relativeTime(iso: string): string {
     return `${days} d ago`;
 }
 
-export default function ConversationsSidebar ({role}: {role: 'buyer' | 'seller'}) {
+export default function ConversationsSidebar ({role}: Readonly<{role: 'buyer' | 'seller'}>) {
     const {data: reservations = [], isLoading} = useReservationsList(role);
     useUnreadRealtime(role);
     const {reservationId: activeId} = useParams<{reservationId: string}>();

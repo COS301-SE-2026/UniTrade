@@ -15,6 +15,7 @@ public class DevController : ControllerBase
     }
 
     [HttpGet("otp")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult GetOtp([FromQuery] string email)
     {
         if (!_env.IsDevelopment())

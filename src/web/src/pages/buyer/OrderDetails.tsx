@@ -4,16 +4,24 @@ import { IconChevronRight, IconStar } from "@tabler/icons-react";
 import { getReservationById, getTransactionStatus } from "../../services/reservationService";
 import type { TransactionStatusResponse } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
-import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse, Review } from "../../types/listing";
+import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse } from "../../types/listing";
 import type { Reservation } from "../../types/Reservations";
 import { useAuthStore } from "../../store/useAuthStore";
 
 function toRefNum(reservationId: string): string {
-        return `#${reservationId.slice(0,8).toUpperCase()}`;
-      }
-
-export default function OrderDetails() {
-    const {reservationId } = useParams<{ reservationId: string }>();
+    return `#${reservationId.slice(0, 8).toUpperCase()}`;
+}
+function buildTimeline(reservation: Reservation, meetup: MeetupStatusResponse | null, transaction: TransactionStatusResponse | null, ftm: (iso?: string | null) => string,) {
+    return [
+        { title: 'Listing reserved', time: ftm(reservation.createdAt), done: true },
+        { title: 'Meetup arranged', time: meetup ? ftm(meetup.createdAt) : '_', done: !!meetup },
+        { title: 'Buyer checked in', time: meetup?.buyerCheckedIn ? ftm(meetup.buyerCheckedInAt) : '_', done: !!meetup?.buyerCheckedInAt },
+        { title: 'Seller checked in', time: meetup?.sellerCheckedIn ? ftm(meetup.sellerCheckedInAt) : '_', done: !!meetup?.sellerCheckedIn },
+        { title: 'Payment completed', time: transaction?.transactionStatus === 'completed' ? 'Completed' : '_', done: transaction?.transactionStatus === 'completed' },
+        { title: 'Order completed', time: reservation.reservationStatus === 'completed' ? 'Completed' : '_', done: reservation.reservationStatus === 'completed' },
+    ];
+}
+function useOrderDetails(reservationId: string | undefined) {
     const [reservation, setReservation] = useState<Reservation | null>(null);
     const [listing, setListing] = useState<ListingDetail | null>(null)
     const [meetup, setMeetup] = useState<MeetupStatusResponse | null>(null);
@@ -21,12 +29,6 @@ export default function OrderDetails() {
     const [sellerReviews, setSellerReviews] = useState<UserReviewsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const currentUserId = useAuthStore.getState().user?.id;
-    const isBuyer = reservation ? reservation.buyerId === currentUserId : true;
-    const backPath = isBuyer ? "/buyer/orders" : "/seller/sales";
-    const backLabel = isBuyer ? "My Orders" : "My Sales";
-
     useEffect(() => {
         const loadOrder = async () => {
             if (!reservationId) {
@@ -63,6 +65,35 @@ export default function OrderDetails() {
         loadOrder();
     }, [reservationId]);
 
+    return { reservation, listing, meetup, transaction, sellerReviews, loading, error };
+}
+function deriveSellerStats(sellerReviews: UserReviewsResponse | null, reservation: Reservation, transaction: TransactionStatusResponse | null,) {
+    const myReview = sellerReviews?.reviews.find(
+        (r) =>
+            r.reviewType === 'buyer_to_seller' &&
+            r.reviewerId === reservation.buyerId &&
+            (!transaction?.transactionId || r.transactionId === transaction.transactionId),
+    );
+
+    const sellerReceivedReviews = sellerReviews?.reviews.filter((r) => r.reviewType === 'buyer_to_seller') ?? [];
+    const sellerAvgRating =
+        sellerReceivedReviews.length > 0
+            ? Math.round((sellerReceivedReviews.reduce((sum, r) => sum + r.rating, 0) /
+                sellerReceivedReviews.length) * 10) / 10 : null;
+    return { myReview, sellerReceivedReviews: sellerReceivedReviews, sellerAvgRating: sellerAvgRating };
+}
+
+export default function OrderDetails() {
+
+    const { reservationId } = useParams<{ reservationId: string }>();
+    const { reservation, listing, meetup, transaction, sellerReviews, loading, error } = useOrderDetails(reservationId);
+    const currentUserId = useAuthStore.getState().user?.id;
+    const isBuyer = reservation ? reservation.buyerId === currentUserId : true;
+    const backPath = isBuyer ? "/buyer/orders" : "/seller/sales";
+    const backLabel = isBuyer ? "My Orders" : "My Sales";
+
+
+
     if (loading) {
         return <div className="text-slate-500">Loading order details....</div>;
     }
@@ -88,27 +119,9 @@ export default function OrderDetails() {
             new Date(iso).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
             : '_';
 
-    const myReview: Review | undefined = sellerReviews?.reviews.find(
-        (r) =>
-            r.reviewType === 'buyer_to_seller' &&
-            r.reviewerId === reservation.buyerId &&
-            (!transaction?.transactionId || r.transactionId === transaction.transactionId),
-    );
 
-    const sellerReceivedReviews = sellerReviews?.reviews.filter((r) => r.reviewType === 'buyer_to_seller') ?? [];
-    const sellerAvgRating =
-        sellerReceivedReviews.length > 0
-            ? Math.round((sellerReceivedReviews.reduce((sum, r) => sum + r.rating, 0) /
-                sellerReceivedReviews.length) * 10) / 10 : null;
-
-    const timelineSteps = [
-        { title: 'Listing reserved', time: formatDateTime(reservation.createdAt), done: true },
-        { title: 'Meetup arranged', time: meetup ? formatDateTime(meetup.createdAt) : '_', done: !!meetup },
-        { title: 'Buyer checked in', time: meetup?.buyerCheckedIn ? formatDateTime(meetup.buyerCheckedInAt) : '_', done: !!meetup?.buyerCheckedInAt },
-        { title: 'Seller checked in', time: meetup?.sellerCheckedIn ? formatDateTime(meetup.sellerCheckedInAt) : '_', done: !!meetup?.sellerCheckedIn },
-        { title: 'Payment completed', time: transaction?.transactionStatus === 'completed' ? 'Completed' : '_', done: transaction?.transactionStatus === 'completed' },
-        { title: 'Order completed', time: reservation.reservationStatus === 'completed' ? 'Completed' : '_', done: reservation.reservationStatus === 'completed' },
-    ];
+    const { myReview, sellerReceivedReviews, sellerAvgRating } = deriveSellerStats(sellerReviews, reservation, transaction);
+    const timelineSteps = buildTimeline(reservation, meetup, transaction, formatDateTime);
 
     return (
         <div className="max-w-6xl w-full mx-auto space-y-6">
@@ -175,7 +188,7 @@ export default function OrderDetails() {
                             <>
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="flex">
-                                        {[...Array(5)].map((_, i) => (
+                                        {Array.from({ length: 5 }, (_, i) => (
                                             <IconStar
                                                 key={i}
                                                 className={`w-5 h-5 ${i < myReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
@@ -220,27 +233,27 @@ export default function OrderDetails() {
 
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
-                           {isBuyer ? "Seller": "Buyer"} 
+                            {isBuyer ? "Seller" : "Buyer"}
                         </h3>
                         <div className="flex items-center gap-3 mb-5">
                             <div className="w-10 h-10 bg-navy-800 text-white rounded-full flex items-center justify-center font-bold">
                                 {reservation.counterParty?.initials || '_'}
                             </div>
                             <div>
-                                <p className="font-semibold">{reservation.counterParty?.name ||(isBuyer ?  'Unknown seller': 'Unknown buyer')}</p>
-                               {isBuyer && ( <p className="text-xs text-slate-500">{listing.seller?.university || '_'}</p>
-                               )}
+                                <p className="font-semibold">{reservation.counterParty?.name || (isBuyer ? 'Unknown seller' : 'Unknown buyer')}</p>
+                                {isBuyer && (<p className="text-xs text-slate-500">{listing.seller?.university || '_'}</p>
+                                )}
                             </div>
                         </div>
                         {isBuyer && (<>
-                        <div className="flex justify-between items-center mb-3 text-sm">
-                            <span className="text-slate-600">Seller rating</span>
-                            <span className="font-medium">{sellerAvgRating !== null ? `${sellerAvgRating} / 5` : 'No ratings yet'}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-slate-600">Total Sales</span>
-                            <span className="font-medium">{sellerReceivedReviews.length}</span>
-                        </div>
+                            <div className="flex justify-between items-center mb-3 text-sm">
+                                <span className="text-slate-600">Seller rating</span>
+                                <span className="font-medium">{sellerAvgRating !== null ? `${sellerAvgRating} / 5` : 'No ratings yet'}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-600">Total Sales</span>
+                                <span className="font-medium">{sellerReceivedReviews.length}</span>
+                            </div>
                         </>
                         )}
                     </div>

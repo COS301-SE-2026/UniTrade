@@ -1,34 +1,30 @@
-
-import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router';
-import { AlertCircle, Star } from 'lucide-react'
-import { listingsService } from '../../services/listingsService';
-import { formatPrice } from '../../utils/formatters';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { AlertCircle, Star } from "lucide-react";
+import { listingsService } from "../../services/listingsService";
+import { formatPrice } from "../../utils/formatters";
+import { useQuery } from "@tanstack/react-query";
 import { SummaryCard } from "./Reservation";
 import { ReviewModal } from '../auth/Review';
 import { LoadingState } from '../../components/layout/Spinner';
+import { useSearchQuery } from '../../hooks/useSearchQuery';
 
-
-export type OrderFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
+export type OrderFilterTab = "all" | "semester" | "awaiting" | "reviewed";
 
 function isThisSemester(iso: string): boolean {
-  const mockMonth = new Date()
-  mockMonth.setMonth(mockMonth.getMonth() - 3)
-  return new Date(iso) >= mockMonth
+  const mockMonth = new Date();
+  mockMonth.setMonth(mockMonth.getMonth() - 3);
+  return new Date(iso) >= mockMonth;
 }
 
-
-
-
 export default function Orders() {
-  const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
+  const [activeTab, setActiveTab] = useState<OrderFilterTab>("all");
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [reviewTarget, setReviewTarget] = useState<{
-    transactionId: string
-    revieweeName: string
+    transactionId: string;
+    revieweeName: string;
   } | null>(null);
 
   const {
@@ -37,33 +33,59 @@ export default function Orders() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['orders', 'completed'],
+    queryKey: ["orders", "completed"],
     queryFn: () => listingsService.getCompletedOrders(),
   });
 
   const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your orders.';
-
+  const searchQuery = useSearchQuery()
   const filteredOrders = useMemo(() => {
+    let result = orders
     switch (activeTab) {
-      case 'semester': return orders.filter((o) => isThisSemester(o._createdAtIso))
+      case 'semester': 
+      result = result.filter((o) => isThisSemester(o._createdAtIso))
+      break
 
-      case 'awaiting': return orders.filter((o) => o.rating === 0)
-      case 'reviewed': return orders.filter((o) => o.rating > 0)
-      default:
-        return orders
+      case 'awaiting': 
+      result =  result.filter((o) => o.rating === 0)
+      break
+
+      case 'reviewed': 
+      result =  result.filter((o) => o.rating > 0)
+      break
+
     }
-  }, [orders, activeTab])
+
+    if (searchQuery) {
+      result = result.filter(
+        (o) =>
+           o.title.toLowerCase().includes(searchQuery) ||
+           o.sellerName.toLowerCase().includes(searchQuery)
+      )
+    }
+
+   return result
+  }, [orders, activeTab, searchQuery])
 
   const stats = useMemo(() => {
     const totalPurchases = orders.length
     const totalSpent = orders.reduce((sum, o) => sum + o.price, 0)
     const reviewedCount = orders.filter((o) => o.rating > 0).length
+    
 
     return {
-      totalPurchases, totalSpent, reviewsLeft: `${reviewedCount}/${totalPurchases}`
-    }
-  }, [orders])
+      totalPurchases,
+      totalSpent,
+      reviewsLeft: `${reviewedCount}/${totalPurchases}`,
+    };
+  }, [orders]);
 
+  const getTabLabel = (tab: OrderFilterTab) => {
+    if (tab == "semester") return "This semester";
+    if (tab === "awaiting") return "Awaiting review";
+    if (tab === "reviewed") return "Reviewed";
+    return "All";
+  };
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -72,7 +94,7 @@ export default function Orders() {
             My Orders
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            {orders.length} {orders.length === 1 ? 'order' : 'orders'} placed
+            {orders.length} {orders.length === 1 ? "order" : "orders"} placed
           </p>
         </div>
       </div>
@@ -96,86 +118,84 @@ export default function Orders() {
       </div>
 
       <div className="flex items-center gap-2">
-        {(['all', 'semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
-                ? 'bg-navy-700 text-white'
-                : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
-              }`}
-          >
-            {
-              tab === 'semester'
-                ? 'This semester'
-                : tab === 'awaiting'
-                  ? 'Awaiting review'
-                  : tab === 'reviewed'
-                    ? 'Reviewed'
-                    : 'All'
-            }
-          </button>
-        ))}
+        {(["all", "semester", "awaiting", "reviewed"] as OrderFilterTab[]).map(
+          (tab) => (
+            <button
+              type="button"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
+                ? "bg-navy-700 text-white"
+                : "bg-white text-gray-600 border border-gray-300 hover:border-navy-700"
+                }`}
+            >
+              {getTabLabel(tab)}
+            </button>
+          ),
+        )}
       </div>
 
       {isLoading && <LoadingState message="Fetching orders..." />}
 
       {error && !isLoading && (
-        <div className='bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <AlertCircle className='w-5 h-5 text-rose-500 shrink-0' />
-            <span className='text-sm font-medium'>{errorMessage}</span>
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+            <span className="text-sm font-medium">{errorMessage}</span>
           </div>
           <button
+            type="button"
             onClick={() => refetch()}
-            className='px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors'
+            className="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors"
           >
             Retry
           </button>
-        </div>)}
+        </div>
+      )}
 
       {!isLoading && !error && filteredOrders.length === 0 && (
-        <div className='bg-white rounded-xl border border-gray-200 p-8 text-center'>
-          <p className='text-sm font-semibold text-gray-700'>
-            No orders found
-          </p>
-          <p className='text-xs text-gray-400 mt-1'>
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">No orders found</p>
+          <p className="text-xs text-gray-400 mt-1">
             There are no orders available for this category.
           </p>
         </div>
       )}
 
-
       {!isLoading && !error && filteredOrders.length > 0 && (
-        <div className='flex flex-col gap-4'>
+        <div className="flex flex-col gap-4">
           {filteredOrders.map((order) => (
             <div
               key={order.id}
-              className='bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4'
+              className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"
             >
-              <img
-                src={order.imageUrl || '/placeholder-book.png'}
-                alt={order.title}
+              <button
+                type="button"
                 onClick={() => navigate(`/buyer/orders/${order.id}`)}
-                className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-              />
+                className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
+              >
+                <img
+                  src={order.imageUrl || "/placeholder-book.png"}
+                  alt={order.title}
+                  className="w-full h-full object-cover"
+                />
+              </button>
 
               <div className="flex-1 min-w-0">
-                <div
+                <button
+                  type="button"
                   onClick={() => navigate(`/buyer/orders/${order.id}`)}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-left appearance-none border-0 bg-transparent p-0 m-0 w-full"
                 >
-
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-bold text-gray-800 truncate">
                       {order.title}
                     </p>
-
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
                     Collected {order.date} . Ref: {order.refNum}
                   </p>
-                </div>
+                </button>
 
                 <div className="flex items-center gap-2 mt-1">
                   <span className="w-5 h-5 rounded-full bg-navy-700 text-white text-[10px] font-bold flex items-center justify-center">
@@ -189,12 +209,12 @@ export default function Orders() {
                 <div className="flex items-center gap-1 pt-1">
                   {order.rating > 0 ? (
                     <>
-                      {[...Array(5)].map((_, i) => (
+                      {Array.from({ length: 5 }, (_, i) => (
                         <Star
-                          key={i}
+                          key={`star-${i}`}
                           className={`w-4 h-4 ${i < order.rating
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-gray-300'
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-gray-300"
                             }`}
                         />
                       ))}
@@ -203,7 +223,6 @@ export default function Orders() {
                         You rated this
                       </span>
                     </>
-
                   ) : order.transactionId ? (
                     <button
                       type="button"
@@ -232,10 +251,9 @@ export default function Orders() {
                   <p className="text-lg font-bold text-gray-900">
                     {formatPrice(order.price)}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    {order.date}
-                  </p>
+                  <p className="text-xs text-gray-400">{order.date}</p>
                   <button
+                    type="button"
                     onClick={() => navigate(`/buyer/orders/${order.id}`)}
                     className="px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
                   >
@@ -256,8 +274,8 @@ export default function Orders() {
           revieweeName={reviewTarget.revieweeName}
           revieweeLabel="seller"
           onSubmitted={() => {
-            setReviewTarget(null)
-            refetch()
+            setReviewTarget(null);
+            refetch();
           }}
         />
       )}

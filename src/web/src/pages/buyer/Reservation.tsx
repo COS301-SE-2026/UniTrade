@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useReducer, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getReservations, cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
@@ -14,12 +14,13 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
+import { useSearchQuery } from '../../hooks/useSearchQuery'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -74,7 +75,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
   meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
     <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
       <span className="text-navy-700">{icon}</span>
@@ -86,7 +87,7 @@ export function SummaryCard({ label, value, icon }: { label: string; value: stri
   );
 }
 
-function StageTag({ stage }: { stage: TimerStage }) {
+function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
   const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
@@ -95,7 +96,7 @@ function StageTag({ stage }: { stage: TimerStage }) {
   )
 }
 
-function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }) {
+function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
   if (msRemaining <= 0) return null;
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -110,14 +111,14 @@ function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency
 function ReservationCard({
   reservation,
   onCancel,
-}: {
+}: Readonly<{
   reservation: ReservationListItem
   onCancel: (id: string) => void
-}) {
+}>) {
   const navigate = useNavigate()
-  const [, forceTick] = useState(0)
+  const [, forceTick] = useReducer((x: number) => x + 1, 0)
   useEffect(() => {
-    const interval = setInterval(() => forceTick((t) => t + 1), 1000)
+    const interval = setInterval(() => forceTick(), 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -126,21 +127,28 @@ function ReservationCard({
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0];
 
+
+  const openReservation = () => navigate(`/buyer/reservations/${reservation.reservationId}`)
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <img
-        src={reservation.listing.imagePath
-          ? `${apiOrigin}${reservation.listing.imagePath}`
-          : '/placeholder.png'}
-        alt={reservation.listing.title}
-        onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-        className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-      />
+      <button
+        type='button'
+        onClick={openReservation}
+        className='w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent'
+      >
+        <img
+          src={reservation.listing.imagePath
+            ? `${apiOrigin}${reservation.listing.imagePath}`
+            : '/placeholder.png'}
+          alt={reservation.listing.title}
+        />
+      </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-4">
-          <div
-            onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-            className="min-w-0 cursor-pointer group"
+          <button
+            type='button'
+            onClick={openReservation}
+            className="min-w-0 cursor-pointer group text-left"
           >
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-bold text-gray-800 truncate">
@@ -153,7 +161,7 @@ function ReservationCard({
                 {reservation.counterParty.name}
               </span>
             </p>
-          </div>
+          </button>
           {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
             <div className="text-right flex-shrink-0">
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">
@@ -203,7 +211,7 @@ function ReservationCard({
             <button
               type="button"
               onClick={() => onCancel(reservation.reservationId)}
-              disabled={reservation.timerStage == 'meetup_confirmed'}
+              disabled={reservation.timerStage === 'meetup_confirmed'}
               className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
@@ -224,6 +232,7 @@ export default function Reservations() {
   const [sortOpen, setSortOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
+  const searchQuery = useSearchQuery()
 
   useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) => {
@@ -249,11 +258,20 @@ export default function Reservations() {
     }
   }
   const filtered = useMemo(() => {
-    if (statusFilter === "All") return reservations;
-    return reservations.filter(
-      (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
-    );
-  }, [reservations, statusFilter]);
+    let result = statusFilter === 'All'
+      ? reservations
+      : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
+
+    if (searchQuery) {
+      result = result.filter(
+        (r) =>
+          r.listing.title.toLowerCase().includes(searchQuery) ||
+          r.counterParty.name.toLowerCase().includes(searchQuery)
+      )
+    }
+
+    return result
+  }, [reservations, statusFilter, searchQuery])
 
 
   const sorted = useMemo(() => {
@@ -280,7 +298,18 @@ export default function Reservations() {
 
     return { activeCount, expiringCount, totalValue }
   }, [reservations])
+  const getEmptyStateMessage = () => {
+    if (searchQuery) {
+      return `There are no reservation with "${searchQuery}" found.`;
 
+    }
+
+    if (statusFilter !== "All") {
+      return `There are no reservations with "${statusFilter}" status.`
+    }
+
+    return "Reserve items from listings to see them here."
+  }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -303,6 +332,7 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
                   <button
+                    type='button'
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -330,6 +360,7 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
                   <button
+                    type='button'
                     key={opt}
                     onClick={() => {
                       setStatusFilter(opt);
@@ -364,33 +395,29 @@ export default function Reservations() {
         />
       </div>
 
-      
-        {loading && <LoadingState message = "Fetching listings..." />}    
 
-        {!loading && error && (
-          <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
-            <p className="text-sm font-semibold text-rose-600">{error}</p>
-          </div>
-        )}
+      {loading && <LoadingState message="Fetching listings..." />}
+      {!loading && error && (
+        <div className='bg-white rounded-xl border border-rose-200 p-6 text-center'>
+          <p className='text-sm font-semibold text-rose-600'>{error}</p>
+        </div>
+      )}
+      {!loading && !error && sorted.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">No reservations found</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {getEmptyStateMessage()}
+          </p>
+        </div>
+      )}
 
-        {!loading && !error && sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-700">No reservations found</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {statusFilter !== "All"
-                ? `There are no reservations with "${statusFilter}" status.`
-                : "Reserve items from listings to see them here."}
-            </p>
-          </div>
-        )}
-
-        {sorted.map((reservation: ReservationListItem) => (
-          <ReservationCard
-            key={reservation.reservationId}
-            reservation={reservation}
-            onCancel={handleCancel}
-          />
-        ))}
-      </div>
+      {sorted.map((reservation: ReservationListItem) => (
+        <ReservationCard
+          key={reservation.reservationId}
+          reservation={reservation}
+          onCancel={handleCancel}
+        />
+      ))}
+    </div>
   )
 }

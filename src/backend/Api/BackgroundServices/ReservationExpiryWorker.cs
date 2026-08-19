@@ -19,7 +19,7 @@ public class ReservationExpiryWorker : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken ct)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(_interval);
 
@@ -27,9 +27,9 @@ public class ReservationExpiryWorker : BackgroundService
         {
             try
             {
-                await CleanupAsync(ct);
+                await CleanupAsync(stoppingToken);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
             }
@@ -40,7 +40,7 @@ public class ReservationExpiryWorker : BackgroundService
                     "Reservation expiry cleanup failed, next will retry the next tick"
                 );
             }
-        } while (await timer.WaitForNextTickAsync(ct));
+        } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupAsync(CancellationToken ct)
@@ -55,8 +55,12 @@ public class ReservationExpiryWorker : BackgroundService
 
         if (expired.Count>0)
         {
-        
-        _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
+            return;
+        }
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
+        }
 
         foreach (var reservation in expired)
         {

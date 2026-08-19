@@ -32,11 +32,9 @@ export async function registerForPushN(): Promise<void> {
   );
 
   // change back to cons when the pwa gets here
-  if (!registration) {
-    registration = await navigator.serviceWorker.register(
+  registration ??= await navigator.serviceWorker.register(
       "/firebase-messaging-sw.js",
     );
-  }
   if (!registration) {
     return;
   }
@@ -45,7 +43,6 @@ export async function registerForPushN(): Promise<void> {
 
   const token = await getToken(getMessagingInstance(), {
     vapidKey,
-    serviceWorkerRegistration: registration,
   });
 
   if (!token) {
