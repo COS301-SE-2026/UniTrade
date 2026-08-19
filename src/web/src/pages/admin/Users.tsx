@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
-
+import {IconSearch, IconRadio} from "@tabler/icons-react"
 
 const MOCK_USERS = [
  { id: '1',
@@ -39,11 +39,40 @@ export default function Users() {
     return true
   })
 
-
+  
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Listig Queue</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
+    <div className='p-8 space-y-6 max-w-6xl'>
+      <div className="relative max-w-md">
+        <IconSearch className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
+        <input 
+        type="text"
+        placeholder = 'search...'
+        className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-non focus:ring-2 focus:ring-navy-500"/>
+        </div>
+      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Users</h1>
+
+    <div className="grid grid-cols-3 gap-6 max-w-3xl">
+      <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm">
+        <div>
+          <div className="text-2xl font-bold text-gray-900">12</div>
+          <div className="text-xs text-gray-500">Total Users</div>
+
+        </div>
+      </div>
+
+      <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
+        <IconRadio className='h-5 w-5 text-gray-700' />
+        <div>
+          <div className="text-2xl font-bold text-gray-900">7</div>
+          <div className="text-xs text-gray-500">Verified</div>
+      </div>
     </div>
-  )
+<div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
+        <div>
+          <div className="text-2xl font-bold text-gray-900">7</div>
+          <div className="text-xs text-gray-500">Verified</div>
+      </div>
+    </div>
+    </div>
+  </div>)
 }
