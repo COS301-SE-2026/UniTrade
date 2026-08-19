@@ -11,4 +11,5 @@ public interface IPaymentGateway
         string buyerEmail
     );
     bool VerifySignature(string rawBody, string receivedSign);
+    bool VerifySignature(Dictionary<string, string> itnFields, string receivedSign);
 }

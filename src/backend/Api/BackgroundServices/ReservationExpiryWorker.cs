@@ -79,11 +79,11 @@ public class ReservationExpiryWorker : BackgroundService
                 ct
             );
         }
-        }
-
-        if(warned.Count>0)
-        {
-             _logger.LogInformation("Sent 2 hour warning for {Count} reservation(s)",warned.Count);
-        }
     }
+
+        // if(warned.Count>0)
+        // {
+        //      _logger.LogInformation("Sent 2 hour warning for {Count} reservation(s)",warned.Count);
+        // }
+    
 }

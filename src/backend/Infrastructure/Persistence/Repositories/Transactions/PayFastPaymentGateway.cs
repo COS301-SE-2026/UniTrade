@@ -126,6 +126,26 @@ public class PayFastPaymentGateway : IPaymentGateway
         return hash == receivedSign.ToLowerInvariant();
     }
 
+    public bool VerifySignature(Dictionary<string,string> itnFields, string receivedSign)
+    {
+        var baseString = String.Join(
+            "&",
+            itnFields
+                .Where(kvp => !string.Equals(kvp.Key,"signature", StringComparison.Ordinal))
+                .Select(kvp => $"{kvp.Key}={PayFastEncode(kvp.Value)}")
+        );
+        if (!string.IsNullOrEmpty(_passphrase))
+        {
+            baseString += $"&passphrase={PayFastEncode(_passphrase)}";
+        }
+        using var md5 = MD5.Create();
+        var hash = Convert
+            .ToHexString(md5.ComputeHash(Encoding.UTF8.GetBytes(baseString)))
+            .ToLowerInvariant();
+
+        return hash == receivedSign.ToLowerInvariant();
+    }
+
     private static readonly Regex _urlEncodingRegex = new Regex(
         "%[0-9a-f]{2}",
         RegexOptions.None,

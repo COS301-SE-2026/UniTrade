@@ -27,7 +27,8 @@ public class MeetupService : IMeetupService
         TimeProvider clock,
         IMeetupRepository meetups,
         INotificationDispatcher pushNotifier,
-        ILogger<MeetupService> logger
+        ILogger<MeetupService> logger,
+        IBroadCastService broadcast
     )
     {
         _reservations = reservations;
