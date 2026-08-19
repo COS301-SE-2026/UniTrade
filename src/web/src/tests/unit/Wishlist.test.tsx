@@ -124,7 +124,7 @@ it('shows a loading message when waiting for the wishlist to load', () => {
     mockWishlist(undefined, true, null);
 
     renderWishlist();
-    expect(screen.getByText('Loading wishlist ...')).toBeInTheDocument();
+    expect(screen.getByText('Loading wishlist...')).toBeInTheDocument();
 });
 
 it('shows an empty state when there are no listings in your wishlist ', () => {
@@ -198,8 +198,208 @@ describe('filtering by the condition of the listing', () => {
         expect(screen.queryByText('Poor Item')).not.toBeInTheDocument();
     });
 
-
 })
+
+describe ('reserving a listing', () => {
+    beforeEach(() => {
+        mockWishlist({
+            listings: [makeListing ({id:'10'})],
+            total :150,
+        })
+    })
+
+    it('navigates to reservation on a successful reserve', async() => {
+        vi.mocked(createReservation).mockResolvedValueOnce({success: true} as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+        await vi.waitFor(() => {
+            expect(navigateMock).toHaveBeenCalledWith('/buyer/reservations');
+        })
+
+    })
+
+    it('shows a self-reserve error message', async () =>
+    {
+        vi.mocked(createReservation).mockResolvedValueOnce({
+            success: false,
+            error: { code: 'self_reserve'},
+        }as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', {name: /reserve/i }));
+
+        expect(await screen.findByText('You cant reserve your own listing.')).toBeInTheDocument();
+    });
+
+    it('shows an already-reserved error message', async () => {
+        vi.mocked(createReservation).mockResolvedValueOnce({
+                  success: false,
+            error: { code: 'already_reserved'},
+        }as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', { name: /reserve/i }))
+
+        expect(
+            await screen.findByText('Sorry, This Item has already been reserved by someone else'),).toBeInTheDocument();
+        })
+
+        it('shows the server-provided message for an unrecognised error code', async() =>{
+            vi.mocked(createReservation).mockResolvedValueOnce({
+                success: false,
+                error: {
+                    code: 'weird_error', message: 'Something unexpected happened'},
+
+                }as unknown as ReservationResult);
+        renderWishlist();
+
+        fireEvent.click(screen.getByRole('button', { name: /reserve/i }))
+        expect(await screen.findByText('Something unexpected happened')).toBeInTheDocument();
+            })
+        it('falls back to a generic message when no error message is provided', async ()=>{
+vi.mocked(createReservation).mockResolvedValueOnce({
+  success: false,
+                error: {
+                    code: 'weird_error'},
+
+                }as unknown as ReservationResult);
+        renderWishlist();
+ fireEvent.click(screen.getByRole('button', { name: /reserve/i }))
+        expect(await screen.findByText('Could not reserve this item.')).toBeInTheDocument();
+            })
+        });
+
+
+    it('disables the reservation button and shows "Unavailable" for a non-live listing', () =>{
+     mockWishlist({
+            listings: [makeListing ({id:'10', status:'reserved'})],
+            total :150,
+        })
+        renderWishlist();
+        const reserveButton = screen.getByRole('button', {name: /unavailable/i})
+        expect(reserveButton).toBeDisabled();
+    })
+
+    describe('removing a listing', () => {
+        it('calls removeFromWishlist and updates the cache on success', async() =>{
+            mockWishlist({
+                listings: [makeListing({
+                    id: '10'})],
+                    total : 150,
+            })
+            renderWishlist();
+
+            fireEvent.click(screen.getByRole('button', { name: /remove/i}))
+            await vi. waitFor(() => {
+               expect(listingsService.removeFromWishlist).toHaveBeenCalledWith('10');
+            })
+            expect(queryClient.setQueryData).toHaveBeenCalledWith(
+                ['wishlist'],
+                expect.any(Function),
+            );
+
+            const updater = vi.mocked(queryClient.setQueryData).mock.calls[0][1] as (
+                old: WishlistResponse | undefined,
+            ) => WishlistResponse | undefined;
+
+            const before: WishlistResponse = {
+                listings: [makeListing({ id: '10'}), makeListing({ id: '11'})],
+                total: 2,
+            };
+            const after = updater(before);
+        expect(after?.listings.map((l) => l.id)).toEqual(['11'])
+    expect(after?.total).toBe(1);
+expect(updater(undefined)).toBeUndefined();
+        })
+
+        it('resets the removing state without removing the item when the request fails', async() => {
+            vi.mocked(listingsService.removeFromWishlist).mockRejectedValueOnce(new Error('boom'));
+            mockWishlist({
+                listings: [makeListing({ id: '10'})],
+                total: 150,
+            })
+            renderWishlist();
+            fireEvent.click(screen.getByRole('button', {name: /remove/i}))
+            await vi.waitFor(() =>
+            {
+                expect(screen.getByRole('button', {name: /^remove$/i})).not.toBeDisabled();
+            });
+            expect(queryClient.setQueryData).not.toHaveBeenCalled();
+        })
+        })      
+
+    it('navigates to the listing detail page when the image is clicked', () => {
+        mockWishlist({
+            listings: [makeListing({ id: '10'})],
+            total: 150,
+        });
+        renderWishlist();
+
+        fireEvent.click(screen.getByAltText('Calculus'));
+        expect(navigateMock).toHaveBeenCalledWith('/listings/10');
+    });
+
+      describe('sorting', () => {
+        beforeEach(() => {
+            mockWishlist({
+                listings: [
+                    makeListing({ id: '47', title: 'ListA', price: 300, addedAt: '2026-07-04'}),
+                    makeListing({ id: '49', title: 'ListB', price: 100, addedAt: '2026-07-17'}),
+                    makeListing({ id: '51', title: 'ListC', price: 200, addedAt: '2026-07-14'}),
+                ],
+                total: 600,
+            })
+        })
+
+        function titleOrder() {
+            return screen.getAllByText(/^(ListA|ListB|ListC)$/).map((el) => el.textContent);
+        }
+
+        it('sorts by price, low to high', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Price low'));
+
+            expect(titleOrder()).toEqual(['ListB','ListC','ListA']);
+        })
+        
+        it('sorts by price, high to low', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Price high'));
+
+            expect(titleOrder()).toEqual(['ListA','ListC','ListB']);
+        })
+        
+        it('sorts by date added,most recent first', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Date added'));
+
+            expect(titleOrder()).toEqual(['ListB','ListC','ListA']);
+        })
+
+        it('closes the sort dropdown after selecting an option', () => {
+            renderWishlist();
+            fireEvent.click(screen.getByText(/sort by/i));
+            fireEvent.click(screen.getByText('Price low'));
+
+            expect(screen.queryByText('Price high')).not.toBeInTheDocument();
+            
+        })
+    })
+
+  
+
+
+
+
+
+
+
+
+
 
 
 
