@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import {
   IconStar, IconCheck, IconChevronRight,
-  IconBookmark, IconHeart, IconFlag
+  IconBookmark, IconHeart, IconFlag,
+  IconX
 } from '@tabler/icons-react'
 import type React from 'react'
 import { listingsService } from '../../services/listingsService'
@@ -22,6 +23,51 @@ function DetailRow({ label, value }: Readonly<{ label: string; value: React.Reac
     </div>
   )
 }
+
+function ReportModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null
+  return (
+    <div
+      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-md p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
+        >
+          <IconX size={20} />
+        </button>
+        <h2 className="text-xl font-bold text-navy-700 dark:text-white text-center mb-6">
+          Report Listing
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+              Reason
+            </label>
+            <textarea
+              rows={4}
+              placeholder="Provide a reason for reporting this listing..."
+              className="w-full rounded-lg border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700"
+            />
+          </div>
+          <button
+            type="button"
+            className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl transition-colors"
+            onClick={onClose}
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ListingDetail() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -35,6 +81,7 @@ export default function ListingDetail() {
   const [reserved, setReserved] = useState(false)
   const [reserveError, setReserveError] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [sellerReviews, setSellerReviews] = useState<UserReviewsResponse | null>(null)
   
 
@@ -289,7 +336,7 @@ export default function ListingDetail() {
               type='button'
               onClick={handleReserve}
               disabled={reserving || reserved}
-              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-2"
             >
               <IconBookmark size={16} />
 
@@ -302,8 +349,8 @@ export default function ListingDetail() {
               <IconHeart size={16} /> Add to wishlist
             </button>
 
-            <button type='button'
-              disabled
+            <button
+              onClick={() => setReportModalOpen(true)}
               className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <IconFlag size={13} /> Report this listing
@@ -374,6 +421,11 @@ export default function ListingDetail() {
           />
         </button>
       )}
+
+      <ReportModal isOpen={reportModalOpen}
+      onClose={() => setReportModalOpen(false)}
+      />
     </div>
   )
 }
+
