@@ -111,10 +111,51 @@ const numPending = MockVerifications.length
 
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Verifications</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
-    </div>
+    <div className='p-8 space-y-6 max-w-6xl'>
+      <div className="relative max-w-sm">
+        <input
+          type="text"
+          placeholder='search...'
+          value ={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]" />
+       <IconSearch className='absolute right-3 top-2.5 h-4 w-4 text-gray-400' />
+      </div>
+      <div>
+       <h1 className="text-2xl font-bold text-gray-900">Student Verifications</h1>
+          <p className="text-xs text-gray-500">Review student proof of registration and approve or reject account.</p>
+      </div>
+      <div className="grid grid-cols gap-4 max-w-4xl">
+
+                <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
+          <div className="text-xl font-bold text-gray-900">{numOverdue}</div>
+          <div className="text-xs text-gray-500">Overdue</div>
+        </div>
+
+        <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
+          <div className="text-xl font-bold text-gray-900">{numDueSoon}</div>
+          <div className="text-xs text-gray-500">Due Soon</div>
+        </div>
+     
+        <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
+          <div className="text-xl font-bold text-gray-900">{numPending}</div>
+          <div className="text-xs text-gray-500">Total Pending</div>
+    
+        </div>
+
+                <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
+          <div className="text-xl font-bold text-gray-900">12</div>
+          <div className="text-xs text-gray-500">Approved Today</div>
+      </div>
+      </div>
+
+      
+
+
+
+      </div>
+
+
   )
 }
 
