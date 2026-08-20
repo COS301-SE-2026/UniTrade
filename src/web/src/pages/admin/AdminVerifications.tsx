@@ -243,6 +243,37 @@ const numPending = MockVerifications.length
         </div>
         </div>
 
+<div className="grid grid-cols-2 gap-y-3 text-[11px]">
+  <div>
+    <span className='text-gray-400 block text-[10px]'>
+      Submitted</span>
+      <span className="font-semibold text-gray-800">{ver.submittedDate}
+    </span>
+    </div>
+    <div>
+     <span className='text-gray-400 block text-[10px]'>
+      SLA Status</span>
+      <span className={`font-semibold ${ver.slaState === 'Overdue' ? 'text-red-600' :
+        'text-gray-700'
+      }`}
+      >{ver.slaStatus}
+    </span>
+    </div>
+
+<div>
+     <span className='text-gray-400 block text-[10px]'>
+      Email</span>
+      <span className="font-semibold text-gray-800">{ver.email}
+    </span>
+    </div>
+
+    <div>
+       <span className='text-gray-400 block text-[10px]'>
+      Domain Check</span>
+      <span className="font-semibold text-emerald-800">{ver.domain}
+    </span>
+    </div>
+    </div>
 
 
 
