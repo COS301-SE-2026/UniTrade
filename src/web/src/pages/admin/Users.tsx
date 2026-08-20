@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { IconSearch, IconRadio } from "@tabler/icons-react"
+import { IconSearch } from "@tabler/icons-react"
 
 export interface MockUser{
   id: string

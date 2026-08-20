@@ -1,3 +1,25 @@
+import {useState} from 'react'
+import { IconSearch, IconFileText,IconEye } from "@tabler/icons-react"
+
+export interface VerificartionRequest{
+  id: string
+  name: string
+  initials: string
+  degree: string
+  submittedDate: string
+  email: string
+  slaStatus: string
+  slaState: 'Overdue' | 'Due soon' | 'Normal'
+  slaProgress: number
+  slaMessage: string
+  domain: string
+  docName: string
+  docSize: string
+  docDate:string
+
+}
+
+
 export default function AdminVerifications() {
   return (
     <div>
