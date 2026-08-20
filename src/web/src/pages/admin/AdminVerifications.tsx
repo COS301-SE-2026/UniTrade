@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 import {useNavigate} from 'react-router'
 import {getMockVerifications, type VerificationCase } from '../../types/mockAdmin'
+import { LoadingState } from '../../components/layout/Spinner';
 
 export default function AdminVerifications() {
 
@@ -25,10 +26,8 @@ export default function AdminVerifications() {
       </p>
 
       <div className = "bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
-      {loading && <p className = "p-5 text-sm text-gray-400">
-        Loading verifications...
-      </p>
-      }
+      
+      {loading && <LoadingState message = "Loading verifications ..." />}
 
       {!loading && verifications.length === 0 && (
           <p className="p-5 text-sm text-gray-400">No pending verifications.</p> //dont forget to add taht spinner once everything is integrated 
