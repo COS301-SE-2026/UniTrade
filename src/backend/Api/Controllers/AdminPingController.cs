@@ -4,7 +4,7 @@ namespace Api.Controllers;
 
 [Route("api/admin")]
 [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-public sealed class AdminPintController : AdminControllerBase
+public sealed class AdminPingController : AdminControllerBase
 {
     [HttpGet("ping")]
     public IActionResult Ping() => Ok(new { ok = true });
