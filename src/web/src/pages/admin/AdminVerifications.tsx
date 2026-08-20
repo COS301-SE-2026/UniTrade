@@ -202,11 +202,48 @@ const numPending = MockVerifications.length
       </div>
       </div>
     
-           
-   
+    <div className="grid grid-cols-2 gap-6">
+      {filteredList.map((ver) => (
+        <div
+        key={ver.id}
+        className={`bg-white rounded-2xl border border-gray-200 shadow-sm p-5
+        spacce-y-4 relative border-l-4 ${
+        ver.slaState === 'Overdue'
+        ? 'border-l-red-800'
+        :ver.slaState === 'Due soon'
+        ? 'border-l-amber-600'
+        : 'border-l-transparent'
+        }`}>
+
+{ver.slaState !== 'Normal' && (
+  <span
+  className={`absolute top-5 right-5 px-3 py-0.5 rounded-full text-[10px] font-semibold
+    
+    ${
+      ver.slaState === "Overdue"
+      ? 'bg-red-200 text-amber-700'
+      : 'bg-amber-100 text-amber-700'
+    }`}
+    >
+      {ver.slaState}
+    </span>
+)}
 
 
-      </div>
+
+
+
+<div className="pt-1 flex justify-center">
+  <button
+  type='button'
+  className="w-3/5 bg-[#0a1931] text-white py-2 rounded-xl text-xs font-semibold hover:bg-[#153462] transition-colors cursor-pointer">
+Make a Descision
+  </button>
+  </div>
+</div>
+      ))}
+        </div>  
+        </div>
 
 
   )
