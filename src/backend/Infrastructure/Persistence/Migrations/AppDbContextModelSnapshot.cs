@@ -1594,7 +1594,7 @@ namespace Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
-                {
+                {   b.Navigation("ListingSnapshot");
                     b.Navigation("Meetups");
 
                     b.Navigation("Messages");
@@ -1602,7 +1602,7 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("ReservationListings");
                 });
 
-            modelBuilder.Entity("Modules.Listings.Models.ListingSnapshot", b=>)
+            modelBuilder.Entity("Modules.Listings.Models.ListingSnapshot", b=>
                 {
                     b.HasOne("Modules.Reservations.Models.Reservation","Reservation")
                         .WithOne("ListingSnapshot")
@@ -1620,7 +1620,8 @@ namespace Infrastructure.Persistence.Migrations
                     
                     b.Navigation("Listing");
                     b.Navigation("Reservation");
-                }
+                });
+            
 #pragma warning restore 612, 618
         }
     }
