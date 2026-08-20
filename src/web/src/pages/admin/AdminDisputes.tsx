@@ -46,6 +46,30 @@ const MockDisputes: MockDispute[] = [
   }
 ]
 
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filter, setFilter] = useState<'No-show' | 'Listing quality' | 'Report' | 'all'>('all')
+  const filteredDisputes = MockDisputes.filter((dispute) => {
+
+  const foundMatch = dispute.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   dispute.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dispute.seller.toLowerCase().includes(searchQuery.toLowerCase())
+
+
+   if(!foundMatch) return false
+
+    if (filter === 'No-show') return dispute.type === 'No-show'
+    if (filter === 'Listing quality') return dispute.type === 'Listing quality'
+    if (filter === 'Report') return dispute.type === 'Report'
+    return true
+  }) 
+
+
+const totalDisputes =  MockDisputes.length
+const numNoShow= MockDisputes.filter((dispute) => dispute.type === 'No-show').length
+const numListingQuality = MockDisputes.filter((dispute) => dispute.type === 'Listing quality').length
+const numReport = MockDisputes.filter((dispute) => dispute.type === 'Report').length
+
 
 export default function AdminDisputes() {
   return (
