@@ -149,8 +149,50 @@ const numPending = MockVerifications.length
       </div>
       </div>
 
-      
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex-items-center space-x-3">
+          <button
+          type="button"
+          onClick={() => setFilter('All')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'All'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              All({MockVerifications.length})
+            </button>
 
+                    <button
+          type="button"
+          onClick={() => setFilter('Overdue')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'Overdue'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              Overdue({numOverdue})
+            </button>
+
+                      <button
+          type="button"
+          onClick={() => setFilter('Due soon')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'Due soon'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              All({numDueSoon})
+            </button>
+            </div>
+
+            
+   
 
 
       </div>
