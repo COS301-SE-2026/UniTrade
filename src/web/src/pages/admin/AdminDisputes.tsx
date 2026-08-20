@@ -39,7 +39,7 @@ export default function AdminDisputes() {
        }
 
        {!loading && disputes.length === 0 && (
-          <p className="p-5 text-sm text-gray-400">No active disputes. Nice and quiet.</p>
+          <p className="p-5 text-sm text-gray-400">No active disputes.</p>
         )}
 
         {!loading &&
