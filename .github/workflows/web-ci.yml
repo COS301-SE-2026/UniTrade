@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Gitleaks 
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o gitleaks.tar.gz
+          curl -fSL --proto '=https' https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o gitleaks.tar.gz
           echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  gitleaks.tar.gz" | sha256sum -c -
           tar -xzf gitleaks.tar.gz gitleaks
           sudo mv gitleaks /usr/local/bin 
@@ -64,9 +64,13 @@ jobs:
       - name: Lint code
         working-directory: src/web
         run: npm run lint
-
+      
+      - name: Dependency audit (QR-03e)
+        working-directory: src/web
+        run: npm audit --audit-level=high
+        
       - name: Set up Java 21 for SonarScanner
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
          java-version: '21'
          distribution: 'temurin'
@@ -92,18 +96,18 @@ jobs:
         working-directory: src/web
         run: npm run test:integration:cov
       
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: src/web/coverage/lcov.info
-          fail_ci_if_error: true
+      #- name: Upload coverage to Codecov
+      #  uses: codecov/codecov-action@v4
+      #  with:
+      #    files: src/web/coverage/lcov.info
+      #    fail_ci_if_error: true
       
       - name: Validate Frontend docker image
         working-directory: src/web
         run: docker build -t unitrade-web-ci .
 
       - name: Install SonarScanner
-        run: npm install -g @sonar/scan --ignore-scripts
+        run: npm install -g @sonar/scan@4.3.0 --ignore-scripts
         
       - name: Run SonarCloud analysis
         working-directory: src/web

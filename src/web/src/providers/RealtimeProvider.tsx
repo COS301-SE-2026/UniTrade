@@ -3,13 +3,12 @@ import { connectionManager } from "../services/realtime/connectionManager";
 import { queryKeys } from "../lib/queryKeys";
 import { useAuthStore } from "../store/useAuthStore";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Reservation, ReservationListItem } from "../types/Reservations";
+import type { Reservation, ReservationListItem, ChatMessage } from "../types/Reservations";
 import type { ClientChatMessage } from "../types/chat";
-import type { ChatMessage } from "../types/Reservations";
 import { registerForPushN, onForegroundMessage } from "../services/fcmService";
 import { useToast } from "../components/layout/useToast";
 
-export function RealtimeProvider({ children }: { children: React.ReactNode }) {
+export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useToast();
@@ -43,7 +42,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
         })
         .catch((err) => {
-          console.error("Push token failes", err);
+          console.error("Push token failed", err);
           sessionStorage.setItem("pushAttempted", "true");
         })
     }

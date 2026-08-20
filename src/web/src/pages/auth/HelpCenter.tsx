@@ -35,6 +35,7 @@ interface FaqItem {
 }
 
 interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
 }
@@ -46,6 +47,7 @@ function Navbar() {
       <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
+            type='button'
             onClick={() => navigate(-1)}
             className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all">
             <IconArrowLeft size={20} />
@@ -73,16 +75,13 @@ function Navbar() {
 function QuickLinkOverlay({
   link,
   onClose,
-}: {
+}: Readonly<{
   link: QuickLinkItem;
   onClose: () => void;
-}) {
+}>) {
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 "
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div className="bg-white rounded-2xl w-full max-w-lg flex flex-col max-h-[75vh] shadow-xl">
         <div className="flex items-start gap-3 px-6 py-5 border-b border-gray-100">
@@ -98,6 +97,7 @@ function QuickLinkOverlay({
             </div>
           </div>
           <button
+            type='button'
             onClick={onClose}
             aria-label="Close"
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors flex-shrink-0"
@@ -108,7 +108,7 @@ function QuickLinkOverlay({
 
         <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
           {link.details.map((paragraph, i) => (
-            <p key={i} className="text-sm text-gray-600 leading-relaxed">
+            <p key={`${link.title}-detail-${i}`} className="text-sm text-gray-600 leading-relaxed">
               {paragraph}
             </p>
           ))}
@@ -125,6 +125,7 @@ export default function HelpCenter() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
+      id: 'welcome',
       role: 'assistant',
       content: "Hey! I'm Alex, your UniTrade support assistant . What would you like to know?",
     },
@@ -201,7 +202,7 @@ export default function HelpCenter() {
     const text = inputValue.trim();
     if (!text || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: text };
+    const userMessage: Message = { id: `${Date.now()}-user`, role: 'user', content: text };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
@@ -209,10 +210,11 @@ export default function HelpCenter() {
     await new Promise(resolve => setTimeout(resolve, 300));
 
     const { reply, faqIndex } = getResponse(text);
-    const assistantMessage: Message = { role: 'assistant', content: reply };
+    const assistantMessage: Message = { id: `${Date.now()}-assistant`, role: 'assistant', content: reply };
     setMessages(prev => [...prev, assistantMessage]);
 
     if (faqIndex !== undefined) {
+      setSearchQuery('');
       setOpenFaq(faqIndex);
       setTimeout(() => {
         const faqElement = document.getElementById(`faq-${faqIndex}`);
@@ -231,7 +233,7 @@ export default function HelpCenter() {
       sendMessage();
     }
   };
-
+  
   const quickLinks: QuickLinkItem[] = [
     {
       icon: <IconUpload size={22} className="text-[#003366]" />,
@@ -440,9 +442,10 @@ export default function HelpCenter() {
         <div className="max-w-5xl mx-auto px-6 mt-10">
           <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">Quick Links</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredQuickLinks.map((link, idx) => (
-              <div
-                key={idx}
+            {filteredQuickLinks.map((link) => (
+              <button
+                type='button'
+                key={link.title}
                 onClick={() => setActiveLink(link)}
                 className="bg-white border border-gray-100 p-5 rounded-xl shadow-xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
               >
@@ -451,7 +454,7 @@ export default function HelpCenter() {
                 </div>
                 <h4 className="text-sm font-bold text-gray-800 mb-1">{link.title}</h4>
                 <p className="text-xs text-gray-500 leading-relaxed">{link.description}</p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -463,16 +466,17 @@ export default function HelpCenter() {
             Frequently Asked Questions
           </h3>
           <div className="flex flex-col gap-3">
-            {filteredFaqs.map((faq, index) => {
-              const isOpen = openFaq === index;
+            {filteredFaqs.map((faq, idx) => {
+              const isOpen = openFaq === filteredFaqs.indexOf(faq);
               return (
                 <div
-                  key={index}
-                  id={`faq-${index}`}
+                  key={faq.question}
+                  id={`faq-${idx}`}
                   className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
                 >
                   <button
-                    onClick={() => toogleFaq(index)}
+                    type='button'
+                    onClick={() => toogleFaq(idx)}
                     className="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-800 hover:bg-gray-50 transition-colors"
                   >
                     <span>
@@ -504,6 +508,7 @@ export default function HelpCenter() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
+            type='button'
             onClick={() => setChatOpen(true)}
             className="bg-white border border-gray-200/80 rounded-xl p-5 flex items-center gap-4 hover:border-gray-300 hover:shadow-xs transition-all text-left group"
           >
@@ -535,10 +540,13 @@ export default function HelpCenter() {
         <QuickLinkOverlay link={activeLink} onClose={() => setActiveLink(null)} />
       )}
       {chatOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center p-4"
+        <button
+          type='button'
+          className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center p-4 w-full border-none cursor-pointer"
           onClick={(e) => {
             if (e.target === e.currentTarget) setChatOpen(false);
           }}
+
         >
           <div className="bg-white rounded-t-2xl w-full max-w-lg flex flex-col" style={{ height: '70vh' }}>
             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
@@ -547,6 +555,7 @@ export default function HelpCenter() {
                 <div className="text-xs text-gray-400">Unitrade Help Assistant</div>
               </div>
               <button
+                type='button'
                 onClick={() => setChatOpen(false)}
                 aria-label="Close chat"
                 className="ml-auto w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
@@ -556,8 +565,8 @@ export default function HelpCenter() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div
                     className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
                       ? 'bg-[#003366] text-white rounded-br-sm'
@@ -571,9 +580,9 @@ export default function HelpCenter() {
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-[#eef4fa] rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5">
-                    {[0, 0.2, 0.4].map((delay, i) => (
+                    {[0, 0.2, 0.4].map((delay) => (
                       <span
-                        key={i}
+                        key={delay}
                         style={{ animationDelay: `${delay}s` }}
                         className="w-2 h-2 bg-[#003366] rounded-full opacity-40 animate-bounce"
                       />
@@ -596,6 +605,7 @@ export default function HelpCenter() {
                 style={{ maxHeight: 80 }}
               />
               <button
+                type='button'
                 onClick={sendMessage}
                 disabled={isLoading || !inputValue.trim()}
                 aria-label="Send message"
@@ -605,7 +615,7 @@ export default function HelpCenter() {
               </button>
             </div>
           </div>
-        </div>
+        </button>
       )}
     </div>
   );

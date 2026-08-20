@@ -215,7 +215,7 @@ public class ListingService : IListingService
             return;
         }
 
-        var category = await _listings.ResolveByNameAsync(listings.CategoryName!.Trim());
+        var category = await _listings.ResolveByNameAsync(listings.CategoryName.Trim());
         if (category == null)
         {
             throw new ArgumentException("invalid_category");

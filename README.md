@@ -15,7 +15,9 @@
 <!-- CI/CD Status Pipeline Badges -->
 [![Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml)
 [![Web Frontend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
-
+<!-- Uptime Monitoring Badges-->
+[![Uptime Status](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=uptime)](https://stats.uptimerobot.com/)
+[![Uptime Ratio (30d)](https://img.shields.io/uptimerobot/ratio/30/m803674174-30a848fbf196d9ea502cdcc3?label=30d%20uptime)](https://stats.uptimerobot.com/)
 <!-- Quality, Licensing & Contribution Badges -->
 [![Vitest Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)

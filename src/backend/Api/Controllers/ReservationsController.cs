@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Chat;
@@ -97,6 +98,7 @@ public class ReservationsController : ControllerBase
     // get /api/reservations/{id}
 
     [HttpGet("{id:guid}")]
+    [ResponseCache(NoStore = true)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var dto = await _reservations.GetByIdAsync(id, CallerId, ct);
@@ -127,7 +129,7 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    private IActionResult MapError(ReservationException ex) =>
+    private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
             ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),
@@ -142,5 +144,5 @@ public class ReservationsController : ControllerBase
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
-    public record CreateReservationRequest(Guid ListingId);
+    public record CreateReservationRequest([property: JsonRequired] Guid ListingId);
 }

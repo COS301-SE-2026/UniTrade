@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Api;
 using Api.BackgroundServices;
 using Api.Hubs;
 using Api.Middleware;
@@ -14,12 +15,14 @@ using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
+using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;
 using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -59,27 +62,40 @@ builder.Configuration.AddEnvironmentVariables();
 
 const string UnknownKey = "unknown";
 
+static Func<HttpContext, RateLimitPartition<string>> DevAwarePolicy(
+    Func<HttpContext, RateLimitPartition<string>> policy
+) =>
+    httpContext =>
+    {
+        if (httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+        {
+            return RateLimitPartition.GetNoLimiter(UnknownKey);
+        }
+        return policy(httpContext);
+    };
+
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy(
         "register",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 50000, // note to future self - restore ratelimiting once done testing
+                    PermitLimit = 5,
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "login",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -89,11 +105,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "verify-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -103,11 +120,12 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "resend-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
@@ -117,6 +135,7 @@ builder.Services.AddRateLimiter(options =>
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.RejectionStatusCode = 429;
@@ -233,49 +252,18 @@ builder
             ValidateAudience = false,
         };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = ctx =>
-            {
-                if (ctx.HttpContext.Request.Path.StartsWithSegments("/chathub"))
-                {
-                    var accessToken = ctx.Request.Query["access_token"];
-                    if (!string.IsNullOrEmpty(accessToken))
-                    {
-                        ctx.Token = accessToken;
-                        return Task.CompletedTask;
-                    }
-                }
-
-                var token = ctx.Request.Cookies["authToken"];
-                if (!string.IsNullOrEmpty(token))
-                {
-                    ctx.Token = token;
-                }
-                return Task.CompletedTask;
-            },
-            OnAuthenticationFailed = ctx =>
-            {
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = ctx =>
-            {
-                var isHub = ctx.HttpContext.Request.Path.StartsWithSegments("/chathub");
-                var aud = ctx.Principal?.FindFirst("aud")?.Value;
-                if (aud == "chat-hub" && !isHub)
-                {
-                    ctx.Fail("hub token used outside the hub");
-                }
-                return Task.CompletedTask;
-            },
-            OnChallenge = ctx =>
-            {
-                return Task.CompletedTask;
-            },
-        };
+        options.Events = AuthEventsFactory.CreateJwtEvents();
     });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 app.Use(
     async (context, next) =>
@@ -301,7 +289,6 @@ else
     app.UseHsts();
 }
 
-app.UseForwardedHeaders();
 
 app.UseRouting();
 app.UseCors("AllowReactApp");
