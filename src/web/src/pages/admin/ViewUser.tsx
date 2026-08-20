@@ -1,7 +1,5 @@
-
-import  React  from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { IconSearch, IconArrowLeft, IconStar, IconPointFilled } from "@tabler/icons-react"
+import { IconSearch, IconArrowLeft, IconStar} from "@tabler/icons-react"
 
 const MockUsers: Record<string, any> = {
   '1': {
