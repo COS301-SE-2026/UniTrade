@@ -73,9 +73,19 @@ const numReport = MockDisputes.filter((dispute) => dispute.type === 'Report').le
 
 export default function AdminDisputes() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Disputes</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
+       <div className='p-8 space-y-6 max-w-6xl'>
+         <div className="relative max-w-xs">
+           <div className='absolute left-3 top-2.5 flex items-center space-x-1 text-gray-400' />
+           <IconMenu2 className="h-4 w-4" />
+           <span className="text-xs 0">=</span>
+           </div>
+           <input
+             type="text"
+             placeholder='search...'
+             value ={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             className="w-full pl-10 pr-9 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]" />
+        <IconSearch className='absolute right-3 top-2.5 h-4 w-4 text-gray-400' />
     </div>
   )
 }
