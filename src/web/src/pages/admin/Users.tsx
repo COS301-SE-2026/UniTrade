@@ -5,7 +5,7 @@ import { IconSearch, IconRadio } from "@tabler/icons-react"
 export interface MockUser{
   id: string
   name: string
-  initials: string
+  intitials: string
   degree: string
   verificationStatus: 'Verified' | 'Pending' | 'Unverified'
   reputation: number
@@ -16,7 +16,7 @@ const MockUsers: MockUser[] = [
   {
     id: '1',
     name: 'Tafadzwa Musiiwa',
-    initials: 'TM',
+    intitials: 'TM',
     degree: 'BSc Comp Sci, Y2',
     verificationStatus: 'Verified',
     reputation: 85,
@@ -25,7 +25,7 @@ const MockUsers: MockUser[] = [
   {
     id: '2',
     name: 'Kudzai Moyo',
-    initials: 'KM',
+    intitials: 'KM',
     degree: 'BCom Informatics, Y3',
     verificationStatus: 'Pending',
     reputation: 80,
@@ -34,7 +34,7 @@ const MockUsers: MockUser[] = [
   {
     id: '3',
     name: 'Sipho Dlamini',
-    initials: 'SD',
+    intitials: 'SD',
     degree: 'BSc Comp Sci, Y1',
     verificationStatus: 'Verified',
     reputation: 95,
@@ -87,7 +87,7 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
-          <IconRadio className='h-5 w-5 text-emerald-600' />
+      
           <div>
             <div className="text-2xl font-bold text-gray-900">{numVerfied}</div>
             <div className="text-xs text-gray-500">Verified</div>
@@ -105,7 +105,7 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
         <button
           type="button"
           onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-navy-500 text-white' 
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-[#0a1931] text-white' 
             : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
           >
             All</button>
@@ -122,7 +122,7 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
             type ="button"
             onClick={() => setFilter('verified')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${
-              filter === 'verified' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300'
+              filter === 'verified' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
             }`}
             >
               Verified
@@ -138,7 +138,7 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
             </button>
             </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className=" border-b border-gray-100 text-xs text-gray-500 font-semibold">
@@ -153,7 +153,7 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                    <td className="py-4 px-6 flex items-center space-x-3"> 
                     <div className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center font-bold text-xs">
-                      {user.initials}
+                      {user.intitials}
                       </div> 
                       <div>
                         <div className="font-bold text-gray-900">
@@ -175,8 +175,12 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
                             </span>
                             )}
                             </td>
-                      <td className="py-4 px-6 font-bold">{user.reputation}</td>
-                      <td className="py-4 px-6 font-bold">{user.strikesCount}</td>
+                      <td className="py-4 px-6 font-bold text-gray-800">{user.reputation}</td>
+                      <td className="py-4 px-6 font-bold text-gray-800">{user.strikesCount > 0 ? (
+                        <span className="text-red-600"> {user.strikesCount} </span>) 
+                      : ( 
+                        <span className="text-gray-400">0</span>
+                      )}</td>
                       <td className="py-4 px-6 text-right"> 
                         <button
                           type="button"
