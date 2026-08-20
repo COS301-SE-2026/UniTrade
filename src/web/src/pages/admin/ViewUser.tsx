@@ -1,7 +1,7 @@
 
 import  React  from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { IconSearch, IconArrowLeft, IconStar } from "@tabler/icons-react"
+import { IconSearch, IconArrowLeft, IconStar, IconPointFilled } from "@tabler/icons-react"
 
 const MockUsers: Record<string, any> = {
   '1': {
@@ -96,6 +96,8 @@ export default function ViewUser() {
 
 
 
+
+
   return (
     <div className="p-8 space-y-4 max-w-6xl">
         <div className="relative max-w-md">
@@ -104,6 +106,40 @@ export default function ViewUser() {
           type="text"
           placeholder='search...'
   className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-500" />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => navigate('/admin/users')}
+        className="flex items-center space-x-1 text-sm font-semibold text-gray-800 hover:text-black transition-colors cursor-pointer"
+      >
+        <IconArrowLeft className="w-4 h-4" />
+        <span>Back to users</span>
+      </button>
+
+        <div className="flex items-center space-x-4">
+        <div className="w-16 h-16 rounded-full bg-[#0a1931] text-white flex items-center justify-center font-bold text-xl">
+          {user.initials}
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+          <p className="text-xs text-gray-500">
+           <span>{user.degree}</span>
+           <IconPointFilled className="w-2 h-2 text-gray-400 shrink-0"/>
+           <span>{user.university} </span>
+          </p>
+          <div className="mt-1">
+            <span
+              className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium ${
+                user.verificationStatus === 'Verified'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              {user.verificationStatus}
+            </span>
+          </div>
+        </div>
       </div>
 
     <div>
