@@ -7,7 +7,7 @@ const MockUsers: Record<string, any> = {
   '1': {
      id: '1',
     name: 'Tafadzwa Musiiwa',
-    intitials: 'TM',
+    initials: 'TM',
     degree: 'BSc Comp Sci, Y2',
     verificationStatus: 'Verified',
     reputation: 85,
@@ -80,7 +80,7 @@ export default function ViewUser() {
     
     if (!user) {  
       return(
-        <div className="p-8 space y-4 max-w-6xl">
+        <div className="p-8 space-y-4 max-w-6xl">
           <button
             onClick={() => navigate('/admin/users')}
             className="flex items-center space-x-1 text-sm text-gray-800 hover:text-black transition-colors cursor-pointer"
@@ -88,12 +88,14 @@ export default function ViewUser() {
             <IconArrowLeft size={16} />
             <span>Back to Users</span>
           </button>
-          <div className="p-6 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">User with ID <strong>{userId}</strong> not found.</div>     
+          <div className="p-6 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">User with ID <strong>{userId}</strong> not found.
+          </div>     
         </div>
       )
       }
 
   return (
+
     <div className="p-8 space-y-4 max-w-6xl">
         <div className="relative max-w-md">
         <IconSearch className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
@@ -119,14 +121,14 @@ export default function ViewUser() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
           <p className="text-xs text-gray-500">
-           <span>{user.degree}</span>
-           <IconPointFilled className="w-2 h-2 text-gray-400 shrink-0"/>
-           <span>{user.university} </span>
+         {user.degree} &bull; {user.university}
+         
           </p>
           <div className="mt-1">
             <span
-              className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium ${
-                user.verificationStatus === 'Verified'
+              className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium 
+                ${
+                  user.verificationStatus === 'Verified'
                   ? 'bg-green-100 text-green-700'
                   : 'bg-amber-100 text-amber-700'
               }`}
@@ -137,9 +139,66 @@ export default function ViewUser() {
         </div>
       </div>
 
-    <div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Listig Queue</h1>
-      <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
+
+      <div className= "grid grid-cols-12 gap-6 items-start">
+        <div className="col-span-7 space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Strikes</h2>
+            <div className="flex items-baseline space-x-2 border-b border-gray-100 pb-4">
+              <span className="text-3xl font-bold text-gray-900">{user.strikesCount}</span>
+              <span className="text-xs text-gray-500">strikes on record</span>
+            </div>
+            <div className="space-y-4 pt-1">
+              {user.strikes.length > 0 ? (
+                user.strikes.map((strike: any) => (
+                  <div key={strike.id} className="text-xs border-b border-gray-100 last:border-0 pb-3">
+                    <div className="flex items-center justify-between font-bold text-gray-900">
+
+
+      <span>{strike.reason}</span>
+      <span className="text-sm text-gray-500 font-normal">{strike.date}</span>
+      </div>
+                <p className="text-gray-500 mt-0.5">{strike.details}</p>
+      <div className="mt-1 text-gray-500">
+        From case{' '}
+                <span className="font-bold text-[#0a1931] cursor-pointer hover:underline">
+                  {strike.caseId}
+                </span>
+                </div>
+                </div>)) 
+                ):(
+                  <p className="text-xs text-gray-400 italic">No acive strikes on record. </p>
+                )}
+                </div>
+                </div>
+
+
+      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+       <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Recent listings</h2>
+      <div className="space-y-3">
+      {user.recentListings.map((listing: any ) => (
+     
+      <div key={listing.id} className="flex items-center space-x-3">
+      <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
+      <div>
+      <div className="text-xs font-bold text-gray-900">{listing.title}</div>
+
+<span 
+className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-semibold ${
+                listing.status === 'Reserved' ?
+                'bg-sky-100 text-sky-700' :
+                'bg-green-100 text-green-700'}
+                `}
+>
+
+                {listing.status}
+                </span>
+                </div>
+            </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
 <div className="col-span-5 space-y-6">
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
@@ -153,6 +212,8 @@ export default function ViewUser() {
       </div>
       <div className="text-3xl font-bold text-gray-900">{user.reputation}%</div>
       </div>
+
+
 
       <div className= "bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
        <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Actions</h2>
