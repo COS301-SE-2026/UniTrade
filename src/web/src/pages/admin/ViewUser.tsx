@@ -74,8 +74,38 @@ const MockUsers: Record<string, any> = {
 }
 
 export default function ViewUser() {
-  return (
+    const {userId} = useParams<{ userId: string }>()
+    const navigate = useNavigate()
+    const user = userId ? MockUsers[userId] : null
     
+    if (!user) {  
+      return(
+        <div className="p-8 space y-4 max-w-6xl">
+          <button
+            onClick={() => navigate('/admin/users')}
+            className="flex items-center space-x-1 text-sm text-gray-800 hover:text-black transition-colors cursor-pointer"
+          >
+            <IconArrowLeft size={16} />
+            <span>Back to Users</span>
+          </button>
+          <div className="p-6 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">User with ID <strong>{userId}</strong> not found.</div>     
+        </div>
+      )
+      }
+
+
+
+
+  return (
+    <div className="p-8 space-y-4 max-w-6xl">
+        <div className="relative max-w-md">
+        <IconSearch className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
+        <input
+          type="text"
+          placeholder='search...'
+  className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-500" />
+      </div>
+
     <div>
       <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Listig Queue</h1>
       <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
@@ -97,6 +127,7 @@ export default function ViewUser() {
     </div>
 
      </div>
+      </div>
       </div>
 
   )
