@@ -72,18 +72,6 @@ const numReport = MockDisputes.filter((dispute) => dispute.type === 'Report').le
 
 
 export default function AdminDisputes() {
-  const navigate = useNavigate()
-  const [disputes, setDisputes] = useState<DisputeCase[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    getMockDisputes().then((data) => {
-      setDisputes(data)
-      setLoading(false)
-  })
-}, [])
-
-
   return (
        <div className='p-8 space-y-6 max-w-6xl'>
          <div className="relative max-w-xs">
