@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import { IconSearch, IconFileText,IconEye, IconTemperature } from "@tabler/icons-react"
+import { IconSearch, IconFileText,IconEye } from "@tabler/icons-react"
 
 export interface VerificationRequest{
   id: string
