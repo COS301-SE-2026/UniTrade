@@ -93,11 +93,6 @@ export default function ViewUser() {
       )
       }
 
-
-
-
-
-
   return (
     <div className="p-8 space-y-4 max-w-6xl">
         <div className="relative max-w-md">
@@ -145,6 +140,20 @@ export default function ViewUser() {
     <div>
       <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Listig Queue</h1>
       <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
+
+<div className="col-span-5 space-y-6">
+      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+        <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Reputation</h2>
+      <div className="flex items-center space-x-1 text-amber-500">
+        {
+          [...Array(5)].map((_, index) => (
+            <IconStar key={index} className="w-5 h-5 fill-current " />
+          ))
+        }
+      </div>
+      <div className="text-3xl font-bold text-gray-900">{user.reputation}%</div>
+      </div>
+
       <div className= "bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
        <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Actions</h2>
       <div className="space-y-2">
@@ -165,6 +174,6 @@ export default function ViewUser() {
      </div>
       </div>
       </div>
-
+      </div>
   )
 }
