@@ -10,6 +10,88 @@ security:
 paths:
   /admin/cases:
     get:
-      summary: List pending cases, oldest first
+      summary: List pending cases,oldest first
       parameters:
-        - { name: type, in:query, schema: { $ref: '#/components/schemas/'}}
+        - {name: type, in: query, schema: {$ref: '#components/schema/CaseType'}}
+        - {name:status, in: query, schema: {type: string, default: pending}}
+        - {name: sort, in: query, schema{ type: string, default: age}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/CaseSummary'}}
+
+  /admin/cases/{id}:
+    get:
+      summary: One case with its evidence
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CaseDetail'}
+
+  /admin/cases/{id}/decision:
+    get:
+      summary: Decide a case (also notifies the subject and writes an audit entry)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionRequest'}
+      responses:
+        '200':
+          description: Updated case
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CaseDetail'}
+
+  /admin/audit:
+    get:
+      summary: Audit entries
+      parameters:
+      - {name: entryId, in: query, schema: {type: string, format}}
+      - {name: actorId, in: query, schema: {type: string, format}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuditEntry'}
+
+  /disputes:
+    post:
+      summary: File a dispute (any type, including a user-raised no-show)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DisputeFilling'}
+      responses:
+        '201':
+          description: Case created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  caseId: {type: string, format: uuid}
+
+  /reservations/{reservationId}/snapshot:
+    get:
+      summary: The listing as it was when this reservation was made
+      parameters:
+        - { name: reservationId, in: path, required:true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingSnapshot'}
+
+  
