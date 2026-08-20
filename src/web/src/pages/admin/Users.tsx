@@ -1,12 +1,22 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { IconSearch, IconRadio } from "@tabler/icons-react"
 
-const MOCK_USERS = [
+export interface MockUser{
+  id: string
+  name: string
+  initials: string
+  degree: string
+  verificationStatus: 'Verified' | 'Pending' | 'Unverified'
+  reputation: number
+  strikesCount: number
+}
+
+const MockUsers = [
   {
     id: '1',
     name: 'Tafadzwa Musiiwa',
-    intitials: 'TM',
+    initials: 'TM',
     degree: 'BSc Comp Sci, Y2',
     verificationStatus: 'Verified',
     reputation: 85,
@@ -14,17 +24,17 @@ const MOCK_USERS = [
   },
   {
     id: '2',
-    name: 'Tafadzwa Musiiwa',
-    intitials: 'TM',
-    degree: 'BSc Comp Sci, Y2',
+    name: 'Kudzai Moyo',
+    initials: 'KM',
+    degree: 'BCom Informatics, Y3',
     verificationStatus: 'Verified',
     reputation: 80,
-    strikesCount: 2,
+    strikesCount: 0,
   },
   {
     id: '3',
-    name: 'Tafadzwa Musiiwa',
-    intitials: 'TM',
+    name: 'Sipho Dlamini',
+    initials: 'SD',
     degree: 'BSc Comp Sci, Y2',
     verificationStatus: 'Verified',
     reputation: 85,
@@ -34,14 +44,25 @@ const MOCK_USERS = [
 
 export default function Users() {
   const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'strikes' | 'verified' | 'pending'>('all')
-  const filteredUsers = MOCK_USERS.filter((user) => {
+  const filteredUsers = MockUsers.filter((user) => {
+
+  const foundMatch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   user.degree.toLowerCase().includes(searchQuery.toLowerCase())
+
+   if(!foundMatch) return false
+
     if (filter === 'strikes') return user.strikesCount > 0
     if (filter === 'verified') return user.verificationStatus === 'Verified'
     if (filter === 'pending') return user.verificationStatus === 'Pending'
     return true
-  })
+  }) 
 
+
+//const total =  MockUsers.length
+//const numVerfied= MockUsers.filter((user) => user.verificationStatus === 'Verified').length
+//const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pending').length
 
   return (
     <div className='p-8 space-y-6 max-w-6xl'>
@@ -50,9 +71,11 @@ export default function Users() {
         <input
           type="text"
           placeholder='search...'
-          className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-non focus:ring-2 focus:ring-navy-500" />
+          value ={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-500" />
       </div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Users</h1>
+      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2"> Users</h1>
 
       <div className="grid grid-cols-3 gap-6 max-w-3xl">
         <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm">
@@ -129,7 +152,7 @@ export default function Users() {
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                    <td className="py-4 px-6 flex items-ceenter space-x-3"> 
                     <div className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center font-bold text-xs">
-                      {user.intitials}
+                      {user.initials}
                       </div> 
                       <div>
                         <div className="font-bold text-gray-900">
