@@ -85,6 +85,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.CreatedAt);
             entity.Property(x => x.UpdatedAt);
+            entity.Property(x => x.TermsAcceptedAt);
 
             entity.ToTable(t =>
             {

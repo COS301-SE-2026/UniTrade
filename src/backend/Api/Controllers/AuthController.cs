@@ -33,6 +33,10 @@ public class AuthController : ControllerBase
     [EnableRateLimiting("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
+        if (dto.TermsAcceptedAt is null)
+        {
+            return UnprocessableEntity(new { error = "terms_not_accepted" });
+        }
         try
         {
             var user = await _identityService.RegisterAsync(dto);

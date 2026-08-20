@@ -25,11 +25,25 @@ interface AuthStore {
   toggleViewMode: () => void
   setViewMode: (mode: ViewMode) => void
 }
+ 
+//will remove this while backend is working , this is to test out the admin dunctionality 
+const getInitialUser = (): User | null => {
+  if (import.meta.env.DEV) {
+    return {
+      id: 'admin',
+      name: 'Mahadio Tlaka',
+      initials: 'MT',
+      role: 'admin',
+    }
+  }
+  return null
+}
+
 
 export const useAuthStore = create<AuthStore>()(
   persist(
   (set, get) => ({
-  user: null,
+  user: getInitialUser(), //this will also be removed was just user initially 
   pendingEmail: null,
   viewMode: 'buyer',
   setUser: (user) => set({ user }),

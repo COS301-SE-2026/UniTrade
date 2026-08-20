@@ -9,6 +9,12 @@ import { registerForPushN, onForegroundMessage } from "../services/fcmService";
 import { useToast } from "../components/layout/useToast";
 
 export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
+    return <>
+    {children}
+    </>;
+  }
+
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useToast();

@@ -8,6 +8,7 @@ import App from '../../App'
 import { useAuthStore } from '../../store/useAuthStore'
 import { server } from '../mocks/server'
 import { ToastProvider } from '../../components/layout/Toast'
+import { fireEvent } from '@testing-library/react'
 
 
 
@@ -66,6 +67,13 @@ test('signup -> otp -> login -> logout', async () => {
   renderWithProviders(<App />, { initialEntries: ['/auth/Signup'] })
 
   await screen.findByText('Get Started')
+
+  const termsScrollContainer = document.querySelector('.overflow-y-auto') as HTMLElement
+  fireEvent.scroll(termsScrollContainer)
+
+
+  await user.click(screen.getByRole('checkbox'))
+  await user.click(screen.getByRole('button', { name: /accept & continue/i}))
 
   await user.type(screen.getByPlaceholderText('First Name'), 'Tafadzwa')
   await user.type(screen.getByPlaceholderText('Last Name'), 'M')

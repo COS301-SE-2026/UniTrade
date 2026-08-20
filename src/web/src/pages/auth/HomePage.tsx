@@ -13,7 +13,7 @@ import {
 import logo from "../../assets/Transaprent Logo.png"
 import { useNavigate } from 'react-router';
 import { Reveal } from '../../components/layout/Reveal';
-
+import TersmAndConditions from '../../components/legal/TermsandConditions';
 
 interface StatProps {
   number: string;
@@ -117,6 +117,7 @@ export function BenefitList({ title, items }: Readonly<BenefitListProps>) {
 }
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const navigate = useNavigate()
   return (
     <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
@@ -149,8 +150,7 @@ function Navbar() {
 
         <div className="flex items-center gap-4">
           <button
-            type='button'
-            onClick={() => navigate('/auth/Signup')}
+            onClick={() => setShowTerms(true)}
             className="bg-navy-700 hover:bg-navy-600 text-white px-6 py-2.5 text-sm font-semibold rounded-full transition-colors">
             Get Started
           </button>
@@ -181,6 +181,15 @@ function Navbar() {
           <a href="#for-buyerssellers" className="block py-2" onClick={() => setIsMenuOpen(false)}>For sellers</a>
         </div>
       )}
+
+      <TersmAndConditions
+      isOpen={showTerms}
+      onAccept={() => {
+        setShowTerms(false);
+        navigate('/auth/Signup', {state: {termsAcceptedAt: new Date().toISOString()}});
+      }}
+      onDecline={() => setShowTerms(false)}
+      />
     </nav>
   )
 }
@@ -268,6 +277,8 @@ export function AlexAvatar({ className = '', onClick }: Readonly<AlexAvatarProps
 }
 function Firstpage() {
   const navigate = useNavigate()
+  const [showTerms, setShowTerms] = useState(false);
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-navy-700 lg:bg-white" />
@@ -309,8 +320,7 @@ function Firstpage() {
 
             <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <button
-                type='button'
-                onClick={() => navigate('/auth/Signup')}
+                onClick={() => setShowTerms(true)}
                 className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 SIGNUP
                 <IconArrowRight size={18} />
@@ -334,6 +344,15 @@ function Firstpage() {
           </div>
         </div>
       </div>
+
+      <TersmAndConditions
+      isOpen={showTerms}
+      onAccept={() => {
+        setShowTerms(false);
+        navigate('/auth/Signup', { state: { termsAcceptedAt: new Date().toISOString()}});
+      }}
+      onDecline={() => setShowTerms(false)}
+      />
     </div>
   );
 }
