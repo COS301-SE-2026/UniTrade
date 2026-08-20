@@ -86,6 +86,30 @@ const MockVerifications: VerificationRequest[] = [
   }]
 
 export default function AdminVerifications() {
+   const [searchQuery, setSearchQuery] = useState('')
+  const [filter, setFilter] = useState<'All' | 'Overdue' | 'Due soon' | 'Normal'>('All')
+  const [sortBy, setSortBy] = useState<'Oldest First' | 'Newest First'>('Oldest First')
+
+  const filteredList= MockVerifications.filter((ver) => {
+
+  const foundMatch = ver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  ver.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   ver.degree.toLowerCase().includes(searchQuery.toLowerCase())
+
+   if(!foundMatch) return false
+
+    if (filter === 'Overdue') return ver.slaState === 'Overdue'
+    if (filter === 'Due soon') return ver.slaState === 'Due soon'
+    if (filter === 'Normal') return ver.slaState === 'Normal'
+    return true
+  }) 
+
+
+const numOverdue =  MockVerifications.filter((ver) => ver.slaState === 'Overdue').length
+const numDueSoon = MockVerifications.filter((ver) => ver.slaState === 'Due soon').length
+const numPending = MockVerifications.length
+
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Verifications</h1>
@@ -93,3 +117,4 @@ export default function AdminVerifications() {
     </div>
   )
 }
+
