@@ -17,7 +17,7 @@ export default function AdminVerifications() {
 
   return (
     <div>
-      <h1 className = "text-2xl font-bold text-navy-700 dark:text-white mb-1">
+      <h1 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
         Verifications
       </h1>
       <p className = "text-sm text-gray-500 dark:text-white/50 mb-4">
