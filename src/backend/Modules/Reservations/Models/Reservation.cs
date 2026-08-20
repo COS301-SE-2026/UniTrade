@@ -1,6 +1,6 @@
 using Modules.Chat.Models;
 using Modules.Identity.Models;
-using Modules.Listing.Models;
+using Modules.Listings.Models;
 
 namespace Modules.Reservations.Models;
 
