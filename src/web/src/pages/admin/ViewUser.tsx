@@ -27,6 +27,8 @@ const MockUsers: Record<string, any> = {
         date: '14 May 2026',
         caseId: '#UT-2026-00512',
       },
+
+      
     ],
     recentListings: [
       { id: 'l1', title: 'Calculus - Early Transcendentals', status: 'Reserved' },
@@ -47,13 +49,55 @@ const MockUsers: Record<string, any> = {
       { id: 'l3', title: 'Database Systems Textbook', status: 'Live' },
     ],
   },
+  '3': {
+    id: '3',
+    name: 'Sipho Dlamini',
+    initials:'SD',
+    degree:'BSc Comp Sci, Y1',
+    university:'University of Pretoria',
+    verificationStatus:'Verified',
+    reputation: 95,
+    strikesCount: 1,
+    strikes: [
+      {
+        id: 's3',
+        reason:'Late Dispatch',
+        details:'Failed to ship item within agreed 48-hour window.',
+        date: '02 Aug 2026',
+        caseId: '#UT-2026-00891',
+      },
+    ],
+    recentListings: [
+      { id: 'l4', title:'Linear Algebra Notes', status:'Live' },
+    ],
+  },
 }
 
 export default function ViewUser() {
   return (
+    
     <div>
       <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2">Listig Queue</h1>
       <p className="text-sm text-gray-500 dark:text-white/50">Coming soon.</p>
+      <div className= "bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+       <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Actions</h2>
+      <div className="space-y-2">
+     <button
+    type="button"
+    className="w-full py-2 px-4 border border-gray-300 rounded-full text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+     Message user
+      </button>
+
+    <button
+    type="button"
+    className="w-full py-2 px-4 border border-gray-300 rounded-full text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+    View all Listings
+    </button>
+
     </div>
+
+     </div>
+      </div>
+
   )
 }
