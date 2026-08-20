@@ -4,16 +4,7 @@ namespace Modules.Audit;
 
 public interface IAuditService
 {
-    Task WriteAsync(
-        Guid? actorId,
-        string action,
-        string entityType,
-        string EntityId,
-        string? oldValue,
-        string? newValue,
-        string? reason,
-        CancellationToken ct = default
-    );
+    Task WriteAsync(AuditWriteRequest request, CancellationToken ct = default);
 
     Task<IReadOnlyList<AuditLog>> GetAsync(
         string? entityId,
@@ -21,3 +12,13 @@ public interface IAuditService
         CancellationToken ct = default
     );
 }
+
+public sealed record AuditWriteRequest(
+    Guid? ActorId,
+    string Action,
+    string EntityType,
+    string EntityId,
+    string? OldValue,
+    string? NewValue,
+    string? Reason
+);
