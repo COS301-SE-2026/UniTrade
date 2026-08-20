@@ -21,6 +21,7 @@ public class ControllerTests : IClassFixture<WebApplicationFactory<Program>>
 
     public ControllerTests(WebApplicationFactory<Program> factory, DbFixture fixture)
     {
+        Environment.SetEnvironmentVariable("Firebase:CredentialsJson","");
         _client = factory
             .WithWebHostBuilder(builder =>
             {
@@ -35,6 +36,8 @@ public class ControllerTests : IClassFixture<WebApplicationFactory<Program>>
                     "Jwt:Secret",
                     "integration_test_secret_key_that_is_long_enough_12345!!"
                 );
+
+                builder.UseSetting("Firebase:CredentialsJson", "");
 
                 builder.ConfigureServices(services =>
                 {

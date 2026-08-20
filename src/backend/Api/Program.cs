@@ -189,13 +189,14 @@ builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddScoped<AcsEmailService>();
     builder.Services.AddScoped<IEmailService, TestEmailService>();
 }
 else
 {
+    builder.Services.AddScoped<AcsEmailService>();
     builder.Services.AddScoped<IEmailService, AcsEmailService>();
 }
+
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
@@ -230,12 +231,16 @@ builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
 builder.Services.AddScoped<IAuditRepository, AuditRepository>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 
-builder.Services.AddSingleton(
-    new EmailClient(
-        builder.Configuration["Acs:ConnectionString"]
-            ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
-    )
-);
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton(
+        new EmailClient(
+            builder.Configuration["Acs:ConnectionString"]
+                ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
+        )
+    );
+}
+
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
