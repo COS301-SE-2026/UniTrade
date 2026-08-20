@@ -1,5 +1,5 @@
 import http from "k6/http";
-import { check, randomSeed, sleep } from "k6";
+import { check, sleep } from "k6";
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.4/index.js";
 import { Counter } from "k6/metrics";
 

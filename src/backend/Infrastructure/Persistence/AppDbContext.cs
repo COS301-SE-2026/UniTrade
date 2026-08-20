@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Modules.Audit.Models;
 using Modules.Chat.Models;
 using Modules.Identity.Models;
 using Modules.Listings.Models;
@@ -58,6 +59,9 @@ public class AppDbContext : DbContext
 
     // Device Tokens
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
+
+    // Audits
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     //constants - sonarqube
     private readonly string _nowString = "now()";
