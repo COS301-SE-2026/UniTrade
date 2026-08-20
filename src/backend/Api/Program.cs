@@ -251,7 +251,7 @@ builder
             ValidateLifetime = true,
             ValidateIssuer = false,
             ValidateAudience = false,
-            RoleClaimType= "role",
+            RoleClaimType = "role",
         };
 
         options.Events = AuthEventsFactory.CreateJwtEvents();
