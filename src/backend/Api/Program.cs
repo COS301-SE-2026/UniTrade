@@ -10,6 +10,7 @@ using dotenv.net;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
@@ -26,6 +27,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Modules.Audit;
+using Modules.Audit.Repositories;
 using Modules.Chat;
 using Modules.Chat.Repository;
 using Modules.Identity;
@@ -224,6 +227,8 @@ builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
+builder.Services.AddScoped<IAuditRepository, AuditRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 builder.Services.AddSingleton(
     new EmailClient(
@@ -290,7 +295,6 @@ else
 {
     app.UseHsts();
 }
-
 
 app.UseRouting();
 app.UseCors("AllowReactApp");
