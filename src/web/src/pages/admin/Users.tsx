@@ -12,7 +12,7 @@ export interface MockUser{
   strikesCount: number
 }
 
-const MockUsers = [
+const MockUsers: MockUser[] = [
   {
     id: '1',
     name: 'Tafadzwa Musiiwa',
@@ -27,7 +27,7 @@ const MockUsers = [
     name: 'Kudzai Moyo',
     initials: 'KM',
     degree: 'BCom Informatics, Y3',
-    verificationStatus: 'Verified',
+    verificationStatus: 'Pending',
     reputation: 80,
     strikesCount: 0,
   },
@@ -35,10 +35,10 @@ const MockUsers = [
     id: '3',
     name: 'Sipho Dlamini',
     initials: 'SD',
-    degree: 'BSc Comp Sci, Y2',
+    degree: 'BSc Comp Sci, Y1',
     verificationStatus: 'Verified',
-    reputation: 85,
-    strikesCount: 2,
+    reputation: 95,
+    strikesCount: 1,
   },
 ]
 
@@ -60,9 +60,9 @@ export default function Users() {
   }) 
 
 
-//const total =  MockUsers.length
-//const numVerfied= MockUsers.filter((user) => user.verificationStatus === 'Verified').length
-//const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pending').length
+const total =  MockUsers.length
+const numVerfied= MockUsers.filter((user) => user.verificationStatus === 'Verified').length
+const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pending').length
 
   return (
     <div className='p-8 space-y-6 max-w-6xl'>
@@ -80,22 +80,22 @@ export default function Users() {
       <div className="grid grid-cols-3 gap-6 max-w-3xl">
         <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm">
           <div>
-            <div className="text-2xl font-bold text-gray-900">12</div>
+            <div className="text-2xl font-bold text-gray-900">{total}</div>
             <div className="text-xs text-gray-500">Total Users</div>
 
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
-          <IconRadio className='h-5 w-5 text-gray-700' />
+          <IconRadio className='h-5 w-5 text-emerald-600' />
           <div>
-            <div className="text-2xl font-bold text-gray-900">7</div>
+            <div className="text-2xl font-bold text-gray-900">{numVerfied}</div>
             <div className="text-xs text-gray-500">Verified</div>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
           <div>
-            <div className="text-2xl font-bold text-gray-900">3</div>
+            <div className="text-2xl font-bold text-gray-900">{numPending}</div>
             <div className="text-xs text-gray-500">Pending verification</div>
           </div>
         </div>
@@ -105,14 +105,15 @@ export default function Users() {
         <button
           type="button"
           onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-navy-500 text-white' : 'bg-white text-gray-600 border border-gray-300'}`}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-navy-500 text-white' 
+            : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
           >
             All</button>
             <button 
             type ="button"
             onClick={() => setFilter('strikes')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${
-              filter === 'strikes' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300'
+              filter === 'strikes' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
             }`}
             >
               Has Strikes
@@ -138,7 +139,7 @@ export default function Users() {
             </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow hidden">
-        <table className="w-full text-left tborder-collapse">
+        <table className="w-full text-left border-collapse">
           <thead>
             <tr className=" border-b border-gray-100 text-xs text-gray-500 font-semibold">
               <th className="py-4 px-6">Student</th>
@@ -150,7 +151,7 @@ export default function Users() {
               <tbody className="divide-y divide-gray-100 text-sm">
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                   <td className="py-4 px-6 flex items-ceenter space-x-3"> 
+                   <td className="py-4 px-6 flex items-center space-x-3"> 
                     <div className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center font-bold text-xs">
                       {user.initials}
                       </div> 
@@ -167,7 +168,8 @@ export default function Users() {
                         {user.verificationStatus === 'Verified' ? (
                           <span className="px-3 py-1 inline-block rounded-full text-xs font-medium bg-green-100 text-green-800">
                             Verified
-                            </span>):(
+                            </span>
+                            ):(
                               <span className="px-3 py-1 inline-block rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                             Pending
                             </span>
@@ -185,9 +187,11 @@ export default function Users() {
                       </button>
                             </td>   
                       </tr>
-                ))}</tbody>
+                ))}
+                </tbody>
               </table>
 
               </div>
-    </div>)
+    </div>
+    )
 }
