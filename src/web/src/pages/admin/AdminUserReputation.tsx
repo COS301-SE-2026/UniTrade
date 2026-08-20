@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { Breadcrumb, Panel, StarRating } from './AdminReviewShared'
 import { getMockUserReputation, type UserReputationProfile } from '../../types/mockAdmin'
+import { LoadingState } from '../../components/layout/Spinner';
 
 export default function AdminUserReputation() {
   const { id } = useParams<{ id: string }>()
@@ -23,10 +24,7 @@ export default function AdminUserReputation() {
     }
   }, [id])
 
-  if (loading) 
-  {
-    return <p className="text-sm text-gray-400">Loading user…</p>
-  }
+  {loading && <LoadingState message="Loading user ..." />}
 
   if (!profile) 
   {
