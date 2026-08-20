@@ -1594,33 +1594,13 @@ namespace Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
-                {   b.Navigation("ListingSnapshot");
+                {   
                     b.Navigation("Meetups");
 
                     b.Navigation("Messages");
 
                     b.Navigation("ReservationListings");
-                });
-
-            modelBuilder.Entity("Modules.Listings.Models.ListingSnapshot", b=>
-                {
-                    b.HasOne("Modules.Reservations.Models.Reservation","Reservation")
-                        .WithOne("ListingSnapshot")
-                        .HasForeignKey("Modules.Listings.Models.ListingSnapshot","ReservationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_listing_snapshot_reservations_reservation_id");
-                    
-                    b.HasOne("Modules.Listings.Models.Listing","Listing")
-                        .WithMany()
-                        .HasForeignKey("ListingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_listing_snapshots_listings_listing_id");
-                    
-                    b.Navigation("Listing");
-                    b.Navigation("Reservation");
-                });
+                });            
             
 #pragma warning restore 612, 618
         }
