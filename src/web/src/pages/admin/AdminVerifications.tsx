@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import { IconSearch, IconFileText,IconEye } from "@tabler/icons-react"
+import { IconSearch, IconFileText,IconEye, IconTemperature } from "@tabler/icons-react"
 
 export interface VerificationRequest{
   id: string
@@ -229,8 +229,44 @@ const numPending = MockVerifications.length
     </span>
 )}
 
+<div className="flex items-start space-x-3">
+  <div className="w-10 h-10 rounded-full bg-[#0a1931] text-whiite
+  flex items-center justify font-bold text-sm shrink-0">
+    {ver.initials}
+    </div>
+    <div>
+      <h3 className="font-bold text-xs text-gray-900">
+        {ver.name}
+      </h3>
+      <p className='text=[10px] text-gray-400 mt-0.5'>
+        {ver.degree}</p>
+        </div>
+        </div>
 
 
+
+
+<div className='border border-sky-200 bg-sky-50/30 rounded-xl p-3 flex items-center justify-between'>
+<div className="flex items-center space-x-2">
+  <div className='p-2 bg-sly-100 roundded-lg text-sky-600'>
+    <IconFileText className ="w-4 h-4" />
+    </div>
+  <div>
+    <div className='font-semibold text-xs text-gray-800'>
+      {ver.docName}</div>
+   <div className="text-[10px] text-gray-400">
+      Uploaded {ver.docDate} &bull; {ver.docSize}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="flex items-center space-x-1 text-sky-600 hover:text-sky-800 text-xs font-semibold cursor-pointer"
+              >
+                <IconEye className="w-3.5 h-3.5" />
+                <span>View</span>
+              </button>
+            </div>
 
 
 <div className="pt-1 flex justify-center">
