@@ -20,6 +20,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminVerifications from "./pages/admin/AdminVerifications";
 import AdminListingQueue from "./pages/admin/AdminListingQueue";
 import AdminDisputes from "./pages/admin/AdminDisputes";
+import Users from "./pages/admin/Users";
+import ViewUser from "./pages/admin/ViewUser";
 import BrowseListings from "./pages/buyer/BrowseAllListing";
 import Wishlist from "./pages/buyer/Wishlist";
 import Reservations from "./pages/buyer/Reservation";
@@ -107,6 +109,9 @@ export default function App() {
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
+          <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/users/:userId" element={<ViewUser />} />
+
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
             <Route path=":reservationId" element={<ChatPage />} />

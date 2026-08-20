@@ -8,7 +8,7 @@ import {
   IconListCheck,
   IconFlag,
   IconUsers,
-  IconChartBar,
+
   IconPackage,
   IconChevronLeft,
   IconChevronRight,
@@ -84,13 +84,14 @@ const adminNav: NavSection[] = [
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} />, badge: 14 },
       { label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />, badge: 14 },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} />, badge: 3 },
+      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
   {
     heading: 'Manage',
     items: [
-      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
-      { label: 'Analytics', to: '/admin/analytics', icon: <IconChartBar size={18} /> },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      { label: 'Messages', to: '/admin/messages', icon: <IconMessage size={18} /> },
       { label: 'Settings', to: '/admin/settings', icon: <IconSettings size={18} /> },
     ],
   },
