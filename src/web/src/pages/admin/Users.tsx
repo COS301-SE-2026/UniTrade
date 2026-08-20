@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useState } from 'react'
+//import { useNavigate } from 'react-router'
 import { IconSearch, IconRadio } from "@tabler/icons-react"
 
-const MOCK_USERS = [
+/*const MOCK_USERS = [
   {
     id: '1',
     name: 'Tafadzwa Musiiwa',
@@ -30,17 +30,17 @@ const MOCK_USERS = [
     reputation: 85,
     strikesCount: 2,
   },
-]
+]*/
 
 export default function Users() {
-  const navigate = useNavigate()
+  //const navigate = useNavigate()
   const [filter, setFilter] = useState<'all' | 'strikes' | 'verified' | 'pending'>('all')
-  const filteredUsers = MOCK_USERS.filter((user) => {
+  /*const filteredUsers = MOCK_USERS.filter((user) => {
     if (filter === 'strikes') return user.strikesCount > 0
     if (filter === 'verified') return user.verificationStatus === 'Verified'
     if (filter === 'pending') return user.verificationStatus === 'Pending'
     return true
-  })
+  })*/
 
 
   return (

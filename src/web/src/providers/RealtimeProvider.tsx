@@ -9,19 +9,19 @@ import { registerForPushN, onForegroundMessage } from "../services/fcmService";
 import { useToast } from "../components/layout/useToast";
 
 export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
+  /*if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
     return <>
     {children}
     </>;
-  }
+  }*/
 
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { showToast } = useToast();
+
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+if (import.meta.env.DEV || !user) return;
+
     connectionManager
       .connect()
       .catch((e) => console.error("hub connect failed", e));
@@ -36,9 +36,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+ if (import.meta.env.DEV || !user) return;
 
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
@@ -55,9 +53,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+if (import.meta.env.DEV || !user) return;
 
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
@@ -67,6 +63,8 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user, showToast]);
 
   useEffect(() => {
+    if (import.meta.env.DEV || !user) return;
+
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
         const key = queryKeys.reservationMessages(msg.reservationId);
@@ -153,6 +151,6 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       offReservationUpdated();
       offListing();
     };
-  }, [queryClient]);
+  }, [queryClient, user]);
   return <>{children}</>;
 }
