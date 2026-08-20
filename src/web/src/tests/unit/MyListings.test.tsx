@@ -226,7 +226,7 @@ describe('MyListings - actions', () => {
         })
         expect(screen.getByRole('button', { name: /^resubmit$/i })).toBeInTheDocument()
         const editButtons = screen.getAllByRole('button', { name: /^edit$/i })
-        fireEvent.click(editButtons[3]) // Calculus Textbook is 4th listing (rejected)
+        fireEvent.click(editButtons[3])
         expect(mockNavigate).toHaveBeenCalledWith('/seller/editListing/4')
     })
 

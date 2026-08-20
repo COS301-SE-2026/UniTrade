@@ -36,7 +36,7 @@ vi.mock('../../services/listingsService', () => ({
 vi.mock('../../services/realtime/connectionManager', () => ({
   connectionManager: {
     connect: vi.fn().mockResolvedValue(undefined),
-    joinRoom: vi.fn().mockResolvedValue(undefined), // <-- fixed method name
+    joinRoom: vi.fn().mockResolvedValue(undefined),
     onPaymentCompleted: vi.fn(() => vi.fn()),
     onPinGenerated: vi.fn(() => vi.fn()),
     onPinConfirmed: vi.fn(() => vi.fn()),
@@ -127,7 +127,7 @@ beforeEach(() => {
   } as unknown as Awaited<ReturnType<typeof getTransactionStatus>>);
   vi.mocked(createTransactionRequest).mockReset();
   vi.mocked(connectionManager.connect).mockClear();
-  vi.mocked(connectionManager.joinRoom).mockClear(); // fixed method name
+  vi.mocked(connectionManager.joinRoom).mockClear();
   vi.mocked(connectionManager.onPaymentCompleted).mockClear();
   vi.mocked(connectionManager.onPinGenerated).mockClear();
   vi.mocked(connectionManager.onPinConfirmed).mockClear();

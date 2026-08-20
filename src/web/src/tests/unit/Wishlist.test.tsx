@@ -27,7 +27,7 @@ vi.mock('react-router', async () => {
   };
 });
 
-// Mock useSearchQuery to avoid calling useSearchParams
+
 vi.mock('../../hooks/useSearchQuery', () => ({
   useSearchQuery: vi.fn(() => ''),
 }));
@@ -56,7 +56,7 @@ vi.mock('../../lib/queryClient', () => ({
   },
 }));
 
-// Correct path for SummaryCard – matches the component's import
+
 vi.mock('../../pages/buyer/Reservation', () => ({
   SummaryCard: (props: SummaryCardMockProps) => (
     <div data-testid="summary-card">
@@ -121,7 +121,7 @@ function mockWishlist(
 it('shows a loading message when waiting for the wishlist to load', () => {
   mockWishlist(undefined, true, null);
   renderWishlist();
-  // Match the exact text rendered by LoadingState (with a space)
+ 
   expect(screen.getByText('Loading wishlist ...')).toBeInTheDocument();
 });
 
