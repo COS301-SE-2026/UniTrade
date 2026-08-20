@@ -123,11 +123,48 @@ export default function Users() {
               <th className="py-4 px-6">Reputation</th>
               <th className="py-4 px-6">Strikes</th>
               <th className="py-4 px-6 text-right">Actions</th>
-              </tr> </thead> </table>
+              </tr> </thead> 
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                   <td className="py-4 px-6 flex items-ceenter space-x-3"> 
+                    <div className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center font-bold text-xs">
+                      {user.intitials}
+                      </div> 
+                      <div>
+                        <div className="font-bold text-gray-900">
+                          {user.name}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          {user.degree}
+                        </div>
+                      </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        {user.verificationStatus === 'Verified' ? (
+                          <span className="px-3 py-1 inline-block rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Verified
+                            </span>):(
+                              <span className="px-3 py-1 inline-block rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            Pending
+                            </span>
+                            )}
+                            </td>
+                      <td className="py-4 px-6 font-bold">{user.reputation}</td>
+                      <td className="py-4 px-6 font-bold">{user.strikesCount}</td>
+                      <td className="py-4 px-6 text-right"> 
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/admin/users/${user.id}`)}
+                          className="bg-[#0a1931] px-4 py-1.5 rounded-full text-xs font-semibold text-white hover:bg-[#153462] transition-colors cursor-pointer">
 
-</div>
- 
+                        View
+                      </button>
+                            </td>   
+                      </tr>
+                ))}</tbody>
+              </table>
 
-
+              </div>
     </div>)
 }
