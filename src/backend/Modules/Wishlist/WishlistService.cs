@@ -73,7 +73,7 @@ public class WishlistService : IWishlistService
 
     public static WishlistItemDto MapToDto(WishlistItem w)
     {
-        var l = w.Listing!;
+        var l = w.Listing;
         var listing = new ListingSummaryDto(
             ListingId: l.ListingId,
             SellerId: l.SellerId,

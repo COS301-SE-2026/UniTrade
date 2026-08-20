@@ -193,6 +193,7 @@ public class AuthController : ControllerBase
 
     [HttpGet("hub-token")]
     [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult HubToken()
     {
         var userId =

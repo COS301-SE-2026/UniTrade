@@ -8,7 +8,7 @@ import {
   IconListCheck,
   IconFlag,
   IconUsers,
-  IconChartBar,
+
   IconPackage,
   IconChevronLeft,
   IconChevronRight,
@@ -85,13 +85,14 @@ const adminNav: NavSection[] = [
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} />, badge: 14 },
       { label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />, badge: 14 },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} />, badge: 3 },
+      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
   {
     heading: 'Manage',
     items: [
-      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
-      { label: 'Analytics', to: '/admin/analytics', icon: <IconChartBar size={18} /> },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      { label: 'Messages', to: '/admin/messages', icon: <IconMessage size={18} /> },
       { label: 'Settings', to: '/admin/settings', icon: <IconSettings size={18} /> },
     ],
   },
@@ -138,7 +139,7 @@ function UserPopover({
       </div>
       <div className="flex items-center gap-3 mb-5">
         <button
-
+          type='button'
           className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
         >
           {initials}
@@ -171,6 +172,10 @@ function UserPopover({
       />
     </div>
   )
+}
+function getUserRoleDisplay(role?: string, viewMode?: string) {
+  if (role === 'admin') return 'Admin';
+  return viewMode === 'buyer' ? 'Buyer' : 'Seller';
 }
 export default function Sidebar() {
   const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
@@ -263,6 +268,7 @@ export default function Sidebar() {
               if (item.label === 'Switch' && user?.role === 'student') {
                 return (
                   <button
+                    type='button'
                     key={item.to}
                     onClick={handleSwitch}
                     className={clsx(
@@ -357,6 +363,7 @@ export default function Sidebar() {
       )}
 
       <button
+        type='button'
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-navy-700 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors z-10"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -365,4 +372,22 @@ export default function Sidebar() {
       </button>
     </aside>
   )
+}
+
+function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
+  let base: NavSection[];
+  if (role === 'admin') {
+    base = adminNav;
+  }
+  else if (role === 'student') {
+    base = viewMode === 'buyer' ? buyerNav : sellerNav;
+  }
+  else {
+    base = [];
+  }
+
+  return base.map((section) => ({
+    ...section, items: section.items.map((item) =>
+      item.label === 'Messages' ? { ...item, badge: unreadTotal } : item,),
+  }))
 }

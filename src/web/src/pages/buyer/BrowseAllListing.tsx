@@ -13,8 +13,7 @@ import {
   sortTheCategories,
 } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
-import { useQueryClient } from "@tanstack/react-query";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { LoadingState } from "../../components/layout/Spinner";
 
 function CategoryCard({
@@ -22,14 +21,15 @@ function CategoryCard({
   active,
   onClick,
   className = "",
-}: {
+}: Readonly<{
   title: string;
   active: boolean;
   onClick: () => void;
   className?: string;
-}) {
+}>) {
   return (
     <button
+      type='button'
       onClick={onClick}
       className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap ${active
         ? "bg-navy-700 text-white border-navy-700"
@@ -44,10 +44,10 @@ function CategoryCard({
 function ListingCard({
   listing,
   onClick,
-}: {
+}: Readonly<{
   listing: BrowseListing;
   onClick: () => void;
-}) {
+}>) {
   const navigate = useNavigate();
   const [reserving, setReserving] = useState(false);
   const [reserved, setReserved] = useState(false);
@@ -115,12 +115,23 @@ function ListingCard({
   };
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
+    <div
+      role="button"
+      aria-label={`View details for ${listing.title}`}
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
       data-testid="listing-card">
+
       <img
         src={listing.image}
         alt={listing.title}
-        onClick={onClick}
         className="w-full h-48 object-cover"
       />
       <div className="p-4 flex flex-col gap-2 flex-1">
@@ -147,22 +158,28 @@ function ListingCard({
 
         <div className="flex flex-col gap-2 mt-auto pt-2">
           <button
+            type='button'
             onClick={handleReserve}
             disabled={reserving || reserved}
             className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {reserved ? "Reserved" : reserving ? "Reserving..." : "Reserve"}
+            {(() => {
+              if (reserved) return 'Reserved';
+              if (reserving) return 'Reserving...';
+              return 'Reserve';
+            })()}
           </button>
           <button
+            type='button'
             onClick={handleAddToWishlist}
             disabled={wishlisting || wishlisted}
             className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
-            {wishlisted
-              ? "In Wishlist"
-              : wishlisting
-                ? "Adding..."
-                : "Add to Wishlist"}
+            {(() => {
+              if (wishlisted) return 'In Wishlist';
+              if (wishlisting) return 'Adding...';
+              return 'Add to Wishlist';
+            })()}
           </button>
         </div>
       </div>
@@ -170,7 +187,6 @@ function ListingCard({
   );
 }
 
-type CategoryFilter = "All" | string;
 type ConditionFilter = "All conditions" | BrowseCondition;
 type SortOption = "Newest" | "Oldest" | "Price Low" | "Price High";
 const PAGE_SIZE = 8;
@@ -181,7 +197,7 @@ export default function BrowseAllListing() {
   const searchQuery = searchParams.get('q') || '';
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   const [conditionFilter, setConditionFilter] =
     useState<ConditionFilter>("All conditions");
   const [sortOption, setSortOption] = useState<SortOption>("Newest");
@@ -283,6 +299,7 @@ export default function BrowseAllListing() {
           {categories.length > 3 && (
             <div className="relative md:hidden">
               <button
+                type='button'
                 onClick={() => setShowMoreCategories(!showMoreCategories)}
                 className="px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
               >
@@ -292,6 +309,7 @@ export default function BrowseAllListing() {
                 <div className="absolute z-50 mt-2 w-48 bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl shadow-lg py-2">
                   {categories.slice(3).map((cat) => (
                     <button
+                      type='button'
                       key={cat.id}
                       onClick={() => handleCategoryClick(cat.name)}
                       className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${activeCategory === cat.name
@@ -374,6 +392,7 @@ export default function BrowseAllListing() {
             {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
               (page) => (
                 <button
+                  type='button'
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page

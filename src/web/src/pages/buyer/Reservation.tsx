@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useReducer, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getReservations, cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
@@ -23,7 +23,7 @@ type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -78,7 +78,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
   meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
     <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
       <span className="text-navy-700">{icon}</span>
@@ -90,7 +90,7 @@ export function SummaryCard({ label, value, icon }: { label: string; value: stri
   );
 }
 
-function StageTag({ stage }: { stage: TimerStage }) {
+function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
   const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
@@ -99,7 +99,7 @@ function StageTag({ stage }: { stage: TimerStage }) {
   )
 }
 
-function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }) {
+function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
   if (msRemaining <= 0) return null;
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -194,16 +194,16 @@ function ReportQualityModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 function ReservationCard({
   reservation,
   onCancel,
-}: {
+}: Readonly<{
   reservation: ReservationListItem
   onCancel: (id: string) => void
-}) {
+}>) {
   const navigate = useNavigate()
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [, forceTick] = useState(0)
   
   useEffect(() => {
-    const interval = setInterval(() => forceTick((t) => t + 1), 1000)
+    const interval = setInterval(() => forceTick(), 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -212,6 +212,8 @@ function ReservationCard({
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0]
 
+
+  const openReservation = () => navigate(`/buyer/reservations/${reservation.reservationId}`)
   return (
     <>
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
@@ -389,7 +391,18 @@ export default function Reservations() {
 
     return { activeCount, expiringCount, totalValue }
   }, [reservations])
+  const getEmptyStateMessage = () => {
+    if (searchQuery) {
+      return `There are no reservation with "${searchQuery}" found.`;
 
+    }
+
+    if (statusFilter !== "All") {
+      return `There are no reservations with "${statusFilter}" status.`
+    }
+
+    return "Reserve items from listings to see them here."
+  }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -412,6 +425,7 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
                   <button
+                    type='button'
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -439,6 +453,7 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
                   <button
+                    type='button'
                     key={opt}
                     onClick={() => {
                       setStatusFilter(opt);

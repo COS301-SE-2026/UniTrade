@@ -140,7 +140,7 @@ public class TransactionService : ITransactionsService
             throw new TransactionException("pin_not_pending");
         }
 
-        return tx.Pin;
+        return tx.Pin!;
     }
 
     public async Task VerifyPinAsync(

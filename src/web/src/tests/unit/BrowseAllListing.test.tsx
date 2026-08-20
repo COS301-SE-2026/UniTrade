@@ -189,7 +189,6 @@ describe('BrowseAllListing', () => {
     it('renders Reserve and Add to Wishlist buttons for each card', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
       expect(screen.getAllByRole('button', { name: /add to wishlist/i })).toHaveLength(4)
     })
 

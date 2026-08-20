@@ -35,7 +35,7 @@ const Signup: React.FC = () => {
   const [showTerms, setShowTerms] = useState(!termsAcceptedAt)
 
   const [universities, setUniversities] = useState<University[]>([]);
-  const [uniLoading, setUniloading] = useState(true);
+  const [uniLoading, setUniLoading] = useState(true);
   const [uniError, setUniError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,7 +48,7 @@ const Signup: React.FC = () => {
         const message = err instanceof Error ? err.message : 'Could not load universities';
         setUniError(message);
       } finally {
-        setUniloading(false);
+        setUniLoading(false);
       }
     };
 
@@ -111,25 +111,25 @@ const Signup: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
-                <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required
+                <label htmlFor="fname" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
+                <input id="fname" type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
-                <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} required
+                <label htmlFor="lname" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
+                <input id="lname" type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Student Email</label>
-              <input type="text" inputMode="email" name="email" placeholder="Student Email" value={formData.email} onChange={handleChange} required
+              <label htmlFor="email" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Student Email</label>
+              <input id="email" type="text" inputMode="email" name="email" placeholder="Student Email" value={formData.email} onChange={handleChange} required
                 className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
+              <label htmlFor='uni' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
               <select
                 name="university"
                 value={formData.university}
@@ -137,7 +137,7 @@ const Signup: React.FC = () => {
                 required
                 disabled={uniLoading}
                 className={`w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1
-                 focus:ring-sky-500 transition-all disabled:opacity-60 ${formData.university === ""? "text-gray-400" : "text-gray-900"}`}>
+                 focus:ring-sky-500 transition-all disabled:opacity-60 ${formData.university === "" ? "text-gray-400" : "text-gray-900"}`}>
                 <option value="">
                   {uniLoading
                     ? 'Loading universities...'
@@ -158,21 +158,22 @@ const Signup: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
-                <input type="text" name="degreeProgram" placeholder="Degree Program" value={formData.degreeProgram} onChange={handleChange}
+                <label htmlFor='degree' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
+                <input id="degree" type="text" name="degreeProgram" placeholder="Degree Program" value={formData.degreeProgram} onChange={handleChange}
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
-                <input type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} required
+                <label htmlFor='year' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
+                <input id="year" type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
+              <label htmlFor='password' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
               <div className="relative">
                 <input
+                  id='password'
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Password"
