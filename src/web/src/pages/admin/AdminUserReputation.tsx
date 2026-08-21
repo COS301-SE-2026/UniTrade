@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
-import { IconAlertTriangle } from '@tabler/icons-react'
-import { Breadcrumb, Panel, StarRating } from './AdminReviewShared'
-import { getMockUserReputation, type UserReputationProfile } from '../../types/mockAdmin'
-import { LoadingState } from '../../components/layout/Spinner';
-=======
 import { useEffect, useReducer } from 'react';
 import { useParams } from 'react-router';
 import { IconAlertTriangle } from '@tabler/icons-react';
@@ -35,7 +27,6 @@ function reputationReducer(state: State, action: Action): State {
       return state;
   }
 }
->>>>>>> a9a89432da4076679e573e86a954355cb1972579
 
 export default function AdminUserReputation() {
   const { id } = useParams<{ id: string }>();
@@ -73,13 +64,9 @@ export default function AdminUserReputation() {
     };
   }, [id]);
 
-<<<<<<< HEAD
-  {loading && <LoadingState message="Loading user ..." />}
-=======
   if (state.loading) {
     return <p className="text-sm text-gray-400">Loading user…</p>;
   }
->>>>>>> a9a89432da4076679e573e86a954355cb1972579
 
   if (state.error || !state.data) {
     return <p className="text-sm text-gray-400">User was not found.</p>;
