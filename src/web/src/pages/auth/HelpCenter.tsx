@@ -395,7 +395,7 @@ export default function HelpCenter() {
     return faqs.filter((faq) =>
       `${faq.question} ${faq.answer}`.toLowerCase().includes(normalisedQuery)
     );
-  }, [normalisedQuery]);
+  }, [normalisedQuery, faqs]);
 
   const hasResults = filteredQuickLinks.length > 0 || filteredFaqs.length > 0;
 
