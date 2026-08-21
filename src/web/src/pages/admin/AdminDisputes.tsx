@@ -17,7 +17,7 @@ export interface MockDispute{
 
 const MockDisputes: MockDispute[] = [
   {
-    id: '1',
+    id: 'dispute-1',
     title: 'Chemistry Textbook - 3rd Ed',
     buyer: 'SK',
     seller: 'MT',
@@ -27,7 +27,7 @@ const MockDisputes: MockDispute[] = [
   },
 
     {
-    id: '2',
+    id: 'dispute-2',
     title: 'HP Laptop 15" - Good condition',
     buyer: 'SK',
     seller: 'MT',
@@ -36,7 +36,7 @@ const MockDisputes: MockDispute[] = [
     image: laptopImg,
   },
       {
-    id: '3',
+    id: 'dispute-3',
     title: 'Calculus Textbook -Early Transcendentals 8th Ed',
     buyer: 'SK',
     seller: 'MT',
