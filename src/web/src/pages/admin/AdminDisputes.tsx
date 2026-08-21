@@ -218,12 +218,35 @@ export default function AdminDisputes() {
               </span>
             </td>
 
-            
+            <td className="py-4 px-4 text-right">
+              <div className="flex items-center justify-end space-x-2">
+                <button
+                type="button"
+                onClick={() => navigate(` /admin/disputes/dispute.id}`)}
+                className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] 
+                transition-colors cursor-pointer">
+                  Review
+                </button>
+                  <button
+                type="button"
+
+                className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50
+                transition-colors cursor-pointer text-[10px] leading-tight">
+                  Message <br /> Seller
+                </button>
+                 <button
+                type="button"
+
+                className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50
+                transition-colors cursor-pointer text-[10px] leading-tight">
+                  Message <br /> Buyer
+                </button>
+              </div>
+            </td>
                 </tr>
               ))}
             </tbody>
             </table></div>       
-
 </div>
   )
 }
