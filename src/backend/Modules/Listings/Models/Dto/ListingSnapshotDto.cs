@@ -2,7 +2,7 @@ using Modules.Reservations.Models;
 
 namespace Modules.Listings.Models.Dto
 {
-    public class ListingSnapshot
+    public class ListingSnapshotDto
     {
         public string Title {get;set;}=null!;
         public decimal Price {get;set;}
