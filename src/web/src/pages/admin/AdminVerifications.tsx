@@ -227,6 +227,18 @@ const numPending = MockVerifications.length
             </th>
           </tr>
         </thead>
+        <tbody className = "divide-y divide-gray-100 text-xs">
+          {filteredList.length === 0 ? (
+            <tr>
+              <td colSpan={3} className = "py-6 text-center text-gray-400">
+                No verifications match your filters
+              </td>
+            </tr>
+          ) : (
+            
+          )
+          )}
+        </tbody>
       </table>
     </div>
     <div className="grid grid-cols-2 gap-6">
