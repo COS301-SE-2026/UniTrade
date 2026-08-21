@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Modules.Identity.Verification;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
@@ -11,6 +12,7 @@ public class ListingService : IListingService
     private readonly IListingRepository _listings;
 
     private readonly IListingImageRepository _images;
+    private readonly ISellerVerificationQuery _verification;
 
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
@@ -19,10 +21,15 @@ public class ListingService : IListingService
         "removed",
     }; // as in removed form the platform because you sold it outside it
 
-    public ListingService(IListingRepository listings, IListingImageRepository images)
+    public ListingService(
+        IListingRepository listings,
+        IListingImageRepository images,
+        ISellerVerificationQuery verification
+    )
     {
         _listings = listings;
         _images = images;
+        _verification = verification;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -285,6 +292,10 @@ public class ListingService : IListingService
         if (newStatus == "live" && string.IsNullOrWhiteSpace(listing.Description))
         {
             throw new InvalidOperationException("description_required");
+        }
+        if (newStatus == "live" && !await _verification.IsVerifiedAsync(listing.SellerId, ct))
+        {
+            throw new InvalidOperationException("seller_not_verified");
         }
         listing.ListingStatus = newStatus;
         listing.UpdatedAt = DateTime.Now;
