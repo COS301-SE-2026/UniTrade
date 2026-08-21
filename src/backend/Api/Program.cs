@@ -225,7 +225,7 @@ builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
-builder.Services.AddScoped<IListingSnapshotRepository,ListingSnapshotRepository>();
+builder.Services.AddScoped<IListingSnapshotRepository, ListingSnapshotRepository>();
 builder.Services.AddScoped<IListingSnapshotService, ListingSnapshotService>();
 
 builder.Services.AddSingleton(

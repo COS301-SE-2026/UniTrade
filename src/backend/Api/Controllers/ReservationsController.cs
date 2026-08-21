@@ -22,7 +22,7 @@ public class ReservationsController : ControllerBase
     {
         _reservations = reservations;
         _chat = chat;
-        _snapshot=snapshot;
+        _snapshot = snapshot;
     }
 
     private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -136,10 +136,10 @@ public class ReservationsController : ControllerBase
     //get /reservation/{reservationId}/snapshot
     [HttpGet("{reservationId: guid}/snapshot")]
     [Authorize]
-    public async Task <ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
+    public async Task<ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
     {
-        var snapshot=await _snapshot.GetByReservationIdAsync(reservationId,ct);
-        if(snapshot is null)
+        var snapshot = await _snapshot.GetByReservationIdAsync(reservationId, ct);
+        if (snapshot is null)
         {
             return NotFound();
         }
