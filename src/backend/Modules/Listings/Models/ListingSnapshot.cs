@@ -6,8 +6,9 @@ namespace Modules.Listings.Models
 {
     public class ListingSnapshot
     {
-        public Guid ReservationId{get;set;}
         public Guid ListingId{get;set;}
+        public Guid ReservationId{get;set;}
+        
         public string Title {get;set;}=null!;
         public decimal Price {get;set;}
         public string Condition{ get;set;}=null!;
