@@ -263,8 +263,27 @@ const numPending = MockVerifications.length
                   >
                     {ver.slaState}
                   </span>
-                  
+                  <div className="mt-1 flex items-center justify-center gap-2 text-[10px] text-gray-500">
+                      <span>{ver.slaStatus}</span>
+                      <span>·</span>
+                      <span>{ver.domain}</span>
+                    </div>
+                    <div className="w-full max-w-[120px] mx-auto mt-1 bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`h-full rounded-full ${
+                          ver.slaState === 'Overdue'
+                            ? 'bg-red-600'
+                            : ver.slaState === 'Due soon'
+                            ? 'bg-amber-500'
+                            : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${ver.slaProgress}%` }}
+                      />
+                    </div>
+
                 </td>
+
+                
               </tr>
             ))
 
