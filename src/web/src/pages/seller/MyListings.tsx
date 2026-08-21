@@ -162,7 +162,7 @@ export default function MyListings() {
   const { showToast } = useToast();
 
   const { data, isLoading, error } = useMyListings();
-  const listings = data?.listings ?? [];
+  const listings =useMemo(() => data?.listings ?? [], [data?.listings]);
   const total = data?.total ?? 0;
 
   const [activeTab, setActiveTab] = useState<Tab>("all");
