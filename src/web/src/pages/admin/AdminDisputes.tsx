@@ -75,7 +75,7 @@ export default function AdminDisputes() {
   return (
        <div className='p-8 space-y-6 max-w-6xl'>
          <div className="relative max-w-xs">
-           <div className='absolute left-3 top-2.5 flex items-center space-x-1 text-gray-400' />
+           <div className='absolute left-3 top-2.5 flex items-center space-x-1 text-gray-400'>
            <IconMenu2 className="h-4 w-4" />
            <span className="text-xs 0">=</span>
            </div>
@@ -87,5 +87,40 @@ export default function AdminDisputes() {
              className="w-full pl-10 pr-9 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]" />
         <IconSearch className='absolute right-3 top-2.5 h-4 w-4 text-gray-400' />
     </div>
+
+       <div>
+      <h1 className="text-2xl font-bold text-gray-900">Active Disputes</h1>
+      <p className="text-xs text-gray-400 mt-1">Manage all the Dsiputes in one place.</p>
+      </div>
+
+<div className="grid grid-cols-4 gap-6 max-w-4xl">
+  <div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
+    <div className="text-lg font-bold text-gray-900">{totalDisputes}
+    </div>
+    <div className='text-[10px] text-gray-500'>Total Disputes</div>
+</div>
+
+<div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
+    <div className="text-lg font-bold text-gray-900">{numNoShow}
+    </div>
+    <div className='text-[10px] text-gray-500'>No Show</div>
+</div>
+</div>
+
+<div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
+    <div className="text-lg font-bold text-gray-900">{numListingQuality}
+    </div>
+    <div className='text-[10px] text-gray-500'>Listing Quality</div>
+</div>
+
+<div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
+    <div className="text-lg font-bold text-gray-900">{numReport}
+    </div>
+    <div className='text-[10px] text-gray-500'>Report</div>
+</div>
+</div>
+
+
+
   )
 }
