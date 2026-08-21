@@ -17,7 +17,7 @@ export interface MockDispute{
 
 const MockDisputes: MockDispute[] = [
   {
-    id: '1',
+    id: 'dispute-1',
     title: 'Chemistry Textbook - 3rd Ed',
     buyer: 'SK',
     seller: 'MT',
@@ -27,7 +27,7 @@ const MockDisputes: MockDispute[] = [
   },
 
     {
-    id: '2',
+    id: 'dispute-2',
     title: 'HP Laptop 15" - Good condition',
     buyer: 'SK',
     seller: 'MT',
@@ -36,7 +36,7 @@ const MockDisputes: MockDispute[] = [
     image: laptopImg,
   },
       {
-    id: '3',
+    id: 'dispute-3',
     title: 'Calculus Textbook -Early Transcendentals 8th Ed',
     buyer: 'SK',
     seller: 'MT',
@@ -223,7 +223,7 @@ export default function AdminDisputes() {
               <div className="flex items-center justify-end space-x-2">
                 <button
                 type="button"
-                onClick={() => navigate(` /admin/disputes/${dispute.id}`)}
+                onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
                 className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] 
                 transition-colors cursor-pointer">
                   Review
