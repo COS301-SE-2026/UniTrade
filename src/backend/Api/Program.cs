@@ -49,6 +49,8 @@ using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
+using Modules.Listings.Snapshot;
+
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -223,6 +225,8 @@ builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
+builder.Services.AddScoped<IListingSnapshotRepository,ListingSnapshotRepository>();
+builder.Services.AddScoped<IListingSnapshotService, ListingSnapshotService>();
 
 builder.Services.AddSingleton(
     new EmailClient(
