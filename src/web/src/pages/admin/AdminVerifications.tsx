@@ -112,7 +112,6 @@ const numPending = MockVerifications.length
 
   return (
     <div className='p-8 space-y-6 max-w-6xl'>
-      <div className = "flex items-center justify-between ">
         <div>
           <h1 className = "text-2xl font-bold text-gray-900">
             Student Verifications
@@ -121,7 +120,8 @@ const numPending = MockVerifications.length
           Review students proof of registration and approve or reject account 
           </p>
         </div>
-      </div>
+
+
       <div className="relative max-w-sm">
         <input
           type="text"
@@ -131,13 +131,9 @@ const numPending = MockVerifications.length
           className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]" />
        <IconSearch className='absolute right-3 top-2.5 h-4 w-4 text-gray-400' />
       </div>
-      <div>
-       <h1 className="text-2xl font-bold text-gray-900">Student Verifications</h1>
-          <p className="text-xs text-gray-500">Review student proof of registration and approve or reject account.</p>
-      </div>
-      <div className="grid grid-cols gap-4 max-w-4xl">
 
-                <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
+      <div className="grid grid-cols-4 gap-4">
+          <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
           <div className="text-xl font-bold text-gray-900">{numOverdue}</div>
           <div className="text-xs text-gray-500">Overdue</div>
         </div>
@@ -150,11 +146,10 @@ const numPending = MockVerifications.length
         <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
           <div className="text-xl font-bold text-gray-900">{numPending}</div>
           <div className="text-xs text-gray-500">Total Pending</div>
-    
         </div>
 
                 <div className="bg-white-p3 rounded-xl border-gray-200 shadow-sm text-center">
-          <div className="text-xl font-bold text-gray-900">12</div>
+          <div className="text-xl font-bold text-gray-900">{12}</div>
           <div className="text-xs text-gray-500">Approved Today</div>
       </div>
       </div>
@@ -174,7 +169,7 @@ const numPending = MockVerifications.length
               All({MockVerifications.length})
             </button>
 
-                    <button
+          <button
           type="button"
           onClick={() => setFilter('Overdue')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
@@ -187,7 +182,7 @@ const numPending = MockVerifications.length
               Overdue({numOverdue})
             </button>
 
-                      <button
+          <button
           type="button"
           onClick={() => setFilter('Due soon')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
@@ -197,9 +192,21 @@ const numPending = MockVerifications.length
               : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
             }`}
             >
-              All({numDueSoon})
+              Due soon({numDueSoon})
             </button>
-            </div>
+            
+            <button
+             type="button"
+            onClick={() => setFilter('Normal')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+              filter === 'Normal'
+                ? 'bg-[#0a1931] text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Normal({MockVerifications.length - numOverdue - numDueSoon})
+          </button>
+        </div>
 
       <div>
   <select
@@ -211,6 +218,7 @@ const numPending = MockVerifications.length
   </select>
       </div>
       </div>
+
     
     <div className = "bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
       <table className = "w-full text-left border-collapse">
@@ -222,7 +230,10 @@ const numPending = MockVerifications.length
             <th className = "py-3 px-4 text-center">
               Verification Status
             </th>
-            <th className = "py-3 px-4 text-right pr-12">
+            <th className = "py-3 px-4">
+              Document
+            </th>
+            <th className = "py-3 px-4 text-center">
               Actions
             </th>
           </tr>
@@ -230,7 +241,7 @@ const numPending = MockVerifications.length
         <tbody className = "divide-y divide-gray-100 text-xs">
           {filteredList.length === 0 ? (
             <tr>
-              <td colSpan={3} className = "py-6 text-center text-gray-400">
+              <td colSpan={4} className = "py-6 text-center text-gray-400">
                 No verifications match your filters
               </td>
             </tr>
@@ -240,7 +251,6 @@ const numPending = MockVerifications.length
                 <td className = "py-4 px-4 flex items-center space-x-3">
                   <div className = "w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {ver.initials}
-                  </div>
                   </div>
                   <div className = "font-bold text-gray-900">
                     {ver.name}
@@ -253,7 +263,7 @@ const numPending = MockVerifications.length
                 <td className = "py-4 px-4 text-center">
                   <span className = {`inline-block px-3 px-3 py-1 rounded-full text-[10px] font-medium ${
 
-                    ver.slaState === 'Overude'
+                    ver.slaState === 'Overdue'
                     ? 'bg-rose-200 text-rose-700'
                     : ver.slaState === 'Due soon'
                     ? 'bg-amber-100 text-amber-700'
@@ -280,156 +290,48 @@ const numPending = MockVerifications.length
                         style={{ width: `${ver.slaProgress}%` }}
                       />
                     </div>
-
                 </td>
 
-                
-              </tr>
-            ))
+                <td className="py-4 px-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-2 bg-sky-100 rounded-lg text-sky-600 shrink-0">
+                        <IconFileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-800">{ver.docName}</div>
+                        <div className="text-[10px] text-gray-400">
+                          Uploaded {ver.docDate} &bull; {ver.docSize}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
 
-          )
-          )}
-        </tbody>
-      </table>
+
+
+                <td className="py-4 px-4 text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        type="button"
+                        className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] transition-colors cursor-pointer text-[10px] leading-tight"
+                      >
+                        Review
+                      </button>
+                      <button
+                        type="button"
+                        className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-3 py-1.5"
+                      >
+                       <IconEye className="w-3.5 h-3.5" />
+                        <span>View Doc</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div className="grid grid-cols-2 gap-6">
-      {filteredList.map((ver) => (
-        <div
-        key={ver.id}
-        className={`bg-white rounded-2xl border border-gray-200 shadow-sm p-5
-        spacce-y-4 relative border-l-4 ${
-        ver.slaState === 'Overdue'
-        ? 'border-l-red-800'
-        :ver.slaState === 'Due soon'
-        ? 'border-l-amber-600'
-        : 'border-l-transparent'
-        }`}>
-
-{ver.slaState !== 'Normal' && (
-  <span
-  className={`absolute top-5 right-5 px-3 py-0.5 rounded-full text-[10px] font-semibold
-    
-    ${
-      ver.slaState === "Overdue"
-      ? 'bg-red-200 text-amber-700'
-      : 'bg-amber-100 text-amber-700'
-    }`}
-    >
-      {ver.slaState}
-    </span>
-)}
-
-<div className="flex items-start space-x-3">
-  <div className="w-10 h-10 rounded-full bg-[#0a1931] text-whiite
-  flex items-center justify font-bold text-sm shrink-0">
-    {ver.initials}
-    </div>
-    <div>
-      <h3 className="font-bold text-xs text-gray-900">
-        {ver.name}
-      </h3>
-      <p className='text=[10px] text-gray-400 mt-0.5'>
-        {ver.degree}</p>
-        </div>
-        </div>
-
-<div className="grid grid-cols-2 gap-y-3 text-[11px]">
-  <div>
-    <span className='text-gray-400 block text-[10px]'>
-      Submitted</span>
-      <span className="font-semibold text-gray-800">{ver.submittedDate}
-    </span>
-    </div>
-    <div>
-     <span className='text-gray-400 block text-[10px]'>
-      SLA Status</span>
-      <span className={`font-semibold ${ver.slaState === 'Overdue' ? 'text-red-600' :
-        'text-gray-700'
-      }`}
-      >{ver.slaStatus}
-    </span>
-    </div>
-
-<div>
-     <span className='text-gray-400 block text-[10px]'>
-      Email</span>
-      <span className="font-semibold text-gray-800">{ver.email}
-    </span>
-    </div>
-
-    <div>
-       <span className='text-gray-400 block text-[10px]'>
-      Domain Check</span>
-      <span className="font-semibold text-emerald-800">{ver.domain}
-    </span>
-    </div>
-    </div>
-
-<div className='space-y-1'>
-  <span
-  className={`text-[10px] font-medium block ${
-    ver.slaState ==='Overdue'
-    ? 'text-red-700'
-    : ver.slaState === 'Due soon'
-    ? 'text-amber-700'
-    : 'text-emerald-700'}`}
-    >
-
-      {ver.slaMessage}
-    </span>
-
-<div className='w-full bg-gray-200 rounded-full h-1. overflow-hidden'>
-  <div
-  className={`h-full rounded-full ${
-    ver.slaState === 'Overdue'
-    ? 'bg-red-800'
-    : ver.slaState === 'Due soon'
-    ? 'bg-amber-500'
-    : 'bg-emerald-500'
-  }`}
-  style ={{ width: `${ver.slaProgress}%`}}
-  />
-  </div>
-  </div>
-
-
-
-<div className='border border-sky-200 bg-sky-50/30 rounded-xl p-3 flex items-center justify-between'>
-<div className="flex items-center space-x-2">
-  <div className='p-2 bg-sly-100 roundded-lg text-sky-600'>
-    <IconFileText className ="w-4 h-4" />
-    </div>
-  <div>
-    <div className='font-semibold text-xs text-gray-800'>
-      {ver.docName}</div>
-   <div className="text-[10px] text-gray-400">
-      Uploaded {ver.docDate} &bull; {ver.docSize}
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="flex items-center space-x-1 text-sky-600 hover:text-sky-800 text-xs font-semibold cursor-pointer"
-              >
-                <IconEye className="w-3.5 h-3.5" />
-                <span>View</span>
-              </button>
-            </div>
-
-
-<div className="pt-1 flex justify-center">
-  <button
-  type='button'
-  className="w-3/5 bg-[#0a1931] text-white py-2 rounded-xl text-xs font-semibold hover:bg-[#153462] transition-colors cursor-pointer">
-Make a Descision
-  </button>
-  </div>
-</div>
-      ))}
-        </div>  
-        </div>
-
-
   )
 }
-
+    
