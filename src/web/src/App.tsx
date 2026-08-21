@@ -43,6 +43,7 @@ import EnterPin from "./pages/payment/EnterPin";
 import PaymentComplete from "./pages/payment/PaymentComplete";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
 import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
+import ProofOfRegistrationUpload from "./pages/auth/UploadProofOfRegistration";
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
@@ -87,6 +88,7 @@ export default function App() {
         <Route path="/auth/profile" element={<Profile />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
         <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
+        <Route path="/auth/ProofUpload" element={<ProofOfRegistrationUpload />} />
 
         <Route element={<AppLayout />}>
           <Route path="/admin/verifications/:id" element={<AdminVerificationReview />} />

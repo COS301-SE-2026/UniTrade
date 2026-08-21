@@ -40,7 +40,7 @@ const MockUsers: MockUser[] = [
     reputation: 95,
     strikesCount: 1,
   },
-]
+]*/
 
 export default function Users() {
   const navigate = useNavigate()
