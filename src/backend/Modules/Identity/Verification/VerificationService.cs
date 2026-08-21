@@ -139,7 +139,7 @@ public class VerificationService : IVerificationService
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
         {
-            User.StudentProfile.VerificationStatus = "verified";
+            User.StudentProfile.VerificationStatus = "partial";
             await _users.UpdateAsync(User);
             await _emails.SendWelcomeEmailAsync(User.Email, User.FirstName);
         }
@@ -239,6 +239,11 @@ public class VerificationService : IVerificationService
 
         await _verifications.UpdateAsync(vr);
         await _users.UpdateAsync(user);
+
+        if (decision == VerificationDecision.Approve)
+        {
+            await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
+        }
 
         return await _verifications.GetCaseByIdAsync(verificationId, ct);
     }

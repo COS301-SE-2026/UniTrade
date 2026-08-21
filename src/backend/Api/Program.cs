@@ -31,6 +31,7 @@ using Modules.Audit;
 using Modules.Audit.Repositories;
 using Modules.Chat;
 using Modules.Chat.Repository;
+using Modules.Disputes;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
@@ -230,6 +231,8 @@ builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
 builder.Services.AddScoped<IAuditRepository, AuditRepository>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IAdminCaseService, AdminCaseService>();
+builder.Services.AddScoped<ISellerVerificationQuery, SellerVerificationQuery>();
 
 if (!builder.Environment.IsDevelopment())
 {
