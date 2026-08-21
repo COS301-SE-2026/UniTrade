@@ -178,6 +178,25 @@ export default function AdminDisputes() {
             </button>
             </div>
 
+
+     <div className= "bg -white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="text-xs text-gray-400 font-normal">
+            <th className="py-3 px-4">Listing</th>
+            <th className="py-3 px-4 text-center">Dispute type</th>
+            <th className="py-3 px-4 text-right pr-12">Actions</th>
+            </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-xs">
+              {filteredDisputes.map((dispute) => (
+                <tr key={dispute.id} className="hover:bg-gray-50/50 tansition-colors">
+                  
+                </tr>
+              ))}
+            </tbody>
+            </table></div>       
+
 </div>
   )
 }
