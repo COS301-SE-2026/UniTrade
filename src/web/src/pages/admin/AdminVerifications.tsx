@@ -21,7 +21,7 @@ export interface VerificationRequest{
 
 const MockVerifications: VerificationRequest[] = [
   {
-    id: '1',
+    id: 'verification-1',
     name: 'Tafadzwa Musiiwa',
     initials: 'TM',
     degree: 'BSc Comp Sci, Y2',
@@ -37,7 +37,7 @@ const MockVerifications: VerificationRequest[] = [
     docDate: '8 May 2026',
   },
     {
-    id: '2',
+    id: 'verification-2',
     name: 'Mahadio Tlaka',
     initials: 'MT',
     degree: 'BSc Comp Sci, Y2',
@@ -53,7 +53,7 @@ const MockVerifications: VerificationRequest[] = [
     docDate: '8 May 2026',
   },
     {
-    id: '3',
+    id: 'verification-3',
     name: 'Zelamene Shazi',
     initials: 'ZS',
     degree: 'BSc Comp Sci, Y2',
@@ -69,7 +69,7 @@ const MockVerifications: VerificationRequest[] = [
     docDate: '8 May 2026',
   },
   {
-    id: '4',
+    id: 'verification-4',
     name: 'Sabira Karie',
     initials: 'SK',
     degree: 'BSc Comp Sci, Y2',
