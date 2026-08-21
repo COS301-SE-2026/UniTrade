@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<Strike> Strikes => Set<Strike>();
 
     ///add listing model after resolving conflicts
     // Listings
@@ -907,6 +908,33 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_audit_entity");
             entity.HasIndex(x => x.ActorId).HasDatabaseName("ix_audit_actor");
             entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_audit_created").IsDescending();
+        });
+
+        modelBuilder.Entity<Strike>(entity=>
+        {
+            entity.HasKey(x=> x.StrikeId);
+            entity.Property(x=>x.StrikeId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x=>x.SourceCaseId).IsRequired(false);
+            entity.Property(x=>x.Type).HasMaxLength(50).IsRequired();
+            entity.Property(x=>x.UserId).IsRequired();
+            entity.Property(x=>x.Reason).HasMaxLength(255).IsRequired();
+            entity.Property(x=>x.CreatedByAdminId).IsRequired();
+            entity.Property(x=>x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            //relationships
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x=>x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x=>x.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x=>x.UserId).HasDatabaseName("ix_strikes_user");
+            entity.HasIndex(x=>x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
+            entity.HasIndex(x=>x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
         });
     }
 }
