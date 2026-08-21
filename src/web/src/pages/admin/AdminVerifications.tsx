@@ -214,7 +214,19 @@ const numPending = MockVerifications.length
     
     <div className = "bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
       <table className = "w-full text-left border-collapse">
-        
+        <thead>
+          <tr className = "text-xs text-gray-400 font-normal">
+            <th className = "py-3 px-4">
+              Student
+            </th>
+            <th className = "py-3 px-4 text-center">
+              Verification Status
+            </th>
+            <th className = "py-3 px-4 text-right pr-12">
+              Actions
+            </th>
+          </tr>
+        </thead>
       </table>
     </div>
     <div className="grid grid-cols-2 gap-6">
