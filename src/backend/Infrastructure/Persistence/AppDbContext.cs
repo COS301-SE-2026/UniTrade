@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Modules.Audit.Models;
 using Modules.Chat.Models;
 using Modules.Identity.Models;
 using Modules.Listings.Models;
@@ -60,6 +61,8 @@ public class AppDbContext : DbContext
     // Device Tokens
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
+    // Audits
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     //constants - sonarqube
     private readonly string _nowString = "now()";
@@ -231,6 +234,7 @@ public class AppDbContext : DbContext
             entity.ToTable(tb =>
             {
                 tb.HasTrigger("tr_verification_set_current");
+                tb.HasTrigger("tr_audit_verification_decision");
 
                 // NOTE: When we implement the AI Verification subsystem, add the missing constraints
                 tb.HasCheckConstraint(
@@ -883,5 +887,26 @@ public class AppDbContext : DbContext
             entity.HasIndex(x=>x.ListingId).HasDatabaseName("ix_listing_snapshots_listing_id");
         }
         );
+        // Audit logs
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(x => x.LogId);
+            entity.Property(x => x.LogId).ValueGeneratedOnAdd();
+
+            entity.Property(x => x.Action).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.EntityType).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.EntityId).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.OldValue);
+            entity.Property(x => x.NewValue);
+            entity.Property(x => x.Reason);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity
+                .HasIndex(x => new { x.EntityType, x.EntityId })
+                .HasDatabaseName("ix_audit_entity");
+            entity.HasIndex(x => x.ActorId).HasDatabaseName("ix_audit_actor");
+            entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_audit_created").IsDescending();
+        });
     }
 }

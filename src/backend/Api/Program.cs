@@ -10,6 +10,7 @@ using dotenv.net;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
 using Infrastructure.Persistence.Repositories.ListingImages;
@@ -26,8 +27,11 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Modules.Audit;
+using Modules.Audit.Repositories;
 using Modules.Chat;
 using Modules.Chat.Repository;
+using Modules.Disputes;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
@@ -57,6 +61,7 @@ DotEnv.Load(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
     )
 );
+ThreadPool.SetMinThreads(workerThreads: 100, completionPortThreads: 100);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -187,13 +192,14 @@ builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddScoped<AcsEmailService>();
     builder.Services.AddScoped<IEmailService, TestEmailService>();
 }
 else
 {
+    builder.Services.AddScoped<AcsEmailService>();
     builder.Services.AddScoped<IEmailService, AcsEmailService>();
 }
+
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
@@ -227,13 +233,21 @@ builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
 builder.Services.AddScoped<IListingSnapshotRepository, ListingSnapshotRepository>();
 builder.Services.AddScoped<IListingSnapshotService, ListingSnapshotService>();
+builder.Services.AddScoped<IAuditRepository, AuditRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IAdminCaseService, AdminCaseService>();
+builder.Services.AddScoped<ISellerVerificationQuery, SellerVerificationQuery>();
 
-builder.Services.AddSingleton(
-    new EmailClient(
-        builder.Configuration["Acs:ConnectionString"]
-            ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
-    )
-);
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton(
+        new EmailClient(
+            builder.Configuration["Acs:ConnectionString"]
+                ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
+        )
+    );
+}
+
 var jwtSecret =
     builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured");
@@ -254,6 +268,7 @@ builder
             ValidateLifetime = true,
             ValidateIssuer = false,
             ValidateAudience = false,
+            RoleClaimType = "role",
         };
 
         options.Events = AuthEventsFactory.CreateJwtEvents();
@@ -292,7 +307,6 @@ else
 {
     app.UseHsts();
 }
-
 
 app.UseRouting();
 app.UseCors("AllowReactApp");

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Modules.Identity.Models;
+using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
 
@@ -138,7 +139,7 @@ public class VerificationService : IVerificationService
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
         {
-            User.StudentProfile.VerificationStatus = "verified";
+            User.StudentProfile.VerificationStatus = "partial";
             await _users.UpdateAsync(User);
             await _emails.SendWelcomeEmailAsync(User.Email, User.FirstName);
         }
@@ -175,6 +176,76 @@ public class VerificationService : IVerificationService
 
         await _verifications.UpdateAsync(record);
         await _emails.SendOtpEmailAsync(email, otp);
+    }
+
+    public Task<IReadOnlyList<VerificationCaseDto>> ListPendingAsync(
+        CancellationToken ct = default
+    ) => _verifications.ListPendingAsync(ct);
+
+    public Task<VerificationCaseDto?> GetCaseAsync(
+        Guid verificationId,
+        CancellationToken ct = default
+    ) => _verifications.GetCaseByIdAsync(verificationId, ct);
+
+    public async Task<VerificationCaseDto?> DecideAsync(
+        Guid verificationId,
+        Guid adminId,
+        VerificationDecision decision,
+        string? reason,
+        CancellationToken ct = default
+    )
+    {
+        var vr = await _verifications.GetByIdAsync(verificationId, ct);
+        if (vr is null || !vr.IsCurrent)
+        {
+            return null;
+        }
+
+        if (vr.AdminDecision is not null)
+        {
+            throw new VerificationException("verification_already_decided");
+        }
+
+        var user = await _users.GetByIdAsync(vr.UserId);
+        if (user?.StudentProfile is null)
+        {
+            throw new VerificationException("user_not_found");
+        }
+
+        vr.AdminId = adminId;
+        vr.DecidedAt = DateTime.UtcNow;
+
+        switch (decision)
+        {
+            case VerificationDecision.Approve:
+                vr.Status = "approved";
+                vr.AdminDecision = "approved";
+                user.StudentProfile.VerificationStatus = "verified";
+                break;
+
+            case VerificationDecision.Reject:
+                vr.Status = "rejected";
+                vr.AdminDecision = "rejected";
+                vr.RejectionReason = reason;
+                user.StudentProfile.VerificationStatus = "rejected";
+                break;
+
+            case VerificationDecision.Resubmit:
+                vr.AdminDecision = "resubmission";
+                vr.RejectionReason = reason;
+                user.StudentProfile.VerificationStatus = "pending";
+                break;
+        }
+
+        await _verifications.UpdateAsync(vr);
+        await _users.UpdateAsync(user);
+
+        if (decision == VerificationDecision.Approve)
+        {
+            await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
+        }
+
+        return await _verifications.GetCaseByIdAsync(verificationId, ct);
     }
 
     private static string GenerateOtp()
