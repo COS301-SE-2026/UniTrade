@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Modules.Identity.Models;
+using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
@@ -21,13 +22,15 @@ public class ListingServiceTests
 {
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
+    private readonly Mock<ISellerVerificationQuery> _verificationMock;
     private readonly ListingService _sut;
 
     public ListingServiceTests()
     {
         _repo = new Mock<IListingRepository>();
         _imageRepo = new Mock<IListingImageRepository>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object);
+        _verificationMock = new Mock<ISellerVerificationQuery>();
+        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object);
     }
 
     // GetByIdAsync Tests
@@ -902,6 +905,12 @@ public class ListingServiceTests
         listing.ListingStatus = from;
         _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync(listing);
 
+        if (to == "live")
+        {
+            _verificationMock
+                .Setup(v => v.IsVerifiedAsync(seller, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+        }
         var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, to);
 
         Assert.True(result);
@@ -1033,6 +1042,10 @@ public class ListingServiceTests
         );
         listing.ListingStatus = "draft";
         _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        _verificationMock
+            .Setup(v => v.IsVerifiedAsync(seller, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, "live");
         Assert.True(result);
