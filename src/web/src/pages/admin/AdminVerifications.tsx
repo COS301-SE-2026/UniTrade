@@ -205,7 +205,7 @@ const numPending = MockVerifications.length
   <select
   value={sortBy}
   onChange={(e)=> setSortBy(e.target.value as 'Oldest First' | 'Newest First')}
-  className='px-4 py-1.5 bg-wjite border border-gray-300 rounded-full-text-xs font-medium text-gray-600 focus:outline-none cursor-pointer'>
+  className='px-4 py-1.5 bg-white border border-gray-300 rounded-full-text-xs font-medium text-gray-600 focus:outline-none cursor-pointer'>
     <option value="Oldest First"> Sort: Oldest First</option>
         <option value="Newest First"> Sort: Newest First</option>
   </select>
