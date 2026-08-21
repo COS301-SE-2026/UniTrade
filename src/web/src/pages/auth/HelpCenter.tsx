@@ -388,14 +388,14 @@ export default function HelpCenter() {
         .toLowerCase()
         .includes(normalisedQuery)
     );
-  }, [normalisedQuery, quickLinks]);
+  }, [normalisedQuery]);
 
   const filteredFaqs = useMemo(() => {
     if (!normalisedQuery) return faqs;
     return faqs.filter((faq) =>
       `${faq.question} ${faq.answer}`.toLowerCase().includes(normalisedQuery)
     );
-  }, [normalisedQuery, faqs]);
+  }, [normalisedQuery]);
 
   const hasResults = filteredQuickLinks.length > 0 || filteredFaqs.length > 0;
 
