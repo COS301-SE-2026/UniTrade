@@ -116,8 +116,7 @@ const makeListings = (): BrowseListing[] => [
 describe('BrowseAllListing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // category fetch is non-critical to most tests; default to a resolved value
-    // so it doesn't hang or throw unless a test overrides it
+
     vi.mocked(listingsService.getListingsCategories).mockResolvedValue(mockCategories)
   })
 
@@ -209,7 +208,7 @@ describe('BrowseAllListing', () => {
     it('renders all category filter buttons', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      // category chips load async from getListingsCategories, so wait for one to appear
+      
       await screen.findByRole('button', { name: 'Textbooks' })
       for (const cat of ['All', 'Textbooks', 'Clothing', 'Electronics', 'Furniture','Stationery', 'Other']) {
         expect(screen.getByRole('button', { name: cat })).toBeInTheDocument()
@@ -235,7 +234,7 @@ describe('BrowseAllListing', () => {
     it('"All" is active by default', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      // all 4 listings visible
+    
       expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
     })
 

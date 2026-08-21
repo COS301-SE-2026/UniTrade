@@ -61,10 +61,10 @@ test('seller rejects a reservation', async () => {
 
     renderApp('/seller/reservations')
 
-    await screen.findByRole('button', {name: /^reject$/i})
-    await user.click(screen.getByRole('button', { name: /^reject$/i}))
+    await screen.findByRole('button', {name: /^Reject$/i})
+    await user.click(screen.getByRole('button', { name: /^Reject$/i}))
 
     await waitFor(() => {
-        expect(screen.queryByRole('button', { name: /^reject$/i})).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: /^Reject$/i})).not.toBeInTheDocument()
     })
 })

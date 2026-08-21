@@ -1,46 +1,90 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
-import { IconFileText, IconCircleCheck } from '@tabler/icons-react'
-import { Breadcrumb, InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared'
-import { getMockVerificationById, type VerificationCase, type VerificationDecision } from '../../types/mockAdmin'
+import { useEffect, useReducer, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { IconFileText, IconCircleCheck } from '@tabler/icons-react';
+import { Breadcrumb, InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared';
+import { getMockVerificationById, type VerificationCase, type VerificationDecision } from '../../types/mockAdmin';
+
+
+type State = {
+  data: VerificationCase | null;
+  loading: boolean;
+  error: boolean;
+};
+
+type Action =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: VerificationCase }
+  | { type: 'FETCH_ERROR' };
+
+function verificationReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, loading: true, error: false };
+    case 'FETCH_SUCCESS':
+      return { data: action.payload, loading: false, error: false };
+    case 'FETCH_ERROR':
+      return { ...state, loading: false, error: true };
+    default:
+      return state;
+  }
+}
 
 export default function AdminVerificationReview() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const [record, setRecord] = useState<VerificationCase | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState<VerificationDecision | null>(null)
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [state, dispatch] = useReducer(verificationReducer, {
+    data: null,
+    loading: true,
+    error: false,
+  });
+  const [submitting, setSubmitting] = useState<VerificationDecision | null>(null);
 
   useEffect(() => {
-    let active = true
-    setLoading(true)
-    getMockVerificationById(id ?? '').then((data) => {
-      if (active) {
-        setRecord(data ?? null)
-        setLoading(false)
-      }
-    })
+    let active = true;
+    const abortController = new AbortController();
+
+    dispatch({ type: 'FETCH_START' });
+
+    getMockVerificationById(id ?? '')
+      .then((data) => {
+        if (active) {
+          if (data) {
+            dispatch({ type: 'FETCH_SUCCESS', payload: data });
+          } else {
+            dispatch({ type: 'FETCH_ERROR' });
+          }
+        }
+      })
+      .catch(() => {
+        if (active) {
+          dispatch({ type: 'FETCH_ERROR' });
+        }
+      });
+
     return () => {
-      active = false
-    }
-  }, [id])
+      active = false;
+      abortController.abort();
+    };
+  }, [id]);
 
   async function handleDecision(decision: VerificationDecision) {
-    if (!record) return
-    setSubmitting(decision)
+    if (!state.data) return;
+    setSubmitting(decision);
     setTimeout(() => {
-      setSubmitting(null)
-      navigate('/admin/verifications')
-    }, 400)
+      setSubmitting(null);
+      navigate('/admin/verifications');
+    }, 400);
   }
 
-  if (loading) {
-    return <p className="text-sm text-gray-400">Loading verification…</p>
+  if (state.loading) {
+    return <p className="text-sm text-gray-400">Loading verification…</p>;
   }
 
-  if (!record) {
-    return <p className="text-sm text-gray-400">Verification case not found.</p>
+  if (state.error || !state.data) {
+    return <p className="text-sm text-gray-400">Verification case not found.</p>;
   }
+
+  const record = state.data;
 
   return (
     <div className="space-y-4">
@@ -113,5 +157,5 @@ export default function AdminVerificationReview() {
         </div>
       </div>
     </div>
-  )
+  );
 }
