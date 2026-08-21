@@ -252,8 +252,18 @@ const numPending = MockVerifications.length
 
                 <td className = "py-4 px-4 text-center">
                   <span className = {`inline-block px-3 px-3 py-1 rounded-full text-[10px] font-medium ${
-                    
+
+                    ver.slaState === 'Overude'
+                    ? 'bg-rose-200 text-rose-700'
+                    : ver.slaState === 'Due soon'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-emerald-100 text-emerald-700'
+
                   }`}
+                  >
+                    {ver.slaState}
+                  </span>
+                  
                 </td>
               </tr>
             ))
