@@ -1,7 +1,34 @@
 import { useNavigate, useParams } from 'react-router'
 import { IconSearch, IconArrowLeft, IconStar} from "@tabler/icons-react"
 
-const MockUsers: Record<string, any> = {
+export interface Strike {
+  id: string
+  reason: string
+  details: string
+  date: string
+  caseId: string
+}
+
+export interface Listing {
+  id: string
+  title: string
+  status: 'Reserved' | 'Live' | string
+}
+
+export interface UserRecord {
+  id: string
+  name: string
+  initials: string
+  degree: string
+  university?: string
+  verificationStatus: 'Verified' | 'Pending' | string
+  reputation: number
+  strikesCount: number
+  strikes: Strike[]
+  recentListings: Listing[]
+}
+
+const MockUsers: Record<string, UserRecord> = {
   '1': {
      id: '1',
     name: 'Tafadzwa Musiiwa',
@@ -148,7 +175,7 @@ export default function ViewUser() {
             </div>
             <div className="space-y-4 pt-1">
               {user.strikes.length > 0 ? (
-                user.strikes.map((strike: any) => (
+                user.strikes.map((strike: Strike) => (
                   <div key={strike.id} className="text-xs border-b border-gray-100 last:border-0 pb-3">
                     <div className="flex items-center justify-between font-bold text-gray-900">
 
@@ -174,7 +201,7 @@ export default function ViewUser() {
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
        <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Recent listings</h2>
       <div className="space-y-3">
-      {user.recentListings.map((listing: any ) => (
+      {user.recentListings.map((listing: Listing ) => (
      
       <div key={listing.id} className="flex items-center space-x-3">
       <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />

@@ -155,7 +155,7 @@ const Zelamene: PersonSummary = {
   reviewCount: 14,
 }
 
-const Sabira: PersonSummary = {
+/*const Sabira: PersonSummary = {
   id: 'user-3',
   initials: 'SK',
   name: 'Sabira Kaire',
@@ -163,7 +163,7 @@ const Sabira: PersonSummary = {
   reputationScore: 88,
   reviewAverage: 4.8,
   reviewCount: 15,
-}
+}*/
 
 
 const mockDisputes: DisputeCase[] = [
@@ -255,7 +255,7 @@ const mockVerifications: VerificationCase[] = [
     },
 ]
 
-const sabira: PersonSummary = {
+/*const sabira: PersonSummary = {
     id: 'user-3',
     initials: 'SK',
     name: 'Sabira Kaire',
@@ -263,7 +263,7 @@ const sabira: PersonSummary = {
     reputationScore: 88,
     reviewAverage: 4.8,
     reviewCount: 15,
-}
+}*/
 
 const mockReputationProfiles: UserReputationProfile[] = [
     {
