@@ -235,7 +235,29 @@ const numPending = MockVerifications.length
               </td>
             </tr>
           ) : (
-            
+            filteredList.map((ver) => (
+              <tr key={ver.id} className = "hover:bg-gray-50/50 transition-colors">
+                <td className = "py-4 px-4 flex items-center space-x-3">
+                  <div className = "w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                    {ver.initials}
+                  </div>
+                  </div>
+                  <div className = "font-bold text-gray-900">
+                    {ver.name}
+                    <div className = "text-[10px] text-gray-400 mt-0.5">
+                      {ver.degree} &bull; {ver.email}
+                    </div>
+                  </div>
+                </td>
+
+                <td className = "py-4 px-4 text-center">
+                  <span className = {`inline-block px-3 px-3 py-1 rounded-full text-[10px] font-medium ${
+                    
+                  }`}
+                </td>
+              </tr>
+            ))
+
           )
           )}
         </tbody>
