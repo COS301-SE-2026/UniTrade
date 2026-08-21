@@ -46,9 +46,10 @@ const MockDisputes: MockDispute[] = [
   }
 ]
 
-  const navigate = useNavigate()
+ 
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'No-show' | 'Listing quality' | 'Report' | 'all'>('all')
+  const navigate = useNavigate()
   const filteredDisputes = MockDisputes.filter((dispute) => {
 
   const foundMatch = dispute.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
