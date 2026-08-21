@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { IconSearch,IconMenu2 } from "@tabler/icons-react"
-import chemImg from '../../assets/images/bio-textbook.jpg'
-import calcImg from '../../assets/images/calculus-textbook.jpg'
-import laptopImg from '../../assets/images/hp-laptop.jpg'
+import chemImg from '../../assets/bio-textbook.jpg'
+import calcImg from '../../assets/calculas-textbook.jpg'
+import laptopImg from '../../assets/hp-laptop.jpg'
 
 export interface MockDispute{
   id: string
