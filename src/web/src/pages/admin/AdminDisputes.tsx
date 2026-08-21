@@ -47,7 +47,16 @@ const MockDisputes: MockDispute[] = [
 ]
 
  
-  const [searchQuery, setSearchQuery] = useState('')
+
+
+const totalDisputes =  MockDisputes.length
+const numNoShow= MockDisputes.filter((dispute) => dispute.type === 'No-show').length
+const numListingQuality = MockDisputes.filter((dispute) => dispute.type === 'Listing quality').length
+const numReport = MockDisputes.filter((dispute) => dispute.type === 'Report').length
+
+
+export default function AdminDisputes() {
+    const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'No-show' | 'Listing quality' | 'Report' | 'all'>('all')
   const navigate = useNavigate()
   const filteredDisputes = MockDisputes.filter((dispute) => {
@@ -64,15 +73,6 @@ const MockDisputes: MockDispute[] = [
     if (filter === 'Report') return dispute.type === 'Report'
     return true
   }) 
-
-
-const totalDisputes =  MockDisputes.length
-const numNoShow= MockDisputes.filter((dispute) => dispute.type === 'No-show').length
-const numListingQuality = MockDisputes.filter((dispute) => dispute.type === 'Listing quality').length
-const numReport = MockDisputes.filter((dispute) => dispute.type === 'Report').length
-
-
-export default function AdminDisputes() {
   return (
        <div className='p-8 space-y-6 max-w-6xl'>
          <div className="relative max-w-xs">
@@ -223,7 +223,7 @@ export default function AdminDisputes() {
               <div className="flex items-center justify-end space-x-2">
                 <button
                 type="button"
-                onClick={() => navigate(` /admin/disputes/dispute.id}`)}
+                onClick={() => navigate(` /admin/disputes/${dispute.id}`)}
                 className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] 
                 transition-colors cursor-pointer">
                   Review

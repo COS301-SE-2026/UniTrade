@@ -173,10 +173,10 @@ function UserPopover({
     </div>
   )
 }
-function getUserRoleDisplay(role?: string, viewMode?: string) {
+/*function getUserRoleDisplay(role?: string, viewMode?: string) {
   if (role === 'admin') return 'Admin';
   return viewMode === 'buyer' ? 'Buyer' : 'Seller';
-}
+}*/
 export default function Sidebar() {
   const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
   const navigate = useNavigate()
@@ -374,7 +374,7 @@ export default function Sidebar() {
   )
 }
 
-function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
+/*function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
   let base: NavSection[];
   if (role === 'admin') {
     base = adminNav;
@@ -390,4 +390,4 @@ function buildSections(role: string | undefined, viewMode: string, unreadTotal: 
     ...section, items: section.items.map((item) =>
       item.label === 'Messages' ? { ...item, badge: unreadTotal } : item,),
   }))
-}
+}*/

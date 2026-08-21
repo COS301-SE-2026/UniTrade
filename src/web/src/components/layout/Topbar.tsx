@@ -40,7 +40,7 @@ export default function Topbar() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue]);
+  }, [searchParams, setSearchParams, inputValue]);
 
   return (
     <header className="h-14 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-white/10 flex items-center px-5 gap-4 flex-shrink-0">
