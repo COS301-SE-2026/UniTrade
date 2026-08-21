@@ -212,6 +212,11 @@ const numPending = MockVerifications.length
       </div>
       </div>
     
+    <div className = "bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
+      <table className = "w-full text-left border-collapse">
+        
+      </table>
+    </div>
     <div className="grid grid-cols-2 gap-6">
       {filteredList.map((ver) => (
         <div
