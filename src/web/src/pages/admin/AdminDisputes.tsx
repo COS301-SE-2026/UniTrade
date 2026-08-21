@@ -191,7 +191,34 @@ export default function AdminDisputes() {
             <tbody className="divide-y divide-gray-100 text-xs">
               {filteredDisputes.map((dispute) => (
                 <tr key={dispute.id} className="hover:bg-gray-50/50 tansition-colors">
-                  
+             <td className="py-4 px-4 flex items-center space-x-3">
+                  <img
+                    src={dispute.image}
+                    alt={dispute.title}
+                    className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
+                  />
+                  <div>
+                    <div className="font-bold text-gray-900">{dispute.title}</div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">
+                      Buyer: {dispute.buyer} &bull; Seller: {dispute.seller} &bull; {dispute.timeAgo}
+                    </div>
+                  </div>
+                </td>
+
+            <td className="py-4 px-4 text-center">
+              <span
+              className={`inline-block px-3 py-1 rounded-full text-[10px] font-medium ${
+                dispute.type === 'No-show'
+                ? 'bg-rose-200 text-rose-700'
+                :dispute.type === 'Listing quality'
+                ? 'bg-amber-100 text-amber-700'
+                :'bg-sky-200 text-sky-700'
+              }`}>
+                {dispute.type}
+              </span>
+            </td>
+
+            
                 </tr>
               ))}
             </tbody>
