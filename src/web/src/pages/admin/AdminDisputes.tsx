@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { IconSearch, IconRadio,IconMenu2 } from "@tabler/icons-react"
+import { IconSearch,IconMenu2 } from "@tabler/icons-react"
 import chemImg from '../../assets/images/bio-textbook.jpg'
 import calcImg from '../../assets/images/calculus-textbook.jpg'
 import laptopImg from '../../assets/images/hp-laptop.jpg'
@@ -101,6 +101,7 @@ export default function AdminDisputes() {
 </div>
 
 <div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
+  <div>
     <div className="text-lg font-bold text-gray-900">{numNoShow}
     </div>
     <div className='text-[10px] text-gray-500'>No Show</div>
@@ -120,7 +121,63 @@ export default function AdminDisputes() {
 </div>
 </div>
 
+ <div className="flex-items-center space-x-3 pt-2">
+          <button
+          type="button"
+          onClick={() => setFilter('all')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'all'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              All
+            </button>
 
 
+            <button
+          type="button"
+          onClick={() => setFilter('No-show')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'No-show'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              No-show
+            </button>
+
+
+                      <button
+          type="button"
+          onClick={() => setFilter('Listing quality')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'Listing quality'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              Quality
+            </button>
+
+
+                      <button
+          type="button"
+          onClick={() => setFilter('Report')}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+            ${
+              filter === 'Report'
+              ? 'bg-[#0a1931] text-white'
+              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+            }`}
+            >
+              Report
+            </button>
+            </div>
+
+</div>
   )
 }
