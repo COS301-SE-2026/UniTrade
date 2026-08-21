@@ -223,7 +223,7 @@ export default function AdminDisputes() {
               <div className="flex items-center justify-end space-x-2">
                 <button
                 type="button"
-                onClick={() => navigate(` /admin/disputes/${dispute.id}`)}
+                onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
                 className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] 
                 transition-colors cursor-pointer">
                   Review
