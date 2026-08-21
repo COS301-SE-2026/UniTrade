@@ -117,6 +117,9 @@ const numPending = MockVerifications.length
           <h1 className = "text-2xl font-bold text-gray-900">
             Student Verifications
           </h1>
+          < p className = "text-xs text-gray-500 mt-0.5">
+          Review students proof of registration and approve or reject account 
+          </p>
         </div>
       </div>
       <div className="relative max-w-sm">
