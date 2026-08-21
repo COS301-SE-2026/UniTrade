@@ -388,7 +388,7 @@ export default function HelpCenter() {
         .toLowerCase()
         .includes(normalisedQuery)
     );
-  }, [normalisedQuery]);
+  }, [normalisedQuery, quickLinks]);
 
   const filteredFaqs = useMemo(() => {
     if (!normalisedQuery) return faqs;
