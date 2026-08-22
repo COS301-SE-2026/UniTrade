@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820174423_AddListingSnapshot")]
+    partial class AddListingSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,71 +26,6 @@ namespace Infrastructure.Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Modules.Audit.Models.AuditLog", b =>
-                {
-                    b.Property<long>("LogId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("log_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LogId"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("action");
-
-                    b.Property<Guid?>("ActorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("actor_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("EntityId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("entity_id");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("entity_type");
-
-                    b.Property<string>("NewValue")
-                        .HasColumnType("text")
-                        .HasColumnName("new_value");
-
-                    b.Property<string>("OldValue")
-                        .HasColumnType("text")
-                        .HasColumnName("old_value");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("text")
-                        .HasColumnName("reason");
-
-                    b.HasKey("LogId")
-                        .HasName("pk_audit_logs");
-
-                    b.HasIndex("ActorId")
-                        .HasDatabaseName("ix_audit_actor");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending()
-                        .HasDatabaseName("ix_audit_created");
-
-                    b.HasIndex("EntityType", "EntityId")
-                        .HasDatabaseName("ix_audit_entity");
-
-                    b.ToTable("audit_logs", "unitrade");
-                });
 
             modelBuilder.Entity("Modules.Chat.Models.ChatMessage", b =>
                 {
@@ -192,59 +130,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_admin_profiles_user_id");
 
                     b.ToTable("admin_profiles", "unitrade");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.Strike", b =>
-                {
-                    b.Property<Guid>("StrikeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("strike_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<Guid>("CreatedByAdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_admin_id");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("reason");
-
-                    b.Property<Guid?>("SourceCaseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("source_case_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("type");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("StrikeId")
-                        .HasName("pk_strikes");
-
-                    b.HasIndex("CreatedByAdminId")
-                        .HasDatabaseName("ix_strikes_created_by_admin");
-
-                    b.HasIndex("SourceCaseId")
-                        .HasDatabaseName("ix_strikes_source_case");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_strikes_user");
-
-                    b.ToTable("strikes", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
@@ -503,8 +388,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("verification_requests", "unitrade", t =>
                         {
-                            t.HasTrigger("tr_audit_verification_decision");
-
                             t.HasTrigger("tr_verification_set_current");
 
                             t.HasCheckConstraint("chk_vr_status", "status IN ('otp_pending', 'por_pending','under_review','approved', 'rejected')");
@@ -1507,23 +1390,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_admin_profiles_users_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.Strike", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_strikes_users_created_by_admin_id");
-
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_strikes_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
