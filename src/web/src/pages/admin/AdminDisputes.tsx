@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { IconSearch,IconMenu2 } from "@tabler/icons-react"
+//import { IconSearch,IconMenu2 } from "@tabler/icons-react"
 import chemImg from '../../assets/bio-textbook.jpg'
 import calcImg from '../../assets/calculas-textbook.jpg'
 import laptopImg from '../../assets/hp-laptop.jpg'
@@ -56,7 +56,7 @@ const numReport = MockDisputes.filter((dispute) => dispute.type === 'Report').le
 
 
 export default function AdminDisputes() {
-    const [searchQuery, setSearchQuery] = useState('')
+    const [searchQuery, /*setSearchQuery*/] = useState('')
   const [filter, setFilter] = useState<'No-show' | 'Listing quality' | 'Report' | 'all'>('all')
   const navigate = useNavigate()
   const filteredDisputes = MockDisputes.filter((dispute) => {
@@ -74,8 +74,8 @@ export default function AdminDisputes() {
     return true
   }) 
   return (
-       <div className='p-8 space-y-6 max-w-6xl'>
-         <div className="relative max-w-xs">
+       <div className='space-y-6'>
+         {/*<div className="relative max-w-xs">
            <div className='absolute left-3 top-2.5 flex items-center space-x-1 text-gray-400'>
            <IconMenu2 className="h-4 w-4" />
            <span className="text-xs 0">=</span>
@@ -87,38 +87,38 @@ export default function AdminDisputes() {
              onChange={(e) => setSearchQuery(e.target.value)}
              className="w-full pl-10 pr-9 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]" />
         <IconSearch className='absolute right-3 top-2.5 h-4 w-4 text-gray-400' />
-    </div>
+    </div>*/}
 
        <div>
-      <h1 className="text-2xl font-bold text-gray-900">Active Disputes</h1>
+      <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">Active Disputes</h1>
       <p className="text-xs text-gray-400 mt-1">Manage all the Dsiputes in one place.</p>
       </div>
 
-<div className="grid grid-cols-4 gap-6 max-w-4xl">
-  <div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
-    <div className="text-lg font-bold text-gray-900">{totalDisputes}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+    <div className="text-2xl font-bold text-navy-700 dark:text-white">{totalDisputes}
     </div>
-    <div className='text-[10px] text-gray-500'>Total Disputes</div>
+    <div className="text-xs text-gray-400 mt-0.5">Total Disputes</div>
 </div>
 
-<div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
+<div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
   <div>
-    <div className="text-lg font-bold text-gray-900">{numNoShow}
+    <div className="text-2xl font-bold text-navy-700 dark:text-white">{numNoShow}
     </div>
-    <div className='text-[10px] text-gray-500'>No Show</div>
+    <div className="text-xs text-gray-400 mt-0.5">No Show</div>
 </div>
 </div>
 
-<div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
-    <div className="text-lg font-bold text-gray-900">{numListingQuality}
+<div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+     <div className="text-2xl font-bold text-navy-700 dark:text-white">{numListingQuality}
     </div>
-    <div className='text-[10px] text-gray-500'>Listing Quality</div>
+    <div className="text-xs text-gray-400 mt-0.5">Listing Quality</div>
 </div>
 
-<div className='bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify center items-center h-16'>
-    <div className="text-lg font-bold text-gray-900">{numReport}
+<div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+    <div className="text-2xl font-bold text-navy-700 dark:text-white">{numReport}
     </div>
-    <div className='text-[10px] text-gray-500'>Report</div>
+    <div className="text-xs text-gray-400 mt-0.5">Report</div>
 </div>
 </div>
 
@@ -180,7 +180,7 @@ export default function AdminDisputes() {
             </div>
 
 
-     <div className= "bg -white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
+     <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="text-xs text-gray-400 font-normal">
@@ -231,16 +231,16 @@ export default function AdminDisputes() {
                   <button
                 type="button"
 
-                className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50
+                className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
                 transition-colors cursor-pointer text-[10px] leading-tight">
-                  Message <br /> Seller
+                  Message Seller
                 </button>
                  <button
                 type="button"
 
-                className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50
+                className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
                 transition-colors cursor-pointer text-[10px] leading-tight">
-                  Message <br /> Buyer
+                  Message Buyer
                 </button>
               </div>
             </td>
