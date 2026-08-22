@@ -868,7 +868,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CourseTags).HasColumnType("text[]");
             entity.Property(x => x.CapturedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
             entity.Property(x => x.Description).IsRequired();
-            
+
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_listing_snapshot_price", "price > 0");
