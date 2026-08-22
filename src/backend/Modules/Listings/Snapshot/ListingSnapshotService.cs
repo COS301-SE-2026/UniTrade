@@ -25,6 +25,7 @@ public class ListingSnapshotService : IListingSnapshotService
             Title = listing.Title,
             Price = listing.Price,
             Condition = listing.Condition,
+            Description = listing.Description,
             PhotoRefs = listing.Images
                 .Select(i => $"/api/listings/{listing.ListingId}/images/{i.ImageId}")
                 .ToList(),
