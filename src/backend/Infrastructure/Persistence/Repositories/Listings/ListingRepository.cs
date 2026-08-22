@@ -24,6 +24,7 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
+            .Include(l => l.Course)
             .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 

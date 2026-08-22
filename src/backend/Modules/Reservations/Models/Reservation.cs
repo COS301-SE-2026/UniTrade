@@ -1,5 +1,6 @@
 using Modules.Chat.Models;
 using Modules.Identity.Models;
+using Modules.Listings.Models;
 
 namespace Modules.Reservations.Models;
 
@@ -29,4 +30,5 @@ public class Reservation
 
     public DateTime? HandoverConfirmedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    public ListingSnapshot? ListingSnapshot {get;set;}
 }
