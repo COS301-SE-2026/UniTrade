@@ -166,8 +166,8 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("forbidden");
         }
         //edits forbideen if the listing is reserved,sold,pending or rejected
-        var allowedEditStatuses=new []{"draft","live","low_visibility"};
-        if(!allowedEditStatuses.Contains(listingLookUp.ListingStatus,StringComparer.OrdinalIgnoreCase))
+        var allowedEditStatuses = new[] { "draft", "live", "low_visibility" };
+        if (!allowedEditStatuses.Contains(listingLookUp.ListingStatus, StringComparer.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException("listing_locked_for_edit");
         }
