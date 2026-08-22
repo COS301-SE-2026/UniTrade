@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { IconSearch } from "@tabler/icons-react"
+//import { IconSearch } from "@tabler/icons-react"
 
 export interface MockUser{
   id: string
@@ -44,7 +44,7 @@ const MockUsers: MockUser[] = [
 
 export default function Users() {
   const navigate = useNavigate()
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, /*setSearchQuery*/] = useState('')
   const [filter, setFilter] = useState<'all' | 'strikes' | 'verified' | 'pending'>('all')
   const filteredUsers = MockUsers.filter((user) => {
 
@@ -65,8 +65,9 @@ const numVerfied= MockUsers.filter((user) => user.verificationStatus === 'Verifi
 const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pending').length
 
   return (
-    <div className='p-8 space-y-6 max-w-6xl'>
-      <div className="relative max-w-md">
+    <div className='space-y-6'>
+      
+      {/*<div className="relative max-w-md">
         <IconSearch className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
         <input
           type="text"
@@ -74,29 +75,29 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
           value ={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-500" />
-      </div>
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white mb-2"> Users</h1>
+      </div>*/}
+      <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
 
-      <div className="grid grid-cols-3 gap-6 max-w-3xl">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
-            <div className="text-2xl font-bold text-gray-900">{total}</div>
-            <div className="text-xs text-gray-500">Total Users</div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{total}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Total Users</div>
 
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
       
           <div>
-            <div className="text-2xl font-bold text-gray-900">{numVerfied}</div>
-            <div className="text-xs text-gray-500">Verified</div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numVerfied}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Verified</div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center shadow-sm">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
-            <div className="text-2xl font-bold text-gray-900">{numPending}</div>
-            <div className="text-xs text-gray-500">Pending verification</div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Pending verification</div>
           </div>
         </div>
       </div>
@@ -138,7 +139,7 @@ const numPending = MockUsers.filter((user) => user.verificationStatus === 'Pendi
             </button>
             </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className=" border-b border-gray-100 text-xs text-gray-500 font-semibold">
