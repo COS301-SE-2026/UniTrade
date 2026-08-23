@@ -1,3 +1,4 @@
+using Modules.Audit;
 using Modules.Disputes.Models.Dto;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Verification;
@@ -12,16 +13,22 @@ public class AdminCaseService : IAdminCaseService
     private readonly IVerificationService _verification;
     private readonly INotificationDispatcher _notifications;
     private readonly TimeProvider _clock;
+    private readonly ICaseOutcomeApplier _outcomes;
+    private readonly IAuditService _audit;
 
     public AdminCaseService(
         IVerificationService verification,
         INotificationDispatcher notifications,
-        TimeProvider clock
+        TimeProvider clock,
+        ICaseOutcomeApplier outcomes,
+        IAuditService audit
     )
     {
         _verification = verification;
         _notifications = notifications;
         _clock = clock;
+        _outcomes = outcomes;
+        _audit = audit;
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
@@ -98,6 +105,50 @@ public class AdminCaseService : IAdminCaseService
         );
 
         return ToDetail(updatedVerificationRecord);
+    }
+
+    internal async Task ApplyDisputeDecisionAsync(
+        Guid caseId,
+        Guid subjectUserId,
+        Guid? listingId,
+        DisputeCaseDecision decision,
+        IReadOnlyList<DisputeOutcome> outcomes,
+        string? reason,
+        Guid adminId,
+        CancellationToken ct = default
+    )
+    {
+        if (decision == DisputeCaseDecision.Uphold)
+        {
+            await _outcomes.ApplyAsync(
+                outcomes,
+                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason),
+                ct
+            );
+        }
+
+        var applied =
+            outcomes.Count == 0
+                ? decision.ToString().ToLowerInvariant()
+                : $"{decision.ToString().ToLowerInvariant()}: {string.Join(", ", outcomes)}";
+
+        var auditRequest = new AuditWriteRequest(
+            ActorId: adminId,
+            Action: "dispute_decision",
+            EntityType: "dispute",
+            EntityId: caseId.ToString(),
+            OldValue: null,
+            NewValue: applied,
+            Reason: reason
+        );
+        await _audit.WriteAsync(auditRequest, ct);
+
+        await _notifications.NotifyAsync(
+            subjectUserId,
+            NotificationTypes.Dispute,
+            "An admin has made a decision on your case.",
+            ct
+        );
     }
 
     private CaseSummaryDto MapToSummary(VerificationCaseDto caseDto) =>
