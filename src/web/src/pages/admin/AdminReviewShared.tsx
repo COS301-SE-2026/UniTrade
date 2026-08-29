@@ -6,6 +6,7 @@ import {
 } from '@tabler/icons-react'
 import type {PersonSummary, CaseNote} from '../../types/mockAdmin'
 import { getMockCaseNotes, addMockCaseNote } from '../../types/mockAdmin';
+import { LoadingState } from '../../components/layout/Spinner';
 
 
 export function Breadcrumb({trail}: Readonly<{ trail: string[]}>) {
@@ -214,7 +215,7 @@ export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
         Still deciding if we are going to message and create chat functionality or email the other counter parry 
       </p>
 
-      {loading && <p className="text-sm text-gray-400">Loading notes…</p>}
+      {loading && <LoadingState message="Loading notes ..." />}
 
       {!loading && notes.length === 0 && (
         <p className="text-sm text-gray-400 mb-3">

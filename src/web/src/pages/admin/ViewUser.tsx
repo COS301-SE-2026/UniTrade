@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router'
-import { IconSearch, IconArrowLeft, IconStar} from "@tabler/icons-react"
+import { IconArrowLeft, IconStar} from "@tabler/icons-react"
 
 export interface Strike {
   id: string
@@ -121,14 +121,14 @@ export default function ViewUser() {
 
   return (
 
-    <div className="p-8 space-y-4 max-w-6xl">
-        <div className="relative max-w-md">
+    <div className="max-w-6xl w-full mx-auto space-y-6">
+        {/*<div className="relative max-w-md">
         <IconSearch className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
         <input
           type="text"
           placeholder='search...'
   className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-500" />
-      </div>
+      </div>*/}
 
       <button
         type="button"

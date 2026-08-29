@@ -1,20 +1,21 @@
 name: NFR Fitness Functions
 
-on:
-  schedule:
-    - cron: "0 1 * * *"
-    - cron: "35 16 * * *"
-  workflow_dispatch:
+on: 
+    #schedule:
+       # - cron: "0 1 * * *"
+        #- cron: "35 16 * * *"
+    workflow_dispatch:
+
 
 concurrency:
-  group: nfr-${{ github.ref }}
-  cancel-in-progress: true
+    group: nfr-${{ github.ref }}
+    cancel-in-progress: true
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  performance: # For QR-01a
+  performance:   # For QR-01a
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
