@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Modules.Audit;
 using Modules.Disputes.Models.Dto;
 using Modules.Identity;
@@ -21,13 +22,14 @@ public class AdminCaseService : IAdminCaseService
     private readonly IAuditService _audit;
     private readonly IDisputeService _disputes;
     private readonly IListingSnapshotService _snapshots;
-    private readonly IPartDirectory _parties;
+    private readonly IPartyDirectory _parties;
     private readonly IReputationService _reputation;
 
     // constants
     private const string _resolvedString = "resolved";
     private const string _underReviewString = "under_review";
     private const string _pendingString = "pending";
+    private const string _verificationString = "verification";
 
     public AdminCaseService(
         IVerificationService verification,
@@ -36,7 +38,9 @@ public class AdminCaseService : IAdminCaseService
         ICaseOutcomeApplier outcomes,
         IAuditService audit,
         IDisputeService disputes,
-        IListingSnapshotService snapshots
+        IListingSnapshotService snapshots,
+        IPartyDirectory parties,
+        IReputationService reputation
     )
     {
         _verification = verification;
@@ -46,7 +50,10 @@ public class AdminCaseService : IAdminCaseService
         _audit = audit;
         _disputes = disputes;
         _snapshots = snapshots;
+        _parties = parties;
+        _reputation = reputation;
     }
+
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
         string? type,
@@ -56,13 +63,33 @@ public class AdminCaseService : IAdminCaseService
     {
         var res = new List<CaseSummaryDto>();
 
-        if (type is null or "verification")
+        if (type is null or _verificationString)
         {
             res.AddRange((await _verification.ListPendingAsync(ct)).Select(MapToSummary));
         }
         if (type is null or "listing_quality" or "no_show" or "report_listing")
         {
-            res.AddRange(await _disputes.ListPendingAsync(type, ct)); // empty till the BE2 dispute ready
+            var disputeItems = await _disputes.ListPendingAsync(type, ct);
+            var mapped = disputeItems.Select(item =>
+            {
+                var ageHours = Math.Round(
+                    (_clock.GetUtcNow().UtcDateTime - item.SubmittedAt).TotalHours,
+                    1
+                );
+                var (slaHours, slaBreached) = Sla(item.Type, ageHours);
+                return new CaseSummaryDto
+                {
+                    CaseId = item.CaseId,
+                    Type = item.Type,
+                    Status = MapDisputeStatus(item.Status),
+                    SubjectUserId = item.SubjectUserId,
+                    SubmittedAt = item.SubmittedAt,
+                    AgeHours = ageHours,
+                    SlaHours = slaHours,
+                    SlaBreached = slaBreached,
+                };
+            });
+            res.AddRange(mapped); // empty till the BE2 dispute ready
         }
         return res.OrderBy(c => c.SubmittedAt).ToList(); // NOTE TO FUTURE SELF(ZS): TESTING QR 7A
     }
@@ -72,7 +99,7 @@ public class AdminCaseService : IAdminCaseService
         var verificationCase = await _verification.GetCaseAsync(caseId, ct);
         if (verificationCase is not null)
         {
-            return ToDetailAsync(verificationCase);
+            return await ToDetailAsync(verificationCase, ct);
         }
         var dispute = await _disputes.GetCaseDataAsync(caseId, ct); //also waiting on BE2 disputes to be ready
 
@@ -128,7 +155,7 @@ public class AdminCaseService : IAdminCaseService
                 ct
             );
 
-            return ToDetailAsync(updatedVerificationRecord);
+            return await ToDetailAsync(updatedVerificationRecord, ct);
         }
         // dispute cases
 
@@ -190,6 +217,19 @@ public class AdminCaseService : IAdminCaseService
         Seller,
     }
 
+    private static int SlaHours(string caseType) =>
+        caseType switch
+        {
+            _verificationString => 48,
+            _ => 72, // no show, listing quality, report listing
+        };
+
+    private (int slaHours, bool breached) Sla(string type, double ageHours)
+    {
+        var sla = SlaHours(type);
+        return (sla, ageHours > sla);
+    }
+
     private async Task ApplyDisputeDecisionAsync(
         Guid caseId,
         Guid subjectUserId,
@@ -234,35 +274,48 @@ public class AdminCaseService : IAdminCaseService
         );
     }
 
-    private CaseSummaryDto MapToSummary(VerificationCaseDto caseDto) =>
-        new()
+    private CaseSummaryDto MapToSummary(VerificationCaseDto caseDto)
+    {
+        var ageHours = Math.Round(
+            (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
+            1
+        );
+        var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
+
+        return new CaseSummaryDto
         {
             CaseId = caseDto.VerificationId,
-            Type = "verification",
+            Type = _verificationString,
             Status = MapStatus(caseDto),
             SubjectUserId = caseDto.UserId,
             SubmittedAt = caseDto.SubmittedAt,
-            AgeHours = Math.Round(
-                (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
-                1
-            ),
+            AgeHours = ageHours,
+            SlaHours = slaHours,
+            SlaBreached = slaBreached,
         };
+    }
 
     private async Task<CaseDetailDto> ToDetailAsync(
         VerificationCaseDto caseDto,
         CancellationToken ct
-    ) =>
-        new()
+    )
+    {
+        var ageHours = Math.Round(
+            (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
+            1
+        );
+        var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
+
+        return new CaseDetailDto
         {
             CaseId = caseDto.VerificationId,
-            Type = "verification",
+            Type = _verificationString,
             Status = MapStatus(caseDto),
             SubjectUserId = caseDto.UserId,
             SubmittedAt = caseDto.SubmittedAt,
-            AgeHours = Math.Round(
-                (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
-                1
-            ),
+            AgeHours = ageHours,
+            SlaHours = slaHours,
+            SlaBreached = slaBreached,
             Subject = await BuildPartyAsync(caseDto.UserId, PartyRole.Seller, ct),
             FiledByUserId = caseDto.UserId,
             FiledByRole = "applicant",
@@ -275,6 +328,7 @@ public class AdminCaseService : IAdminCaseService
                 DomainValid = true,
             },
         };
+    }
 
     private static string MapStatus(VerificationCaseDto caseDto) =>
         caseDto.AdminDecision switch
@@ -309,9 +363,14 @@ public class AdminCaseService : IAdminCaseService
             : d.SubjectUserId == d.SellerId ? d.BuyerId
             : d.SubjectUserId == d.BuyerId ? d.SellerId
             : null;
-        if (counterpartyId == d.SubjectUserId) counterpartyId = null;
+        if (counterpartyId == d.SubjectUserId)
+            counterpartyId = null;
 
-        var counterparty = counterpartyId is null ? null : await BuildPartyAsync(counterpartyId.Value, RoleOd(d, counterpartyId.Value), ct);
+        var counterparty = counterpartyId is null
+            ? null
+            : await BuildPartyAsync(counterpartyId.Value, RoleOf(d, counterpartyId.Value), ct);
+        var ageHours = Math.Round((_clock.GetUtcNow().UtcDateTime - d.SubmittedAt).TotalHours, 1);
+        var (slaHours, slaBreached) = Sla(d.Type, ageHours);
 
         return new CaseDetailDto
         {
@@ -320,51 +379,62 @@ public class AdminCaseService : IAdminCaseService
             Status = MapDisputeStatus(d.Status),
             SubjectUserId = d.SubjectUserId,
             SubmittedAt = d.SubmittedAt,
-            AgeHours = Math.Round((_clock.GetUtcNow().UtcDateTime - d.SubmittedAt).TotalHours, 1),
+            AgeHours = ageHours,
+            SlaHours = slaHours,
+            SlaBreached = slaBreached,
             Subject = subject,
             CounterParty = counterparty,
             FiledByUserId = d.RaisedBy,
-            FiledByRole = d.RaisedBy == d.SellerId ? "seller" : d.RaisedBy == d.BuyerId ? "buyer" : "system",
-            Evidence = BuildDisputeEvidence(d, snapshot);
+            FiledByRole =
+                d.RaisedBy == d.SellerId ? "seller"
+                : d.RaisedBy == d.BuyerId ? "buyer"
+                : "system",
+            Evidence = BuildDisputeEvidence(d, snapshot),
         };
     }
-    private static CaseEvidenceDto BuildDisputeEvidence(DisputeCaseData d, ListingSnapshotDto? snapshot) =>
-    d.Type switch
-    {
-        "listing_quality" => new CaseEvidenceDto
-        {
-            Snapshot = snapshot,
-            BuyerPhotos = d.Photos,
-            SellerRefusedPhotos = d.SellerRefusedPhotos,
-        },
-        "report_listing" => new CaseEvidenceDto
-        {
-            Snapshot = snapshot,
-            ListingId = d.ListingId,
-            ReportReason = d.Description,
-        },
-        "no_show" => new CaseEvidenceDto
-        {
-            MeetupId = d.MeetupId,
-            BuyerCheckedIn = d.BuyerCheckedIn,
-            BuyerCheckInTime = d.BuyerCheckInTime,
-            SellerCheckedIn = d.SellerCheckedIn,
-            SellerCheckInTime = d.SellerCheckInTime,
-            PinStatus = d.PinStatus,
-            CheckInWindowClosesAt = d.CheckInWindowClosesAt,
 
-
-        },
-        _ => new CaseEvidenceDto(),
-    };
+    private static CaseEvidenceDto BuildDisputeEvidence(
+        DisputeCaseData d,
+        ListingSnapshotDto? snapshot
+    ) =>
+        d.Type switch
+        {
+            "listing_quality" => new CaseEvidenceDto
+            {
+                Snapshot = snapshot,
+                BuyerPhotos = d.Photos,
+                SellerRefusedPhotos = d.SellerRefusedPhotos,
+            },
+            "report_listing" => new CaseEvidenceDto
+            {
+                Snapshot = snapshot,
+                ListingId = d.ListingId,
+                ReportReason = d.Description,
+            },
+            "no_show" => new CaseEvidenceDto
+            {
+                MeetupId = d.MeetupId,
+                BuyerCheckedIn = d.BuyerCheckedIn,
+                BuyerCheckInTime = d.BuyerCheckInTime,
+                SellerCheckedIn = d.SellerCheckedIn,
+                SellerCheckInTime = d.SellerCheckInTime,
+                PinStatus = d.PinStatus,
+                CheckInWindowClosesAt = d.CheckInWindowClosesAt,
+            },
+            _ => new CaseEvidenceDto(),
+        };
 
     private double Age(DateTime submittedAt) =>
-    Math.Round((_clock.GetUtcNow().UtcDateTime - submittedAt).TotalHours, 1);
+        Math.Round((_clock.GetUtcNow().UtcDateTime - submittedAt).TotalHours, 1);
 
     private static PartyRole RoleOf(DisputeCaseData d, Guid userId) =>
-    userId == d.BuyerId ? PartyRole.Buyer : PartyRole.Seller;
+        userId == d.BuyerId ? PartyRole.Buyer : PartyRole.Seller;
 
-    private async Task<PartySummaryDto> BuildPartyAsync(Guid userId, PartyRole role, CancellationToken ct)
+    private async Task<PartySummaryDto?> BuildPartyAsync(
+        Guid userId,
+        PartyRole role,
+        CancellationToken ct
+    )
     {
         var p = await _parties.GetAsync(userId, ct);
         if (p is null)
@@ -383,17 +453,16 @@ public class AdminCaseService : IAdminCaseService
             ReviewAverage = (double)score,
             ReputationScore = Math.Round(score / 5m * 100m),
             StrikeCount = strikes.Count,
-
         };
-
     }
+
     private static string MakeInitials(string first, string last)
     {
         var firstName = string.IsNullOrEmpty(first) ? "" : first[..1];
         var lastName = string.IsNullOrEmpty(last) ? "" : last[..1];
         return (firstName + lastName).ToUpperInvariant();
-
     }
+
     private static string MapDisputeStatus(string s) =>
         s switch
         {

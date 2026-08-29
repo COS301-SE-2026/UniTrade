@@ -22,7 +22,7 @@ export interface DisputeCase {
   buyer: PersonSummary
   seller: PersonSummary
   datePlaced: string
-  filedBy: 'Buyer' | 'Seller' |'Applicant'| 'System'
+  filedBy: 'Buyer' | 'Seller' | 'Applicant' | 'System'
   checkIn?: CheckInEvidence
   photos?: ListingPhotos
   report?: ReportInfo
@@ -72,16 +72,22 @@ function disputeReducer(state: State, action: Action): State {
 }
 
 function transformCaseDetail(detail: CaseDetail) {
-  const mapPerson = (p: PartySummary) => ({
-    id: p.userId,
-    name: p.name,
-    initials: p.initials,
-    faculty: p.faculty ?? "Unknown",
-    reviewAverage: p.reviewAverage,
-    reputationScore: p.reputationScore,
-    strikeCount: p.strikeCount,
-    reviewCount: 0
-  });
+
+  const mapPerson = (p: PartySummary | undefined) => {
+    if (!p) {
+      return { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 }
+    }
+    return {
+      id: p.userId,
+      name: p.name,
+      initials: p.initials,
+      faculty: p.faculty ?? "Unknown",
+      reviewAverage: p.reviewAverage,
+      reputationScore: p.reputationScore,
+      strikeCount: p.strikeCount,
+      reviewCount: 0
+    };
+  };
   const buildItemFromSnapshot = (snapshot?: ListingSnapshot): DisputeItem => {
     if (!snapshot) {
       return {
@@ -107,13 +113,13 @@ function transformCaseDetail(detail: CaseDetail) {
   const subject = detail.subject;
   const counterparty = detail.counterParty;
 
-  const roleMap: Record<string, 'Buyer' | 'Seller' |'Applicant'| 'System'>={
-    buyer:'Buyer',
-    seller:'Seller',
+  const roleMap: Record<string, 'Buyer' | 'Seller' | 'Applicant' | 'System'> = {
+    buyer: 'Buyer',
+    seller: 'Seller',
     applicant: 'Applicant',
     system: 'System',
   };
-  const filedBy= roleMap[detail.filedByRole]?? 'Unknown';
+  const filedBy = roleMap[detail.filedByRole] ?? 'Unknown';
 
   let item: DisputeItem = {
     title: 'Unknown Item',

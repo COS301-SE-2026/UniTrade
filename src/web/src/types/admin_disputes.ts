@@ -100,6 +100,8 @@ export interface CaseEvidence {
   sellerCheckInTime?: string | null;
   pinStatus?: string;
   checkInWindowClosesAt?: string | null;
+
+  proofDocument?: string; // for when the BE actually send the POR
 }
 
 export interface CaseSummary {
@@ -126,6 +128,8 @@ export interface CaseDetail extends CaseSummary {
   history: unknown[];
   filedByRole: string;
   filedByUserId?: string;
+  slaHours: number;
+  slaBreached: boolean;
 }
 
 export interface CaseHistoryEntry {

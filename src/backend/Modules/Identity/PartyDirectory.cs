@@ -2,7 +2,7 @@ using Modules.Identity.Repositories;
 
 namespace Modules.Identity;
 
-public class PartyDirectory : IPartDirectory
+public class PartyDirectory : IPartyDirectory
 {
     private readonly IUserRepository _users;
 

@@ -8,4 +8,6 @@ public class CaseSummaryDto
     public Guid SubjectUserId { get; set; }
     public DateTime SubmittedAt { get; set; }
     public double AgeHours { get; set; }
+    public int SlaHours { get; set; }
+    public bool SlaBreached { get; set; }
 }
