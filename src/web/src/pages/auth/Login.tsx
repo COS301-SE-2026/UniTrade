@@ -42,19 +42,21 @@ const Login: React.FC = () => {
       })
 
       const me = await authService.getMe()
-
+      const userData = 'user' in me ? me.user : me
+      const stdData = 'std' in me ? me.std : undefined
 
       setUser({
-        id: me.user.userId,
-        name: `${me.user.firstName} ${me.user.lastName}`,
-        initials: `${me.user.firstName[0]}${me.user.lastName[0]}`.toUpperCase(),
-        role: me.user.userRole as UserRole,
-        university: me.std.university,
+        id: userData.userId,
+        name: `${userData.firstName} ${userData.lastName}`,
+        initials: `${userData.firstName[0]}${userData.lastName[0]}`.toUpperCase(),
+        role: userData.userRole as UserRole,
+        university: stdData?.university,
       })
-      if (me.user.userRole === 'admin') navigate('/admin/dashboard')
+      if (userData.userRole === 'admin') navigate('/admin/disputes')
       else navigate('/buyer/listings')
 
     } catch (err: unknown) {
+      console.error('LOGIN FLOW ERROR:', err)
       const error = err as ApiError
       setError(getAuthErrorMessage(error.message))
     } finally {

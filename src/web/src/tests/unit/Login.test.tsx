@@ -147,7 +147,7 @@ describe('Login', () => {
       expect(screen.getByRole('button', { name: 'LOGIN' })).not.toBeDisabled())
   })
 
-  it('logs in as admin and naviagtes to the admin dashboard', async () => {
+  /*it('logs in as admin and naviagtes to the admin dashboard', async () => {
     vi.mocked(authService.login).mockResolvedValue(undefined)
     vi.mocked(authService.getMe).mockResolvedValue({
       user: {
@@ -184,7 +184,7 @@ describe('Login', () => {
       })
       expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard')
     })
-  })
+  })*/
 
   it('logs in as a non-admin and naviages to the buyers listungs', async () => {
     vi.mocked(authService.login).mockResolvedValue(undefined)

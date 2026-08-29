@@ -107,22 +107,22 @@ export default function Profile() {
   const [reviewsError, setReviewsError] = useState<string | null>(null);
 
 
-  useEffect(() => {
-    authService.getMe()
-      .then((data) => {
-        if (data.std) {
-          setProfile({
-            email: data.user.email,
-            university: data.std.university,
-            degreeProgram: data.std.degreeProgram,
-            yearOfStudy: data.std.yearOfStudy,
-            verificationStatus: data.std.verificationStatus
-          });
-        } else {
-          setProfile({ email: data.user.email });
-        }
-      }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
-  }, []);
+useEffect(() => {
+  authService.getMe()
+    .then((data) => {
+      if ('std' in data) {
+        setProfile({
+          email: data.user.email,
+          university: data.std.university,
+          degreeProgram: data.std.degreeProgram,
+          yearOfStudy: data.std.yearOfStudy,
+          verificationStatus: data.std.verificationStatus
+        });
+      } else {
+        setProfile({ email: data.email });
+      }
+    }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
+}, []);
 
   useEffect(() => {
     if (!user?.id) return;

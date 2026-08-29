@@ -233,10 +233,7 @@ export interface ApiError {
   message: string;
 }
 
-export interface ListCasesResponse {
-  cases: CaseSummary[];
-  total: number;
-}
+export type ListCasesResponse = CaseSummary[];
 
 export interface FileCaseResponse {
   caseId: string;
