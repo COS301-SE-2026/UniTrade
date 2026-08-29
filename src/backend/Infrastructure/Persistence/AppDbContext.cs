@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Modules.Audit.Models;
 using Modules.Chat.Models;
@@ -7,6 +6,7 @@ using Modules.Listings.Models;
 using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
+using Modules.Reputation.Models;
 using Modules.Reservations.Models;
 using Modules.Reviews.Models;
 using Modules.Transactions.Models;
@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<Strike> Strikes => Set<Strike>();
 
     ///add listing model after resolving conflicts
     // Listings
@@ -31,6 +32,7 @@ public class AppDbContext : DbContext
     public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
     public DbSet<BookDetails> BookDetails => Set<BookDetails>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
+    public DbSet<ListingSnapshot> ListingSnapshot => Set<ListingSnapshot>();
 
     // Reference data
     public DbSet<University> Universities => Set<University>();
@@ -854,6 +856,40 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.UserId).HasDatabaseName("ix_device_tokens_user");
         });
 
+        //listing snapshot
+        modelBuilder.Entity<ListingSnapshot>(entity =>
+        {
+            entity.HasKey(x => x.ReservationId);
+            entity.Property(x => x.ReservationId).ValueGeneratedNever();
+            entity.Property(x => x.ListingId).IsRequired();
+            entity.Property(x => x.Title).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
+            entity.Property(x => x.Condition).HasMaxLength(5).IsRequired();
+            entity.Property(x => x.PhotoRefs).HasColumnType("text[]");
+            entity.Property(x => x.CourseTags).HasColumnType("text[]");
+            entity.Property(x => x.CapturedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.Description).IsRequired();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_listing_snapshot_price", "price > 0");
+
+            });
+            entity
+                .HasOne(x => x.Reservation)
+                .WithOne(r => r.ListingSnapshot)
+                .HasForeignKey<ListingSnapshot>(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(x => x.Listing)
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_snapshots_listing_id");
+        }
+        );
         // Audit logs
 
         modelBuilder.Entity<AuditLog>(entity =>
@@ -874,6 +910,33 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_audit_entity");
             entity.HasIndex(x => x.ActorId).HasDatabaseName("ix_audit_actor");
             entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_audit_created").IsDescending();
+        });
+
+        modelBuilder.Entity<Strike>(entity =>
+        {
+            entity.HasKey(x => x.StrikeId);
+            entity.Property(x => x.StrikeId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.SourceCaseId).IsRequired(false);
+            entity.Property(x => x.Type).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.Reason).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.CreatedByAdminId).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            //relationships
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_strikes_user");
+            entity.HasIndex(x => x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
+            entity.HasIndex(x => x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
         });
     }
 }

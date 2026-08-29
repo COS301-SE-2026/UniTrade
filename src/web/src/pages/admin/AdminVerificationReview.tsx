@@ -2,7 +2,10 @@ import { useEffect, useReducer, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { IconFileText, IconCircleCheck } from '@tabler/icons-react';
 import { Breadcrumb, InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared';
-import { getMockVerificationById, type VerificationCase, type VerificationDecision } from '../../types/mockAdmin';
+import { type VerificationCase, type VerificationDecision } from '../../types/mockAdmin';
+import type { CaseDetail, ApiError } from '../../types/admin_disputes';
+import { decideCase, getCaseById } from '../../services/adminService';
+import { useToast } from '../../components/layout/useToast';
 
 
 type State = {
@@ -28,10 +31,51 @@ function verificationReducer(state: State, action: Action): State {
       return state;
   }
 }
+function transformVerificationDetail(detail: CaseDetail): VerificationCase {
+  const subject = detail.subject;
+  const applicant = subject ? {
+    id: detail.subject.userId,
+    name: detail.subject.name,
+    initials: detail.subject.initials,
+    faculty: detail.subject.faculty ?? "Unknown",
+    reviewAverage: detail.subject.reviewAverage,
+    reputationScore: detail.subject.reputationScore,
+    strikeCount: detail.subject.strikeCount,
+    reviewCount: 0
+  } :
+    {
+      id: '', initials: '?', name: 'Unknown user', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0
+    };
+
+  const evidence = detail.evidence;
+  const slaHours = detail.slaHours;
+  const slaOverdue = detail.slaBreached;
+  const slaLabel = slaOverdue ? `${Math.round(detail.ageHours - slaHours)}h overdue` : `${Math.round(slaHours - detail.ageHours)}h remaining`;
+
+  return {
+    id: detail.caseId,
+    applicant,
+    university: evidence.university ?? "N/A",
+    degree: evidence.degree ?? "N/A",
+    email: evidence.email ?? "N/A",
+    domainValid: evidence.domainValid ?? false,
+    document: {
+      name: 'Proof of Registration', // backend doest have it yet
+      uploadedDate: new Date(detail.submittedAt).toLocaleDateString('en-ZA'),
+      sizeLabel: 'Unknown size',
+      url: evidence.proofDocument ?? '#',
+    }, submittedDate: new Date(detail.submittedAt).toLocaleDateString('en-ZA'
+    ),
+    slaLabel,
+    slaOverdue,
+
+  };
+}
 
 export default function AdminVerificationReview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [state, dispatch] = useReducer(verificationReducer, {
     data: null,
     loading: true,
@@ -41,18 +85,20 @@ export default function AdminVerificationReview() {
 
   useEffect(() => {
     let active = true;
-    const abortController = new AbortController();
 
     dispatch({ type: 'FETCH_START' });
 
-    getMockVerificationById(id ?? '')
+    getCaseById(id ?? '')
       .then((data) => {
-        if (active) {
-          if (data) {
-            dispatch({ type: 'FETCH_SUCCESS', payload: data });
+        if (active && data) {
+          if (data.type === 'verification') {
+            dispatch({ type: 'FETCH_SUCCESS', payload: transformVerificationDetail(data) });
           } else {
             dispatch({ type: 'FETCH_ERROR' });
           }
+        }
+        else {
+          dispatch({ type: 'FETCH_ERROR' });
         }
       })
       .catch(() => {
@@ -63,17 +109,26 @@ export default function AdminVerificationReview() {
 
     return () => {
       active = false;
-      abortController.abort();
     };
   }, [id]);
 
   async function handleDecision(decision: VerificationDecision) {
     if (!state.data) return;
     setSubmitting(decision);
-    setTimeout(() => {
-      setSubmitting(null);
+
+    try {
+      await decideCase(state.data.id, { decision });
+      showToast('success', 'Decision submitted successfully');
       navigate('/admin/verifications');
-    }, 400);
+
+    } catch (error) {
+      const apiError = error as ApiError;
+      showToast('error', apiError.message || 'Failed to submit decision');
+      setSubmitting(null);
+    }
+    finally {
+      setSubmitting(null);
+    }
   }
 
   if (state.loading) {
@@ -120,9 +175,12 @@ export default function AdminVerificationReview() {
                   </p>
                 </div>
               </div>
-              <a href={record.document.url} className="text-xs font-semibold text-[#00aaff] hover:underline">
+              {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-[#00aaff] hover:underline">
                 View
-              </a>
+              </a>) : (
+                <span className='text-xs text-gray-400'>Document not available</span>
+              )}
+
             </div>
           </Panel>
 

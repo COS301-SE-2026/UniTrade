@@ -1,0 +1,224 @@
+openapi: 3.0.3
+info:
+  title: UniTrade Admin & Disputes Api
+  version: 0.1.0-demo3
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+
+paths:
+  /admin/cases:
+    get:
+      summary: List pending cases,oldest first
+      parameters:
+        - {name: type, in: query, schema: {$ref: '#components/schema/CaseType'}}
+        - {name:status, in: query, schema: {type: string, default: pending}}
+        - {name: sort, in: query, schema{ type: string, default: age}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/CaseSummary'}}
+
+  /admin/cases/{id}:
+    get:
+      summary: One case with its evidence
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CaseDetail'}
+
+  /admin/cases/{id}/decision:
+    get:
+      summary: Decide a case (also notifies the subject and writes an audit entry)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionRequest'}
+      responses:
+        '200':
+          description: Updated case
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CaseDetail'}
+
+  /admin/audit:
+    get:
+      summary: Audit entries
+      parameters:
+      - {name: entryId, in: query, schema: {type: string, format}}
+      - {name: actorId, in: query, schema: {type: string, format}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuditEntry'}
+
+  /disputes:
+    post:
+      summary: File a dispute (any type, including a user-raised no-show)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DisputeFilling'}
+      responses:
+        '201':
+          description: Case created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  caseId: {type: string, format: uuid}
+
+  /reservations/{reservationId}/snapshot:
+    get:
+      summary: The listing as it was when this reservation was made
+      parameters:
+        - { name: reservationId, in: path, required:true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingSnapshot'}
+
+  /listings/{id}/publish:
+    post:
+      summary: Publish a listing (existing endpoint; now requires a verified seller)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': {description: Published}
+        '403':
+          description: seller is not verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: {type: string, example: SELLER_NOT_VERIFIED}
+
+components:
+  securitySchema:
+    bearerAuth: {type: http, schema: bearer, bearerFormat: JWT}
+  schemas:
+    CaseType:
+      type: string
+      enum: [verification, listing_quality, report_listing, no_show]
+    Outcome:
+      type: string
+      enum: [strike, removeListing, refusalFlag, dismiss, requestInfo]
+    CaseSummary:
+      type: object
+      properties:
+        caseId: { type: string, format: uuid}
+        type: {$ref: '#/components/schemas/CaseType'}
+        status: {type: string}
+        subjectUserId: {type: string, format: uuid}
+        submittedAt: {type: string, format: date-time}
+        ageHours: {type: number}
+    CaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/CaseSummary'
+        - type: object
+          properties:
+            evidence: {$ref: '#/components/schemas/Evidence'}
+            history: {type: array, items: {type: object}}
+    Evidence:
+      oneOf:
+        - $ref: '#/components/schemas/VerificationEvidence'
+        - $ref: '#/components/schemas/ListingQualityEvidence'
+        - $ref: '#/components/schemas/ReportListingEvidence'
+        - $ref: '#/components/schemas/NoShowEvidence'
+    VerificationEvidence:
+      type: object
+      properties:
+        university: {type: string}
+        degree: {type: string}
+        year: {type: integer}
+        email: {type: string}
+    ListingQualityEvidence:
+      type: object
+      properties:
+        snapshot: {$ref: '#/components/schemas/ListingSnapshot'}
+        photos: {type: array, items: {type: string}}
+        sellerRefusedPhotos: {type: boolean}
+    ReportListingEvidence:
+      type: object
+      properties:
+        listingId: {type: string, format: uuid}
+        reportReason: {type: string }
+        snapshot: {$ref: '#/components/schemas/ListingSnapshot'}
+    NoShowEvidence:
+      type: object
+      properties:
+        meetupId: { type: string, format: uuid}
+        buyerCheckIn: { type: boolean}
+        sellerCheckIn: { type: boolean}
+        pinStatus: {type: string}
+    DecisionRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision: {type: string, description: "approve|reject|resubmit", enum: [approve,reject,resubmit]}
+        outcome: {$ref: '#/components/schemas/Outcome'}
+        reason: {type: string}
+    DisputeFilling:
+      type: object
+      required: [type]
+      properties:
+        type: {$ref: '#/components/schemas/CaseType'}
+        reservationId: {type: string, format: uuid}
+        listingId: {type: string, format: uuid}
+        meetupId: {type: string, format: uuid}
+        photos: {type: array, items: {type: string}}
+        sellerRefusedPhotos: {type: boolean}
+        description: {type : string}
+    ListingSnapshot:
+      type: object
+      properties:
+        reservationId: {type: string, format: uuid}
+        listingId: {type: string, format: uuid}
+        title: {type: string}
+        price: {type: string}
+        condition: {type: string}
+        photoRefs: {type: array, items: {type: string}}
+        courseTags: {type: array, items: {type: string}}
+        capturedAt: {type: string, format: date-time}
+    Strike:
+      type: object
+      properties: 
+        userId: {type: string, format: uuid}
+        sourceCaseId: {type: string,format: uuid}
+        type: {type: string}
+        reason: {type: string}
+        createdByAdminId: {type: string, format: uuid}
+        createdAt: {type: string, format: date-time}
+        strikeId: {type: string, format: uuid}
+    AuditEntry:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        actorId: { type: string, format: uuid}
+        action: {type: string}
+        entityId: {type: string, format: uuid}
+        entityType: {type: string}
+        oldValue: {type: string}
+        newValue: {type: string}
+        reason: {type: string}
+        timestamp: {type: string, format: date-time}
+        
+    
+      
