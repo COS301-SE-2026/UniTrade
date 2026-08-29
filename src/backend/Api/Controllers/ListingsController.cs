@@ -77,13 +77,36 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
+    try{
         var updateL = await _listings.UpdateListings(request, id, callerId, ct);
         if (!updateL)
             return NotFound();
         return Ok("Listings updated successfully");
+        }
+        catch(UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new {error="forbidden"});
+        }
+        catch(InvalidOperationException ex) when (ex.Message=="listing_locked_for_edit")
+        {
+            return Conflict(new{error="listing_locked_for_edit"});
+        }
+        catch(ArgumentException ex) when (ex.Message=="invalid_category")
+        {
+            return BadRequest(new {error="invalid_category"});
+        }
+        catch(ArgumentException ex) when (ex.Message=="book_fields_not_allowed")
+        {
+            return BadRequest(new {error="book_fields_not_allowed"});
+        }
+        catch(ArgumentException ex) when (ex.Message=="invalid_metadata")
+        {
+            return BadRequest(new {error="invalid_metadata"});
+        }
+
     }
 
     [Authorize]
