@@ -80,31 +80,32 @@ public class ListingController : ControllerBase
             return Unauthorized(new { error = _unauthenticatedString });
         }
 
-    try{
-        var updateL = await _listings.UpdateListings(request, id, callerId, ct);
-        if (!updateL)
-            return NotFound();
-        return Ok("Listings updated successfully");
-        }
-        catch(UnauthorizedAccessException)
+        try
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new {error="forbidden"});
+            var updateL = await _listings.UpdateListings(request, id, callerId, ct);
+            if (!updateL)
+                return NotFound();
+            return Ok("Listings updated successfully");
         }
-        catch(InvalidOperationException ex) when (ex.Message=="listing_locked_for_edit")
+        catch (UnauthorizedAccessException)
         {
-            return Conflict(new{error="listing_locked_for_edit"});
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
         }
-        catch(ArgumentException ex) when (ex.Message=="invalid_category")
+        catch (InvalidOperationException ex) when (ex.Message == "listing_locked_for_edit")
         {
-            return BadRequest(new {error="invalid_category"});
+            return Conflict(new { error = "listing_locked_for_edit" });
         }
-        catch(ArgumentException ex) when (ex.Message=="book_fields_not_allowed")
+        catch (ArgumentException ex) when (ex.Message == "invalid_category")
         {
-            return BadRequest(new {error="book_fields_not_allowed"});
+            return BadRequest(new { error = "invalid_category" });
         }
-        catch(ArgumentException ex) when (ex.Message=="invalid_metadata")
+        catch (ArgumentException ex) when (ex.Message == "book_fields_not_allowed")
         {
-            return BadRequest(new {error="invalid_metadata"});
+            return BadRequest(new { error = "book_fields_not_allowed" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_metadata")
+        {
+            return BadRequest(new { error = "invalid_metadata" });
         }
 
     }

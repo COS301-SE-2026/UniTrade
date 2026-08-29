@@ -33,7 +33,7 @@ public class AppDbContext : DbContext
     public DbSet<ListingCategory> ListingCategories => Set<ListingCategory>();
     public DbSet<BookDetails> BookDetails => Set<BookDetails>();
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
-    public DbSet<ListingSnapshot> ListingSnapshot=> Set<ListingSnapshot>();
+    public DbSet<ListingSnapshot> ListingSnapshot => Set<ListingSnapshot>();
 
     // Reference data
     public DbSet<University> Universities => Set<University>();
@@ -860,36 +860,36 @@ public class AppDbContext : DbContext
         });
 
         //listing snapshot
-        modelBuilder.Entity<ListingSnapshot>(entity=>
+        modelBuilder.Entity<ListingSnapshot>(entity =>
         {
-            entity.HasKey(x=> x.ReservationId);
-            entity.Property(x=>x.ReservationId).ValueGeneratedNever();
-            entity.Property(x=>x.ListingId).IsRequired();
-            entity.Property(x=> x.Title).HasMaxLength(150).IsRequired();
-            entity.Property(x=>x.Price).HasPrecision(10,2).IsRequired();
-            entity.Property(x=>x.Condition).HasMaxLength(5).IsRequired();
-            entity.Property(x=>x.PhotoRefs).HasColumnType("text[]");
-            entity.Property(x=>x.CourseTags).HasColumnType("text[]");
-            entity.Property(x=>x.CapturedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+            entity.HasKey(x => x.ReservationId);
+            entity.Property(x => x.ReservationId).ValueGeneratedNever();
+            entity.Property(x => x.ListingId).IsRequired();
+            entity.Property(x => x.Title).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
+            entity.Property(x => x.Condition).HasMaxLength(5).IsRequired();
+            entity.Property(x => x.PhotoRefs).HasColumnType("text[]");
+            entity.Property(x => x.CourseTags).HasColumnType("text[]");
+            entity.Property(x => x.CapturedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
-            entity.ToTable(t=>
+            entity.ToTable(t =>
             {
-                t.HasCheckConstraint("chk_listing_snapshot_price","price > 0");
-    
+                t.HasCheckConstraint("chk_listing_snapshot_price", "price > 0");
+
             });
             entity
-                .HasOne(x=>x.Reservation)
-                .WithOne(r=> r.ListingSnapshot)
-                .HasForeignKey<ListingSnapshot>(x=>x.ReservationId)
+                .HasOne(x => x.Reservation)
+                .WithOne(r => r.ListingSnapshot)
+                .HasForeignKey<ListingSnapshot>(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
-                .HasOne(x=>x.Listing)
+                .HasOne(x => x.Listing)
                 .WithMany()
-                .HasForeignKey(x=>x.ListingId)
+                .HasForeignKey(x => x.ListingId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(x=>x.ListingId).HasDatabaseName("ix_listing_snapshots_listing_id");
+            entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_snapshots_listing_id");
         }
         );
         // Audit logs
@@ -914,73 +914,73 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_audit_created").IsDescending();
         });
 
-        modelBuilder.Entity<Strike>(entity=>
+        modelBuilder.Entity<Strike>(entity =>
         {
-            entity.HasKey(x=> x.StrikeId);
-            entity.Property(x=>x.StrikeId).HasDefaultValueSql("gen_random_uuid()");
-            entity.Property(x=>x.SourceCaseId).IsRequired(false);
-            entity.Property(x=>x.Type).HasMaxLength(50).IsRequired();
-            entity.Property(x=>x.UserId).IsRequired();
-            entity.Property(x=>x.Reason).HasMaxLength(255).IsRequired();
-            entity.Property(x=>x.CreatedByAdminId).IsRequired();
-            entity.Property(x=>x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+            entity.HasKey(x => x.StrikeId);
+            entity.Property(x => x.StrikeId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.SourceCaseId).IsRequired(false);
+            entity.Property(x => x.Type).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.Reason).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.CreatedByAdminId).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             //relationships
             entity.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(x=>x.UserId)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(x=>x.CreatedByAdminId)
+                .HasForeignKey(x => x.CreatedByAdminId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(x=>x.UserId).HasDatabaseName("ix_strikes_user");
-            entity.HasIndex(x=>x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
-            entity.HasIndex(x=>x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_strikes_user");
+            entity.HasIndex(x => x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
+            entity.HasIndex(x => x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
         });
 
         modelBuilder.Entity<Dispute>(entity =>
         {
-            entity.HasKey(x=>x.DisputeId);
-            entity.Property(x=>x.DisputeId).HasDefaultValueSql("gen_random_uuid()");
+            entity.HasKey(x => x.DisputeId);
+            entity.Property(x => x.DisputeId).HasDefaultValueSql("gen_random_uuid()");
 
-            entity.Property(x=>x.Type).HasMaxLength(30).IsRequired();
-            entity.Property(x=>x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("pending");
+            entity.Property(x => x.Type).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("pending");
 
-            entity.Property(x=>x.SubjectUserId).IsRequired();
-            entity.Property(x=>x.RaisedBy).IsRequired();
+            entity.Property(x => x.SubjectUserId).IsRequired();
+            entity.Property(x => x.RaisedBy).IsRequired();
 
-            entity.Property(x=>x.SellerRefusedPhotos).HasDefaultValue(false);
-            entity.Property(x=>x.Photos).HasColumnType("text[]");
-            entity.Property(x=>x.Description);
+            entity.Property(x => x.SellerRefusedPhotos).HasDefaultValue(false);
+            entity.Property(x => x.Photos).HasColumnType("text[]");
+            entity.Property(x => x.Description);
 
-            entity.Property(x=>x.SubmittedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+            entity.Property(x => x.SubmittedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
-            entity.Property(x=>x.AdminDecision).HasMaxLength(20);
-            entity.Property(x=>x.Outcomes).HasColumnType("text[]");
-            entity.Property(x=>x.Reason);
-            entity.Property(x=>x.DecidedAt);
+            entity.Property(x => x.AdminDecision).HasMaxLength(20);
+            entity.Property(x => x.Outcomes).HasColumnType("text[]");
+            entity.Property(x => x.Reason);
+            entity.Property(x => x.DecidedAt);
 
-            entity.ToTable(t=>
+            entity.ToTable(t =>
             {
-                t.HasCheckConstraint("chk_dispute_type","type IN ('listing_quality','report_listing','no_show')");
-                t.HasCheckConstraint("chk_dispute_status","status IN ('pending','under_review','resolved','dismissed')");
+                t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
+                t.HasCheckConstraint("chk_dispute_status", "status IN ('pending','under_review','resolved','dismissed')");
             });
 
-            entity.HasOne<User>().WithMany().HasForeignKey(x=>x.SubjectUserId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<User>().WithMany().HasForeignKey(x=>x.RaisedBy).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Reservation>().WithMany().HasForeignKey(x=>x.ReservationId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Listing>().WithMany().HasForeignKey(x=>x.ListingId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Meetup>().WithMany().HasForeignKey(x=>x.MeetupId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<User>().WithMany().HasForeignKey(x=>x.DecidedByAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SubjectUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.RaisedBy).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Reservation>().WithMany().HasForeignKey(x => x.ReservationId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Listing>().WithMany().HasForeignKey(x => x.ListingId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Meetup>().WithMany().HasForeignKey(x => x.MeetupId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.DecidedByAdminId).OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(x=>x.Status).HasDatabaseName("ix_disputes_status");
-            entity.HasIndex(x=>x.Type).HasDatabaseName("ix_disputes_type");
-            entity.HasIndex(x=>x.SubjectUserId).HasDatabaseName("ix_disputes_subject");
-            entity.HasIndex(x=>x.SubmittedAt).HasDatabaseName("ix_disputes_submitted").IsDescending();
-           
+            entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
+            entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");
+            entity.HasIndex(x => x.SubjectUserId).HasDatabaseName("ix_disputes_subject");
+            entity.HasIndex(x => x.SubmittedAt).HasDatabaseName("ix_disputes_submitted").IsDescending();
+
         });
     }
 }
