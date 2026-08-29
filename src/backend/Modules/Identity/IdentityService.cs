@@ -432,6 +432,7 @@ public class IdentityService : IIdentityService
             FirstName = getUser.FirstName,
             LastName = getUser.LastName,
             Email = getUser.Email,
+            UserRole = getUser.Role,
         };
     }
 
