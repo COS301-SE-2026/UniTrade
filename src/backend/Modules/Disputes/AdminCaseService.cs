@@ -368,6 +368,8 @@ public class AdminCaseService : IAdminCaseService
             SlaBreached = slaBreached,
             Title = caseDto.University, // since verifications have no listings
             SubjectInitials = MakeInitials(caseDto.FirstName, caseDto.LastName),
+            SubjectName = $"{caseDto.FirstName} {caseDto.LastName}".Trim(),
+            SubjectDegree = caseDto.Degree,
             CounterpartyInitials = null,
         };
     }

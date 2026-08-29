@@ -18,5 +18,6 @@ public class CaseSummaryDto
     public Guid? BuyerId { get; set; }
     public Guid? ReservationId { get; set; }
 
-
+    public string? SubjectName { get; set; }
+    public string? SubjectDegree { get; set; }
 }

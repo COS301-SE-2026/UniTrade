@@ -111,9 +111,13 @@ export interface CaseSummary {
   subjectUserId: string;
   submittedAt: string;
   ageHours: number;
+  slaHours: number;
+  slaBreached: boolean;
   title?: string;
   subjectInitials?: string;
   counterpartyInitials?: string;
+  subjectName?: string;
+  subjectDegree?: string;
 }
 export interface PartySummary {
   userId: string;
