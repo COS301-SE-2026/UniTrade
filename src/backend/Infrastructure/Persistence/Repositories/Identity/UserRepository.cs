@@ -51,4 +51,11 @@ public class UserRepository : IUserRepository
         _db.Users.Update(user);
         await _db.SaveChangesAsync();
     }
+
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
+    {
+        return await _db
+            .Users.Include(u => u.StudentProfile)
+            .FirstOrDefaultAsync(x => x.Email == email, ct);
+    }
 }

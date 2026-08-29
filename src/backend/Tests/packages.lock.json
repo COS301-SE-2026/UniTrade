@@ -980,6 +980,7 @@
         "type": "Project",
         "dependencies": {
           "Azure.Communication.Email": "[1.1.0, )",
+          "BCrypt.Net-Next": "[4.2.0, )",
           "Infrastructure": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.8, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0, )",

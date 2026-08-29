@@ -1,5 +1,9 @@
+using BCrypt.Net;
 using Infrastructure.Notifications;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Identity;
+using Modules.Identity.Models;
+using Modules.Identity.Repositories;
 
 namespace Api.Controllers;
 
@@ -30,5 +34,39 @@ public class DevController : ControllerBase
         }
 
         return Ok(new { otp });
+    }
+
+    [HttpPost("admin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateAdmin(
+        [FromServices] IUserRepository users,
+        CancellationToken ct
+    )
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+        const string email = "e2e-admin@tuks.co.za";
+        const string password = "Admin123&*"; // NOSONAR
+
+        var existing = await users.GetByEmailAsync(email);
+
+        if (existing is null)
+        {
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                FirstName = "E2E",
+                LastName = "Admin",
+                Email = email,
+                PhoneNumber = "",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                Role = "admin",
+            };
+
+            await users.AddAsync(user);
+        }
+        return Ok(new { email, password });
     }
 }
