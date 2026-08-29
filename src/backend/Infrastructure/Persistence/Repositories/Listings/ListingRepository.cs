@@ -316,4 +316,23 @@ public class ListingRepository : IListingRepository
                 : new List<ListingImage>();
         }
     }
+
+    public async Task<bool> AdminRemoveAsync(
+        Guid listingId,
+        string reason,
+        CancellationToken ct = default
+    )
+    {
+        var rowsFetched = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus != _removedStatus)
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, "removed")
+                        .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+
+        return rowsFetched == 1;
+    }
 }

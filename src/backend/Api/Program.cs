@@ -54,6 +54,10 @@ using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
 using Modules.Listings.Snapshot;
+using Modules.Reputation.Repositories;
+using Infrastructure.Persistence.Repositories.Reputation;
+using Modules.Reputation;
+using Modules.Listings.Moderation;
 
 
 DotEnv.Load(
@@ -237,7 +241,12 @@ builder.Services.AddScoped<IAuditRepository, AuditRepository>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IAdminCaseService, AdminCaseService>();
 builder.Services.AddScoped<ISellerVerificationQuery, SellerVerificationQuery>();
-
+builder.Services.AddScoped<IStrikeRepository, StrikeRepository>();
+builder.Services.AddScoped<IReputationService, ReputationService>();
+builder.Services.AddScoped<ICaseOutcomeApplier, CaseOutcomeApplier>();
+builder.Services.AddScoped<IModerationService, ModerationService>();
+builder.Services.AddScoped<IDisputeService, DisputesService>();
+builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(

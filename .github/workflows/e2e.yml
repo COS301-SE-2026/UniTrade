@@ -5,7 +5,7 @@ on:
     pull_request:
         branches-ignore: ["**"]
     push:
-         branches: ["feature/ci-vldn"]
+         branches-ignore: ["**"]
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}

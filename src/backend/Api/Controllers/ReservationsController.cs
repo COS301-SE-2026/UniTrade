@@ -134,7 +134,7 @@ public class ReservationsController : ControllerBase
     }
 
     //get /reservation/{reservationId}/snapshot
-    [HttpGet("{reservationId: guid}/snapshot")]
+    [HttpGet("{reservationId:guid}/snapshot")]
     [Authorize]
     public async Task<ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
     {

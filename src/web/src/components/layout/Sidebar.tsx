@@ -8,7 +8,7 @@ import {
   IconListCheck,
   IconFlag,
   IconUsers,
-  IconChartBar,
+
   IconPackage,
   IconChevronLeft,
   IconChevronRight,
@@ -21,6 +21,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useReservationsList } from '../../hooks/useReservationsList'
 import { useUnreadRealtime } from '../../hooks/useUnreadRealtime'
 import { connectionManager } from '../../services/realtime/connectionManager'
+import TermsAndConditionsModal from '../legal/TermsandConditions'
 
 interface NavItem {
   label: string
@@ -84,13 +85,14 @@ const adminNav: NavSection[] = [
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} />, badge: 14 },
       { label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />, badge: 14 },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} />, badge: 3 },
+      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
   {
     heading: 'Manage',
     items: [
-      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
-      { label: 'Analytics', to: '/admin/analytics', icon: <IconChartBar size={18} /> },
+      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      { label: 'Messages', to: '/admin/messages', icon: <IconMessage size={18} /> },
       { label: 'Settings', to: '/admin/settings', icon: <IconSettings size={18} /> },
     ],
   },
@@ -106,8 +108,9 @@ interface UserPopoverProps {
 }
 function UserPopover({
   name, initials, roleLabel, onClose, onLogout,
-}: Readonly<UserPopoverProps>) {
+}: UserPopoverProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const [showTerms, setShowTerms] = useState(false)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -127,7 +130,6 @@ function UserPopover({
       <div className="flex items-center justify-end mb-4">
 
         <button
-          type='button'
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600"
           aria-label="Close"
@@ -149,34 +151,39 @@ function UserPopover({
         </div>
       </div>
       <button
-        type='button'
         onClick={onLogout}
         className="w-full bg-navy-700 text-white font-semibold text-sm rounded-full py-2.5 hover:bg-navy-500 transition-colors"
       >
         LOGOUT
       </button>
-      <p
-        //onClick={auth/Terms-and-conditions}
-        className="text-center text-xs text-gray-400 mt-3">Terms and conditions</p>
+
+      <button
+        onClick={() => setShowTerms(true)}
+        className="w-full text-center text-xs text-gray-400 mt-3 hover:text-navy-700 transition-colors"
+      >
+        Terms and Conditions
+      </button>
+
+      <TermsAndConditionsModal
+        isOpen={showTerms}
+        readonly
+        onAccept={() => setShowTerms(false)}
+        onDecline={() => setShowTerms(false)}
+      />
     </div>
   )
 }
-function getUserRoleDisplay(role?: string, viewMode?: string) {
+/*function getUserRoleDisplay(role?: string, viewMode?: string) {
   if (role === 'admin') return 'Admin';
   return viewMode === 'buyer' ? 'Buyer' : 'Seller';
-}
+}*/
 export default function Sidebar() {
   const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
-  const [showPopover, setShowPopover] = useState(false)
-  const roleLabel = (() => {
-    if (user?.role === 'admin') return 'Admin Account';
-    if (viewMode === 'buyer') return 'Buyer Account';
-    return 'Seller Account';
-  })();
-  const roleDisplay = getUserRoleDisplay(user?.role, viewMode);
+  const [ShowPopover, setShowPopover] = useState(false)
+
 
   useEffect(() => {
     if (user?.role !== 'student') return
@@ -198,7 +205,19 @@ export default function Sidebar() {
     .reduce((sum, r) => sum + (r.unreadCount ?? 0), 0)
 
 
-  const sections = buildSections(user?.role, viewMode, unreadTotal);
+  let sections: NavSection[] = []
+  if (user?.role === 'admin') {
+    sections = adminNav
+  } else if (user?.role === 'student') {
+    sections = viewMode === 'buyer' ? buyerNav : sellerNav
+  }
+
+  sections = sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) =>
+      item.label === 'Messages' ? { ...item, badge: unreadTotal } : item
+    ),
+  }))
 
   const handleSwitch = () => {
     if (user?.role !== 'student') return
@@ -310,14 +329,10 @@ export default function Sidebar() {
       {user && (
         <div
           className="relative">
-          <button
-            type='button'
+          <div
             onClick={() => setShowPopover((prev) => !prev)}
-            aria-expanded={showPopover}
-            aria-haspopup="dialog"
-            aria-label='User menu'
             className={clsx(
-              'appearance-none border-0', 'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5 text-left', 'leading-normal','w-full',
+              'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
               collapsed && 'justify-center'
             )}
           >
@@ -328,17 +343,18 @@ export default function Sidebar() {
               <div className="min-w-0">
                 <p className="text-[12px] font-semibold truncate">{user.name}</p>
                 <p className="text=[10px] text-white/50 capitalize">
-                  {roleDisplay}
+                  {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'}
                 </p>
               </div>
             )}
-          </button>
-          {showPopover && (
+          </div>
+          {ShowPopover && (
             <UserPopover
               name={user.name}
               initials={user.initials}
               roleLabel={
-                roleLabel}
+                user.role === 'admin' ? 'Admin Account' : viewMode === 'buyer' ? 'Buyer Account' : 'Seller Account'
+              }
               onClose={() => setShowPopover(false)}
               onLogout={handleLogout}
             />
@@ -358,7 +374,7 @@ export default function Sidebar() {
   )
 }
 
-function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
+/*function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
   let base: NavSection[];
   if (role === 'admin') {
     base = adminNav;
@@ -374,4 +390,4 @@ function buildSections(role: string | undefined, viewMode: string, unreadTotal: 
     ...section, items: section.items.map((item) =>
       item.label === 'Messages' ? { ...item, badge: unreadTotal } : item,),
   }))
-}
+}*/

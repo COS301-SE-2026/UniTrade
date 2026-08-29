@@ -1,5 +1,3 @@
-// using System;
-// using System.Collection.Generic;
 using Modules.Reservations.Models;
 
 namespace Modules.Listings.Models
@@ -17,5 +15,6 @@ namespace Modules.Listings.Models
         public DateTime CapturedAt { get; set; }
         public Reservation Reservation { get; set; } = null!;
         public Listing Listing { get; set; } = null!;
+        public string Description { get; set; } = null!;
     }
 }
