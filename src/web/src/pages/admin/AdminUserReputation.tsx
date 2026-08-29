@@ -2,17 +2,39 @@ import { useEffect, useReducer } from 'react';
 import { useParams } from 'react-router';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { Breadcrumb, Panel, StarRating } from './AdminReviewShared';
-import { getMockUserReputation, type UserReputationProfile } from '../../types/mockAdmin';
+import type { UserReputation } from '../../types/admin_disputes';
+import { getUserReputation } from '../../services/adminService';
+
+interface StrikeDisplay {
+  id: string;
+  reason: string;
+  date: string;
+  issuedBy: string;
+}
+
+interface ProfileDisplay {
+  id: string;
+  name: string;
+  initials: string;
+  faculty: string;
+  university: string;
+  memberSince: string;
+  reviewAverage: number;
+  reviewCount: number;
+  reputationScore: number;
+  strikes: StrikeDisplay[];
+
+}
 
 type State = {
-  data: UserReputationProfile | null;
+  data: ProfileDisplay | null;
   loading: boolean;
   error: boolean;
 };
 
 type Action =
   | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; payload: UserReputationProfile }
+  | { type: 'FETCH_SUCCESS'; payload: ProfileDisplay }
   | { type: 'FETCH_ERROR' };
 
 function reputationReducer(state: State, action: Action): State {
@@ -27,7 +49,37 @@ function reputationReducer(state: State, action: Action): State {
       return state;
   }
 }
+function getInitials(name: string): string {
+  return name.trim().split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
 
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-ZA", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+function mapRealToDisplay(real: UserReputation): ProfileDisplay {
+  return {
+    id: real.userId,
+    name: real.name,
+    initials: getInitials(real.name),
+    faculty: real.degree,
+    university: real.universityName,
+    memberSince: 'N/A',
+    reviewAverage: real.reviewAverage,
+    reviewCount: real.reviewCount,
+    reputationScore: Math.round(real.reviewAverage * 20),
+    strikes: real.strikes.map((s) => ({
+      id: s.strikeId,
+      reason: s.reason,
+      date: formatDate(s.createdAt),
+      issuedBy: 'Admin', // fetch admin name later
+    })),
+  };
+}
 export default function AdminUserReputation() {
   const { id } = useParams<{ id: string }>();
   const [state, dispatch] = useReducer(reputationReducer, {
@@ -38,15 +90,15 @@ export default function AdminUserReputation() {
 
   useEffect(() => {
     let active = true;
-    const abortController = new AbortController();
 
     dispatch({ type: 'FETCH_START' });
 
-    getMockUserReputation(id ?? '')
+    getUserReputation(id ?? '')
       .then((data) => {
         if (active) {
           if (data) {
-            dispatch({ type: 'FETCH_SUCCESS', payload: data });
+            const mapped = mapRealToDisplay(data);
+            dispatch({ type: 'FETCH_SUCCESS', payload: mapped });
           } else {
             dispatch({ type: 'FETCH_ERROR' });
           }
@@ -60,7 +112,6 @@ export default function AdminUserReputation() {
 
     return () => {
       active = false;
-      abortController.abort();
     };
   }, [id]);
 
@@ -114,9 +165,8 @@ export default function AdminUserReputation() {
         <Panel title="Strikes">
           <div className="flex items-center gap-2 mb-3">
             <span
-              className={`text-2xl font-bold ${
-                profile.strikes.length > 0 ? 'text-red-600' : 'text-navy-700 dark:text-white'
-              }`}
+              className={`text-2xl font-bold ${profile.strikes.length > 0 ? 'text-red-600' : 'text-navy-700 dark:text-white'
+                }`}
             >
               {profile.strikes.length}
             </span>
