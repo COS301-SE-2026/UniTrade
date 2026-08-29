@@ -59,10 +59,11 @@ public class AuthControllerTests
     public async Task Register_ShouldReturnOk_WhenRegistrationSucceeds()
     {
         // Arrange
-        var dto = new RegisterDto 
-        { Email = "test@uni.ac.za", 
-        Password = "StrongPassword1!",
-        TermsAcceptedAt = DateTime.UtcNow 
+        var dto = new RegisterDto
+        {
+            Email = "test@uni.ac.za",
+            Password = "StrongPassword1!",
+            TermsAcceptedAt = DateTime.UtcNow
         };
         var createdUser = new User { UserId = Guid.NewGuid(), Email = dto.Email };
 
@@ -100,10 +101,12 @@ public class AuthControllerTests
     )
     {
         // Arrange
-        var dto = new RegisterDto 
-        { Email = "test@uni.ac.za",
-        Password = "StrongPassword1!",
-        TermsAcceptedAt = DateTime.UtcNow };
+        var dto = new RegisterDto
+        {
+            Email = "test@uni.ac.za",
+            Password = "StrongPassword1!",
+            TermsAcceptedAt = DateTime.UtcNow
+        };
         _identityServiceMock
             .Setup(s => s.RegisterAsync(dto))
             .ThrowsAsync(new Exception(serviceExceptionMessage));
