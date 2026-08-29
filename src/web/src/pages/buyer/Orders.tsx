@@ -9,6 +9,8 @@ import { ReviewModal } from '../auth/Review';
 import { LoadingState } from '../../components/layout/Spinner';
 import { useSearchQuery } from '../../hooks/useSearchQuery';
 
+
+export type OrderSort = 'Newest' | 'Oldest' | 'Price Low' | 'Price High'
 export type OrderFilterTab = "all" | "semester" | "awaiting" | "reviewed";
 
 function isThisSemester(iso: string): boolean {
@@ -18,6 +20,7 @@ function isThisSemester(iso: string): boolean {
 }
 
 export default function Orders() {
+  const [sortOrder, setSortOrder] = useState<OrderSort>('Newest');
   const [activeTab, setActiveTab] = useState<OrderFilterTab>("all");
 
   const navigate = useNavigate();
@@ -64,8 +67,15 @@ export default function Orders() {
       )
     }
 
-   return result
-  }, [orders, activeTab, searchQuery])
+   return [...result].sort((a, b) => {
+    if( sortOrder === 'Price Low') return a.price - b.price
+    if( sortOrder === 'Price High') return b.price - a.price
+    
+    if( sortOrder === 'Oldest'){ return new Date(a._createdAtIso).getTime() - new Date(b._createdAtIso).getTime()
+   } 
+  return new Date(b._createdAtIso).getTime() - new Date(a._createdAtIso).getTime()
+   })
+  }, [orders, activeTab, searchQuery, sortOrder])
 
   const stats = useMemo(() => {
     const totalPurchases = orders.length
@@ -80,12 +90,12 @@ export default function Orders() {
     };
   }, [orders]);
 
-  const getTabLabel = (tab: OrderFilterTab) => {
+  /*const getTabLabel = (tab: OrderFilterTab) => {
     if (tab == "semester") return "This semester";
     if (tab === "awaiting") return "Awaiting review";
     if (tab === "reviewed") return "Reviewed";
     return "All";
-  };
+  };*/
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -117,23 +127,44 @@ export default function Orders() {
         />
       </div>
 
-      <div className="flex items-center gap-2">
-        {(["all", "semester", "awaiting", "reviewed"] as OrderFilterTab[]).map(
-          (tab) => (
-            <button
-              type="button"
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
-                ? "bg-navy-700 text-white"
-                : "bg-white text-gray-600 border border-gray-300 hover:border-navy-700"
-                }`}
-            >
-              {getTabLabel(tab)}
-            </button>
-          ),
-        )}
+     <div className="flex items-center justify-between flex-wrap gap-3">  
+      <div className="flex items-center gap-2 flex-wrap">
+        {(['all', 'semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
+              }`}
+          >
+            {
+              tab === 'semester'
+                ? 'This semester'
+                : tab === 'awaiting'
+                  ? 'Awaiting review'
+                  : tab === 'reviewed'
+                    ? 'Reviewed'
+                    : 'All'
+            } 
+          </button>
+        ))}
       </div>
+
+      <div className="flex items-center gap-2">
+        <select
+        value={sortOrder}
+        onChange={(e) => setSortOrder(e.target.value as OrderSort)}
+        className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-none focus:outline-none focus:border-navy-700">
+          <option value="Newest">Sort by: Newest</option>
+          <option value="Oldest">Sort by: Oldest</option>
+          <option value="Price Low">Sort by: Price Low to High</option>
+          <option value="Price High">Sort by: Price High to Low</option>
+        </select>
+        </div>
+        </div>
+
+
 
       {isLoading && <LoadingState message="Fetching orders..." />}
 

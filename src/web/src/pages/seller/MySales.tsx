@@ -12,7 +12,7 @@ import { useSearchQuery } from '../../hooks/useSearchQuery';
 
 
 export type SaleFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
-
+export type SaleSort = 'Newest' | 'Oldest' | 'Price Low' | 'Price High'
 function isThisSemester(iso: string): boolean {
   //for now 
   const mockMonth = new Date()
@@ -51,6 +51,7 @@ function ConditionBadge({ condition }: Readonly<{ condition: string }>) {
 }
 export default function MySales() {
   const [activeTab, setActiveTab] = useState<SaleFilterTab>('all');
+  const [sortSale, setSortSale] = useState<SaleSort>('Newest');
   const navigate = useNavigate()
   const searchQuery = useSearchQuery()
   const [reviewTarget, setReviewTarget] = useState<{
@@ -95,8 +96,15 @@ export default function MySales() {
           o.buyerName.toLowerCase().includes(searchQuery)
       )
      }
-     return result
-    }, [sales, activeTab, searchQuery])
+     return [...result].sort((a, b) => {
+    if( sortSale === 'Price Low') return a.price - b.price
+    if( sortSale === 'Price High') return b.price - a.price
+    
+    if( sortSale === 'Oldest'){ return new Date(a._createdAtIso).getTime() - new Date(b._createdAtIso).getTime()
+   } 
+  return new Date(b._createdAtIso).getTime() - new Date(a._createdAtIso).getTime()
+   })
+  }, [sales, activeTab, searchQuery, sortSale])
 
   const stats = useMemo(() => {
     const totalSales = sales.length
@@ -139,6 +147,8 @@ export default function MySales() {
         />
       </div>
 
+        <div className="flex items-center justify-between flex-wrap gap-3"> 
+
       <div className="flex items-center gap-2">
         {(['all', 'semester', 'awaiting', 'reviewed'] as SaleFilterTab[]).map((tab) => (
           <button
@@ -162,7 +172,19 @@ export default function MySales() {
           </button>
         ))}
       </div>
-
+              <div className="flex items-center gap-2">
+                <select
+                value={sortSale}
+                onChange={(e) => setSortSale(e.target.value as SaleSort)}
+                className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-none focus:outline-none focus:border-navy-700">
+                  <option value="Newest">Sort by: Newest</option>
+                  <option value="Oldest">Sort by: Oldest</option>
+                  <option value="Price Low">Sort by: Price Low to High</option>
+                  <option value="Price High">Sort by: Price High to Low</option>
+                </select>
+                </div>
+                </div>
+      
       {isLoading && <LoadingState message="Fetching sales..." />}
 
 
