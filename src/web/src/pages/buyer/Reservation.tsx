@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useReducer, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getReservations, cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
@@ -12,6 +12,9 @@ import {
   IconReceipt2,
   IconFilter,
   IconChevronDown,
+  IconUpload,
+  IconX,
+  IconFlag,
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
 import { useSearchQuery } from '../../hooks/useSearchQuery'
@@ -20,7 +23,7 @@ type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: Readonly<{ status: string }>) {
+function StatusBadge({ status }: { status: string }) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -75,7 +78,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
   meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
+export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
       <span className="text-navy-700">{icon}</span>
@@ -87,7 +90,7 @@ export function SummaryCard({ label, value, icon }: Readonly<{ label: string; va
   );
 }
 
-function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
+function StageTag({ stage }: { stage: TimerStage }) {
   const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
@@ -96,7 +99,7 @@ function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
   )
 }
 
-function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
+function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }) {
   if (msRemaining <= 0) return null;
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -108,118 +111,210 @@ function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number
   )
 }
 
+function ReportQualityModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [isChecked, setIsChecked] = useState(false)
+
+  if (!isOpen) return null
+
+  return (
+    <div 
+      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
+        >
+          <IconX size={20} />
+        </button>
+
+        <h2 className="text-2xl font-bold text-navy-700 dark:text-white text-center mb-6">
+          Report Listing Quality
+        </h2>
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+              Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="w-full aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                <img 
+                  src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300" 
+                  alt="Listing preview" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors">
+                <IconUpload size={22} className="text-gray-400" />
+              </div>
+              <div className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors">
+                <IconUpload size={22} className="text-gray-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input 
+              type="checkbox" 
+              id="refuse-photos"
+              checked={isChecked}
+              onChange={(e) => setIsChecked(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer"
+            />
+            <label htmlFor="refuse-photos" className="text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none">
+              Did the seller refuse to provide more photos
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+              Description
+            </label>
+            <textarea
+              rows={4}
+              placeholder="Describe the quality issue..."
+              className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-md"
+            onClick={onClose}
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ReservationCard({
   reservation,
   onCancel,
-}: Readonly<{
+}: {
   reservation: ReservationListItem
   onCancel: (id: string) => void
-}>) {
+}) {
   const navigate = useNavigate()
-  const [, forceTick] = useReducer((x: number) => x + 1, 0)
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+  const [, forceTick] = useState(0)
+  
   useEffect(() => {
-    const interval = setInterval(() => forceTick(), 1000)
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000)
     return () => clearInterval(interval)
   }, [])
 
   const msRemaining = getMsRemaining(reservation.expiresAt)
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
-  const apiOrigin = getApiUrl().split('/api')[0];
+  const apiOrigin = getApiUrl().split('/api')[0]
 
-
-  const openReservation = () => navigate(`/buyer/reservations/${reservation.reservationId}`)
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <button
-        type='button'
-        onClick={openReservation}
-        className='w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent'
-      >
+    <>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
         <img
           src={reservation.listing.imagePath
             ? `${apiOrigin}${reservation.listing.imagePath}`
             : '/placeholder.png'}
           alt={reservation.listing.title}
+          onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
         />
-      </button>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-4">
-          <button
-            type='button'
-            onClick={openReservation}
-            className="min-w-0 cursor-pointer group text-left"
-          >
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-bold text-gray-800 truncate">
-                {reservation.listing.title}
-              </p>
-              <StatusBadge status={reservation.reservationStatus} />
-            </div>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Listed by <span className="font-semibold text-gray-500">
-                {reservation.counterParty.name}
-              </span>
-            </p>
-          </button>
-          {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
-            <div className="text-right flex-shrink-0">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide">
-                Expires in
-              </p>
-              <div className="mt-1">
-                <CountdownBadge msRemaining={msRemaining} urgency={urgency} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-4">
+            <div
+              onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+              className="min-w-0 cursor-pointer group"
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-bold text-gray-800 truncate">
+                  {reservation.listing.title}
+                </p>
+                <StatusBadge status={reservation.reservationStatus} />
               </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Listed by <span className="font-semibold text-gray-500">
+                  {reservation.counterParty.name}
+                </span>
+              </p>
+            </div>
+            {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
+              <div className="text-right flex-shrink-0">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                  Expires in
+                </p>
+                <div className="mt-1">
+                  <CountdownBadge msRemaining={msRemaining} urgency={urgency} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-2">
+            {isActive && <StageTag stage={reservation.timerStage} />}
+            <span className="text-sm font-bold text-gray-800">
+              {formatPrice(reservation.listing.price)}
+            </span>
+          </div>
+
+          {isActive && (
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
+                  onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+                >
+                  View Reservation
+                </button>
+                <button
+                  type="button"
+                  className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
+                  onClick={() => navigate(`/buyer/messages/${reservation.reservationId}`, {
+                    state: {
+                      counterparty: reservation.counterParty.name,
+                      counterpartyInitials: reservation.counterParty.initials,
+                    },
+                  })}
+                >
+                  Message seller
+                  {reservation.unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {reservation.unreadCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onCancel(reservation.reservationId)}
+                  disabled={reservation.timerStage == 'meetup_confirmed'}
+                  className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(true)}
+                className="inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
+              >
+                <IconFlag size={13} /> Report listing quality
+              </button>
             </div>
           )}
         </div>
-
-        <div className="flex items-center gap-2 mt-2">
-          {isActive && <StageTag stage={reservation.timerStage} />}
-          <span className="text-sm font-bold text-gray-800">
-            {formatPrice(reservation.listing.price)}
-          </span>
-        </div>
-
-        {isActive && (
-          <div className="flex flex-wrap gap-2 mt-3">
-
-            <button
-              type="button"
-              className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
-              onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-            >
-              View Reservation
-            </button>
-            <button
-              type="button"
-              className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
-              onClick={() => navigate(`/buyer/messages/${reservation.reservationId}`, {
-                state: {
-                  counterparty: reservation.counterParty.name,
-                  counterpartyInitials: reservation.counterParty.initials,
-                },
-              })}
-            >
-              Message seller
-              {reservation.unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {reservation.unreadCount}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => onCancel(reservation.reservationId)}
-              disabled={reservation.timerStage === 'meetup_confirmed'}
-              className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
       </div>
-    </div>
+
+      <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} />
+    </>
   )
 }
 
@@ -257,6 +352,7 @@ export default function Reservations() {
       showToast('success', 'Successfully cancelled the reservation!!');
     }
   }
+
   const filtered = useMemo(() => {
     let result = statusFilter === 'All'
       ? reservations
@@ -272,7 +368,6 @@ export default function Reservations() {
 
     return result
   }, [reservations, statusFilter, searchQuery])
-
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -298,18 +393,7 @@ export default function Reservations() {
 
     return { activeCount, expiringCount, totalValue }
   }, [reservations])
-  const getEmptyStateMessage = () => {
-    if (searchQuery) {
-      return `There are no reservation with "${searchQuery}" found.`;
 
-    }
-
-    if (statusFilter !== "All") {
-      return `There are no reservations with "${statusFilter}" status.`
-    }
-
-    return "Reserve items from listings to see them here."
-  }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -332,7 +416,6 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
                   <button
-                    type='button'
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -360,7 +443,6 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
                   <button
-                    type='button'
                     key={opt}
                     onClick={() => {
                       setStatusFilter(opt);
@@ -395,18 +477,21 @@ export default function Reservations() {
         />
       </div>
 
+      {loading && <LoadingState message="Fetching listings..." />}    
 
-      {loading && <LoadingState message="Fetching listings..." />}
       {!loading && error && (
-        <div className='bg-white rounded-xl border border-rose-200 p-6 text-center'>
-          <p className='text-sm font-semibold text-rose-600'>{error}</p>
+        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+          <p className="text-sm font-semibold text-rose-600">{error}</p>
         </div>
       )}
+
       {!loading && !error && sorted.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
           <p className="text-sm font-semibold text-gray-700">No reservations found</p>
           <p className="text-xs text-gray-400 mt-1">
-            {getEmptyStateMessage()}
+            {searchQuery
+              ? `There are no reservation with "${searchQuery} found.`
+              : "Reserve items from listings to see them here."}
           </p>
         </div>
       )}

@@ -371,6 +371,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("role");
 
+                    b.Property<DateTime?>("TermsAcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("terms_accepted_at");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");

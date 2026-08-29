@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Modules.Audit.Models;
 using Modules.Chat.Models;
@@ -7,6 +6,7 @@ using Modules.Listings.Models;
 using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
 using Modules.ReferenceData.University;
+using Modules.Reputation.Models;
 using Modules.Reservations.Models;
 using Modules.Reviews.Models;
 using Modules.Transactions.Models;
@@ -91,6 +91,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.CreatedAt);
             entity.Property(x => x.UpdatedAt);
+            entity.Property(x => x.TermsAcceptedAt);
 
             entity.ToTable(t =>
             {

@@ -92,8 +92,6 @@ export default function OrderDetails() {
     const backPath = isBuyer ? "/buyer/orders" : "/seller/sales";
     const backLabel = isBuyer ? "My Orders" : "My Sales";
 
-
-
     if (loading) {
         return <div className="text-slate-500">Loading order details....</div>;
     }
