@@ -10,7 +10,7 @@ public class Dispute
 
     public Guid? ReservationId{get;set;}
     public Guid? ListingId {get;set;}
-    public Guid? MeetupId{get;set;}
+    public int? MeetupId{get;set;}
 
     public bool SellerRefusedPhotos{get;set;}
     public List<string> Photos {get;set;}
