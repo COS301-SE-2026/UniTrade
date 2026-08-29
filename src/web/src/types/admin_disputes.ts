@@ -111,6 +111,9 @@ export interface CaseSummary {
   subjectUserId: string;
   submittedAt: string;
   ageHours: number;
+  title?: string;
+  subjectInitials?: string;
+  counterpartyInitials?: string;
 }
 export interface PartySummary {
   userId: string;

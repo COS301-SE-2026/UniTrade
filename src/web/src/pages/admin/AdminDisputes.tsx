@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router'
 import chemImg from '../../assets/bio-textbook.jpg'
 import calcImg from '../../assets/calculas-textbook.jpg'
 import laptopImg from '../../assets/hp-laptop.jpg'
-import type { CaseDetail, CaseType } from '../../types/admin_disputes'
-import { getCaseById, getCases } from '../../services/adminService'
+import { type CaseType } from '../../types/admin_disputes'
+import { getCases } from '../../services/adminService'
 
 export interface DisputeRow {
   id: string
@@ -16,24 +16,16 @@ export interface DisputeRow {
   image: string
 }
 
-const userInitialStore: Record<string, string> = {}
 
-function getInitials(name: string): string {
-  if (userInitialStore[name]) return userInitialStore[name]
-  const parts = name.trim().split(' ')
-  const initials = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2)
-  userInitialStore[name] = initials
-  return initials
-}
 function getTimeAgo(ageHours: number): string {
   if (ageHours < 1) return 'Just now'
   if (ageHours < 24) return `${Math.round(ageHours)}h ago`
   const days = Math.round(ageHours / 24)
   return `${days}d ago`
 }
-function getDisplayType(caseType: CaseType): 'No-show' | 'Listing-quality' | 'Report' {
-  const map: Record<CaseType, 'No-show' | 'Listing-quality' | 'Report'> = {
-    verification: 'Report',
+type DisputeCaseType = "no_show" | "listing_quality" | "report_listing";
+function getDisplayType(caseType: DisputeCaseType): 'No-show' | 'Listing-quality' | 'Report' {
+  const map: Record<DisputeCaseType, 'No-show' | 'Listing-quality' | 'Report'> = {
     no_show: 'No-show',
     listing_quality: 'Listing-quality',
     report_listing: 'Report',
@@ -61,49 +53,25 @@ export default function AdminDisputes() {
 
   useEffect(() => {
     let active = true;
-
     getCases()
       .then(async (response) => {
+
         const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
-        const summaries = response.cases.filter(c => disputeTypes.has(c.type));
+        const filtered = response.cases.filter(c => disputeTypes.has(c.type));
 
+        const enriched = filtered.map(summary => ({
+          id: summary.caseId,
+          title: summary.title ?? 'Unknown listing',
+          buyerInitials: summary.counterpartyInitials ?? '??',
+          sellerInitials: summary.subjectInitials ?? '??',
+          timeAgo: getTimeAgo(summary.ageHours),
+          type: getDisplayType(summary.type as DisputeCaseType),
+          image: getPlaceholder(summary.type as DisputeCaseType),
 
-        const details = await Promise.all(
-          summaries.map(async (summary) => {
-            try {
-              return await getCaseById(summary.caseId)
-            }
-            catch {
-              return null
-            }
-          })
-        );
-
-        const enriched = details.filter((d): d is CaseDetail => d !== null).map((d) => {
-          const subject = d.subject;
-          const counterparty = d.counterParty;
-          const title = d.evidence?.snapshot?.title ?? d.evidence?.listingId ?? 'Unknown listing';
-          const sellerName = subject?.name ?? 'Unknown';
-          const buyerName = counterparty?.name ?? 'Unknown';
-          const sellerInitials = subject?.initials ?? getInitials(sellerName);
-          const buyerInitials = counterparty?.initials ?? getInitials(buyerName);
-
-          return {
-            id: d.caseId,
-            title,
-            buyerInitials,
-            sellerInitials,
-            timeAgo: getTimeAgo(d.ageHours),
-            type: getDisplayType(d.type),
-            image: getPlaceholder(d.type),
-          };
-
-        });
-
+        }));
         if (active) {
           setRows(enriched);
           setLoading(false);
-
         }
       })
       .catch((err) => {
@@ -112,11 +80,9 @@ export default function AdminDisputes() {
           setLoading(false);
         }
       });
-
     return () => {
-      active = false
+      active = false;
     };
-
   }, []);
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -127,12 +93,12 @@ export default function AdminDisputes() {
     if (filter === 'all') return true
     return row.type === filter
   });
-
-
   const totalDisputes = rows.length
   const numNoShow = rows.filter(r => r.type === 'No-show').length
   const numListingQuality = rows.filter(r => r.type === 'Listing-quality').length
   const numReport = rows.filter(r => r.type === 'Report').length;
+
+
   if (loading) {
     return <p className='text-sm text-gray-400'>Loading disputes...</p>;
   }

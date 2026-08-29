@@ -30,6 +30,7 @@ public class AdminCaseService : IAdminCaseService
     private const string _underReviewString = "under_review";
     private const string _pendingString = "pending";
     private const string _verificationString = "verification";
+    private const string _reportListingString = "report_listing";
 
     public AdminCaseService(
         IVerificationService verification,
@@ -54,7 +55,6 @@ public class AdminCaseService : IAdminCaseService
         _reputation = reputation;
     }
 
-
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
         string? type,
         string? status,
@@ -67,9 +67,53 @@ public class AdminCaseService : IAdminCaseService
         {
             res.AddRange((await _verification.ListPendingAsync(ct)).Select(MapToSummary));
         }
-        if (type is null or "listing_quality" or "no_show" or "report_listing")
+        if (type is null or "listing_quality" or "no_show" or _reportListingString)
         {
             var disputeItems = await _disputes.ListPendingAsync(type, ct);
+            var subjectUserIds = disputeItems.Select(i => i.SubjectUserId).Distinct().ToList();
+            var counterpartyIds = disputeItems
+                .Select(i => new
+                {
+                    SubjectId = i.SubjectUserId,
+                    CounterpartyId = i.Type == _reportListingString ? i.RaisedBy
+                    : i.SubjectUserId == i.SellerId ? i.BuyerId
+                    : i.SubjectUserId == i.BuyerId ? i.SellerId
+                    : (Guid?)null,
+                })
+                .Where(x => x.CounterpartyId.HasValue && x.CounterpartyId.Value != x.SubjectId)
+                .Select(x => x.CounterpartyId!.Value)
+                .Distinct()
+                .ToList();
+
+            var reservationIds = disputeItems
+                .Where(i => i.ReservationId.HasValue)
+                .Select(i => i.ReservationId!.Value)
+                .Distinct()
+                .ToList();
+
+            var subjectDict = new Dictionary<Guid, PartyIdentity>();
+            foreach (var id in subjectUserIds)
+            {
+                var party = await _parties.GetAsync(id, ct);
+                if (party != null)
+                    subjectDict[id] = party;
+            }
+
+            var counterpartyDict = new Dictionary<Guid, PartyIdentity>();
+            foreach (var id in counterpartyIds)
+            {
+                var party = await _parties.GetAsync(id, ct);
+                if (party != null)
+                    counterpartyDict[id] = party;
+            }
+            var snapshotDict = new Dictionary<Guid, ListingSnapshotDto>();
+            foreach (var resId in reservationIds)
+            {
+                var snapshot = await _snapshots.GetByReservationIdAsync(resId, ct);
+                if (snapshot != null)
+                    snapshotDict[resId] = snapshot;
+            }
+
             var mapped = disputeItems.Select(item =>
             {
                 var ageHours = Math.Round(
@@ -77,6 +121,33 @@ public class AdminCaseService : IAdminCaseService
                     1
                 );
                 var (slaHours, slaBreached) = Sla(item.Type, ageHours);
+                var SubjectInitials = subjectDict.TryGetValue(item.SubjectUserId, out var subject)
+                    ? MakeInitials(subject.FirstName, subject.LastName)
+                    : "??";
+
+                Guid? counterpartyId =
+                    item.Type == _reportListingString ? item.RaisedBy
+                    : item.SubjectUserId == item.SellerId ? item.BuyerId
+                    : item.SubjectUserId == item.BuyerId ? item.SellerId
+                    : null;
+                if (counterpartyId == item.SubjectUserId)
+                    counterpartyId = null;
+
+                var counterpartyInitials =
+                    counterpartyId.HasValue
+                    && counterpartyDict.TryGetValue(counterpartyId.Value, out var cp)
+                        ? MakeInitials(cp.FirstName, cp.LastName)
+                        : "??";
+
+                string? title = null;
+                if (
+                    item.ReservationId.HasValue
+                    && snapshotDict.TryGetValue(item.ReservationId.Value, out var snap)
+                )
+                {
+                    title = snap.Title;
+                }
+                title ??= "Unknown listing";
                 return new CaseSummaryDto
                 {
                     CaseId = item.CaseId,
@@ -87,6 +158,9 @@ public class AdminCaseService : IAdminCaseService
                     AgeHours = ageHours,
                     SlaHours = slaHours,
                     SlaBreached = slaBreached,
+                    Title = title,
+                    SubjectInitials = SubjectInitials,
+                    CounterpartyInitials = counterpartyInitials,
                 };
             });
             res.AddRange(mapped); // empty till the BE2 dispute ready
@@ -292,6 +366,9 @@ public class AdminCaseService : IAdminCaseService
             AgeHours = ageHours,
             SlaHours = slaHours,
             SlaBreached = slaBreached,
+            Title = caseDto.University, // since verifications have no listings
+            SubjectInitials = MakeInitials(caseDto.FirstName, caseDto.LastName),
+            CounterpartyInitials = null,
         };
     }
 
@@ -359,7 +436,7 @@ public class AdminCaseService : IAdminCaseService
         var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
         // for reporting a lsiting conunterparty s the rpeorter
         Guid? counterpartyId =
-            d.Type == "report_listing" ? d.RaisedBy
+            d.Type == _reportListingString ? d.RaisedBy
             : d.SubjectUserId == d.SellerId ? d.BuyerId
             : d.SubjectUserId == d.BuyerId ? d.SellerId
             : null;
@@ -369,7 +446,7 @@ public class AdminCaseService : IAdminCaseService
         var counterparty = counterpartyId is null
             ? null
             : await BuildPartyAsync(counterpartyId.Value, RoleOf(d, counterpartyId.Value), ct);
-        var ageHours = Math.Round((_clock.GetUtcNow().UtcDateTime - d.SubmittedAt).TotalHours, 1);
+        var ageHours = Age(d.SubmittedAt);
         var (slaHours, slaBreached) = Sla(d.Type, ageHours);
 
         return new CaseDetailDto
@@ -405,7 +482,7 @@ public class AdminCaseService : IAdminCaseService
                 BuyerPhotos = d.Photos,
                 SellerRefusedPhotos = d.SellerRefusedPhotos,
             },
-            "report_listing" => new CaseEvidenceDto
+            _reportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
                 ListingId = d.ListingId,
@@ -456,7 +533,7 @@ public class AdminCaseService : IAdminCaseService
         };
     }
 
-    private static string MakeInitials(string first, string last)
+    private static string MakeInitials(string? first, string? last)
     {
         var firstName = string.IsNullOrEmpty(first) ? "" : first[..1];
         var lastName = string.IsNullOrEmpty(last) ? "" : last[..1];
