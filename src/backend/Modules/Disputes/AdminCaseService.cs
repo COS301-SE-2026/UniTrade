@@ -309,9 +309,9 @@ public class AdminCaseService : IAdminCaseService
             : d.SubjectUserId == d.SellerId ? d.BuyerId
             : d.SubjectUserId == d.BuyerId ? d.SellerId
             : null;
-        if(counterpartyId == d.SubjectUserId) counterpartyId = null;
+        if (counterpartyId == d.SubjectUserId) counterpartyId = null;
 
-        var counterparty = counterpartyId is null? null: await BuildPartyAsync(counterpartyId.Value, RoleOd(d, counterpartyId.Value), ct);
+        var counterparty = counterpartyId is null ? null : await BuildPartyAsync(counterpartyId.Value, RoleOd(d, counterpartyId.Value), ct);
 
         return new CaseDetailDto
         {
@@ -323,8 +323,8 @@ public class AdminCaseService : IAdminCaseService
             AgeHours = Math.Round((_clock.GetUtcNow().UtcDateTime - d.SubmittedAt).TotalHours, 1),
             Subject = subject,
             CounterParty = counterparty,
-            FiledByUserId= d.RaisedBy,
-            FiledByRole = d.RaisedBy== d.SellerId? "seller": d.RaisedBy== d.BuyerId? "buyer":"system",
+            FiledByUserId = d.RaisedBy,
+            FiledByRole = d.RaisedBy == d.SellerId ? "seller" : d.RaisedBy == d.BuyerId ? "buyer" : "system",
             Evidence = BuildDisputeEvidence(d, snapshot);
         };
     }
@@ -337,61 +337,62 @@ public class AdminCaseService : IAdminCaseService
             BuyerPhotos = d.Photos,
             SellerRefusedPhotos = d.SellerRefusedPhotos,
         },
-        "report_listing"=> new CaseEvidenceDto
+        "report_listing" => new CaseEvidenceDto
         {
             Snapshot = snapshot,
-            ListingId= d.ListingId,
+            ListingId = d.ListingId,
             ReportReason = d.Description,
         },
-        "no_show"=> new CaseEvidenceDto
-        {MeetupId = d.MeetupId,
-        BuyerCheckedIn= d.BuyerCheckedIn,
-        BuyerCheckInTime= d.BuyerCheckInTime,
-        SellerCheckedIn= d.SellerCheckedIn,
-        SellerCheckInTime= d.SellerCheckInTime,
-        PinStatus= d.PinStatus,
-        CheckInWindowClosesAt= d.CheckInWindowClosesAt,
-        
-            
+        "no_show" => new CaseEvidenceDto
+        {
+            MeetupId = d.MeetupId,
+            BuyerCheckedIn = d.BuyerCheckedIn,
+            BuyerCheckInTime = d.BuyerCheckInTime,
+            SellerCheckedIn = d.SellerCheckedIn,
+            SellerCheckInTime = d.SellerCheckInTime,
+            PinStatus = d.PinStatus,
+            CheckInWindowClosesAt = d.CheckInWindowClosesAt,
+
+
         },
         _ => new CaseEvidenceDto(),
     };
 
-    private double Age(DateTime submittedAt)=>
+    private double Age(DateTime submittedAt) =>
     Math.Round((_clock.GetUtcNow().UtcDateTime - submittedAt).TotalHours, 1);
 
-    private static PartyRole RoleOf(DisputeCaseData d, Guid userId)=>
-    userId== d.BuyerId ? PartyRole.Buyer : PartyRole.Seller;
-    
+    private static PartyRole RoleOf(DisputeCaseData d, Guid userId) =>
+    userId == d.BuyerId ? PartyRole.Buyer : PartyRole.Seller;
+
     private async Task<PartySummaryDto> BuildPartyAsync(Guid userId, PartyRole role, CancellationToken ct)
     {
         var p = await _parties.GetAsync(userId, ct);
-        if(p is null)
+        if (p is null)
         {
             return null;
         }
         var strikes = await _reputation.GetStrikesAsync(userId, ct);
-            var score = role == PartyRole.Buyer? p.BuyerReliabilityScore: p.SellerTrustScore;
-            
-            return new PartySummaryDto
-            {
-                UserId =p.UserId,
-                Name=$"{p.FirstName} {p.LastName}".Trim(),
-                Initials = MakeInitials(p.FirstName, p.LastName),
-                Faculty= p.University,
-                ReviewAverage= (double)score,
-                ReputationScore = Math.Round(score/5m* 100m),
-                StrikeCount =strikes.Count,
+        var score = role == PartyRole.Buyer ? p.BuyerReliabilityScore : p.SellerTrustScore;
 
-            };
+        return new PartySummaryDto
+        {
+            UserId = p.UserId,
+            Name = $"{p.FirstName} {p.LastName}".Trim(),
+            Initials = MakeInitials(p.FirstName, p.LastName),
+            Faculty = p.University,
+            ReviewAverage = (double)score,
+            ReputationScore = Math.Round(score / 5m * 100m),
+            StrikeCount = strikes.Count,
+
+        };
 
     }
     private static string MakeInitials(string first, string last)
     {
-        var firstName = string.IsNullOrEmpty(first)? "":first[..1];
-        var lastName = string.IsNullOrEmpty(last)? "":last[..1];
-        return(firstName+lastName).ToUpperInvariant();
-        
+        var firstName = string.IsNullOrEmpty(first) ? "" : first[..1];
+        var lastName = string.IsNullOrEmpty(last) ? "" : last[..1];
+        return (firstName + lastName).ToUpperInvariant();
+
     }
     private static string MapDisputeStatus(string s) =>
         s switch

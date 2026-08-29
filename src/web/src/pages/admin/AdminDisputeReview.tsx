@@ -13,7 +13,7 @@ import {
 } from './AdminReviewShared';
 import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
-import type { CaseDetail, CaseType, ListingSnapshot, PartySummary } from '../../types/admin_disputes';
+import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
 
 export interface DisputeCase {
   id: string
@@ -217,8 +217,9 @@ export default function AdminDisputeReview() {
     try {
       await decideCaseWithAction(state.data.id, state.data.type as CaseType, decision as ButtonAction, decisionNote.trim() || undefined);
       setCompletedDecision(decision);
-    } catch (error: any) {
-      setDecisionError(error.message || 'Failed to submit decision.');
+    } catch (error) {
+      const apiError = error as ApiError;
+      setDecisionError(apiError.message || 'Failed to submit decision.');
     } finally {
       setSubmitting(null);
     }

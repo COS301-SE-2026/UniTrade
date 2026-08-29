@@ -12,9 +12,9 @@ public sealed class DisputeCaseData
     public List<string> Photos { get; set; } = new();
     public string? Description { get; set; }
     public DateTime SubmittedAt { get; set; }
-    public Guid RaisedBy{get; set;}
-    public Guid? BuyerId{get; set;}
-    public Guid? SellerId{get; set;}
+    public Guid RaisedBy { get; set; }
+    public Guid? BuyerId { get; set; }
+    public Guid? SellerId { get; set; }
     public Guid? MeetupId { get; set; }
     public bool BuyerCheckedIn { get; set; }
     public DateTime? BuyerCheckInTime { get; set; }
@@ -22,5 +22,5 @@ public sealed class DisputeCaseData
     public DateTime? SellerCheckInTime { get; set; }
     public string? PinStatus { get; set; }
     public DateTime? CheckInWindowClosesAt { get; set; }
-    
+
 }

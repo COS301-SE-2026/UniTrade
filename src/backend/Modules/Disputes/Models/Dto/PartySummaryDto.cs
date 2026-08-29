@@ -1,4 +1,5 @@
 namespace Modules.Disputes.Models.Dto;
+
 public sealed class PartySummaryDto
 {
     public Guid UserId { get; set; }
