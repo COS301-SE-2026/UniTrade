@@ -246,6 +246,7 @@ builder.Services.AddScoped<IReputationService, ReputationService>();
 builder.Services.AddScoped<ICaseOutcomeApplier, CaseOutcomeApplier>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IDisputeService, DisputesService>();
+builder.Services.AddScoped<IPartDirectory, PartyDirectory>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(

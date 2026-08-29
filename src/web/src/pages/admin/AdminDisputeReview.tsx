@@ -11,12 +11,28 @@ import {
   OutlineButton,
   NotesPanel,
 } from './AdminReviewShared';
-import { getMockDisputeById, type DisputeCase, type DisputeDecision, type DisputeType } from '../../types/mockAdmin';
+import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
+import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
+import type { CaseDetail, CaseType, ListingSnapshot, PartySummary } from '../../types/admin_disputes';
+
+export interface DisputeCase {
+  id: string
+  type: DisputeType
+  item: DisputeItem
+  buyer: PersonSummary
+  seller: PersonSummary
+  datePlaced: string
+  filedBy: 'Buyer' | 'Seller' |'Applicant'| 'System'
+  checkIn?: CheckInEvidence
+  photos?: ListingPhotos
+  report?: ReportInfo
+  decision?: DisputeDecision
+};
 
 const typeBadge: Record<DisputeType, { label: string; tone: 'red' | 'amber' | 'blue' }> = {
-  'no-show': { label: 'No-show', tone: 'red' },
-  'listing-quality': { label: 'Listing quality', tone: 'amber' },
-  'report-listing': { label: 'Report listing', tone: 'blue' },
+  'no_show': { label: 'No-show', tone: 'red' },
+  'listing_quality': { label: 'Listing quality', tone: 'amber' },
+  'report_listing': { label: 'Report listing', tone: 'blue' },
 };
 
 const decisionLabel: Record<DisputeDecision, string> = {
@@ -55,6 +71,110 @@ function disputeReducer(state: State, action: Action): State {
   }
 }
 
+function transformCaseDetail(detail: CaseDetail) {
+  const mapPerson = (p: PartySummary) => ({
+    id: p.userId,
+    name: p.name,
+    initials: p.initials,
+    faculty: p.faculty ?? "Unknown",
+    reviewAverage: p.reviewAverage,
+    reputationScore: p.reputationScore,
+    strikeCount: p.strikeCount,
+    reviewCount: 0
+  });
+  const buildItemFromSnapshot = (snapshot?: ListingSnapshot): DisputeItem => {
+    if (!snapshot) {
+      return {
+        title: 'Unknown Item',
+        condition: 'N/A',
+        category: 'N/A',
+        moduleCode: 'N/A',
+        price: 'N/A',
+        status: 'Reserved',
+      };
+    }
+    return {
+      title: snapshot.title,
+      condition: snapshot.condition,
+      category: snapshot.courseTags?.join(', ') || 'N/A',
+      moduleCode: snapshot.courseTags?.[0] || 'N/A',
+      price: `R${snapshot.price.toFixed(2)}`,
+      status: 'Reserved',
+      imageUrl: snapshot.photoRefs?.[0] || undefined,
+    };
+  };
+
+  const subject = detail.subject;
+  const counterparty = detail.counterParty;
+
+  const roleMap: Record<string, 'Buyer' | 'Seller' |'Applicant'| 'System'>={
+    buyer:'Buyer',
+    seller:'Seller',
+    applicant: 'Applicant',
+    system: 'System',
+  };
+  const filedBy= roleMap[detail.filedByRole]?? 'Unknown';
+
+  let item: DisputeItem = {
+    title: 'Unknown Item',
+    condition: 'N/A',
+    category: 'N/A',
+    moduleCode: 'N/A',
+    price: 'N/A',
+    status: 'Reserved',
+  };
+
+  let checkIn: CheckInEvidence | undefined = undefined;
+  let photos: ListingPhotos | undefined = undefined;
+  let report: ReportInfo | undefined = undefined;
+
+  const ev = detail.evidence;
+
+  if (detail.type === 'no_show') {
+    checkIn = {
+      buyerCheckedIn: ev.buyerCheckedIn ?? false,
+      buyerCheckInTime: ev.buyerCheckInTime ?? undefined,
+      sellerCheckedIn: ev.sellerCheckedIn ?? false,
+      sellerCheckInTime: ev.sellerCheckInTime ?? undefined,
+      pinEntered: ev.pinStatus === 'confirmed',
+      checkInWindow: ev.checkInWindowClosesAt ? `Closes at ${new Date(ev.checkInWindowClosesAt).toLocaleString()}` : 'No window set',
+
+    };
+  }
+  if (detail.type == 'listing_quality') {
+    if (ev.snapshot) {
+      item = buildItemFromSnapshot(ev.snapshot);
+    }
+    photos = {
+      snapshotPhotos: ev.snapshot?.photoRefs ?? [],
+      buyerPhotos: ev.buyerPhotos ?? [],
+    };
+  }
+  if (detail.type == 'report_listing') {
+    if (ev.snapshot) {
+      item = buildItemFromSnapshot(ev.snapshot);
+    }
+    report = {
+      reason: ev.reportReason || 'No reason provided',
+      reportedBy: counterparty ? mapPerson(counterparty) : { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 },
+    };
+  }
+  return {
+    id: detail.caseId,
+    type: detail.type as DisputeType,
+
+    item,
+    buyer: counterparty ? mapPerson(counterparty) : { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 },
+    seller: mapPerson(subject),
+    datePlaced: new Date(detail.submittedAt).toLocaleDateString('en-ZA'),
+    filedBy,
+    checkIn,
+    photos,
+    report,
+    decision: undefined,
+  };
+};
+
 export default function AdminDisputeReview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -66,23 +186,19 @@ export default function AdminDisputeReview() {
   const [submitting, setSubmitting] = useState<DisputeDecision | null>(null);
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
   const [decisionNote, setDecisionNote] = useState('');
+  const [decisionError, setDecisionError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    const abortController = new AbortController();
 
     dispatch({ type: 'FETCH_START' });
 
-    getMockDisputeById(id ?? '')
-      .then((data) => {
-        if (active) {
-          if (data) {
-            dispatch({ type: 'FETCH_SUCCESS', payload: data });
-          } else {
-            dispatch({ type: 'FETCH_ERROR' });
-          }
-        }
-      })
+    getCaseById(id ?? '').then((data) => {
+      if (active) {
+        // check response though
+        dispatch({ type: 'FETCH_SUCCESS', payload: transformCaseDetail(data) });
+      }
+    })
       .catch(() => {
         if (active) {
           dispatch({ type: 'FETCH_ERROR' });
@@ -91,17 +207,21 @@ export default function AdminDisputeReview() {
 
     return () => {
       active = false;
-      abortController.abort();
     };
   }, [id]);
 
   async function handleDecision(decision: DisputeDecision) {
     if (!state.data) return;
     setSubmitting(decision);
-    setTimeout(() => {
-      setSubmitting(null);
+    setDecisionError(null);
+    try {
+      await decideCaseWithAction(state.data.id, state.data.type as CaseType, decision as ButtonAction, decisionNote.trim() || undefined);
       setCompletedDecision(decision);
-    }, 400);
+    } catch (error: any) {
+      setDecisionError(error.message || 'Failed to submit decision.');
+    } finally {
+      setSubmitting(null);
+    }
   }
 
   if (state.loading) {
@@ -113,7 +233,7 @@ export default function AdminDisputeReview() {
   }
 
   const dispute = state.data;
-  const badge = typeBadge[dispute.type as DisputeType]; // <-- fixed with type assertion
+  const badge = typeBadge[dispute.type as DisputeType];
 
   return (
     <div className="space-y-4">
@@ -128,9 +248,9 @@ export default function AdminDisputeReview() {
         <div className="lg:col-span-2 space-y-4">
           <ItemPanel dispute={dispute} />
 
-          {dispute.type === 'no-show' && dispute.checkIn && <CheckInPanel checkIn={dispute.checkIn} />}
-          {dispute.type === 'listing-quality' && dispute.photos && <PhotoComparisonPanel photos={dispute.photos} />}
-          {dispute.type === 'report-listing' && dispute.report && <ReportReasonPanel reason={dispute.report.reason} />}
+          {dispute.type === 'no_show' && dispute.checkIn && <CheckInPanel checkIn={dispute.checkIn} />}
+          {dispute.type === 'listing_quality' && dispute.photos && <PhotoComparisonPanel photos={dispute.photos} />}
+          {dispute.type === 'report_listing' && dispute.report && <ReportReasonPanel reason={dispute.report.reason} />}
 
           <Panel title="Actions">
             <div className="mb-4">
@@ -154,6 +274,9 @@ export default function AdminDisputeReview() {
                     className="w-full text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
                   />
                 </div>
+                {decisionError && (
+                  <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
+                )}
                 <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecision} />
               </>
             )}
@@ -164,7 +287,7 @@ export default function AdminDisputeReview() {
 
         <div className="space-y-4">
           <PersonCard title="Seller" person={dispute.seller} />
-          {dispute.type === 'report-listing' && dispute.report ? (
+          {dispute.type === 'report_listing' && dispute.report ? (
             <PersonCard title="Reported by" person={dispute.report.reportedBy} />
           ) : (
             <PersonCard title="Buyer" person={dispute.buyer} />
@@ -300,11 +423,10 @@ function DecisionConfirmation({
   return (
     <div>
       <div
-        className={`flex items-start gap-3 p-4 rounded-lg border ${
-          isFinal
-            ? 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20'
-            : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20'
-        }`}
+        className={`flex items-start gap-3 p-4 rounded-lg border ${isFinal
+          ? 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20'
+          : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20'
+          }`}
       >
         {isFinal ? (
           <IconMail size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
@@ -338,7 +460,7 @@ function DecisionActions({
   submitting,
   onDecide,
 }: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void }>) {
-  if (type === 'no-show') {
+  if (type === 'no_show') {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('uphold')}>
@@ -354,7 +476,7 @@ function DecisionActions({
     );
   }
 
-  if (type === 'listing-quality') {
+  if (type === 'listing_quality') {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>

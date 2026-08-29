@@ -1,10 +1,12 @@
 using Modules.Audit;
 using Modules.Disputes.Models.Dto;
+using Modules.Identity;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Verification;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
+using Modules.Reputation;
 
 namespace Modules.Disputes;
 
@@ -19,6 +21,8 @@ public class AdminCaseService : IAdminCaseService
     private readonly IAuditService _audit;
     private readonly IDisputeService _disputes;
     private readonly IListingSnapshotService _snapshots;
+    private readonly IPartDirectory _parties;
+    private readonly IReputationService _reputation;
 
     // constants
     private const string _resolvedString = "resolved";
@@ -52,11 +56,11 @@ public class AdminCaseService : IAdminCaseService
     {
         var res = new List<CaseSummaryDto>();
 
-        if (type is not null && type != "verification")
+        if (type is null or "verification")
         {
             res.AddRange((await _verification.ListPendingAsync(ct)).Select(MapToSummary));
         }
-        if (type is null or "listing_quality" or "no show" or "report_listing")
+        if (type is null or "listing_quality" or "no_show" or "report_listing")
         {
             res.AddRange(await _disputes.ListPendingAsync(type, ct)); // empty till the BE2 dispute ready
         }
@@ -68,7 +72,7 @@ public class AdminCaseService : IAdminCaseService
         var verificationCase = await _verification.GetCaseAsync(caseId, ct);
         if (verificationCase is not null)
         {
-            return ToDetail(verificationCase);
+            return ToDetailAsync(verificationCase);
         }
         var dispute = await _disputes.GetCaseDataAsync(caseId, ct); //also waiting on BE2 disputes to be ready
 
@@ -124,7 +128,7 @@ public class AdminCaseService : IAdminCaseService
                 ct
             );
 
-            return ToDetail(updatedVerificationRecord);
+            return ToDetailAsync(updatedVerificationRecord);
         }
         // dispute cases
 
@@ -178,6 +182,12 @@ public class AdminCaseService : IAdminCaseService
         );
 
         return await GetCaseByIdAsync(caseId, ct);
+    }
+
+    internal enum PartyRole
+    {
+        Buyer,
+        Seller,
     }
 
     private async Task ApplyDisputeDecisionAsync(
@@ -238,7 +248,10 @@ public class AdminCaseService : IAdminCaseService
             ),
         };
 
-    private CaseDetailDto ToDetail(VerificationCaseDto caseDto) =>
+    private async Task<CaseDetailDto> ToDetailAsync(
+        VerificationCaseDto caseDto,
+        CancellationToken ct
+    ) =>
         new()
         {
             CaseId = caseDto.VerificationId,
@@ -250,12 +263,16 @@ public class AdminCaseService : IAdminCaseService
                 (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
                 1
             ),
-            Evidence = new VerificationEvidenceDto
+            Subject = await BuildPartyAsync(caseDto.UserId, PartyRole.Seller, ct),
+            FiledByUserId = caseDto.UserId,
+            FiledByRole = "applicant",
+            Evidence = new CaseEvidenceDto
             {
                 University = caseDto.University,
                 Degree = caseDto.Degree,
                 Year = caseDto.Year,
                 Email = caseDto.Email,
+                DomainValid = true,
             },
         };
 
@@ -285,6 +302,17 @@ public class AdminCaseService : IAdminCaseService
             ? null
             : await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
 
+        var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
+        // for reporting a lsiting conunterparty s the rpeorter
+        Guid? counterpartyId =
+            d.Type == "report_listing" ? d.RaisedBy
+            : d.SubjectUserId == d.SellerId ? d.BuyerId
+            : d.SubjectUserId == d.BuyerId ? d.SellerId
+            : null;
+        if(counterpartyId == d.SubjectUserId) counterpartyId = null;
+
+        var counterparty = counterpartyId is null? null: await BuildPartyAsync(counterpartyId.Value, RoleOd(d, counterpartyId.Value), ct);
+
         return new CaseDetailDto
         {
             CaseId = d.DisputeId,
@@ -293,11 +321,78 @@ public class AdminCaseService : IAdminCaseService
             SubjectUserId = d.SubjectUserId,
             SubmittedAt = d.SubmittedAt,
             AgeHours = Math.Round((_clock.GetUtcNow().UtcDateTime - d.SubmittedAt).TotalHours, 1),
-            // will extend case detail dto with a listing quality/ no show evidence property just like hoe verification evidence hangs off it , and st here
-            // snapshot, d.Photos, listing quality evidence has both of this
+            Subject = subject,
+            CounterParty = counterparty,
+            FiledByUserId= d.RaisedBy,
+            FiledByRole = d.RaisedBy== d.SellerId? "seller": d.RaisedBy== d.BuyerId? "buyer":"system",
+            Evidence = BuildDisputeEvidence(d, snapshot);
         };
     }
+    private static CaseEvidenceDto BuildDisputeEvidence(DisputeCaseData d, ListingSnapshotDto? snapshot) =>
+    d.Type switch
+    {
+        "listing_quality" => new CaseEvidenceDto
+        {
+            Snapshot = snapshot,
+            BuyerPhotos = d.Photos,
+            SellerRefusedPhotos = d.SellerRefusedPhotos,
+        },
+        "report_listing"=> new CaseEvidenceDto
+        {
+            Snapshot = snapshot,
+            ListingId= d.ListingId,
+            ReportReason = d.Description,
+        },
+        "no_show"=> new CaseEvidenceDto
+        {MeetupId = d.MeetupId,
+        BuyerCheckedIn= d.BuyerCheckedIn,
+        BuyerCheckInTime= d.BuyerCheckInTime,
+        SellerCheckedIn= d.SellerCheckedIn,
+        SellerCheckInTime= d.SellerCheckInTime,
+        PinStatus= d.PinStatus,
+        CheckInWindowClosesAt= d.CheckInWindowClosesAt,
+        
+            
+        },
+        _ => new CaseEvidenceDto(),
+    };
 
+    private double Age(DateTime submittedAt)=>
+    Math.Round((_clock.GetUtcNow().UtcDateTime - submittedAt).TotalHours, 1);
+
+    private static PartyRole RoleOf(DisputeCaseData d, Guid userId)=>
+    userId== d.BuyerId ? PartyRole.Buyer : PartyRole.Seller;
+    
+    private async Task<PartySummaryDto> BuildPartyAsync(Guid userId, PartyRole role, CancellationToken ct)
+    {
+        var p = await _parties.GetAsync(userId, ct);
+        if(p is null)
+        {
+            return null;
+        }
+        var strikes = await _reputation.GetStrikesAsync(userId, ct);
+            var score = role == PartyRole.Buyer? p.BuyerReliabilityScore: p.SellerTrustScore;
+            
+            return new PartySummaryDto
+            {
+                UserId =p.UserId,
+                Name=$"{p.FirstName} {p.LastName}".Trim(),
+                Initials = MakeInitials(p.FirstName, p.LastName),
+                Faculty= p.University,
+                ReviewAverage= (double)score,
+                ReputationScore = Math.Round(score/5m* 100m),
+                StrikeCount =strikes.Count,
+
+            };
+
+    }
+    private static string MakeInitials(string first, string last)
+    {
+        var firstName = string.IsNullOrEmpty(first)? "":first[..1];
+        var lastName = string.IsNullOrEmpty(last)? "":last[..1];
+        return(firstName+lastName).ToUpperInvariant();
+        
+    }
     private static string MapDisputeStatus(string s) =>
         s switch
         {

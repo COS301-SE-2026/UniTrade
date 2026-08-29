@@ -2,7 +2,7 @@ using Modules.Listings.Models.Dto;
 
 namespace Modules.Disputes.Models.Dto;
 
-public class CaseEvidenceDto
+public sealed class CaseEvidenceDto
 {
     public string? University { get; set; }
     public string? Degree { get; set; }

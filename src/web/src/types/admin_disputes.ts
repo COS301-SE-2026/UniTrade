@@ -17,7 +17,12 @@ export type Decision =
 //assumptions for now as I'm waiting for som confirmation from backend
 export type Outcome = "strike" | "remove_listing" | "refusal_flag";
 
-export type PinStatus = "not_entered" | "entered_incorrect" | "entered_correct";
+export type PinStatus =
+  | "not_entered"
+  | "entered_incorrect"
+  | "entered_correct"
+  | "pending"
+  | "confirmed";
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
 
@@ -116,9 +121,11 @@ export interface PartySummary {
 }
 export interface CaseDetail extends CaseSummary {
   subject: PartySummary;
-  counterparty?: PartySummary;
+  counterParty?: PartySummary;
   evidence: CaseEvidence;
   history: unknown[];
+  filedByRole: string;
+  filedByUserId?: string;
 }
 
 export interface CaseHistoryEntry {

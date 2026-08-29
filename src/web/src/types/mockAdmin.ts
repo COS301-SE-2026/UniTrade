@@ -2,7 +2,7 @@
 //once the backend points are set up
 import textbook from '../assets/bio-textbook.jpg'
 
-export type DisputeType = 'no-show' | 'listing-quality' | 'report-listing'
+export type DisputeType = 'no_show' | 'listing_quality' | 'report_listing'
 
 export type DisputeDecision = 'uphold' | 'dismiss' | 'more-info' | 'side-buyer' | 'side-seller' | 'remove-listing' | 'warn-seller'
 
@@ -61,7 +61,7 @@ export interface DisputeCase {
   buyer: PersonSummary
   seller: PersonSummary
   datePlaced: string
-  filedBy: 'Buyer' | 'Seller'
+  filedBy: 'Buyer' | 'Seller' |'Applicant'| 'System'
   checkIn?: CheckInEvidence
   photos?: ListingPhotos
   report?: ReportInfo
@@ -169,7 +169,7 @@ const Zelamene: PersonSummary = {
 const mockDisputes: DisputeCase[] = [
     {
         id: 'dispute-1',
-        type: 'no-show',
+        type: 'no_show',
         item: {
             title: 'Difficult calculas textbook',
             condition: 'Like new',
@@ -193,7 +193,7 @@ const mockDisputes: DisputeCase[] = [
     },
     {
         id: 'dispute-2',
-        type: 'listing-quality',
+        type: 'listing_quality',
         item: {
             title: 'Difficult calculas textbook',
             condition: 'Like new',
@@ -214,7 +214,7 @@ const mockDisputes: DisputeCase[] = [
     },
     {
         id: 'dispute-3',    
-        type: 'report-listing',
+        type: 'report_listing',
         item: {
             title: 'Difficult calculas textbook',
             condition: 'Like new',
