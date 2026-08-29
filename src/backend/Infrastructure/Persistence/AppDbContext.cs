@@ -11,6 +11,7 @@ using Modules.Reservations.Models;
 using Modules.Reviews.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
+using Modules.Disputes.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -64,6 +65,9 @@ public class AppDbContext : DbContext
 
     // Audits
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    // Disputes
+    public DbSet<Dispute> Disputes => Set<Dispute>();
 
     //constants - sonarqube
     private readonly string _nowString = "now()";
@@ -935,6 +939,48 @@ public class AppDbContext : DbContext
             entity.HasIndex(x=>x.UserId).HasDatabaseName("ix_strikes_user");
             entity.HasIndex(x=>x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
             entity.HasIndex(x=>x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
+        });
+
+        modelBuilder.Entity<Dispute>(entity =>
+        {
+            entity.HasKey(x=>x.DisputeId);
+            entity.Property(x=>x.DisputeId).HasDefaultValueSql("gen_random_uuid()");
+
+            entity.Property(x=>x.Type).HasMaxLength(30).IsRequired();
+            entity.Property(x=>x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("pending");
+
+            entity.Property(x=>x.SubjectUserId).IsRequired();
+            entity.Property(x=>x.RaisedBy).IsRequired();
+
+            entity.Property(x=>x.SellerRefusedPhotos).HasDefaultValue(false);
+            entity.Property(x=>x.Photos).HasColumnType("text[]");
+            entity.Property(x=>x.Description);
+
+            entity.Property(x=>x.SubmittedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity.Property(x=>x.AdminDecision).HasMaxLength(20);
+            entity.Property(x=>x.Outcomes).HasColumnType("text[]");
+            entity.Property(x=>x.Reason);
+            entity.Property(x=>x.DecidedAt);
+
+            entity.ToTable(t=>
+            {
+                t.HasCheckConstraint("chk_dispute_type","type IN ('listing_quality','report_listing','no_show')");
+                t.HasCheckConstraint("chk_dispute_status","status IN ('pending','under_review','resolved','dismissed')");
+            });
+
+            entity.HasOne<User>().WithMany().HasForeignKey(x=>x.SubjectUserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x=>x.RaisedBy).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Reservation>().WithMany().HasForeignKey(x=>x.ReservationId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Listing>().WithMany().HasForeignKey(x=>x.ListingId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Meetup>().WithMany().HasForeignKey(x=>x.MeetupId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x=>x.DecidedByAdminId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x=>x.Status).HasDatabaseName("ix_disputes_status");
+            entity.HasIndex(x=>x.Type).HasDatabaseName("ix_disputes_type");
+            entity.HasIndex(x=>x.SubjectUserId).HasDatabaseName("ix_disputes_subject");
+            entity.HasIndex(x=>x.SubmittedAt).HasDatabaseName("ix_disputes_submitted").IsDescending();
+           
         });
     }
 }
