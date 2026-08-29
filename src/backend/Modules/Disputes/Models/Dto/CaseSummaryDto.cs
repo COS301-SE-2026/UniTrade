@@ -10,13 +10,13 @@ public class CaseSummaryDto
     public double AgeHours { get; set; }
     public int SlaHours { get; set; }
     public bool SlaBreached { get; set; }
-    public string? Title {get; set;}
-    public string? SubjectInitials{get; set;}
-    public string? CounterpartyInitials{get; set;}
-    public Guid RaisedBy{get; set;}
-    public Guid? SellerId{get; set;}
-    public Guid? BuyerId{get; set;}
-        public Guid? ReservationId{get; set;}
+    public string? Title { get; set; }
+    public string? SubjectInitials { get; set; }
+    public string? CounterpartyInitials { get; set; }
+    public Guid RaisedBy { get; set; }
+    public Guid? SellerId { get; set; }
+    public Guid? BuyerId { get; set; }
+    public Guid? ReservationId { get; set; }
 
-    
+
 }
