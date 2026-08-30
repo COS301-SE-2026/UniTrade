@@ -7,7 +7,8 @@ public sealed class PartySummaryDto
     public string Initials { get; set; } = "";
     public string? Faculty { get; set; }
     public double ReviewAverage { get; set; }
-    public decimal ReputationScore { get; set; }
+    public int ReputationScore { get; set; }
     public int StrikeCount { get; set; }
+    public int ReviewCount { get; set; }
 }
 

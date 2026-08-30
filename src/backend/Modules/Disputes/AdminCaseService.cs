@@ -525,7 +525,7 @@ public class AdminCaseService : IAdminCaseService
             return null;
         }
         var strikes = await _reputation.GetStrikesAsync(userId, ct);
-        var score = role == PartyRole.Buyer ? p.BuyerReliabilityScore : p.SellerTrustScore;
+        var reputation = await _reputation.GetReputationSummaryAsync(userId, ct);
 
         return new PartySummaryDto
         {
@@ -533,9 +533,10 @@ public class AdminCaseService : IAdminCaseService
             Name = $"{p.FirstName} {p.LastName}".Trim(),
             Initials = MakeInitials(p.FirstName, p.LastName),
             Faculty = p.University,
-            ReviewAverage = (double)score,
-            ReputationScore = Math.Round(score / 5m * 100m),
+            ReviewAverage = reputation.AverageRating,
+            ReputationScore = reputation.ReputationScore,
             StrikeCount = strikes.Count,
+            ReviewCount = reputation.ReviewCount,
         };
     }
 

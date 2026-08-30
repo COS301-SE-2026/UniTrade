@@ -42,7 +42,7 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
     reviewAverage: detail.subject.reviewAverage,
     reputationScore: detail.subject.reputationScore,
     strikeCount: detail.subject.strikeCount,
-    reviewCount: 0
+    reviewCount: detail.subject.reviewCount
   } :
     {
       id: '', initials: '?', name: 'Unknown user', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0

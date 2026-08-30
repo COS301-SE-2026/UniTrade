@@ -129,6 +129,7 @@ export interface PartySummary {
   reviewAverage: number;
   reputationScore: number;
   strikeCount: number;
+  reviewCount: number;
 }
 export interface CaseDetail extends CaseSummary {
   subject: PartySummary;
