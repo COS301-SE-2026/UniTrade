@@ -19,6 +19,8 @@ using Moq;
 using Xunit;
 using UniversityDto = Modules.Identity.Models.DTO.University;
 using UniversityEntity = Modules.ReferenceData.University.University;
+using Modules.Identity.Verification;
+using Modules.SharedKernel;
 
 namespace UniTrade.Tests.Unit.Modules;
 
@@ -32,6 +34,7 @@ public class IdentityServiceTests
 
     private readonly Mock<IConfiguration> _configMock;
     private readonly IdentityService _service;
+    private readonly Mock<IProofOfRegistrationStorageService> _proofStorageMock;
 
     private readonly Mock<IVerificationRepository> _verificationRepositoryMock;
     private readonly Mock<IEmailService> _emailServiceMock;
@@ -43,6 +46,7 @@ public class IdentityServiceTests
         _universityRepositoryMock = new Mock<IUniversityRepository>();
         _configMock = new Mock<IConfiguration>();
         _listingRepositoryMock = new Mock<IListingRepository>();
+        _proofStorageMock = new Mock<IProofOfRegistrationStorageService>();
 
         _configMock
             .Setup(c => c["Jwt:Secret"])
@@ -60,6 +64,7 @@ public class IdentityServiceTests
             _verificationRepositoryMock.Object,
             _userRepositoryMock.Object,
             _emailServiceMock.Object,
+            _proofStorageMock.Object,
             _configMock.Object
         );
     }

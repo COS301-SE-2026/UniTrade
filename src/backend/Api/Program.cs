@@ -18,6 +18,7 @@ using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
+using Infrastructure.Persistence.Repositories.Identity;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;
 using Infrastructure.Transactions;
@@ -247,6 +248,8 @@ builder.Services.AddScoped<ICaseOutcomeApplier, CaseOutcomeApplier>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IDisputeService, DisputesService>();
 builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
+builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
+builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(

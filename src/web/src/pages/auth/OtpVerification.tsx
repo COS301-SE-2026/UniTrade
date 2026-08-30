@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 
+
 interface ApiError {
   message: string
 }
@@ -13,7 +14,7 @@ interface ApiError {
 export default function OTPVerification() {
   const navigate = useNavigate()
   const { isDark, toggle } = useThemeStore()
-  const { pendingEmail, clearPendingEmail } = useAuthStore()
+  const { pendingEmail, clearPendingEmail} = useAuthStore()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timeLeft, setTimeLeft] = useState(60)
   const [error, setError] = useState<string | null>(null)
@@ -64,14 +65,14 @@ export default function OTPVerification() {
     }
   }
 
-  const handleVerify = async () => {
+    const handleVerify = async () => {
     if (otp.join('').length < 6 || !pendingEmail) return
     setLoading(true)
     setError(null)
     try {
       await authService.verifyOtp(pendingEmail, otp.join(''))
       clearPendingEmail()
-      navigate('/auth/Login')
+      navigate('/auth/ProofUpload')
     } catch (err: unknown) {
       const error = err as ApiError
       setError(getAuthErrorMessage(error.message))
@@ -81,7 +82,6 @@ export default function OTPVerification() {
       setLoading(false)
     }
   }
-
   const isComplete = otp.every(d => d !== '')
 
   return (

@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments => Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
 
     ///add listing model after resolving conflicts
@@ -278,6 +279,33 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("uix_vr_current")
                 .IsUnique()
                 .HasFilter("is_current = true");
+        });
+
+        //Proof of registration documents
+        modelBuilder.Entity<ProofOfRegistrationDocument>(entity =>
+        {
+            entity.Property(x => x.DocumentId).ValueGeneratedOnAdd();
+            entity.HasKey(x => x.DocumentId);
+
+            entity.Property(x => x.VerificationId).IsRequired();
+
+            entity.Property(x => x.FileData).HasColumnType("bytea").IsRequired();
+            entity.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.FileSize).IsRequired();
+            entity.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity
+                .HasOne<VerificationRequest>()
+                .WithOne()
+                .HasForeignKey<ProofOfRegistrationDocument>(x => x.VerificationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasIndex(x => x.VerificationId)
+                .HasDatabaseName("uix_por_verification")
+                .IsUnique();
         });
 
         // Listings

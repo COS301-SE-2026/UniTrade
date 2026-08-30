@@ -18,6 +18,15 @@ public class AuthController : ControllerBase
     private readonly IVerificationService _verificationService;
     private readonly IWebHostEnvironment _env;
 
+    private static readonly string[] AllowedPorContentTypes =
+    {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+   };
+
+    private const long MaxPorFileSizeBytes = 5 * 1024 * 1024;
+
     public AuthController(
         IIdentityService identityService,
         IVerificationService verificationService,
@@ -205,5 +214,51 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { token = _identityService.GenerateHubToken(userId) });
+    }
+
+    [HttpPost("upload-por")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadProofOfRegistration(IFormFile file)
+    {
+        var userIdClaim =
+            User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { error = "unauthenticated" });
+
+        if (file is null || file.Length == 0)
+            return UnprocessableEntity(new { error = "no_file" });
+
+        if (file.Length > MaxPorFileSizeBytes)
+            return UnprocessableEntity(new { error = "file_too_large" });
+
+        if (!AllowedPorContentTypes.Contains(file.ContentType))
+            return UnprocessableEntity(new { error = "invalid_file_type" });
+
+        await using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+
+        try
+        {
+            await _verificationService.SubmitProofOfRegistrationAsync(
+                userId,
+                stream.ToArray(),
+                file.ContentType,
+                file.FileName
+            );
+
+            return Ok(new { message = "Proof of registration submitted." });
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+                "no_pending_verification" => UnprocessableEntity(
+                    new { error = "no_pending_verification" }
+                ),
+                _ => StatusCode(500, new { error = "server_error" }),
+            };
+        }
     }
 }
