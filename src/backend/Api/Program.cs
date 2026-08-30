@@ -13,8 +13,10 @@ using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.Identity;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
+using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
@@ -36,7 +38,9 @@ using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
 using Modules.Listings;
+using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
 using Modules.ReferenceData;
@@ -44,6 +48,8 @@ using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.Reputation;
+using Modules.Reputation.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
@@ -253,6 +259,11 @@ builder.Services.AddHostedService<NoShowDetectionWorker>();
 builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
 
 
+builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
@@ -263,9 +274,18 @@ if (!builder.Environment.IsDevelopment())
     );
 }
 
-var jwtSecret =
-    builder.Configuration["Jwt:Secret"]
-    ?? throw new InvalidOperationException("JWT_SECRET is not configured");
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+
+if (string.IsNullOrEmpty(jwtSecret) && builder.Environment.IsDevelopment())
+{
+    jwtSecret = "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5"; // i needed this for the QR testing, it's only ever in dev @Sabira
+    builder.Configuration["Firebase:CredentialsJson"] = "";
+}
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    throw new InvalidOperationException("JWT_SECRET is not configured");
+}
+
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder
@@ -276,6 +296,7 @@ builder
     })
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -317,6 +338,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
@@ -326,7 +348,10 @@ else
 app.UseRouting();
 app.UseCors("AllowReactApp");
 app.UseRateLimiter();
-app.UseMiddleware<ExceptionMiddleware>();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<ExceptionMiddleware>();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok("healthy"));
@@ -334,3 +359,5 @@ app.MapHub<ChatHub>("/chathub");
 app.MapControllers();
 
 await app.RunAsync();
+
+public partial class Program { }

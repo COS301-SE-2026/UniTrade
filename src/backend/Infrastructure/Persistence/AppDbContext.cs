@@ -25,6 +25,8 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
+        Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
 
     ///add listing model after resolving conflicts
@@ -282,6 +284,33 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("uix_vr_current")
                 .IsUnique()
                 .HasFilter("is_current = true");
+        });
+
+        //Proof of registration documents
+        modelBuilder.Entity<ProofOfRegistrationDocument>(entity =>
+        {
+            entity.Property(x => x.DocumentId).ValueGeneratedOnAdd();
+            entity.HasKey(x => x.DocumentId);
+
+            entity.Property(x => x.VerificationId).IsRequired();
+
+            entity.Property(x => x.FileData).HasColumnType("bytea").IsRequired();
+            entity.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.FileSize).IsRequired();
+            entity.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity
+                .HasOne<VerificationRequest>()
+                .WithOne()
+                .HasForeignKey<ProofOfRegistrationDocument>(x => x.VerificationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasIndex(x => x.VerificationId)
+                .HasDatabaseName("uix_por_verification")
+                .IsUnique();
         });
 
         // Listings
@@ -877,7 +906,6 @@ public class AppDbContext : DbContext
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_listing_snapshot_price", "price > 0");
-
             });
             entity
                 .HasOne(x => x.Reservation)
@@ -892,8 +920,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_snapshots_listing_id");
-        }
-        );
+        });
         // Audit logs
 
         modelBuilder.Entity<AuditLog>(entity =>
@@ -928,12 +955,14 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             //relationships
-            entity.HasOne<User>()
+            entity
+                .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne<User>()
+            entity
+                .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.CreatedByAdminId)
                 .OnDelete(DeleteBehavior.Restrict);

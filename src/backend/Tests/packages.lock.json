@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "BCrypt.Net-Next": {
+        "type": "Direct",
+        "requested": "[4.2.0, )",
+        "resolved": "4.2.0",
+        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
+      },
       "coverlet.collector": {
         "type": "Direct",
         "requested": "[10.0.1, )",
@@ -152,11 +158,6 @@
           "Azure.Core": "1.51.1",
           "System.IO.Hashing": "10.0.3"
         }
-      },
-      "BCrypt.Net-Next": {
-        "type": "Transitive",
-        "resolved": "4.2.0",
-        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
@@ -980,6 +981,7 @@
         "type": "Project",
         "dependencies": {
           "Azure.Communication.Email": "[1.1.0, )",
+          "BCrypt.Net-Next": "[4.2.0, )",
           "Infrastructure": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.8, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0, )",

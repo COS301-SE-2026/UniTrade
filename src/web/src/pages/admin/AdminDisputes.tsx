@@ -52,38 +52,38 @@ export default function AdminDisputes() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let active = true;
-    getCases()
-      .then(async (response) => {
+  let active = true;
+  getCases()
+    .then(async (response) => {
 
-        const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
-        const filtered = response.cases.filter(c => disputeTypes.has(c.type));
+      const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
+      const filtered = response.cases.filter(c => disputeTypes.has(c.type));
 
-        const enriched = filtered.map(summary => ({
-          id: summary.caseId,
-          title: summary.title ?? 'Unknown listing',
-          buyerInitials: summary.counterpartyInitials ?? '??',
-          sellerInitials: summary.subjectInitials ?? '??',
-          timeAgo: getTimeAgo(summary.ageHours),
-          type: getDisplayType(summary.type as DisputeCaseType),
-          image: getPlaceholder(summary.type as DisputeCaseType),
+      const enriched = filtered.map(summary => ({
+        id: summary.caseId,
+        title: summary.title ?? 'Unknown listing',
+        buyerInitials: summary.counterpartyInitials ?? '??',
+        sellerInitials: summary.subjectInitials ?? '??',
+        timeAgo: getTimeAgo(summary.ageHours),
+        type: getDisplayType(summary.type as DisputeCaseType),
+        image: getPlaceholder(summary.type as DisputeCaseType),
 
-        }));
-        if (active) {
-          setRows(enriched);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (active) {
-          setError(err.message || 'Failed to load disputes');
-          setLoading(false);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+      }));
+      if (active) {
+        setRows(enriched);
+        setLoading(false);
+      }
+    })
+    .catch((err) => {
+      if (active) {
+        setError(err.message || 'Failed to load disputes');
+        setLoading(false);
+      }
+    });
+  return () => {
+    active = false;
+  };
+}, []);
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.buyerInitials.toLowerCase().includes(searchQuery.toLowerCase()) ||

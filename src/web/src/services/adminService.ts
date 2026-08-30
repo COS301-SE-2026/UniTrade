@@ -18,6 +18,8 @@ import type {
   ListUsersResponse,
   UserReputation,
   CaseType,
+  UserListing,
+  CaseSummary,
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -72,16 +74,16 @@ function toDecisionRequest(
   throw new Error(`Invalid action "${action}" for case type 
     "${type}"`);
 }
-function getToken(): string {
+/*function getToken(): string {
   return localStorage.getItem("token") ?? "";
 }
 
-function authHeaders(): HeadersInit {
+/*function authHeaders(): HeadersInit {
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${getToken()}`,
   };
-}
+}*/
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (res.ok) {
@@ -118,7 +120,7 @@ export async function getCases(
 
   const res = await fetch(`${getApiUrl()}/admin/cases?${query.toString()}`, {
     method: "GET",
-    headers: authHeaders(),
+    credentials: "include",
   });
 
   return handleResponse<ListCasesResponse>(res);
@@ -127,7 +129,7 @@ export async function getCases(
 export async function getCaseById(id: string): Promise<GetCaseResponse> {
   const res = await fetch(`${getApiUrl()}/admin/cases/${id}`, {
     method: "GET",
-    headers: authHeaders(),
+    credentials: "include",
   });
 
   return handleResponse<GetCaseResponse>(res);
@@ -139,7 +141,7 @@ export async function decideCase(
 ): Promise<DecideCaseResponse> {
   const res = await fetch(`${getApiUrl()}/admin/cases/${id}/decision`, {
     method: "POST",
-    headers: authHeaders(),
+    credentials: "include",
     body: JSON.stringify(body),
   });
 
@@ -151,7 +153,7 @@ export async function fileDispute(
 ): Promise<FileCaseResponse> {
   const res = await fetch(`${getApiUrl()}/disputes`, {
     method: "POST",
-    headers: authHeaders(),
+    credentials: "include",
     body: JSON.stringify(body),
   });
 
@@ -169,7 +171,7 @@ export async function getAuditEntries(
 
   const res = await fetch(`${getApiUrl()}/admin/audit?${query.toString()}`, {
     method: "GET",
-    headers: authHeaders(),
+    credentials: "include",
   });
 
   return handleResponse<ListAuditResponse>(res);
@@ -180,7 +182,7 @@ export async function getReservationSnapshot(
 ): Promise<GetListingSnapshotResponse> {
   const res = await fetch(
     `${getApiUrl()}/reservations/${reservationId}/snapshot`,
-    { method: "GET", headers: authHeaders() },
+    { method: "GET", credentials: "include" },
   );
 
   return handleResponse<GetListingSnapshotResponse>(res);
@@ -191,7 +193,7 @@ export async function publishListing(
 ): Promise<PublishListingResponse> {
   const res = await fetch(`${getApiUrl()}/listings/${listingId}/publish`, {
     method: "POST",
-    headers: authHeaders(),
+    credentials: "include",
   });
 
   if (res.status === 403) {
@@ -221,7 +223,7 @@ export async function getUsers(
 
   const res = await fetch(`${getApiUrl()}/admin/users?${query.toString()}`, {
     method: "GET",
-    headers: authHeaders(),
+    credentials: "include",
   });
 
   return handleResponse<ListUsersResponse>(res);
@@ -232,7 +234,7 @@ export async function getUserReputation(
 ): Promise<UserReputation> {
   const res = await fetch(`${getApiUrl()}/admin/users/${userId}/reputation`, {
     method: "GET",
-    headers: authHeaders(),
+    credentials: "include",
   });
 
   return handleResponse<UserReputation>(res);
@@ -246,4 +248,40 @@ export async function decideCaseWithAction(
 ): Promise<DecideCaseResponse> {
   const body = toDecisionRequest(type, action, reason);
   return decideCase(caseId, body);
+}
+
+export async function getUserListings(
+  userId: string,
+  limit: number = 5,
+): Promise<UserListing[]> {
+  const query = new URLSearchParams({ limit: String(limit) });
+  const res = await fetch(
+    `${getApiUrl()}/admin/users/${userId}/listings?${query}`,
+    {
+      method: "GET",
+      credentials: "include",
+    },
+  );
+  return handleResponse<UserListing[]>(res);
+}
+
+export async function getTopVerifications(limit = 5): Promise<CaseSummary[]> {
+  const res = await getCases({ type: "verification", status: "pending" });
+  return res.cases.slice(0, limit);
+}
+
+export async function getTopDisputes(limit= 5): Promise<CaseSummary[]> {
+  const res = await getCases({ type: undefined, status: "pending" });
+  const disputeTypes = new Set<CaseType>([
+    "no_show",
+    "listing_quality",
+    "report_listing",
+  ]);
+  const disputes = res.cases.filter((c) => disputeTypes.has(c.type));
+  return disputes.slice(0, limit);
+}
+
+export async function getTotalUsers(): Promise<number> {
+  const res = await getUsers({ limit: 1, page: 1 });
+  return res.total;
 }
