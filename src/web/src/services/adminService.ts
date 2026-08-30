@@ -19,6 +19,7 @@ import type {
   UserReputation,
   CaseType,
   UserListing,
+  CaseSummary,
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -253,7 +254,7 @@ export async function getUserListings(
   userId: string,
   limit: number = 5,
 ): Promise<UserListing[]> {
-  const query = new URLSearchParams({limit: String(limit)});
+  const query = new URLSearchParams({ limit: String(limit) });
   const res = await fetch(
     `${getApiUrl()}/admin/users/${userId}/listings?${query}`,
     {
@@ -262,4 +263,25 @@ export async function getUserListings(
     },
   );
   return handleResponse<UserListing[]>(res);
+}
+
+export async function getTopVerifications(limit = 5): Promise<CaseSummary[]> {
+  const res = await getCases({ type: "verification", status: "pending" });
+  return res.cases.slice(0, limit);
+}
+
+export async function getTopDisputes(limit= 5): Promise<CaseSummary[]> {
+  const res = await getCases({ type: undefined, status: "pending" });
+  const disputeTypes = new Set<CaseType>([
+    "no_show",
+    "listing_quality",
+    "report_listing",
+  ]);
+  const disputes = res.cases.filter((c) => disputeTypes.has(c.type));
+  return disputes.slice(0, limit);
+}
+
+export async function getTotalUsers(): Promise<number> {
+  const res = await getUsers({ limit: 1, page: 1 });
+  return res.total;
 }
