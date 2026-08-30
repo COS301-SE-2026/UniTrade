@@ -126,7 +126,7 @@ export function OutlineButton({
   children,
   onClick,
   className = '',
-}: Readonly<{ children: React.ReactNode; onClick?: () => void; className?: string }>) {
+}: Readonly<{ children: React.ReactNode; onClick?: () => void; className?: string;disabled?: boolean }>) {
   return (
     <button
       type="button"

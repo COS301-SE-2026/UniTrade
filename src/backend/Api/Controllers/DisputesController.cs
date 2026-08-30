@@ -17,7 +17,7 @@ public class DisputesController : ControllerBase
         _disputes = disputes;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
     //POST /api/disputes
     //file any dispute type -> no show , report listing,and listing quality

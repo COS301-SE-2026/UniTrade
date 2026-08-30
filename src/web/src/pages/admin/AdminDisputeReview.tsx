@@ -14,6 +14,7 @@ import {
 import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
 import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
+import { getApiUrl } from '../../config';
 
 export interface DisputeCase {
   id: string
@@ -27,6 +28,7 @@ export interface DisputeCase {
   photos?: ListingPhotos
   report?: ReportInfo
   decision?: DisputeDecision
+  listingId?: string
 };
 
 const typeBadge: Record<DisputeType, { label: string; tone: 'red' | 'amber' | 'blue' }> = {
@@ -88,6 +90,8 @@ function transformCaseDetail(detail: CaseDetail) {
       reviewCount: 0
     };
   };
+  const apiBase = getApiUrl();
+
   const buildItemFromSnapshot = (snapshot?: ListingSnapshot): DisputeItem => {
     if (!snapshot) {
       return {
@@ -96,7 +100,7 @@ function transformCaseDetail(detail: CaseDetail) {
         category: 'N/A',
         moduleCode: 'N/A',
         price: 'N/A',
-        status: 'Reserved',
+        status: 'Live',
       };
     }
     return {
@@ -106,7 +110,7 @@ function transformCaseDetail(detail: CaseDetail) {
       moduleCode: snapshot.courseTags?.[0] || 'N/A',
       price: `R${snapshot.price.toFixed(2)}`,
       status: 'Reserved',
-      imageUrl: snapshot.photoRefs?.[0] || undefined,
+      imageUrl: snapshot.photoRefs?.[0] ? `${apiBase}${snapshot.photoRefs[0].replace(/^\/api/,'')}` : undefined // if not rendering in prod.. check the element if its missing an api
     };
   };
 
@@ -133,7 +137,7 @@ function transformCaseDetail(detail: CaseDetail) {
   let checkIn: CheckInEvidence | undefined = undefined;
   let photos: ListingPhotos | undefined = undefined;
   let report: ReportInfo | undefined = undefined;
-
+  let listingId: string | undefined = undefined;
   const ev = detail.evidence;
 
   if (detail.type === 'no_show') {
@@ -160,6 +164,7 @@ function transformCaseDetail(detail: CaseDetail) {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot);
     }
+    listingId = ev.listingId;
     report = {
       reason: ev.reportReason || 'No reason provided',
       reportedBy: counterparty ? mapPerson(counterparty) : { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 },
@@ -178,6 +183,7 @@ function transformCaseDetail(detail: CaseDetail) {
     photos,
     report,
     decision: undefined,
+    listingId
   };
 };
 
@@ -261,7 +267,7 @@ export default function AdminDisputeReview() {
 
           <Panel title="Actions">
             <div className="mb-4">
-              <OutlineButton onClick={() => navigate(`/listings/${dispute.id}`)}>View Listing</OutlineButton>
+              <OutlineButton onClick={() => navigate(`/buyer/listings/${dispute.listingId ?? dispute.id}`)} disabled={!dispute.listingId}>View Listing</OutlineButton>
             </div>
 
             {completedDecision ? (

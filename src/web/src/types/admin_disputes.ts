@@ -171,7 +171,7 @@ export interface ListingQualityFiling {
 export interface ReportListingFiling {
   type: "report_listing";
   listingId: string;
-  reportReason: string;
+  description: string;
 }
 
 export type DisputeFiling =

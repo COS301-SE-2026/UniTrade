@@ -25,7 +25,7 @@ public class ReservationsController : ControllerBase
         _snapshot = snapshot;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
     private bool IsVerified => User.FindFirst("verification_status")?.Value == "verified";
 
     // POST /api/reservations

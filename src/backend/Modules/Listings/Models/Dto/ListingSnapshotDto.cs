@@ -12,5 +12,6 @@ namespace Modules.Listings.Models.Dto
         public DateTime CapturedAt { get; set; }
         public Reservation Reservation { get; set; } = null!;
         public Listing Listing { get; set; } = null!;
+        public Guid? SnapshotId { get; set; }
     }
 }

@@ -12,6 +12,7 @@ using Modules.Reviews.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
 using Modules.Disputes.Models;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 namespace Infrastructure.Persistence;
 
@@ -892,8 +893,9 @@ public class AppDbContext : DbContext
         //listing snapshot
         modelBuilder.Entity<ListingSnapshot>(entity =>
         {
-            entity.HasKey(x => x.ReservationId);
-            entity.Property(x => x.ReservationId).ValueGeneratedNever();
+            entity.HasKey(x => x.SnapshotId);
+            entity.Property(x => x.SnapshotId).ValueGeneratedNever();
+            entity.Property(x => x.ReservationId).IsRequired(false);
             entity.Property(x => x.ListingId).IsRequired();
             entity.Property(x => x.Title).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
@@ -971,6 +973,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
             entity.HasIndex(x => x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
         });
+        //Disputes
 
         modelBuilder.Entity<Dispute>(entity =>
         {
@@ -1004,6 +1007,7 @@ public class AppDbContext : DbContext
             entity.HasOne<Listing>().WithMany().HasForeignKey(x => x.ListingId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Meetup>().WithMany().HasForeignKey(x => x.MeetupId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.AssignedAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.Snapshot).WithMany().HasForeignKey(x => x.SnapshotId).OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
             entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");
