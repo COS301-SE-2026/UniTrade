@@ -14,17 +14,17 @@ test.describe("public pages accessibility", () =>
             await page.goto(path);
             await page.waitForLoadState("networkidle");
 
-            const resulrts = await new AxeBuilder ({ page}).withTags(
+            const results = await new AxeBuilder ({ page}).withTags(
                 ["wcag2a", "wcag2aa","wcag21a","wcag21aa"]
             ).analyze();
 
-            const state = resulrts.violations.filter(
+            const state = results.violations.filter(
                 (v) => v.impact === "serious" || v.impact === "critical",
 
             );
 
             await testInfo.attach(`${name}-axe-results`, {
-                body:JSON.stringify(resulrts.violations, null,2),
+                body:JSON.stringify(results.violations, null,2),
                 contentType: "application/json",
             });
 
