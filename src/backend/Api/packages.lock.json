@@ -11,6 +11,12 @@
           "Azure.Core": "1.49.0"
         }
       },
+      "BCrypt.Net-Next": {
+        "type": "Direct",
+        "requested": "[4.2.0, )",
+        "resolved": "4.2.0",
+        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
+      },
       "dotenv.net": {
         "type": "Direct",
         "requested": "[4.0.2, )",
@@ -134,11 +140,6 @@
           "Azure.Core": "1.51.1",
           "System.IO.Hashing": "10.0.3"
         }
-      },
-      "BCrypt.Net-Next": {
-        "type": "Transitive",
-        "resolved": "4.2.0",
-        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
       },
       "EFCore.NamingConventions": {
         "type": "Transitive",

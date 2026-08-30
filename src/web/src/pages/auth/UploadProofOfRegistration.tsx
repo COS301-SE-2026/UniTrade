@@ -1,12 +1,38 @@
 import React, { useRef, useState } from 'react';
 import { IconCloudUpload } from '@tabler/icons-react';
+import { getApiUrl } from '../../config';
+
+type UploadStatus = 'uploading' | 'success' | 'error';
+
+interface UploadedFile {
+    name: string;
+    status: UploadStatus;
+    errorMessage?: string;
+}
+
+const Allowed_Types = ['application/pdf', 'image/jpeg', 'image/png'];
+const Max_size_bytes = 5 * 1024 * 1024;
+
+const error_messages: Record<string, string> = {
+    no_file: 'Please choose a file to upload.',
+    file_too_large: 'File must be smaller than 5MB.',
+    invalid_file_type: 'Only PDF, JPG, or PNG files are allowed.',
+    unauthenticated: 'Your session has expired. Please log in again.',
+    no_pending_verfication: 'There\u2019s no verification request awaiting a document. Please verfiy your OTP first.',
+    invalid_verification_state: 'Your verification isn\u2019t at a stage that accepts a document right now.',
+    server_error: 'Something went wrong on our end. Please try again shortly.',
+};
+
+const Default_error_message = 'Upload failed. Please try again.';
+
+function resolveErrorMessage(code: string | undefined): string {
+    if (!code) return Default_error_message;
+    return error_messages[code] ?? Default_error_message;
+}
+
 
 export default function ProofOfRegistrationUpload() {
-    const [uploadedFile, setUploadedFile] = useState<{ name: string; status: string } | null>({
-        name: 'Proof_Of_Registration.pdf',
-        status: 'success'
-    });
-
+    const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileClick = () => {
@@ -15,11 +41,62 @@ export default function ProofOfRegistrationUpload() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setUploadedFile({
-                name: e.target.files[0].name,
-                status: 'success'
+           submitFile(e.target.files[0]);
+        }
+
+        e.target.value = '';
+    };
+
+    const validateFile = (file: File): string | null => {
+        if (!Allowed_Types.includes(file.type)) {
+            return error_messages.invalid_file_type;
+        }
+        if (file.size > Max_size_bytes) {
+            return error_messages.file_too_large;
+        }
+
+        return null;
+    };
+
+    const submitFile = async(file: File) => {
+        const validationError = validateFile(file);
+
+        if (validationError) {
+            setUploadedFile({ name: file.name, status: 'error', errorMessage: validationError});
+            return;
+        }
+
+        setUploadedFile({ name: file.name, status: 'uploading'});
+
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await fetch(`${getApiUrl()}/auth/upload-por`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData,
+            })
+
+            if (res.ok) {
+                setUploadedFile({ name: file.name, status: 'success'})
+
+            } else {
+                const body = await res.json().catch(() => null);
+                setUploadedFile({ name: file.name, status: 'error',
+                    errorMessage: resolveErrorMessage(body?.error),
+                });
+            }
+        } catch {
+            setUploadedFile({name: file.name, status: 'error',
+                errorMessage: 'Network error. Please check your connection and try again.',
             });
         }
+    };
+
+    const statusStyles: Record<UploadStatus, string> = {
+        uploading: 'bg-gray-100 text-gray-600 dark:bg-navy-700 dark:text-navy-200',
+        success: 'bg-emerald-100 text-success-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+        error: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
     };
 
     return (
@@ -36,10 +113,7 @@ export default function ProofOfRegistrationUpload() {
                     onDrop={(e) => {
                         e.preventDefault();
                         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                            setUploadedFile({
-                                name: e.dataTransfer.files[0].name,
-                                status: 'success'
-                            });
+                            submitFile(e.dataTransfer.files[0]);
                         }
                     }}
                 >
@@ -74,12 +148,21 @@ export default function ProofOfRegistrationUpload() {
                 </div>
                 {uploadedFile && (
                     <div className="w-full max-w-[700px] border border-secondary-500 bg-white dark:bg-navy-900 rounded-xl px-6 py-4 flex items-center justify-between shadow-sm">
+                        <div className="flex flex-col mr-4 min-w-0">
                         <span className="text-[17px] text-gray-800 dark:text-white font-medium tracking-wide truncate mr-4">
                             {uploadedFile.name}
                         </span>
-                        <span className="bg-emerald-100 text-success-600 dark:bg-emerald-900/30 dark:text-emerald-400 px-5 py-1.5 rounded-full text-xs font-semibold lowercase tracking-wide flex-shrink-0">
-                            {uploadedFile.status}
+                        {uploadedFile.status === 'error' && uploadedFile.errorMessage && (
+                        <span className="text-sm text-red-500 mt-1">
+                            {uploadedFile.errorMessage}
                         </span>
+                        )}
+                    </div>
+                    <span 
+                    className={`px-5 py-1.5 rounded-full text-xs font-semibold lowercase tracking-wide flex-shrink-0 ${statusStyles[uploadedFile.status]}`}
+                    >
+                        {uploadedFile.status}
+                    </span>
                     </div>
                 )}
 

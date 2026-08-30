@@ -371,6 +371,7 @@ public class AdminCaseService : IAdminCaseService
             SubjectName = $"{caseDto.FirstName} {caseDto.LastName}".Trim(),
             SubjectDegree = caseDto.Degree,
             CounterpartyInitials = null,
+            HasDocument = caseDto.Status is "under_review" or "approved" or "rejected",
         };
     }
 

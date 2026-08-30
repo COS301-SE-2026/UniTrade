@@ -57,3 +57,19 @@ export async function signupAndLogin(
 
   await page.waitForURL(/\/buyer\/listings/);
 }
+
+export async function loginAsAdmin(page: Page, request: APIRequestContext) {
+  const res = await request.post("http://localhost:8080/api/dev/admin");
+  expect(
+    res.ok(),
+    "dev admin endpoint failed - is the backend in Development?",
+  ).toBeTruthy();
+  const { email, password } = await res.json();
+
+  await page.goto("/auth/Login");
+  await page.locator('input[name="email"]').fill(email);
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole("button", { name: /^login$/i }).click();
+
+  await page.waitForURL(/\/admin\/disputes/);
+}
