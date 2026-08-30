@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using BCrypt.Net;
 using Infrastructure.Notifications;
 using Microsoft.AspNetCore.Mvc;
@@ -47,26 +48,41 @@ public class DevController : ControllerBase
         {
             return NotFound();
         }
-        const string email = "e2e-admin@tuks.co.za";
-        const string password = "Admin123&*"; // NOSONAR
-
-        var existing = await users.GetByEmailAsync(email);
-
-        if (existing is null)
+        try
         {
-            var user = new User
-            {
-                UserId = Guid.NewGuid(),
-                FirstName = "E2E",
-                LastName = "Admin",
-                Email = email,
-                PhoneNumber = "",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                Role = "admin",
-            };
+            const string email = "e2e-admin@tuks.co.za";
+            const string password = "Admin123&*"; // NOSONAR
 
-            await users.AddAsync(user);
+            var existing = await users.GetByEmailAsync(email);
+
+            if (existing is null)
+            {
+                var user = new User
+                {
+                    UserId = Guid.NewGuid(),
+                    FirstName = "E2E",
+                    LastName = "Admin",
+                    Email = email,
+                    PhoneNumber = "",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                    Role = "admin",
+                };
+
+                await users.AddAsync(user);
+            }
+            return Ok(new { email, password });
         }
-        return Ok(new { email, password });
+        catch (Exception ex)
+        {
+            return StatusCode(
+                500,
+                new
+                {
+                    error = ex.Message,
+                    stack = ex.StackTrace,
+                    inner = ex.InnerException?.Message,
+                }
+            );
+        }
     }
 }
