@@ -8,6 +8,9 @@ using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
+using Modules.Disputes;
+using Modules.Disputes.Models;
+using Modules.Disputes.Repositories;
 
 namespace Modules.Reservations;
 
@@ -19,6 +22,7 @@ public class MeetupService : IMeetupService
     private readonly INotificationDispatcher _pushNotifier;
     private readonly ILogger<MeetupService> _logger;
     private readonly TimeProvider _clock;
+    private readonly IDisputeRepository _disputes;
 
     public MeetupService(
         IReservationRepository reservations,
@@ -326,4 +330,81 @@ public class MeetupService : IMeetupService
             CompletedAt: r.CompletedAt,
             CounterParty: null
         );
+
+    public async Task<IReadOnlyList<Meetup>> DetectNoShowsAsync(DateTime asOf, CancellationToken ct = default)
+    {
+        var due = await _meetups.GetDueForNoShowDetectionAsync(asOf, batchSize: 100, ct);
+        var resolved = new List<Meetup>();
+
+        foreach (var meetup in due)
+        {
+            Guid? noShowSubjectId = null;
+            var r = await _reservations.GetByIdAsync(meetup.ReservationId, ct);
+            if (r is null)
+            {
+                continue;
+            }
+
+            if (meetup.BuyerCheckedIn && meetup.SellerCheckedIn)
+            {
+                meetup.Status = "completed";
+            }
+            else if (meetup.BuyerCheckedIn && !meetup.SellerCheckedIn)
+            {
+                meetup.Status = "no_show_seller";
+                noShowSubjectId = r.SellerId;
+            }
+            else if (!meetup.BuyerCheckedIn && meetup.SellerCheckedIn)
+            {
+                meetup.Status = "no_show_buyer";
+                noShowSubjectId = r.BuyerId;
+            }
+            else
+            {
+                continue;
+            }
+            resolved.Add(meetup);
+
+            if (noShowSubjectId is not null)
+            {
+                try
+                {
+                    await _disputes.CreateDisputeAsync(
+                        new Dispute
+                        {
+                            Type = "no_show",
+                            SubjectUserId = noShowSubjectId.Value,
+                            RaisedBy = null,
+                            ReservationId = meetup.ReservationId,
+                            MeetupId = meetup.MeetupId,
+                            Description = "Auto-detected at end of check-in window.",
+                        },
+                        ct
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex, "Failed to file system no-show dispute for meetup {MeetupId}",
+                        meetup.MeetupId
+                    );
+                }
+            }
+        }
+        if (resolved.Count > 0)
+        {
+            await _meetups.SaveAsync(ct);
+            foreach (var meetup in resolved)
+            {
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("Meetup {MeetupId} resolved to {Status} at end of check-in window",
+                    meetup.MeetupId,
+                    meetup.Status
+                    );
+                }
+            }
+        }
+        return resolved;
+    }
 }
