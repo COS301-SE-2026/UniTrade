@@ -63,7 +63,7 @@ function ListingRow({ title, meta, risk }: Readonly<ListingRowProps>) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{meta}</p>
       </div>
       <RiskPill level={risk} />
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
@@ -91,7 +91,7 @@ function VerificationRow({ initials, name, meta }: Readonly<VerificationRowProps
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white">{name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{meta}</p>
       </div>
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">
         Approve
@@ -120,7 +120,7 @@ function DisputeRow({ title, meta }: Readonly<DisputeRowProps>) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{meta}</p>
       </div>
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-colors">
         Review
@@ -146,28 +146,28 @@ export default function AdminDashboard() {
           title="Pending Verifications"
           value={8}
           sub="Oldest: 2 days ago"
-          subColor="text-amber-500"
+          subColor="text-amber-700"
           subIcon={<IconClock size={13} />}
         />
         <StatCard
           title="Listing Queue"
           value={14}
           sub="5 High Risk"
-          subColor="text-red-500"
+          subColor="text-red-600"
           subIcon={<IconAlertTriangle size={13} />}
         />
         <StatCard
           title="Active Disputes"
           value={3}
           sub="Needs attention"
-          subColor="text-red-500"
+          subColor="text-red-600"
           subIcon={<IconFlag size={13} />}
         />
         <StatCard
           title="Total Users"
           value={8}
           sub="12% this month"
-          subColor="text-green-600"
+          subColor="text-green-700"
           subIcon={<IconTrendingUp size={13} />}
         />
       </div>
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
             <button
               type='button'
               onClick={() => navigate('/admin/listings')}
-              className="text-xs text-[#00aaff] hover:underline"
+              className="text-xs text-sky-700 hover:underline"
             >
               view all
             </button>
@@ -224,7 +224,7 @@ export default function AdminDashboard() {
               <button
                 type='button'
                 onClick={() => navigate('/admin/verifications')}
-                className="text-xs text-[#00aaff] hover:underline"
+                className="text-xs text-sky-700 hover:underline"
               >
                 view all
               </button>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
               <button
                 type='button'
                 onClick={() => navigate('/admin/disputes')}
-                className="text-xs text-[#00aaff] hover:underline"
+                className="text-xs text-sky-700 hover:underline"
               >
                 view all
               </button>
