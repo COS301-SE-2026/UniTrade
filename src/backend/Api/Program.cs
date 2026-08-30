@@ -262,9 +262,18 @@ if (!builder.Environment.IsDevelopment())
     );
 }
 
-var jwtSecret =
-    builder.Configuration["Jwt:Secret"]
-    ?? throw new InvalidOperationException("JWT_SECRET is not configured");
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+
+if (string.IsNullOrEmpty(jwtSecret) && builder.Environment.IsDevelopment())
+{
+    jwtSecret = "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5"; // i needed this for the QR testing, it's only ever in dev @Sabira
+    builder.Configuration["Firebase:CredentialsJson"] = "";
+}
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    throw new InvalidOperationException("JWT_SECRET is not configured");
+}
+
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder
@@ -317,6 +326,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
@@ -326,7 +336,10 @@ else
 app.UseRouting();
 app.UseCors("AllowReactApp");
 app.UseRateLimiter();
-app.UseMiddleware<ExceptionMiddleware>();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<ExceptionMiddleware>();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok("healthy"));
@@ -334,3 +347,5 @@ app.MapHub<ChatHub>("/chathub");
 app.MapControllers();
 
 await app.RunAsync();
+
+public partial class Program { }
