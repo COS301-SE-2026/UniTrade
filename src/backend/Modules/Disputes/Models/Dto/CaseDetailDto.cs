@@ -8,6 +8,6 @@ public class CaseDetailDto : CaseSummaryDto
     public object[] History { get; set; } = Array.Empty<object>();
     public Guid? FiledByUserId { get; set; }
     public string FiledByRole { get; set; } = "";
-    public int SlaHours { get; set; }
-    public bool SlaBreached { get; set; }
+    //public int SlaHours { get; set; }
+    //public bool SlaBreached { get; set; }
 }
