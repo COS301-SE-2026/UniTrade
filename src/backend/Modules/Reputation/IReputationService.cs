@@ -13,4 +13,5 @@ public interface IReputationService
         CancellationToken ct = default
     );
     Task<IReadOnlyList<Strike>> GetStrikesAsync(Guid userId, CancellationToken ct = default);
+    Task<ReputationSummary> GetReputationSummaryAsync(Guid userId, CancellationToken ct = default);
 }
