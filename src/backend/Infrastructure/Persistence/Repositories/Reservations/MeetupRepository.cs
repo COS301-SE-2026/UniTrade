@@ -48,4 +48,13 @@ public class MeetupRepository : IMeetupRepository
             .Meetups.Where(m => m.ReservationId == reservationId && m.Status == "scheduled")
             .OrderByDescending(m => m.AgreedTime)
             .FirstOrDefaultAsync(ct);
+
+    public async Task<IReadOnlyList<Meetup>> GetDueForNoShowDetectionAsync(DateTime asOf,int batchSize, CancellationToken ct =default)
+    {
+        return await _db.Meetups
+            .Where(m=> m.Status == "scheduled" && m.CheckinWindowClosesAt <= asOf)
+            .Take(batchSize)
+            .ToListAsync(ct);
+    }
+
 }

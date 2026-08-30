@@ -16,4 +16,6 @@ public interface IMeetupRepository
         Guid reservationId,
         CancellationToken ct = default
     );
+
+    Task<IReadOnlyList<Meetup>> GetDueForNoShowDetectionAsync(DateTime asOf,int batchSize, CancellationToken ct =default);
 }
