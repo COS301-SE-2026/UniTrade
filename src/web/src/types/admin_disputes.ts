@@ -275,3 +275,12 @@ export interface ListUserParams {
   page?: number;
   limit?: number;
 }
+
+export interface UserListing {
+  listingId: string;
+  title: string;
+  status: string;
+  price: number;
+  createdAt: string;
+  imageUrl?: string | null;
+}

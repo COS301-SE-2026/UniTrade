@@ -18,6 +18,7 @@ import type {
   ListUsersResponse,
   UserReputation,
   CaseType,
+  UserListing,
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -246,4 +247,19 @@ export async function decideCaseWithAction(
 ): Promise<DecideCaseResponse> {
   const body = toDecisionRequest(type, action, reason);
   return decideCase(caseId, body);
+}
+
+export async function getUserListings(
+  userId: string,
+  limit: number = 5,
+): Promise<UserListing[]> {
+  const query = new URLSearchParams({limit: String(limit)});
+  const res = await fetch(
+    `${getApiUrl()}/admin/users/${userId}/listings?${query}`,
+    {
+      method: "GET",
+      credentials: "include",
+    },
+  );
+  return handleResponse<UserListing[]>(res);
 }
