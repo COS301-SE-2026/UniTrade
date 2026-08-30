@@ -118,6 +118,7 @@ export interface CaseSummary {
   counterpartyInitials?: string;
   subjectName?: string;
   subjectDegree?: string;
+  hasDocument?: boolean;
 }
 export interface PartySummary {
   userId: string;
@@ -233,10 +234,7 @@ export interface ApiError {
   message: string;
 }
 
-export interface ListCasesResponse {
-  cases: CaseSummary[];
-  total: number;
-}
+export type ListCasesResponse = CaseSummary[];
 
 export interface FileCaseResponse {
   caseId: string;

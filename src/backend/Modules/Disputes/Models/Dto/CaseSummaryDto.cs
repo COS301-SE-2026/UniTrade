@@ -20,4 +20,6 @@ public class CaseSummaryDto
 
     public string? SubjectName { get; set; }
     public string? SubjectDegree { get; set; }
+
+    public bool HasDocument { get; set; }
 }

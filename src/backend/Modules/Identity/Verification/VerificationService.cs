@@ -5,6 +5,7 @@ using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
+using Modules.SharedKernel;
 
 namespace Modules.Identity.Verification;
 
@@ -16,6 +17,7 @@ public class VerificationService : IVerificationService
 
     private readonly IUserRepository _users;
     private readonly IEmailService _emails;
+    private readonly IProofOfRegistrationStorageService _porStorage;
     private readonly IConfiguration _config;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
@@ -25,12 +27,14 @@ public class VerificationService : IVerificationService
         IVerificationRepository verifications,
         IUserRepository users,
         IEmailService emails,
+        IProofOfRegistrationStorageService porStorage,
         IConfiguration config
     )
     {
         _verifications = verifications;
         _users = users;
         _emails = emails;
+        _porStorage = porStorage;
         _config = config;
     }
 
@@ -246,6 +250,39 @@ public class VerificationService : IVerificationService
         }
 
         return await _verifications.GetCaseByIdAsync(verificationId, ct);
+    }
+
+    public async Task SubmitProofOfRegistrationAsync(
+        Guid userId,
+        byte[] fileData,
+        string contentType,
+        string fileName,
+        CancellationToken ct = default
+    )
+    {
+        var record = await _verifications.GetCurrentByUserIdAsync(userId);
+        Console.WriteLine(
+            $"[POR] Found record: {record?.VerificationId}, status: {record?.Status}"
+        );
+
+        if (record == null)
+        {
+            throw new VerificationException("no_pending_verification");
+        }
+
+        if (record.Status is not ("por_pending" or "under_review"))
+        {
+            throw new VerificationException("invalid_verification_state");
+        }
+
+        Console.WriteLine($"[POR] About to upload file, size: {fileData.Length}");
+        await _porStorage.UploadAsync(record.VerificationId, fileData, contentType, fileName, ct);
+        Console.WriteLine($"[POR] Upload completed");
+
+        record.Status = "under_review";
+        Console.WriteLine($"[POR] Set status to under_review, about to save");
+        await _verifications.UpdateAsync(record);
+        Console.WriteLine($"[POR] Save completed");
     }
 
     private static string GenerateOtp()
