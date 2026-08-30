@@ -15,11 +15,10 @@ public class ProofOfRegistrationRepository : IProofOfRegistrationRepository
         CancellationToken ct = default
     )
     {
-        var existing = await _db
-            .ProofOfRegistrationDocuments.FirstOrDefaultAsync(
-                d => d.VerificationId == document.VerificationId,
-                ct
-            );
+        var existing = await _db.ProofOfRegistrationDocuments.FirstOrDefaultAsync(
+            d => d.VerificationId == document.VerificationId,
+            ct
+        );
 
         if (existing is null)
         {

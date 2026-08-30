@@ -9,18 +9,18 @@ using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
+using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.SharedKernel;
 using Moq;
 using Xunit;
 using UniversityDto = Modules.Identity.Models.DTO.University;
 using UniversityEntity = Modules.ReferenceData.University.University;
-using Modules.Identity.Verification;
-using Modules.SharedKernel;
 
 namespace UniTrade.Tests.Unit.Modules;
 

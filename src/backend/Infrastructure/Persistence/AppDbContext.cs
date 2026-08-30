@@ -24,7 +24,8 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
-    public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments => Set<ProofOfRegistrationDocument>();
+    public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
+        Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
 
     ///add listing model after resolving conflicts
@@ -901,7 +902,6 @@ public class AppDbContext : DbContext
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_listing_snapshot_price", "price > 0");
-
             });
             entity
                 .HasOne(x => x.Reservation)
@@ -916,8 +916,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_snapshots_listing_id");
-        }
-        );
+        });
         // Audit logs
 
         modelBuilder.Entity<AuditLog>(entity =>
@@ -952,12 +951,14 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
             //relationships
-            entity.HasOne<User>()
+            entity
+                .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne<User>()
+            entity
+                .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(x => x.CreatedByAdminId)
                 .OnDelete(DeleteBehavior.Restrict);

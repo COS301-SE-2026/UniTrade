@@ -13,12 +13,13 @@ using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.Identity;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
+using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
-using Infrastructure.Persistence.Repositories.Identity;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;
 using Infrastructure.Transactions;
@@ -37,7 +38,9 @@ using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
 using Modules.Listings;
+using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
 using Modules.ReferenceData;
@@ -45,6 +48,8 @@ using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.Reputation;
+using Modules.Reputation.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
@@ -54,12 +59,6 @@ using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
-using Modules.Listings.Snapshot;
-using Modules.Reputation.Repositories;
-using Infrastructure.Persistence.Repositories.Reputation;
-using Modules.Reputation;
-using Modules.Listings.Moderation;
-
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -249,7 +248,10 @@ builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IDisputeService, DisputesService>();
 builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
-builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(

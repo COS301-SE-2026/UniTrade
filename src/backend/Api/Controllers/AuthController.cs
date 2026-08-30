@@ -20,10 +20,10 @@ public class AuthController : ControllerBase
 
     private static readonly string[] AllowedPorContentTypes =
     {
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-   };
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+    };
 
     private const long MaxPorFileSizeBytes = 5 * 1024 * 1024;
 
@@ -180,7 +180,8 @@ public class AuthController : ControllerBase
         try
         {
             //'USer' here is built in. .net puts all jwt claims in this Object when client requests
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {

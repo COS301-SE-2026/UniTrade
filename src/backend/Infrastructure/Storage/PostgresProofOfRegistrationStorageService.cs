@@ -9,7 +9,7 @@ public class PostgresProofOfRegistrationStorageService : IProofOfRegistrationSto
     private readonly IProofOfRegistrationRepository _documents;
 
     public PostgresProofOfRegistrationStorageService(IProofOfRegistrationRepository documents) =>
-       _documents = documents;
+        _documents = documents;
 
     public Task<int> UploadAsync(
         Guid verificationId,
@@ -18,7 +18,6 @@ public class PostgresProofOfRegistrationStorageService : IProofOfRegistrationSto
         string fileName,
         CancellationToken ct = default
     )
-
     {
         var document = new ProofOfRegistrationDocument
         {
@@ -39,5 +38,5 @@ public class PostgresProofOfRegistrationStorageService : IProofOfRegistrationSto
     ) => _documents.GetDataAsync(verificationId, ct);
 
     public Task DeleteAsync(Guid verificationId, CancellationToken ct = default) =>
-           _documents.DeleteAsync(verificationId, ct);
+        _documents.DeleteAsync(verificationId, ct);
 }
