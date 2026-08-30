@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { IconSearch, IconFileText, IconEye } from "@tabler/icons-react"
+import { IconFileText, IconEye } from "@tabler/icons-react"
 import { getCases } from '../../services/adminService'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { getApiUrl } from '../../config'
 
 export interface VerificationRow {
   id: string
   name: string
   initials: string
   degree: string
+  year: number | null
   submittedDate: string
-  email: string
   slaStatus: string
   slaState: 'Overdue' | 'Due soon' | 'Normal'
   slaProgress: number
@@ -18,6 +19,7 @@ export interface VerificationRow {
   docName: string
   docSize: string
   docDate: string
+  docUrl: string | null
 
 }
 function formatDate(iso: string) {
@@ -28,7 +30,8 @@ export default function AdminVerifications() {
   const [rows, setRows] = useState<VerificationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') ?? '';
   const [filter, setFilter] = useState<'All' | 'Overdue' | 'Due soon' | 'Normal'>('All')
   const [sortBy, setSortBy] = useState<'Oldest First' | 'Newest First'>('Oldest First')
   const navigate = useNavigate();
@@ -77,8 +80,8 @@ export default function AdminVerifications() {
             name: summary.subjectName ?? 'Unknown',
             initials: summary.subjectInitials ?? '??',
             degree: summary.subjectDegree ?? 'N/A',
+            year: summary.subjectYear ?? null,
             submittedDate: formatDate(summary.submittedAt),
-            email: 'N/A',
             slaStatus,
             slaState,
             slaProgress: Math.round(progress),
@@ -87,6 +90,9 @@ export default function AdminVerifications() {
             docName: summary.hasDocument ? 'Proof of Registration' : 'Not yet submitted',
             docSize: 'Unknown size',
             docDate: formatDate(summary.submittedAt),
+            docUrl: summary.hasDocument
+               ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
+               : null,
           };
 
         })
@@ -109,7 +115,6 @@ export default function AdminVerifications() {
 
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      row.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.degree.toLowerCase().includes(searchQuery.toLowerCase())
 
     if (!matchSearch) return false;
@@ -138,47 +143,45 @@ export default function AdminVerifications() {
   }
 
   return (
-    <div className='p-8 space-y-6 max-w-6xl'>
+
+    <div className='space-y-6'>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Student Verifications
         </h1>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-gray-400 mt-1">
           Review students proof of registration and approve or reject account
         </p>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div>
+          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numOverdue}</div>
+          <div className="text-xs text-gray-400 mt-0.5">Overdue</div>
+        </div>
+        </div>
 
-      <div className="relative max-w-sm">
-        <input
-          type="text"
-          placeholder='search...'
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]" />
-        <IconSearch className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div>
+          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numDueSoon}</div>
+          <div className="text-xs text-gray-400 mt-0.5">Due Soon</div>
+        </div>
+        </div>
+
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div>
+          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
+          <div className="text-xs text-gray-400 mt-0.5">Total Pending</div>
+        </div>
+        </div>
+
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div>
+          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numApprovedToday}</div>
+          <div className="text-xs text-gray-400 mt-0.5">Approved Today</div>
+        </div>
       </div>
-
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
-          <div className="text-xl font-bold text-gray-900">{numOverdue}</div>
-          <div className="text-xs text-gray-500">Overdue</div>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
-          <div className="text-xl font-bold text-gray-900">{numDueSoon}</div>
-          <div className="text-xs text-gray-500">Due Soon</div>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
-          <div className="text-xl font-bold text-gray-900">{numPending}</div>
-          <div className="text-xs text-gray-500">Total Pending</div>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm text-center">
-          <div className="text-xl font-bold text-gray-900">{numApprovedToday}</div>
-          <div className="text-xs text-gray-500">Approved Today</div>
-        </div>
       </div>
 
       <div className="flex items-center justify-between pt-2">
@@ -243,7 +246,7 @@ export default function AdminVerifications() {
       </div>
 
 
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
+      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="text-xs text-gray-400 font-normal">
@@ -278,7 +281,7 @@ export default function AdminVerifications() {
                     <div className="font-bold text-gray-900">
                       {ver.name}
                       <div className="text-[10px] text-gray-400 mt-0.5">
-                        {ver.degree} &bull; {ver.email}
+                        {ver.degree}{ver.year ? `, Y${ver.year}` : '' }
                       </div>
                     </div>
                   </td>
@@ -337,13 +340,24 @@ export default function AdminVerifications() {
                       >
                         Review
                       </button>
-                      <button
-                        type="button"
-                        className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-3 py-1.5"
-                      >
+                      {ver.docUrl ? (
+                        <a
+                        href={ver.docUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1"
+                        
+                           >            
                         <IconEye className="w-3.5 h-3.5" />
                         <span>View Doc</span>
-                      </button>
+                        </a>
+                      ):(
+                        <span className="text-gray-300 border border-gray-200 rounded-full text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1 cursor-not-allowed">
+                         <IconEye className="w-3.5 h-3.5" />
+                        <span>View Doc</span>
+                        </span>
+                      )}
+                     
                     </div>
                   </td>
                 </tr>

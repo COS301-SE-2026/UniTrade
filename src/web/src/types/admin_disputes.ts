@@ -118,6 +118,7 @@ export interface CaseSummary {
   counterpartyInitials?: string;
   subjectName?: string;
   subjectDegree?: string;
+  subjectYear?: number;
   hasDocument?: boolean;
 }
 export interface PartySummary {
@@ -128,6 +129,7 @@ export interface PartySummary {
   reviewAverage: number;
   reputationScore: number;
   strikeCount: number;
+  reviewCount: number;
 }
 export interface CaseDetail extends CaseSummary {
   subject: PartySummary;
