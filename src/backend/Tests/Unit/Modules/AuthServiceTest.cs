@@ -421,6 +421,7 @@ public class IdentityServiceTests
         var dto = Assert.IsType<UserDto>(result);
         Assert.Equal("Bob", dto.FirstName);
         Assert.Equal("bob@uni.ac.za", dto.Email);
+        Assert.Equal("admin", dto.UserRole);
     }
 
     [Theory]
