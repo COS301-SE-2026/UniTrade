@@ -9,9 +9,10 @@ public class ReputationService : IReputationService
     private readonly IStrikeRepository _strikes;
     private readonly IReviewRepository _reviews;
 
-    public ReputationService(IStrikeRepository strikes, IReviewRepository reviews) {
-     _strikes = strikes;
-     _reviews = reviews;
+    public ReputationService(IStrikeRepository strikes, IReviewRepository reviews)
+    {
+        _strikes = strikes;
+        _reviews = reviews;
     }
 
     public Task AddStrikeAsync(
@@ -40,16 +41,16 @@ public class ReputationService : IReputationService
         CancellationToken ct = default
     ) => _strikes.ListForUserAsync(userId, ct);
 
-     public async Task<ReputationSummary> GetReputationSummaryAsync(
-        Guid userId,
-        CancellationToken ct = default
-     )
-     {
+    public async Task<ReputationSummary> GetReputationSummaryAsync(
+       Guid userId,
+       CancellationToken ct = default
+    )
+    {
         var reviews = await _reviews.GetForUserAsync(userId, ct);
 
         if (reviews.Count == 0)
         {
-            return new ReputationSummary(0,0,0);
+            return new ReputationSummary(0, 0, 0);
         }
 
         var average = Math.Round(reviews.Average(r => (double)r.Rating), 1);
@@ -57,5 +58,5 @@ public class ReputationService : IReputationService
             Math.Round(Math.Min(100, average / 5.0 * 80 + Math.Min(20, reviews.Count * 2)));
 
         return new ReputationSummary(average, reputationScore, reviews.Count);
-     }
+    }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconFileText, IconCircleCheck } from '@tabler/icons-react';
+import { IconFileText, IconCircleCheck, IconX } from '@tabler/icons-react';
 import { Breadcrumb, InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared';
 import { type VerificationCase, type VerificationDecision } from '../../types/mockAdmin';
 import type { CaseDetail, ApiError } from '../../types/admin_disputes';
@@ -76,6 +76,70 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
   };
 }
 
+const Decision_Labels: Record<VerificationDecision, string> = {
+  approve: 'Approve',
+  reject: 'Reject',
+  resubmit: 'Request Resubmission',
+};
+
+function ReasonModal({
+  decision,
+  onCancel,
+  onSubmit,
+  submitting,
+}: {
+  decision: VerificationDecision;
+  onCancel: () => void;
+  onSubmit: (reason: string) => void;
+  submitting: boolean;
+}) {
+  const [reason, setReason] = useState('');
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">Reason</h2>
+          <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+            <IconX size={20} />
+          </button>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-4">
+          Your Decision: <span className="font-semibold text-gray-900">{Decision_Labels[decision]}</span>
+        </p>
+
+        <label className="block text-sm text-gray-700 mb-2" htmlFor="decision-reason">
+          Reason
+        </label>
+        <textarea
+          id="decision-reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={5}
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-navy-700 resize-none"
+          placeholder="Explain why this decision was made...."
+        />
+
+        <button
+          type="button"
+          onClick={() => onSubmit(reason.trim())}
+          disabled={!reason.trim() || submitting}
+          className="w-full mt-4 py-3 bg-navy-700 text-white font-bold rounded-xl hover:bg-navy-600 transition-colors disabled:opacity-50"
+        >
+          {submitting ? 'Submitting....' : 'Done'}
+        </button>
+      </div>
+
+    </div>
+  );
+}
 export default function AdminVerificationReview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -86,6 +150,8 @@ export default function AdminVerificationReview() {
     error: false,
   });
   const [submitting, setSubmitting] = useState<VerificationDecision | null>(null);
+  const [pendingDecision, setPendingDecision] = useState<VerificationDecision | null>(null);
+
 
   useEffect(() => {
     let active = true;
@@ -116,22 +182,27 @@ export default function AdminVerificationReview() {
     };
   }, [id]);
 
-  async function handleDecision(decision: VerificationDecision) {
+  async function submitDecision(decision: VerificationDecision, reason?: string) {
     if (!state.data) return;
     setSubmitting(decision);
 
     try {
-      await decideCase(state.data.id, { decision });
+      await decideCase(state.data.id, { decision, reason });
       showToast('success', 'Decision submitted successfully');
       navigate('/admin/verifications');
-
     } catch (error) {
       const apiError = error as ApiError;
       showToast('error', apiError.message || 'Failed to submit decision');
       setSubmitting(null);
-    }
-    finally {
+    } finally {
       setSubmitting(null);
+    }
+  }
+  async function handleDecisionClick(decision: VerificationDecision) {
+    if (decision === 'approve') {
+      submitDecision(decision);
+    } else {
+      setPendingDecision(decision);
     }
   }
 
@@ -190,13 +261,13 @@ export default function AdminVerificationReview() {
 
           <Panel title="Actions">
             <div className="flex flex-col sm:flex-row gap-3">
-              <DecisionButton tone="success" disabled={!!submitting} onClick={() => handleDecision('approve')}>
+              <DecisionButton tone="success" disabled={!!submitting} onClick={() => handleDecisionClick('approve')}>
                 {submitting === 'approve' ? 'Approving…' : 'Approve'}
               </DecisionButton>
-              <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => handleDecision('resubmit')}>
+              <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => handleDecisionClick('resubmit')}>
                 {submitting === 'resubmit' ? 'Requesting…' : 'Request Resubmission'}
               </DecisionButton>
-              <DecisionButton tone="danger" disabled={!!submitting} onClick={() => handleDecision('reject')}>
+              <DecisionButton tone="danger" disabled={!!submitting} onClick={() => handleDecisionClick('reject')}>
                 {submitting === 'reject' ? 'Rejecting…' : 'Reject'}
               </DecisionButton>
             </div>
@@ -218,6 +289,19 @@ export default function AdminVerificationReview() {
           </Panel>
         </div>
       </div>
+
+      {pendingDecision && (
+        <ReasonModal
+          decision={pendingDecision}
+          submitting={!!submitting}
+          onCancel={() => setPendingDecision(null)}
+          onSubmit={(reason) => {
+            submitDecision(pendingDecision, reason);
+            setPendingDecision(null);
+          }}
+        />
+
+      )}
     </div>
   );
 }

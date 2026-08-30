@@ -244,10 +244,17 @@ public class VerificationService : IVerificationService
         await _verifications.UpdateAsync(vr);
         await _users.UpdateAsync(user);
 
-        if (decision == VerificationDecision.Approve)
+        await _emails.SendVerificationDecisionEmailAsync(
+            user.Email,
+            user.FirstName,
+            vr.AdminDecision!,
+            reason
+        );
+
+        /*if (decision == VerificationDecision.Approve)
         {
             await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
-        }
+        }*/
 
         return await _verifications.GetCaseByIdAsync(verificationId, ct);
     }
@@ -261,9 +268,6 @@ public class VerificationService : IVerificationService
     )
     {
         var record = await _verifications.GetCurrentByUserIdAsync(userId);
-        Console.WriteLine(
-            $"[POR] Found record: {record?.VerificationId}, status: {record?.Status}"
-        );
 
         if (record == null)
         {
@@ -275,14 +279,11 @@ public class VerificationService : IVerificationService
             throw new VerificationException("invalid_verification_state");
         }
 
-        Console.WriteLine($"[POR] About to upload file, size: {fileData.Length}");
         await _porStorage.UploadAsync(record.VerificationId, fileData, contentType, fileName, ct);
-        Console.WriteLine($"[POR] Upload completed");
 
         record.Status = "under_review";
-        Console.WriteLine($"[POR] Set status to under_review, about to save");
+
         await _verifications.UpdateAsync(record);
-        Console.WriteLine($"[POR] Save completed");
     }
 
     private static string GenerateOtp()

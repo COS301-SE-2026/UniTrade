@@ -31,4 +31,22 @@ public class DevController : ControllerBase
 
         return Ok(new { otp });
     }
+
+    [HttpGet("decision")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public IActionResult GetDecision([FromQuery] string email)
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var decision = TestEmailService.GetLastDecision(email);
+        if (decision == null)
+        {
+            return NotFound(new { error = "no_decision_found" });
+        }
+
+        return Ok(new { decision });
+    }
 }

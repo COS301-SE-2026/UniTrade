@@ -140,6 +140,7 @@ export async function decideCase(
   const res = await fetch(`${getApiUrl()}/admin/cases/${id}/decision`, {
     method: "POST",
     credentials: "include",
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify(body),
   });
 
@@ -152,6 +153,7 @@ export async function fileDispute(
   const res = await fetch(`${getApiUrl()}/disputes`, {
     method: "POST",
     credentials: "include",
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify(body),
   });
 
