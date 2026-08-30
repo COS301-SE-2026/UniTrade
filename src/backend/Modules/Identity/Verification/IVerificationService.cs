@@ -17,4 +17,12 @@ public interface IVerificationService
         string? reason,
         CancellationToken ct = default
     );
+
+    Task SubmitProofOfRegistrationAsync(
+        Guid userId,
+        byte[] fileData,
+        string contentType,
+        string fileName,
+        CancellationToken ct = default
+    );
 }

@@ -13,6 +13,7 @@ using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.Identity;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reputation;
@@ -246,6 +247,11 @@ builder.Services.AddScoped<ICaseOutcomeApplier, CaseOutcomeApplier>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IDisputeService, DisputesService>();
 builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
+builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(

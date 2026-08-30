@@ -56,7 +56,7 @@ const Login: React.FC = () => {
       else navigate('/buyer/listings')
 
     } catch (err: unknown) {
-      console.error('LOGIN FLOW ERROR:', err)
+      
       const error = err as ApiError
       setError(getAuthErrorMessage(error.message))
     } finally {
