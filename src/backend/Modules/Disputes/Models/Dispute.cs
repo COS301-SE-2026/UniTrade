@@ -24,9 +24,7 @@ public class Dispute
     //public Guid? DecidedByAdminId { get; set; }
     //public DateTime? ResolvedAt { get; set; }
 
-    //public Guid AgainstUser { get; set; } // subject user id
-    public string DisputeType { get; set; } = null!;
-    
+    //public Guid AgainstUser { get; set; } // subject user id    
     public Guid? AssignedAdminId { get; set; }
     public string? Resolution { get; set; }
     //public DateTime CreatedAt { get; set; }
