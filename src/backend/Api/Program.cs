@@ -245,8 +245,9 @@ builder.Services.AddScoped<IStrikeRepository, StrikeRepository>();
 builder.Services.AddScoped<IReputationService, ReputationService>();
 builder.Services.AddScoped<ICaseOutcomeApplier, CaseOutcomeApplier>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
-builder.Services.AddScoped<IDisputeService, DisputesService>();
+builder.Services.AddScoped<IDisputeService, DisputeService>();
 builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
+builder.Services.AddHostedService<NoShowDetectionWorker>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
