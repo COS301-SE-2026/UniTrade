@@ -872,7 +872,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.PhotoRefs).HasColumnType("text[]");
             entity.Property(x => x.CourseTags).HasColumnType("text[]");
             entity.Property(x => x.CapturedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
-            entity.Property(x => x.Description).IsRequired();
+            entity.Property(x => x.Description);
 
             entity.ToTable(t =>
             {
@@ -949,10 +949,10 @@ public class AppDbContext : DbContext
             entity.Property(x => x.DisputeId).HasDefaultValueSql("gen_random_uuid()");
 
             entity.Property(x => x.Type).HasMaxLength(30).IsRequired();
-            entity.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("pending");
+            entity.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("open");
 
             entity.Property(x => x.SubjectUserId).IsRequired();
-            entity.Property(x => x.RaisedBy).IsRequired();
+            entity.Property(x => x.RaisedBy);
 
             entity.Property(x => x.SellerRefusedPhotos).HasDefaultValue(false);
             entity.Property(x => x.Photos).HasColumnType("text[]");
@@ -960,15 +960,13 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SubmittedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
-            entity.Property(x => x.AdminDecision).HasMaxLength(20);
-            entity.Property(x => x.Outcomes).HasColumnType("text[]");
-            entity.Property(x => x.Reason);
-            entity.Property(x => x.DecidedAt);
+            entity.Property(x=>x.Resolution);
+            entity.Property(x => x.ResolvedAt);
 
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
-                t.HasCheckConstraint("chk_dispute_status", "status IN ('pending','under_review','resolved','dismissed')");
+                t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed')");
             });
 
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.SubjectUserId).OnDelete(DeleteBehavior.Restrict);
@@ -976,7 +974,7 @@ public class AppDbContext : DbContext
             entity.HasOne<Reservation>().WithMany().HasForeignKey(x => x.ReservationId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Listing>().WithMany().HasForeignKey(x => x.ListingId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Meetup>().WithMany().HasForeignKey(x => x.MeetupId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<User>().WithMany().HasForeignKey(x => x.DecidedByAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.AssignedAdminId).OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
             entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");
