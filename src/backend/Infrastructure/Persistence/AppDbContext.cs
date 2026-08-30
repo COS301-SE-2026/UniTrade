@@ -960,7 +960,7 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SubmittedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
 
-            entity.Property(x=>x.Resolution);
+            entity.Property(x => x.Resolution);
             entity.Property(x => x.ResolvedAt);
 
             entity.ToTable(t =>

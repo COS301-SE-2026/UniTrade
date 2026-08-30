@@ -13,7 +13,7 @@ public class Dispute
     public int? MeetupId { get; set; }
 
     public bool SellerRefusedPhotos { get; set; }
-    public List<string>? Photos { get; set; }=new();
+    public List<string>? Photos { get; set; } = new();
     public string? Description { get; set; }
 
     public DateTime SubmittedAt { get; set; }

@@ -11,9 +11,9 @@ public interface IDisputeRepository
         CancellationToken ct = default
     );
     Task<DisputeCaseData?> GetCaseDataAsync(Guid disputeId, CancellationToken ct = default);
-    Task<Guid> CreateDisputeAsync(Dispute dispute, CancellationToken ct=default);
-   
-    Task MarkResolvedAsync(Guid disputeId,Guid adminId, string resolution,CancellationToken ct=default);
-    Task<bool> HasOpenDisputeAsync(Guid filedByUserId,Guid subjectUserId, CancellationToken ct=default);
+    Task<Guid> CreateDisputeAsync(Dispute dispute, CancellationToken ct = default);
+
+    Task MarkResolvedAsync(Guid disputeId, Guid adminId, string resolution, CancellationToken ct = default);
+    Task<bool> HasOpenDisputeAsync(Guid filedByUserId, Guid subjectUserId, CancellationToken ct = default);
 
 }

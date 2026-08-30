@@ -26,13 +26,13 @@ public class DisputeService : IDisputeService
         "listing_quality"
     };
 
-    public DisputeService(IReservationMembership membership, IListingSnapshotService snapshots,IListingService listings ,IDisputeRepository disputes, IMeetupRepository meetups)
+    public DisputeService(IReservationMembership membership, IListingSnapshotService snapshots, IListingService listings, IDisputeRepository disputes, IMeetupRepository meetups)
     {
         _membership = membership;
         _snapshots = snapshots;
         _disputes = disputes;
-        _listings=listings;
-        _meetups=meetups;
+        _listings = listings;
+        _meetups = meetups;
     }
 
     public async Task<FileDisputeResultDto> FileDisputeAsync(FileDisputeDto req, Guid filedByUserId, CancellationToken ct = default)
@@ -45,8 +45,8 @@ public class DisputeService : IDisputeService
         {
             "listing_quality" => await FileListingQualityAsync(req, filedByUserId, ct),
             //add no show , filereportlistings
-            "no_show" => await FileNoShowAsync(req,filedByUserId,ct),
-            "report_listing" => await FileReportListingAsync(req,filedByUserId,ct),
+            "no_show" => await FileNoShowAsync(req, filedByUserId, ct),
+            "report_listing" => await FileReportListingAsync(req, filedByUserId, ct),
             _ => throw new DisputesException("invalid_dispute_type"),
         };
     }
@@ -71,10 +71,10 @@ public class DisputeService : IDisputeService
             throw new DisputesException("forbidden");
         }
 
-        var sellerRefusedPhotos=req.SellerRefusedPhotos ?? false;
-        var photos=req.Photos ?? new List<string>();
+        var sellerRefusedPhotos = req.SellerRefusedPhotos ?? false;
+        var photos = req.Photos ?? new List<string>();
 
-        if(photos.Count==0 && !sellerRefusedPhotos)
+        if (photos.Count == 0 && !sellerRefusedPhotos)
         {
             throw new DisputesException("photos_required");
         }
@@ -85,19 +85,19 @@ public class DisputeService : IDisputeService
             throw new DisputesException("snapshot_not found");
         }
 
-        await GuardOneOpenDisputeAsync(filedByUserId,parties.SellerId,ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, parties.SellerId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
             {
-                Type= "listing_quality",
-                SubjectUserId= parties.SellerId,
-                RaisedBy=filedByUserId,
-                ReservationId=reservationId,
-                ListingId=snapshot.Listing.ListingId,
-                Photos=photos,
-                SellerRefusedPhotos=sellerRefusedPhotos,
-                Description= req.Description,
+                Type = "listing_quality",
+                SubjectUserId = parties.SellerId,
+                RaisedBy = filedByUserId,
+                ReservationId = reservationId,
+                ListingId = snapshot.Listing.ListingId,
+                Photos = photos,
+                SellerRefusedPhotos = sellerRefusedPhotos,
+                Description = req.Description,
             },
             ct
         );
@@ -106,35 +106,35 @@ public class DisputeService : IDisputeService
 
     private async Task<FileDisputeResultDto> FileNoShowAsync(FileDisputeDto req, Guid filedByUserId, CancellationToken ct)
     {
-        if(req.ReservationId is null)
+        if (req.ReservationId is null)
         {
             throw new DisputesException("reservation_id_required");
         }
 
-        var reservationId=req.ReservationId.Value;
+        var reservationId = req.ReservationId.Value;
 
-        var meetup=await _meetups.GetActiveByReservationAsync(reservationId,ct) ?? throw new DisputesException("meetup_not_found");
+        var meetup = await _meetups.GetActiveByReservationAsync(reservationId, ct) ?? throw new DisputesException("meetup_not_found");
 
-        var isParty=await _membership.IsPartyToAsync(reservationId,filedByUserId,ct);
-        if(!isParty)
+        var isParty = await _membership.IsPartyToAsync(reservationId, filedByUserId, ct);
+        if (!isParty)
         {
             throw new DisputesException("forbidden");
         }
 
-        var parties=await _membership.GetReservationPartiesAsync(reservationId,ct);
-        var subjectUserId=(filedByUserId==parties.BuyerId) ? parties.SellerId : parties.BuyerId;
+        var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
+        var subjectUserId = (filedByUserId == parties.BuyerId) ? parties.SellerId : parties.BuyerId;
 
-        await GuardOneOpenDisputeAsync(filedByUserId,subjectUserId,ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, subjectUserId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
             {
-                Type= "no_show",
-                SubjectUserId= subjectUserId,
-                RaisedBy=filedByUserId,
-                ReservationId=reservationId,
-                Description= req.Description,
-                MeetupId=meetup.MeetupId,
+                Type = "no_show",
+                SubjectUserId = subjectUserId,
+                RaisedBy = filedByUserId,
+                ReservationId = reservationId,
+                Description = req.Description,
+                MeetupId = meetup.MeetupId,
             },
             ct
         );
@@ -154,43 +154,43 @@ public class DisputeService : IDisputeService
         return _disputes.GetCaseDataAsync(disputeId, ct);
     }
 
-    private async Task<FileDisputeResultDto> FileReportListingAsync(FileDisputeDto req,Guid filedByUserId,CancellationToken ct)
+    private async Task<FileDisputeResultDto> FileReportListingAsync(FileDisputeDto req, Guid filedByUserId, CancellationToken ct)
     {
-        if(req.ListingId is null)
+        if (req.ListingId is null)
         {
             throw new DisputesException("listing_id_required");
         }
-        if(string.IsNullOrWhiteSpace(req.Description))
+        if (string.IsNullOrWhiteSpace(req.Description))
         {
             throw new DisputesException("report_reason_required");
         }
 
-        var listing=await _listings.GetByIdAsync(req.ListingId.Value) ?? throw new DisputesException("listing_not_found");
+        var listing = await _listings.GetByIdAsync(req.ListingId.Value) ?? throw new DisputesException("listing_not_found");
 
-        if(!string.Equals(listing.ListingStatus, "live", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(listing.ListingStatus, "live", StringComparison.OrdinalIgnoreCase))
         {
             throw new DisputesException("listing_not_live");
         }
 
-        await GuardOneOpenDisputeAsync(filedByUserId,listing.SellerId,ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, listing.SellerId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
         new Dispute
         {
-            Type= "report_listing",
-            SubjectUserId= listing.SellerId,
-            RaisedBy=filedByUserId,
-            Description= req.Description,
+            Type = "report_listing",
+            SubjectUserId = listing.SellerId,
+            RaisedBy = filedByUserId,
+            Description = req.Description,
         },
         ct
         );
         return new FileDisputeResultDto(caseId);
     }
 
-    private async Task GuardOneOpenDisputeAsync(Guid filedByUserId,Guid subjectUserId,CancellationToken ct)
+    private async Task GuardOneOpenDisputeAsync(Guid filedByUserId, Guid subjectUserId, CancellationToken ct)
     {
-        var hasOpen=await _disputes.HasOpenDisputeAsync(filedByUserId,subjectUserId,ct);
-        if(hasOpen)
+        var hasOpen = await _disputes.HasOpenDisputeAsync(filedByUserId, subjectUserId, ct);
+        if (hasOpen)
         {
             throw new DisputesException("dispute_already_open");
         }

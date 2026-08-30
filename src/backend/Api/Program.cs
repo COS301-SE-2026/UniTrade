@@ -58,6 +58,8 @@ using Modules.Reputation.Repositories;
 using Infrastructure.Persistence.Repositories.Reputation;
 using Modules.Reputation;
 using Modules.Listings.Moderation;
+using Modules.Disputes.Repositories;
+using Infrastructure.Persistence.Repositories.Disputes;
 
 
 DotEnv.Load(
@@ -248,6 +250,9 @@ builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IDisputeService, DisputeService>();
 builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
 builder.Services.AddHostedService<NoShowDetectionWorker>();
+builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
+
+
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
