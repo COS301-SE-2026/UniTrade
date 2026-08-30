@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260830112338_UpdateDisputeStatusAndAdminFields")]
+    partial class UpdateDisputeStatusAndAdminFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -305,56 +308,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_admin_profiles_user_id");
 
                     b.ToTable("admin_profiles", "unitrade");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
-                {
-                    b.Property<int>("DocumentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("document_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DocumentId"));
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("content_type");
-
-                    b.Property<byte[]>("FileData")
-                        .IsRequired()
-                        .HasColumnType("bytea")
-                        .HasColumnName("file_data");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("file_name");
-
-                    b.Property<int>("FileSize")
-                        .HasColumnType("integer")
-                        .HasColumnName("file_size");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("uploaded_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<Guid>("VerificationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("verification_id");
-
-                    b.HasKey("DocumentId")
-                        .HasName("pk_proof_of_registration_documents");
-
-                    b.HasIndex("VerificationId")
-                        .IsUnique()
-                        .HasDatabaseName("uix_por_verification");
-
-                    b.ToTable("proof_of_registration_documents", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
@@ -1719,16 +1672,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_admin_profiles_users_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.VerificationRequest", null)
-                        .WithOne()
-                        .HasForeignKey("Modules.Identity.Models.ProofOfRegistrationDocument", "VerificationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_proof_of_registration_documents_verification_requests_verif");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>

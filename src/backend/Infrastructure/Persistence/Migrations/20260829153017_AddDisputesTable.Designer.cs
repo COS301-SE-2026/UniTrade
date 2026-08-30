@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260829153017_AddDisputesTable")]
+    partial class AddDisputesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,9 +177,18 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("dispute_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("AssignedAdminId")
+                    b.Property<string>("AdminDecision")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("admin_decision");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedByAdminId")
                         .HasColumnType("uuid")
-                        .HasColumnName("assigned_admin_id");
+                        .HasColumnName("decided_by_admin_id");
 
                     b.Property<string>("Description")
                         .HasColumnType("text")
@@ -190,25 +202,27 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("meetup_id");
 
+                    b.PrimitiveCollection<List<string>>("Outcomes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("outcomes");
+
                     b.PrimitiveCollection<List<string>>("Photos")
+                        .IsRequired()
                         .HasColumnType("text[]")
                         .HasColumnName("photos");
 
-                    b.Property<Guid?>("RaisedBy")
+                    b.Property<Guid>("RaisedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("raised_by");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text")
+                        .HasColumnName("reason");
 
                     b.Property<Guid?>("ReservationId")
                         .HasColumnType("uuid")
                         .HasColumnName("reservation_id");
-
-                    b.Property<string>("Resolution")
-                        .HasColumnType("text")
-                        .HasColumnName("resolution");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("resolved_at");
 
                     b.Property<bool>("SellerRefusedPhotos")
                         .ValueGeneratedOnAdd()
@@ -221,7 +235,7 @@ namespace Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasDefaultValue("open")
+                        .HasDefaultValue("pending")
                         .HasColumnName("status");
 
                     b.Property<Guid>("SubjectUserId")
@@ -243,8 +257,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("DisputeId")
                         .HasName("pk_disputes");
 
-                    b.HasIndex("AssignedAdminId")
-                        .HasDatabaseName("ix_disputes_assigned_admin_id");
+                    b.HasIndex("DecidedByAdminId")
+                        .HasDatabaseName("ix_disputes_decided_by_admin_id");
 
                     b.HasIndex("ListingId")
                         .HasDatabaseName("ix_disputes_listing_id");
@@ -273,7 +287,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("disputes", "unitrade", t =>
                         {
-                            t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed')");
+                            t.HasCheckConstraint("chk_dispute_status", "status IN ('pending','under_review','resolved','dismissed')");
 
                             t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
                         });
@@ -307,54 +321,57 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("admin_profiles", "unitrade");
                 });
 
-            modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
+            modelBuilder.Entity("Modules.Identity.Models.Strike", b =>
                 {
-                    b.Property<int>("DocumentId")
+                    b.Property<Guid>("StrikeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("document_id");
+                        .HasColumnType("uuid")
+                        .HasColumnName("strike_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DocumentId"));
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("content_type");
+                    b.Property<Guid>("CreatedByAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_admin_id");
 
-                    b.Property<byte[]>("FileData")
-                        .IsRequired()
-                        .HasColumnType("bytea")
-                        .HasColumnName("file_data");
-
-                    b.Property<string>("FileName")
+                    b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
-                        .HasColumnName("file_name");
+                        .HasColumnName("reason");
 
-                    b.Property<int>("FileSize")
-                        .HasColumnType("integer")
-                        .HasColumnName("file_size");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("uploaded_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<Guid>("VerificationId")
+                    b.Property<Guid?>("SourceCaseId")
                         .HasColumnType("uuid")
-                        .HasColumnName("verification_id");
+                        .HasColumnName("source_case_id");
 
-                    b.HasKey("DocumentId")
-                        .HasName("pk_proof_of_registration_documents");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
 
-                    b.HasIndex("VerificationId")
-                        .IsUnique()
-                        .HasDatabaseName("uix_por_verification");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
-                    b.ToTable("proof_of_registration_documents", "unitrade");
+                    b.HasKey("StrikeId")
+                        .HasName("pk_strikes");
+
+                    b.HasIndex("CreatedByAdminId")
+                        .HasDatabaseName("ix_strikes_created_by_admin");
+
+                    b.HasIndex("SourceCaseId")
+                        .HasDatabaseName("ix_strikes_source_case");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_strikes_user");
+
+                    b.ToTable("strikes", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
@@ -480,10 +497,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
                         .HasColumnName("role");
-
-                    b.Property<DateTime?>("TermsAcceptedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("terms_accepted_at");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -943,11 +956,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("course_tags");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
                     b.Property<Guid>("ListingId")
                         .HasColumnType("uuid")
                         .HasColumnName("listing_id");
@@ -1182,59 +1190,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_university_email_domains_university_id");
 
                     b.ToTable("university_email_domains", "unitrade");
-                });
-
-            modelBuilder.Entity("Modules.Reputation.Models.Strike", b =>
-                {
-                    b.Property<Guid>("StrikeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("strike_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<Guid>("CreatedByAdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_admin_id");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("reason");
-
-                    b.Property<Guid?>("SourceCaseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("source_case_id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("type");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("StrikeId")
-                        .HasName("pk_strikes");
-
-                    b.HasIndex("CreatedByAdminId")
-                        .HasDatabaseName("ix_strikes_created_by_admin");
-
-                    b.HasIndex("SourceCaseId")
-                        .HasDatabaseName("ix_strikes_source_case");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_strikes_user");
-
-                    b.ToTable("strikes", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
@@ -1666,9 +1621,9 @@ namespace Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
-                        .HasForeignKey("AssignedAdminId")
+                        .HasForeignKey("DecidedByAdminId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_disputes_users_assigned_admin_id");
+                        .HasConstraintName("fk_disputes_users_decided_by_admin_id");
 
                     b.HasOne("Modules.Listings.Models.Listing", null)
                         .WithMany()
@@ -1686,6 +1641,7 @@ namespace Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RaisedBy")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_disputes_users_raised_by");
 
                     b.HasOne("Modules.Reservations.Models.Reservation", null)
@@ -1721,14 +1677,21 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
+            modelBuilder.Entity("Modules.Identity.Models.Strike", b =>
                 {
-                    b.HasOne("Modules.Identity.Models.VerificationRequest", null)
-                        .WithOne()
-                        .HasForeignKey("Modules.Identity.Models.ProofOfRegistrationDocument", "VerificationId")
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByAdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_strikes_users_created_by_admin_id");
+
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_proof_of_registration_documents_verification_requests_verif");
+                        .HasConstraintName("fk_strikes_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
@@ -1887,23 +1850,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_university_email_domains_universities_university_id");
 
                     b.Navigation("University");
-                });
-
-            modelBuilder.Entity("Modules.Reputation.Models.Strike", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_strikes_users_created_by_admin_id");
-
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_strikes_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
