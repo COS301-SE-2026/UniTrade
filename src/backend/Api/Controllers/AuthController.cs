@@ -18,14 +18,14 @@ public class AuthController : ControllerBase
     private readonly IVerificationService _verificationService;
     private readonly IWebHostEnvironment _env;
 
-    private static readonly string[] AllowedPorContentTypes =
+    private static readonly string[] _allowedPorContentTypes =
     {
         "application/pdf",
         "image/jpeg",
         "image/png",
     };
 
-    private const long MaxPorFileSizeBytes = 5 * 1024 * 1024;
+    private const long _maxPorFileSizeBytes = 5 * 1024 * 1024;
 
     public AuthController(
         IIdentityService identityService,
@@ -231,10 +231,10 @@ public class AuthController : ControllerBase
         if (file is null || file.Length == 0)
             return UnprocessableEntity(new { error = "no_file" });
 
-        if (file.Length > MaxPorFileSizeBytes)
+        if (file.Length > _maxPorFileSizeBytes)
             return UnprocessableEntity(new { error = "file_too_large" });
 
-        if (!AllowedPorContentTypes.Contains(file.ContentType))
+        if (!_allowedPorContentTypes.Contains(file.ContentType))
             return UnprocessableEntity(new { error = "invalid_file_type" });
 
         await using var stream = new MemoryStream();
