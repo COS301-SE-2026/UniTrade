@@ -6,6 +6,7 @@ import { type VerificationCase, type VerificationDecision } from '../../types/mo
 import type { CaseDetail, ApiError } from '../../types/admin_disputes';
 import { decideCase, getCaseById } from '../../services/adminService';
 import { useToast } from '../../components/layout/useToast';
+import { getApiUrl } from '../../config';
 
 
 type State = {
@@ -51,6 +52,7 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
   const slaHours = detail.slaHours;
   const slaOverdue = detail.slaBreached;
   const slaLabel = slaOverdue ? `${Math.round(detail.ageHours - slaHours)}h overdue` : `${Math.round(slaHours - detail.ageHours)}h remaining`;
+  const hasDocument = !!evidence.proofDocument;
 
   return {
     id: detail.caseId,
@@ -60,10 +62,12 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
     email: evidence.email ?? "N/A",
     domainValid: evidence.domainValid ?? false,
     document: {
-      name: 'Proof of Registration', // backend doest have it yet
+      name: hasDocument ? 'Proof of Registration' : 'Not yet submitted',
       uploadedDate: new Date(detail.submittedAt).toLocaleDateString('en-ZA'),
       sizeLabel: 'Unknown size',
-      url: evidence.proofDocument ?? '#',
+      url: hasDocument
+        ? `${getApiUrl()}/admin/cases/${detail.caseId}/document`
+        : '#',
     }, submittedDate: new Date(detail.submittedAt).toLocaleDateString('en-ZA'
     ),
     slaLabel,

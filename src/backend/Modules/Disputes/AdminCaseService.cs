@@ -370,6 +370,7 @@ public class AdminCaseService : IAdminCaseService
             SubjectInitials = MakeInitials(caseDto.FirstName, caseDto.LastName),
             SubjectName = $"{caseDto.FirstName} {caseDto.LastName}".Trim(),
             SubjectDegree = caseDto.Degree,
+            SubjectYear = caseDto.Year,
             CounterpartyInitials = null,
             HasDocument = caseDto.Status is "under_review" or "approved" or "rejected",
         };
@@ -385,6 +386,7 @@ public class AdminCaseService : IAdminCaseService
             1
         );
         var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
+        var hasDocument = caseDto.Status is "under_review" or "approved" or "rejected";
 
         return new CaseDetailDto
         {
@@ -406,6 +408,7 @@ public class AdminCaseService : IAdminCaseService
                 Year = caseDto.Year,
                 Email = caseDto.Email,
                 DomainValid = true,
+                ProofDocument = hasDocument ? "submitted" : null,
             },
         };
     }

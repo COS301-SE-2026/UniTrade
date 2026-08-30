@@ -118,6 +118,7 @@ export interface CaseSummary {
   counterpartyInitials?: string;
   subjectName?: string;
   subjectDegree?: string;
+  subjectYear?: number;
   hasDocument?: boolean;
 }
 export interface PartySummary {
