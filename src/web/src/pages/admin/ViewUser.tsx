@@ -3,6 +3,7 @@ import { IconArrowLeft, IconStar } from "@tabler/icons-react"
 import type { UserListing, UserReputation } from '../../types/admin_disputes'
 import { useEffect, useState } from 'react'
 import { getUserListings, getUserReputation } from '../../services/adminService'
+import { LoadingState } from '../../components/layout/Spinner'
 
 export interface Strike {
   id: string
@@ -111,13 +112,8 @@ export default function ViewUser() {
   }, [userId]);
 
   if (loading) {
-    return (
-
-      <div className='p-8 max-w-6xl'>
-        <p className='text-sm text-gray-400'>Loading user...</p>;
-
-      </div>
-    );
+   
+    return <LoadingState message = "Loading User..." />;
   }
 
   if (error || !user) {
