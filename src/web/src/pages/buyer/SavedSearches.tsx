@@ -92,6 +92,26 @@ return (
                 className = "w-full border rounded px-3 py-2 text-sm"
                 />
             </div>
+
+            <div className = "w-40">
+                <label className = "block text-xs font-medium text-gray-700 mv-1">
+                    Category
+                </label>
+                <select 
+                value = {categoryId}
+                onChange = {(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
+                className = "w-full border rounded px-3 py-2 text-sm"
+                >
+                    <option value = "">
+                        All
+                    </option>
+                    {categories.map(cat => (
+                        <option key = {cat.id} value = {cat.id}>
+                            {getDisplayCategory(cat.name)}
+                        </option>
+                    ))}
+                </select>
+            </div>
         </div>
     </div>
 )
