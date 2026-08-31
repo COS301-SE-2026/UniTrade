@@ -112,6 +112,19 @@ return (
                     ))}
                 </select>
             </div>
+            <div className = "w-32">
+                <label className = "block text-xs font-medium text-gray-700 mb-1">
+                    Min Price (R)
+                </label>
+                <input 
+                type = "number"
+                min = "0"
+                step = "1"
+                value = {minPrice}
+                onChange = {(e) => setMinPrice(e.target.value ? Number(e.target.value) : "")}
+                className = "w-full border rounded px-3 py-2 text-sm"
+                />
+            </div>
         </div>
     </div>
 )
