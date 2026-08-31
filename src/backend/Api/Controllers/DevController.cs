@@ -1,5 +1,10 @@
+using System.Linq.Expressions;
+using BCrypt.Net;
 using Infrastructure.Notifications;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Identity;
+using Modules.Identity.Models;
+using Modules.Identity.Repositories;
 
 namespace Api.Controllers;
 
