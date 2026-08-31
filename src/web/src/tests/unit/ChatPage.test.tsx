@@ -322,28 +322,7 @@ describe('reservation meet-up flow within the chatting ', () => {
         ).toBeInTheDocument();
         expect(screen.queryByPlaceholderText('Type a message...')).not.toBeInTheDocument();
     });
-
-    /*it('must show  an accept prompt for the seller when awaiting seller acceptance', async () => {
-        window.history.pushState({}, '', '/seller/messages/123');
-
-        vi.mocked(getReservationById).mockResolvedValue({
-            success: true,
-            data: {
-                reservationId: '123',
-                listingId: 'listing-1',
-                reservationStatus: 'active',
-                timerStage: 'awaiting_seller',
-                counterParty: { name: 'Mahadio Tlaka', initials: 'MT' },
-            },
-        } as ReservationResult);
-
-        renderWithProviders(<ChatPage />, '/seller/messages/123');
-        expect(
-            await screen.findByText('Accept this reservation to start chatting.'),
-        ).toBeInTheDocument();
-    });*/
-
-    it('must show the button that says schedule meetup for a reservation that is active', async () => {
+it('must show the button that says schedule meetup for a reservation that is active', async () => {
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('SCHEDULE A MEETUP')).toBeInTheDocument();
     });
