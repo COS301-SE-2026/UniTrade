@@ -4,6 +4,7 @@ import { IconAlertTriangle } from '@tabler/icons-react';
 import { Breadcrumb, Panel, StarRating } from './AdminReviewShared';
 import type { UserReputation } from '../../types/admin_disputes';
 import { getUserReputation } from '../../services/adminService';
+import { LoadingState } from '../../components/layout/Spinner';
 
 interface StrikeDisplay {
   id: string;
@@ -116,7 +117,7 @@ export default function AdminUserReputation() {
   }, [id]);
 
   if (state.loading) {
-    return <p className="text-sm text-gray-400">Loading user…</p>;
+    return <LoadingState message = "Loading user..." />
   }
 
   if (state.error || !state.data) {
