@@ -232,11 +232,11 @@ export default function AdminDisputeReview() {
   }
 
   if (state.loading) {
-    return <p className="text-sm text-gray-400">Loading case...</p>;
+    return <p className="text-sm text-gray-600">Loading case...</p>;
   }
 
   if (state.error || !state.data) {
-    return <p className="text-sm text-gray-400">Dispute case not found</p>;
+    return <p className="text-sm text-gray-600">Dispute case not found</p>;
   }
 
   const dispute = state.data;

@@ -6,7 +6,7 @@ const admin_pages: { name: string; path: string}[]= [
 
 
     {name: "dashboard", path: "/admin/dashboard"},
-    {name: "verifications_queue", path: "/admin/verifications"},
+    {name: "admin_verifications", path: "/admin/verifications"},
     {name: "verification_review", path: "/admin/verifications/nonexistent-test-id"},
     {name: "disputes_queue" , path: "/admin/disputes"},
     {name: "disputes_review" , path: "/admin/disputes/nonexistent-test-id"},

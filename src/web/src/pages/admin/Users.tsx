@@ -80,10 +80,10 @@ export default function Users() {
   const numPending = rows.filter((user) => user.verificationStatus === 'Pending').length
 
   if (loading) {
-    return <p className='text-sm text-gray-400'>Loading users...</p>;
+    return <p className='text-sm text-gray-600'>Loading users...</p>;
   }
   if (error) {
-    return <p className='text-sm text-red-600'>{error}</p>;
+    return <p className='text-sm text-red-700'>{error}</p>;
   }
 
   return (

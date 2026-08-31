@@ -100,10 +100,10 @@ export default function AdminDisputes() {
 
 
   if (loading) {
-    return <p className='text-sm text-gray-400'>Loading disputes...</p>;
+    return <p className='text-sm text-gray-600'>Loading disputes...</p>;
   }
   if (error) {
-    return <p className='text-sm text-red-600'>{error}</p>;
+    return <p className='text-sm text-red-700'>{error}</p>;
   }
 
   return (
