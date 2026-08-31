@@ -155,6 +155,11 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
     })
 
+    const offDisputeResolved = connectionManager.onDisputeResolved(() => {
+      queryClient.invalidateQueries({queryKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    })
+
     return () => {
       offMessage();
       offReconnected();
@@ -162,6 +167,7 @@ if (import.meta.env.DEV || !user) return;
       offReservationUpdated();
       offListing();
       offDisputeCreated();
+      offDisputeResolved();
     };
   }, [queryClient, user]);
   return <>{children}</>;
