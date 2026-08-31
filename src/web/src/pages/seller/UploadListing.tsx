@@ -151,7 +151,7 @@ const UploadListing: React.FC = () => {
           ? { dimensions: dimensions }
           : null;
     try {
-      const listingId = await listingsService.createListing({
+      const {listingId, listingStatus } = await listingsService.createListing({
         title,
         description,
         price: Number(price),
@@ -163,7 +163,11 @@ const UploadListing: React.FC = () => {
       });
       await listingsService.uploadImages(listingId, files);
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+      if (listingStatus === "live"){
       showToast('success', 'Listing uploaded successfully');
+      } else {
+        showToast('info', 'Saved as a draft - you\u2019ll be able to publish once your verification is approved.');
+      }
       navigate("/seller/listings");
     } catch (err: unknown) {
       const error = err as ApiError;
@@ -193,7 +197,7 @@ const UploadListing: React.FC = () => {
           ? { dimensions: dimensions }
           : null;
     try {
-      const listingId = await listingsService.createListing({
+      const {listingId} = await listingsService.createListing({
         title,
         description,
         price: Number(price) || 0,

@@ -27,7 +27,7 @@ public class ListingController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateListingDto request)
+    public async Task<IActionResult> Create([FromBody] CreateListingDto request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(request.Title))
             return BadRequest(new { error = "Field(s) missing." });
@@ -48,7 +48,7 @@ public class ListingController : ControllerBase
         }
         try
         {
-            var response = await _listings.CreateListings(request, callerId);
+            var response = await _listings.CreateListings(request, callerId, ct);
             return Ok(response);
         }
         catch (ArgumentException ex) when (ex.Message == "invalid_category")
