@@ -107,6 +107,8 @@ function ListingCard({
       showToast("error", "You can't reserve your own listing.");
     } else if (result.error.code === "already_reserved") {
       showToast("error", "Item was already reserved!!");
+    } else  if (result.error.code === "not_verified"){
+      showToast("error", "You need to complete verification before reserving items.");
     } else {
       const msg = result.error.message ?? "Could not reserve this item.";
       showToast("error", msg);

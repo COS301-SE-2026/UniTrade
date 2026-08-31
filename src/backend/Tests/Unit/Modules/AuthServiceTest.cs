@@ -38,6 +38,7 @@ public class IdentityServiceTests
 
     private readonly Mock<IVerificationRepository> _verificationRepositoryMock;
     private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<IIdentityService> _identityServiceMock;
     private readonly VerificationService _verificationService;
 
     public IdentityServiceTests()
@@ -47,7 +48,8 @@ public class IdentityServiceTests
         _configMock = new Mock<IConfiguration>();
         _listingRepositoryMock = new Mock<IListingRepository>();
         _proofStorageMock = new Mock<IProofOfRegistrationStorageService>();
-
+        _identityServiceMock = new Mock<IIdentityService>();
+        _verificationRepositoryMock = new Mock<IVerificationRepository>();
         _configMock
             .Setup(c => c["Jwt:Secret"])
             .Returns("super_secret_key_that_is_at_least_32_bytes_long_12345!!");
@@ -55,16 +57,18 @@ public class IdentityServiceTests
         _service = new IdentityService(
             _userRepositoryMock.Object,
             _universityRepositoryMock.Object,
+            _verificationRepositoryMock.Object,
             _listingRepositoryMock.Object,
             _configMock.Object
         );
-        _verificationRepositoryMock = new Mock<IVerificationRepository>();
+
         _emailServiceMock = new Mock<IEmailService>();
         _verificationService = new VerificationService(
             _verificationRepositoryMock.Object,
             _userRepositoryMock.Object,
             _emailServiceMock.Object,
             _proofStorageMock.Object,
+            _identityServiceMock.Object,
             _configMock.Object
         );
     }
@@ -331,6 +335,7 @@ public class IdentityServiceTests
         var testService = new IdentityService(
             _userRepositoryMock.Object,
             _universityRepositoryMock.Object,
+            _verificationRepositoryMock.Object,
             _listingRepositoryMock.Object,
             configMock.Object
         );
