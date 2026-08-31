@@ -9,6 +9,7 @@ using Modules.Listings.Repositories;
 using Modules.Listings.Snapshot;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
+using Modules.Reservations;
 
 namespace Modules.Disputes;
 
@@ -20,6 +21,7 @@ public class DisputeService : IDisputeService
     private readonly IListingService _listings;
     private readonly IMeetupRepository _meetups;
     private readonly IListingRepository _listingRepository;
+    private readonly IBroadCastService _broadcast;
 
     //casesrepo
 
@@ -34,7 +36,8 @@ public class DisputeService : IDisputeService
         IListingService listings,
         IDisputeRepository disputes,
         IMeetupRepository meetups,
-        IListingRepository listingRepository
+        IListingRepository listingRepository,
+        IBroadCastService broadcast
     )
     {
         _membership = membership;
@@ -43,6 +46,7 @@ public class DisputeService : IDisputeService
         _listings = listings;
         _meetups = meetups;
         _listingRepository = listingRepository;
+        _broadcast = broadcast;
     }
 
     public async Task<FileDisputeResultDto> FileDisputeAsync(
@@ -119,6 +123,8 @@ public class DisputeService : IDisputeService
             },
             ct
         );
+        await _broadcast.NotifyAdminAsync("dispute_created", new { caseId, type = req.Type });
+
         return new FileDisputeResultDto(caseId);
     }
 
@@ -177,6 +183,9 @@ public class DisputeService : IDisputeService
             },
             ct
         );
+
+        await _broadcast.NotifyAdminAsync("dispute_created", new { caseId, type = req.Type });
+
         return new FileDisputeResultDto(caseId);
     }
 
@@ -242,6 +251,8 @@ public class DisputeService : IDisputeService
             },
             ct
         );
+
+        await _broadcast.NotifyAdminAsync("dispute_created", new { caseId, type = "report_listing" });
         return new FileDisputeResultDto(caseId);
     }
 

@@ -13,5 +13,6 @@ namespace Modules.Listings.Models.Dto
         public Guid ReservationId { get; set; }//dropped the Reserv and List objects cause of serialisation issues
         public Guid ListingId { get; set; }
         public string? Description { get; set; }
+        public Guid SnapshotId { get; set; }
     }
 }
