@@ -71,6 +71,7 @@ public class NotificationDispatcher : INotificationDispatcher
             "meetup_reminder" => "Meetup reminder",
             "listing_status" => "Listing update",
             "verification" => "Verification update",
+            "saved_search" => "New match for your search",
             _ => "UT",
         };
 }

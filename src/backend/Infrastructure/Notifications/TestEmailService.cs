@@ -32,6 +32,11 @@ public class TestEmailService : IEmailService
         return Task.CompletedTask;
     }
 
+    public Task SendSavedSearchMatchEmailAsync(string email, string title, decimal price)
+    {
+        return Task.CompletedTask;
+    }
+
     public static string? GetLastOtp(string email) =>
         _lastOtps.TryGetValue(email.ToLowerInvariant(), out var otp) ? otp : null;
     public static string? GetLastDecision(string email) =>
