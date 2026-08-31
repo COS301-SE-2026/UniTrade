@@ -227,7 +227,13 @@ class ConnectionManager {
     return () => this.reconnectedListeners.delete(callback);
   }
 
-  
+  onDisputeCreated(
+    callback: (data: {caseId: string; type: string}) => void,
+
+  ): Unsubscribe {
+    this.disputeCreatedListeners.add(callback);
+    return () => this.disputeCreatedListeners.delete(callback);
+  }
 
   private notifyState(state: ConnectionState): void {
     this.stateListeners.forEach((cb) => cb(state));
