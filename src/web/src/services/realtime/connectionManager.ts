@@ -149,6 +149,11 @@ class ConnectionManager {
     await this.connection!.invoke("JoinAdminGroup");
   }
 
+  async leaveAdminGroup(): Promise<void> {
+    this.isAdminGroupJoined = false;
+    await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
+  }
+
   getState(): ConnectionState {
     return this.connection?.state ?? "Disconnected";
   }
@@ -221,6 +226,8 @@ class ConnectionManager {
     this.reconnectedListeners.add(callback);
     return () => this.reconnectedListeners.delete(callback);
   }
+
+  
 
   private notifyState(state: ConnectionState): void {
     this.stateListeners.forEach((cb) => cb(state));
