@@ -43,7 +43,10 @@ export default function AdminVerifications() {
     getCases()
       .then((response) => {
 
-        const verificationCases = response.cases.filter((c) => c.type === 'verification');
+        
+        const cases = Array.isArray(response) ? response : response.cases;
+
+        const verificationCases = cases.filter((c) => c.type === 'verification');
 
 
         const enriched = verificationCases.map((summary) => {

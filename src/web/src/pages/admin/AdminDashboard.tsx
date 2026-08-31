@@ -202,8 +202,8 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
 
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
-        WELCOME Admin
+       <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
+        Welcome, Admin
       </h1>
 
 
@@ -215,13 +215,7 @@ export default function AdminDashboard() {
           subColor="text-amber-500"
           subIcon={<IconClock size={13} />}
         />
-        <StatCard
-          title="Listing Queue"
-          value={0} // wow-factor
-          sub="5 High Risk"
-          subColor="text-red-500"
-          subIcon={<IconAlertTriangle size={13} />}
-        />
+       
         <StatCard
           title="Active Disputes"
           value={activeDisputes.length}
@@ -255,7 +249,7 @@ export default function AdminDashboard() {
               view all
             </button>
           </div>
-
+{/*
           <ListingRow
             title="Chemistry Textbook - 3rd Ed"
             meta="CMY127 · R200 · Submitted 2hr ago"
@@ -276,6 +270,9 @@ export default function AdminDashboard() {
             meta="PHY114 · R150 · Submitted 10h ago"
             risk="Med Risk"
           />
+
+          this is all mock: we'll replace it
+          */}
         </div>
 
 
