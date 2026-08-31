@@ -144,6 +144,12 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
+    if(user?.role === "admin") {
+      connectionManager.joinAdminGroup().catch((e) =>
+      console.error("joinAdminGroup failed", e),
+    );
+    }
+
     return () => {
       offMessage();
       offReconnected();
