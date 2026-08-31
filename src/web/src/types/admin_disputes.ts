@@ -140,6 +140,8 @@ export interface CaseDetail extends CaseSummary {
   filedByUserId?: string;
   slaHours: number;
   slaBreached: boolean;
+  suggestedDecision?: 'uphold'|'dismiss';
+  suggestedOutcomes?: string[];
 }
 
 export interface CaseHistoryEntry {
@@ -157,7 +159,8 @@ export interface DecisionRequest {
 //dispute filing tuypes
 export interface NoShowFiling {
   type: "no_show";
-  meetupId: string;
+  reservationId: string;
+  description?: string;
 }
 
 export interface ListingQualityFiling {
@@ -171,7 +174,7 @@ export interface ListingQualityFiling {
 export interface ReportListingFiling {
   type: "report_listing";
   listingId: string;
-  reportReason: string;
+  description: string;
 }
 
 export type DisputeFiling =

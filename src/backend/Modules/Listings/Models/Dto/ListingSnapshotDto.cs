@@ -10,7 +10,7 @@ namespace Modules.Listings.Models.Dto
         public List<string>? PhotoRefs { get; set; }
         public List<string>? CourseTags { get; set; }
         public DateTime CapturedAt { get; set; }
-        public Reservation Reservation { get; set; } = null!;
-        public Listing Listing { get; set; } = null!;
+        public Guid? SnapshotId { get; set; }
+        public Guid ListingId { get; set; }
     }
 }

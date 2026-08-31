@@ -34,6 +34,11 @@ export function imageUrl(path: string): string {
 
   return `${origin}${path}`;
 }
+
+export interface CreateListingResult {
+  listingId: string;
+  listingStatus: string;
+}
 function toRefNum(reservationId: string): string {
   return `#${reservationId.slice(0, 8).toUpperCase()}`;
 }
@@ -432,7 +437,7 @@ export const listingsService = {
     return imageIds;
   },
 
-  createListing: async (payload: CreateListingPayload): Promise<string> => {
+  createListing: async (payload: CreateListingPayload): Promise<CreateListingResult> => {
     const res = await fetch(`${getApiUrl()}/listings`, {
       method: "POST",
       credentials: "include",
@@ -451,7 +456,7 @@ export const listingsService = {
     });
     if (!res.ok) throw new Error("Failed to create listing");
     const createdListing = await res.json();
-    return createdListing.listingId;
+    return { listingId: createdListing.listingId, listingStatus: createdListing.listingStatus};
   },
 
   updateListing: async (

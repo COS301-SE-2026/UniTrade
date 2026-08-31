@@ -149,12 +149,14 @@ export default function AdminDashboard() {
     let active = true;
     async function fetchDashboardData() {
       try {
+        console.log("Fetching verifications...")
         const [verifications, disputes, users] = await Promise.all([
           getTopVerifications(5),
           getTopDisputes(5),
           getTotalUsers(),
 
         ]);
+        
 
         if (active) {
           setPendingVerifications(verifications)

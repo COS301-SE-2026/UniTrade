@@ -1,5 +1,5 @@
 import { test, expect, beforeEach, afterEach, vi } from 'vitest'
-import {render, fireEvent, waitFor, within, act } from '@testing-library/react'
+import { render, fireEvent, waitFor, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -21,6 +21,7 @@ import GeneratePin from '../../pages/payment/GeneratePin'
 
 import { connectionManager as realConnectionManager } from '../../services/realtime/connectionManager'
 import type { createMoackConnectionManager } from '../mocks/mockConnectionManager'
+import { ToastProvider } from '../../components/layout/Toast'
 
 const mockConnectionManager = realConnectionManager as unknown as ReturnType<
     typeof createMoackConnectionManager>
@@ -28,13 +29,13 @@ const mockConnectionManager = realConnectionManager as unknown as ReturnType<
 vi.mock('../../config', () => ({
     getApiUrl: () => 'http://localhost:5000/api',
 }))
- 
+
 
 vi.mock('../../services/realtime/connectionManager', async () => {
     const { createMoackConnectionManager } = await import('../mocks/mockConnectionManager')
     return { connectionManager: createMoackConnectionManager() }
 })
- 
+
 interface MockMeetup {
     meetupId: number
     agreedLocationName: string
@@ -49,7 +50,7 @@ interface MockMeetup {
     paymentUnlocked: boolean
     status: string
 }
- 
+
 interface MockTransaction {
     reservationId: string
     transactionId: string | null
@@ -58,22 +59,24 @@ interface MockTransaction {
     pin: string | null
     paidAt: string | null
 }
- 
+
 function renderAt(initialPath: string, queryClient = createTestQueryClient()) {
     return render(
         <QueryClientProvider client={queryClient}>
-            <MemoryRouter initialEntries={[initialPath]}>
-                <Routes>
-                    <Route path="/payment/meetup" element={<MeetupDetails />} />
-                    <Route path="/payment/payment-complete" element={<PaymentComplete />} />
-                    <Route path="/payment/buyer-pin" element={<EnterPin />} />
-                    <Route path="/payment/generate-pin" element={<GeneratePin />} />
-                </Routes>
-            </MemoryRouter>
+            <ToastProvider>
+                <MemoryRouter initialEntries={[initialPath]}>
+                    <Routes>
+                        <Route path="/payment/meetup" element={<MeetupDetails />} />
+                        <Route path="/payment/payment-complete" element={<PaymentComplete />} />
+                        <Route path="/payment/buyer-pin" element={<EnterPin />} />
+                        <Route path="/payment/generate-pin" element={<GeneratePin />} />
+                    </Routes>
+                </MemoryRouter>
+            </ToastProvider>
         </QueryClientProvider>,
     )
 }
- 
+
 function renderMeetupDetails(
     reservationId: string,
     role: 'buyer' | 'seller',
@@ -81,19 +84,21 @@ function renderMeetupDetails(
 ) {
     return render(
         <QueryClientProvider client={queryClient}>
-            <MemoryRouter
-                initialEntries={[
-                    { pathname: '/payment/meetup', state: { reservationId, role } },
-                ]}
-            >
-                <Routes>
-                    <Route path="/payment/meetup" element={<MeetupDetails />} />
-                </Routes>
-            </MemoryRouter>
+            <ToastProvider>
+                <MemoryRouter
+                    initialEntries={[
+                        { pathname: '/payment/meetup', state: { reservationId, role } },
+                    ]}
+                >
+                    <Routes>
+                        <Route path="/payment/meetup" element={<MeetupDetails />} />
+                    </Routes>
+                </MemoryRouter>
+            </ToastProvider>
         </QueryClientProvider>,
     )
 }
- 
+
 function renderGeneratePin(
     reservationId: string,
     pin: string,
@@ -101,30 +106,32 @@ function renderGeneratePin(
 ) {
     return render(
         <QueryClientProvider client={queryClient}>
-            <MemoryRouter
-                initialEntries={[
-                    { pathname: '/payment/generate-pin', state: { reservationId, pin } },
-                ]}
-            >
-                <Routes>
-                    <Route path="/payment/generate-pin" element={<GeneratePin />} />
-                    <Route path="/payment/payment-complete" element={<PaymentComplete />} />
-                </Routes>
-            </MemoryRouter>
+            <ToastProvider>
+                <MemoryRouter
+                    initialEntries={[
+                        { pathname: '/payment/generate-pin', state: { reservationId, pin } },
+                    ]}
+                >
+                    <Routes>
+                        <Route path="/payment/generate-pin" element={<GeneratePin />} />
+                        <Route path="/payment/payment-complete" element={<PaymentComplete />} />
+                    </Routes>
+                </MemoryRouter>
+            </ToastProvider>
         </QueryClientProvider>,
     )
 }
- 
+
 beforeEach(() => {
     resetMockListings()
     resetMockReservations()
     resetMockTransactions()
     vi.clearAllMocks()
- 
+
     useAuthStore.setState({
         user: { id: 'buyer-1', name: 'Test Buyer', initials: 'TB', role: 'student' },
     })
- 
+
     Object.defineProperty(globalThis.navigator, 'geolocation', {
         configurable: true,
         value: {
@@ -134,12 +141,12 @@ beforeEach(() => {
         },
     })
 })
- 
+
 afterEach(() => {
     useAuthStore.setState({ user: null })
     vi.restoreAllMocks()
 })
- 
+
 test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confirmation', async () => {
     const listing = seedMockListing({ title: 'Calculus Textbook', price: 250, sellerId: 'seller-1' })
     const reservation = seedMockReservation({
@@ -149,7 +156,7 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
     })
     const reservationId = reservation.reservationId
     const now = Date.now()
- 
+
     const meetup: MockMeetup = {
         meetupId: 1,
         agreedLocationName: 'Merensky Library',
@@ -164,7 +171,7 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
         paymentUnlocked: false,
         status: 'confirmed',
     }
- 
+
     const transaction: MockTransaction = {
         reservationId,
         transactionId: null,
@@ -173,7 +180,7 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
         pin: null,
         paidAt: null,
     }
- 
+
     server.use(
         http.get(`http://localhost:5000/api/reservations/${reservationId}/meetup`, () =>
             HttpResponse.json(meetup),
@@ -211,10 +218,10 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
             return new HttpResponse(null, { status: 200 })
         }),
     )
- 
+
     const user = userEvent.setup()
     const queryClient = createTestQueryClient()
- 
+
     const buyerMount1 = renderMeetupDetails(reservationId, 'buyer', queryClient)
     await within(buyerMount1.container).findByRole('heading', { name: /seller/i })
     await user.click(within(buyerMount1.container).getByRole('button', { name: /check in at meetup/i }))
@@ -222,7 +229,7 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
     await user.click(within(buyerMount1.container).getByRole('button', { name: /done/i }))
     await waitFor(() => expect(meetup.buyerCheckedIn).toBe(true))
     buyerMount1.unmount()
- 
+
     const sellerMount1 = renderMeetupDetails(reservationId, 'seller', queryClient)
     await within(sellerMount1.container).findByRole('heading', { name: /buyer/i })
     await user.click(within(sellerMount1.container).getByRole('button', { name: /check in at meetup/i }))
@@ -233,8 +240,8 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
         expect(meetup.paymentUnlocked).toBe(true)
     })
     sellerMount1.unmount()
- 
-    const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => {})
+
+    const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => { })
     const buyerMount2 = renderMeetupDetails(reservationId, 'buyer', queryClient)
     const payButton = await within(buyerMount2.container).findByRole('button', { name: /pay r250\.00/i })
     await waitFor(() => expect(payButton).not.toBeDisabled())
@@ -242,13 +249,13 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
     await waitFor(() => expect(submitSpy).toHaveBeenCalled())
     submitSpy.mockRestore()
     buyerMount2.unmount()
- 
+
     transaction.transactionId = `T-${reservationId}`
     transaction.transactionStatus = 'completed'
     transaction.pinStatus = 'pending'
     transaction.pin = '482913'
     transaction.paidAt = new Date().toISOString()
- 
+
     const buyerPaymentComplete = renderAt(
         `/payment/payment-complete?reservationId=${reservationId}&role=buyer`,
         queryClient,
@@ -256,10 +263,10 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
     await waitFor(() => {
         expect(mockConnectionManager.onPaymentCompleted).toHaveBeenCalled()
     })
- 
+
     await within(buyerPaymentComplete.container).findByRole('heading', { name: /pin verification/i })
- 
-const digitInputs = within(buyerPaymentComplete.container).getAllByRole('textbox')
+
+    const digitInputs = within(buyerPaymentComplete.container).getAllByRole('textbox')
     for (const [i, char] of '000000'.split('').entries()) {
         fireEvent.change(digitInputs[i], { target: { value: char } })
     }
@@ -267,15 +274,15 @@ const digitInputs = within(buyerPaymentComplete.container).getAllByRole('textbox
     expect(
         await within(buyerPaymentComplete.container).findByText('Incorrect PIN. Please try again.'),
     ).toBeInTheDocument()
- 
-const digitInputsRetry = within(buyerPaymentComplete.container).getAllByRole('textbox')
+
+    const digitInputsRetry = within(buyerPaymentComplete.container).getAllByRole('textbox')
     for (const [i, char] of '482913'.split('').entries()) {
         fireEvent.change(digitInputsRetry[i], { target: { value: char } })
     }
     await user.click(within(buyerPaymentComplete.container).getByRole('button', { name: /verify pin/i }))
- 
+
     await waitFor(() => expect(transaction.pinStatus).toBe('confirmed'))
- 
+
     await within(buyerPaymentComplete.container).findByRole('heading', { name: /transaction complete!/i })
     expect(
         within(buyerPaymentComplete.container).getByText(
@@ -283,22 +290,22 @@ const digitInputsRetry = within(buyerPaymentComplete.container).getAllByRole('te
         ),
     ).toBeInTheDocument()
     buyerPaymentComplete.unmount()
- 
-const sellerGeneratePinMount = renderGeneratePin(reservationId, '482913')
- await within(sellerGeneratePinMount.container).findByRole('heading', { name: /transaction pin/i })
+
+    const sellerGeneratePinMount = renderGeneratePin(reservationId, '482913')
+    await within(sellerGeneratePinMount.container).findByRole('heading', { name: /transaction pin/i })
     expect(within(sellerGeneratePinMount.container).getByText('4')).toBeInTheDocument() // first digit rendered
- 
+
 
     await waitFor(() => expect(mockConnectionManager.onPinConfirmed).toHaveBeenCalled())
     act(() => {
         mockConnectionManager.__simulatePinConfirmed({ reservationId })
     })
- await within(sellerGeneratePinMount.container).findByRole('heading', { name: /transaction complete!/i })
+    await within(sellerGeneratePinMount.container).findByRole('heading', { name: /transaction complete!/i })
     expect(
         within(sellerGeneratePinMount.container).getByText(
             /the buyer has entered the pin\. the sale is complete\./i,
         ),
     ).toBeInTheDocument()
- 
+
     sellerGeneratePinMount.unmount()
 })

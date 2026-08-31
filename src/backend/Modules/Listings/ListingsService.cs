@@ -90,7 +90,7 @@ public class ListingService : IListingService
                 )
         );
 
-    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId)
+    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId, CancellationToken ct = default)
     {
         var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
         if (category == null)
@@ -115,6 +115,10 @@ public class ListingService : IListingService
             metadataJ = JsonSerializer.Serialize(dto.Metadata.Value);
         }
 
+        var requestedStatus = dto.ListingStatus;
+        var isVerified = await _verification.IsVerifiedAsync(callerId, ct);
+        var effectiveStatus = isVerified ? requestedStatus : "draft";
+
         var newListing = new Listing
         {
             Title = dto.Title,
@@ -124,7 +128,7 @@ public class ListingService : IListingService
             Condition = dto.Condition,
             Metadata = metadataJ,
             SellerId = callerId,
-            ListingStatus = dto.ListingStatus,
+            ListingStatus = effectiveStatus,
             ListingId = Guid.NewGuid(),
             CourseId = isBook ? dto.CourseId : null,
             IsBundle = dto.IsBundle,

@@ -58,14 +58,17 @@ export default function App() {
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.user) {
-          const u = data.user;
-          setUser({
-            id: u.userId,
-            name: u.firstName,
-            initials: `${u.firstName?.[0] ?? ""}${u.lastName?.[0] ?? ""}`,
-            role: u.userRole,
-          });
+        if (data) {
+          const u = data.user ?? data;
+          if (u?.userId) {
+            setUser({
+              id: u.userId,
+              name: u.firstName,
+              initials: `${u.firstName?.[0] ?? ""}${u.lastName?.[0] ?? ""}`,
+              role: u.userRole,
+            });
+          }
+
         }
       })
       .catch(() => { })
@@ -87,12 +90,11 @@ export default function App() {
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
-        <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} />
         <Route path="/auth/ProofUpload" element={<ProofOfRegistrationUpload />} />
 
         <Route element={<AppLayout />}>
           <Route path="/admin/verifications/:id" element={<AdminVerificationReview />} />
-          <Route path="/admin/disputes/:id" element={<AdminDisputeReview />} /> 
+          <Route path="/admin/disputes/:id" element={<AdminDisputeReview />} />
           <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
           <Route path="/seller/sales" element={<Sales />} />
@@ -134,15 +136,16 @@ export default function App() {
 
           <Route path="/payment/meetup" element={<MeetupDetails />} />
           <Route path="/payment/payfast-redirect" element={<Redirect />} />
-      
+
           <Route path="/payment/generate-pin" element={<GeneratePin />} />
           <Route path="/payment/buyer-pin" element={<EnterPin />} />
           <Route path="/payment/payment-complete" element={<PaymentComplete />} />
 
           <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
           <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
-          {/* <Route path="*" element={<Navigate to= "/auth/HomePage" replace />} /> */}
         </Route>
+        {<Route path="*" element={<Navigate to="/auth/HomePage" replace />} />}
+
       </Routes>
     </RealtimeProvider>
   );

@@ -23,4 +23,6 @@ public sealed class DisputeCaseData
     public string? PinStatus { get; set; }
     public DateTime? CheckInWindowClosesAt { get; set; }
 
+    public Guid? SnapshotId { get; set; }
+
 }
