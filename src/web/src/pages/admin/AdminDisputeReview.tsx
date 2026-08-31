@@ -317,7 +317,14 @@ export default function AdminDisputeReview() {
 }
 
 function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
-  return (
+ 
+    if(dispute.type === 'no_show'){
+      return (
+        <Panel title='Item'
+        ><p className='text-sm text-gray-500 dark:text-white/50 italic'>Item details are not available for no-show disputes.</p></Panel>
+      );
+    }
+     return (
     <Panel title="Item">
       <div className="flex gap-4">
         <div className="w-16 h-16 rounded-lg bg-gray-100 darkLbg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">

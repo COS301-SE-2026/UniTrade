@@ -148,6 +148,21 @@ public class DisputeService : IDisputeService
         var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
         var subjectUserId = (filedByUserId == parties.BuyerId) ? parties.SellerId : parties.BuyerId;
 
+        var now = DateTime.UtcNow;
+        if (meetup.CheckinWindowClosesAt == null || now <= meetup.CheckinWindowClosesAt)
+        {
+            throw new DisputesException("checkin_window_not_closed");
+        }
+        var currentUserCheckedIn = (filedByUserId == parties.BuyerId) ? meetup.BuyerCheckedIn : meetup.SellerCheckedIn;
+        if (!currentUserCheckedIn)
+        {
+            throw new DisputesException("current_user_not_checked_in");
+        }
+        var otherUserCheckedIn = (subjectUserId == parties.BuyerId) ? meetup.BuyerCheckedIn : meetup.SellerCheckedIn;
+        if (otherUserCheckedIn)
+        {
+            throw new DisputesException("other_party_checked_in");
+        }
         await GuardOneOpenDisputeAsync(filedByUserId, subjectUserId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(

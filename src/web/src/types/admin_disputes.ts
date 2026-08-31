@@ -157,7 +157,8 @@ export interface DecisionRequest {
 //dispute filing tuypes
 export interface NoShowFiling {
   type: "no_show";
-  meetupId: string;
+  reservationId: string;
+  description?: string;
 }
 
 export interface ListingQualityFiling {
