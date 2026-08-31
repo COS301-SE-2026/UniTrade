@@ -10,6 +10,7 @@ import {
 } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
 import { connectionManager } from '../../services/realtime/connectionManager';
+import { ToastProvider } from '../../components/layout/Toast';
 
 const navigateMock = vi.fn();
 vi.mock('react-router', async () => {
@@ -105,9 +106,11 @@ function renderMeetupDetails(state: Record<string, unknown> | null = { reservati
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[{ pathname: '/payment/meetup', state }]}>
-        <MeetupDetails />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter initialEntries={[{ pathname: '/payment/meetup', state }]}>
+          <MeetupDetails />
+        </MemoryRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }
@@ -191,7 +194,7 @@ describe('buyer view', () => {
       data: { sandbox_url: 'https://sandbox.payfast.co.za', fields: { amount: '250.00' } },
     } as unknown as Awaited<ReturnType<typeof createTransactionRequest>>);
 
-    const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => {});
+    const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => { });
     renderMeetupDetails();
     const payButton = await screen.findByRole('button', { name: /pay r250\.00/i });
     fireEvent.click(payButton);

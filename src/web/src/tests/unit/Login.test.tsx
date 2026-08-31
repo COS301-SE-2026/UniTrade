@@ -126,6 +126,7 @@ describe('Login', () => {
       std: { 
         verificationStatus: 'verified',
         degreeProgram: 'BSc Computer Science',
+        verificationRequestStatus: 'pending',
       yearOfStudy: 2,
     university: 'UP' }
     })
@@ -198,8 +199,9 @@ describe('Login', () => {
         //university: 'UP'
       },
       std: { 
-        verificationStatus: 'verified',
+      verificationStatus: 'verified',
       degreeProgram: 'BSc Computer Science',
+      verificationRequestStatus: 'pending',
     yearOfStudy: 2,
     university: 'UP'
    }
@@ -275,6 +277,7 @@ describe('Login', () => {
       },
       std: { verificationStatus: 'verified',
         degreeProgram: 'BSc Computer Science',
+        verificationRequestStatus: 'pending',
     yearOfStudy: 2,
     university: 'UP'
 

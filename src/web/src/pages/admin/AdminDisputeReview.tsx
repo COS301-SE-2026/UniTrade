@@ -14,6 +14,7 @@ import {
 import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
 import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
+import { getApiUrl } from '../../config';
 
 export interface DisputeCase {
   id: string
@@ -27,6 +28,8 @@ export interface DisputeCase {
   photos?: ListingPhotos
   report?: ReportInfo
   decision?: DisputeDecision
+  listingId?: string
+  suggestedDecision?: DisputeDecision
 };
 
 const typeBadge: Record<DisputeType, { label: string; tone: 'red' | 'amber' | 'blue' }> = {
@@ -88,6 +91,8 @@ function transformCaseDetail(detail: CaseDetail) {
       reviewCount: 0
     };
   };
+  const apiBase = getApiUrl();
+
   const buildItemFromSnapshot = (snapshot?: ListingSnapshot): DisputeItem => {
     if (!snapshot) {
       return {
@@ -96,7 +101,7 @@ function transformCaseDetail(detail: CaseDetail) {
         category: 'N/A',
         moduleCode: 'N/A',
         price: 'N/A',
-        status: 'Reserved',
+        status: 'Live',
       };
     }
     return {
@@ -106,7 +111,7 @@ function transformCaseDetail(detail: CaseDetail) {
       moduleCode: snapshot.courseTags?.[0] || 'N/A',
       price: `R${snapshot.price.toFixed(2)}`,
       status: 'Reserved',
-      imageUrl: snapshot.photoRefs?.[0] || undefined,
+      imageUrl: snapshot.photoRefs?.[0] ? `${apiBase}${snapshot.photoRefs[0].replace(/^\/api/, '')}` : undefined // if not rendering in prod.. check the element if its missing an api
     };
   };
 
@@ -133,7 +138,7 @@ function transformCaseDetail(detail: CaseDetail) {
   let checkIn: CheckInEvidence | undefined = undefined;
   let photos: ListingPhotos | undefined = undefined;
   let report: ReportInfo | undefined = undefined;
-
+  let listingId: string | undefined = undefined;
   const ev = detail.evidence;
 
   if (detail.type === 'no_show') {
@@ -150,6 +155,7 @@ function transformCaseDetail(detail: CaseDetail) {
   if (detail.type == 'listing_quality') {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot);
+      listingId = ev.snapshot.listingId;
     }
     photos = {
       snapshotPhotos: ev.snapshot?.photoRefs ?? [],
@@ -160,10 +166,15 @@ function transformCaseDetail(detail: CaseDetail) {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot);
     }
+    listingId = ev.listingId;
     report = {
       reason: ev.reportReason || 'No reason provided',
       reportedBy: counterparty ? mapPerson(counterparty) : { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 },
     };
+  }
+  let suggestedDecision: DisputeDecision | undefined;
+  if (detail.type === "listing_quality" && detail.suggestedDecision) {
+    suggestedDecision = detail.suggestedDecision as DisputeDecision;
   }
   return {
     id: detail.caseId,
@@ -178,6 +189,8 @@ function transformCaseDetail(detail: CaseDetail) {
     photos,
     report,
     decision: undefined,
+    listingId,
+    suggestedDecision
   };
 };
 
@@ -261,7 +274,7 @@ export default function AdminDisputeReview() {
 
           <Panel title="Actions">
             <div className="mb-4">
-              <OutlineButton onClick={() => navigate(`/listings/${dispute.id}`)}>View Listing</OutlineButton>
+              <OutlineButton onClick={() => navigate(`/buyer/listings/${dispute.listingId ?? dispute.id}`)} disabled={!dispute.listingId}>View Listing</OutlineButton>
             </div>
 
             {completedDecision ? (
@@ -284,7 +297,7 @@ export default function AdminDisputeReview() {
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
                 )}
-                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecision} />
+                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecision} suggestedDecision={dispute.suggestedDecision} />
               </>
             )}
           </Panel>
@@ -311,6 +324,13 @@ export default function AdminDisputeReview() {
 }
 
 function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
+
+  if (dispute.type === 'no_show') {
+    return (
+      <Panel title='Item'
+      ><p className='text-sm text-gray-500 dark:text-white/50 italic'>Item details are not available for no-show disputes.</p></Panel>
+    );
+  }
   return (
     <Panel title="Item">
       <div className="flex gap-4">
@@ -376,20 +396,26 @@ function StatusLine({ ok, okLabel, notOkLabel }: Readonly<{ ok: boolean; okLabel
 }
 
 function PhotoComparisonPanel({ photos }: Readonly<{ photos: NonNullable<DisputeCase['photos']> }>) {
+  const apiBase = getApiUrl();
   return (
     <Panel title="Listing snapshot vs buyer photos">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">Snapshot at Reservation</p>
           <div className="grid grid-cols-2 gap-2">
-            {photos.snapshotPhotos.map((emoji, i) => (
-              <div
-                key={`snapshot-${i}`}
-                className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
-              >
-                {emoji}
-              </div>
-            ))}
+            {photos.snapshotPhotos.map((url, i) => {
+              const imageSrc = url.startsWith('/api') ? `${apiBase}${url.replace(/^\/api/, '')}` : url;
+              return (
+
+
+                <div
+                  key={`snapshot-${i}`}
+                  className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
+                >
+                  <img src={imageSrc} alt={`Snapshot ${i + 1}`} className='w-full h-full object-cover' />
+                </div>
+              );
+            })}
           </div>
         </div>
         <div>
@@ -466,7 +492,10 @@ function DecisionActions({
   type,
   submitting,
   onDecide,
-}: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void }>) {
+  suggestedDecision
+}: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void; suggestedDecision?: DisputeDecision }>) {
+
+  
   if (type === 'no_show') {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
@@ -488,12 +517,21 @@ function DecisionActions({
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
           {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
+          {suggestedDecision=== 'uphold' && (
+            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
+          )}
         </DecisionButton>
         <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
           {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
+          {suggestedDecision=== 'dismiss' && (
+            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
+          )}
         </DecisionButton>
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
           {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
+          {suggestedDecision=== 'dismiss' && (
+            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
+          )}
         </DecisionButton>
       </div>
     );

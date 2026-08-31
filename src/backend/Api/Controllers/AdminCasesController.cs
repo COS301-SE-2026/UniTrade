@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modules.Disputes;
 using Modules.Disputes.Models.Dto;
 using Modules.Identity.Verification;
+using Modules.SharedKernel;
 
 namespace Api.Controllers;
 
@@ -10,8 +11,13 @@ namespace Api.Controllers;
 public sealed class AdminCasesController : AdminControllerBase
 {
     private readonly IAdminCaseService _adminCaseService;
+    private readonly IProofOfRegistrationStorageService _porStorage;
 
-    public AdminCasesController(IAdminCaseService caseService) => _adminCaseService = caseService;
+    public AdminCasesController(IAdminCaseService caseService, IProofOfRegistrationStorageService porStorage)
+    {
+        _adminCaseService = caseService;
+        _porStorage = porStorage;
+    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CaseSummaryDto>>> List(
@@ -29,6 +35,19 @@ public sealed class AdminCasesController : AdminControllerBase
     {
         var detail = await _adminCaseService.GetCaseByIdAsync(id, ct);
         return detail is null ? NotFound() : Ok(detail);
+    }
+
+    [HttpGet("{id:guid}/document")]
+    public async Task<IActionResult> GetDocument(Guid id, CancellationToken ct)
+    {
+        var result = await _porStorage.GetAsync(id, ct);
+        if (result is null)
+        {
+            return NotFound();
+        }
+
+        var (data, contentType, fileName) = result.Value;
+        return File(data, contentType, fileName);
     }
 
     [HttpPost("{id:guid}/decision")]
@@ -63,6 +82,7 @@ public sealed class AdminCasesController : AdminControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
 
     private Guid? GetAdminIdentifier()
     {

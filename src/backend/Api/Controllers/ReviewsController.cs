@@ -18,7 +18,7 @@ public class ReviewsController : ControllerBase
         _reviews = reviews;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
     // POST /api/reviews
     [HttpPost]

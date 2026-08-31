@@ -216,6 +216,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("seller_refused_photos");
 
+                    b.Property<Guid?>("SnapshotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("snapshot_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -257,6 +261,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ReservationId")
                         .HasDatabaseName("ix_disputes_reservation_id");
+
+                    b.HasIndex("SnapshotId")
+                        .HasDatabaseName("ix_disputes_snapshot_id");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_disputes_status");
@@ -923,9 +930,9 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Listings.Models.ListingSnapshot", b =>
                 {
-                    b.Property<Guid>("ReservationId")
+                    b.Property<Guid>("SnapshotId")
                         .HasColumnType("uuid")
-                        .HasColumnName("reservation_id");
+                        .HasColumnName("snapshot_id");
 
                     b.Property<DateTime>("CapturedAt")
                         .ValueGeneratedOnAdd()
@@ -961,17 +968,25 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("price");
 
+                    b.Property<Guid?>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("title");
 
-                    b.HasKey("ReservationId")
+                    b.HasKey("SnapshotId")
                         .HasName("pk_listing_snapshot");
 
                     b.HasIndex("ListingId")
                         .HasDatabaseName("ix_listing_snapshots_listing_id");
+
+                    b.HasIndex("ReservationId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_listing_snapshot_reservation_id");
 
                     b.ToTable("listing_snapshot", "unitrade", t =>
                         {
@@ -1513,6 +1528,42 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Modules.SharedKernel.Image", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("image_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ImageId"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("content_type");
+
+                    b.Property<int>("FileSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("file_size");
+
+                    b.Property<byte[]>("ImageData")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("image_data");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("ImageId")
+                        .HasName("pk_images");
+
+                    b.ToTable("images", "unitrade");
+                });
+
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
                 {
                     b.Property<Guid>("TransactionId")
@@ -1694,12 +1745,20 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_disputes_reservations_reservation_id");
 
+                    b.HasOne("Modules.Listings.Models.ListingSnapshot", "Snapshot")
+                        .WithMany()
+                        .HasForeignKey("SnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_listing_snapshot_snapshot_id");
+
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
                         .HasForeignKey("SubjectUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_disputes_users_subject_user_id");
+
+                    b.Navigation("Snapshot");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
@@ -1837,7 +1896,6 @@ namespace Infrastructure.Persistence.Migrations
                         .WithOne("ListingSnapshot")
                         .HasForeignKey("Modules.Listings.Models.ListingSnapshot", "ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_listing_snapshot_reservations_reservation_id");
 
                     b.Navigation("Listing");

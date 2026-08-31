@@ -17,9 +17,11 @@ public class CaseSummaryDto
     public Guid? SellerId { get; set; }
     public Guid? BuyerId { get; set; }
     public Guid? ReservationId { get; set; }
+    public Guid? ListingId { get; set; }
 
     public string? SubjectName { get; set; }
     public string? SubjectDegree { get; set; }
+    public int? SubjectYear { get; set; }
 
     public bool HasDocument { get; set; }
 }

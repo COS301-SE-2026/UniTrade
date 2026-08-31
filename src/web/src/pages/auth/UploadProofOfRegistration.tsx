@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { IconCloudUpload } from '@tabler/icons-react';
 import { getApiUrl } from '../../config';
+import { useNavigate } from 'react-router';
+import { useToast } from '../../components/layout/useToast';
 
 type UploadStatus = 'uploading' | 'success' | 'error';
 
@@ -34,6 +36,8 @@ function resolveErrorMessage(code: string | undefined): string {
 export default function ProofOfRegistrationUpload() {
     const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
+    const { showToast} = useToast();
 
     const handleFileClick = () => {
         fileInputRef.current?.click();
@@ -79,6 +83,8 @@ export default function ProofOfRegistrationUpload() {
 
             if (res.ok) {
                 setUploadedFile({ name: file.name, status: 'success'})
+                showToast('success', 'Proof of registration submitted. We\u2019ll email you once it\u2019s been reviewed.');
+                setTimeout(() => navigate('/auth/Login'), 1200);
 
             } else {
                 const body = await res.json().catch(() => null);

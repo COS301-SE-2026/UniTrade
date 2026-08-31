@@ -24,4 +24,7 @@ public class StrikeRepository : IStrikeRepository
             .Where(s => s.UserId == userId)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(ct);
+
+    public async Task<int> CountForUserAsync(Guid userId, CancellationToken ct = default) =>
+        await _db.Strikes.AsNoTracking().CountAsync(s => s.UserId == userId, ct);
 }

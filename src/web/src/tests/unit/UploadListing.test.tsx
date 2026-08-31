@@ -312,7 +312,7 @@ describe('UploadListing', () => {
   })
 
   it('submits successfully and navigates to seller listings', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce('42')
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId:'42', listingStatus: 'live'})
     vi.mocked(listingsService.uploadImages).mockResolvedValueOnce([])
     const user = userEvent.setup()
     renderUpload()
@@ -379,7 +379,7 @@ describe('UploadListing', () => {
 
 
   it('saves a draft successfully without images and skips uploadImages', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce('7')
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '7', listingStatus: 'draft'})
     const user = userEvent.setup()
     renderUpload()
 
@@ -402,7 +402,7 @@ describe('UploadListing', () => {
   })
 
   it('saves a draft with images and calls uploadImages', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce('8')
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({listingId: '8', listingStatus: 'draft'})
     vi.mocked(listingsService.uploadImages).mockResolvedValueOnce([])
     const user = userEvent.setup()
     renderUpload()

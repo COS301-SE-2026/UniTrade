@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Repositories;
+using Infrastructure.Persistence;
 
 namespace Api.Controllers;
 
@@ -37,52 +38,48 @@ public class DevController : ControllerBase
         return Ok(new { otp });
     }
 
-    [HttpPost("admin")]
+    [HttpGet("decision")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<IActionResult> CreateAdmin(
-        [FromServices] IUserRepository users,
-        CancellationToken ct
-    )
+    public IActionResult GetDecision([FromQuery] string email)
     {
         if (!_env.IsDevelopment())
         {
             return NotFound();
         }
-        try
+
+        var decision = TestEmailService.GetLastDecision(email);
+        if (decision == null)
         {
-            const string email = "e2e-admin@tuks.co.za";
-            const string password = "Admin123&*"; // NOSONAR
-
-            var existing = await users.GetByEmailAsync(email);
-
-            if (existing is null)
-            {
-                var user = new User
-                {
-                    UserId = Guid.NewGuid(),
-                    FirstName = "E2E",
-                    LastName = "Admin",
-                    Email = email,
-                    PhoneNumber = "",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                    Role = "admin",
-                };
-
-                await users.AddAsync(user);
-            }
-            return Ok(new { email, password });
+            return NotFound(new { error = "no_decision_found" });
         }
-        catch (Exception ex)
+
+        return Ok(new { decision });
+    }
+
+    [HttpPost("admin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateAdmin([FromServices] AppDbContext db, CancellationToken ct)
+    {
+        if (!_env.IsDevelopment())
         {
-            return StatusCode(
-                500,
-                new
-                {
-                    error = ex.Message,
-                    stack = ex.StackTrace,
-                    inner = ex.InnerException?.Message,
-                }
-            );
+            return NotFound();
         }
+
+        const string password = "beebadooBE@16";
+        var email = $"admin-{Guid.NewGuid():N}@up.ac.za";
+
+        db.Users.Add(new User
+        {
+            UserId = Guid.NewGuid(),
+            FirstName = "Suzuka",
+            LastName = "Karie",
+            Email = email,
+            PhoneNumber = "",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = "admin",
+        });
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new { email, password });
     }
 }
