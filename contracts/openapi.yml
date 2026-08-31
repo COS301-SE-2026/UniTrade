@@ -214,10 +214,10 @@ components:
     NoShowEvidence:
       type: object
       properties:
-        meetupId: { type: string, format: uuid}
-        buyerCheckIn: { type: boolean}
-        sellerCheckIn: { type: boolean}
-        pinStatus: {type: string}
+        meetupId: { type: integer}
+        buyerCheckedIn: { type: boolean}
+        sellerCheckedIn: { type: boolean}
+        pinStatus: {type: string, nullable: true}
     DecisionRequest:
       type: object
       required: [decision]
@@ -260,7 +260,7 @@ components:
         photoRefs: {type: array, items: {type: string}}
         courseTags: {type: array, items: {type: string}}
         capturedAt: {type: string, format: date-time}
-        description: {type: string, nullable: true}
+        description: {type: string}
     Strike:
       type: object
       properties: 
@@ -274,7 +274,7 @@ components:
     AuditEntry:
       type: object
       properties:
-        logId: {type: string, format: uuid, format: int64, description: "AuditLog.LogId is a bigint, not a uuid"}
+        logId: {type: integer, format: uuid, format: int64, description: "AuditLog.LogId is a bigint, not a uuid"}
         actorId: { type: string, format: uuid,nullable: true}
         action: {type: string}
         entityId: {type: string}
