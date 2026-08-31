@@ -63,7 +63,7 @@ public class PayFastPaymentGateway : IPaymentGateway
         string buyerEmail
     )
     {
-        var fields = new List<KeyValuePair<string, string>>
+        var ordered = new List<KeyValuePair<string, string>>
         {
             new("merchant_id", _merchantId),
             new("merchant_key", _merchantKey),
@@ -71,16 +71,19 @@ public class PayFastPaymentGateway : IPaymentGateway
             new("cancel_url", $"{_cancelUrl}?reservationId={reservationId}"),
             new("notify_url", _notifyUrl),
             new("name_first", buyerFirstName ?? ""),
+            new("name_last",""),
             new("email_address", buyerEmail ?? ""),
             new("m_payment_id", reservationId.ToString()),
             new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
             new("item_name", Truncate(listingTitle, 100)),
+            
         };
-        return fields.Where(f => !string.IsNullOrEmpty(f.Value)).ToList();
+        return ordered.Where(f => !string.IsNullOrEmpty(f.Value)).ToList();
     }
 
     private string GenerateSignature(List<KeyValuePair<string, string>> fields)
     {
+
         var sb = new StringBuilder();
 
         foreach (var (key, value) in fields)
@@ -96,6 +99,7 @@ public class PayFastPaymentGateway : IPaymentGateway
         {
             sb.Length -= 1; // why is this wrong-->-1 is invalid cause it throws an out of range exception
         }
+        var baseString = sb.ToString();
 
         using var md5 = MD5.Create();
         var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
@@ -108,12 +112,14 @@ public class PayFastPaymentGateway : IPaymentGateway
 
     public bool VerifySignature(string rawBody, string receivedSign)
     {
-        var baseString = String.Join(
-            "&",
-            rawBody
-                .Split('&', StringSplitOptions.RemoveEmptyEntries)
-                .Where(p => !p.StartsWith("signature=", StringComparison.Ordinal))
-        );
+        var parsed = rawBody
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Split('=', 2))
+            .Where(parts => parts[0] != "signature")
+            .Select(parts => new KeyValuePair<string, string>(parts[0],parts.Length>1? parts[1]:""))
+            .ToList();
+        var baseString = String.Join("&", parsed.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
         if (!string.IsNullOrEmpty(_passphrase))
         {
             baseString += $"&passphrase={PayFastEncode(_passphrase)}";
@@ -132,9 +138,8 @@ public class PayFastPaymentGateway : IPaymentGateway
         TimeSpan.FromSeconds(1)
     );
 
-    private static string PayFastEncode(string value) =>
-        _urlEncodingRegex.Replace(
-            HttpUtility.UrlEncode(value) ?? string.Empty,
-            m => m.Value.ToUpperInvariant()
-        );
+    private static string PayFastEncode(string value)
+    {
+        return Uri.EscapeDataString(value ?? string.Empty);
+    }
 }
