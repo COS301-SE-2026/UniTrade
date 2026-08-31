@@ -37,6 +37,9 @@ class ConnectionManager {
   private readonly disputeCreatedListeners = new Set<
   (data: {caseId: string; type: string}) => void
   >();
+  private readonly disputeResolvedListeners = new Set<
+  (data: {caseId: string; status: string}) => void
+  >();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -79,6 +82,11 @@ class ConnectionManager {
       );
       conn.on("dispute_created", (data: {caseId: string; type: string}) =>
         this.disputeCreatedListeners.forEach((cb) => cb(data)),
+      );
+      conn.on(
+        "dispute_resolved",
+        (data: {caseId: string; status: string}) =>
+          this.disputeResolvedListeners.forEach((cb) => cb(data)),
       );
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
