@@ -143,7 +143,7 @@ return (
       <h1 className="text-2xl font-bold text-gray-900">
         Student Verifications
       </h1>
-      <p className="text-xs text-gray-500 mt-0.5">
+      <p className="text-xs text-gray-600 mt-0.5">
         Review students proof of registration and approve or reject account
       </p>
     </div>
@@ -233,6 +233,7 @@ return (
 
       <div>
         <select
+        aria-label='Sort Verifications'
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'Oldest First' | 'Newest First')}
           className='px-4 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-600 focus:outline-none cursor-pointer'>
@@ -246,7 +247,7 @@ return (
     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden p-4">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="text-xs text-gray-400 font-normal">
+          <tr className="text-xs text-gray-500 font-normal">
             <th className="py-3 px-4">
               Student
             </th>
@@ -264,7 +265,7 @@ return (
         <tbody className="divide-y divide-gray-100 text-xs">
           {sortedRows.length === 0 ? (
             <tr>
-              <td colSpan={4} className="py-6 text-center text-gray-400">
+              <td colSpan={4} className="py-6 text-center text-gray-500">
                 No verifications match your filters
               </td>
             </tr>
@@ -277,7 +278,7 @@ return (
                   </div>
                   <div className="font-bold text-gray-900">
                     {ver.name}
-                    <div className="text-[10px] text-gray-400 mt-0.5">
+                    <div className="text-[10px] text-gray-500 mt-0.5">
                       {ver.degree} &bull; {ver.email}
                     </div>
                   </div>
@@ -319,7 +320,7 @@ return (
                     </div>
                     <div>
                       <div className="font-semibold text-gray-800">{ver.docName}</div>
-                      <div className="text-[10px] text-gray-400">
+                      <div className="text-[10px] text-gray-500">
                         Uploaded {ver.docDate} &bull; {ver.docSize}
                       </div>
                     </div>
