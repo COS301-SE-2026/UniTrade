@@ -12,6 +12,6 @@ public class ListingPublishedEvent
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public int? CategoryId { get; set; }
-    public Guid? CourseId { get; set; }
+    public int? CourseId { get; set; }
     public Guid SellerId { get; set; }
 }
