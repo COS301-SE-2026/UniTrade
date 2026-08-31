@@ -14,7 +14,7 @@ paths:
       parameters:
         - {name: type, in: query, schema: {$ref: '#components/schema/CaseType'}}
         - {name: status, in: query, schema: {type: string, default: pending}}
-        - {name: sort, in: query, schema{ type: string, default: age}}
+        - {name: sort, in: query, schema: { type: string, default: age}}
       responses:
         '200':
           description: OK
@@ -35,7 +35,7 @@ paths:
               schema: {$ref: '#/components/schemas/CaseDetail'}
 
   /admin/cases/{id}/decision:
-    get:
+    post:
       summary: Decide a case (also notifies the subject and writes an audit entry)
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
@@ -55,14 +55,14 @@ paths:
     get:
       summary: Audit entries
       parameters:
-      - {name: entryId, in: query, schema: {type: string}}
+      - {name: entityId, in: query, schema: {type: string}}
       - {name: actorId, in: query, schema: {type: string, format: uuid}}
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {type: array, {$ref: '#/components/schemas/AuditEntry'}}
+              schema: {type: array, items: {$ref: '#/components/schemas/AuditEntry'}}
 
   /disputes:
     post:
@@ -71,7 +71,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/DisputeFilling'}
+            schema: { $ref: '#/components/schemas/FileDispute'}
       responses:
         '201':
           description: Case created
@@ -153,14 +153,45 @@ components:
         - $ref: '#/components/schemas/CaseSummary'
         - type: object
           properties:
+            subject: {$ref: '#/components/schemas/PartySummary'}
+            counterParty: {$ref: '#/components/schema/PartySummary'}
             evidence: {$ref: '#/components/schemas/Evidence'}
             history: {type: array, items: {type: object}}
-    Evidence:
-      oneOf:
-        - $ref: '#/components/schemas/VerificationEvidence'
-        - $ref: '#/components/schemas/ListingQualityEvidence'
-        - $ref: '#/components/schemas/ReportListingEvidence'
-        - $ref: '#/components/schemas/NoShowEvidence'
+            filedByUserId: {type: string, format: uuid, nullable: true}
+            filedByRole: {type: string}
+    PartySummary:
+      type: object
+      properties:
+        userId: {type: string, format: uuid}
+        name: {type: string}
+        initials: {type: string}
+        faculty: {type: string, nullable: true}
+        reviewAverage: {type: number}
+        reputationScore: {type: number}
+        strikeCount: {type: integer}
+
+    CaseEvidence:
+      type: object
+      properties:
+        university: {type: string, nullable: true}
+        degree: {type: string, nullable: true}
+        year: {type: integer, nullable: true}
+        email: {type: string,nullable: true}
+        domainValid: {type: boolean, nullable: true}
+        snapshot: {$ref: '#/components/schemas/ListingSnapshot'}
+        buyerPhotos: {type: array, items: {type: string}, nullable: true}
+        sellerRefusedPhotos: {type: boolean, nullable: true}
+        listingId: {type: string, format: uuid, nullable: true}
+        reportReason: {type: string, nullable: true}
+
+        meetupId: {type: integer, nullable: true, description: "int,not uuid, same Meetup.MeetupId mismatch as elsewhere"}
+        buyerCheckIn: {type: boolean, nullable: true}
+        buyerCheckInTime: {type: string, format: date-time, nullable: true}
+        sellerCheckIn: {type: boolean, nullable: true}
+        sellerCheckInTime: {type: string, format: date-time, nullable: true}
+        pinStatus: {type: string, nullable: true}
+        checkInWindowClosesAt: {type: string, format: date-time, nullable: true}
+
     VerificationEvidence:
       type: object
       properties:
@@ -191,11 +222,12 @@ components:
       type: object
       required: [decision]
       properties:
-        decision: {type: string, description: "approve|reject|resubmit", enum: [approve,reject,resubmit]}
+        decision: {$ref: '#/components/schemas/CaseDecision'}
         outcome:
           type: array
           items: {$ref: '#/components/schemas/Outcome'}
         reason: {type: string}
+
     FileDispute:
       type: object
       required: [type]
