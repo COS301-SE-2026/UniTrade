@@ -82,34 +82,6 @@ describe('Profile', () => {
     })
 
 
-
-
-
-    /*describe('Logout', () => {
-
-        /*it('calls logout and clears user when logout is clicked', async () => {
-            const user = userEvent.setup()
-                ; (authService.logout as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined)
-            renderProfile()
-            await user.click(screen.getByText('Logout'))
-            expect(authService.logout).toHaveBeenCalledTimes(1)
-            expect(mockClearUser).toHaveBeenCalledTimes(1)
-            expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-        })*/
-
-        /*it('still clears user and navigates even if authService.logout fails', async () => {
-            const user = userEvent.setup()
-                ; (authService.logout as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('network error'))
-            renderProfile()
-
-            await user.click(screen.getByText('Logout'))
-            //expect(authService.logout).toHaveBeenCalledTimes(1)
-            expect(mockClearUser).toHaveBeenCalledTimes(1)
-            expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-        })
-
-    })*/
-
     describe('Delete Account', () => {
         it('opens the confirm popup when Delete Account is clicked',
             async () => {
