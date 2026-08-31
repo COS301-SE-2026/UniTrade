@@ -118,6 +118,8 @@ export interface CaseSummary {
   counterpartyInitials?: string;
   subjectName?: string;
   subjectDegree?: string;
+  subjectYear?: number;
+  hasDocument?: boolean;
 }
 export interface PartySummary {
   userId: string;
@@ -127,6 +129,7 @@ export interface PartySummary {
   reviewAverage: number;
   reputationScore: number;
   strikeCount: number;
+  reviewCount: number;
 }
 export interface CaseDetail extends CaseSummary {
   subject: PartySummary;
@@ -233,7 +236,10 @@ export interface ApiError {
   message: string;
 }
 
-export type ListCasesResponse = CaseSummary[];
+export type ListCasesResponse = {
+  cases: CaseSummary[];
+  total?: number;
+};
 
 export interface FileCaseResponse {
   caseId: string;
@@ -274,4 +280,13 @@ export interface ListUserParams {
   search?: string;
   page?: number;
   limit?: number;
+}
+
+export interface UserListing {
+  listingId: string;
+  title: string;
+  status: string;
+  price: number;
+  createdAt: string;
+  imageUrl?: string | null;
 }

@@ -517,4 +517,25 @@ public class IdentityService : IIdentityService
         );
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public async Task<string> GenerateAuthTokenAsync(Guid userId)
+    {
+        var user = await _users.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new IdentityException("not_found");
+        }
+
+        string verificationStatus;
+        if (user.Role == _studentRole)
+        {
+            verificationStatus = user.StudentProfile?.VerificationStatus ?? _pendingStatus;
+        }
+        else
+        {
+            verificationStatus = _pendingStatus;
+        }
+
+        return TokenGenerator(user, verificationStatus);
+    }
 }

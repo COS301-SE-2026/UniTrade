@@ -166,6 +166,119 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Modules.Disputes.Models.Dispute", b =>
+                {
+                    b.Property<Guid>("DisputeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("dispute_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AssignedAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_admin_id");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.Property<int?>("MeetupId")
+                        .HasColumnType("integer")
+                        .HasColumnName("meetup_id");
+
+                    b.PrimitiveCollection<List<string>>("Photos")
+                        .HasColumnType("text[]")
+                        .HasColumnName("photos");
+
+                    b.Property<Guid?>("RaisedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("raised_by");
+
+                    b.Property<Guid?>("ReservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<string>("Resolution")
+                        .HasColumnType("text")
+                        .HasColumnName("resolution");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<bool>("SellerRefusedPhotos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("seller_refused_photos");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("open")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("SubjectUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_user_id");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("type");
+
+                    b.HasKey("DisputeId")
+                        .HasName("pk_disputes");
+
+                    b.HasIndex("AssignedAdminId")
+                        .HasDatabaseName("ix_disputes_assigned_admin_id");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("ix_disputes_listing_id");
+
+                    b.HasIndex("MeetupId")
+                        .HasDatabaseName("ix_disputes_meetup_id");
+
+                    b.HasIndex("RaisedBy")
+                        .HasDatabaseName("ix_disputes_raised_by");
+
+                    b.HasIndex("ReservationId")
+                        .HasDatabaseName("ix_disputes_reservation_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_disputes_status");
+
+                    b.HasIndex("SubjectUserId")
+                        .HasDatabaseName("ix_disputes_subject");
+
+                    b.HasIndex("SubmittedAt")
+                        .IsDescending()
+                        .HasDatabaseName("ix_disputes_submitted");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("ix_disputes_type");
+
+                    b.ToTable("disputes", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed')");
+
+                            t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
                 {
                     b.Property<Guid>("AdminId")
@@ -194,57 +307,54 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("admin_profiles", "unitrade");
                 });
 
-            modelBuilder.Entity("Modules.Identity.Models.Strike", b =>
+            modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
                 {
-                    b.Property<Guid>("StrikeId")
+                    b.Property<int>("DocumentId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("strike_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnType("integer")
+                        .HasColumnName("document_id");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DocumentId"));
 
-                    b.Property<Guid>("CreatedByAdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_admin_id");
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("content_type");
 
-                    b.Property<string>("Reason")
+                    b.Property<byte[]>("FileData")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("file_data");
+
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
-                        .HasColumnName("reason");
+                        .HasColumnName("file_name");
 
-                    b.Property<Guid?>("SourceCaseId")
+                    b.Property<int>("FileSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("file_size");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("VerificationId")
                         .HasColumnType("uuid")
-                        .HasColumnName("source_case_id");
+                        .HasColumnName("verification_id");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("type");
+                    b.HasKey("DocumentId")
+                        .HasName("pk_proof_of_registration_documents");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                    b.HasIndex("VerificationId")
+                        .IsUnique()
+                        .HasDatabaseName("uix_por_verification");
 
-                    b.HasKey("StrikeId")
-                        .HasName("pk_strikes");
-
-                    b.HasIndex("CreatedByAdminId")
-                        .HasDatabaseName("ix_strikes_created_by_admin");
-
-                    b.HasIndex("SourceCaseId")
-                        .HasDatabaseName("ix_strikes_source_case");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_strikes_user");
-
-                    b.ToTable("strikes", "unitrade");
+                    b.ToTable("proof_of_registration_documents", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
@@ -1074,6 +1184,59 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("university_email_domains", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Reputation.Models.Strike", b =>
+                {
+                    b.Property<Guid>("StrikeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("strike_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedByAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_admin_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("SourceCaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_case_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("type");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("StrikeId")
+                        .HasName("pk_strikes");
+
+                    b.HasIndex("CreatedByAdminId")
+                        .HasDatabaseName("ix_strikes_created_by_admin");
+
+                    b.HasIndex("SourceCaseId")
+                        .HasDatabaseName("ix_strikes_source_case");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_strikes_user");
+
+                    b.ToTable("strikes", "unitrade");
+                });
+
             modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>
                 {
                     b.Property<int>("MeetupId")
@@ -1499,6 +1662,46 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("Modules.Disputes.Models.Dispute", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedAdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_users_assigned_admin_id");
+
+                    b.HasOne("Modules.Listings.Models.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_listings_listing_id");
+
+                    b.HasOne("Modules.Reservations.Models.Meetup", null)
+                        .WithMany()
+                        .HasForeignKey("MeetupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_meetups_meetup_id");
+
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("RaisedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_users_raised_by");
+
+                    b.HasOne("Modules.Reservations.Models.Reservation", null)
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_reservations_reservation_id");
+
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_disputes_users_subject_user_id");
+                });
+
             modelBuilder.Entity("Modules.Identity.Models.AdminProfile", b =>
                 {
                     b.HasOne("Modules.ReferenceData.University.University", null)
@@ -1518,21 +1721,14 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Modules.Identity.Models.Strike", b =>
+            modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
                 {
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_strikes_users_created_by_admin_id");
-
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                    b.HasOne("Modules.Identity.Models.VerificationRequest", null)
+                        .WithOne()
+                        .HasForeignKey("Modules.Identity.Models.ProofOfRegistrationDocument", "VerificationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_strikes_users_user_id");
+                        .HasConstraintName("fk_proof_of_registration_documents_verification_requests_verif");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.StudentProfile", b =>
@@ -1691,6 +1887,23 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_university_email_domains_universities_university_id");
 
                     b.Navigation("University");
+                });
+
+            modelBuilder.Entity("Modules.Reputation.Models.Strike", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByAdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_strikes_users_created_by_admin_id");
+
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_strikes_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Reservations.Models.Meetup", b =>

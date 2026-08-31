@@ -5,6 +5,9 @@ import {
   IconFlag,
   IconTrendingUp,
 } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
+import type { CaseSummary } from '../../types/admin_disputes'
+import { getTopDisputes, getTopVerifications, getTotalUsers } from '../../services/adminService'
 
 
 interface StatCardProps {
@@ -133,6 +136,67 @@ function DisputeRow({ title, meta }: Readonly<DisputeRowProps>) {
 export default function AdminDashboard() {
   const navigate = useNavigate()
 
+  const [pendingVerifications, setPendingVerifications] = useState<CaseSummary[]>([]);
+  const [activeDisputes, setactiveDisputes] = useState<CaseSummary[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchDashboardData() {
+      try {
+        const [verifications, disputes, users] = await Promise.all([
+          getTopVerifications(5),
+          getTopDisputes(5),
+          getTotalUsers(),
+
+        ]);
+
+        if (active) {
+          setPendingVerifications(verifications)
+          setactiveDisputes(disputes)
+          setTotalUsers(users)
+          setLoading(false)
+        }
+      }
+      catch {
+        if (active) {
+          setError('Failed to load dashboard data');
+          setLoading(false)
+        }
+      }
+    }
+    fetchDashboardData();
+    return () => { active = false; };
+
+  }, []);
+  if (loading) {
+    return <p className="text-sm text-gray-400">Loading dashboard...</p>;
+  }
+
+  if (error) {
+    return <p className="text-sm text-gray-400">{error}</p>;
+  }
+  function getTimeAgo(ageHours: number): string {
+    if (ageHours < 1) return 'Just now'
+    if (ageHours < 24) return `${Math.round(ageHours)}h ago`
+    const days = Math.round(ageHours / 24)
+    return `${days}d ago`
+  }
+  const verificationRows = pendingVerifications.map((v) => ({
+    initials: v.subjectInitials || '??',
+    name: v.subjectName || 'Unknown',
+    meta: `${v.title || 'Verification'} Submitted ${getTimeAgo(v.ageHours)}`,
+
+  }));
+  const disputeRows = activeDisputes.map((d) => ({
+    title: d.title || 'Untitled dispute',
+    meta: `Submitted ${getTimeAgo(d.ageHours)}`,
+  }));
+  const oldestVerificationAge = pendingVerifications.length > 0 ? getTimeAgo(pendingVerifications[0].ageHours) : 'None pending';
+
+  const disputeSybtext = activeDisputes.length > 0 ? 'Needs attention' : 'All clear';
   return (
     <div className="space-y-6">
 
@@ -144,28 +208,28 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard
           title="Pending Verifications"
-          value={8}
-          sub="Oldest: 2 days ago"
-          subColor="text-amber-700"
+          value={pendingVerifications.length}
+          sub={`Oldest: ${oldestVerificationAge}`}
+          subColor="text-amber-500"
           subIcon={<IconClock size={13} />}
         />
         <StatCard
           title="Listing Queue"
-          value={14}
+          value={0} // wow-factor
           sub="5 High Risk"
           subColor="text-red-600"
           subIcon={<IconAlertTriangle size={13} />}
         />
         <StatCard
           title="Active Disputes"
-          value={3}
-          sub="Needs attention"
-          subColor="text-red-600"
+          value={activeDisputes.length}
+          sub={disputeSybtext}
+          subColor="text-red-500"
           subIcon={<IconFlag size={13} />}
         />
         <StatCard
           title="Total Users"
-          value={8}
+          value={totalUsers}
           sub="12% this month"
           subColor="text-green-700"
           subIcon={<IconTrendingUp size={13} />}
@@ -229,10 +293,17 @@ export default function AdminDashboard() {
                 view all
               </button>
             </div>
-            <VerificationRow initials="TM" name="Tafadzwa Musiiwa" meta="UP · BSC Comp Sci · Y3" />
-            <VerificationRow initials="MT" name="Mahadio Tlaka" meta="UP · BSC Comp Sci · Y3" />
-            <VerificationRow initials="SK" name="Sabira Kaire" meta="UP · BSC Comp Sci · Y3" />
-            <VerificationRow initials="ZS" name="Zelamene Shazi" meta="UP · BSC Comp Sci · Y3" />
+
+            {
+              verificationRows.length === 0 ? (
+                <p className='text-sm text-gray-400'>No pending verifications.</p>
+              ) :
+                (
+                  (verificationRows.map((row, idx) =>
+                    <VerificationRow key={idx} {...row} />
+                  ))
+                )}
+
           </div>
 
 
@@ -249,18 +320,17 @@ export default function AdminDashboard() {
                 view all
               </button>
             </div>
-            <DisputeRow
-              title="Listing Mismatch - Physics Manual"
-              meta="Buyer: TM · Seller: LV · 1 day ago"
-            />
-            <DisputeRow
-              title="No show report - Laptop"
-              meta="Buyer: TM · Seller: LV · 1 day ago"
-            />
+            {disputeRows.length === 0 ? (
+              <p className='text-sm text-gray-400'>No active disputes</p>
+            ) : (
+              disputeRows.map((row, idx) => (
+                <DisputeRow key={idx} {...row} />
+              ))
+            )}
           </div>
 
         </div>
       </div>
     </div>
-  )
+  );
 }

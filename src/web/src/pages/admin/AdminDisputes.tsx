@@ -57,7 +57,7 @@ export default function AdminDisputes() {
     .then(async (response) => {
 
       const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
-      const filtered = response.filter(c => disputeTypes.has(c.type));
+      const filtered = response.cases.filter(c => disputeTypes.has(c.type));
 
       const enriched = filtered.map(summary => ({
         id: summary.caseId,
