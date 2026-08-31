@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Repositories;
+using Infrastructure.Persistence;
 
 namespace Api.Controllers;
 
@@ -53,5 +54,32 @@ public class DevController : ControllerBase
         }
 
         return Ok(new { decision });
+    }
+
+    [HttpPost("admin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateAdmin([FromServices] AppDbContext db, CancellationToken ct)
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        const string password = "beebadooBE@16";
+        var email = $"admin-{Guid.NewGuid():N}@up.ac.za";
+
+        db.Users.Add(new User
+        {
+            UserId = Guid.NewGuid(),
+            FirstName = "Suzuka",
+            LastName = "Karie",
+            Email = email,
+            PhoneNumber = "",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = "admin",
+        });
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new { email, password });
     }
 }
