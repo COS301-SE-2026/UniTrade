@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Modules.Audit.Models;
 using Modules.Chat.Models;
+using Modules.Disputes.Models;
 using Modules.Identity.Models;
 using Modules.Listings.Models;
 using Modules.Notifications.Models;
@@ -9,9 +11,9 @@ using Modules.ReferenceData.University;
 using Modules.Reputation.Models;
 using Modules.Reservations.Models;
 using Modules.Reviews.Models;
+using Modules.SharedKernel;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
-using Modules.Disputes.Models;
 
 namespace Infrastructure.Persistence;
 
@@ -70,6 +72,9 @@ public class AppDbContext : DbContext
 
     // Disputes
     public DbSet<Dispute> Disputes => Set<Dispute>();
+
+    // Images
+    public DbSet<Image> Images => Set<Image>();
 
     //constants - sonarqube
     private readonly string _nowString = "now()";
@@ -892,8 +897,9 @@ public class AppDbContext : DbContext
         //listing snapshot
         modelBuilder.Entity<ListingSnapshot>(entity =>
         {
-            entity.HasKey(x => x.ReservationId);
-            entity.Property(x => x.ReservationId).ValueGeneratedNever();
+            entity.HasKey(x => x.SnapshotId);
+            entity.Property(x => x.SnapshotId).ValueGeneratedNever();
+            entity.Property(x => x.ReservationId).IsRequired(false);
             entity.Property(x => x.ListingId).IsRequired();
             entity.Property(x => x.Title).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Price).HasPrecision(10, 2).IsRequired();
@@ -971,6 +977,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.SourceCaseId).HasDatabaseName("ix_strikes_source_case");
             entity.HasIndex(x => x.CreatedByAdminId).HasDatabaseName("ix_strikes_created_by_admin");
         });
+        //Disputes
 
         modelBuilder.Entity<Dispute>(entity =>
         {
@@ -987,29 +994,82 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Photos).HasColumnType("text[]");
             entity.Property(x => x.Description);
 
-            entity.Property(x => x.SubmittedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+            entity
+                .Property(x => x.SubmittedAt)
+                .HasDefaultValueSql(_nowString)
+                .ValueGeneratedOnAdd();
 
             entity.Property(x => x.Resolution);
             entity.Property(x => x.ResolvedAt);
 
             entity.ToTable(t =>
             {
-                t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
-                t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed')");
+                t.HasCheckConstraint(
+                    "chk_dispute_type",
+                    "type IN ('listing_quality','report_listing','no_show')"
+                );
+                t.HasCheckConstraint(
+                    "chk_dispute_status",
+                    "status IN ('open','under_review','resolved','closed')"
+                );
             });
 
-            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SubjectUserId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<User>().WithMany().HasForeignKey(x => x.RaisedBy).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Reservation>().WithMany().HasForeignKey(x => x.ReservationId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Listing>().WithMany().HasForeignKey(x => x.ListingId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<Meetup>().WithMany().HasForeignKey(x => x.MeetupId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne<User>().WithMany().HasForeignKey(x => x.AssignedAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.SubjectUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.RaisedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne<Reservation>()
+                .WithMany()
+                .HasForeignKey(x => x.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne<Listing>()
+                .WithMany()
+                .HasForeignKey(x => x.ListingId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne<Meetup>()
+                .WithMany()
+                .HasForeignKey(x => x.MeetupId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.AssignedAdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(x => x.Snapshot)
+                .WithMany()
+                .HasForeignKey(x => x.SnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
             entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");
             entity.HasIndex(x => x.SubjectUserId).HasDatabaseName("ix_disputes_subject");
-            entity.HasIndex(x => x.SubmittedAt).HasDatabaseName("ix_disputes_submitted").IsDescending();
+            entity
+                .HasIndex(x => x.SubmittedAt)
+                .HasDatabaseName("ix_disputes_submitted")
+                .IsDescending();
+        });
+        // IMages
 
+        modelBuilder.Entity<Image>(entity =>
+        {
+            entity.Property(x => x.ImageId).ValueGeneratedOnAdd();
+            entity.HasKey(x => x.ImageId);
+
+            entity.Property(x => x.ImageData).HasColumnType("bytea").IsRequired();
+            entity.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.FileSize).IsRequired();
+
+            entity.Property(x => x.UploadedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
         });
     }
 }

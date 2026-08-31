@@ -18,6 +18,7 @@ import {
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
 import { useSearchQuery } from '../../hooks/useSearchQuery'
+import { fileDispute } from '../../services/adminService'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
@@ -111,21 +112,101 @@ function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency
   )
 }
 
-function ReportQualityModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [isChecked, setIsChecked] = useState(false)
+function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolean; onClose: () => void; reservationId: string }) {
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const apiBase = getApiUrl();
+  const { showToast } = useToast();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', files[0]);
+
+    try {
+      const res = await fetch(`${apiBase}/images/upload`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Upload failed');
+
+
+      }
+      const data = await res.json();
+      const url = `${apiBase}${data.url.replace(/^\/api/,'')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
+      setPhotos((prev) => [...prev, url]);
+      showToast('success', 'Image Uploaded');
+
+    }
+    catch (err) {
+      const message = err instanceof Error ? err.message: String(err);
+      showToast('error', message || 'Failed to uploaded image');
+    }
+    finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemovePhoto = (url: string) => {
+    setPhotos((prev) => prev.filter((p) => p !== url));
+  };
+
+  const handleSubmit = async () => {
+    if (photos.length === 0 && !sellerRefusedPhotos) {
+      showToast('info', 'Please upload photos or mark that the seller refused.');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await fileDispute({
+        type: 'listing_quality',
+        reservationId,
+        sellerRefusedPhotos,
+        photos,
+        description: description || undefined,
+      });
+      showToast('success', 'Listing quality report submitted.');
+      onClose();
+
+      setPhotos([]);
+      setDescription('');
+      setSellerRefusedPhotos(false);
+    }
+    catch (err) {
+      const message = err instanceof Error? err.message :String(err);
+      showToast('error', message || 'Failed to submit report.')
+    }
+    finally {
+      setSubmitting(false);
+    }
+  };
 
   if (!isOpen) return null
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          type='button'
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
         >
@@ -142,32 +223,53 @@ function ReportQualityModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
               Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
-              <div className="w-full aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300" 
-                  alt="Listing preview" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors">
-                <IconUpload size={22} className="text-gray-400" />
-              </div>
-              <div className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors">
-                <IconUpload size={22} className="text-gray-400" />
-              </div>
+              {
+                photos.map((url, i) => (
+                  <div key={i} className='relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50'>
+                    <img src={url} alt={`Upload ${i + 1}`} className='w-full h-full object-cover' />
+                    <button type='button'
+                      onClick={() => handleRemovePhoto(url)}
+                      className='absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70'
+                    ><IconX size={14} />
+                    </button>
+                  </div>
+                ))
+              }
+              {photos.length < 5 && (
+                <label className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
+                  {uploading ? (
+                    <div className='w-6 h-6 border-2 border-navy-700 border-t-transparent rounded-full animate-spin' />
+
+                  ) : (
+                    <>
+                      <IconUpload size={22} className='text-gray-400' />
+                      <span className='text-[10px] text-gray-400 mt-1'>Upload</span>
+                    </>
+                  )}
+                  <input
+                    type='file'
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                    className='hidden'
+                  />
+                </label>
+              )}
             </div>
+
           </div>
 
+
           <div className="flex items-center gap-3">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               id="refuse-photos"
-              checked={isChecked}
-              onChange={(e) => setIsChecked(e.target.checked)}
+              checked={sellerRefusedPhotos}
+              onChange={(e) => setSellerRefusedPhotos(e.target.checked)}
               className="w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer"
             />
             <label htmlFor="refuse-photos" className="text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none">
-              Did the seller refuse to provide more photos
+              Did the seller refuse to provide more photos?
             </label>
           </div>
 
@@ -176,6 +278,8 @@ function ReportQualityModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
               Description
             </label>
             <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Describe the quality issue..."
               className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
@@ -185,9 +289,10 @@ function ReportQualityModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
           <button
             type="button"
             className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-md"
-            onClick={onClose}
+            onClick={handleSubmit}
+            disabled={submitting}
           >
-            Submit
+            {submitting ? 'Submitting...' : 'Submit Report'}
           </button>
         </div>
       </div>
@@ -205,7 +310,7 @@ function ReservationCard({
   const navigate = useNavigate()
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [, forceTick] = useState(0)
-  
+
   useEffect(() => {
     const interval = setInterval(() => forceTick((t) => t + 1), 1000)
     return () => clearInterval(interval)
@@ -313,7 +418,7 @@ function ReservationCard({
         </div>
       </div>
 
-      <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} />
+      <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} reservationId={reservation.reservationId} />
     </>
   )
 }
@@ -477,7 +582,7 @@ export default function Reservations() {
         />
       </div>
 
-      {loading && <LoadingState message="Fetching listings..." />}    
+      {loading && <LoadingState message="Fetching listings..." />}
 
       {!loading && error && (
         <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">

@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router';
 import { useState, useEffect } from 'react';
 import CheckInModal from '../../components/CheckInModal';
-import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck, Flag } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
 import { getReservationById } from '../../services/reservationService';
@@ -9,6 +9,8 @@ import LocationPicker from '../../components/layout/LocationPicker';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { LoadingState } from '../../components/layout/Spinner';
+import { useToast } from '../../components/layout/useToast';
+import { fileDispute } from '../../services/adminService';
 
 interface MeetupDetailsState {
   reservationId?: string;
@@ -88,7 +90,7 @@ export default function MeetupDetails() {
   const isSeller = navState.role === 'seller'
   const reservationId = navState.reservationId;
   const [showCheckIn, setShowCheckIn] = useState(false);
-
+  const { showToast } = useToast();
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
     queryKey: ['reservation', reservationId],
@@ -157,6 +159,14 @@ export default function MeetupDetails() {
       : navState.meetupLat != null && navState.meetupLng != null
         ? { lat: navState.meetupLat, lng: navState.meetupLng }
         : null;
+  const reservationStatus = reservation?.reservationStatus;
+
+  const canReportNoShow =
+    !!meetup && reservationStatus === 'active' &&
+    new Date(meetup.checkinWindowClosesAt) < new Date() &&
+    (isSeller
+      ? meetup.sellerCheckedIn && !meetup.buyerCheckedIn
+      : meetup.buyerCheckedIn && !meetup.sellerCheckedIn);
 
   const txStatus = useTransactionStatus(reservationId, isSeller);
 
@@ -180,6 +190,57 @@ export default function MeetupDetails() {
     });
     document.body.appendChild(form);
     form.submit();
+  };
+  const handleReportNoShow = async () => {
+    if (!reservation) return;
+
+    const reason = window.prompt(
+      "Please provide any additional context for the no-show report (optional):",
+    );
+    if (reason === null) return;
+
+    try {
+      await fileDispute({
+        type: "no_show",
+        reservationId: reservation.reservationId,
+        description: reason || undefined,
+      });
+      showToast(
+        "success",
+        "No-show report submitted. A UniTrade admin will review it.",
+      );
+    } catch (err: unknown) {
+      const error = err as{code? : string,message?: string};
+      if (error.code === "checkin_window_not_closed") {
+        showToast(
+          "info",
+          "The check-in window has not closed yet. Please wait.",
+        );
+      }
+      if (error.code === "current_user_not_checked_in") {
+        showToast(
+          "info",
+          "You need to check in at the meetup before reporting a non-show.",
+        );
+      }
+      if (error.code === "other_party_checked_in") {
+        showToast(
+          "info",
+          "The other party checkin. This is not a valid non-show.",
+        );
+      }
+      if (
+        error.code === "dispute_already_open" ||
+        error.message?.includes("dispute_already_open")
+      ) {
+        showToast(
+          "info",
+          "You already filled a no-show report for this reservation. Please wait for admin review",
+        );
+      } else {
+        showToast("error", error.message || "Failed to submit no-show report.");
+      }
+    }
   };
 
   if (!reservationId) {
@@ -318,7 +379,7 @@ export default function MeetupDetails() {
                     </>
                   ) : (
                     <>
-                       Payments are secured with Payfast. Once you provide the PIN to{' '}
+                      Payments are secured with Payfast. Once you provide the PIN to{' '}
                       {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   )}
@@ -385,6 +446,15 @@ export default function MeetupDetails() {
                   )}
                 </div>
               )}
+              <button
+                type="button"
+                onClick={handleReportNoShow}
+                disabled={!canReportNoShow}
+                className='w-full mt-2 border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-2.5 px-4 rounded-xl transition'
+                >
+                  <Flag className='w-4 h-4 inline-block mr-2'/>
+                  Report No-Show
+              </button>
             </div>
           </div>
 

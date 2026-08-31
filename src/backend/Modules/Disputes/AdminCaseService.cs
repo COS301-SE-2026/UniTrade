@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Modules.Audit;
 using Modules.Disputes.Models.Dto;
+using Modules.Disputes.Repositories;
 using Modules.Identity;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Verification;
+using Modules.Listings;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
@@ -24,6 +26,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IListingSnapshotService _snapshots;
     private readonly IPartyDirectory _parties;
     private readonly IReputationService _reputation;
+    private readonly IListingService _listings;
 
     // constants
     private const string _resolvedString = "resolved";
@@ -41,7 +44,8 @@ public class AdminCaseService : IAdminCaseService
         IDisputeService disputes,
         IListingSnapshotService snapshots,
         IPartyDirectory parties,
-        IReputationService reputation
+        IReputationService reputation,
+        IListingService listings
     )
     {
         _verification = verification;
@@ -53,6 +57,7 @@ public class AdminCaseService : IAdminCaseService
         _snapshots = snapshots;
         _parties = parties;
         _reputation = reputation;
+        _listings = listings;
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
@@ -113,6 +118,19 @@ public class AdminCaseService : IAdminCaseService
                 if (snapshot != null)
                     snapshotDict[resId] = snapshot;
             }
+            var listingIds = disputeItems
+                .Where(i => i.ListingId.HasValue && !i.ReservationId.HasValue)
+                .Select(i => i.ListingId!.Value)
+                .Distinct()
+                .ToList();
+
+            var listingTitleDict = new Dictionary<Guid, string>();
+            foreach (var lid in listingIds)
+            {
+                var listing = await _listings.GetByIdAsync(lid);
+                if (listing != null)
+                    listingTitleDict[lid] = listing.Title;
+            }
 
             var mapped = disputeItems.Select(item =>
             {
@@ -146,6 +164,14 @@ public class AdminCaseService : IAdminCaseService
                 )
                 {
                     title = snap.Title;
+                }
+                if (
+                    title == null
+                    && item.ListingId.HasValue
+                    && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle)
+                )
+                {
+                    title = listTitle;
                 }
                 title ??= "Unknown listing";
                 return new CaseSummaryDto
@@ -194,10 +220,10 @@ public class AdminCaseService : IAdminCaseService
         {
             throw new DisputesException("outcomes_not_allowed");
         }
-        if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
+        /*if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
         {
             throw new DisputesException("outcomes_required");
-        }
+        }*/
         // verification cases
         var verificationCase = await _verification.GetCaseAsync(caseId, ct);
 
@@ -262,15 +288,23 @@ public class AdminCaseService : IAdminCaseService
                 disputeData.SellerRefusedPhotos
             );
 
-            if (decision != verdict.Decision)
+            /*if (decision != verdict.Decision)
             {
                 throw new DisputesException("decision_contradicts_evidence");
-            }
+            } */
             finalOutcomes = verdict.Outcomes;
         }
 
-        // the no show, report listing, outcomes come form the request as they are
 
+        // the no show, report listing, outcomes come form the request as they are
+        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
+        {
+            finalOutcomes = new List<DisputeOutcome> { DisputeOutcome.Strike };
+        }
+        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
+        {
+            throw new DisputesException("outcomes_required");
+        }
         await ApplyDisputeDecisionAsync(
             disputeData.DisputeId,
             disputeData.SubjectUserId,
@@ -279,6 +313,13 @@ public class AdminCaseService : IAdminCaseService
             finalOutcomes,
             request.Reason,
             adminId,
+            ct
+        );
+
+        await _disputes.MarkResolvedAsync(
+            disputeData.DisputeId,
+            adminId,
+            decision == DisputeCaseDecision.Dismiss ? "dismiss" : "resolved",
             ct
         );
 
@@ -435,12 +476,19 @@ public class AdminCaseService : IAdminCaseService
 
     private async Task<CaseDetailDto> ToDisputeDetailAsync(DisputeCaseData d, CancellationToken ct)
     {
-        ListingSnapshotDto? snapshot = d.ReservationId is null
-            ? null
-            : await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
+        // for fetching based on report type
+        ListingSnapshotDto? snapshot = null;
+        if (d.Type == _reportListingString && d.SnapshotId.HasValue)
+        {
+            snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
+        }
+        else if (d.ReservationId.HasValue)
+        {
+            snapshot = await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
+        }
 
         var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
-        // for reporting a lsiting conunterparty s the rpeorter
+        // for reporting a listing counterparty is the reporter
         Guid? counterpartyId =
             d.Type == _reportListingString ? d.RaisedBy
             : d.SubjectUserId == d.SellerId ? d.BuyerId
@@ -454,6 +502,20 @@ public class AdminCaseService : IAdminCaseService
             : await BuildPartyAsync(counterpartyId.Value, RoleOf(d, counterpartyId.Value), ct);
         var ageHours = Age(d.SubmittedAt);
         var (slaHours, slaBreached) = Sla(d.Type, ageHours);
+        string? suggestedDecision = null;
+        List<string>? suggestedOutcomes = null;
+        if (d.Type == "listing_quality" && snapshot != null)
+        {
+            var verdict = ListingQualityEvaluator.Evaluate(
+                snapshot,
+                d.Photos,
+                d.SellerRefusedPhotos
+            );
+            suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
+            suggestedOutcomes = verdict
+                .Outcomes.Select(o => o.ToString().ToLowerInvariant())
+                .ToList();
+        }
 
         return new CaseDetailDto
         {
@@ -471,8 +533,10 @@ public class AdminCaseService : IAdminCaseService
             FiledByRole =
                 d.RaisedBy == d.SellerId ? "seller"
                 : d.RaisedBy == d.BuyerId ? "buyer"
-                : "system",
+                : "buyer",
             Evidence = BuildDisputeEvidence(d, snapshot),
+            SuggestedDecision = suggestedDecision,
+            SuggestedOutcomes = suggestedOutcomes,
         };
     }
 

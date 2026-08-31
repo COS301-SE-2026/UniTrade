@@ -1,3 +1,5 @@
+using Modules.Listings.Models;
+
 namespace Modules.Disputes.Models;
 
 public class Dispute
@@ -29,4 +31,6 @@ public class Dispute
     public string? Resolution { get; set; }
     //public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    public Guid? SnapshotId { get; set; }
+    public ListingSnapshot? Snapshot { get; set; }
 }

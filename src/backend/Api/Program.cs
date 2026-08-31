@@ -59,13 +59,11 @@ using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
-using Modules.Listings.Snapshot;
-using Modules.Reputation.Repositories;
-using Infrastructure.Persistence.Repositories.Reputation;
-using Modules.Reputation;
-using Modules.Listings.Moderation;
 using Modules.Disputes.Repositories;
 using Infrastructure.Persistence.Repositories.Disputes;
+using Modules.SharedKernel.Repositories;
+using Infrastructure.Persistence.Repositories.Images;
+using Infrastructure.Services;
 
 
 DotEnv.Load(
@@ -257,8 +255,8 @@ builder.Services.AddScoped<IDisputeService, DisputeService>();
 builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
 builder.Services.AddHostedService<NoShowDetectionWorker>();
 builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
-
-
+builder.Services.AddScoped<IUploadedImageRepository, UploadedImageRepository>();
+builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
 builder.Services.AddScoped<
     IProofOfRegistrationStorageService,
