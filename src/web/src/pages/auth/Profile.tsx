@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import React, { useEffect, useState } from "react";
 import {
-  IconSettings, IconHistory, IconChevronRight, IconShieldLock, IconTrash,
+  IconSettings,IconChevronRight,IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
   IconCalendarStats, IconCircleCheck, IconClock,
 } from "@tabler/icons-react";
@@ -193,7 +193,7 @@ useEffect(() => {
             <div className="flex items-center gap-2 mt-5 flex-wrap">
 
               <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold ">
-                Student
+                {user.role}
               </span>
               {profile?.verificationStatus && (<VerificationBadge status={profile.verificationStatus} />
               )}
@@ -305,21 +305,8 @@ useEffect(() => {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
 
-        <div className="pointer-events-none opacity-50">
-          <ProfileRow
-            icon={<IconHistory size={19} />}
-            label="View Activity History"
-            onClick={() => navigate("/activity")}
-          />
-        </div>
 
-        <div className="pointer-events-none opacity-50">
-          <ProfileRow
-            icon={<IconShieldLock size={19} />}
-            label="Privacy & Security"
-            onClick={() => navigate("/profile/privacy")}
-          />
-        </div>
+
 
 
         <ProfileRow
