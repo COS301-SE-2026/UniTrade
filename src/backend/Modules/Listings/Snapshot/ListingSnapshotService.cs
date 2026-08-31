@@ -91,7 +91,7 @@ public class ListingSnapshotService : IListingSnapshotService
     private static ListingSnapshotDto MapToDto(Models.ListingSnapshot s) =>
         new ListingSnapshotDto
         {
-            //ListingId=s.ListingId,
+            ListingId = s.ListingId,
             //ReservationId=s.ReservationId,
             Title = s.Title,
             Price = s.Price,

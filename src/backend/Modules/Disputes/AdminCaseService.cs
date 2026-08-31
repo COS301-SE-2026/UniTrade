@@ -165,7 +165,11 @@ public class AdminCaseService : IAdminCaseService
                 {
                     title = snap.Title;
                 }
-                if (title == null && item.ListingId.HasValue && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle))
+                if (
+                    title == null
+                    && item.ListingId.HasValue
+                    && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle)
+                )
                 {
                     title = listTitle;
                 }
@@ -183,7 +187,6 @@ public class AdminCaseService : IAdminCaseService
                     Title = title,
                     SubjectInitials = SubjectInitials,
                     CounterpartyInitials = counterpartyInitials,
-
                 };
             });
             res.AddRange(mapped); // empty till the BE2 dispute ready
@@ -217,10 +220,10 @@ public class AdminCaseService : IAdminCaseService
         {
             throw new DisputesException("outcomes_not_allowed");
         }
-        if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
+        /*if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
         {
             throw new DisputesException("outcomes_required");
-        }
+        }*/
         // verification cases
         var verificationCase = await _verification.GetCaseAsync(caseId, ct);
 
@@ -285,15 +288,23 @@ public class AdminCaseService : IAdminCaseService
                 disputeData.SellerRefusedPhotos
             );
 
-            if (decision != verdict.Decision)
+            /*if (decision != verdict.Decision)
             {
                 throw new DisputesException("decision_contradicts_evidence");
-            }
+            } */
             finalOutcomes = verdict.Outcomes;
         }
 
-        // the no show, report listing, outcomes come form the request as they are
 
+        // the no show, report listing, outcomes come form the request as they are
+        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
+        {
+            finalOutcomes = new List<DisputeOutcome> { DisputeOutcome.Strike };
+        }
+        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
+        {
+            throw new DisputesException("outcomes_required");
+        }
         await ApplyDisputeDecisionAsync(
             disputeData.DisputeId,
             disputeData.SubjectUserId,
@@ -304,6 +315,7 @@ public class AdminCaseService : IAdminCaseService
             adminId,
             ct
         );
+
         await _disputes.MarkResolvedAsync(
             disputeData.DisputeId,
             adminId,
@@ -490,6 +502,20 @@ public class AdminCaseService : IAdminCaseService
             : await BuildPartyAsync(counterpartyId.Value, RoleOf(d, counterpartyId.Value), ct);
         var ageHours = Age(d.SubmittedAt);
         var (slaHours, slaBreached) = Sla(d.Type, ageHours);
+        string? suggestedDecision = null;
+        List<string>? suggestedOutcomes = null;
+        if (d.Type == "listing_quality" && snapshot != null)
+        {
+            var verdict = ListingQualityEvaluator.Evaluate(
+                snapshot,
+                d.Photos,
+                d.SellerRefusedPhotos
+            );
+            suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
+            suggestedOutcomes = verdict
+                .Outcomes.Select(o => o.ToString().ToLowerInvariant())
+                .ToList();
+        }
 
         return new CaseDetailDto
         {
@@ -509,6 +535,8 @@ public class AdminCaseService : IAdminCaseService
                 : d.RaisedBy == d.BuyerId ? "buyer"
                 : "buyer",
             Evidence = BuildDisputeEvidence(d, snapshot),
+            SuggestedDecision = suggestedDecision,
+            SuggestedOutcomes = suggestedOutcomes,
         };
     }
 
