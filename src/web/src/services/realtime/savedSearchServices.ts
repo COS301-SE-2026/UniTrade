@@ -38,3 +38,11 @@ export async function createSavedSearch(
     if(!res.ok) throw new Error("Failed to create saved search");
     return res.json();
 }
+
+export async function deleteSavedSearch(searchId: string): Promise<void> {
+    const res = await fetch(`${getApiUrl()}/saved-searches/${searchId}`, {
+        method: "DELETE",
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to delete saved search");
+}
