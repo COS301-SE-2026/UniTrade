@@ -151,7 +151,7 @@ if (import.meta.env.DEV || !user) return;
     }
 
     const offDisputeCreated = connectionManager.onDisputeCreated(() => {
-      queryClient.invalidateQueries({ querKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes()});
       queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
     })
 
