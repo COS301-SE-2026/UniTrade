@@ -261,6 +261,7 @@ builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
 //builder.Services.AddScoped<SavedSearchService>();
 //builder.Services.AddScoped<ISavedSearchService>(sp=> sp.GetRequiredService<SavedSearchService>());
+//builder.Services.AddScoped<IListingPublishedListener>(sp=> sp.GetRequiredService<SavedSearchService>());
 builder.Services.AddScoped<
     IProofOfRegistrationStorageService,
     PostgresProofOfRegistrationStorageService

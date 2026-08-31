@@ -23,7 +23,7 @@ public class ListingServiceTests
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly Mock<ISellerVerificationQuery> _verificationMock;
-        private readonly Mock<IListingPublishedListener> _listingPublishedListenerMock;
+    private readonly Mock<IListingPublishedListener> _listingPublishedListenerMock;
 
     private readonly ListingService _sut;
 
