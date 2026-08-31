@@ -136,11 +136,11 @@ export default function AdminVerificationReview() {
   }
 
   if (state.loading) {
-    return <p className="text-sm text-gray-400">Loading verification…</p>;
+    return <p className="text-sm text-gray-600">Loading verification…</p>;
   }
 
   if (state.error || !state.data) {
-    return <p className="text-sm text-gray-400">Verification case not found.</p>;
+    return <p className="text-sm text-gray-600">Verification case not found.</p>;
   }
 
   const record = state.data;
