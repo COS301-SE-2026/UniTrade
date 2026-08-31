@@ -94,7 +94,7 @@ public class DisputeService : IDisputeService
                 SubjectUserId = parties.SellerId,
                 RaisedBy = filedByUserId,
                 ReservationId = reservationId,
-                ListingId = snapshot.Listing.ListingId,
+                ListingId = snapshot.ListingId,
                 Photos = photos,
                 SellerRefusedPhotos = sellerRefusedPhotos,
                 Description = req.Description,

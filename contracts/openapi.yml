@@ -117,9 +117,15 @@ components:
     CaseType:
       type: string
       enum: [verification, listing_quality, report_listing, no_show]
+
+    CaseDecision:
+      type: string
+      enum: [approve,reject, uphold,dismiss,request_info]
+
     Outcome:
       type: string
-      enum: [strike, removeListing, refusalFlag, dismiss, requestInfo]
+      enum: [strike, remove_listing, refusal_flag]
+
     CaseSummary:
       type: object
       properties:
@@ -129,6 +135,19 @@ components:
         subjectUserId: {type: string, format: uuid}
         submittedAt: {type: string, format: date-time}
         ageHours: {type: number}
+        slaHours: {type: integer}
+        slaBreached: {type: boolean}
+        title: {type: string, nullable: true}
+        subjectInitials: {type: string, nullable: true}
+        counterpartyInitials: {type: string, nullable: true}
+        raisedBy: {type: string, format: uuid}
+        buyerId: {type: string, format: uuid, nullable: true}
+        sellerId: {type: string, format: uuid, nullable: true}
+        reservationId: {type: string, format: uuid, nullable: true}
+        subjectName: {type: string, nullable: true}
+        subjectDegree: {type: string, nullable: true}
+        hasDocument: {type: boolean}
+
     CaseDetail:
       allOf:
         - $ref: '#/components/schemas/CaseSummary'
