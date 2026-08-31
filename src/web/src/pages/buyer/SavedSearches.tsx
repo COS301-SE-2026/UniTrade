@@ -9,6 +9,7 @@ import {
     deleteSavedSearch,
 } from "../../services/realtime/savedSearchServices";
 import type { SavedSearch, CreateSavedSearchInput } from "../../services/realtime/savedSearchServices";
+import { LoadingState } from "../../components/layout/Spinner";
 
 export default function SavedSearches() {
 const [searches, setSearches] = useState<SavedSearch[]>([]);
@@ -36,6 +37,63 @@ useEffect(() => {
     .finally(() => setLoading(false));
 }, [showToast]);
 
+const handleCreate = async () => {
+if (!query.trim()) {
+showToast("info", "Please enter a search query.");
+return;
+}
+const payload: CreateSavedSearchInput = {
+query: query.trim(),
+categoryId: categoryId || undefined,
+minPrice: minPrice !== "" ? Number(minPrice) : undefined,
+maxPrice: maxPrice !== "" ? Number(maxPrice) : undefined,
+};
+try {
+const newSearch = await createSavedSearch(payload);
+setSearches([...searches, newSearch]);
+setQuery("");
+setCategoryId("");
+setMinPrice("");
+setMaxPrice("");
+showToast("success", "Search saved!");
+} catch {
+showToast("error", "Failed to save search");
+}
+};
 
+const handleDelete = async (id: string) => {
+    try{
+        await deleteSavedSearch(id);
+        setSearches(searches.filter(s => s.searchId !==id ));
+        showToast("success", "Search deleted");
+    } catch {
+        showToast("error", "Failed to delete search");
+    }
+};
+
+if(loading ){
+    return <LoadingState message = "Loading saved searches..." />
+}
+
+return (
+    <div className = "space-y-4">
+        <h2 className = "text-lg font-bold">
+            Saved Searches
+        </h2>
+        <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg0gray-50">
+            <div className = "flex-1 min-w-[200px]">
+                <label className = "block text-xs font-medium text-gray-700 mb-1">
+                    Keywords
+                </label>
+                <input 
+                value = {query}
+                onChange = {(e) => setQuery(e.target.value)}
+                placeholder="e.g. COS301textbook"
+                className = "w-full border rounded px-3 py-2 text-sm"
+                />
+            </div>
+        </div>
+    </div>
+)
 
 }
