@@ -125,7 +125,30 @@ return (
                 className = "w-full border rounded px-3 py-2 text-sm"
                 />
             </div>
+            <div className = "w-32">
+                <label className = "block text-xs font-medium text-gray-700 mb-1">
+                    Max Price (R)
+                </label>
+                <input 
+                type = "number"
+                min = "0"
+                step = "1"
+                value = {minPrice}
+                onChange = {(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
+                className = "w-full border rounded px-3 py-2 text-sm"
+                />
+            </div>
+            <button 
+            onClick = {handleCreate}
+            className = "bg-navy-700 hover:bg-navy-500 text-white px-6 py-2 rounded text-sm font-semibold transition-colors"
+            >
+                Save Search
+            </button>
         </div>
+
+        
+
+
     </div>
 )
 
