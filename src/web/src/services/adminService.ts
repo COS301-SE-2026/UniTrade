@@ -33,7 +33,18 @@ export type ButtonAction =
   | "side-seller"
   | "remove-listing"
   | "warn-seller";
-//these functions are just here for now, since there hasnt been a decsiion of how admin login will be handled
+
+function normaliseCases(response: unknown): CaseSummary[] {
+  if (Array.isArray(response)) {
+    return response as CaseSummary[];
+  }
+  if (response && typeof response === "object" && "cases" in response) {
+    const obj = response as { cases?: CaseSummary[] };
+    return obj.cases ?? [];
+  }
+  return [];
+}
+
 function toDecisionRequest(
   type: CaseType,
   action: ButtonAction,
@@ -142,7 +153,7 @@ export async function decideCase(
   const res = await fetch(`${getApiUrl()}/admin/cases/${id}/decision`, {
     method: "POST",
     credentials: "include",
-    headers:{
+    headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -157,7 +168,7 @@ export async function fileDispute(
   const res = await fetch(`${getApiUrl()}/disputes`, {
     method: "POST",
     credentials: "include",
-    headers:{
+    headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -272,18 +283,21 @@ export async function getUserListings(
 }
 
 export async function getTopVerifications(limit = 5): Promise<CaseSummary[]> {
-  const res = await getCases({ type: "verification", status: "pending" });
-  return res.cases.slice(0, limit);
+  const response = await getCases({ type: "verification", status: "pending" });
+  const cases = normaliseCases(response);
+  return cases.slice(0, limit);
 }
 
-export async function getTopDisputes(limit= 5): Promise<CaseSummary[]> {
-  const res = await getCases({ type: undefined, status: "pending" });
+export async function getTopDisputes(limit = 5): Promise<CaseSummary[]> {
+  const response = await getCases({ type: undefined, status: "pending" });
+  const cases = normaliseCases(response);
+
   const disputeTypes = new Set<CaseType>([
     "no_show",
     "listing_quality",
     "report_listing",
   ]);
-  const disputes = res.cases.filter((c) => disputeTypes.has(c.type));
+  const disputes = cases.filter((c) => disputeTypes.has(c.type));
   return disputes.slice(0, limit);
 }
 

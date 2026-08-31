@@ -10,4 +10,18 @@ public interface IUserRepository
     Task AddAsync(User user);
 
     Task UpdateAsync(User user);
+    Task<List<User>> ListAsync(
+        string? verificationStatus,
+        bool? hasStrikes,
+        string? search,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    );
+    Task<int> CountAsync(
+        string? verificationStatus,
+        bool? hasStrikes,
+        string? search,
+        CancellationToken ct = default
+    );
 }
