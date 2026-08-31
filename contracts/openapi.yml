@@ -13,7 +13,7 @@ paths:
       summary: List pending cases,oldest first
       parameters:
         - {name: type, in: query, schema: {$ref: '#components/schema/CaseType'}}
-        - {name:status, in: query, schema: {type: string, default: pending}}
+        - {name: status, in: query, schema: {type: string, default: pending}}
         - {name: sort, in: query, schema{ type: string, default: age}}
       responses:
         '200':
@@ -55,14 +55,14 @@ paths:
     get:
       summary: Audit entries
       parameters:
-      - {name: entryId, in: query, schema: {type: string, format}}
-      - {name: actorId, in: query, schema: {type: string, format}}
+      - {name: entryId, in: query, schema: {type: string}}
+      - {name: actorId, in: query, schema: {type: string, format: uuid}}
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {$ref: '#/components/schemas/AuditEntry'}
+              schema: {type: array, {$ref: '#/components/schemas/AuditEntry'}}
 
   /disputes:
     post:
@@ -192,35 +192,48 @@ components:
       required: [decision]
       properties:
         decision: {type: string, description: "approve|reject|resubmit", enum: [approve,reject,resubmit]}
-        outcome: {$ref: '#/components/schemas/Outcome'}
+        outcome:
+          type: array
+          items: {$ref: '#/components/schemas/Outcome'}
         reason: {type: string}
-    DisputeFilling:
+    FileDispute:
       type: object
       required: [type]
       properties:
         type: {$ref: '#/components/schemas/CaseType'}
-        reservationId: {type: string, format: uuid}
-        listingId: {type: string, format: uuid}
-        meetupId: {type: string, format: uuid}
-        photos: {type: array, items: {type: string}}
+        reservationId: 
+          type: string
+          format: uuid
+          description: "Required for listing_quality and no_show.No_show resolves its meetup via this field, not meetupId."
+        listingId: {type: string, format: uuid, description: "Required for report_listing"}
+        meetupId: 
+          type: string
+          format: uuid
+          nullable: true
+          description: "Currently unused by the filing implementation, no_show resolves the meetup via reservationId instead. Confirm with BE2 whether this field should be removed from the contract."
+        photos: 
+          type: array 
+          items: {type: string}
+          description: "Required for listing_quality unless sellerRefusedPhotos is true"
         sellerRefusedPhotos: {type: boolean}
-        description: {type : string}
+        description: {type : string, description: "Also carries the report reason for report_listing"}
     ListingSnapshot:
       type: object
       properties:
         reservationId: {type: string, format: uuid}
         listingId: {type: string, format: uuid}
         title: {type: string}
-        price: {type: string}
+        price: {type: number}
         condition: {type: string}
         photoRefs: {type: array, items: {type: string}}
         courseTags: {type: array, items: {type: string}}
         capturedAt: {type: string, format: date-time}
+        description: {type: string, nullable: true}
     Strike:
       type: object
       properties: 
         userId: {type: string, format: uuid}
-        sourceCaseId: {type: string,format: uuid}
+        sourceCaseId: {type: string,format: uuid, nullable: true}
         type: {type: string}
         reason: {type: string}
         createdByAdminId: {type: string, format: uuid}
@@ -229,14 +242,14 @@ components:
     AuditEntry:
       type: object
       properties:
-        id: {type: string, format: uuid}
-        actorId: { type: string, format: uuid}
+        logId: {type: string, format: uuid, format: int64, description: "AuditLog.LogId is a bigint, not a uuid"}
+        actorId: { type: string, format: uuid,nullable: true}
         action: {type: string}
-        entityId: {type: string, format: uuid}
+        entityId: {type: string}
         entityType: {type: string}
-        oldValue: {type: string}
-        newValue: {type: string}
-        reason: {type: string}
+        oldValue: {type: string, nullable: true}
+        newValue: {type: string, nullable: true}
+        reason: {type: string,nullable: true}
         timestamp: {type: string, format: date-time}
         
     
