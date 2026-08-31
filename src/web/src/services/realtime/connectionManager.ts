@@ -34,6 +34,9 @@ class ConnectionManager {
   private readonly pinConfirmedListeners = new Set<
     (e: { reservationId: string }) => void
   >();
+  private readonly disputeCreatedListeners = new Set<
+  (data: {caseId: string; type: string}) => void
+  >();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -73,6 +76,9 @@ class ConnectionManager {
 
       conn.on("payment_completed", (e: { reservationId: string }) =>
         this.paymentCompletedListeners.forEach((cb) => cb(e)),
+      );
+      conn.on("dispute_created", (data: {caseId: string; type: string}) =>
+        this.disputeCreatedListeners.forEach((cb) => cb(data)),
       );
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
