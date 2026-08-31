@@ -76,7 +76,7 @@ public class PayFastPaymentGateway : IPaymentGateway
             new("m_payment_id", reservationId.ToString()),
             new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
             new("item_name", Truncate(listingTitle, 100)),
-            
+
         };
         return ordered.Where(f => !string.IsNullOrEmpty(f.Value)).ToList();
     }
@@ -116,7 +116,7 @@ public class PayFastPaymentGateway : IPaymentGateway
             .Split('&', StringSplitOptions.RemoveEmptyEntries)
             .Select(p => p.Split('=', 2))
             .Where(parts => parts[0] != "signature")
-            .Select(parts => new KeyValuePair<string, string>(parts[0],parts.Length>1? parts[1]:""))
+            .Select(parts => new KeyValuePair<string, string>(parts[0], parts.Length > 1 ? parts[1] : ""))
             .ToList();
         var baseString = String.Join("&", parsed.Select(kvp => $"{kvp.Key}={kvp.Value}"));
 
