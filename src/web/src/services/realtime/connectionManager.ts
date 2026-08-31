@@ -143,6 +143,12 @@ class ConnectionManager {
     await this.connection?.stop();
   }
 
+  async joinAdminGroup(): Promise<void> {
+    this.isAdminGroupJoined = true;
+    await this.connect();
+    await this.connection!.invoke("JoinAdminGroup");
+  }
+
   getState(): ConnectionState {
     return this.connection?.state ?? "Disconnected";
   }
