@@ -144,12 +144,33 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
+    if(user?.role === "admin") {
+      connectionManager.joinAdminGroup().catch((e) =>
+      console.error("joinAdminGroup failed", e),
+    );
+    }
+
+    const offDisputeCreated = connectionManager.onDisputeCreated(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    })
+
+    const offDisputeResolved = connectionManager.onDisputeResolved(() => {
+      queryClient.invalidateQueries({queryKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    })
+
     return () => {
       offMessage();
       offReconnected();
       offRead();
       offReservationUpdated();
       offListing();
+      offDisputeCreated();
+      offDisputeResolved();
+      if(user?.role === "admin") {
+        connectionManager.leaveAdminGroup();
+      }
     };
   }, [queryClient, user]);
   return <>{children}</>;

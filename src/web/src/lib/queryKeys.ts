@@ -4,4 +4,6 @@ export const queryKeys = {
     ["reservation-messages", reservationId] as const,
   reservations: (role: "buyer" | "seller") => ["reservations", role] as const,
   wishlist: () => ["wishlist"] as const,
+  disputes: () => ["disputes"] as const,
+  dashboardStats: () => ["dashboard"] as const 
 };
