@@ -136,10 +136,10 @@ export default function AdminVerifications() {
   const numApprovedToday = 0;
 
   if (loading) {
-    return <p className='text-sm text-gray-700'>Loading verifications...</p>;
+    return <p className='text-sm text-gray-400'>Loading verifications...</p>;
   }
   if (error) {
-    return <p className='text-sm text-red-700'>{error}</p>;
+    return <p className='text-sm text-red-600'>{error}</p>;
   }
 
   return (
@@ -149,7 +149,7 @@ export default function AdminVerifications() {
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Student Verifications
         </h1>
-        <p className="text-xs text-gray-600 mt-1">
+        <p className="text-xs text-gray-400 mt-1">
           Review students proof of registration and approve or reject account
         </p>
       </div>
@@ -249,7 +249,7 @@ export default function AdminVerifications() {
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-xs text-gray-500 font-normal">
+            <tr className="text-xs text-gray-400 font-normal">
               <th className="py-3 px-4">
                 Student
               </th>
@@ -267,7 +267,7 @@ export default function AdminVerifications() {
           <tbody className="divide-y divide-gray-100 text-xs">
             {sortedRows.length === 0 ? (
               <tr>
-                <td colSpan={4} className="py-6 text-center text-gray-500">
+                <td colSpan={4} className="py-6 text-center text-gray-400">
                   No verifications match your filters
                 </td>
               </tr>
@@ -280,7 +280,7 @@ export default function AdminVerifications() {
                     </div>
                     <div className="font-bold text-gray-900">
                       {ver.name}
-                      <div className="text-[10px] text-gray-500 mt-0.5">
+                      <div className="text-[10px] text-gray-400 mt-0.5">
                         {ver.degree}{ver.year ? `, Y${ver.year}` : '' }
                       </div>
                     </div>
@@ -322,7 +322,7 @@ export default function AdminVerifications() {
                       </div>
                       <div>
                         <div className="font-semibold text-gray-800">{ver.docName}</div>
-                        <div className="text-[10px] text-gray-500">
+                        <div className="text-[10px] text-gray-400">
                           Uploaded {ver.docDate} &bull; {ver.docSize}
                         </div>
                       </div>

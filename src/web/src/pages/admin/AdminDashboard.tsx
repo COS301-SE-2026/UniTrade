@@ -56,29 +56,26 @@ interface ListingRowProps {
 
 function ListingRow({ title, meta, risk }: Readonly<ListingRowProps>) {
   return (
-    <li className="flex items-center gap-4 py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
+    <div className="flex items-center gap-4 py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
       <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex-shrink-0 overflow-hidden">
         <img
           src={`https://placehold.co/48x48/e8eef5/b0bcd4?text=📚`}
           alt={title}
-          aria-hidden="true"
           className="w-full h-full object-cover"
         />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
       </div>
       <RiskPill level={risk} />
-      <button type='button' 
-      aria-label={`Approve listing ${title}`}
-      className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
+      <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
         Approve
       </button>
-      <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 focus:outline-none focus:ring-2 focus:ring-navy-500 rounded-full transition-colors">
+      <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors">
         Reject
       </button>
-    </li>
+    </div>
   )
 }
 
@@ -97,7 +94,7 @@ function VerificationRow({ initials, name, meta }: Readonly<VerificationRowProps
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white">{name}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
       </div>
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">
         Approve
@@ -126,7 +123,7 @@ function DisputeRow({ title, meta }: Readonly<DisputeRowProps>) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
       </div>
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-colors">
         Review
@@ -181,7 +178,7 @@ export default function AdminDashboard() {
   }
 
   if (error) {
-    return <p className="text-sm text-red-700">{error}</p>;
+    return <p className="text-sm text-gray-600">{error}</p>;
   }
   function getTimeAgo(ageHours: number): string {
     if (ageHours < 1) return 'Just now'
@@ -205,9 +202,9 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
 
-      <h2 className="text-2xl font-bold text-navy-700 dark:text-white">
+      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
         WELCOME Admin
-      </h2>
+      </h1>
 
 
       <div className="grid grid-cols-4 gap-4">
@@ -215,28 +212,28 @@ export default function AdminDashboard() {
           title="Pending Verifications"
           value={pendingVerifications.length}
           sub={`Oldest: ${oldestVerificationAge}`}
-          subColor="text-amber-700"
+          subColor="text-amber-500"
           subIcon={<IconClock size={13} />}
         />
         <StatCard
           title="Listing Queue"
           value={0} // wow-factor
           sub="5 High Risk"
-          subColor="text-red-600"
+          subColor="text-red-500"
           subIcon={<IconAlertTriangle size={13} />}
         />
         <StatCard
           title="Active Disputes"
           value={activeDisputes.length}
           sub={disputeSybtext}
-          subColor="text-red-700"
+          subColor="text-red-500"
           subIcon={<IconFlag size={13} />}
         />
         <StatCard
           title="Total Users"
           value={totalUsers}
           sub="12% this month"
-          subColor="text-green-700"
+          subColor="text-green-600"
           subIcon={<IconTrendingUp size={13} />}
         />
       </div>
@@ -253,7 +250,7 @@ export default function AdminDashboard() {
             <button
               type='button'
               onClick={() => navigate('/admin/listings')}
-              className="text-xs text-sky-700 hover:underline"
+              className="text-xs text-[#00aaff] hover:underline"
             >
               view all
             </button>
@@ -293,7 +290,7 @@ export default function AdminDashboard() {
               <button
                 type='button'
                 onClick={() => navigate('/admin/verifications')}
-                className="text-xs text-sky-700 hover:underline"
+                className="text-xs text-[#00aaff] hover:underline"
               >
                 view all
               </button>
@@ -320,7 +317,7 @@ export default function AdminDashboard() {
               <button
                 type='button'
                 onClick={() => navigate('/admin/disputes')}
-                className="text-xs text-sky-700 hover:underline"
+                className="text-xs text-[#00aaff] hover:underline"
               >
                 view all
               </button>
