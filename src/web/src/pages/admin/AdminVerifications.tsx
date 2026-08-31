@@ -42,6 +42,7 @@ export default function AdminVerifications() {
 
     getCases()
       .then((response) => {
+        const cases = Array.isArray(response) ? response : response.cases;
 
         
         const cases = Array.isArray(response) ? response : response.cases;

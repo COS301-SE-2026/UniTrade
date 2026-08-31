@@ -4,6 +4,7 @@ using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Listings;
 using Modules.Listings.Models.Dto;
+using Modules.Reputation;
 using Modules.Reputation.Repositories;
 using Modules.Reviews.Repositories;
 
@@ -16,18 +17,21 @@ public sealed class AdminUsersController : AdminControllerBase
     private readonly IReviewRepository _reviews;
     private readonly IStrikeRepository _strikes;
     private readonly IUserRepository _users;
+    private readonly IReputationService _reputation;
 
     public AdminUsersController(
         IListingService listings,
         IReviewRepository reviews,
         IStrikeRepository strikes,
-        IUserRepository users
+        IUserRepository users,
+        IReputationService reputation
     )
     {
         _listings = listings;
         _users = users;
         _reviews = reviews;
         _strikes = strikes;
+        _reputation = reputation;
     }
 
     [HttpGet("{userId:guid}/listings")]
@@ -61,6 +65,49 @@ public sealed class AdminUsersController : AdminControllerBase
         );
     }
 
+    [HttpGet("{userId:guid}/reputation")]
+    public async Task<ActionResult<UserReputationDto>> GetUserReputation(
+        Guid userId,
+        CancellationToken ct = default
+    )
+    {
+        var user = await _users.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound(new { error = "user_not_found" });
+        }
+
+        var summary = await _reputation.GetReputationSummaryAsync(userId, ct);
+        var strikes = await _reputation.GetStrikesAsync(userId, ct);
+
+        return Ok(
+            new UserReputationDto
+            {
+                UserId = user.UserId,
+                Name = $"{user.FirstName} {user.LastName}",
+                Email = user.Email,
+                UniversityName = user.StudentProfile?.University?.Name ?? "",
+                Degree = user.StudentProfile?.DegreeProgram ?? "N/A",
+                Year = user.StudentProfile?.YearOfStudy ?? 0,
+                VerificationStatus = user.StudentProfile?.VerificationStatus ?? "pending",
+                ReviewAverage = summary.AverageRating,
+                ReputationScore = summary.ReputationScore,
+                ReviewCount = summary.ReviewCount,
+                Strikes = strikes
+                    .Select(s => new StrikeDto
+                    {
+                        StrikeId = s.StrikeId,
+                        Type = s.Type,
+                        Reason = s.Reason,
+                        SourceCaseId = s.SourceCaseId,
+                        CreatedByAdminId = s.CreatedByAdminId,
+                        CreatedAt = s.CreatedAt,
+                    })
+                    .ToList(),
+            }
+        );
+    }
+
     [HttpGet]
     public async Task<ActionResult<ListUsersResponseDto>> List(
         [FromQuery] string? verificationStatus = null,
@@ -81,8 +128,7 @@ public sealed class AdminUsersController : AdminControllerBase
         var items = new List<UserListItemDto>();
         foreach (var user in users)
         {
-            var reviews = await _reviews.GetForUserAsync(user.UserId, ct);
-            var avg = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+            var summary = await _reputation.GetReputationSummaryAsync(user.UserId, ct);
             var strikeCount = await _strikes.CountForUserAsync(user.UserId, ct);
 
             items.Add(
@@ -94,7 +140,8 @@ public sealed class AdminUsersController : AdminControllerBase
                     Degree = user.StudentProfile?.DegreeProgram ?? "N/A",
                     Year = user.StudentProfile?.YearOfStudy ?? 0,
                     VerificationStatus = user.StudentProfile?.VerificationStatus ?? "pending",
-                    ReviewAverage = avg,
+                    ReviewAverage = summary.AverageRating,
+                    ReputationScore = summary.ReputationScore,
                     StrikeCount = strikeCount,
                 }
             );

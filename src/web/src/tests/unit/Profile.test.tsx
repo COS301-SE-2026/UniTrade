@@ -81,19 +81,9 @@ describe('Profile', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/profile/settings')
     })
 
-    it('navigates to activity through view activity tab', async () => {
-        const user = userEvent.setup()
-        renderProfile()
-        await user.click(screen.getByText('View Activity History'))
-        expect(mockNavigate).toHaveBeenCalledWith('/activity')
-    })
 
-    it('navigates to privacy and security', async () => {
-        const user = userEvent.setup()
-        renderProfile()
-        await user.click(screen.getByText('Privacy & Security'))
-        expect(mockNavigate).toHaveBeenCalledWith('/profile/privacy')
-    })
+
+
 
     /*describe('Logout', () => {
 

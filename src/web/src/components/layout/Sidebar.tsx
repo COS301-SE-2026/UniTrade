@@ -3,8 +3,9 @@ import { clsx } from 'clsx'
 import {
   IconLayoutDashboard,
   IconSwitchHorizontal,
-  IconSettings,
+  //IconSettings,
   IconShieldCheck,
+  //IconListCheck,
   IconFlag,
   IconUsers,
 
@@ -80,9 +81,10 @@ const adminNav: NavSection[] = [
   {
     heading: 'Main',
     items: [
-      { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} />},
-      { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} />},
+      //{ label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} /> },
+      { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} /> },
+      //{ label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />},
       { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
@@ -90,8 +92,7 @@ const adminNav: NavSection[] = [
     heading: 'Manage',
     items: [
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
-      { label: 'Messages', to: '/admin/messages', icon: <IconMessage size={18} /> },
-      { label: 'Settings', to: '/admin/settings', icon: <IconSettings size={18} /> },
+
     ],
   },
 ]
