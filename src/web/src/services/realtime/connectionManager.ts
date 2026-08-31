@@ -15,6 +15,7 @@ class ConnectionManager {
   private connection: IHubConnection | null = null;
   private connectPromise: Promise<void> | null = null;
   private readonly joinedRooms = new Set<string>();
+  private isAdminGroupJoined = false;
 
   private readonly stateListeners: Set<(state: ConnectionState) => void> =
     new Set();
@@ -96,6 +97,9 @@ class ConnectionManager {
         await Promise.allSettled(
           [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
+        if(this.isAdminGroupJoined) {
+          await conn.invoke("JoinAdminGroup").catch(() => {})
+        }
 
         this.notifyState("Connected");
         this.reconnectedListeners.forEach((cb) => cb());

@@ -144,8 +144,6 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
-    
-
     return () => {
       offMessage();
       offReconnected();
