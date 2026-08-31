@@ -150,12 +150,18 @@ if (import.meta.env.DEV || !user) return;
     );
     }
 
+    const offDisputeCreated = connectionManager.onDisputeCreated(() => {
+      queryClient.invalidateQueries({ querKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    })
+
     return () => {
       offMessage();
       offReconnected();
       offRead();
       offReservationUpdated();
       offListing();
+      offDisputeCreated();
     };
   }, [queryClient, user]);
   return <>{children}</>;
