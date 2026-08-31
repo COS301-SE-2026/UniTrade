@@ -25,14 +25,14 @@ public class ListingService : IListingService
     public ListingService(
         IListingRepository listings,
         IListingImageRepository images,
-        ISellerVerificationQuery verification,
-        IListingPublishedListener listener
+        ISellerVerificationQuery verification
+        //IListingPublishedListener listener
     )
     {
         _listings = listings;
         _images = images;
         _verification = verification;
-        _listener = listener;
+        //_listener = listener;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)

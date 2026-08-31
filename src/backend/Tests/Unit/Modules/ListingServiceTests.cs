@@ -33,7 +33,9 @@ public class ListingServiceTests
         _imageRepo = new Mock<IListingImageRepository>();
         _verificationMock = new Mock<ISellerVerificationQuery>();
         _listingPublishedListenerMock = new Mock<IListingPublishedListener>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object, _listingPublishedListenerMock.Object);
+        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object
+        //, _listingPublishedListenerMock.Object
+        );
     }
 
     // GetByIdAsync Tests
