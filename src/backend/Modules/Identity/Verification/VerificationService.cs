@@ -18,6 +18,7 @@ public class VerificationService : IVerificationService
     private readonly IUserRepository _users;
     private readonly IEmailService _emails;
     private readonly IProofOfRegistrationStorageService _porStorage;
+    private readonly IIdentityService _identity;
     private readonly IConfiguration _config;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
@@ -28,6 +29,7 @@ public class VerificationService : IVerificationService
         IUserRepository users,
         IEmailService emails,
         IProofOfRegistrationStorageService porStorage,
+        IIdentityService identity,
         IConfiguration config
     )
     {
@@ -35,6 +37,7 @@ public class VerificationService : IVerificationService
         _users = users;
         _emails = emails;
         _porStorage = porStorage;
+        _identity = identity;
         _config = config;
     }
 
@@ -205,7 +208,7 @@ public class VerificationService : IVerificationService
             return null;
         }
 
-        if (vr.AdminDecision is not null)
+        if (vr.AdminDecision is "approved" or "rejected")
         {
             throw new VerificationException("verification_already_decided");
         }
@@ -256,7 +259,13 @@ public class VerificationService : IVerificationService
             await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
         }*/
 
-        return await _verifications.GetCaseByIdAsync(verificationId, ct);
+        var result = await _verifications.GetCaseByIdAsync(verificationId, ct);
+
+        if (decision == VerificationDecision.Reject)
+        {
+            await _identity.DeleteAccountAsync(vr.UserId.ToString());
+        }
+        return result;
     }
 
     public async Task SubmitProofOfRegistrationAsync(
