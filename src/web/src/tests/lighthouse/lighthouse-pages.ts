@@ -8,7 +8,7 @@ seo: number;
 export interface LighthousePageConfig{
 name: string;
 path: string;
-admin?: Boolean;
+admin?: boolean;
 thresholds: LighthouseThresholds;
 }
 

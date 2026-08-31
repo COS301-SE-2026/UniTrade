@@ -5,7 +5,6 @@ import {
   IconSwitchHorizontal,
   IconSettings,
   IconShieldCheck,
-  IconListCheck,
   IconFlag,
   IconUsers,
 
