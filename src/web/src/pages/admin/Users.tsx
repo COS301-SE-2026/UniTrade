@@ -88,9 +88,11 @@ export default function Users() {
 
   return (
     <div className='space-y-6'>
-
+  <div>
       <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
-
+<p className="text-xs text-gray-400 mt-1">
+          View all student users registered on the application. </p>
+        </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>

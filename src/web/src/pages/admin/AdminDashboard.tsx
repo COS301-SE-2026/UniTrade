@@ -34,7 +34,7 @@ function StatCard({ title, value, sub, subColor = 'text-gray-500', subIcon }: Re
     </div>
   )
 }
-
+{/*
 function RiskPill({ level }: Readonly<{ level: 'High Risk' | 'Med Risk' }>) {
   return (
     <span
@@ -77,7 +77,7 @@ function ListingRow({ title, meta, risk }: Readonly<ListingRowProps>) {
       </button>
     </div>
   )
-}
+}*/}
 
 
 interface VerificationRowProps {
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
               view all
             </button>
           </div>
-
+{/*
           <ListingRow
             title="Chemistry Textbook - 3rd Ed"
             meta="CMY127 · R200 · Submitted 2hr ago"
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
             risk="Med Risk"
           />
 
-        {/*  this is all mock: we'll replace it
+          this is all mock: we'll replace it
           */}
         </div>
 
