@@ -168,6 +168,9 @@ if (import.meta.env.DEV || !user) return;
       offListing();
       offDisputeCreated();
       offDisputeResolved();
+      if(user?.role === "admin") {
+        connectionManager.leaveAdminGroup();
+      }
     };
   }, [queryClient, user]);
   return <>{children}</>;
