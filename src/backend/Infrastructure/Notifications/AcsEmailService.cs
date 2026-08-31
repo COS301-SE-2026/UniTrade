@@ -179,4 +179,34 @@ public class AcsEmailService : IEmailService
             </body>
             </html>
             """;
+
+    public async Task SendVerificationDecisionEmailAsync(
+      string toEmail, string firstName, string decision, string? reason = null
+    )
+    {
+        var (subject, bodyMessage) = decision switch
+        {
+            "approved" => (
+              "Your UniTrade verification was approved",
+              "<p>Great news, your student verification has been approved. You can now reserve and publish listings on UniTrade.</p>"
+            ),
+            "rejected" => (
+              "Your UniTrade verification was not approved",
+              $"<p>Unfortunately, your student verification was not approved.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
+            ),
+            "resubmission" => (
+              "Action needed: resubmit your UniTrade verification",
+              $"<p>We need you to resubmit your proof of registration to complete verification.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
+            ),
+            _ => ("Your UniTrade verification status was updated", "<p>Your verification status has changed.</p>"),
+        };
+
+        var html = $"""
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                <h2 style="color: rgb(26,26,26);">Hi {firstName},</h2>
+                {bodyMessage}
+                </div>
+  """;
+        await SendAsync(toEmail, subject, html);
+    }
 }

@@ -82,6 +82,9 @@ public class AuthController : ControllerBase
 
         await _verificationService.VerifyAsync(user.UserId, dto.Otp);
 
+        var token = await _identityService.GenerateAuthTokenAsync(user.UserId);
+        SetAuthCookie(token);
+
         return Ok(new { message = "Verified successfully." });
     }
 
@@ -132,18 +135,7 @@ public class AuthController : ControllerBase
         {
             var token = await _identityService.LoginAsync(request); //business logic layer comes in. It gives us the results
 
-            Response.Cookies.Append(
-                "authToken",
-                token,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = !_env.IsDevelopment(),
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddHours(24),
-                    Path = "/",
-                }
-            );
+            SetAuthCookie(token);
 
             return Ok(new { message = "Login successful" });
         }
@@ -261,5 +253,21 @@ public class AuthController : ControllerBase
                 _ => StatusCode(500, new { error = "server_error" }),
             };
         }
+    }
+
+    private void SetAuthCookie(string token)
+    {
+        Response.Cookies.Append(
+            "authToken",
+            token,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_env.IsDevelopment(),
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(24),
+                Path = "/",
+            }
+        );
     }
 }

@@ -134,6 +134,7 @@ export default function HelpCenter() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const faqRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -217,9 +218,9 @@ export default function HelpCenter() {
       setSearchQuery('');
       setOpenFaq(faqIndex);
       setTimeout(() => {
-        const faqElement = document.getElementById(`faq-${faqIndex}`);
-        if (faqElement) {
-          faqElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const el = faqRefs.current[faqIndex];
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 100);
     }
@@ -471,7 +472,7 @@ export default function HelpCenter() {
               return (
                 <div
                   key={faq.question}
-                  id={`faq-${idx}`}
+                  ref={(el) => { faqRefs.current[idx] = el; }}
                   className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
                 >
                   <button
@@ -501,7 +502,6 @@ export default function HelpCenter() {
         </div>
       )}
 
-      {/* STILL NEED HELP? SECTION */}
       <div className="max-w-5xl mx-auto px-6 mt-12">
         <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">
           Still Need Help?

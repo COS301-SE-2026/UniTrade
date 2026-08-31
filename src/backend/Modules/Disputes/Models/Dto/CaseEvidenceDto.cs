@@ -9,6 +9,7 @@ public sealed class CaseEvidenceDto
     public int? Year { get; set; }
     public string? Email { get; set; }
     public bool? DomainValid { get; set; }
+    public string? ProofDocument { get; set; }
 
     public ListingSnapshotDto? Snapshot { get; set; }
     public List<string>? BuyerPhotos { get; set; }

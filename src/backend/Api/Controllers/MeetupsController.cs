@@ -14,7 +14,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
 {
     private readonly IMeetupService _meetups = meetups;
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
     // POST /api/reservations/__/meetup
     [HttpPost("propose")]

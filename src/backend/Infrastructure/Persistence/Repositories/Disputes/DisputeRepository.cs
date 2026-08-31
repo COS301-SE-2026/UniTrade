@@ -55,6 +55,7 @@ public class DisputeRepository : IDisputeRepository
             Photos = d.Photos,
             Description = d.Description,
             SubmittedAt = d.SubmittedAt,
+            SnapshotId = d.SnapshotId,
             RaisedBy = d.RaisedBy ?? Guid.Empty,
             BuyerId = parties.BuyerId,
             SellerId = parties.SellerId,
@@ -226,6 +227,7 @@ public class DisputeRepository : IDisputeRepository
             BuyerId = buyerId,
             SellerId = sellerId,
             ReservationId = d.ReservationId,
+            ListingId = d.ListingId
         };
     }
     private static string? Initials(User? u) => u is null ? null : $"{FirstChar(u.FirstName)}{FirstChar(u.LastName)}";

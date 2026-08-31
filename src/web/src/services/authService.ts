@@ -26,6 +26,7 @@ export interface StudentMeResponse {
   };
   std: {
     verificationStatus: string;
+    verificationRequestStatus: string | null;
     degreeProgram: string;
     yearOfStudy: number;
     university: string;
