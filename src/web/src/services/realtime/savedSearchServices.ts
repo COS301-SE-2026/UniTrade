@@ -3,10 +3,10 @@ import { getApiUrl } from "../../config";
 export interface SavedSearch {
     searchId: string;
     query: string;
-    categoryId?: number;
-    minPrice?: number;
-    maxPrice?: number;
-    courseId?: string;
+    categoryId?: number | null;
+    minPrice?: number | null;
+    maxPrice?: number | null;
+    courseId?: string | null;
     isActive: boolean;
 }
 
@@ -15,14 +15,16 @@ export interface CreateSavedSearchInput {
     categoryId?: number;
     minPrice?: number;
     maxPrice?: number;
+    courseId?: string;
 
 }
 
 export async function getSavedSearches(): Promise<SavedSearch[]>{
     const res = await fetch(`${getApiUrl()}/saved-searches`, {
+        method: "GET",
         credentials: "include",
     });
-    if(~res.ok) throw new Error("Failed to fetch saved searches");
+    if(!res.ok) throw new Error("Failed to fetch saved searches");
     return res.json();
 }
 
