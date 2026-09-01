@@ -10,4 +10,5 @@ public interface IEmailService
         string decision,
         string? reason = null
     );
+    Task SendSavedSearchMatchEmailAsync(string email, string title, decimal price);
 }

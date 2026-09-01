@@ -423,6 +423,8 @@ public class IdentityService : IIdentityService
                     VerificationStatus =
                         getUser.StudentProfile?.VerificationStatus ?? _pendingStatus,
                     VerificationRequestStatus = currentVerification?.Status,
+                    VerificationAdminDecision = currentVerification?.AdminDecision,
+                    VerificationRejectionReason = currentVerification?.RejectionReason,
                     DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
                     YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
                     University = getUser.StudentProfile?.University?.Name ?? string.Empty,
