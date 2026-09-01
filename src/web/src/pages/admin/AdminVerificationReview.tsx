@@ -88,12 +88,12 @@ function ReasonModal({
   onCancel,
   onSubmit,
   submitting,
-}: Readonly<{
+}: {
   decision: VerificationDecision;
   onCancel: () => void;
   onSubmit: (reason: string) => void;
   submitting: boolean;
-}>) {
+}) {
   const [reason, setReason] = useState('');
 
   return (

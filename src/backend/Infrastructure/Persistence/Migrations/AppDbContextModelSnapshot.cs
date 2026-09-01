@@ -1528,57 +1528,6 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Modules.SavedSearches.Models.SavedSearch", b =>
-                {
-                    b.Property<Guid>("SearchId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("search_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("BuyerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("buyer_id");
-
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("category_id");
-
-                    b.Property<int?>("CourseId")
-                        .HasColumnType("integer")
-                        .HasColumnName("course_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<decimal?>("MaxPrice")
-                        .HasColumnType("numeric")
-                        .HasColumnName("max_price");
-
-                    b.Property<decimal?>("MinPrice")
-                        .HasColumnType("numeric")
-                        .HasColumnName("min_price");
-
-                    b.Property<string>("Query")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("query");
-
-                    b.HasKey("SearchId")
-                        .HasName("pk_saved_searches");
-
-                    b.HasIndex("BuyerId")
-                        .HasDatabaseName("ix_saved_searches_buyer_id");
-
-                    b.ToTable("saved_searches", "unitrade");
-                });
-
             modelBuilder.Entity("Modules.SharedKernel.Image", b =>
                 {
                     b.Property<int>("ImageId")

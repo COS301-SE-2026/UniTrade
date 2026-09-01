@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router'
 import {
   IconClock,
-
+ 
   IconFlag,
   IconTrendingUp,
 } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
+import type { CaseSummary } from '../../types/admin_disputes'
 import { getTopDisputes, getTopVerifications, getTotalUsers } from '../../services/adminService'
-import { useQuery } from '@tanstack/react-query'
-import { queryKeys } from '../../lib/queryKeys'
+
 
 interface StatCardProps {
   title: string
@@ -134,41 +135,50 @@ function DisputeRow({ title, meta }: Readonly<DisputeRowProps>) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const {
-    data: pendingVerifications = [],
-    isLoading: loadingVerifications,
-    error: verificationError,
-  } = useQuery({
-    queryKey: [...queryKeys.dashboardStats(), 'verifications'],
-    queryFn: () => getTopVerifications(5),
-  });
 
-  const {
-    data: activeDisputes = [],
-    isLoading: loadingDisputes,
-    error: disputesError,
-  } = useQuery({
-    queryKey: [...queryKeys.dashboardStats(), 'disputes'],
-    queryFn: () => getTopDisputes(5),
-  });
+  const [pendingVerifications, setPendingVerifications] = useState<CaseSummary[]>([]);
+  const [activeDisputes, setactiveDisputes] = useState<CaseSummary[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const {
-    data: totalUsers = 0,
-    isLoading: loadingUsers,
-    error: usersError,
-  } = useQuery({
-    queryKey: [...queryKeys.dashboardStats(), 'totalUsers'],
-    queryFn: () => getTotalUsers(),
-  });
+  useEffect(() => {
+    let active = true;
+    async function fetchDashboardData() {
+      try {
+        console.log("Fetching verifications...")
+        const [verifications, disputes, users] = await Promise.all([
+          getTopVerifications(5),
+          getTopDisputes(5),
+          getTotalUsers(),
 
-  const loading = loadingVerifications || loadingDisputes || loadingUsers;
-  const error = verificationError || disputesError || usersError;
+        ]);
+        
+
+        if (active) {
+          setPendingVerifications(verifications)
+          setactiveDisputes(disputes)
+          setTotalUsers(users)
+          setLoading(false)
+        }
+      }
+      catch {
+        if (active) {
+          setError('Failed to load dashboard data');
+          setLoading(false)
+        }
+      }
+    }
+    fetchDashboardData();
+    return () => { active = false; };
+
+  }, []);
   if (loading) {
     return <p className="text-sm text-gray-600">Loading dashboard...</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-gray-400">Failed to load dashboard data</p>;
+    return <p className="text-sm text-gray-600">{error}</p>;
   }
   function getTimeAgo(ageHours: number): string {
     if (ageHours < 1) return 'Just now'
@@ -192,11 +202,9 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
 
-      { /*     <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
-        WELCOME Admin
+       <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
+        Welcome, Admin
       </h1>
-      */
-      }
 
 
       <div className="grid grid-cols-4 gap-4">
@@ -207,7 +215,7 @@ export default function AdminDashboard() {
           subColor="text-amber-500"
           subIcon={<IconClock size={13} />}
         />
-
+       
         <StatCard
           title="Active Disputes"
           value={activeDisputes.length}
@@ -241,7 +249,7 @@ export default function AdminDashboard() {
               view all
             </button>
           </div>
-          {/*
+{/*
           <ListingRow
             title="Chemistry Textbook - 3rd Ed"
             meta="CMY127 · R200 · Submitted 2hr ago"

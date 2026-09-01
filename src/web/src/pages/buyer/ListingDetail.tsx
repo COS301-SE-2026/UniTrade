@@ -81,7 +81,7 @@ function ReportModal({
         </h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="reason" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Reason
             </label>
             <textarea
@@ -478,7 +478,6 @@ export default function ListingDetail() {
             </button>
 
             <button
-              type="button"
               onClick={() => setReportModalOpen(true)}
               className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >

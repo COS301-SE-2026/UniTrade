@@ -11,7 +11,6 @@ using Modules.ReferenceData.University;
 using Modules.Reputation.Models;
 using Modules.Reservations.Models;
 using Modules.Reviews.Models;
-using Modules.SavedSearches.Models;
 using Modules.SharedKernel;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
@@ -76,9 +75,6 @@ public class AppDbContext : DbContext
 
     // Images
     public DbSet<Image> Images => Set<Image>();
-
-    // Saved Searches
-    public DbSet<SavedSearch> SavedSearches => Set<SavedSearch>();
 
     //constants - sonarqube
     private readonly string _nowString = "now()";
@@ -1074,16 +1070,6 @@ public class AppDbContext : DbContext
             entity.Property(x => x.FileSize).IsRequired();
 
             entity.Property(x => x.UploadedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
-        });
-
-        //Saved Searches
-
-        modelBuilder.Entity<SavedSearch>(entity =>
-        {
-            entity.Property(x => x.SearchId).HasDefaultValueSql("gen_random_uuid()");
-            entity.HasKey(x => x.SearchId);
-            entity.Property(x => x.Query).HasMaxLength(500).IsRequired();
-            entity.HasIndex(x => x.BuyerId);
         });
     }
 }

@@ -20,7 +20,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   const { showToast } = useToast();
 
   useEffect(() => {
-//if (import.meta.env.DEV || !user) return; NEVER DEPLOY WITH THIS!!!!!!!!
+if (import.meta.env.DEV || !user) return;
 
     connectionManager
       .connect()
@@ -36,7 +36,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-//if (import.meta.env.DEV || !user) return; NEVER DEPLOY WITH THIS!!!!!!!!
+ if (import.meta.env.DEV || !user) return;
 
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
@@ -53,7 +53,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-//if (import.meta.env.DEV || !user) return; NEVER DEPLOY WITH THIS!!!!!!!!
+if (import.meta.env.DEV || !user) return;
 
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
@@ -63,7 +63,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user, showToast]);
 
   useEffect(() => {
-//if (import.meta.env.DEV || !user) return; NEVER DEPLOY WITH THIS!!!!!!!!
+    if (import.meta.env.DEV || !user) return;
 
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
