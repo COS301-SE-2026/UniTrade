@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Modules.SavedSearches.Models;
+using Modules.Listings.Models;
 using Modules.Listings;
 
 namespace Modules.SavedSearches.Repositories;
@@ -15,5 +16,6 @@ public interface ISavedSearchRepository
     Task<IReadOnlyList<SavedSearch>> GetCandidatesForListingAsync(ListingPublishedEvent listingEvent, CancellationToken ct = default);
     Task UpdateAsync(SavedSearch search, CancellationToken ct = default);
     Task DeleteAsync(Guid searchId, CancellationToken ct = default);
+    Task<IReadOnlyList<Listing>> GetMatchingListingsAsync(SavedSearch search, CancellationToken ct = default);
 
 }

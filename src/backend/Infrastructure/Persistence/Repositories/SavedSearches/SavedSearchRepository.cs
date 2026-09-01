@@ -8,6 +8,7 @@ using Infrastructure.Persistence;
 using Modules.SavedSearches.Models;
 using Modules.SavedSearches.Repositories;
 using Modules.Listings;
+using Modules.Listings.Models;
 
 
 namespace Infrastructure.Persistence.SavedSearches;
@@ -70,5 +71,53 @@ public class SavedSearchRepository : ISavedSearchRepository
             await UpdateAsync(search, ct);
         }
     }
+
+    public async Task<IReadOnlyList<Listing>> GetMatchingListingsAsync(SavedSearch search, CancellationToken ct)
+    {
+        var query = _db.Listings
+            .Where(l => l.ListingStatus == "live")
+            .Include(l => l.Category)
+            .Include(l => l.Images)
+            .AsQueryable();
+
+        if (search.CategoryId.HasValue)
+        {
+            query = query.Where(l => l.CategoryId == search.CategoryId.Value);
+        }
+
+        if (search.CourseId.HasValue)
+        {
+            query = query.Where(l => l.CourseId == search.CourseId.Value);
+        }
+
+        if (search.MinPrice.HasValue)
+        {
+            query = query.Where(l => l.Price >= search.MinPrice.Value);
+        }
+
+        if (search.MaxPrice.HasValue)
+        {
+            query = query.Where(l => l.Price >= search.MaxPrice.Value);
+        }
+
+        var candidates = await query.ToListAsync(ct);
+
+        var words = search.Query
+            .ToLowerInvariant()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        var matching = candidates
+            .Where(l =>
+            {
+                var text = $"{l.Title} {l.Description ?? ""}"
+                    .ToLowerInvariant();
+
+                return words.All(w => text.Contains(w));
+            })
+            .OrderByDescending(l => l.CreatedAt)
+            .ToList();
+        return matching;
+    }
+
 
 }

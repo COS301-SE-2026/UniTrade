@@ -72,10 +72,10 @@ paths:
         - {name: userId, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         '200':
-        description: OK
-        content:
-          application/json:
-            schema: {$ref: '#/components/schemas/UserReputationDto'}
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/UserReputationDto'}
         '404':
           description: User not found
           content:
@@ -442,7 +442,7 @@ components:
         total: {type: integer}
 
     UserListItemDto:
-      type:
+      type: object
       properties:
         userId: {type: string, format: uuid}
         name: {type: string}
