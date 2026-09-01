@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getUsers } from '../../services/adminService'
 import type { UserListItem } from '../../types/admin_disputes'
+import {LoadingState} from '../../components/layout/Spinner'
 
 export interface UserRow {
   id: string
@@ -42,7 +43,7 @@ export default function Users() {
           initials: getInitials(u.name),
           degree: u.degree,
           verificationStatus: mapVerificationStatus(u.verificationStatus),
-          reputation: Math.round(u.reviewAverage * 20),
+          reputation: u.reputationScore,
           strikesCount: u.strikeCount,
 
         }));
@@ -79,9 +80,9 @@ export default function Users() {
   const numVerified = rows.filter((user) => user.verificationStatus === 'Verified').length
   const numPending = rows.filter((user) => user.verificationStatus === 'Pending').length
 
-  if (loading) {
-    return <p className='text-sm text-gray-400'>Loading users...</p>;
-  }
+  if(loading )
+     {return <LoadingState message = "Loading users..." />}
+  
   if (error) {
     return <p className='text-sm text-red-600'>{error}</p>;
   }

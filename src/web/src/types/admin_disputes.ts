@@ -212,6 +212,7 @@ export interface UserReputation {
   year: number;
   verificationStatus: VerificationStatus;
   reviewAverage: number;
+  reputationScore: number;
   reviewCount: number;
   strikes: Strike[];
 }
@@ -224,6 +225,7 @@ export interface UserListItem {
   year: number;
   verificationStatus: VerificationStatus;
   reviewAverage: number;
+  reputationScore: number;
   strikeCount: number;
 }
 

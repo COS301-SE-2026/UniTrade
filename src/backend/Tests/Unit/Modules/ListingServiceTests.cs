@@ -23,6 +23,8 @@ public class ListingServiceTests
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly Mock<ISellerVerificationQuery> _verificationMock;
+    private readonly Mock<IListingPublishedListener> _listingPublishedListenerMock;
+
     private readonly ListingService _sut;
 
     public ListingServiceTests()
@@ -30,7 +32,8 @@ public class ListingServiceTests
         _repo = new Mock<IListingRepository>();
         _imageRepo = new Mock<IListingImageRepository>();
         _verificationMock = new Mock<ISellerVerificationQuery>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object);
+        _listingPublishedListenerMock = new Mock<IListingPublishedListener>();
+        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object, _listingPublishedListenerMock.Object);
     }
 
     // GetByIdAsync Tests

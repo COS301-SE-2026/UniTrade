@@ -4,6 +4,8 @@ namespace Modules.Identity.Models.DTO
     {
         public string? VerificationStatus { get; set; }
         public string? VerificationRequestStatus { get; set; }
+        public string? VerificationAdminDecision { get; set; }
+        public string? VerificationRejectionReason { get; set; }
         public int YearOfStudy { get; set; }
 
         public string DegreeProgram { get; set; } = null!;

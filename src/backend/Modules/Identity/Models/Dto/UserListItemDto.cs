@@ -9,6 +9,7 @@ public class UserListItemDto
     public int Year { get; set; }
     public string VerificationStatus { get; set; } = null;
     public double ReviewAverage { get; set; }
+    public int ReputationScore { get; set; }
     public int StrikeCount { get; set; }
 }
 

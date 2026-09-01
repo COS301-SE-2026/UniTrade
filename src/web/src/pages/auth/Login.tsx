@@ -19,31 +19,40 @@ interface ApiError {
 
 type VerificationModalStatus = 'por_pending' | 'under_review'
 
-const VERIFICATION_MODAL_CONTENT: Record<
-  VerificationModalStatus,
-  { message: string; showProceed: boolean }
-> = {
-  por_pending: {
-    message: 'You have not submitted your proof of registration yet,Please uplaod your proof of registration first, then it will be reviewed and you will be informed via email of the decision once review is complete. So as buyer when you login into the system you can only browse, add to wishlist, but are not allowed to reserve anything. As a seller you can upload but it will be automatically saved as draft.',
-    showProceed: true,
-  },
-  under_review: {
-    message:
-      'Your proof of registration is still under review. You will be informed via email of the decision once review is completed, so as a buyer when you login into the system you can only browse, add to wishlist, but are not allowed to reserve anything. As a seller you can upload but it will be automatically saved as draft.',
-    showProceed: false,
-  },
+function getVerificationModalContent(
+  status: VerificationModalStatus,
+  rejectionReason?: string | null,
+): {
+  message: string; showProceed: boolean
+} {
+  if ( status === 'por_pending') {
+    const base = 'You have not submitted your proof of registration yet, please press proceed to upload you proof of registration. You will be informed via email of the admin decision. Depending on your status after uploading the proof you can login, but will have partial access to the system.'
+  return {
+    message: rejectionReason
+    ? `An admin has requested that you resubmit your proof of registration. Reason: "${rejectionReason}" please press proceed to go and resubmit your proof of registration.`
+    : base,
+    showProceed: true
+  }
+}
+
+return {
+  message: 'Your proof of registration is still under review, so when you login you will have partial access to the system. As a buyer you can only browse, add to wishlist, but are not allowed to reserve anything. As a seller you can upload but it will be automatically saved as draft.',
+  showProceed: false,
+}
 }
 
 function VerificationStatusModal({
   status,
+  rejectionReason,
   onProceed,
   onClose,
 }: Readonly<{
   status: VerificationModalStatus
+  rejectionReason?: string | null
   onProceed: () => void
   onClose: () => void
 }>) {
-  const content = VERIFICATION_MODAL_CONTENT[status]
+  const content = getVerificationModalContent(status, rejectionReason)
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -95,6 +104,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [verificationModal, setVerificationModal] = useState<VerificationModalStatus | null>(null)
   const [pendingRole, setPendingRole] = useState<UserRole | null>(null)
+  const [modalRejectionReason, setModalRejectionReason] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -121,6 +131,12 @@ const Login: React.FC = () => {
       const userData = 'user' in me ? me.user : me
       const stdData = 'std' in me ? me.std : undefined
 
+      const needsResubmission = 
+      stdData?.verificationRequestStatus === 'under_review' &&
+      stdData?.verificationAdminDecision === 'resubmission';
+
+
+
       setUser({
         id: userData.userId,
         name: `${userData.firstName} ${userData.lastName}`,
@@ -136,9 +152,16 @@ const Login: React.FC = () => {
       }
 
       if (stdData?.verificationRequestStatus === 'por_pending'
-        || stdData?.verificationRequestStatus === 'under_review') {
+        ||needsResubmission) {
         setPendingRole(userData.userRole as UserRole);
-        setVerificationModal(stdData.verificationRequestStatus)
+        setModalRejectionReason(needsResubmission ? (stdData?.verificationRejectionReason ?? null) : null);
+        setVerificationModal('por_pending')
+        return;
+      }
+
+      if(stdData?.verificationRequestStatus === 'uder_review') {
+        setPendingRole(userData.userRole as UserRole);
+        setVerificationModal('under_review');
         return;
       }
 
@@ -229,6 +252,7 @@ const Login: React.FC = () => {
         <VerificationStatusModal
           status={verificationModal}
           onProceed={handleModalProceed}
+          rejectionReason={modalRejectionReason}
           onClose={handleModalClose}
         />
       )}
