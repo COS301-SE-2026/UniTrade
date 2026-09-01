@@ -199,7 +199,6 @@ export default function SellerListingDetail() {
               <DetailRow label="Course Code" value={courseCode} />
             )}
             <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
-            <DetailRow label="Views" value={listing.views} />
           </div>
         </div>
 

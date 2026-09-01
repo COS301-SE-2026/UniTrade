@@ -90,8 +90,8 @@ export default function AdminVerifications() {
             docName: summary.hasDocument ? 'Proof of Registration' : 'Not yet submitted',
             docDate: formatDate(summary.submittedAt),
             docUrl: summary.hasDocument
-               ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
-               : null,
+              ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
+              : null,
           };
 
         })
@@ -155,32 +155,33 @@ export default function AdminVerifications() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-        <div>
-          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numOverdue}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Overdue</div>
-        </div>
+          <div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numOverdue}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Overdue</div>
+
+          </div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-        <div>
-          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numDueSoon}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Due Soon</div>
-        </div>
-        </div>
-
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-        <div>
-          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Total Pending</div>
-        </div>
+          <div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numDueSoon}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Due Soon</div>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-        <div>
-          <div className="text-2xl font-bold text-navy-700 dark:text-white">{numApprovedToday}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Approved Today</div>
+          <div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Total Pending</div>
+          </div>
         </div>
-      </div>
+
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+          <div>
+            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numApprovedToday}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Approved Today</div>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center justify-between pt-2">
@@ -280,7 +281,7 @@ export default function AdminVerifications() {
                     <div className="font-bold text-gray-900">
                       {ver.name}
                       <div className="text-[10px] text-gray-400 mt-0.5">
-                        {ver.degree}{ver.year ? `, Y${ver.year}` : '' }
+                        {ver.degree}{ver.year ? `, Y${ver.year}` : ''}
                       </div>
                     </div>
                   </td>
@@ -341,22 +342,22 @@ export default function AdminVerifications() {
                       </button>
                       {ver.docUrl ? (
                         <a
-                        href={ver.docUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1"
-                        
-                           >            
-                        <IconEye className="w-3.5 h-3.5" />
-                        <span>View Doc</span>
+                          href={ver.docUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1"
+
+                        >
+                          <IconEye className="w-3.5 h-3.5" />
+                          <span>View Doc</span>
                         </a>
-                      ):(
+                      ) : (
                         <span className="text-gray-300 border border-gray-200 rounded-full text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1 cursor-not-allowed">
-                         <IconEye className="w-3.5 h-3.5" />
-                        <span>View Doc</span>
+                          <IconEye className="w-3.5 h-3.5" />
+                          <span>View Doc</span>
                         </span>
                       )}
-                     
+
                     </div>
                   </td>
                 </tr>
