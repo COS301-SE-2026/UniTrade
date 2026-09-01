@@ -5,6 +5,7 @@ import calcImg from '../../assets/calculas-textbook.jpg'
 import laptopImg from '../../assets/hp-laptop.jpg'
 import { type CaseType } from '../../types/admin_disputes'
 import { getCases } from '../../services/adminService'
+import { LoadingState } from '../../components/layout/Spinner'
 
 export interface DisputeRow {
   id: string
@@ -101,8 +102,7 @@ export default function AdminDisputes() {
 
 
   if (loading) {
-    return <p className='text-sm text-gray-400'>Loading disputes...</p>;
-  }
+    return <LoadingState message = "Loading disputes..."/> }
   if (error) {
     return <p className='text-sm text-red-600'>{error}</p>;
   }
