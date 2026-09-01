@@ -7,6 +7,7 @@ import type { CaseDetail, ApiError } from '../../types/admin_disputes';
 import { decideCase, getCaseById } from '../../services/adminService';
 import { useToast } from '../../components/layout/useToast';
 import { getApiUrl } from '../../config';
+import { LoadingState } from '../../components/layout/Spinner';
 
 
 type State = {
@@ -206,11 +207,11 @@ export default function AdminVerificationReview() {
   }
 
   if (state.loading) {
-    return <p className="text-sm text-gray-400">Loading verification…</p>;
+    return <LoadingState message = "Loading Verifications..." />
   }
 
   if (state.error || !state.data) {
-    return <p className="text-sm text-gray-400">Verification case not found.</p>;
+    return <p className="text-sm text-gray-600">Verification case not found.</p>;
   }
 
   const record = state.data;

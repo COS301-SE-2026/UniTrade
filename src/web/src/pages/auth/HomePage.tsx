@@ -362,7 +362,7 @@ export function Theproblem() {
     <div id="problem" className="bg-white mx-auto px-6 py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="uppercase text-s tracking-widest font-mono text-red-500">THE PROBLEM</span>
+          <span className="uppercase text-s tracking-widest font-mono text-red-600">THE PROBLEM</span>
           <h2 className="text-3xl font-bold text-navy-700 dark:text-white mt-3">
             Common marketplaces fail university students
           </h2>
@@ -394,7 +394,7 @@ export function Thesolution() {
     <div id="solution" className="bg-white dark:bg-navy-950 py-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
-          <span className="uppercase text-s tracking-widest font-mono text-blue-400">THE SOLUTION</span>
+          <span className="uppercase text-s tracking-widest font-mono text-blue-600">THE SOLUTION</span>
           <h2 className="text-4xl font-bold text-navy-700 dark:text-white mt-3">
             Everything a student market-place needs
           </h2>
