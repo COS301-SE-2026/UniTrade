@@ -50,13 +50,27 @@ useEffect(() => {
         return;
     }
     let cancelled = false;
+    const fetchMatches = async() => {
     setLoadingMatches(true);
-    getMatchingListings(selectedSearch.searchId)
-    .then((data) => { if (!cancelled) setMatchingListings(data); })
-    .catch(() => {if (!cancelled) showToast("error", "Failed to load matching listings"); })
-    .finally(() => { if (!cancelled) setLoadingMatches(false); });
-    return () => {cancelled = true;};
+    try {
+        const data = await getMatchingListings(selectedSearch.searchId);
+        if(!cancelled) setMatchingListings(data);
+        }catch {
+            if (!cancelled) showToast("error", "Failed to load matching listings"); 
+
+        } finally {
+            if (!cancelled) setLoadingMatches(false);
+        }
+
+    };
+
+    fetchMatches();
+
+    return () => {
+        cancelled = true;
+    };
 }, [selectedSearch, showToast]);
+    
 
 const handleCreate = async () => {
 if (!query.trim()) {
