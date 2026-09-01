@@ -15,6 +15,7 @@ import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type Disp
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
 import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
 import { getApiUrl } from '../../config';
+import {LoadingState} from '../../components/layout/Spinner';
 
 export interface DisputeCase {
   id: string
@@ -244,9 +245,9 @@ export default function AdminDisputeReview() {
     }
   }
 
-  if (state.loading) {
-    return <p className="text-sm text-gray-600">Loading case...</p>;
-  }
+   if(state.loading) {
+    return <LoadingState message = "Loading case..." />;
+   }
 
   if (state.error || !state.data) {
     return <p className="text-sm text-gray-600">Dispute case not found</p>;
