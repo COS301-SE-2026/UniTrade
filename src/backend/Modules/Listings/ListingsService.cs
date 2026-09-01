@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Verification;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
@@ -15,6 +16,7 @@ public class ListingService : IListingService
     private readonly ISellerVerificationQuery _verification;
     private readonly IListingPublishedListener _listener;
 
+    private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
         "live",
@@ -26,13 +28,15 @@ public class ListingService : IListingService
         IListingRepository listings,
         IListingImageRepository images,
         ISellerVerificationQuery verification,
-IListingPublishedListener listener
+        IListingPublishedListener listener,
+        ILogger<ListingService> logger
     )
     {
         _listings = listings;
         _images = images;
         _verification = verification;
         _listener = listener;
+        _logger = logger;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -173,8 +177,15 @@ IListingPublishedListener listener
                 };
                 await _listener.OnListingPublishedEventAsync(evnt, ct);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(
+                    ex,
+                    "Failed to fire listing published event for listing {ListingId}",
+                    newListing.ListingId
+                );
+                //log later @Zelamene
+
                 //log later @Zelamene
             }
         }
@@ -359,8 +370,13 @@ IListingPublishedListener listener
                 };
                 await _listener.OnListingPublishedEventAsync(evnt, ct);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(
+                    ex,
+                    "Failed to fire listing published event for listing {ListingId}",
+                    listing.ListingId
+                );
                 //log later @Zelamene
             }
         }
