@@ -5,6 +5,7 @@ using Modules.Disputes;
 using Modules.Disputes.Models.Dto;
 
 namespace Api.Controllers;
+
 [ApiController]
 [Route("api/disputes")]
 [Authorize]

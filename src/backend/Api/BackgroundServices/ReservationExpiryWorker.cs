@@ -8,7 +8,7 @@ public class ReservationExpiryWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ReservationExpiryWorker> _logger;
-    private  readonly TimeSpan _interval;
+    private readonly TimeSpan _interval;
 
     public ReservationExpiryWorker(
         IServiceScopeFactory scopeFactory,
@@ -18,7 +18,7 @@ public class ReservationExpiryWorker : BackgroundService
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
-        var seconds = config.GetValue<int?>("Workers:ReservationExpiryIntervalSeconds")?? 60;
+        var seconds = config.GetValue<int?>("Workers:ReservationExpiryIntervalSeconds") ?? 60;
         _interval = TimeSpan.FromSeconds(seconds);
     }
 
@@ -81,5 +81,5 @@ public class ReservationExpiryWorker : BackgroundService
                 ct
             );
         }
-    } 
+    }
 }
