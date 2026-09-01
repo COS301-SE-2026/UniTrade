@@ -1,4 +1,5 @@
 import { getApiUrl } from "../../config";
+import type { ListingSummary } from "../../types/listing";
 
 export interface SavedSearch {
     searchId: string;
@@ -47,4 +48,12 @@ export async function deleteSavedSearch(searchId: string): Promise<void> {
         credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to delete saved search");
+}
+
+export async function getMatchingListings(searchId: string): Promise<ListingSummary[]> {
+    const res = await fetch(`${getApiUrl()}/saved-searches/${searchId}/listings`, {
+        credentials: "include",
+    });
+    if(!res.ok) throw new Error("Failed to fetch matching listings");
+    return res.json();
 }

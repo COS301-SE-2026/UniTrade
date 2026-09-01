@@ -179,6 +179,6 @@ if (import.meta.env.DEV || !user) return;
         connectionManager.leaveAdminGroup();
       }
     };
-  }, [queryClient, user]);
+  }, [queryClient, user, showToast]);
   return <>{children}</>;
 }
