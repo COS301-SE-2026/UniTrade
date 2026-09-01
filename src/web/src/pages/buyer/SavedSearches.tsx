@@ -47,14 +47,15 @@ useEffect(() => {
 
 useEffect(() => {
     if(!selectedSearch) {
-        setMatchingListings([]);
         return;
     }
+    let cancelled = false;
     setLoadingMatches(true);
     getMatchingListings(selectedSearch.searchId)
-    .then(setMatchingListings)
-    .catch(() => showToast("error", "Failed to load matching listings"))
-    .finally(() => setLoadingMatches(false));
+    .then((data) => { if (!cancelled) setMatchingListings(data); })
+    .catch(() => {if (!cancelled) showToast("error", "Failed to load matching listings"); })
+    .finally(() => { if (!cancelled) setLoadingMatches(false); });
+    return () => {cancelled = true;};
 }, [selectedSearch, showToast]);
 
 const handleCreate = async () => {
