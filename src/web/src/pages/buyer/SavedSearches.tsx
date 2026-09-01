@@ -77,7 +77,7 @@ if(loading ){
 
 return (
     <div className = "space-y-4">
-        <h2 className = "text-lg font-bold">
+        <h2 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
             Saved Searches
         </h2>
         <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg0gray-50">
