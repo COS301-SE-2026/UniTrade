@@ -16,31 +16,42 @@ public class SavedSearchesController : ControllerBase
 {
     private readonly ISavedSearchService _service;
 
-    public SavedSearchesController(ISavedSearchService service)=> service=service;
-    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+    public SavedSearchesController(ISavedSearchService service) => _service = service;
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSavedSearchDto dto, CancellationToken ct)
     {
-        if(CallerId==null)return Unauthorized();
+        if (CallerId == null) return Unauthorized();
 
-        var result=await _service.CreateAsync(CallerId.Value, dto, ct);
+        var result = await _service.CreateAsync(CallerId, dto, ct);
 
-        return CreateAtAction(nameof(GetMine), new {id=result.SearchId}, result);
+        return CreatedAtAction(nameof(GetMine), new { id = result.SearchId }, result);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetMine(CancellationToken ct)
     {
-        if(CallerId==null) return Unauthorized();
-        return Ok(await _service.GetByBuyerAsync(CallerId.Value,ct));
+        if (CallerId == null) return Unauthorized();
+        return Ok(await _service.GetByBuyerAsync(CallerId, ct));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        if(CallerId==null) return Unauthorized();
-        await _service.DeleteAsync(id,CallerId.Value,ct);
+        if (CallerId == null) return Unauthorized();
+        await _service.DeleteAsync(id, CallerId, ct);
         return NoContent();
     }
 }
