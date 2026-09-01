@@ -126,6 +126,8 @@ describe('Login', () => {
       std: { 
         verificationStatus: 'verified',
         degreeProgram: 'BSc Computer Science',
+        verificationAdminDecision: 'resubmit',
+        verificationRejectionReason: 'not allowed',
         verificationRequestStatus: 'pending',
       yearOfStudy: 2,
     university: 'UP' }
@@ -148,45 +150,6 @@ describe('Login', () => {
       expect(screen.getByRole('button', { name: 'LOGIN' })).not.toBeDisabled())
   })
 
-  /*it('logs in as admin and naviagtes to the admin dashboard', async () => {
-    vi.mocked(authService.login).mockResolvedValue(undefined)
-    vi.mocked(authService.getMe).mockResolvedValue({
-      user: {
-        userId: '1',
-        firstName: 'Zelamene',
-        lastName: 'Shazi',
-        email: 'zelamene@example.com',
-        userRole: 'admin',
-        //university: 'UCT'
-      },
-      std: { 
-        verificationStatus: 'verified',
-        degreeProgram: 'BSc Computer Science',
-      yearOfStudy: 2,
-    university: 'UCT'}
-    })
-
-    renderLogin()
-    fireEvent.change(screen.getByPlaceholderText('Email Address'), {
-      target: { name: 'email', value: 'zelamene@example.com' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('Password'), {
-      target: { name: 'password', value: 'password1' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'LOGIN' }))
-
-    await waitFor(() => {
-      expect(mockSetUser).toHaveBeenCalledWith({
-        id: '1',
-        name: 'Zelamene Shazi',
-        initials: 'ZS',
-        role: 'admin',
-        university: 'UCT'
-      })
-      expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard')
-    })
-  })*/
-
   it('logs in as a non-admin and naviages to the buyers listungs', async () => {
     vi.mocked(authService.login).mockResolvedValue(undefined)
     vi.mocked(authService.getMe).mockResolvedValue({
@@ -196,11 +159,13 @@ describe('Login', () => {
         lastName: 'Musiiwa',
         email: 'tafadzwa@example.com',
         userRole: 'student',
-        //university: 'UP'
+
       },
       std: { 
       verificationStatus: 'verified',
       degreeProgram: 'BSc Computer Science',
+      verificationAdminDecision: 'resubmit',
+        verificationRejectionReason: 'not allowed',
       verificationRequestStatus: 'pending',
     yearOfStudy: 2,
     university: 'UP'
@@ -273,10 +238,11 @@ describe('Login', () => {
         lastName: 'Musiiwa',
         email: 'tafadzwa@example.com',
         userRole: 'student',
-        //university: undefined,
-      },
+},
       std: { verificationStatus: 'verified',
         degreeProgram: 'BSc Computer Science',
+        verificationAdminDecision: 'resubmit',
+        verificationRejectionReason: 'not allowed',
         verificationRequestStatus: 'pending',
     yearOfStudy: 2,
     university: 'UP'

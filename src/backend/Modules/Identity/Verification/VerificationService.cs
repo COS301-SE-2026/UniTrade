@@ -306,7 +306,7 @@ public class VerificationService : IVerificationService
         await _porStorage.UploadAsync(record.VerificationId, fileData, contentType, fileName, ct);
 
         record.Status = "under_review";
-
+        record.AdminDecision = null;
         await _verifications.UpdateAsync(record);
     }
 

@@ -65,6 +65,8 @@ using Modules.SharedKernel.Repositories;
 using Infrastructure.Persistence.Repositories.Images;
 using Infrastructure.Services;
 using Modules.SavedSearches.Models;
+using Modules.SavedSearches;
+using Infrastructure.Persistence.Repositories.SavedSearches;
 
 
 DotEnv.Load(
@@ -259,13 +261,11 @@ builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
 builder.Services.AddScoped<IUploadedImageRepository, UploadedImageRepository>();
 builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
-//builder.Services.AddScoped<SavedSearchService>();
-//builder.Services.AddScoped<ISavedSearchService>(sp=> sp.GetRequiredService<SavedSearchService>());
-//builder.Services.AddScoped<IListingPublishedListener>(sp=> sp.GetRequiredService<SavedSearchService>());
-builder.Services.AddScoped<
-    IProofOfRegistrationStorageService,
-    PostgresProofOfRegistrationStorageService
->();
+builder.Services.AddScoped<SavedSearchService>();
+builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<SavedSearchService>());
+builder.Services.AddScoped<IListingPublishedListener>(sp => sp.GetRequiredService<SavedSearchService>());
+builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
+builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
