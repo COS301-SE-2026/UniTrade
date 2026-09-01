@@ -52,7 +52,7 @@ interface ConfirmModalProps{
       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
       onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 id="confrim-modal-title" className="text-xl font-bol text-gray-900">{title}</h2>
+          <h2 id="confirmm-modal-title" className="text-xl font-bol text-gray-900">{title}</h2>
           <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600" aria-label="Close">
             <IconX size={20} />
           </button>
@@ -65,7 +65,7 @@ interface ConfirmModalProps{
             <button type="button" onClick={onConfirm} 
             disabled={submitting} 
             className={`flex-1 py-3 text-white font-bold rounded-xl transition-colors
-              disabled:opacity-50 ${confirmModalToneClasses}`}>
+              disabled:opacity-50 ${confirmModalToneClasses[tone]}`}>
               {submitting ? 'Submitting...' : confirmLabel}
               </button>
               </div>
