@@ -58,7 +58,12 @@ public class VerificationService : IVerificationService
             await _verifications.UpdateAsync(existing);
         }
         var otp = GenerateOtp();
-        var hash = HashOtp(otp);
+        var secret =
+            _config["Otp:Secret"]
+            ?? throw new InvalidOperationException(
+                "Otp:Secret environment variable is not configured"
+            );
+        var hash = OtpSecurity.HashOtp(otp, secret);
 
         var record = new VerificationRequest
         {
@@ -105,7 +110,12 @@ public class VerificationService : IVerificationService
             throw new VerificationException("otp_expired");
         }
 
-        var hash = HashOtp(otp);
+        var secret =
+            _config["Otp:Secret"]
+            ?? throw new InvalidOperationException(
+                "Otp:Secret environment variable is not configured"
+            );
+        var hash = OtpSecurity.HashOtp(otp, secret);
         var hashBytes = Convert.FromBase64String(hash);
         var storedBytes = Convert.FromBase64String(record.OtpCodeHash!);
 
@@ -173,7 +183,12 @@ public class VerificationService : IVerificationService
             throw new VerificationException("cooldown_active");
 
         var otp = GenerateOtp();
-        var hash = HashOtp(otp);
+        var secret =
+            _config["Otp:Secret"]
+            ?? throw new InvalidOperationException(
+                "Otp:Secret environment variable is not configured"
+            );
+        var hash = OtpSecurity.HashOtp(otp, secret);
 
         record.OtpCodeHash = hash;
         record.OtpSentAt = DateTime.UtcNow;
@@ -300,19 +315,6 @@ public class VerificationService : IVerificationService
         var bytes = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
 
         return bytes;
-    }
-
-    private string HashOtp(string otp)
-    {
-        var secret =
-            _config["Otp:Secret"]
-            ?? throw new InvalidOperationException(
-                "Otp:Secret environment variable is not configured"
-            );
-
-        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));
-        return Convert.ToBase64String(hash);
     }
 
     private static TimeSpan ComputeDelay(int count)
