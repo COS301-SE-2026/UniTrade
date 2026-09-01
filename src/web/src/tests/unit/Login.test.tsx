@@ -126,6 +126,8 @@ describe('Login', () => {
       std: { 
         verificationStatus: 'verified',
         degreeProgram: 'BSc Computer Science',
+        verificationAdminDecision: 'resubmit',
+        verificationRejectionReason: 'not allowed',
         verificationRequestStatus: 'pending',
       yearOfStudy: 2,
     university: 'UP' }
@@ -162,6 +164,8 @@ describe('Login', () => {
       std: { 
       verificationStatus: 'verified',
       degreeProgram: 'BSc Computer Science',
+      verificationAdminDecision: 'resubmit',
+        verificationRejectionReason: 'not allowed',
       verificationRequestStatus: 'pending',
     yearOfStudy: 2,
     university: 'UP'
@@ -237,6 +241,8 @@ describe('Login', () => {
 },
       std: { verificationStatus: 'verified',
         degreeProgram: 'BSc Computer Science',
+        verificationAdminDecision: 'resubmit',
+        verificationRejectionReason: 'not allowed',
         verificationRequestStatus: 'pending',
     yearOfStudy: 2,
     university: 'UP'

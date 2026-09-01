@@ -17,7 +17,6 @@ export interface VerificationRow {
   slaMessage: string
   domain: string
   docName: string
-  docSize: string
   docDate: string
   docUrl: string | null
 
@@ -89,7 +88,6 @@ export default function AdminVerifications() {
             slaMessage,
             domain: 'Valid SA Uni domain',
             docName: summary.hasDocument ? 'Proof of Registration' : 'Not yet submitted',
-            docSize: 'Unknown size',
             docDate: formatDate(summary.submittedAt),
             docUrl: summary.hasDocument
                ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
@@ -324,7 +322,7 @@ export default function AdminVerifications() {
                       <div>
                         <div className="font-semibold text-gray-800">{ver.docName}</div>
                         <div className="text-[10px] text-gray-400">
-                          Uploaded {ver.docDate} &bull; {ver.docSize}
+                          Uploaded {ver.docDate}
                         </div>
                       </div>
                     </div>
