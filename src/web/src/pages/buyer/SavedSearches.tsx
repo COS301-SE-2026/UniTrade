@@ -77,12 +77,12 @@ if(loading ){
 
 return (
     <div className = "space-y-4">
-        <h2 className = "text-lg font-bold">
+        <h2 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
             Saved Searches
         </h2>
         <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg0gray-50">
             <div className = "flex-1 min-w-[200px]">
-                <label className = "block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="keywords" className = "block text-xs font-medium text-gray-700 mb-1">
                     Keywords
                 </label>
                 <input 
@@ -94,7 +94,7 @@ return (
             </div>
 
             <div className = "w-40">
-                <label className = "block text-xs font-medium text-gray-700 mv-1">
+                <label htmlFor="category" className = "block text-xs font-medium text-gray-700 mv-1">
                     Category
                 </label>
                 <select 
@@ -113,7 +113,7 @@ return (
                 </select>
             </div>
             <div className = "w-32">
-                <label className = "block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="min-price" className = "block text-xs font-medium text-gray-700 mb-1">
                     Min Price (R)
                 </label>
                 <input 
@@ -126,7 +126,7 @@ return (
                 />
             </div>
             <div className = "w-32">
-                <label className = "block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="max-price" className = "block text-xs font-medium text-gray-700 mb-1">
                     Max Price (R)
                 </label>
                 <input 
@@ -139,6 +139,7 @@ return (
                 />
             </div>
             <button 
+            type="button"
             onClick = {handleCreate}
             className = "bg-navy-700 hover:bg-navy-500 text-white px-6 py-2 rounded text-sm font-semibold transition-colors"
             >
@@ -158,7 +159,7 @@ return (
                             <span className = "font-medium">
                                 {s.query}
                             </span>
-                            {s.categoryId && (
+                            {!!s.categoryId && (
                                 <span className = ",l-2 text-xs bg-gray-200 px-2 py-0.5 rounded ">
                                     {getDisplayCategory(
                                         categories.find(c => c.id === s.categoryId)?.name ?? ""
@@ -172,6 +173,7 @@ return (
                             )}
                         </div>
                         <button 
+                        type="button"
                         onClick = {() => handleDelete(s.searchId)}
                         className = "text-red-500 text-sm hover:underline"
                         >

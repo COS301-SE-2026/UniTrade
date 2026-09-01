@@ -66,7 +66,8 @@ using Infrastructure.Persistence.Repositories.Images;
 using Infrastructure.Services;
 using Modules.SavedSearches.Models;
 using Modules.SavedSearches;
-using Infrastructure.Persistence.Repositories.SavedSearches;
+using Modules.SavedSearches.Repositories;
+using Infrastructure.Persistence.SavedSearches;
 
 
 DotEnv.Load(

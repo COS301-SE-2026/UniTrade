@@ -49,7 +49,7 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'warn-seller': 'Seller warned',
 };
 
-const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
+const finalDecisions: Set<DisputeDecision> = new Set(['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller']);
 
 type State = {
   data: DisputeCase | null;
@@ -250,7 +250,7 @@ export default function AdminDisputeReview() {
    }
 
   if (state.error || !state.data) {
-    return <p className="text-sm text-gray-400">Dispute case not found</p>;
+    return <p className="text-sm text-gray-600">Dispute case not found</p>;
   }
 
   const dispute = state.data;
@@ -452,7 +452,7 @@ function DecisionConfirmation({
   decision,
   onBack,
 }: Readonly<{ dispute: DisputeCase; decision: DisputeDecision; onBack: () => void }>) {
-  const isFinal = finalDecisions.includes(decision);
+  const isFinal = finalDecisions.has(decision);
 
   return (
     <div>

@@ -24,6 +24,7 @@ vi.mock('../../services/fcmService', () => ({
   onForegroundMessage: vi.fn(() => vi.fn()),
 }));
 
+
 vi.mock('../../services/realtime/connectionManager', () => ({
   connectionManager: {
     connect: vi.fn().mockResolvedValue(undefined),
@@ -33,6 +34,11 @@ vi.mock('../../services/realtime/connectionManager', () => ({
     onMessagesRead: vi.fn(() => vi.fn()),
     onReservationUpdated: vi.fn(() => vi.fn()),
     onListingChanged: vi.fn(() => vi.fn()),
+    onSavedSearchMatch: vi.fn(() => vi.fn()),
+    onDisputeCreated: vi.fn(() => vi.fn()),
+    onDisputeResolved: vi.fn(() => vi.fn()),
+    joinAdminGroup: vi.fn().mockResolvedValue(undefined),
+    leaveAdminGroup: vi.fn(),
   },
 }));
 
@@ -111,6 +117,39 @@ test('signup -> otp -> lands on proof of registration upload', async () => {
   await screen.findByText('Proof Of Registration Upload');
 });
 
+server.use(
+  http.get('http://localhost:5000/users/me', () => {
+    return HttpResponse.json({
+      user: {
+        userId: 'user-1',
+        firstName: 'Tafadzwa',
+        lastName: 'The Village Girl',
+        email: 'tafadzwa@tuks.co.za',
+        userRole: 'student',
+      },
+      std: {
+        verificationStatus: 'verified',
+        degreeProgram: 'BSc Computer Science',
+        yearOfStudy: 3,
+        university: 'University of Pretoria',
+        verificationRequestStatus: null,
+        verificationAdminDecision: null,
+        verificationRejectionReason: null,
+
+      },
+    });
+  }),
+
+  http.get('http://localhost:5000/reviews/users/:userId', () => {
+    return HttpResponse.json({
+      reviews: [],
+      sellerCount: 0,
+      buyerCount: 0,
+      sellerAverage: 0,
+      buyerAverage: 0,
+    });
+  }),
+);
 test('login -> profile -> logout', async () => {
   useAuthStore.setState({ user: null, pendingEmail: null, viewMode: 'buyer' });
 
@@ -126,7 +165,11 @@ test('login -> profile -> logout', async () => {
           userRole: 'student',
         },
       });
-    })
+    }),
+
+    http.post('http://localhost:5000/auth/logout', () => {
+      return HttpResponse.text('', { status: 200 });
+    }),
   );
 
   renderWithProviders(<App />, { initialEntries: ['/auth/Login'] });

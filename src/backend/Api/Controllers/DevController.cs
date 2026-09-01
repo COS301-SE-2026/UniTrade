@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
 using BCrypt.Net;
 using Infrastructure.Notifications;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Repositories;
-using Infrastructure.Persistence;
 
 namespace Api.Controllers;
 
@@ -58,7 +58,10 @@ public class DevController : ControllerBase
 
     [HttpPost("admin")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<IActionResult> CreateAdmin([FromServices] AppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> CreateAdmin(
+        [FromServices] AppDbContext db,
+        CancellationToken ct
+    )
     {
         if (!_env.IsDevelopment())
         {
@@ -68,18 +71,38 @@ public class DevController : ControllerBase
         const string password = "beebadooBE@16";
         var email = $"admin-{Guid.NewGuid():N}@up.ac.za";
 
-        db.Users.Add(new User
-        {
-            UserId = Guid.NewGuid(),
-            FirstName = "Suzuka",
-            LastName = "Karie",
-            Email = email,
-            PhoneNumber = "",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            Role = "admin",
-        });
+        db.Users.Add(
+            new User
+            {
+                UserId = Guid.NewGuid(),
+                FirstName = "Suzuka",
+                LastName = "Karie",
+                Email = email,
+                PhoneNumber = "",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                Role = "admin",
+            }
+        );
         await db.SaveChangesAsync(ct);
 
         return Ok(new { email, password });
+    }
+
+    [HttpGet("saved-search-match")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public IActionResult GetSavedSearch([FromQuery] string email)
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var match = TestEmailService.GetLastMatch(email);
+        if (match == null)
+        {
+            return NotFound(new { error = "no_saved_search_match_found" });
+        }
+
+        return Ok(new { title = match.Value.title, price = match.Value.price });
     }
 }

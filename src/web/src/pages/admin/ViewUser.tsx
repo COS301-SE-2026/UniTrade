@@ -222,7 +222,7 @@ export default function ViewUser() {
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Reputation</h2>
             <div className="flex items-center space-x-1 text-amber-500">
               {
-                [...Array(5)].map((_, index) => (
+                [...new Array(5)].map((_, index) => (
                   <IconStar key={index} className="w-5 h-5 fill-current " />
                 ))
               }

@@ -11,29 +11,36 @@ namespace Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.DropColumn(
+                name: "course_id",
+                schema: "unitrade",
+                table: "saved_searches"
+            );
+
+            migrationBuilder.AddColumn<int>(
                 name: "course_id",
                 schema: "unitrade",
                 table: "saved_searches",
-                type: "integer",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "uuid",
-                oldNullable: true);
+                nullable: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<Guid>(
+            migrationBuilder.DropColumn(
+                name: "course_id",
+                schema: "unitrade",
+                table: "saved_searches"
+            );
+
+            migrationBuilder.AddColumn<Guid>(
                 name: "course_id",
                 schema: "unitrade",
                 table: "saved_searches",
                 type: "uuid",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
+                nullable: true
+            );
         }
     }
 }
