@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import { useToast } from "../../components/layout/useToast";
 import { listingsService } from "../../services/listingsService";
 import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
@@ -146,10 +146,44 @@ return (
             </button>
         </div>
 
-        
+        {searches.length === 0 ? (
+            <p className = "text-sm text-gray-400">
+                No saved searches yet.
+            </p>
+        ) : (
+            <ul className = "divide-y">
+                {searches.map(s => (
+                    <li key = {s.searchId} className = "py-3 flex justify-between items-center">
+                        <div>
+                            <span className = "font-medium">
+                                {s.query}
+                            </span>
+                            {s.categoryId && (
+                                <span className = ",l-2 text-xs bg-gray-200 px-2 py-0.5 rounded ">
+                                    {getDisplayCategory(
+                                        categories.find(c => c.id === s.categoryId)?.name ?? ""
+                                    )}
+                                </span>
+                            )}
+                            {s.minPrice !== undefined && s.minPrice !== null && (
+                                <span className = "ml-2 text-xs text-gray-500">
+                                    R{s.minPrice} - {s.maxPrice !== undefined && s.maxPrice !== null ? `R${s.maxPrice}` : "no max "}
+                                </span>
+                            )}
+                        </div>
+                        <button 
+                        onClick = {() => handleDelete(s.searchId)}
+                        className = "text-red-500 text-sm hover:underline"
+                        >
+                            Delete
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        )}
 
 
     </div>
-)
+);
 
 }
