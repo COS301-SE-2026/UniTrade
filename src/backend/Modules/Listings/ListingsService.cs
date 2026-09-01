@@ -99,7 +99,7 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
-        var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
+        var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim(), ct);
         if (category == null)
         {
             throw new ArgumentException("invalid_category");
