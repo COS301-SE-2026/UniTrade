@@ -135,7 +135,7 @@ paths:
             application/json:
               schema: {type: array, items: {$ref: '#/components/schemas/SavedSearchDto'}}
   
-  /saved-searches/{id}
+  /saved-searches/{id}:
     delete:
       summary: Delete a saved search owned by the caller
       parameters:
@@ -456,6 +456,24 @@ components:
     
     CreateSavedSearchDto:
       type: object
-      
+      required: [query]
+      properties:
+        query: {type: string}
+        categoryId: {type: number, nullable: true}
+        minPrice: {type: number, nullable: true}
+        maxPrice: {type: number, nullable: true}
+        courseId: {type: integer, nullable: true}
+
+    SavedSearchDto:
+      type: object
+      properties:
+        searchId: {type: string, format: uuid}
+        query: {type: string}
+        categoryId: {type: integer, nullable: true}
+        minPrice: {type: number, nullable: true}
+        maxPrice: {type: number, nullable: true}
+        courseId: {type: integer, nullable: true}
+        isActive: {type: boolean}
+
 
             
