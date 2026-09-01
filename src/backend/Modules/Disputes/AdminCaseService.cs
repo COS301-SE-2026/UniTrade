@@ -10,6 +10,7 @@ using Modules.Listings.Models.Dto;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Reputation;
+using Modules.Reservations;
 
 namespace Modules.Disputes;
 
@@ -27,6 +28,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IPartyDirectory _parties;
     private readonly IReputationService _reputation;
     private readonly IListingService _listings;
+    private readonly IBroadCastService _broadcast;
 
     // constants
     private const string _resolvedString = "resolved";
@@ -45,7 +47,8 @@ public class AdminCaseService : IAdminCaseService
         IListingSnapshotService snapshots,
         IPartyDirectory parties,
         IReputationService reputation,
-        IListingService listings
+        IListingService listings,
+        IBroadCastService _broadcast
     )
     {
         _verification = verification;
@@ -322,6 +325,8 @@ public class AdminCaseService : IAdminCaseService
             decision == DisputeCaseDecision.Dismiss ? "dismiss" : "resolved",
             ct
         );
+
+        await _broadcast.NotifyAdminAsync("dispute_resolved", new { caseId, status = decision == DisputeCaseDecision.Dismiss ? "dismissed" : "resolved" });
 
         return await GetCaseByIdAsync(caseId, ct);
     }

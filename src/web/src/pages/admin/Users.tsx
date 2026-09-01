@@ -43,7 +43,7 @@ export default function Users() {
           initials: getInitials(u.name),
           degree: u.degree,
           verificationStatus: mapVerificationStatus(u.verificationStatus),
-          reputation: Math.round(u.reviewAverage * 20),
+          reputation: u.reputationScore,
           strikesCount: u.strikeCount,
 
         }));

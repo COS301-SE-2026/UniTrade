@@ -4,6 +4,9 @@ import type { UserListing, UserReputation } from '../../types/admin_disputes'
 import { useEffect, useState } from 'react'
 import { getUserListings, getUserReputation } from '../../services/adminService'
 import { LoadingState } from '../../components/layout/Spinner'
+import { imageUrl } from '../../services/listingsService'
+import StatusPill from '../../components/layout/ui/StatusPill'
+import type { ListingStatus } from '../../types/listing'
 
 export interface Strike {
   id: string
@@ -16,7 +19,8 @@ export interface Strike {
 export interface Listing {
   id: string
   title: string
-  status: 'Reserved' | 'Live' | string
+  status: ListingStatus
+  imageUrl: string | null
 }
 
 export interface UserRecord {
@@ -49,6 +53,16 @@ function formatDate(iso: string): string {
   });
 }
 
+function mapApiStatusToListingStatus(rawStatus: string): ListingStatus {
+  const lower = rawStatus.toLowerCase();
+  if (lower === 'live') return 'live';
+  if (lower === 'pending') return 'pending';
+  if (lower === 'draft') return 'draft';
+  if (lower === 'rejected') return 'rejected';
+  if (lower === 'reserved') return 'reserved';
+  if (lower === 'sold') return 'sold';
+  return 'draft';
+}
 
 function mapApiToUserRecord(api: UserReputation, listings: UserListing[]): UserRecord {
   return {
@@ -58,7 +72,7 @@ function mapApiToUserRecord(api: UserReputation, listings: UserListing[]): UserR
     degree: api.degree,
     university: api.universityName,
     verificationStatus: mapVerificationStatus(api.verificationStatus),
-    reputation: Math.round(api.reviewAverage * 20),
+    reputation: api.reputationScore,
     strikesCount: api.strikes.length,
     strikes: api.strikes.map((s) => ({
       id: s.strikeId,
@@ -70,7 +84,8 @@ function mapApiToUserRecord(api: UserReputation, listings: UserListing[]): UserR
     recentListings: listings.map((l) => ({
       id: l.listingId,
       title: l.title,
-      status: l.status,
+      status: mapApiStatusToListingStatus(l.status),
+      imageUrl: l.imageUrl ? imageUrl(l.imageUrl) : null,
     })),
   };
 }
@@ -203,35 +218,7 @@ export default function ViewUser() {
             </div>
           </div>
 
-
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Recent listings</h2>
-            <div className="space-y-3">
-              {user.recentListings.map((listing: Listing) => (
-
-                <div key={listing.id} className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
-                  <div>
-                    <div className="text-xs font-bold text-gray-900">{listing.title}</div>
-
-                    <span
-                      className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-semibold ${listing.status === 'Reserved' ?
-                        'bg-sky-100 text-sky-700' :
-                        'bg-green-100 text-green-700'}
-                `}
-                    >
-
-                      {listing.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-span-5 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Reputation</h2>
             <div className="flex items-center space-x-1 text-amber-500">
               {
@@ -241,11 +228,46 @@ export default function ViewUser() {
               }
             </div>
             <div className="text-3xl font-bold text-gray-900">{user.reputation}%</div>
-          </div>
+        </div>
+        </div>
 
+          
 
-
+        <div className="col-span-5 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+            <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Recent listings</h2>
+            <div className="space-y-3">
+              {user.recentListings.map((listing: Listing) => (
+
+                <div key={listing.id} className="flex items-center space-x-3">
+                  {listing.imageUrl ? (
+                    <img
+                      src={listing.imageUrl}
+                      alt={listing.title}
+                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
+
+                  )}
+                  <div>
+
+
+                    <div className="text-xs font-bold text-gray-900">{listing.title}</div>
+                    <StatusPill status={listing.status} />
+
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        
+
+    
+
+
+
+          {/*<div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Actions</h2>
             <div className="space-y-2">
               <button
@@ -262,7 +284,7 @@ export default function ViewUser() {
 
             </div>
 
-          </div>
+          </div>*/}
         </div>
       </div>
     </div>
