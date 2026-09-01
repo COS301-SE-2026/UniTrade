@@ -24,18 +24,25 @@ public sealed class AdminTests : IClassFixture<AdminApiFactory>
     private async Task<HttpClient> AdminClientAsync()
     {
         var client = NewClient();
-        var dev = await client.PostAsync("/api/dev/admin", null);
-        if (!dev.IsSuccessStatusCode)
+        var email = $"admin-{Guid.NewGuid():N}@example.com";
+        const string password = "Admin123!";
+
+        await using var db = _factory.NewContext();
+        var adminUser = new User
         {
-            var error = await dev.Content.ReadAsStringAsync();
-            throw new Exception($"Dev endpoint required {dev.StatusCode}: {error}");
-        }
-        var creds = await dev.Content.ReadFromJsonAsync<Creds>();
-        var login = await client.PostAsJsonAsync(
-            "/api/auth/login",
-            new { creds!.Email, creds.Password }
-        );
+            UserId = Guid.NewGuid(),
+            FirstName = "Admin",
+            LastName = "User",
+            Email = email,
+            PhoneNumber = "",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = "admin",
+        };
+        db.Users.Add(adminUser);
+        await db.SaveChangesAsync();
+        var login = await client.PostAsJsonAsync("/api/auth/login", new { email, password });
         login.EnsureSuccessStatusCode();
+
         return client;
     }
 

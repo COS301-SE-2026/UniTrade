@@ -13,6 +13,7 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
     private readonly ISellerVerificationQuery _verification;
+    private readonly IListingPublishedListener _listener;
 
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
@@ -24,12 +25,14 @@ public class ListingService : IListingService
     public ListingService(
         IListingRepository listings,
         IListingImageRepository images,
-        ISellerVerificationQuery verification
+        ISellerVerificationQuery verification,
+        IListingPublishedListener listener
     )
     {
         _listings = listings;
         _images = images;
         _verification = verification;
+        _listener = listener;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -90,7 +93,11 @@ public class ListingService : IListingService
                 )
         );
 
-    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId, CancellationToken ct = default)
+    public async Task<ListingSummaryDto> CreateListings(
+        CreateListingDto dto,
+        Guid callerId,
+        CancellationToken ct = default
+    )
     {
         var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
         if (category == null)
@@ -151,6 +158,26 @@ public class ListingService : IListingService
             newListing.BookDetails = newBook;
         }
         await _listings.AddAsync(newListing);
+        if (newListing.ListingStatus == "live")
+        {
+            try
+            {
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = newListing.ListingId,
+                    Title = newListing.Title,
+                    Description = newListing.Description,
+                    Price = newListing.Price,
+                    CourseId = newListing.CourseId,
+                    SellerId = newListing.SellerId,
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception)
+            {
+                //log later @Zelamene
+            }
+        }
         return MapToSummary(newListing);
     }
 
@@ -171,7 +198,12 @@ public class ListingService : IListingService
         }
         //edits forbideen if the listing is reserved,sold,pending or rejected
         var allowedEditStatuses = new[] { "draft", "live", "low_visibility" };
-        if (!allowedEditStatuses.Contains(listingLookUp.ListingStatus, StringComparer.OrdinalIgnoreCase))
+        if (
+            !allowedEditStatuses.Contains(
+                listingLookUp.ListingStatus,
+                StringComparer.OrdinalIgnoreCase
+            )
+        )
         {
             throw new InvalidOperationException("listing_locked_for_edit");
         }
@@ -310,6 +342,29 @@ public class ListingService : IListingService
         listing.ListingStatus = newStatus;
         listing.UpdatedAt = DateTime.Now;
         await _listings.SaveAsync();
+        listing.ListingStatus = newStatus;
+        listing.UpdatedAt = DateTime.UtcNow;
+        if (newStatus == "live")
+        {
+            try
+            {
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = listing.ListingId,
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    CourseId = listing.CourseId,
+                    SellerId = listing.SellerId,
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception)
+            {
+                //log later @Zelamene
+            }
+        }
+
         return true;
     }
 }

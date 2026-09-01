@@ -64,6 +64,7 @@ using Infrastructure.Persistence.Repositories.Disputes;
 using Modules.SharedKernel.Repositories;
 using Infrastructure.Persistence.Repositories.Images;
 using Infrastructure.Services;
+using Modules.SavedSearches.Models;
 
 
 DotEnv.Load(
@@ -258,6 +259,9 @@ builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
 builder.Services.AddScoped<IUploadedImageRepository, UploadedImageRepository>();
 builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
+//builder.Services.AddScoped<SavedSearchService>();
+//builder.Services.AddScoped<ISavedSearchService>(sp=> sp.GetRequiredService<SavedSearchService>());
+//builder.Services.AddScoped<IListingPublishedListener>(sp=> sp.GetRequiredService<SavedSearchService>());
 builder.Services.AddScoped<
     IProofOfRegistrationStorageService,
     PostgresProofOfRegistrationStorageService
