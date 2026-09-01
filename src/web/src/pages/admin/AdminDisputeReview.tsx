@@ -250,7 +250,7 @@ export default function AdminDisputeReview() {
    }
 
   if (state.error || !state.data) {
-    return <p className="text-sm text-gray-400">Dispute case not found</p>;
+    return <p className="text-sm text-gray-600">Dispute case not found</p>;
   }
 
   const dispute = state.data;

@@ -160,6 +160,12 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
     })
 
+    const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
+      showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
+
+
+    })
+
     return () => {
       offMessage();
       offReconnected();
@@ -168,6 +174,7 @@ if (import.meta.env.DEV || !user) return;
       offListing();
       offDisputeCreated();
       offDisputeResolved();
+      offSavedSearchMatch();
       if(user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }

@@ -42,6 +42,10 @@ class ConnectionManager {
   (data: {caseId: string; status: string}) => void
   >();
 
+ private readonly savedSearchMatchListeners = new Set<
+  (e: {listingId: string; title: string; price: number; message: string }) => void
+  >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -81,6 +85,11 @@ class ConnectionManager {
       conn.on("payment_completed", (e: { reservationId: string }) =>
         this.paymentCompletedListeners.forEach((cb) => cb(e)),
       );
+
+      conn.on("saved_search_match", (e: {listingId: string; title: string; price: number; message: string }) =>
+        this.savedSearchMatchListeners.forEach((cb) => cb(e)),
+      );
+
       conn.on("dispute_created", (data: {caseId: string; type: string}) =>
         this.disputeCreatedListeners.forEach((cb) => cb(data)),
       );
@@ -221,6 +230,14 @@ class ConnectionManager {
     this.paymentCompletedListeners.add(callback);
     return () => this.paymentCompletedListeners.delete(callback);
   }
+
+  onSavedSearchMatch( 
+    callback: (e: { listingId: string; title: string; price: number; message: string }) => void,
+  ): Unsubscribe {
+    this.savedSearchMatchListeners.add(callback);
+    return () => this.savedSearchMatchListeners.delete(callback)
+  }
+  
 
   onReconnected(callback: () => void): Unsubscribe {
     this.reconnectedListeners.add(callback);
