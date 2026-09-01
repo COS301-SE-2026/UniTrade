@@ -24,4 +24,9 @@ public class BroadCastService : IBroadCastService
     {
         await _hubcontext.Clients.User(userId.ToString()).SendAsync(eventName, payload);
     }
+
+    public async Task NotifyAdminAsync(string eventName, object payload)
+    {
+        await _hubcontext.Clients.Group("Admins").SendAsync(eventName, payload);
+    }
 }

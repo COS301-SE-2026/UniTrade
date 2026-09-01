@@ -3,6 +3,7 @@ import { IconFileText, IconEye } from "@tabler/icons-react"
 import { getCases } from '../../services/adminService'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getApiUrl } from '../../config'
+import { LoadingState } from '../../components/layout/Spinner'
 
 export interface VerificationRow {
   id: string
@@ -41,6 +42,9 @@ export default function AdminVerifications() {
 
     getCases()
       .then((response) => {
+
+
+        
         const cases = Array.isArray(response) ? response : response.cases;
 
         const verificationCases = cases.filter((c) => c.type === 'verification');
@@ -135,7 +139,7 @@ export default function AdminVerifications() {
   const numApprovedToday = 0;
 
   if (loading) {
-    return <p className='text-sm text-gray-400'>Loading verifications...</p>;
+    return <LoadingState message = "Loading Verifications... " />
   }
   if (error) {
     return <p className='text-sm text-red-600'>{error}</p>;

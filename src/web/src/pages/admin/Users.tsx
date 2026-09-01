@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { getUsers } from '../../services/adminService'
 import type { UserListItem } from '../../types/admin_disputes'
+import {LoadingState} from '../../components/layout/Spinner'
 
 export interface UserRow {
   id: string
@@ -79,18 +80,20 @@ export default function Users() {
   const numVerified = rows.filter((user) => user.verificationStatus === 'Verified').length
   const numPending = rows.filter((user) => user.verificationStatus === 'Pending').length
 
-  if (loading) {
-    return <p className='text-sm text-gray-400'>Loading users...</p>;
-  }
+  if(loading )
+     {return <LoadingState message = "Loading users..." />}
+  
   if (error) {
-    return <p className='text-sm text-red-600'>{error}</p>;
+    return <p className='text-sm text-red-700'>{error}</p>;
   }
 
   return (
     <div className='space-y-6'>
-
+  <div>
       <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
-
+<p className="text-xs text-gray-400 mt-1">
+          View all student users registered on the application. </p>
+        </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>

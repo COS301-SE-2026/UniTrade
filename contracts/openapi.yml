@@ -13,8 +13,8 @@ paths:
       summary: List pending cases,oldest first
       parameters:
         - {name: type, in: query, schema: {$ref: '#components/schema/CaseType'}}
-        - {name:status, in: query, schema: {type: string, default: pending}}
-        - {name: sort, in: query, schema{ type: string, default: age}}
+        - {name: status, in: query, schema: {type: string, default: pending}}
+        - {name: sort, in: query, schema: { type: string, default: age}}
       responses:
         '200':
           description: OK
@@ -35,7 +35,7 @@ paths:
               schema: {$ref: '#/components/schemas/CaseDetail'}
 
   /admin/cases/{id}/decision:
-    get:
+    post:
       summary: Decide a case (also notifies the subject and writes an audit entry)
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
@@ -55,14 +55,14 @@ paths:
     get:
       summary: Audit entries
       parameters:
-      - {name: entryId, in: query, schema: {type: string, format}}
-      - {name: actorId, in: query, schema: {type: string, format}}
+      - {name: entityId, in: query, schema: {type: string}}
+      - {name: actorId, in: query, schema: {type: string, format: uuid}}
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {$ref: '#/components/schemas/AuditEntry'}
+              schema: {type: array, items: {$ref: '#/components/schemas/AuditEntry'}}
 
   /disputes:
     post:
@@ -71,7 +71,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/DisputeFilling'}
+            schema: { $ref: '#/components/schemas/FileDispute'}
       responses:
         '201':
           description: Case created
@@ -117,9 +117,15 @@ components:
     CaseType:
       type: string
       enum: [verification, listing_quality, report_listing, no_show]
+
+    CaseDecision:
+      type: string
+      enum: [approve,reject, uphold,dismiss,request_info]
+
     Outcome:
       type: string
-      enum: [strike, removeListing, refusalFlag, dismiss, requestInfo]
+      enum: [strike, remove_listing, refusal_flag]
+
     CaseSummary:
       type: object
       properties:
@@ -129,19 +135,63 @@ components:
         subjectUserId: {type: string, format: uuid}
         submittedAt: {type: string, format: date-time}
         ageHours: {type: number}
+        slaHours: {type: integer}
+        slaBreached: {type: boolean}
+        title: {type: string, nullable: true}
+        subjectInitials: {type: string, nullable: true}
+        counterpartyInitials: {type: string, nullable: true}
+        raisedBy: {type: string, format: uuid}
+        buyerId: {type: string, format: uuid, nullable: true}
+        sellerId: {type: string, format: uuid, nullable: true}
+        reservationId: {type: string, format: uuid, nullable: true}
+        subjectName: {type: string, nullable: true}
+        subjectDegree: {type: string, nullable: true}
+        hasDocument: {type: boolean}
+
     CaseDetail:
       allOf:
         - $ref: '#/components/schemas/CaseSummary'
         - type: object
           properties:
+            subject: {$ref: '#/components/schemas/PartySummary'}
+            counterParty: {$ref: '#/components/schema/PartySummary'}
             evidence: {$ref: '#/components/schemas/Evidence'}
             history: {type: array, items: {type: object}}
-    Evidence:
-      oneOf:
-        - $ref: '#/components/schemas/VerificationEvidence'
-        - $ref: '#/components/schemas/ListingQualityEvidence'
-        - $ref: '#/components/schemas/ReportListingEvidence'
-        - $ref: '#/components/schemas/NoShowEvidence'
+            filedByUserId: {type: string, format: uuid, nullable: true}
+            filedByRole: {type: string}
+    PartySummary:
+      type: object
+      properties:
+        userId: {type: string, format: uuid}
+        name: {type: string}
+        initials: {type: string}
+        faculty: {type: string, nullable: true}
+        reviewAverage: {type: number}
+        reputationScore: {type: number}
+        strikeCount: {type: integer}
+
+    CaseEvidence:
+      type: object
+      properties:
+        university: {type: string, nullable: true}
+        degree: {type: string, nullable: true}
+        year: {type: integer, nullable: true}
+        email: {type: string,nullable: true}
+        domainValid: {type: boolean, nullable: true}
+        snapshot: {$ref: '#/components/schemas/ListingSnapshot'}
+        buyerPhotos: {type: array, items: {type: string}, nullable: true}
+        sellerRefusedPhotos: {type: boolean, nullable: true}
+        listingId: {type: string, format: uuid, nullable: true}
+        reportReason: {type: string, nullable: true}
+
+        meetupId: {type: integer, nullable: true, description: "int,not uuid, same Meetup.MeetupId mismatch as elsewhere"}
+        buyerCheckIn: {type: boolean, nullable: true}
+        buyerCheckInTime: {type: string, format: date-time, nullable: true}
+        sellerCheckIn: {type: boolean, nullable: true}
+        sellerCheckInTime: {type: string, format: date-time, nullable: true}
+        pinStatus: {type: string, nullable: true}
+        checkInWindowClosesAt: {type: string, format: date-time, nullable: true}
+
     VerificationEvidence:
       type: object
       properties:
@@ -164,44 +214,58 @@ components:
     NoShowEvidence:
       type: object
       properties:
-        meetupId: { type: string, format: uuid}
-        buyerCheckIn: { type: boolean}
-        sellerCheckIn: { type: boolean}
-        pinStatus: {type: string}
+        meetupId: { type: integer}
+        buyerCheckedIn: { type: boolean}
+        sellerCheckedIn: { type: boolean}
+        pinStatus: {type: string, nullable: true}
     DecisionRequest:
       type: object
       required: [decision]
       properties:
-        decision: {type: string, description: "approve|reject|resubmit", enum: [approve,reject,resubmit]}
-        outcome: {$ref: '#/components/schemas/Outcome'}
+        decision: {$ref: '#/components/schemas/CaseDecision'}
+        outcome:
+          type: array
+          items: {$ref: '#/components/schemas/Outcome'}
         reason: {type: string}
-    DisputeFilling:
+
+    FileDispute:
       type: object
       required: [type]
       properties:
         type: {$ref: '#/components/schemas/CaseType'}
-        reservationId: {type: string, format: uuid}
-        listingId: {type: string, format: uuid}
-        meetupId: {type: string, format: uuid}
-        photos: {type: array, items: {type: string}}
+        reservationId: 
+          type: string
+          format: uuid
+          description: "Required for listing_quality and no_show.No_show resolves its meetup via this field, not meetupId."
+        listingId: {type: string, format: uuid, description: "Required for report_listing"}
+        meetupId: 
+          type: string
+          format: uuid
+          nullable: true
+          description: "Currently unused by the filing implementation, no_show resolves the meetup via reservationId instead. Confirm with BE2 whether this field should be removed from the contract."
+        photos: 
+          type: array 
+          items: {type: string}
+          description: "Required for listing_quality unless sellerRefusedPhotos is true"
         sellerRefusedPhotos: {type: boolean}
-        description: {type : string}
+        description: {type : string, description: "Also carries the report reason for report_listing"}
     ListingSnapshot:
       type: object
       properties:
         reservationId: {type: string, format: uuid}
         listingId: {type: string, format: uuid}
         title: {type: string}
-        price: {type: string}
+        price: {type: number}
         condition: {type: string}
         photoRefs: {type: array, items: {type: string}}
         courseTags: {type: array, items: {type: string}}
         capturedAt: {type: string, format: date-time}
+        description: {type: string}
     Strike:
       type: object
       properties: 
         userId: {type: string, format: uuid}
-        sourceCaseId: {type: string,format: uuid}
+        sourceCaseId: {type: string,format: uuid, nullable: true}
         type: {type: string}
         reason: {type: string}
         createdByAdminId: {type: string, format: uuid}
@@ -210,14 +274,14 @@ components:
     AuditEntry:
       type: object
       properties:
-        id: {type: string, format: uuid}
-        actorId: { type: string, format: uuid}
+        logId: {type: integer, format: uuid, format: int64, description: "AuditLog.LogId is a bigint, not a uuid"}
+        actorId: { type: string, format: uuid,nullable: true}
         action: {type: string}
-        entityId: {type: string, format: uuid}
+        entityId: {type: string}
         entityType: {type: string}
-        oldValue: {type: string}
-        newValue: {type: string}
-        reason: {type: string}
+        oldValue: {type: string, nullable: true}
+        newValue: {type: string, nullable: true}
+        reason: {type: string,nullable: true}
         timestamp: {type: string, format: date-time}
         
     
