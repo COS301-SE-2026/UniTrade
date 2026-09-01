@@ -13,7 +13,8 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconX,
-  IconShoppingBag, IconHeart, IconBookmark, IconMessage, IconUser
+  IconShoppingBag, IconHeart, IconBookmark, IconMessage, IconUser,
+  IconSearch,
 } from '@tabler/icons-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
@@ -44,6 +45,7 @@ const buyerNav: NavSection[] = [
       { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} /> },
       { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
       { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} /> },
+      {label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} />},
     ],
   },
   {
