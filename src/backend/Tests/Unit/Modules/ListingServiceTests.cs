@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
 using Modules.Identity.Verification;
 using Modules.Listings;
@@ -23,6 +24,9 @@ public class ListingServiceTests
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly Mock<ISellerVerificationQuery> _verificationMock;
+    private readonly Mock<IListingPublishedListener> _listingPublishedListenerMock;
+    private readonly Mock<ILogger<ListingService>> _loggerMock;
+
     private readonly ListingService _sut;
 
     public ListingServiceTests()
@@ -30,7 +34,15 @@ public class ListingServiceTests
         _repo = new Mock<IListingRepository>();
         _imageRepo = new Mock<IListingImageRepository>();
         _verificationMock = new Mock<ISellerVerificationQuery>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object);
+        _listingPublishedListenerMock = new Mock<IListingPublishedListener>();
+        _loggerMock = new Mock<ILogger<ListingService>>();
+        _sut = new ListingService(
+            _repo.Object,
+            _imageRepo.Object,
+            _verificationMock.Object,
+            _listingPublishedListenerMock.Object,
+            _loggerMock.Object
+        );
     }
 
     // GetByIdAsync Tests

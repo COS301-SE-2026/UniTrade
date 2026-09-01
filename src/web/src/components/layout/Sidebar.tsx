@@ -83,7 +83,7 @@ const adminNav: NavSection[] = [
   {
     heading: 'Main',
     items: [
-      //{ label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} /> },
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} /> },
       //{ label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />},
