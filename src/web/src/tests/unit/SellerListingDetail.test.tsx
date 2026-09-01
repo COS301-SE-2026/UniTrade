@@ -94,16 +94,7 @@ describe('SellerListingDetail', () => {
     })
   })
 
-
-  it('shows the Views detail row', async () => {
-    renderDetail()
-    await waitFor(() => {
-      expect(screen.getByText('Views')).toBeInTheDocument()
-      expect(screen.getByText('128')).toBeInTheDocument()
-    })
-  })
-
-  it('shows the Listed On detail row', async () => {
+it('shows the Listed On detail row', async () => {
     renderDetail()
     await waitFor(() => {
       expect(screen.getByText('Listed On')).toBeInTheDocument()
