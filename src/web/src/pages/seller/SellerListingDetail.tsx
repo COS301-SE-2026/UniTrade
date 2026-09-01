@@ -204,22 +204,6 @@ export default function SellerListingDetail() {
         </div>
 
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
-            <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
-              Listing Verifications Detail
-            </h3>
-            <div className="flex flex-col items-center justify-center py-8 sm:py-12 gap-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-navy-600 animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                <div className="h-2.5 w-16 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-              </div>
-              <span className="text-xs text-white bg-navy-700 dark:bg-navy-500 px-4 py-1.5 rounded-full font-semibold">
-                Coming soon
-              </span>
-            </div>
-          </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">

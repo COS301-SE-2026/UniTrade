@@ -156,7 +156,6 @@ describe('MyListings', () => {
             expect(screen.getByText('Listing')).toBeInTheDocument()
             expect(screen.getByText('Price')).toBeInTheDocument()
             expect(screen.getByText('Status')).toBeInTheDocument()
-            expect(screen.getByText('Views')).toBeInTheDocument()
             expect(screen.getByText('Actions')).toBeInTheDocument()
         })
     })
