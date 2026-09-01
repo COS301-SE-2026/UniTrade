@@ -8,15 +8,18 @@ public class ReservationExpiryWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ReservationExpiryWorker> _logger;
-    private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+    private  readonly TimeSpan _interval;
 
     public ReservationExpiryWorker(
         IServiceScopeFactory scopeFactory,
-        ILogger<ReservationExpiryWorker> logger
+        ILogger<ReservationExpiryWorker> logger,
+        IConfiguration config
     )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+        var seconds = config.GetValue<int?>("Workers:ReservationExpiryIntervalSeconds")?? 60;
+        _interval = TimeSpan.FromSeconds(seconds);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -78,5 +81,5 @@ public class ReservationExpiryWorker : BackgroundService
                 ct
             );
         }
-    }
+    } 
 }
