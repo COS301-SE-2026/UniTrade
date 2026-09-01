@@ -27,6 +27,8 @@ export interface StudentMeResponse {
   std: {
     verificationStatus: string;
     verificationRequestStatus: string | null;
+    verificationAdminDecision: string | null;
+    verificationRejectionReason: string | null;
     degreeProgram: string;
     yearOfStudy: number;
     university: string;
