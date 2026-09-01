@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@tanstack/react-query": "^4.44.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",

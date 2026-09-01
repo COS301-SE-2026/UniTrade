@@ -104,7 +104,7 @@ export default function AdminDisputes() {
   if (loading) {
     return <LoadingState message = "Loading disputes..."/> }
   if (error) {
-    return <p className='text-sm text-red-600'>{error}</p>;
+    return <p className='text-sm text-red-700'>{error}</p>;
   }
 
   return (

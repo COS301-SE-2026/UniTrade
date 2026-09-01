@@ -44,6 +44,7 @@ import PaymentComplete from "./pages/payment/PaymentComplete";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
 import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
 import ProofOfRegistrationUpload from "./pages/auth/UploadProofOfRegistration";
+import SavedSearches from "./pages/buyer/SavedSearches";
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
@@ -91,6 +92,7 @@ export default function App() {
         <Route path="/auth/profile" element={<Profile />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
         <Route path="/auth/ProofUpload" element={<ProofOfRegistrationUpload />} />
+        
 
         <Route element={<AppLayout />}>
           <Route path="/admin/verifications/:id" element={<AdminVerificationReview />} />
@@ -104,6 +106,7 @@ export default function App() {
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
+          <Route path = "/buyer/saved-searches" element={<SavedSearches />} />
           <Route path="/seller/reservations" element={<SellerReservations />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/upload" element={<UploadListing />} />

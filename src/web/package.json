@@ -21,6 +21,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@microsoft/signalr": "^10.0.0",
     "@tabler/icons-react": "^3.44.0",
     "@tanstack/react-query": "^5.101.4",
