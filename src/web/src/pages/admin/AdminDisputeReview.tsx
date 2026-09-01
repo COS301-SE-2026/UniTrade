@@ -46,8 +46,21 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'more-info': 'Marked as needing more info',
   'side-buyer': 'Sided with buyer',
   'side-seller': 'Sided with seller',
+  
   'remove-listing': 'Listing removed',
   'warn-seller': 'Seller warned',
+};
+
+const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
+  'remove-listing': 'Are you sure you want to remove this listing?',
+  'warn-seller': 'Are you sure you want to warn this seller?',
+  dismiss: 'Are you sure you want to dismiss this dispute?'
+};
+
+const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
+  'remove-listing': 'This will remove the listing from the platform and notify the seller.This cannot be undone',
+  'warn-seller': 'You are about to issue a formal warning to this seller. The seller will be notified.',
+  'dismiss': 'This will dismiss the dispute without taking any action.'
 };
 
 const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
@@ -208,7 +221,7 @@ export default function AdminDisputeReview() {
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
   const [decisionNote, setDecisionNote] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
-
+  const[pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
   useEffect(() => {
     let active = true;
 
@@ -321,6 +334,24 @@ export default function AdminDisputeReview() {
           </Panel>
         </div>
       </div>
+
+      {pendingConfirmDecision && (
+        <ConfirmModal
+          title={disputeConfirmTitles[pendingConfirmDecision] ?? 'Are you sure?'}
+          message={disputeConfirmMessages[pendingConfirmDecision] ?? 'This action cannot be undone.'}
+          confirmLabel={decisionLabel[pendingConfirmDecision]}
+          tone={pendingConfirmDecision === 'remove-listing' ? 'danger' :
+            'neutral'
+          }
+          submitting={!!submitting}
+          onCancel={() => setPendingConfirmDecision(null)}
+          onConfirm={() => {
+
+            handleDecision(pendingConfirmDecision);
+            setPendingConfirmDecision(null);
+          }}
+        />
+      )}
     </div>
   );
 }
