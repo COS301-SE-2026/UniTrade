@@ -89,7 +89,8 @@ function disputeReducer(state: State, action: Action): State {
   }
 }
 
-function transformCaseDetail(detail: CaseDetail) {
+function transformCaseDetail(detail: CaseDetail) : DisputeCase{
+
 
   const mapPerson = (p: PartySummary | undefined) => {
     if (!p) {
@@ -259,6 +260,15 @@ export default function AdminDisputeReview() {
     }
   }
 
+  function handleDecisionClick(decision: DisputeDecision) {
+    if (disputeConfirmTitles[decision]) {
+      setPendingConfirmDecision(decision);
+    } else {
+      handleDecision(decision);
+    }
+  }
+
+
    if(state.loading) {
     return <LoadingState message = "Loading case..." />;
    }
@@ -312,7 +322,7 @@ export default function AdminDisputeReview() {
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
                 )}
-                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecision} suggestedDecision={dispute.suggestedDecision} />
+                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
               </>
             )}
           </Panel>
