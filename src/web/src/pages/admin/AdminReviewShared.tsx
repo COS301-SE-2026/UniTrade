@@ -2,11 +2,77 @@ import {useEffect, useState} from 'react'
 import {
     IconStar,
     IconStarFilled,
-    IconNote
+    IconNote,IconX
 } from '@tabler/icons-react'
 import type {PersonSummary, CaseNote} from '../../types/mockAdmin'
 import { getMockCaseNotes, addMockCaseNote } from '../../types/mockAdmin';
 import { LoadingState } from '../../components/layout/Spinner';
+
+interface ConfirmModalProps{
+  title:string;
+  message:string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  tone?: 'danger' | 'success' | 'neutral';
+  submitting?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  
+}
+
+
+   
+  const confirmModalToneClasses: 
+    Record<'danger' | 'success' | 'neutral', string>
+  = {
+    danger: 'bg-red-600 hover:bg-red-700 ',
+    success: 'bg-green-600 hover:bg-green-700 ',
+    neutral: 'bg-navy-700 hover:bg-navy-700 ',
+  };
+
+  export function ConfirmModal({
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  tone = 'neutral',
+  submitting = false,
+  onCancel,
+  onConfirm,
+}:Readonly<ConfirmModalProps>) {
+  return (
+    <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    onClick={onCancel}
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="confirm-modal-title"
+    aria-describedby="confirm-modal-message">
+
+      <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
+      onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="confrim-modal-title" className="text-xl font-bol text-gray-900">{title}</h2>
+          <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+            <IconX size={20} />
+          </button>
+        </div>
+        <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">{message}</p>
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel} className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+            {cancelLabel}
+            </button>
+            <button type="button" onClick={onConfirm} 
+            disabled={submitting} 
+            className={`flex-1 py-3 text-white font-bold rounded-xl transition-colors
+              disabled:opacity-50 ${confirmModalToneClasses}`}>
+              {submitting ? 'Submitting...' : confirmLabel}
+              </button>
+              </div>
+              </div>
+              </div>
+  );
+}
 
 
 export function Breadcrumb({trail}: Readonly<{ trail: string[]}>) {
