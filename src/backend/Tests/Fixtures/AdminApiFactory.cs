@@ -28,10 +28,7 @@ public sealed class AdminApiFactory : WebApplicationFactory<Program>, IAsyncLife
             "Jwt__Secret",
             "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5"
         );
-        Environment.SetEnvironmentVariable(
-            "Firebase__CredentialsJson",
-            ""
-        );
+        Environment.SetEnvironmentVariable("Firebase__CredentialsJson", "");
         builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration(
             (context, config) =>
@@ -42,6 +39,13 @@ public sealed class AdminApiFactory : WebApplicationFactory<Program>, IAsyncLife
                         ["Jwt:Secret"] =
                             "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5",
                         ["Firebase:CredentialsJson"] = "",
+                        ["PayFast:MerchantId"] = "10000100",
+                        ["PayFast:MerchantKey"] = "46f0cd694581a",
+                        ["PayFast:Passphrase"] = "verymuchexistentpassphrase",
+                        ["PayFast:SandboxUrl"] = "https://sandbox.payfast.co.za/eng/process",
+                        ["PayFast:NotifyUrl"] = "http://localhost/notify",
+                        ["PayFast:ReturnUrl"] = "http://localhost/return",
+                        ["PayFast:CancelUrl"] = "http://localhost/cancel",
                     }
                 );
             }
@@ -68,7 +72,8 @@ public sealed class AdminApiFactory : WebApplicationFactory<Program>, IAsyncLife
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         await context.Database.EnsureCreatedAsync();
-        await context.Database.ExecuteSqlRawAsync(@"
+        await context.Database.ExecuteSqlRawAsync(
+            @"
          CREATE OR REPLACE FUNCTION unitrade.fn_audit_verification_decision() RETURNS trigger AS $$
             BEGIN
                 IF NEW.status <> OLD.status
@@ -90,8 +95,8 @@ public sealed class AdminApiFactory : WebApplicationFactory<Program>, IAsyncLife
             UPDATE
             ON unitrade.verification_requests
             FOR EACH ROW EXECUTE FUNCTION unitrade.fn_audit_verification_decision();
-        ");
-
+        "
+        );
 
         if (!await context.Universities.AnyAsync(u => u.UniversityId == 2))
         {

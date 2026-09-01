@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Api.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -34,18 +35,55 @@ public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>
         var (reservationId, _, _) = await SeedReservationAsync();
 
         var validPayload = BuildValidPayFastPayload(reservationId, price: 100.00m);
-        var tamperedPayload = new FormUrlEncodedContent(
-            validPayload.ToDictionary(kv => kv.Key, kv => kv.Key == "amount" ? "200.00" : kv.Value)
-        );
 
+        var tampered = validPayload.Replace("amount=100.00", "amount=200.00");
+
+        var content = new StringContent(
+            tampered,
+            Encoding.UTF8,
+            "application/x-www-form-urlencoded"
+        );
         var client = NewClient();
 
-        var response = await client.PostAsync("/api/reservations/itn", tamperedPayload);
+        var response = await client.PostAsync("/api/reservations/itn", content);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        Assert.Contains("invalid_signature", await response.Content.ReadAsStringAsync());
 
         await using var db = _factory.NewContext();
         var tx = await db.Transactions.FirstOrDefaultAsync(t => t.ReservationId == reservationId);
         Assert.Null(tx);
+    }
+
+    // QR-04a Duplicate payment notification
+    [Fact]
+    public async Task DuplicatePaymentNotification_ProcessedOnlyOnce()
+    {
+        var (reservationId, _, _) = await SeedReservationAsync();
+
+        var validPayload = BuildValidPayFastPayload(reservationId, price: 100.00m);
+        var client = NewClient();
+
+        var content1 = new StringContent(
+            validPayload,
+            Encoding.UTF8,
+            "application/x-www-form-urlencoded"
+        );
+        var response1 = await client.PostAsync("/api/reservations/itn", content1);
+        response1.EnsureSuccessStatusCode();
+        var content2 = new StringContent(
+            validPayload,
+            Encoding.UTF8,
+            "application/x-www-form-urlencoded"
+        );
+
+        var response2 = await client.PostAsync("/api/reservations/itn", content2);
+        response2.EnsureSuccessStatusCode();
+
+        await using var db = _factory.NewContext();
+        var txns = await db.Transactions.Where(t => t.ReservationId == reservationId).ToListAsync();
+        Assert.Single(txns);
+        Assert.Equal("completed", txns[0].TransactionStatus);
     }
 
     private async Task<(Guid reservationId, Guid sellerId, Guid buyerId)> SeedReservationAsync()
@@ -116,12 +154,9 @@ public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>
         return (reservation.ReservationId, sellerId, buyerId);
     }
 
-    private static Dictionary<string, string> BuildValidPayFastPayload(
-        Guid reservationId,
-        decimal price
-    )
+    private static string BuildValidPayFastPayload(Guid reservationId, decimal price)
     {
-        const string merchantKey = "46f9cd694581a";
+        const string merchantKey = "46f0cd694581a";
         const string merchantId = "10000100";
         const string passphrase = "verymuchexistentpassphrase";
 
@@ -132,42 +167,29 @@ public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>
             new("return_url", $"http://localhost/return"),
             new("cancel_url", $"http://localhost/cancel"),
             new("notify_url", $"http://localhost/notify"),
-            new("name_first", "buyerFirstName"),
+            new("name_first", "buyer FirstName"),
             new("name_last", ""),
             new("email_address", "buyerEmail@gmail.com"),
             new("m_payment_id", reservationId.ToString()),
             new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
             new("item_name", "Testing thing item"),
+            new("payment_status", "COMPLETE"),
+            new("pf_payment_id", "12345"),
         };
-        var sb = new StringBuilder();
 
-        foreach (var (key, value) in fields)
-        {
-            sb.Append($"{key}={PayFastEncode(value)}&");
-        }
+        var encodedPairs = fields
+            .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
+            .Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value)}")
+            .ToList();
+        var body = string.Join("&", encodedPairs);
 
-        if (!string.IsNullOrEmpty(passphrase))
-        {
-            sb.Append($"passphrase={PayFastEncode(passphrase)}");
-        }
-        else
-        {
-            sb.Length -= 1; // why is this wrong-->-1 is invalid cause it throws an out of range exception
-        }
-        var baseString = sb.ToString();
+        var sigBase = body + $"&passphrase={Uri.EscapeDataString(passphrase)}";
 
         using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+        var signature = Convert
+            .ToHexString(md5.ComputeHash(Encoding.UTF8.GetBytes(sigBase)))
+            .ToLowerInvariant();
 
-        var signature = Convert.ToHexString(hash).ToLowerInvariant();
-
-        var dict = fields.ToDictionary(kv => kv.Key, kv => kv.Value);
-        dict["signature"] = signature;
-        return dict;
-    }
-
-    private static string PayFastEncode(string value)
-    {
-        return Uri.EscapeDataString(value ?? string.Empty);
+        return $"{body}&signature={signature}";
     }
 }
