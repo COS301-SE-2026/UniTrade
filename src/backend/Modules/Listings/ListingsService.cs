@@ -51,7 +51,7 @@ public class ListingService : IListingService
         return new PagedResult<ListingSummaryDto>(items.Select(MapToSummary).ToList(), total);
     }
 
-    private ListingSummaryDto MapToSummary(Listing l) =>
+    internal static ListingSummaryDto MapToSummary(Listing l) =>
         new(
             ListingId: l.ListingId,
             SellerId: l.SellerId,
