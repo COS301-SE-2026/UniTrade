@@ -49,7 +49,7 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'warn-seller': 'Seller warned',
 };
 
-const finalDecisions: Set<DisputeDecision> = new Set(['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller']);
+const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
 
 type State = {
   data: DisputeCase | null;
@@ -452,7 +452,7 @@ function DecisionConfirmation({
   decision,
   onBack,
 }: Readonly<{ dispute: DisputeCase; decision: DisputeDecision; onBack: () => void }>) {
-  const isFinal = finalDecisions.has(decision);
+  const isFinal = finalDecisions.includes(decision);
 
   return (
     <div>
