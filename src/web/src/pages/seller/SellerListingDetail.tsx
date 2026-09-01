@@ -10,6 +10,7 @@ import {
 } from "../../utils/formatters";
 import type { SellerListingDetail as SellerListingDetailType } from "../../types/listing";
 import { LoadingState } from "../../components/layout/Spinner";
+import ListingQnA from "../../components/ListingQnA";
 
 function DetailRow({
   label,
@@ -200,6 +201,10 @@ export default function SellerListingDetail() {
             )}
             <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
           </div>
+          <ListingQnA listingId={listing.id}
+          isSeller={true}
+          canAsk={false}
+          />
         </div>
 
         <div className="lg:col-span-1 space-y-4">

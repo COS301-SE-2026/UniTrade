@@ -3,6 +3,9 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SellerListingDetail from '../../pages/seller/SellerListingDetail'
 import { listingsService } from '../../services/listingsService'
+import { ToastProvider } from '../../components/layout/Toast';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 
 
 vi.mock('../../services/listingsService', () => ({
@@ -34,13 +37,20 @@ const mockListing = {
   status: 'live' as const,
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false}},
+})
 
 const renderDetail = (id = '42') =>
   render(
     <MemoryRouter initialEntries={[`/seller/listings/${id}`]}>
+      <QueryClientProvider client = {queryClient}>
+      <ToastProvider>
       <Routes>
         <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
       </Routes>
+      </ToastProvider>
+      </QueryClientProvider>
     </MemoryRouter>
   )
 
