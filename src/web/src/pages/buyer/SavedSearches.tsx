@@ -86,7 +86,10 @@ const handleDelete = async (id: string) => {
     try{
         await deleteSavedSearch(id);
         setSearches(searches.filter(s => s.searchId !==id ));
-        if(selectedSearch?.searchId === id) setSelectedSearch(null);
+        if(selectedSearch?.searchId === id) {
+            setSelectedSearch(null);
+            setMatchingListings([]);
+        }
         showToast("success", "Search deleted");
     } catch {
         showToast("error", "Failed to delete search");
@@ -94,11 +97,18 @@ const handleDelete = async (id: string) => {
 };
 
 const handleViewMatches = (search: SavedSearch) => {
-    setSelectedSearch(selectedSearch?.searchId === search.searchId ? null : search);
-
+    if (selectedSearch?.searchId === search.searchId) {
+        setSelectedSearch(null);
+        setMatchingListings([]);
+    } else {
+        setSelectedSearch(search);
+    }
 };
 
-const handleBack = () => setSelectedSearch(null);
+const handleBack = () => {
+     setSelectedSearch(null);
+     setMatchingListings([]);
+};
 
 if(loading ){
     return <LoadingState message = "Loading saved searches..." />
@@ -163,7 +173,7 @@ return (
                 type = "number"
                 min = "0"
                 step = "1"
-                value = {minPrice}
+                value = {maxPrice}
                 onChange = {(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
                 className = "w-full border rounded px-3 py-2 text-sm"
                 />
