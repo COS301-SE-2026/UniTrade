@@ -73,8 +73,23 @@ public sealed class AdminDecisionTests : IClassFixture<AdminApiFactory>
         );
     }
 
-   
-      private async Task<(Guid userId, Guid verificationId)> SeedPendingVerificationAsync(
+    // qr-07d SLA breach is surfaced, Dashboard flags cases open longer than the window
+    [Fact]
+    public async Task Dashboard_FlagsCasesExceedingSla()
+    {
+        var oldDate = DateTime.UtcNow.AddHours(-72);
+        var (_, verificationId) = await SeedPendingVerificationAsync(submittedAt: oldDate);
+
+        var admin = await AdminClientAsync();
+        var response = await admin.GetAsync("/api/admin/cases?type=verification");
+        response.EnsureSuccessStatusCode();
+        var cases = await response.Content.ReadFromJsonAsync<List<CaseRow>>();
+
+        var oldCase = cases!.First(c => c.CaseId == verificationId);
+        Assert.True(oldCase.SlaBreached, "Case older than SLA should be flagged");
+    }
+
+    private async Task<(Guid userId, Guid verificationId)> SeedPendingVerificationAsync(
         DateTime? submittedAt = null
     )
     {
@@ -119,6 +134,11 @@ public sealed class AdminDecisionTests : IClassFixture<AdminApiFactory>
         return (userId, verificationId);
     }
 
-
-    private record CaseRow(Guid CaseId, string Type, string Status, DateTime SubmittedAt);
+    private record CaseRow(
+        Guid CaseId,
+        string Type,
+        string Status,
+        DateTime SubmittedAt,
+        bool SlaBreached
+    );
 }
