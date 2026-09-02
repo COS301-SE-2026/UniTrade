@@ -292,7 +292,7 @@ export default function AdminDisputeReview() {
                     onChange={(e) => setDecisionNote(e.target.value)}
                     placeholder="e.g. Reasoning the parties should see in the email…"
                     rows={2}
-                    className="w-full text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
+                    className="w-full text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
                   />
                 </div>
                 {decisionError && (
@@ -342,9 +342,9 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[#00aaff]">{dispute.item.title}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Condition: {dispute.item.condition}</p>
-          <p className="text-xs text-gray-400">Category: {dispute.item.category}</p>
-          <p className="text-xs text-gray-400">Module Code: {dispute.item.moduleCode}</p>
+          <p className="text-xs text-gray-600 mt-0.5">Condition: {dispute.item.condition}</p>
+          <p className="text-xs text-gray-600">Category: {dispute.item.category}</p>
+          <p className="text-xs text-gray-600">Module Code: {dispute.item.moduleCode}</p>
         </div>
       </div>
       <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5">
@@ -360,7 +360,7 @@ function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<DisputeCase['
     <Panel title="Check-in and PIN evidence">
       <div className="grid grid-cols-2 gap-3">
         <div className="border border-gray-100 dark:border-white/5 rounded-lg p-3">
-          <p className="text-xs text-gray-400 mb-1">Buyer checked in</p>
+          <p className="text-xs text-gray-600 mb-1">Buyer checked in</p>
           <StatusLine
             ok={checkIn.buyerCheckedIn}
             okLabel={`Checked in at ${checkIn.buyerCheckInTime ?? ''}`}
@@ -368,7 +368,7 @@ function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<DisputeCase['
           />
         </div>
         <div className="border border-gray-100 dark:border-white/5 rounded-lg p-3">
-          <p className="text-xs text-gray-400 mb-1">Seller checked in</p>
+          <p className="text-xs text-gray-600 mb-1">Seller checked in</p>
           <StatusLine
             ok={checkIn.sellerCheckedIn}
             okLabel={`Checked in at ${checkIn.sellerCheckInTime ?? ''}`}
