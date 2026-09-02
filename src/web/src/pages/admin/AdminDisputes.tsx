@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '../../lib/queryKeys'
 import { useNavigate } from 'react-router'
 import chemImg from '../../assets/bio-textbook.jpg'
 import calcImg from '../../assets/calculas-textbook.jpg'
@@ -45,47 +47,33 @@ function getPlaceholder(type: CaseType): string {
 }
 
 export default function AdminDisputes() {
-  const [rows, setRows] = useState<DisputeRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'No-show' | 'Listing-quality' | 'Report'>('all');
   const navigate = useNavigate();
 
-  useEffect(() => {
-  let active = true;
-  getCases()
-    .then(async (response) => {
+  const { data: rows = [], isLoading, error } = useQuery({
+    queryKey: queryKeys.disputes(),
+    queryFn: async () => {
+      const response = await getCases();
 
       const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
-      const cases = Array.isArray(response)? response : response?.cases?? [];
+      const cases = Array.isArray(response) ? response : response?.cases ?? [];
       const filtered = cases.filter(c => disputeTypes.has(c.type));
 
-      const enriched = filtered.map(summary => ({
+      return filtered.map(summary => ({
         id: summary.caseId,
         title: summary.title ?? 'Unknown listing',
         buyerInitials: summary.counterpartyInitials ?? '??',
         sellerInitials: summary.subjectInitials ?? '??',
         timeAgo: getTimeAgo(summary.ageHours),
         type: getDisplayType(summary.type as DisputeCaseType),
-        image: getPlaceholder(summary.type as DisputeCaseType),
+        image: getPlaceholder(summary.type as CaseType),
 
-      }));
-      if (active) {
-        setRows(enriched);
-        setLoading(false);
-      }
-    })
-    .catch((err) => {
-      if (active) {
-        setError(err.message || 'Failed to load disputes');
-        setLoading(false);
-      }
-    });
-  return () => {
-    active = false;
-  };
-}, []);
+      })) as DisputeRow[];
+
+    },
+  })
+
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.buyerInitials.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,10 +89,11 @@ export default function AdminDisputes() {
   const numReport = rows.filter(r => r.type === 'Report').length;
 
 
-  if (loading) {
-    return <LoadingState message = "Loading disputes..."/> }
+  if (isLoading) {
+    return <LoadingState message="Loading disputes..." />
+  }
   if (error) {
-    return <p className='text-sm text-red-700'>{error}</p>;
+    return <p className='text-sm text-red-600'>{(error as Error).message || 'Failed to load disputes.'}</p>;
   }
 
   return (
