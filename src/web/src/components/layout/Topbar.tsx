@@ -9,6 +9,7 @@ const Search_hidden = [
   /^\/buyer\/reservations\/[^/]+$/,
   /\/listings\/[^/]+$/,
   /\/seller\/sales\/[^/]+$/,
+  /^\/admin/,
 ];
 
 function shouldSearchHide(pathname: string): boolean {

@@ -268,4 +268,3 @@ export default function AdminDisputes() {
     </div>
   );
 }
-

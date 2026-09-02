@@ -273,6 +273,10 @@ builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
 builder.Services.AddScoped<IListingQuestionRepository, ListingQuestionRepository>();
 builder.Services.AddScoped<IListingQuestionService, ListingQuestionService>();
 builder.Services.AddScoped<IListingQueryForQuestions, ListingQueryForQuestions>();
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
