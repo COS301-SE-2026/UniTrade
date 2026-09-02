@@ -49,7 +49,7 @@ public class ListingQuestionsController : ControllerBase
             return ex.Message switch
             {
                 "listing_not_found" => NotFound(new { code = ex.Message }),
-                //"listing_not_live" => BadRequest(new { code = ex.Message }), @@@ZEEEEE i commented this out bc its not really needed, its not called anywhere in the service func
+                "listing_not_live" => BadRequest(new { code = ex.Message }),
                 "cannot_question_own_listing" => Forbid(),
                 _ => BadRequest(new { code = ex.Message }),
             };

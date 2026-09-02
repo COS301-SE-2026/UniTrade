@@ -148,7 +148,7 @@ paths:
         '404':
           description: Not Found
 
-  /saved-searches/{id}/listings:
+  /saved-searches/{searchId}/listings:
     get:
       summary: get listings currently matching a saved search
       parameters:
