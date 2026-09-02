@@ -80,7 +80,7 @@ public class AppDbContext : DbContext
 
     // Saved Searches
     public DbSet<SavedSearch> SavedSearches => Set<SavedSearch>();
-    
+
     // Listing Questions
 
     public DbSet<ListingQuestion> ListingQuestions => Set<ListingQuestion>();
