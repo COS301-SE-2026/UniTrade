@@ -11,6 +11,7 @@ using Modules.Reservations;
 using Modules.SavedSearches.Models;
 using Modules.SavedSearches.Models.Dto;
 using Modules.SavedSearches.Repositories;
+using Modules.Listings.Models.Dto;
 
 namespace Modules.SavedSearches;
 
@@ -179,4 +180,18 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             CourseId = s.CourseId,
             IsActive = s.IsActive,
         };
+
+    public async Task<IReadOnlyList<ListingSummaryDto>> GetMatchingListingAsync(Guid searchId, Guid buyerId, CancellationToken ct)
+    {
+        var search = await _repo.GetByIdAsync(searchId, ct);
+        if (search == null || search.BuyerId != buyerId || !search.IsActive)
+        {
+            throw new InvalidOperationException("Saved search not found or does not belong to you.");
+        }
+
+        var listings = await _repo.GetMatchingListingsAsync(search, ct);
+
+        return listings.Select(ListingService.MapToSummary).ToList();
+    }
+
 }
