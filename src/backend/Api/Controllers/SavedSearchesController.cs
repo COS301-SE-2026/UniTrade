@@ -54,4 +54,23 @@ public class SavedSearchesController : ControllerBase
         await _service.DeleteAsync(id, CallerId, ct);
         return NoContent();
     }
+
+    [HttpGet("{searchId:guid}/listings")]
+    public async Task<IActionResult> GetMatchingListings(Guid searchId, CancellationToken ct)
+    {
+        if (CallerId == null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var listings = await _service.GetMatchingListingAsync(searchId, CallerId, ct);
+            return Ok(listings);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
 }
