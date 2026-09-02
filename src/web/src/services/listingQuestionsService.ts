@@ -12,7 +12,7 @@ export interface ListingQuestion {
 }
 
 export async function getQuestions(listingId: string): Promise<ListingQuestion[]>{
-    const res = await fetch(`${getApiUrl()}/listing/${listingId}/questions`, { credentials: "include"});
+    const res = await fetch(`${getApiUrl()}/listings/${listingId}/questions`, { credentials: "include"});
     if (!res.ok) throw new Error("Failed to load questions");
     return res.json();
 }

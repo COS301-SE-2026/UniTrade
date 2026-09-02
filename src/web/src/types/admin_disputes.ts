@@ -5,6 +5,7 @@ export type CaseType =
   | "no_show";
 
 export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed";
+export type SnapshotStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 
 export type Decision =
   | "approve"
@@ -76,6 +77,7 @@ export interface ListingSnapshot {
   courseTags: string[];
   photoRefs: string[];
   capturedAt: string;
+  status: SnapshotStatus;
 }
 
 export interface CaseEvidence {
@@ -89,6 +91,7 @@ export interface CaseEvidence {
   snapshot?: ListingSnapshot;
   buyerPhotos?: string[];
   sellerRefusedPhotos?: boolean;
+  currentListingStatus?: string | null;
   //report_listing
   listingId?: string;
   reportReason?: string;

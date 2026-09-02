@@ -72,6 +72,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 123,
     metadata: null,
     sellerId: "1",
+    answeredQuestionCount: 2
   },
   {
     id: '2',
@@ -84,6 +85,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 456,
     metadata: null,
     sellerId: "1",
+    answeredQuestionCount: 2
   },
   {
     id: '3',
@@ -96,6 +98,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 789,
     sellerId: "1",
     metadata: null,
+    answeredQuestionCount: 2,
   },
   {
     id: '4',
@@ -108,6 +111,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 101,
     metadata: null,
     sellerId: "1",
+    answeredQuestionCount: 2,
   },
 ];
 

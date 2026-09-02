@@ -31,7 +31,7 @@ export interface DisputeItem {
     category: string
     moduleCode: string
     price: string
-    status: 'Reserved' | 'Disputed' | 'Live' | 'Resolved'
+    status: string
     imageUrl?: string
 }
 

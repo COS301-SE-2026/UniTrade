@@ -20,7 +20,7 @@ public class ReservationExpiryWorker : BackgroundService
         _scopeFactory = scopeFactory;
         _logger = logger;
 
-        var seconds = configuration?.GetValue<int>("Workers:ReservationExpiryIntervalSeconds", 60)??60;
+        var seconds = configuration?.GetValue<int>("Workers:ReservationExpiryIntervalSeconds", 60) ?? 60;
         _interval = TimeSpan.FromSeconds(seconds);
     }
 

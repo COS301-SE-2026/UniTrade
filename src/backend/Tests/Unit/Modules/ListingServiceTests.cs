@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Modules.Identity.Models;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
@@ -23,6 +24,7 @@ public class ListingServiceTests
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly Mock<ISellerVerificationQuery> _verificationMock;
+    private readonly Mock<IListingQuestionRepository> _questionRepo;
     private readonly ListingService _sut;
 
     public ListingServiceTests()
@@ -30,7 +32,23 @@ public class ListingServiceTests
         _repo = new Mock<IListingRepository>();
         _imageRepo = new Mock<IListingImageRepository>();
         _verificationMock = new Mock<ISellerVerificationQuery>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object);
+        _questionRepo = new Mock<IListingQuestionRepository>();
+
+        _questionRepo
+            .Setup(r =>
+                r.GetAnsweredQuestionCountsAsync(
+                    It.IsAny<IEnumerable<Guid>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new Dictionary<Guid, int>());
+
+        _sut = new ListingService(
+            _repo.Object,
+            _imageRepo.Object,
+            _verificationMock.Object,
+            _questionRepo.Object
+        );
     }
 
     // GetByIdAsync Tests

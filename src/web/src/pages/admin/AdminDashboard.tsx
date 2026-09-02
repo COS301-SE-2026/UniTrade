@@ -93,7 +93,7 @@ function VerificationRow({ initials, name, meta }: Readonly<VerificationRowProps
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white">{name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
       </div>
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">
         Approve
@@ -122,7 +122,7 @@ function DisputeRow({ title, meta }: Readonly<DisputeRowProps>) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
       </div>
       <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-colors">
         Review
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
           title="Pending Verifications"
           value={pendingVerifications.length}
           sub={`Oldest: ${oldestVerificationAge}`}
-          subColor="text-amber-500"
+          subColor="text-amber-700"
           subIcon={<IconClock size={13} />}
         />
 
@@ -212,14 +212,14 @@ export default function AdminDashboard() {
           title="Active Disputes"
           value={activeDisputes.length}
           sub={disputeSybtext}
-          subColor="text-red-500"
+          subColor="text-red-700"
           subIcon={<IconFlag size={13} />}
         />
         <StatCard
           title="Total Users"
           value={totalUsers}
           sub="12% this month"
-          subColor="text-green-600"
+          subColor="text-green-700"
           subIcon={<IconTrendingUp size={13} />}
         />
       </div>
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
             <button
               type='button'
               onClick={() => navigate('/admin/listings')}
-              className="text-xs text-[#00aaff] hover:underline"
+              className="text-xs text-blue-600 hover:underline"
             >
               view all
             </button>
@@ -279,7 +279,7 @@ export default function AdminDashboard() {
               <button
                 type='button'
                 onClick={() => navigate('/admin/verifications')}
-                className="text-xs text-[#00aaff] hover:underline"
+                className="text-xs text-blue-600 hover:underline"
               >
                 view all
               </button>
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
 
             {
               verificationRows.length === 0 ? (
-                <p className='text-sm text-gray-400'>No pending verifications.</p>
+                <p className='text-sm text-gray-600'>No pending verifications.</p>
               ) :
                 (
                   (verificationRows.map((row, idx) =>
@@ -306,13 +306,13 @@ export default function AdminDashboard() {
               <button
                 type='button'
                 onClick={() => navigate('/admin/disputes')}
-                className="text-xs text-[#00aaff] hover:underline"
+                className="text-xs text-blue-600 hover:underline"
               >
                 view all
               </button>
             </div>
             {disputeRows.length === 0 ? (
-              <p className='text-sm text-gray-400'>No active disputes</p>
+              <p className='text-sm text-gray-600'>No active disputes</p>
             ) : (
               disputeRows.map((row, idx) => (
                 <DisputeRow key={idx} {...row} />

@@ -1,4 +1,5 @@
 using Modules.ListingQuestions.Models;
+using Modules.Listings.Models;
 
 namespace Modules.ListingQuestions.Repositories;
 
@@ -11,4 +12,9 @@ public interface IListingQuestionRepository
         CancellationToken ct = default
     );
     Task SaveAsync(CancellationToken ct);
+
+    Task<Dictionary<Guid, int>> GetAnsweredQuestionCountsAsync(
+        IEnumerable<Guid> listingIds,
+        CancellationToken ct = default
+    );
 }
