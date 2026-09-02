@@ -247,6 +247,7 @@ function mapWishListItem(item: unknown): WishlistListing {
       metadata?: ListingMetadata;
       images: { imageId: number; isPrimary: boolean; path: string }[];
       seller?: { sellerId: string; fullName: string } | null;
+      answeredQuestionCount?: number;
     };
   };
   const l = w.listing;
@@ -265,6 +266,7 @@ function mapWishListItem(item: unknown): WishlistListing {
     sellerName: l.seller?.fullName ?? null,
     status: l.listingStatus as ListingStatus,
     addedAt: w.addedAt,
+    answeredQuestionCount: l.answeredQuestionCount ?? 0,
   };
 }
 
@@ -402,6 +404,7 @@ export const listingsService = {
         metadata?: ListingMetadata;
         images: { imageId: number; isPrimary: boolean; path: string }[];
         seller?: { sellerId: string };
+        answeredQuestionCount?: number;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -415,6 +418,7 @@ export const listingsService = {
         image: primary ? imageUrl(primary) : biologyTextbook,
         metadata: l.metadata ?? null,
         sellerId: l.seller?.sellerId ?? "",
+        answeredQuestionCount: l.answeredQuestionCount ?? 0,
       };
     });
 

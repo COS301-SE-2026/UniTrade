@@ -112,6 +112,7 @@ export interface BrowseListing {
   condition: BrowseCondition
   metadata: ListingMetadata
   sellerId: string
+  answeredQuestionCount?: number
 }
 
 export interface BrowseListingsResponse {

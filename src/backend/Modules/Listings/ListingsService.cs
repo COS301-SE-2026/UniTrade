@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
@@ -13,6 +14,7 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
     private readonly ISellerVerificationQuery _verification;
+    private readonly IListingQuestionRepository _questions;
 
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
@@ -24,24 +26,47 @@ public class ListingService : IListingService
     public ListingService(
         IListingRepository listings,
         IListingImageRepository images,
-        ISellerVerificationQuery verification
+        ISellerVerificationQuery verification,
+        IListingQuestionRepository questions
     )
     {
         _listings = listings;
         _images = images;
         _verification = verification;
+        _questions = questions;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
     {
         var listing = await _listings.GetByIdAsync(listingId);
-        return listing == null ? null : MapToSummary(listing);
+        if (listing == null)
+            return null;
+
+        var countsDict = await _questions.GetAnsweredQuestionCountsAsync(new[] { listingId });
+
+        return MapToSummary(listing) with
+        {
+            AnsweredQuestionCount = countsDict.GetValueOrDefault(listingId, 0),
+        };
     }
 
     public async Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter)
     {
         var (items, total) = await _listings.ListAsync(filter);
-        return new PagedResult<ListingSummaryDto>(items.Select(MapToSummary).ToList(), total);
+
+        var listingIds = items.Select(l => l.ListingId).ToList();
+        var countsDict = await _questions.GetAnsweredQuestionCountsAsync(listingIds);
+
+        var summaries = items
+            .Select(l =>
+                MapToSummary(l) with
+                {
+                    AnsweredQuestionCount = countsDict.GetValueOrDefault(l.ListingId, 0),
+                }
+            )
+            .ToList();
+
+        return new PagedResult<ListingSummaryDto>(summaries, total);
     }
 
     internal static ListingSummaryDto MapToSummary(Listing l) =>
@@ -90,7 +115,11 @@ public class ListingService : IListingService
                 )
         );
 
-    public async Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId, CancellationToken ct = default)
+    public async Task<ListingSummaryDto> CreateListings(
+        CreateListingDto dto,
+        Guid callerId,
+        CancellationToken ct = default
+    )
     {
         var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
         if (category == null)
@@ -171,7 +200,12 @@ public class ListingService : IListingService
         }
         //edits forbideen if the listing is reserved,sold,pending or rejected
         var allowedEditStatuses = new[] { "draft", "live", "low_visibility" };
-        if (!allowedEditStatuses.Contains(listingLookUp.ListingStatus, StringComparer.OrdinalIgnoreCase))
+        if (
+            !allowedEditStatuses.Contains(
+                listingLookUp.ListingStatus,
+                StringComparer.OrdinalIgnoreCase
+            )
+        )
         {
             throw new InvalidOperationException("listing_locked_for_edit");
         }
