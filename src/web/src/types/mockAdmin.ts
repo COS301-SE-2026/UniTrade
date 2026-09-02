@@ -78,7 +78,6 @@ export interface VerificationCase {
   domainValid: boolean
   document: { name: string; 
               uploadedDate: string; 
-              sizeLabel: string; 
               url: string 
             }
   submittedDate: string
@@ -246,7 +245,6 @@ const mockVerifications: VerificationCase[] = [
         document: {
             name: 'Proof of Registration.pdf',
             uploadedDate: '12 March 2026',
-            sizeLabel: '1.2 MB',
             url: 'minions the rise of gru'
         },
         submittedDate: '12 March 2026',

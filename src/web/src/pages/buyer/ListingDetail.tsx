@@ -28,6 +28,7 @@ import {
 } from "../../types/reviewStats";
 import { ReviewList } from "../auth/Review";
 import { fileDispute } from "../../services/adminService";
+import ListingQnA from "../../components/ListingQnA";
 
 function DetailRow({
   label,
@@ -81,7 +82,7 @@ function ReportModal({
         </h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="reason" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Reason
             </label>
             <textarea
@@ -382,7 +383,13 @@ export default function ListingDetail() {
               )}
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
+           
           </div>
+           <ListingQnA
+              listingId={listing.id}
+              isSeller={false}
+              canAsk={true}
+              />
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
@@ -478,7 +485,6 @@ export default function ListingDetail() {
             </button>
 
             <button
-              type="button"
               onClick={() => setReportModalOpen(true)}
               className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >

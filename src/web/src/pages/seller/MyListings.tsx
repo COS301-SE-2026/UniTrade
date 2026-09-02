@@ -191,8 +191,9 @@ export default function MyListings() {
       const error = err as ApiError;
       const theError =
         error.message === "images_required" ||
-          error.message === "description_required"
-          ? "Please add at least one photo and Description before uploading this listing"
+          error.message === "description_required" ||
+          error.message === "seller_not_verified"
+          ? "Please add at least one photo and Description before uploading this listing, and makesure you are fully verified, If you are not verified, your listing will only go live once you are verified."
           : "Failed to submit listing";
 
       showToast("error", theError);
@@ -361,9 +362,6 @@ export default function MyListings() {
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
               Status
             </div>
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-16 text-center">
-              Views
-            </div>
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide min-w-[200px] text-right">
               Actions
             </div>
@@ -402,12 +400,7 @@ export default function MyListings() {
               <div className="w-full md:w-32 flex justify-start md:justify-center mt-1 md:mt-0 flex-shrink-0">
                 <StatusPill status={listing.status} />
               </div>
-
-              <p className="hidden md:block text-sm text-gray-400 w-16 text-center flex-shrink-0">
-                {listing.views}
-              </p>
-
-              <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
+                <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
                 <ActionButtons
                   listing={listing}
                   onDelete={handleDelete}
