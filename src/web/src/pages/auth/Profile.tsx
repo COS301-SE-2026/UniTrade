@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import React, { useEffect, useState } from "react";
 import {
-  IconSettings,IconChevronRight,IconTrash,
+  IconChevronRight, IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
   IconCalendarStats, IconCircleCheck, IconClock,
 } from "@tabler/icons-react";
@@ -107,22 +107,22 @@ export default function Profile() {
   const [reviewsError, setReviewsError] = useState<string | null>(null);
 
 
-useEffect(() => {
-  authService.getMe()
-    .then((data) => {
-      if ('std' in data) {
-        setProfile({
-          email: data.user.email,
-          university: data.std.university,
-          degreeProgram: data.std.degreeProgram,
-          yearOfStudy: data.std.yearOfStudy,
-          verificationStatus: data.std.verificationStatus
-        });
-      } else {
-        setProfile({ email: data.email });
-      }
-    }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
-}, []);
+  useEffect(() => {
+    authService.getMe()
+      .then((data) => {
+        if ('std' in data) {
+          setProfile({
+            email: data.user.email,
+            university: data.std.university,
+            degreeProgram: data.std.degreeProgram,
+            yearOfStudy: data.std.yearOfStudy,
+            verificationStatus: data.std.verificationStatus
+          });
+        } else {
+          setProfile({ email: data.email });
+        }
+      }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -171,21 +171,12 @@ useEffect(() => {
             <h1 className="text-2xl font-bold text-white">Profile</h1>
           </div>
 
-          <button
-            type='button'
-            onClick={() => navigate("/profile/settings")}
-            className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all mt-4"
-            aria-label="Settings">
-            <IconSettings size={20} />
-          </button>
         </div>
 
         <div className="flex items-center gap-5">
           <div className="w-40 h-40 rounded-full bg-white text-navy-700 flex items-center justify-center text-5xl font-bold shadow-lg">
             {user.initials}
           </div>
-
-
           <div>
             <p className="text-base font-bold text-white text-xl">
               {user.name}
@@ -250,7 +241,7 @@ useEffect(() => {
           )}</div>
       </div>
 
-      
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden">
         <div className="px-4 py-4 flex items-center justify-between border-b border-gray-50">
           <div>
