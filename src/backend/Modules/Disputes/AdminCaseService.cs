@@ -493,6 +493,13 @@ public class AdminCaseService : IAdminCaseService
             snapshot = await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
         }
 
+        var listingId = d.ListingId ?? snapshot?.ListingId;
+        string? currentListingStatus = null;
+        if (listingId.HasValue)
+        {
+            var listing = await _listings.GetByIdAsync(listingId.Value);
+            currentListingStatus = listing?.ListingStatus;
+        }
         var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
         // for reporting a listing counterparty is the reporter
         Guid? counterpartyId =
@@ -540,7 +547,7 @@ public class AdminCaseService : IAdminCaseService
                 d.RaisedBy == d.SellerId ? "seller"
                 : d.RaisedBy == d.BuyerId ? "buyer"
                 : "buyer",
-            Evidence = BuildDisputeEvidence(d, snapshot),
+            Evidence = BuildDisputeEvidence(d, snapshot, currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
         };
@@ -548,7 +555,8 @@ public class AdminCaseService : IAdminCaseService
 
     private static CaseEvidenceDto BuildDisputeEvidence(
         DisputeCaseData d,
-        ListingSnapshotDto? snapshot
+        ListingSnapshotDto? snapshot,
+        string? currentListingStatus
     ) =>
         d.Type switch
         {
@@ -557,12 +565,14 @@ public class AdminCaseService : IAdminCaseService
                 Snapshot = snapshot,
                 BuyerPhotos = d.Photos,
                 SellerRefusedPhotos = d.SellerRefusedPhotos,
+                CurrentListingStatus = currentListingStatus,
             },
             _reportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
                 ListingId = d.ListingId,
                 ReportReason = d.Description,
+                CurrentListingStatus = currentListingStatus,
             },
             "no_show" => new CaseEvidenceDto
             {

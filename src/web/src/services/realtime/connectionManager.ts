@@ -52,6 +52,10 @@ class ConnectionManager {
     (e: { listingId: string; title: string; price: number; message: string }) => void
   >();
 
+  private readonly verificationCreatedListeners= new Set<
+    (e: {caseId: string}) => void
+  >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -103,6 +107,8 @@ class ConnectionManager {
       conn.on("dispute_created", (data: { caseId: string; type: string }) =>
         this.disputeCreatedListeners.forEach((cb) => cb(data)),
       );
+      conn.on("verification_created", (e: {caseId: string}) =>
+        this.verificationCreatedListeners.forEach((cb)=> cb(e)),);
       conn.on(
         "dispute_resolved",
         (data: { caseId: string; status: string }) =>
@@ -268,6 +274,14 @@ class ConnectionManager {
     this.disputeCreatedListeners.add(callback);
     return () => this.disputeCreatedListeners.delete(callback);
   }
+
+  onVerificationCreated(
+    callback: (e: {caseId: string}) => void,
+  ): Unsubscribe{
+    this.verificationCreatedListeners.add(callback);
+    return ()=> this.verificationCreatedListeners.delete(callback);
+  }
+  
 
   onDisputeResolved(
     callback: (data: { caseId: string; status: string }) => void,

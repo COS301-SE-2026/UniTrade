@@ -10,6 +10,7 @@ public sealed class CaseEvidenceDto
     public string? Email { get; set; }
     public bool? DomainValid { get; set; }
     public string? ProofDocument { get; set; }
+    public string? CurrentListingStatus { get; set; }
 
     public ListingSnapshotDto? Snapshot { get; set; }
     public List<string>? BuyerPhotos { get; set; }
@@ -25,4 +26,5 @@ public sealed class CaseEvidenceDto
     public DateTime? SellerCheckInTime { get; set; }
     public string? PinStatus { get; set; }
     public DateTime? CheckInWindowClosesAt { get; set; }
+
 }

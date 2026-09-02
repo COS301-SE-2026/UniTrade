@@ -155,6 +155,11 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
     })
 
+    const offVerificationCreated= connectionManager.onVerificationCreated(()=>{
+      queryClient.invalidateQueries({queryKey: queryKeys.verifications()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    });
+
     const offDisputeResolved = connectionManager.onDisputeResolved(() => {
       queryClient.invalidateQueries({queryKey: queryKeys.disputes()});
       queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
@@ -175,6 +180,7 @@ if (import.meta.env.DEV || !user) return;
       offDisputeCreated();
       offDisputeResolved();
       offSavedSearchMatch();
+      offVerificationCreated();
       if(user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }

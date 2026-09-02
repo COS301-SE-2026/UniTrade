@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { IconFileText, IconEye } from "@tabler/icons-react"
+import {useQuery} from "@tanstack/react-query"
 import { getCases } from '../../services/adminService'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getApiUrl } from '../../config'
+import {queryKeys} from '../../lib/queryKeys'
 import { LoadingState } from '../../components/layout/Spinner'
 
 export interface VerificationRow {
@@ -27,9 +29,6 @@ function formatDate(iso: string) {
 }
 
 export default function AdminVerifications() {
-  const [rows, setRows] = useState<VerificationRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
   const [filter, setFilter] = useState<'All' | 'Overdue' | 'Due soon' | 'Normal'>('All')
@@ -37,84 +36,60 @@ export default function AdminVerifications() {
   const navigate = useNavigate();
 
 
-  useEffect(() => {
-    let active = true;
+  const { data: rows= [], isLoading: loading, error} =useQuery({
+    queryKey: queryKeys.verifications(),
+    queryFn: async(): Promise<VerificationRow[]>=>{
+      const response= await getCases();
+      const cases=Array.isArray(response) ? response: response.cases;
+      const verificationCases=cases.filter((c)=> c.type==='verification');
 
-    getCases()
-      .then((response) => {
+      return verificationCases.map((summary)=>
+      {
+        const ageHours=summary.ageHours;
+        const slaHours=summary.slaHours;
+        const remaining=Math.max(0,slaHours-ageHours);
+        const progress=Math.min(100,(ageHours/slaHours) * 100);
 
+        let slaState: 'Overdue'|'Due soon'|'Normal';
+        let slaStatus: string;
+        let slaMessage: string;
 
-        
-        const cases = Array.isArray(response) ? response : response.cases;
-
-        const verificationCases = cases.filter((c) => c.type === 'verification');
-
-
-        const enriched = verificationCases.map((summary) => {
-          const ageHours = summary.ageHours;
-          const slaHours = summary.slaHours;
-          const remaining = Math.max(0, slaHours - ageHours);
-          const progress = Math.min(100, (ageHours / slaHours) * 100);
-
-
-          let slaState: 'Overdue' | 'Due soon' | 'Normal';
-          let slaStatus: string;
-          let slaMessage: string;
-
-          if (ageHours > slaHours) {
-            slaState = 'Overdue';
-            slaStatus = `${Math.round(ageHours - slaHours)}h overdue`;
-            slaMessage = 'Past SLA - action required';
-
-          }
-          else if (remaining < 12) {
-            slaState = 'Due soon';
-            slaStatus = `${Math.round(remaining)}h left`;
-            slaMessage = 'Approaching SLA';
-
-          }
-          else {
-            slaState = 'Normal';
-            slaStatus = `${Math.round(remaining)}h left`;
-            slaMessage = 'On track';
-          }
-
-          return {
-            id: summary.caseId,
-            name: summary.subjectName ?? 'Unknown',
-            initials: summary.subjectInitials ?? '??',
-            degree: summary.subjectDegree ?? 'N/A',
-            year: summary.subjectYear ?? null,
-            submittedDate: formatDate(summary.submittedAt),
-            slaStatus,
-            slaState,
-            slaProgress: Math.round(progress),
-            slaMessage,
-            domain: 'Valid SA Uni domain',
-            docName: summary.hasDocument ? 'Proof of Registration' : 'Not yet submitted',
-            docDate: formatDate(summary.submittedAt),
-            docUrl: summary.hasDocument
-              ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
-              : null,
-          };
-
-        })
-
-        if (active) {
-          setRows(enriched);
-          setLoading(false);
+        if(ageHours > slaHours){
+          slaState='Overdue';
+          slaStatus=`${Math.round(ageHours-slaHours)}h overdue`;
+          slaMessage= 'Past SLA-action required';
+        }else if( remaining <12){
+          slaState='Due soon';
+          slaStatus=`${Math.round(remaining)}h left`;
+          slaMessage='Approaching SLA';
+        } else{
+          slaState='Normal';
+          slaStatus=`${Math.round(remaining)}h left`;
+          slaMessage='On track';
         }
-      })
-      .catch((err) => {
-        if (active) {
-          setError(err.message || 'Failed to load verifications');
-          setLoading(false);
-        }
+
+        return {
+          id: summary.caseId,
+          name: summary.subjectName ?? 'Unknown',
+          initials: summary.subjectInitials ?? 'N/A',
+          degree: summary.subjectDegree ?? 'N/A',
+          year: summary.subjectYear ?? null,
+          submittedDate: formatDate(summary.submittedAt),
+          slaStatus,
+          slaState,
+          slaProgress: Math.round(progress),
+          slaMessage,
+          domain: 'Valid SA Uni domain',
+          docName: summary.hasDocument ? 'Proof of registration' : 'Not yet submitted',
+          docDate: formatDate(summary.submittedAt),
+          docUrl: summary.hasDocument
+            ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
+            : null,  
+        };
       });
-    return () => {
-      active = false;
-    };
-  }, []);
+    }
+  });
+
 
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,7 +117,7 @@ export default function AdminVerifications() {
     return <LoadingState message = "Loading Verifications... " />
   }
   if (error) {
-    return <p className='text-sm text-red-600'>{error}</p>;
+    return <p className='text-sm text-red-600'>Failed to load verifications</p>;
   }
 
   return (
@@ -152,7 +127,7 @@ export default function AdminVerifications() {
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Student Verifications
         </h1>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-600 mt-1">
           Review students proof of registration and approve or reject account
         </p>
       </div>
@@ -161,7 +136,7 @@ export default function AdminVerifications() {
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numOverdue}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Overdue</div>
+            <div className="text-xs text-gray-600 mt-0.5">Overdue</div>
 
           </div>
         </div>
@@ -169,21 +144,21 @@ export default function AdminVerifications() {
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numDueSoon}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Due Soon</div>
+            <div className="text-xs text-gray-600 mt-0.5">Due Soon</div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Total Pending</div>
+            <div className="text-xs text-gray-600 mt-0.5">Total Pending</div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numApprovedToday}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Approved Today</div>
+            <div className="text-xs text-gray-600 mt-0.5">Approved Today</div>
           </div>
         </div>
       </div>
@@ -240,6 +215,7 @@ export default function AdminVerifications() {
 
         <div>
           <select
+            aria-label="Sort disputes"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'Oldest First' | 'Newest First')}
             className='px-4 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-600 focus:outline-none cursor-pointer'>
@@ -253,7 +229,7 @@ export default function AdminVerifications() {
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-xs text-gray-400 font-normal">
+            <tr className="text-xs text-gray-600 font-normal">
               <th className="py-3 px-4">
                 Student
               </th>
@@ -271,7 +247,7 @@ export default function AdminVerifications() {
           <tbody className="divide-y divide-gray-100 text-xs">
             {sortedRows.length === 0 ? (
               <tr>
-                <td colSpan={4} className="py-6 text-center text-gray-400">
+                <td colSpan={4} className="py-6 text-center text-gray-600">
                   No verifications match your filters
                 </td>
               </tr>
@@ -284,7 +260,7 @@ export default function AdminVerifications() {
                     </div>
                     <div className="font-bold text-gray-900">
                       {ver.name}
-                      <div className="text-[10px] text-gray-400 mt-0.5">
+                      <div className="text-[10px] text-gray-600 mt-0.5">
                         {ver.degree}{ver.year ? `, Y${ver.year}` : ''}
                       </div>
                     </div>
@@ -292,7 +268,7 @@ export default function AdminVerifications() {
 
                   <td className="py-4 px-4 text-center">
                     <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-medium ${ver.slaState === 'Overdue'
-                      ? 'bg-rose-200 text-rose-700'
+                      ? 'bg-rose-200 text-rose-800'
                       : ver.slaState === 'Due soon'
                         ? 'bg-amber-100 text-amber-700'
                         : 'bg-emerald-100 text-emerald-700'
@@ -326,7 +302,7 @@ export default function AdminVerifications() {
                       </div>
                       <div>
                         <div className="font-semibold text-gray-800">{ver.docName}</div>
-                        <div className="text-[10px] text-gray-400">
+                        <div className="text-[10px] text-gray-600">
                           Uploaded {ver.docDate}
                         </div>
                       </div>

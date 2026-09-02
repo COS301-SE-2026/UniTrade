@@ -133,7 +133,7 @@ return (
         <h2 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
             Saved Searches
         </h2>
-        <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg0gray-50">
+        <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg-gray-50">
             <div className = "flex-1 min-w-[200px]">
                 <label className = "block text-xs font-medium text-gray-700 mb-1">
                     Keywords
@@ -148,7 +148,7 @@ return (
             </div>
 
             <div className = "w-40">
-                <label className = "block text-xs font-medium text-gray-700 mv-1">
+                <label className = "block text-xs font-medium text-gray-700 mb-1">
                     Category
                 </label>
                 <select 

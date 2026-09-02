@@ -24,7 +24,9 @@ const mockListings = {
       condition: 'Good' as const, 
       metadata: null, 
       sellerId: "1",           
-      courseId: 1,    
+      courseId: 1,  
+      answeredQuestionCount: 2
+  
     },
     { 
       id: '2', 
@@ -37,6 +39,7 @@ const mockListings = {
       metadata: null,
       sellerId: "1",
       courseId: 2,
+      answeredQuestionCount: 2
     },
     { 
       id: '3', 
@@ -49,6 +52,7 @@ const mockListings = {
       metadata: null,
       sellerId: "1",
       courseId: 3,
+      answeredQuestionCount: 2
     },
   ],
   total: 3,

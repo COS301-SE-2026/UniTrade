@@ -29,6 +29,8 @@ import {
 import { ReviewList } from "../auth/Review";
 import { fileDispute } from "../../services/adminService";
 import ListingQnA from "../../components/ListingQnA";
+import { useToast } from "../../components/layout/useToast";
+import { queryClient } from "../../lib/queryClient";
 
 function DetailRow({
   label,
@@ -111,6 +113,7 @@ function ReportModal({
 
 export default function ListingDetail() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const { id } = useParams<{ id: string }>();
   const [listing, setListing] = useState<ListingDetailType | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
@@ -130,6 +133,8 @@ export default function ListingDetail() {
   const [reportReason, setReportReason] = useState("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [wishlisting, setWishlisting] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
 
   const handleSubmitReport = async () => {
     if (!listing) return;
@@ -148,17 +153,37 @@ export default function ListingDetail() {
       setReportModalOpen(false);
       setReportReason("");
       setReportError(null);
-      alert("Report submitted. A UniTrade admin will review it.");
+      showToast("success", "Thanks — your report has been submitted and a UniTrade admin will review it shortly.");
     } catch (err) {
-      if (err instanceof Error) {
-        setReportError(err.message || "Failed to submit report");
-
-      }
+      const raw = err instanceof Error ? err.message : "";
+      const message_row = raw === "dispute_already_open" ? "You've already reported this listing." : raw === "listing_not_live" ? "This listings is no longer available to report." : "Something went wrong submitting your report. Please try again.";
+      setReportError(message_row);
     } finally {
       setReportSubmitting(false);
     }
   };
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!listing || wishlisting || wishlisted) return;
 
+    setWishlisting(true);
+
+    try {
+      await listingsService.addToWishlist(String(listing.id));
+      setWishlisted(true);
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      showToast("success", "Successfully added to wishlist.");
+    } catch (err) {
+      if (err instanceof Error && err.message === "already_wishlisted") {
+        setWishlisted(true);
+        showToast("error", "Already wishlisted.");
+      } else {
+        showToast("error", "Could not add to wishlist.");
+      }
+    } finally {
+      setWishlisting(false);
+    }
+  };
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!listing) return;
@@ -306,7 +331,7 @@ export default function ListingDetail() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-lg">
-                      📚
+                      
                     </div>
                   )}
                 </button>
@@ -383,13 +408,13 @@ export default function ListingDetail() {
               )}
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
-           
+
           </div>
-           <ListingQnA
-              listingId={listing.id}
-              isSeller={false}
-              canAsk={true}
-              />
+          <ListingQnA
+            listingId={listing.id}
+            isSeller={false}
+            canAsk={true}
+          />
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
@@ -437,7 +462,7 @@ export default function ListingDetail() {
                   label: "Reputation Score",
                 },
                 {
-                  val: sellerRating != null ? sellerRating.toFixed(1) : "_",
+                  val: sellerRating != null ? sellerRating.toFixed(1) : "—",
                   label: "Rating",
                 },
               ].map(({ val, label }) => (
@@ -479,16 +504,22 @@ export default function ListingDetail() {
 
             <button
               type="button"
+              onClick={handleAddToWishlist}
+              disabled={wishlisting || wishlisted}
               className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
-              <IconHeart size={16} /> Add to wishlist
+              <IconHeart size={16} /> {
+                wishlisted ? 'In Wishlist' :
+                  wishlisting ? 'Adding...' :
+                    'Add to Wishlist'
+              }
             </button>
 
             <button
               onClick={() => setReportModalOpen(true)}
-              className="w-full flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full border border-red-300 dark:border-red-500/30 text-red-500 dark:text-red-400 font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
             >
-              <IconFlag size={13} /> Report this listing
+              <IconFlag size={16} /> Report this listing
             </button>
           </div>
 

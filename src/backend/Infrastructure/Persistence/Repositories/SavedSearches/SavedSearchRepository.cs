@@ -97,7 +97,7 @@ public class SavedSearchRepository : ISavedSearchRepository
 
         if (search.MaxPrice.HasValue)
         {
-            query = query.Where(l => l.Price >= search.MaxPrice.Value);
+            query = query.Where(l => l.Price <= search.MaxPrice.Value);
         }
 
         var candidates = await query.ToListAsync(ct);

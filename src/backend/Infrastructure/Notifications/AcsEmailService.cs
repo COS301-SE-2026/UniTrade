@@ -226,7 +226,7 @@ public class AcsEmailService : IEmailService
       <p>A listing you might be interested in has just been posted;</p>
       <div style='background: #f4f4f4; border-radius: 8px; padding: 16px; margin: 16px 0;'>
       <strong>{title}</strong><br/>
-      <span style='color': #0f2d6b; font-weight: bold;'>R{price:F2}</span>
+      <span style='color: #0f2d6b; font-weight: bold;'>R{price:F2}</span>
       </div>
       <p style='color: #888; font-size: 13px;'>You received this because you saved a search on UniTrade.</p>
       </div>
