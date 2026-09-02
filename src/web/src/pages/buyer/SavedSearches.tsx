@@ -281,7 +281,7 @@ return (
                                 <img 
                                 src = {listing.imageUrl || "/placeholder.png"}
                                 alt = {listing.title}
-                                className = "w-16 h-16 rounded-lg object-cover flex-shrrink-0"
+                                className = "w-16 h-16 rounded-lg object-cover flex-shrink-0"
                                 />
                                 <div className = "flex-1 min-w-0">
                                     <p className = "text-sm font-semibold text-navy-700 truncate">
@@ -289,7 +289,7 @@ return (
                                     </p>
                                     <div className = "flex flex-wrap items-center gap-2 mt-1">
                                         <span className = "text-xs bg-gray-200 px-2 py-0.5 rounded">
-                                            {getDisplayCategory(listing.title)} {/*need to verify this, add an category name in the listing summary maybe ? */}
+                                            {getDisplayCategory(listing.categoryName)} {/*need to verify this, add an category name in the listing summary maybe ? */}
                                             </span>
                                             <span className = "text-sm font-bold text-navy-700">
                                                 {formatPrice(listing.price)}
@@ -299,7 +299,7 @@ return (
                                         <button 
                                         type = "button"
                                         onClick = {() => navigate(`/buyer/listings/${listing.id}`)}
-                                        className  = "bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-4 py-2 rounded-full-transition-colors whitespace-nowrap"
+                                        className  = "bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors whitespace-nowrap"
                                         >
                                             View
                                             </button>
