@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { IconFileText, IconEye } from "@tabler/icons-react"
+import {useQuery} from "@tanstack/react-query"
 import { getCases } from '../../services/adminService'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getApiUrl } from '../../config'
+import {queryKeys} from '../../lib/queryKeys'
 import { LoadingState } from '../../components/layout/Spinner'
 
 export interface VerificationRow {
@@ -27,9 +29,6 @@ function formatDate(iso: string) {
 }
 
 export default function AdminVerifications() {
-  const [rows, setRows] = useState<VerificationRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
   const [filter, setFilter] = useState<'All' | 'Overdue' | 'Due soon' | 'Normal'>('All')
@@ -37,84 +36,60 @@ export default function AdminVerifications() {
   const navigate = useNavigate();
 
 
-  useEffect(() => {
-    let active = true;
+  const { data: rows= [], isLoading: loading, error} =useQuery({
+    queryKey: queryKeys.verifications(),
+    queryFn: async(): Promise<VerificationRow[]>=>{
+      const response= await getCases();
+      const cases=Array.isArray(response) ? response: response.cases;
+      const verificationCases=cases.filter((c)=> c.type==='verification');
 
-    getCases()
-      .then((response) => {
+      return verificationCases.map((summary)=>
+      {
+        const ageHours=summary.ageHours;
+        const slaHours=summary.slaHours;
+        const remaining=Math.max(0,slaHours-ageHours);
+        const progress=Math.min(100,(ageHours/slaHours) * 100);
 
+        let slaState: 'Overdue'|'Due soon'|'Normal';
+        let slaStatus: string;
+        let slaMessage: string;
 
-        
-        const cases = Array.isArray(response) ? response : response.cases;
-
-        const verificationCases = cases.filter((c) => c.type === 'verification');
-
-
-        const enriched = verificationCases.map((summary) => {
-          const ageHours = summary.ageHours;
-          const slaHours = summary.slaHours;
-          const remaining = Math.max(0, slaHours - ageHours);
-          const progress = Math.min(100, (ageHours / slaHours) * 100);
-
-
-          let slaState: 'Overdue' | 'Due soon' | 'Normal';
-          let slaStatus: string;
-          let slaMessage: string;
-
-          if (ageHours > slaHours) {
-            slaState = 'Overdue';
-            slaStatus = `${Math.round(ageHours - slaHours)}h overdue`;
-            slaMessage = 'Past SLA - action required';
-
-          }
-          else if (remaining < 12) {
-            slaState = 'Due soon';
-            slaStatus = `${Math.round(remaining)}h left`;
-            slaMessage = 'Approaching SLA';
-
-          }
-          else {
-            slaState = 'Normal';
-            slaStatus = `${Math.round(remaining)}h left`;
-            slaMessage = 'On track';
-          }
-
-          return {
-            id: summary.caseId,
-            name: summary.subjectName ?? 'Unknown',
-            initials: summary.subjectInitials ?? '??',
-            degree: summary.subjectDegree ?? 'N/A',
-            year: summary.subjectYear ?? null,
-            submittedDate: formatDate(summary.submittedAt),
-            slaStatus,
-            slaState,
-            slaProgress: Math.round(progress),
-            slaMessage,
-            domain: 'Valid SA Uni domain',
-            docName: summary.hasDocument ? 'Proof of Registration' : 'Not yet submitted',
-            docDate: formatDate(summary.submittedAt),
-            docUrl: summary.hasDocument
-              ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
-              : null,
-          };
-
-        })
-
-        if (active) {
-          setRows(enriched);
-          setLoading(false);
+        if(ageHours > slaHours){
+          slaState='Overdue';
+          slaStatus=`${Math.round(ageHours-slaHours)}h overdue`;
+          slaMessage= 'Past SLA-action required';
+        }else if( remaining <12){
+          slaState='Due soon';
+          slaStatus=`${Math.round(remaining)}h left`;
+          slaMessage='Approaching SLA';
+        } else{
+          slaState='Normal';
+          slaStatus=`${Math.round(remaining)}h left`;
+          slaMessage='On track';
         }
-      })
-      .catch((err) => {
-        if (active) {
-          setError(err.message || 'Failed to load verifications');
-          setLoading(false);
-        }
+
+        return {
+          id: summary.caseId,
+          name: summary.subjectName ?? 'Unknown',
+          initials: summary.subjectInitials ?? 'N/A',
+          degree: summary.subjectDegree ?? 'N/A',
+          year: summary.subjectYear ?? null,
+          submittedDate: formatDate(summary.submittedAt),
+          slaStatus,
+          slaState,
+          slaProgress: Math.round(progress),
+          slaMessage,
+          domain: 'Valid SA Uni domain',
+          docName: summary.hasDocument ? 'Proof of registration' : 'Not yet submitted',
+          docDate: formatDate(summary.submittedAt),
+          docUrl: summary.hasDocument
+            ? `${getApiUrl()}/admin/cases/${summary.caseId}/document`
+            : null,  
+        };
       });
-    return () => {
-      active = false;
-    };
-  }, []);
+    }
+  });
+
 
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,7 +117,7 @@ export default function AdminVerifications() {
     return <LoadingState message = "Loading Verifications... " />
   }
   if (error) {
-    return <p className='text-sm text-red-600'>{error}</p>;
+    return <p className='text-sm text-red-600'>Failed to load verifications</p>;
   }
 
   return (

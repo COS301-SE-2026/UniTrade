@@ -88,7 +88,7 @@ public class ControllerTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task RootOrAuthEndpoint_ShouldRespondWithoutThrowingInternalErrors()
     {
-        var response = await _client.GetAsync("/api/auth/status-check-or-fallback");
+        var response = await _client.GetAsync("/api/auth/me");
         Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 }
