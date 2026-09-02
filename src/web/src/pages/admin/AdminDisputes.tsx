@@ -244,20 +244,6 @@ export default function AdminDisputes() {
                 transition-colors cursor-pointer">
                         Review
                       </button>
-                      <button
-                        type="button"
-
-                        className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
-                transition-colors cursor-pointer text-[10px] leading-tight">
-                        Message Seller
-                      </button>
-                      <button
-                        type="button"
-
-                        className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
-                transition-colors cursor-pointer text-[10px] leading-tight">
-                        Message Buyer
-                      </button>
                     </div>
                   </td>
                 </tr>
