@@ -240,7 +240,78 @@ paths:
                 type: object
                 properties:
                   error: {type: string, example: SELLER_NOT_VERIFIED}
+  
+  /listings/{listingId}/questions:
+    get:
+      summary: List questions asked on a listing 
+      parameters: 
+        - {name: listingId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/ListingQuestionDto'}}
+    post:
+      summary: Ask a question on a listing 
+      parameters:
+        - {name: listingId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AskQuestionDto'}
+      responses:
+        '200':
+          description: Question created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingQuestionDto'}
+        '400':
+          description: Blank question text
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorCode'}
+        '403':
+          description: Caller is the listing's own seller
+        '404':
+          description: Listing not found, or exists but not live.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorCode'}
+      
 
+  /listings/questions/{questionId}/answer:
+    post:
+      summary: Answer a question (seller only).
+      parameters:
+        - {name: questionId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AnswerQuestionDto'}
+      responses:
+        '200':
+          description: Question answered 
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingQuestionDto'}
+        '400':
+          description: Already answered
+          content:
+            application/json:
+              schema: {$ref:  '#/components/schemas/ErrorCode'}
+        '403':
+          description:  Caller is not the listing's seller
+        '404':
+          description: Question not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorCode'}
+        
+
+    
 components:
   securitySchema:
     bearerAuth: {type: http, schema: bearer, bearerFormat: JWT}
@@ -497,6 +568,28 @@ components:
         maxPrice: {type: number, nullable: true}
         courseId: {type: integer, nullable: true}
         isActive: {type: boolean}
+
+    ListingQuestionDto:
+      type: object
+      properties:
+        questionId: {type: string, format: uuid}
+        listingId: {type: string, format: uuid}
+        questionText: {type: string}
+        answerText: {type: string, nullable: true}
+        askedAt: {type: string, format: date-time}
+        answeredAt: {type: string, format: date-time, nullable: true}
+        askedInitials: {type: string, description: "'?' if the asker's identity could not be resolved"}
+    
+    AskQuestionDto:
+      type: object
+      required: [answerText]
+      properties: 
+        answerText: {type: string}
+    
+    ErrorCode:
+      type: object
+      properties:
+        code: {type: string}
 
 
             
