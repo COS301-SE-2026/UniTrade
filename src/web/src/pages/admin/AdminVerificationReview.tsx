@@ -65,7 +65,6 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
     document: {
       name: hasDocument ? 'Proof of Registration' : 'Not yet submitted',
       uploadedDate: new Date(detail.submittedAt).toLocaleDateString('en-ZA'),
-      sizeLabel: 'Unknown size',
       url: hasDocument
         ? `${getApiUrl()}/admin/cases/${detail.caseId}/document`
         : '#',
@@ -88,12 +87,12 @@ function ReasonModal({
   onCancel,
   onSubmit,
   submitting,
-}: Readonly<{
+}: {
   decision: VerificationDecision;
   onCancel: () => void;
   onSubmit: (reason: string) => void;
   submitting: boolean;
-}>) {
+}) {
   const [reason, setReason] = useState('');
 
   return (
@@ -247,7 +246,7 @@ export default function AdminVerificationReview() {
                 <div>
                   <p className="text-sm text-navy-700 dark:text-white">{record.document.name}</p>
                   <p className="text-xs text-gray-400">
-                    Uploaded {record.document.uploadedDate} · {record.document.sizeLabel}
+                    Uploaded {record.document.uploadedDate}
                   </p>
                 </div>
               </div>

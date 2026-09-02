@@ -10,6 +10,7 @@ import {
   DecisionButton,
   OutlineButton,
   NotesPanel,
+  ConfirmModal,
 } from './AdminReviewShared';
 import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
@@ -45,11 +46,24 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'more-info': 'Marked as needing more info',
   'side-buyer': 'Sided with buyer',
   'side-seller': 'Sided with seller',
+  
   'remove-listing': 'Listing removed',
   'warn-seller': 'Seller warned',
 };
 
-const finalDecisions: Set<DisputeDecision> = new Set(['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller']);
+const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
+  'remove-listing': 'Are you sure you want to remove this listing?',
+  'warn-seller': 'Are you sure you want to warn this seller?',
+  dismiss: 'Are you sure you want to dismiss this dispute?'
+};
+
+const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
+  'remove-listing': 'This will remove the listing from the platform and notify the seller.This cannot be undone',
+  'warn-seller': 'You are about to issue a formal warning to this seller. The seller will be notified.',
+  'dismiss': 'This will dismiss the dispute without taking any action.'
+};
+
+const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
 
 type State = {
   data: DisputeCase | null;
@@ -75,7 +89,8 @@ function disputeReducer(state: State, action: Action): State {
   }
 }
 
-function transformCaseDetail(detail: CaseDetail) {
+function transformCaseDetail(detail: CaseDetail) : DisputeCase{
+
 
   const mapPerson = (p: PartySummary | undefined) => {
     if (!p) {
@@ -207,7 +222,7 @@ export default function AdminDisputeReview() {
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
   const [decisionNote, setDecisionNote] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
-
+  const[pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
   useEffect(() => {
     let active = true;
 
@@ -244,6 +259,15 @@ export default function AdminDisputeReview() {
       setSubmitting(null);
     }
   }
+
+  function handleDecisionClick(decision: DisputeDecision) {
+    if (disputeConfirmTitles[decision]) {
+      setPendingConfirmDecision(decision);
+    } else {
+      handleDecision(decision);
+    }
+  }
+
 
    if(state.loading) {
     return <LoadingState message = "Loading case..." />;
@@ -298,7 +322,7 @@ export default function AdminDisputeReview() {
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
                 )}
-                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecision} suggestedDecision={dispute.suggestedDecision} />
+                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
               </>
             )}
           </Panel>
@@ -320,6 +344,24 @@ export default function AdminDisputeReview() {
           </Panel>
         </div>
       </div>
+
+      {pendingConfirmDecision && (
+        <ConfirmModal
+          title={disputeConfirmTitles[pendingConfirmDecision] ?? 'Are you sure?'}
+          message={disputeConfirmMessages[pendingConfirmDecision] ?? 'This action cannot be undone.'}
+          confirmLabel={decisionLabel[pendingConfirmDecision]}
+          tone={pendingConfirmDecision === 'remove-listing' ? 'danger' :
+            'neutral'
+          }
+          submitting={!!submitting}
+          onCancel={() => setPendingConfirmDecision(null)}
+          onConfirm={() => {
+
+            handleDecision(pendingConfirmDecision);
+            setPendingConfirmDecision(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -452,7 +494,7 @@ function DecisionConfirmation({
   decision,
   onBack,
 }: Readonly<{ dispute: DisputeCase; decision: DisputeDecision; onBack: () => void }>) {
-  const isFinal = finalDecisions.has(decision);
+  const isFinal = finalDecisions.includes(decision);
 
   return (
     <div>

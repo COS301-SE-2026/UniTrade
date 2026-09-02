@@ -134,9 +134,6 @@ const Login: React.FC = () => {
       const needsResubmission = 
       stdData?.verificationRequestStatus === 'under_review' &&
       stdData?.verificationAdminDecision === 'resubmission';
-
-
-
       setUser({
         id: userData.userId,
         name: `${userData.firstName} ${userData.lastName}`,
@@ -159,7 +156,7 @@ const Login: React.FC = () => {
         return;
       }
 
-      if(stdData?.verificationRequestStatus === 'uder_review') {
+      if(stdData?.verificationRequestStatus === 'under_review') {
         setPendingRole(userData.userRole as UserRole);
         setVerificationModal('under_review');
         return;
