@@ -63,6 +63,7 @@ export interface ListingSummary {
   status: ListingStatus
   views: number
   imageUrl: string
+  categoryName: string
 }
 
 export interface MyListingsResponse {

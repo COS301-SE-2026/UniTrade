@@ -1,8 +1,7 @@
 import { useEffect, useState, useReducer } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
+import { IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
 import {
-  Breadcrumb,
   InfoRow,
   Panel,
   PersonCard,
@@ -16,7 +15,7 @@ import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type Disp
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
 import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
 import { getApiUrl } from '../../config';
-import {LoadingState} from '../../components/layout/Spinner';
+import { LoadingState } from '../../components/layout/Spinner';
 
 export interface DisputeCase {
   id: string
@@ -46,7 +45,7 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'more-info': 'Marked as needing more info',
   'side-buyer': 'Sided with buyer',
   'side-seller': 'Sided with seller',
-  
+
   'remove-listing': 'Listing removed',
   'warn-seller': 'Seller warned',
 };
@@ -89,7 +88,7 @@ function disputeReducer(state: State, action: Action): State {
   }
 }
 
-function transformCaseDetail(detail: CaseDetail) : DisputeCase{
+function transformCaseDetail(detail: CaseDetail): DisputeCase {
 
 
   const mapPerson = (p: PartySummary | undefined) => {
@@ -222,7 +221,7 @@ export default function AdminDisputeReview() {
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
   const [decisionNote, setDecisionNote] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
-  const[pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
+  const [pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
   useEffect(() => {
     let active = true;
 
@@ -269,9 +268,9 @@ export default function AdminDisputeReview() {
   }
 
 
-   if(state.loading) {
-    return <LoadingState message = "Loading case..." />;
-   }
+  if (state.loading) {
+    return <LoadingState message="Loading case..." />;
+  }
 
   if (state.error || !state.data) {
     return <p className="text-sm text-gray-600">Dispute case not found</p>;
@@ -283,7 +282,16 @@ export default function AdminDisputeReview() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Breadcrumb trail={['Active Disputes', 'Case Review']} />
+        <div className='flex items-center gap-1.5 text-sm text-gray-400'>
+          <button type='button' onClick={() => navigate('/admin/disputes')}
+            className='text-[#00aaff] hover:underline cursor-pointer'
+          >Active Disputes
+
+          </button>
+          <IconChevronRight size={12} />
+          <span className='text-gray-400'></span>
+          <span className='text-gray-600' >Case Review</span>
+        </div>
         <StatusBadge label={badge.label} tone={badge.tone} />
       </div>
 
@@ -538,7 +546,7 @@ function DecisionActions({
   suggestedDecision
 }: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void; suggestedDecision?: DisputeDecision }>) {
 
-  
+
   if (type === 'no_show') {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
@@ -560,19 +568,19 @@ function DecisionActions({
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
           {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
-          {suggestedDecision=== 'uphold' && (
+          {suggestedDecision === 'uphold' && (
             <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
           )}
         </DecisionButton>
         <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
           {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
-          {suggestedDecision=== 'dismiss' && (
+          {suggestedDecision === 'dismiss' && (
             <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
           )}
         </DecisionButton>
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
           {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
-          {suggestedDecision=== 'dismiss' && (
+          {suggestedDecision === 'dismiss' && (
             <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
           )}
         </DecisionButton>
