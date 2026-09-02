@@ -153,7 +153,7 @@ export async function decideCase(
   const res = await fetch(`${getApiUrl()}/admin/cases/${id}/decision`, {
     method: "POST",
     credentials: "include",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
@@ -166,7 +166,7 @@ export async function fileDispute(
   const res = await fetch(`${getApiUrl()}/disputes`, {
     method: "POST",
     credentials: "include",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
@@ -300,4 +300,16 @@ export async function getTopDisputes(limit = 5): Promise<CaseSummary[]> {
 export async function getTotalUsers(): Promise<number> {
   const res = await getUsers({ limit: 1, page: 1 });
   return res.total;
+}
+
+export async function getSlaBreachCount(): Promise<number> {
+  const response = await getCases({ status: "pending" });
+  const cases = normaliseCases(response);
+
+  const disputeTypes = new Set<CaseType>([
+    "no_show",
+    "listing_quality",
+    "report_listing",
+  ]);
+  return cases.filter((c) => disputeTypes.has(c.type) && c.slaBreached).length;
 }

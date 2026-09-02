@@ -191,13 +191,15 @@ export function PersonCard({
 export function OutlineButton({
   children,
   onClick,
+  disabled,
   className = '',
 }: Readonly<{ children: React.ReactNode; onClick?: () => void; className?: string;disabled?: boolean }>) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full border border-gray-200 dark:border-white/10 text-navy-700 dark:text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left ${className}`}
+      disabled={disabled}
+      className={`w-full border border-gray-200 dark:border-white/10 text-navy-700 dark:text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {children}
     </button>
@@ -277,7 +279,6 @@ export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
 
   return (
     <Panel title="Case Notes">
-  
 
       {loading && <LoadingState message="Loading notes ..." />}
 

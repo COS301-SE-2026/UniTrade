@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Verification;
 using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
@@ -14,8 +15,10 @@ public class ListingService : IListingService
 
     private readonly IListingImageRepository _images;
     private readonly ISellerVerificationQuery _verification;
+    private readonly IListingPublishedListener _listener;
     private readonly IListingQuestionRepository _questions;
 
+    private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
         "live",
@@ -27,12 +30,16 @@ public class ListingService : IListingService
         IListingRepository listings,
         IListingImageRepository images,
         ISellerVerificationQuery verification,
+        IListingPublishedListener listener,
+        ILogger<ListingService> logger,
         IListingQuestionRepository questions
     )
     {
         _listings = listings;
         _images = images;
         _verification = verification;
+        _listener = listener;
+        _logger = logger;
         _questions = questions;
     }
 
@@ -69,7 +76,7 @@ public class ListingService : IListingService
         return new PagedResult<ListingSummaryDto>(summaries, total);
     }
 
-    internal static ListingSummaryDto MapToSummary(Listing l) =>
+    public static ListingSummaryDto MapToSummary(Listing l) =>
         new(
             ListingId: l.ListingId,
             SellerId: l.SellerId,
@@ -121,7 +128,7 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
-        var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim());
+        var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim(), ct);
         if (category == null)
         {
             throw new ArgumentException("invalid_category");
@@ -180,6 +187,35 @@ public class ListingService : IListingService
             newListing.BookDetails = newBook;
         }
         await _listings.AddAsync(newListing);
+        if (newListing.ListingStatus == "live")
+        {
+            try
+            {
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = newListing.ListingId,
+                    Title = newListing.Title,
+                    Description = newListing.Description,
+                    Price = newListing.Price,
+                    CategoryId = newListing.CategoryId,
+                    CourseId = newListing.CourseId,
+                    SellerId = newListing.SellerId,
+
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to fire listing published event for listing {ListingId}",
+                    newListing.ListingId
+                );
+                //log later @Zelamene
+
+                //log later @Zelamene
+            }
+        }
         return MapToSummary(newListing);
     }
 
@@ -342,8 +378,37 @@ public class ListingService : IListingService
             throw new InvalidOperationException("seller_not_verified");
         }
         listing.ListingStatus = newStatus;
-        listing.UpdatedAt = DateTime.Now;
+        listing.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
+        listing.ListingStatus = newStatus;
+        listing.UpdatedAt = DateTime.UtcNow;
+        if (newStatus == "live")
+        {
+            try
+            {
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = listing.ListingId,
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    CategoryId = listing.CategoryId,
+                    CourseId = listing.CourseId,
+                    SellerId = listing.SellerId,
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to fire listing published event for listing {ListingId}",
+                    listing.ListingId
+                );
+                //log later @Zelamene
+            }
+        }
+
         return true;
     }
 }

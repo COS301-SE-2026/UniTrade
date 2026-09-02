@@ -22,7 +22,7 @@ export default function Topbar() {
   const showSearch = !shouldSearchHide(location.pathname);
 
   const [inputValue, setInputValue] = useState(searchParams.get('q') || '');
-
+  if(!showSearch) return null;
   useEffect(() => {
     const timer = setTimeout(() => {
       const currentQ = searchParams.get('q') || '';

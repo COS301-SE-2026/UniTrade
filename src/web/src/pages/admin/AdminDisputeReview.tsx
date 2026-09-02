@@ -308,7 +308,7 @@ export default function AdminDisputeReview() {
 
           <Panel title="Actions">
             <div className="mb-4">
-              <OutlineButton onClick={() => navigate(`/buyer/listings/${dispute.listingId ?? dispute.id}`)} disabled={!dispute.listingId}>View Listing</OutlineButton>
+              <OutlineButton onClick={() => { if (dispute.listingId) navigate(`/buyer/listings/${dispute.listingId}`); }} disabled={!dispute.listingId}>View Listing</OutlineButton>
             </div>
 
             {completedDecision ? (
@@ -316,7 +316,6 @@ export default function AdminDisputeReview() {
             ) : (
               <>
                 <div className="mb-4">
-                  
                   <textarea
                     id="decision-note"
                     value={decisionNote}
@@ -384,7 +383,7 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
   return (
     <Panel title="Item">
       <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-lg bg-gray-100 darkLbg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {dispute.item.imageUrl && (
             <img src={dispute.item.imageUrl} alt={dispute.item.title} className="w-full h-full object-cover" />
           )}
