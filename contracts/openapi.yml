@@ -51,7 +51,7 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/CaseDetail'}
 
-  /admin/cases/document:
+  /admin/cases/{id}/document:
     get:
       summary: Download a case's proof-of-registration document
       parameters:
@@ -65,7 +65,7 @@ paths:
         '404':
           description: Not found
   
-  /admin/users/{id}/reputation:
+  /admin/users/{userId}/reputation:
     get:
       summary: Get a user's reputation summary, including strikes
       parameters:
@@ -84,6 +84,7 @@ paths:
                 type: object
                 properties:
                   error: {type: string, example: user_not_found}
+
   /admin/users:
     get:
       summary: List users, filterable by verification status/strikes/search term
@@ -112,6 +113,7 @@ paths:
               type: object
               properties:
                 ok: {type: boolean}
+
   /saved-searches:
     post: 
       summary: Create a saved search
@@ -146,6 +148,26 @@ paths:
         '404':
           description: Not Found
 
+  /saved-searches/{searchId}/listings:
+    get:
+      summary: get listings currently matching a saved search
+      parameters:
+        - {name: searchId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/UserListingDto'}}
+        '404':
+          description: Saved search not found or not owned by the caller
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  error: {type: string}
+
 
   /admin/audit:
     get:
@@ -160,18 +182,18 @@ paths:
             application/json:
               schema: {type: array, items: {$ref: '#/components/schemas/AuditEntry'}}
 
-  /admin/users/{id}/listings:
+  /admin/users/{userId}/listings:
     get:
-      summary: Retrieves a list of admin users.
+      summary: List a user's listings
       parameters:
-      - {name: userId, in: query, schema: {type: string, format: uuid}}
-      - {name: limit, in: query, schema: {type: int}}
+      - {name: userId, in: query,required: true, schema: {type: string, format: uuid}}
+      - {name: limit, in: query, schema: {type: integer, default: 10, minimum: 1, maximum: 50}}
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {type: array, }
+              schema: {type: array, items: {$ref: '#/components/schemas/UserListingDto'}}
 
   /disputes:
     post:
@@ -195,7 +217,7 @@ paths:
     get:
       summary: The listing as it was when this reservation was made
       parameters:
-        - { name: reservationId, in: path, required:true, schema: {type: string, format: uuid}}
+        - { name: reservationId, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         '200':
           description: OK
@@ -218,7 +240,78 @@ paths:
                 type: object
                 properties:
                   error: {type: string, example: SELLER_NOT_VERIFIED}
+  
+  /listings/{listingId}/questions:
+    get:
+      summary: List questions asked on a listing 
+      parameters: 
+        - {name: listingId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/ListingQuestionDto'}}
+    post:
+      summary: Ask a question on a listing 
+      parameters:
+        - {name: listingId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AskQuestionDto'}
+      responses:
+        '200':
+          description: Question created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingQuestionDto'}
+        '400':
+          description: Blank question text
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorCode'}
+        '403':
+          description: Caller is the listing's own seller
+        '404':
+          description: Listing not found, or exists but not live.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorCode'}
+      
 
+  /listings/questions/{questionId}/answer:
+    post:
+      summary: Answer a question (seller only).
+      parameters:
+        - {name: questionId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AnswerQuestionDto'}
+      responses:
+        '200':
+          description: Question answered 
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ListingQuestionDto'}
+        '400':
+          description: Already answered
+          content:
+            application/json:
+              schema: {$ref:  '#/components/schemas/ErrorCode'}
+        '403':
+          description:  Caller is not the listing's seller
+        '404':
+          description: Question not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorCode'}
+        
+
+    
 components:
   securitySchema:
     bearerAuth: {type: http, schema: bearer, bearerFormat: JWT}
@@ -268,6 +361,7 @@ components:
             history: {type: array, items: {type: object}}
             filedByUserId: {type: string, format: uuid, nullable: true}
             filedByRole: {type: string}
+
     PartySummary:
       type: object
       properties:
@@ -308,18 +402,21 @@ components:
         degree: {type: string}
         year: {type: integer}
         email: {type: string}
+
     ListingQualityEvidence:
       type: object
       properties:
         snapshot: {$ref: '#/components/schemas/ListingSnapshot'}
         photos: {type: array, items: {type: string}}
         sellerRefusedPhotos: {type: boolean}
+
     ReportListingEvidence:
       type: object
       properties:
         listingId: {type: string, format: uuid}
         reportReason: {type: string }
         snapshot: {$ref: '#/components/schemas/ListingSnapshot'}
+
     NoShowEvidence:
       type: object
       properties:
@@ -327,6 +424,7 @@ components:
         buyerCheckedIn: { type: boolean}
         sellerCheckedIn: { type: boolean}
         pinStatus: {type: string, nullable: true}
+
     DecisionRequest:
       type: object
       required: [decision]
@@ -358,6 +456,7 @@ components:
           description: "Required for listing_quality unless sellerRefusedPhotos is true"
         sellerRefusedPhotos: {type: boolean}
         description: {type : string, description: "Also carries the report reason for report_listing"}
+
     ListingSnapshot:
       type: object
       properties:
@@ -370,6 +469,7 @@ components:
         courseTags: {type: array, items: {type: string}}
         capturedAt: {type: string, format: date-time}
         description: {type: string}
+
     Strike:
       type: object
       properties: 
@@ -380,10 +480,11 @@ components:
         createdByAdminId: {type: string, format: uuid}
         createdAt: {type: string, format: date-time}
         strikeId: {type: string, format: uuid}
+
     AuditEntry:
       type: object
       properties:
-        logId: {type: integer, format: uuid, format: int64, description: "AuditLog.LogId is a bigint, not a uuid"}
+        logId: {type: integer, format: int64, description: "AuditLog.LogId is a bigint, not a uuid"}
         actorId: { type: string, format: uuid,nullable: true}
         action: {type: string}
         entityId: {type: string}
@@ -402,16 +503,7 @@ components:
         price:  {type: number}
         createdAt:  {type: string, format: date-time}
         imageUrl: {type: string, nullable: true}
-        
-    UserReputationDto:
-      type: object
-      properties:
-        listingId:  {type: string, format: uuid}
-        title:  {type: string}
-        status: {type: string}
-        price:  {type: number}
-        createdAt:  {type: string, format: date-time}
-        imageUrl: {type: string, nullable: true}
+
     UserReputationDto:
       type: object
       properties: 
@@ -423,8 +515,10 @@ components:
         year: {type: integer}
         verificationStatus: {type: string}
         reviewAverage: {type: number}
-        reputationScore: {type: integer}
-        reviewCount: {type: array, items: {$ref: '#/components/schemas/StrikeDto'}}
+        reputationScore: {type: number}
+        reviewCount: {type: integer}
+        strikes: {type: array, items: {$ref: '#/components/schemas/StrikeDto'}}
+
     StrikeDto:
       type: object
       properties:
@@ -474,6 +568,28 @@ components:
         maxPrice: {type: number, nullable: true}
         courseId: {type: integer, nullable: true}
         isActive: {type: boolean}
+
+    ListingQuestionDto:
+      type: object
+      properties:
+        questionId: {type: string, format: uuid}
+        listingId: {type: string, format: uuid}
+        questionText: {type: string}
+        answerText: {type: string, nullable: true}
+        askedAt: {type: string, format: date-time}
+        answeredAt: {type: string, format: date-time, nullable: true}
+        askedInitials: {type: string, description: "'?' if the asker's identity could not be resolved"}
+    
+    AskQuestionDto:
+      type: object
+      required: [answerText]
+      properties: 
+        answerText: {type: string}
+    
+    ErrorCode:
+      type: object
+      properties:
+        code: {type: string}
 
 
             
