@@ -80,7 +80,7 @@ return (
         <h2 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
             Saved Searches
         </h2>
-        <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg0gray-50">
+        <div className = "flex flex-wrap gap-4 items-end border p-4 rounded-lg bg-gray-50">
             <div className = "flex-1 min-w-[200px]">
                 <label htmlFor="keywords" className = "block text-xs font-medium text-gray-700 mb-1">
                     Keywords
@@ -94,7 +94,7 @@ return (
             </div>
 
             <div className = "w-40">
-                <label htmlFor="category" className = "block text-xs font-medium text-gray-700 mv-1">
+                <label htmlFor="category" className = "block text-xs font-medium text-gray-700 mb-1">
                     Category
                 </label>
                 <select 
@@ -133,7 +133,7 @@ return (
                 type = "number"
                 min = "0"
                 step = "1"
-                value = {minPrice}
+                value = {maxPrice}
                 onChange = {(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
                 className = "w-full border rounded px-3 py-2 text-sm"
                 />
@@ -160,7 +160,7 @@ return (
                                 {s.query}
                             </span>
                             {!!s.categoryId && (
-                                <span className = ",l-2 text-xs bg-gray-200 px-2 py-0.5 rounded ">
+                                <span className = "ml-2 text-xs bg-gray-200 px-2 py-0.5 rounded ">
                                     {getDisplayCategory(
                                         categories.find(c => c.id === s.categoryId)?.name ?? ""
                                     )}
