@@ -19,6 +19,7 @@ export interface CreateSavedSearchInput {
 
 }
 
+//triggerpipe
 export async function getSavedSearches(): Promise<SavedSearch[]>{
     const res = await fetch(`${getApiUrl()}/saved-searches`, {
         method: "GET",
