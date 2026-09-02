@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260902221302_AddProofOfRegistration")]
-    partial class AddProofOfRegistration
+    [Migration("20260902223631_AddListingQuestions")]
+    partial class AddListingQuestions
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

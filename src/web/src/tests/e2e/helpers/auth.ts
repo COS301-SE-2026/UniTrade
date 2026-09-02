@@ -90,6 +90,17 @@ export async function signupAndLogin(
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: /^login$/i }).click();
 
+  const verificationHeading = page.getByRole("heading", {name: "Verification Status"});
+  const modalAppeared = await verificationHeading
+  .waitFor({state: "visible", timeout: 5000})
+  .then(() => true)
+  .catch(() => false);
+
+  if (modalAppeared) {
+    await page.getByRole("button", { name: /^continue$/i}).click();
+  }
+
+
   await page.waitForURL(/\/buyer\/listings/);
 }
 

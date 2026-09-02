@@ -16,7 +16,7 @@ export async function findPendingVerificationCaseId(
     studentEmail: string,
 ) : Promise<string> {
     const listRes = await adminPage.request.get(
-        `${API_URL}/admin/case?type=verification&status=pending&limit=50`,
+        `${API_URL}/admin/cases?type=verification&status=pending&limit=50`,
     );
     expect(listRes.ok(), `Failed to list verification cases: ${listRes.status()}`).toBeTruthy();
 
