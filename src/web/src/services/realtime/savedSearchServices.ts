@@ -1,5 +1,6 @@
 import { getApiUrl } from "../../config";
 import type { ListingSummary } from "../../types/listing";
+import { imageUrl } from "../listingsService";
 
 export interface SavedSearch {
     searchId: string;
@@ -55,5 +56,21 @@ export async function getMatchingListings(searchId: string): Promise<ListingSumm
         credentials: "include",
     });
     if(!res.ok) throw new Error("Failed to fetch matching listings");
-    return res.json();
+    const data = await res.json();
+
+    return data.map((item: any)=>{
+        const firstImage = item.images?.[0];
+        const imagePath = firstImage?.path;
+        return{
+            id: item.listingId,
+            title: item.title,
+            meta: `${item.categoryName} · ${new Date(item.createdAt).toLocaleDateString()}`,
+            price: item.price,
+            status: item.listingStatus,
+            views: item.viewCount??0,
+            imageUrl: imagePath? imageUrl(imagePath): "/placeholder.png",
+            categoryName: item.categoryName||"",
+        };
+        
+    });
 }
