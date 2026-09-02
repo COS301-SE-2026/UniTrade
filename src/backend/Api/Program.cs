@@ -68,6 +68,9 @@ using Modules.SavedSearches.Models;
 using Modules.SavedSearches;
 using Modules.SavedSearches.Repositories;
 using Infrastructure.Persistence.SavedSearches;
+using Modules.ListingQuestions.Repositories;
+using Infrastructure.Persistence.Repositories.ListingQuestions;
+using Modules.ListingQuestions;
 
 
 DotEnv.Load(
@@ -267,6 +270,9 @@ builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<Save
 builder.Services.AddScoped<IListingPublishedListener>(sp => sp.GetRequiredService<SavedSearchService>());
 builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
 builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
+builder.Services.AddScoped<IListingQuestionRepository, ListingQuestionRepository>();
+builder.Services.AddScoped<IListingQuestionService, ListingQuestionService>();
+builder.Services.AddScoped<IListingQueryForQuestions, ListingQueryForQuestions>();
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(

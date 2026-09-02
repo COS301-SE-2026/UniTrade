@@ -4,6 +4,7 @@ using Modules.Audit.Models;
 using Modules.Chat.Models;
 using Modules.Disputes.Models;
 using Modules.Identity.Models;
+using Modules.ListingQuestions.Models;
 using Modules.Listings.Models;
 using Modules.Notifications.Models;
 using Modules.ReferenceData.Course;
@@ -79,7 +80,10 @@ public class AppDbContext : DbContext
 
     // Saved Searches
     public DbSet<SavedSearch> SavedSearches => Set<SavedSearch>();
+    
+    // Listing Questions
 
+    public DbSet<ListingQuestion> ListingQuestions => Set<ListingQuestion>();
     //constants - sonarqube
     private readonly string _nowString = "now()";
 
@@ -1084,6 +1088,16 @@ public class AppDbContext : DbContext
             entity.HasKey(x => x.SearchId);
             entity.Property(x => x.Query).HasMaxLength(500).IsRequired();
             entity.HasIndex(x => x.BuyerId);
+        });
+
+        // listing questions
+        modelBuilder.Entity<ListingQuestion>(entity =>
+        {
+            entity.Property(x => x.QuestionId).HasDefaultValueSql("gen_random_uuid()");
+            entity.HasKey(x => x.QuestionId);
+            entity.Property(x => x.QuestionText).HasMaxLength(1000).IsRequired();
+            entity.Property(x => x.AnswerText).HasMaxLength(2000);
+            entity.HasIndex(x => x.ListingId);
         });
     }
 }

@@ -72,6 +72,7 @@ public class NotificationDispatcher : INotificationDispatcher
             "listing_status" => "Listing update",
             "verification" => "Verification update",
             "saved_search" => "New match for your search",
+            "listing_question"=>"Listing Q&A",
             _ => "UT",
         };
 }
