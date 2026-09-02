@@ -1,8 +1,7 @@
 import { useEffect, useState, useReducer } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
+import { IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
 import {
-  Breadcrumb,
   InfoRow,
   Panel,
   PersonCard,
@@ -10,12 +9,13 @@ import {
   DecisionButton,
   OutlineButton,
   NotesPanel,
+  ConfirmModal,
 } from './AdminReviewShared';
 import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
 import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
 import { getApiUrl } from '../../config';
-import {LoadingState} from '../../components/layout/Spinner';
+import { LoadingState } from '../../components/layout/Spinner';
 
 
 export interface DisputeCase {
@@ -46,8 +46,21 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'more-info': 'Marked as needing more info',
   'side-buyer': 'Sided with buyer',
   'side-seller': 'Sided with seller',
+
   'remove-listing': 'Listing removed',
   'warn-seller': 'Seller warned',
+};
+
+const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
+  'remove-listing': 'Are you sure you want to remove this listing?',
+  'warn-seller': 'Are you sure you want to warn this seller?',
+  dismiss: 'Are you sure you want to dismiss this dispute?'
+};
+
+const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
+  'remove-listing': 'This will remove the listing from the platform and notify the seller.This cannot be undone',
+  'warn-seller': 'You are about to issue a formal warning to this seller. The seller will be notified.',
+  'dismiss': 'This will dismiss the dispute without taking any action.'
 };
 
 const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
@@ -76,7 +89,8 @@ function disputeReducer(state: State, action: Action): State {
   }
 }
 
-function transformCaseDetail(detail: CaseDetail) {
+function transformCaseDetail(detail: CaseDetail): DisputeCase {
+
 
   const mapPerson = (p: PartySummary | undefined) => {
     if (!p) {
@@ -208,7 +222,7 @@ export default function AdminDisputeReview() {
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
   const [decisionNote, setDecisionNote] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
-
+  const [pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
   useEffect(() => {
     let active = true;
 
@@ -246,9 +260,18 @@ export default function AdminDisputeReview() {
     }
   }
 
-   if(state.loading) {
-    return <LoadingState message = "Loading case..." />;
-   }
+  function handleDecisionClick(decision: DisputeDecision) {
+    if (disputeConfirmTitles[decision]) {
+      setPendingConfirmDecision(decision);
+    } else {
+      handleDecision(decision);
+    }
+  }
+
+
+  if (state.loading) {
+    return <LoadingState message="Loading case..." />;
+  }
 
   if (state.error || !state.data) {
     return <p className="text-sm text-gray-600">Dispute case not found</p>;
@@ -260,7 +283,16 @@ export default function AdminDisputeReview() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Breadcrumb trail={['Active Disputes', 'Case Review']} />
+        <div className='flex items-center gap-1.5 text-sm text-gray-400'>
+          <button type='button' onClick={() => navigate('/admin/disputes')}
+            className='text-[#00aaff] hover:underline cursor-pointer'
+          >Active Disputes
+
+          </button>
+          <IconChevronRight size={12} />
+          <span className='text-gray-400'></span>
+          <span className='text-gray-600' >Case Review</span>
+        </div>
         <StatusBadge label={badge.label} tone={badge.tone} />
       </div>
 
@@ -297,7 +329,7 @@ export default function AdminDisputeReview() {
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
                 )}
-                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecision} suggestedDecision={dispute.suggestedDecision} />
+                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
               </>
             )}
           </Panel>
@@ -319,6 +351,24 @@ export default function AdminDisputeReview() {
           </Panel>
         </div>
       </div>
+
+      {pendingConfirmDecision && (
+        <ConfirmModal
+          title={disputeConfirmTitles[pendingConfirmDecision] ?? 'Are you sure?'}
+          message={disputeConfirmMessages[pendingConfirmDecision] ?? 'This action cannot be undone.'}
+          confirmLabel={decisionLabel[pendingConfirmDecision]}
+          tone={pendingConfirmDecision === 'remove-listing' ? 'danger' :
+            'neutral'
+          }
+          submitting={!!submitting}
+          onCancel={() => setPendingConfirmDecision(null)}
+          onConfirm={() => {
+
+            handleDecision(pendingConfirmDecision);
+            setPendingConfirmDecision(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -494,7 +544,7 @@ function DecisionActions({
   suggestedDecision
 }: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void; suggestedDecision?: DisputeDecision }>) {
 
-  
+
   if (type === 'no_show') {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
@@ -516,19 +566,19 @@ function DecisionActions({
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
           {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
-          {suggestedDecision=== 'uphold' && (
+          {suggestedDecision === 'uphold' && (
             <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
           )}
         </DecisionButton>
         <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
           {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
-          {suggestedDecision=== 'dismiss' && (
+          {suggestedDecision === 'dismiss' && (
             <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
           )}
         </DecisionButton>
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
           {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
-          {suggestedDecision=== 'dismiss' && (
+          {suggestedDecision === 'dismiss' && (
             <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
           )}
         </DecisionButton>

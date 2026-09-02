@@ -36,7 +36,7 @@ if (import.meta.env.DEV || !user) return;
   }, [user]);
 
   useEffect(() => {
- if (import.meta.env.DEV || !user) return;
+ //if (import.meta.env.DEV || !user) return;
 
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
@@ -53,7 +53,7 @@ if (import.meta.env.DEV || !user) return;
   }, [user]);
 
   useEffect(() => {
-if (import.meta.env.DEV || !user) return;
+ //if (import.meta.env.DEV || !user) return;
 
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
@@ -63,7 +63,7 @@ if (import.meta.env.DEV || !user) return;
   }, [user, showToast]);
 
   useEffect(() => {
-    if (import.meta.env.DEV || !user) return;
+  //  if (import.meta.env.DEV || !user) return;
 
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
@@ -179,6 +179,6 @@ if (import.meta.env.DEV || !user) return;
         connectionManager.leaveAdminGroup();
       }
     };
-  }, [queryClient, user]);
+  }, [queryClient, user, showToast]);
   return <>{children}</>;
 }
