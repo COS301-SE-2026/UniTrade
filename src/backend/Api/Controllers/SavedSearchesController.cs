@@ -55,7 +55,7 @@ public class SavedSearchesController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("{searchId:guid}/listings")]
+    [HttpGet("{id:guid}/listings")]
     public async Task<IActionResult> GetMatchingListings(Guid searchId, CancellationToken ct)
     {
         if (CallerId == null)
