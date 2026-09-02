@@ -28,6 +28,7 @@ import {
 } from "../../types/reviewStats";
 import { ReviewList } from "../auth/Review";
 import { fileDispute } from "../../services/adminService";
+import ListingQnA from "../../components/ListingQnA";
 
 function DetailRow({
   label,
@@ -382,7 +383,13 @@ export default function ListingDetail() {
               )}
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
+           
           </div>
+           <ListingQnA
+              listingId={listing.id}
+              isSeller={false}
+              canAsk={true}
+              />
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
