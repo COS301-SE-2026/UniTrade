@@ -386,7 +386,7 @@ export default function BrowseAllListing() {
             {paginated.length === 0
               ? 0
               : (currentPage - 1) * PAGE_SIZE + 1}
-            –
+            -
             {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
             {filtered.length} listings
           </p>

@@ -211,9 +211,7 @@ export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
 
   return (
     <Panel title="Case Notes">
-      <p className="text-xs text-gray-600 -mt-2 mb-3">
-        Still deciding if we are going to message and create chat functionality or email the other counter parry 
-      </p>
+  
 
       {loading && <LoadingState message="Loading notes ..." />}
 

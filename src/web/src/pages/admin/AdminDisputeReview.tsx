@@ -17,6 +17,7 @@ import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } fr
 import { getApiUrl } from '../../config';
 import {LoadingState} from '../../components/layout/Spinner';
 
+
 export interface DisputeCase {
   id: string
   type: DisputeType
@@ -94,7 +95,7 @@ function transformCaseDetail(detail: CaseDetail) {
   };
   const apiBase = getApiUrl();
 
-  const buildItemFromSnapshot = (snapshot?: ListingSnapshot): DisputeItem => {
+  const buildItemFromSnapshot = (snapshot?: ListingSnapshot, currentStatus?: string | null): DisputeItem => {
     if (!snapshot) {
       return {
         title: 'Unknown Item',
@@ -102,7 +103,7 @@ function transformCaseDetail(detail: CaseDetail) {
         category: 'N/A',
         moduleCode: 'N/A',
         price: 'N/A',
-        status: 'Live',
+        status: currentStatus ?? 'Unkonwn',
       };
     }
     return {
@@ -111,7 +112,7 @@ function transformCaseDetail(detail: CaseDetail) {
       category: snapshot.courseTags?.join(', ') || 'N/A',
       moduleCode: snapshot.courseTags?.[0] || 'N/A',
       price: `R${snapshot.price.toFixed(2)}`,
-      status: 'Reserved',
+      status: currentStatus ?? 'Unknown',
       imageUrl: snapshot.photoRefs?.[0] ? `${apiBase}${snapshot.photoRefs[0].replace(/^\/api/, '')}` : undefined // if not rendering in prod.. check the element if its missing an api
     };
   };
@@ -155,7 +156,7 @@ function transformCaseDetail(detail: CaseDetail) {
   }
   if (detail.type == 'listing_quality') {
     if (ev.snapshot) {
-      item = buildItemFromSnapshot(ev.snapshot);
+      item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
       listingId = ev.snapshot.listingId;
     }
     photos = {
@@ -165,7 +166,7 @@ function transformCaseDetail(detail: CaseDetail) {
   }
   if (detail.type == 'report_listing') {
     if (ev.snapshot) {
-      item = buildItemFromSnapshot(ev.snapshot);
+      item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
     }
     listingId = ev.listingId;
     report = {
@@ -283,9 +284,7 @@ export default function AdminDisputeReview() {
             ) : (
               <>
                 <div className="mb-4">
-                  <label htmlFor="decision-note" className="block text-xs font-medium text-gray-500 mb-1.5">
-                    still deciding if its email or messaging the buyer or the seller
-                  </label>
+                  
                   <textarea
                     id="decision-note"
                     value={decisionNote}
@@ -344,7 +343,6 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
           <p className="text-sm font-semibold text-[#00aaff]">{dispute.item.title}</p>
           <p className="text-xs text-gray-600 mt-0.5">Condition: {dispute.item.condition}</p>
           <p className="text-xs text-gray-600">Category: {dispute.item.category}</p>
-          <p className="text-xs text-gray-600">Module Code: {dispute.item.moduleCode}</p>
         </div>
       </div>
       <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5">
