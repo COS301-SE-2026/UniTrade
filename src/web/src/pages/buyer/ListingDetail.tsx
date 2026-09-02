@@ -331,7 +331,7 @@ export default function ListingDetail() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-lg">
-                      📚
+                      
                     </div>
                   )}
                 </button>

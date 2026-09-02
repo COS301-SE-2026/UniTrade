@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
@@ -15,6 +16,7 @@ public class ListingService : IListingService
     private readonly IListingImageRepository _images;
     private readonly ISellerVerificationQuery _verification;
     private readonly IListingPublishedListener _listener;
+    private readonly IListingQuestionRepository _questions;
 
     private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
@@ -29,7 +31,8 @@ public class ListingService : IListingService
         IListingImageRepository images,
         ISellerVerificationQuery verification,
         IListingPublishedListener listener,
-        ILogger<ListingService> logger
+        ILogger<ListingService> logger,
+        IListingQuestionRepository questions
     )
     {
         _listings = listings;
@@ -37,18 +40,40 @@ public class ListingService : IListingService
         _verification = verification;
         _listener = listener;
         _logger = logger;
+        _questions = questions;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
     {
         var listing = await _listings.GetByIdAsync(listingId);
-        return listing == null ? null : MapToSummary(listing);
+        if (listing == null)
+            return null;
+
+        var countsDict = await _questions.GetAnsweredQuestionCountsAsync(new[] { listingId });
+
+        return MapToSummary(listing) with
+        {
+            AnsweredQuestionCount = countsDict.GetValueOrDefault(listingId, 0),
+        };
     }
 
     public async Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter)
     {
         var (items, total) = await _listings.ListAsync(filter);
-        return new PagedResult<ListingSummaryDto>(items.Select(MapToSummary).ToList(), total);
+
+        var listingIds = items.Select(l => l.ListingId).ToList();
+        var countsDict = await _questions.GetAnsweredQuestionCountsAsync(listingIds);
+
+        var summaries = items
+            .Select(l =>
+                MapToSummary(l) with
+                {
+                    AnsweredQuestionCount = countsDict.GetValueOrDefault(l.ListingId, 0),
+                }
+            )
+            .ToList();
+
+        return new PagedResult<ListingSummaryDto>(summaries, total);
     }
 
     public static ListingSummaryDto MapToSummary(Listing l) =>

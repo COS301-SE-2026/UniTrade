@@ -106,7 +106,7 @@ function ReasonModal({
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-900">Reason</h2>
-          <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+          <button type="button" onClick={onCancel} className="text-gray-600 hover:text-gray-600" aria-label="Close">
             <IconX size={20} />
           </button>
         </div>
@@ -253,10 +253,10 @@ export default function AdminVerificationReview() {
             />
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-2">
-                <IconFileText size={18} className="text-gray-400" />
+                <IconFileText size={18} className="text-gray-600" />
                 <div>
                   <p className="text-sm text-navy-700 dark:text-white">{record.document.name}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-600">
                     Uploaded {record.document.uploadedDate}
                   </p>
                 </div>
@@ -264,7 +264,7 @@ export default function AdminVerificationReview() {
               {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-[#00aaff] hover:underline">
                 View
               </a>) : (
-                <span className='text-xs text-gray-400'>Document not available</span>
+                <span className='text-xs text-gray-600'>Document not available</span>
               )}
 
             </div>
@@ -282,7 +282,7 @@ export default function AdminVerificationReview() {
                 {submitting === 'reject' ? 'Rejecting…' : 'Reject'}
               </DecisionButton>
             </div>
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-xs text-gray-600 mt-3">
               Resubmission asks the applicant to re-upload proof of registration without closing the case.
             </p>
           </Panel>

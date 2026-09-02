@@ -121,7 +121,7 @@ export default function AdminUserReputation() {
   }
 
   if (state.error || !state.data) {
-    return <p className="text-sm text-gray-400">User was not found.</p>;
+    return <p className="text-sm text-gray-600">User was not found.</p>;
   }
 
   const profile = state.data;
@@ -138,7 +138,7 @@ export default function AdminUserReputation() {
           <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
             {profile.name}
           </h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-600">
             {profile.faculty} · {profile.university} · Member since {profile.memberSince}
           </p>
         </div>
@@ -150,13 +150,13 @@ export default function AdminUserReputation() {
             <p className="text-4xl font-bold text-navy-700 dark:text-white">{profile.reviewAverage.toFixed(1)}</p>
             <div className="pb-1">
               <StarRating value={profile.reviewAverage} />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 {profile.reviewCount} reviews
               </p>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
-            <span className="text-xs text-gray-400">Reputation Score</span>
+            <span className="text-xs text-gray-600">Reputation Score</span>
             <span className="text-sm font-semibold text-navy-700 dark:text-white">
               {profile.reputationScore}%
             </span>
@@ -171,13 +171,13 @@ export default function AdminUserReputation() {
             >
               {profile.strikes.length}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-600">
               {profile.strikes.length === 1 ? 'strike on record' : 'strikes on record'}
             </span>
           </div>
 
           {profile.strikes.length === 0 ? (
-            <p className="text-sm text-gray-400">No strikes on record.</p>
+            <p className="text-sm text-gray-600">No strikes on record.</p>
           ) : (
             <div className="space-y-2">
               {profile.strikes.map((strike) => (
@@ -188,7 +188,7 @@ export default function AdminUserReputation() {
                   <IconAlertTriangle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="min-w-0">
                     <p className="text-sm text-navy-700 dark:text-white">{strike.reason}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-600 mt-0.5">
                       {strike.date} · Issued by {strike.issuedBy}
                     </p>
                   </div>

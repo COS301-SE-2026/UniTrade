@@ -254,7 +254,7 @@ describe('UploadListing', () => {
     const files = [1, 2, 3, 4].map((n) => makeFile(`big${n}.png`, 9)) // 36MB total
     await user.upload(fileInput, files)
     const sizeLabel = await screen.findByText(/36\.0 MB used/)
-    expect(sizeLabel).toHaveClass('text-amber-500')
+    expect(sizeLabel).toHaveClass('text-amber-700')
   })
 
   it('shows "Untitled Listing" in the summary by default', () => {

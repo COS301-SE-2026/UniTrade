@@ -12,7 +12,7 @@ import {
 import type { SavedSearch, CreateSavedSearchInput } from "../../services/realtime/savedSearchServices";
 import { LoadingState } from "../../components/layout/Spinner";
 import {formatPrice} from "../../utils/formatters";
-import {IconChevronLeft} from "@tabler/icons-react"
+import {IconChevronLeft, IconTrash} from "@tabler/icons-react"
 import { useNavigate } from "react-router";
 
 export default function SavedSearches() {
@@ -205,46 +205,51 @@ return (
                 No saved searches yet.
             </p>
         ) : (
-            <ul className = "divide-y">
+            <div className = "space-y-3">
                 {searches.map(s => (
-                    <li key = {s.searchId} className = "py-3 flex justify-between items-center">
-                        <div>
-                            <span className = "font-medium">
-                                {s.query}
-                            </span>
-                            {s.categoryId && (
-                                <span className = ",l-2 text-xs bg-gray-200 px-2 py-0.5 rounded ">
-                                    {getDisplayCategory(
-                                        categories.find(c => c.id === s.categoryId)?.name ?? ""
-                                    )}
+                    <div
+                    key = {s.searchId}
+                    className = "bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-4"
+                    >
+                        <div className = "min-w-0">
+                            <div className = "flex items-center gap-2 flex-wrap">
+                                <span className = "text-sm font-bold text-gray-800">
+                                    {s.query}
                                 </span>
-                            )}
+                                {s.categoryId && (
+                                    <span className = "text-xs bg-gray-200 px-2 py-0.5 rounded">
+                                        {getDisplayCategory(
+                                            categories.find(c => c.id === s.categoryId)?.name ?? ""
+                                        )}
+                                        </span>
+                                )}
+                            </div>
                             {s.minPrice !== undefined && s.minPrice !== null && (
-                                <span className = "ml-2 text-xs text-gray-500">
+                                <p className = "text-xs text-gray-500 mt-1">
                                     R{s.minPrice} - {s.maxPrice !== undefined && s.maxPrice !== null ? `R${s.maxPrice}` : "no max "}
-                                </span>
+                                </p>
                             )}
                         </div>
 
-                        <div className = "flex items-center gap-2">
+                        <div className = "flex items-center gap-2 flex-shrink-0">
                             <button 
                             type = "button"
                             onClick = {() => handleViewMatches(s)}
-                            className = "text-xs text-blue-600 hover:underline"
+                            className = "bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors whitespace-nowrap"
                             >
                                 {selectedSearch?.searchId === s.searchId ? "Hide matches" : "View matches"}
                             </button>
                         <button 
                         type = "button"
                         onClick = {() => handleDelete(s.searchId)}
-                        className = "text-red-500 text-sm hover:underline"
+                        className = "p-2 rounded-full border border-gray-300 text-red-500 hover:bg-red-50 transition-colors"
                         >
-                            Delete
+                             <IconTrash size = {16} />
                         </button>
                         </div>
-                    </li>
+                    </div>
                 ))}
-            </ul>
+            </div>
         )}
 
         {selectedSearch && (

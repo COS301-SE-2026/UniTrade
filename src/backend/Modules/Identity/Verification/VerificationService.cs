@@ -6,6 +6,8 @@ using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
 using Modules.SharedKernel;
+using Modules.Reservations;
+using Microsoft.Extensions.Logging;
 
 namespace Modules.Identity.Verification;
 
@@ -20,6 +22,8 @@ public class VerificationService : IVerificationService
     private readonly IProofOfRegistrationStorageService _porStorage;
     private readonly IIdentityService _identity;
     private readonly IConfiguration _config;
+    private readonly IBroadCastService _broadcast;
+    private readonly ILogger <VerificationService> _logger;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
     private const int _resendCooldownSeconds = 60;
@@ -30,7 +34,9 @@ public class VerificationService : IVerificationService
         IEmailService emails,
         IProofOfRegistrationStorageService porStorage,
         IIdentityService identity,
-        IConfiguration config
+        IConfiguration config,
+        IBroadCastService broadcast,
+        ILogger<VerificationService> logger
     )
     {
         _verifications = verifications;
@@ -39,6 +45,8 @@ public class VerificationService : IVerificationService
         _porStorage = porStorage;
         _identity = identity;
         _config = config;
+        _broadcast= broadcast;
+        _logger=logger;
     }
 
     public async Task InitiateAsync(string email, Guid userId)
@@ -142,6 +150,15 @@ public class VerificationService : IVerificationService
         record.Status = "por_pending";
         record.OtpVerifiedAt = DateTime.UtcNow;
         await _verifications.UpdateAsync(record);
+
+        try{
+            var caseDto= await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new {caseId=caseDto });
+        }
+        catch(Exception ex){
+            //never fail verification over a broadcast
+            _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
+        }
 
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
@@ -293,6 +310,15 @@ public class VerificationService : IVerificationService
         record.Status = "under_review";
         record.AdminDecision = null;
         await _verifications.UpdateAsync(record);
+
+        try{
+            var caseDto= await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new {caseId=caseDto });
+        }
+        catch(Exception ex){
+            //never fail verification over a broadcast
+            _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
+        }
     }
 
     private static string GenerateOtp()

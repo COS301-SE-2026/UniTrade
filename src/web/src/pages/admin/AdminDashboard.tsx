@@ -51,7 +51,7 @@ function VerificationRow({ id, initials, name, meta }: Readonly<VerificationRowP
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white">{name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
       </div>
       <button type='button' onClick={() => navigate(`/admin/verifications/${id}`)} className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">
         Review
@@ -79,7 +79,7 @@ function DisputeRow({ id, title, meta }: Readonly<DisputeRowProps>) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{meta}</p>
+        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
       </div>
       <button type='button' onClick={() => navigate(`/admin/disputes/${id}`)} className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-colors">
         Review
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
           title="Pending Verifications"
           value={pendingVerifications.length}
           sub={`Oldest: ${oldestVerificationAge}`}
-          subColor="text-amber-500"
+          subColor="text-amber-700"
           subIcon={<IconClock size={13} />}
         />
 
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
           title="Active Disputes"
           value={activeDisputes.length}
           sub={disputeSybtext}
-          subColor="text-red-500"
+          subColor="text-red-700"
           subIcon={<IconFlag size={13} />}
         />
         <StatCard

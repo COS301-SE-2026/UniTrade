@@ -91,14 +91,14 @@ export default function Users() {
     <div className='space-y-6'>
   <div>
       <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
-<p className="text-xs text-gray-400 mt-1">
+<p className="text-xs text-gray-600 mt-1">
           View all student users registered on the application. </p>
         </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{total}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Total Users</div>
+            <div className="text-xs text-gray-600 mt-0.5">Total Users</div>
 
           </div>
         </div>
@@ -107,13 +107,13 @@ export default function Users() {
 
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numVerified}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Verified</div>
+            <div className="text-xs text-gray-600 mt-0.5">Verified</div>
           </div>
         </div>
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
-            <div className="text-xs text-gray-400 mt-0.5">Pending verification</div>
+            <div className="text-xs text-gray-600 mt-0.5">Pending verification</div>
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@ export default function Users() {
           <tbody className="divide-y divide-gray-100 text-sm">
             {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={5} className='py-6 text-center text-gray-400'>
+                <td colSpan={5} className='py-6 text-center text-gray-600'>
                   No users match your criteria.
                 </td>
               </tr>) : (
@@ -179,7 +179,7 @@ export default function Users() {
                       <div className="font-bold text-gray-900">
                         {user.name}
                       </div>
-                      <div className="text-gray-400 text-xs">
+                      <div className="text-gray-600 text-xs">
                         {user.degree}
                       </div>
                     </div>
@@ -203,7 +203,7 @@ export default function Users() {
                   <td className="py-4 px-6 font-bold text-gray-800">{user.strikesCount > 0 ? (
                     <span className="text-red-600"> {user.strikesCount} </span>)
                     : (
-                      <span className="text-gray-400">0</span>
+                      <span className="text-gray-600">0</span>
                     )}</td>
                   <td className="py-4 px-6 text-right">
                     <button
