@@ -77,7 +77,7 @@ interface ConfirmModalProps{
 
 export function Breadcrumb({trail}: Readonly<{ trail: string[]}>) {
     return (
-        <p className = "text-sm text-gray-400">
+        <p className = "text-sm text-gray-600">
             {trail.map((step, i) => (
                 <span key = {step}>
                     {i === trail.length - 1 ? (
@@ -113,7 +113,7 @@ export function Panel({ title, children, className = '' }: Readonly<{ title: str
 export function InfoRow({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="flex items-center justify-between py-1.5 text-sm">
-      <span className="text-gray-400">
+      <span className="text-gray-600">
         {label}
       </span>
       <span className="text-navy-700 dark:text-white font-medium text-right">{value}</span>
@@ -170,7 +170,7 @@ export function PersonCard({
           <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
             {person.name}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-600">
             {person.faculty}
           </p>
           <div className="mt-1">
@@ -179,7 +179,7 @@ export function PersonCard({
         </div>
       </div>
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
-        <span className="text-xs text-gray-400">Reputation Score</span>
+        <span className="text-xs text-gray-600">Reputation Score</span>
         <span className="text-xs font-semibold text-navy-700 dark:text-white">
             {person.reputationScore}%
         </span>
@@ -277,14 +277,12 @@ export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
 
   return (
     <Panel title="Case Notes">
-      <p className="text-xs text-gray-400 -mt-2 mb-3">
-        Still deciding if we are going to message and create chat functionality or email the other counter parry 
-      </p>
+  
 
       {loading && <LoadingState message="Loading notes ..." />}
 
       {!loading && notes.length === 0 && (
-        <p className="text-sm text-gray-400 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           No notes yet.
         </p>
       )}
@@ -296,12 +294,12 @@ export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
               key={note.id}
               className="flex items-start gap-2 p-3 rounded-lg bg-gray-50 dark:bg-navy-700 border border-gray-100 dark:border-white/5"
             >
-              <IconNote size={15} className="text-gray-400 flex-shrink-0 mt-0.5" />
+              <IconNote size={15} className="text-gray-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <p className="text-sm text-navy-700 dark:text-white">
                   {note.content}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-600 mt-0.5">
                   {note.author} · {note.createdAt}
                 </p>
               </div>
@@ -316,7 +314,7 @@ export function NotesPanel({caseId }: Readonly<{caseId: string}>) {
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a note about this case…"
           rows={2}
-          className="flex-1 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
+          className="flex-1 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
         />
       </div>
       <div className="flex justify-end mt-2">
