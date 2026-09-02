@@ -48,7 +48,7 @@ public class AdminCaseService : IAdminCaseService
         IPartyDirectory parties,
         IReputationService reputation,
         IListingService listings,
-        IBroadCastService _broadcast
+        IBroadCastService broadcast
     )
     {
         _verification = verification;
@@ -61,6 +61,7 @@ public class AdminCaseService : IAdminCaseService
         _parties = parties;
         _reputation = reputation;
         _listings = listings;
+        _broadcast = broadcast;
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(

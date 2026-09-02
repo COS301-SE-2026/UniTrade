@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902012002_AddListingQuestionNotificationType")]
+    partial class AddListingQuestionNotificationType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1570,6 +1573,57 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_review_type", "review_type IN ('buyer_to_seller', 'seller_to_buyer')");
                         });
+                });
+
+            modelBuilder.Entity("Modules.SavedSearches.Models.SavedSearch", b =>
+                {
+                    b.Property<Guid>("SearchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("search_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_id");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal?>("MaxPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("max_price");
+
+                    b.Property<decimal?>("MinPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("min_price");
+
+                    b.Property<string>("Query")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("query");
+
+                    b.HasKey("SearchId")
+                        .HasName("pk_saved_searches");
+
+                    b.HasIndex("BuyerId")
+                        .HasDatabaseName("ix_saved_searches_buyer_id");
+
+                    b.ToTable("saved_searches", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.SharedKernel.Image", b =>
