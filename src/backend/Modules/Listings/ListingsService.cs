@@ -200,7 +200,6 @@ public class ListingService : IListingService
                     CategoryId = newListing.CategoryId,
                     CourseId = newListing.CourseId,
                     SellerId = newListing.SellerId,
-
                 };
                 await _listener.OnListingPublishedEventAsync(evnt, ct);
             }

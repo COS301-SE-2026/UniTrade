@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
 using Modules.Identity.Verification;
 using Modules.ListingQuestions.Repositories;
@@ -26,6 +27,9 @@ public class ListingServiceTests
     private readonly Mock<ISellerVerificationQuery> _verificationMock;
     private readonly Mock<IListingQuestionRepository> _questionRepo;
     private readonly ListingService _sut;
+    private readonly Mock<ILogger<ListingService>> _loggerMock;
+    private readonly Mock<IListingQuestionRepository> _questionRepoMock;
+    private readonly Mock<IListingPublishedListener> _listingPublishedListener;
 
     public ListingServiceTests()
     {
@@ -33,7 +37,9 @@ public class ListingServiceTests
         _imageRepo = new Mock<IListingImageRepository>();
         _verificationMock = new Mock<ISellerVerificationQuery>();
         _questionRepo = new Mock<IListingQuestionRepository>();
-
+        _loggerMock = new Mock<ILogger<ListingService>>();
+        _questionRepoMock = new Mock<IListingQuestionRepository>();
+        _listingPublishedListener = new Mock<IListingPublishedListener>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -47,6 +53,8 @@ public class ListingServiceTests
             _repo.Object,
             _imageRepo.Object,
             _verificationMock.Object,
+            _listingPublishedListener.Object,
+            _loggerMock.Object,
             _questionRepo.Object
         );
     }

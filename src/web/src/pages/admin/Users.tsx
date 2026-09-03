@@ -122,22 +122,22 @@ export default function Users() {
         <button
           type="button"
           onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-[#0a1931] text-white'
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-navy-700 text-white'
             : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
         >
           All</button>
         <button
           type="button"
           onClick={() => setFilter('strikes')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'strikes' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'strikes' ? 'bg-navy-700 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
             }`}
         >
-          Has Strikes
+          With Strikes
         </button>
         <button
           type="button"
           onClick={() => setFilter('verified')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'verified' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'verified' ? 'bg-navy-700 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
             }`}
         >
           Verified
@@ -145,7 +145,7 @@ export default function Users() {
         <button
           type="button"
           onClick={() => setFilter('pending')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'pending' ? 'bg-[#0a1931] text-white' : 'bg-white text-gray-600 border border-gray-300'
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'pending' ? 'bg-navy-700 text-white' : 'bg-white text-gray-600 border border-gray-300'
             }`}
         >
           Pending
@@ -172,7 +172,7 @@ export default function Users() {
               filteredRows.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-6 flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center font-bold text-xs">
+                    <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center font-bold text-xs">
                       {user.initials}
                     </div>
                     <div>
@@ -209,7 +209,7 @@ export default function Users() {
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/users/${user.id}`)}
-                      className="bg-[#0a1931] px-4 py-1.5 rounded-full text-xs font-semibold text-white hover:bg-[#153462] transition-colors cursor-pointer">
+                      className="bg-navy-700 px-4 py-1.5 rounded-full text-xs font-semibold text-white hover:bg-navy-500 transition-colors cursor-pointer">
 
                       View
                     </button>

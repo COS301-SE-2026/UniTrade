@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconFileText, IconCircleCheck, IconX, IconChevronRight } from '@tabler/icons-react';
-import { InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared';
+import { IconFileText, IconCircleCheck, IconX, IconAlertTriangle, IconChevronRight } from '@tabler/icons-react';
+import { InfoRow, Panel, PersonCard, DecisionButton } from './AdminReviewShared';
 import { type VerificationCase, type VerificationDecision } from '../../types/mockAdmin';
 import type { CaseDetail, ApiError } from '../../types/admin_disputes';
 import { decideCase, getCaseById } from '../../services/adminService';
@@ -53,7 +53,9 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
   const slaHours = detail.slaHours;
   const slaOverdue = detail.slaBreached;
   const slaLabel = slaOverdue ? `${Math.round(detail.ageHours - slaHours)}h overdue` : `${Math.round(slaHours - detail.ageHours)}h remaining`;
-  const hasDocument = !!evidence.proofDocument;
+  const hasDocument = Boolean(
+    detail.hasDocument || (evidence?.proofDocument && evidence.proofDocument.trim() !== '')
+  );
 
   return {
     id: detail.caseId,
@@ -72,7 +74,7 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
     ),
     slaLabel,
     slaOverdue,
-
+    hasDocument,
   };
 }
 
@@ -183,7 +185,7 @@ export default function AdminVerificationReview() {
   }, [id]);
 
   async function submitDecision(decision: VerificationDecision, reason?: string) {
-    if (!state.data) return;
+    if (!state.data || !state.data.hasDocument) return;
     setSubmitting(decision);
 
     try {
@@ -199,6 +201,8 @@ export default function AdminVerificationReview() {
     }
   }
   async function handleDecisionClick(decision: VerificationDecision) {
+    if (!state.data?.hasDocument) return;
+
     if (decision === 'approve') {
       submitDecision(decision);
     } else {
@@ -215,26 +219,28 @@ export default function AdminVerificationReview() {
   }
 
   const record = state.data;
-  const badge = { label: 'Verification', tone: 'blue' } as const;
+  const isActionDisabled = Boolean(submitting) || !record.hasDocument;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className='flex items-center gap-1.5 text-sm text-gray-400'>
-          <button type='button' onClick={() => navigate('/admin/verifications')}
-            className='text-[#00aaff] hover:underline cursor-pointer'
-          >Verifications
-
-          </button>
-          <IconChevronRight size={12} />
-          <span className='text-gray-400'></span>
-          <span className='text-gray-600' >Case Review</span>
-        </div>
-        <StatusBadge label={badge.label} tone={badge.tone} />
-        <StatusBadge label="Verification" tone="green" />
+        
+      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <button
+          type="button"
+          className="text-[#00aaff] cursor-pointer hover:underline"
+          onClick={() => navigate("/admin/verifications")}
+        >
+          Verifications
+        </button>
+                <IconChevronRight size={12} />
+        
+          Case Review
+        
+       
       </div>
 
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">Case #{record.id}</h1>
+
+      {/*<h1 className="text-2xl font-bold text-navy-700 dark:text-white">Case #{record.id}</h1>*/}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
@@ -271,14 +277,24 @@ export default function AdminVerificationReview() {
           </Panel>
 
           <Panel title="Actions">
+            {!record.hasDocument && (
+              <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
+                <IconAlertTriangle size={18} className="shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>
+                The applicant has not yet uploaded their Proof of Registration. Actions are disabled until a document is submitted.
+                </span>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3">
-              <DecisionButton tone="success" disabled={!!submitting} onClick={() => handleDecisionClick('approve')}>
+              <DecisionButton tone="success" disabled={isActionDisabled} 
+              onClick={() => handleDecisionClick('approve')}>
                 {submitting === 'approve' ? 'Approving…' : 'Approve'}
               </DecisionButton>
-              <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => handleDecisionClick('resubmit')}>
+              <DecisionButton tone="neutral" disabled={isActionDisabled} onClick={() => handleDecisionClick('resubmit')}>
                 {submitting === 'resubmit' ? 'Requesting…' : 'Request Resubmission'}
               </DecisionButton>
-              <DecisionButton tone="danger" disabled={!!submitting} onClick={() => handleDecisionClick('reject')}>
+              <DecisionButton tone="danger" disabled={isActionDisabled} onClick={() => handleDecisionClick('reject')}>
                 {submitting === 'reject' ? 'Rejecting…' : 'Reject'}
               </DecisionButton>
             </div>

@@ -42,6 +42,10 @@ export default defineConfig({
           },
         ],
       },
+
+      injectManifest: {
+        injectionPoint: "self.__WB_MANIFEST",
+      },
       includeAssets: ["icons/favicon.ico", "icons/favicon-96x96.png"],
     }),
   ],
@@ -68,12 +72,12 @@ export default defineConfig({
         "**/*.test.ts",
         "**/*.spec.ts",
         "**/assets/**",
-        '**/types/**',
-        '**/*/d.ts',
+        "**/types/**",
+        "**/*/d.ts",
         "src/pages/admin",
         "src/components",
         "src/services",
-        "src/pages/auth/BrandingStyleDoc.tsx"
+        "src/pages/auth/BrandingStyleDoc.tsx",
       ],
     },
   },

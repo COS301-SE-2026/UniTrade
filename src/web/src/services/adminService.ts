@@ -111,7 +111,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
   const error: ApiError = {
     status: res.status,
-    code: errorBody.code ?? "UNKNOWN_ERROR",
+    code: errorBody.code ?? errorBody.error?? "UNKNOWN_ERROR",
     message: errorBody.message ?? res.statusText,
   };
 
