@@ -1,6 +1,6 @@
 import { useEffect, useState, useReducer } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
+import { IconBulb, IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
 import {
   InfoRow,
   Panel,
@@ -123,7 +123,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     return {
       title: snapshot.title,
       condition: snapshot.condition,
-      category: snapshot.courseTags?.join(', ') || 'N/A',
+      category: snapshot.categoryName || 'N/A',
       moduleCode: snapshot.courseTags?.[0] || 'N/A',
       price: `R${snapshot.price.toFixed(2)}`,
       status: currentStatus ?? 'Unknown',
@@ -308,7 +308,7 @@ export default function AdminDisputeReview() {
 
           <Panel title="Actions">
             <div className="mb-4">
-              <OutlineButton onClick={() => navigate(`/buyer/listings/${dispute.listingId ?? dispute.id}`)} disabled={!dispute.listingId}>View Listing</OutlineButton>
+              <OutlineButton onClick={() => { if (dispute.listingId) navigate(`/buyer/listings/${dispute.listingId}`); }} disabled={!dispute.listingId} className='text-center border-navy-700 text-navy-700'>View Listing</OutlineButton>
             </div>
 
             {completedDecision ? (
@@ -316,7 +316,6 @@ export default function AdminDisputeReview() {
             ) : (
               <>
                 <div className="mb-4">
-                  
                   <textarea
                     id="decision-note"
                     value={decisionNote}
@@ -328,6 +327,16 @@ export default function AdminDisputeReview() {
                 </div>
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
+                )}
+                 {dispute.suggestedDecision && (
+          <div className='mb-4 flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3'>
+            <IconBulb size={16} className='text-sky-600 shrink-0 mt-0.5'/>
+            <p className='text-xs text-sky-900'>
+              <span className='font-semibold'>System suggestion:</span> based on the evidence,
+              this looks like a case to <span className='font-semibold'>{recommendationText(dispute.suggestedDecision)}</span>.
+              This is a guide — your judgement decides.
+            </p>
+          </div>
                 )}
                 <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
               </>
@@ -372,7 +381,12 @@ export default function AdminDisputeReview() {
     </div>
   );
 }
+function recommendationText(d: DisputeDecision): string {
+  if (d === 'uphold') return 'side with the buyer';
+  if (d === 'dismiss') return 'side with the seller';
+  return 'review carefully';
 
+}
 function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
 
   if (dispute.type === 'no_show') {
@@ -384,7 +398,7 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
   return (
     <Panel title="Item">
       <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-lg bg-gray-100 darkLbg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {dispute.item.imageUrl && (
             <img src={dispute.item.imageUrl} alt={dispute.item.title} className="w-full h-full object-cover" />
           )}
@@ -541,7 +555,6 @@ function DecisionActions({
   type,
   submitting,
   onDecide,
-  suggestedDecision
 }: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void; suggestedDecision?: DisputeDecision }>) {
 
 
@@ -566,21 +579,14 @@ function DecisionActions({
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
           {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
-          {suggestedDecision === 'uphold' && (
-            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
-          )}
+   
         </DecisionButton>
         <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
           {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
-          {suggestedDecision === 'dismiss' && (
-            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
-          )}
+          
         </DecisionButton>
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
           {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
-          {suggestedDecision === 'dismiss' && (
-            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
-          )}
         </DecisionButton>
       </div>
     );

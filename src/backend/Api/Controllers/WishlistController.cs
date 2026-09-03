@@ -24,8 +24,8 @@ public class WishlistController : ControllerBase
 
     private bool TryGetCallerId(out Guid callerId)
     {
-        var callerIdClaim = User.FindFirstValue("sub")
-                            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(callerIdClaim, out callerId);
     }
 
@@ -38,9 +38,9 @@ public class WishlistController : ControllerBase
     {
         if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated"});
+            return Unauthorized(new { error = "unauthenticated" });
         }
-        
+
         try
         {
             var item = await _wishlist.AddAsync(callerId, request.ListingId, ct);
@@ -56,9 +56,9 @@ public class WishlistController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken ct)
     {
-        if(!TryGetCallerId(out var callerId))
+        if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated"});
+            return Unauthorized(new { error = "unauthenticated" });
         }
 
         var items = await _wishlist.ListAsync(callerId, ct);
@@ -72,7 +72,7 @@ public class WishlistController : ControllerBase
     {
         if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated"});
+            return Unauthorized(new { error = "unauthenticated" });
         }
         var removed = await _wishlist.RemoveAsync(callerId, listingId, ct);
         return removed ? NoContent() : NotFound(new { error = WishlistErrors.NotFound });

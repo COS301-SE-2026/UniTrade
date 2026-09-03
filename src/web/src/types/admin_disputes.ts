@@ -78,6 +78,7 @@ export interface ListingSnapshot {
   photoRefs: string[];
   capturedAt: string;
   status: SnapshotStatus;
+  categoryName?: string;
 }
 
 export interface CaseEvidence {

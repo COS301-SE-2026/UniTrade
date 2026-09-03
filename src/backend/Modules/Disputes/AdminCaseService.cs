@@ -81,8 +81,11 @@ public class AdminCaseService : IAdminCaseService
             var verificationCases = await _verification.ListPendingAsync(ct);
             var mappedVerification = verificationCases
                 .Select(MapToSummary)
-                .Where(c => string.IsNullOrEmpty(status) || c.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
-            
+                .Where(c =>
+                    string.IsNullOrEmpty(status)
+                    || c.Status.Equals(status, StringComparison.OrdinalIgnoreCase)
+                );
+
             res.AddRange(mappedVerification);
         }
 
@@ -97,9 +100,9 @@ public class AdminCaseService : IAdminCaseService
                 {
                     SubjectId = i.SubjectUserId,
                     CounterpartyId = i.Type == ReportListingString ? i.RaisedBy
-                        : i.SubjectUserId == i.SellerId ? i.BuyerId
-                        : i.SubjectUserId == i.BuyerId ? i.SellerId
-                        : (Guid?)null,
+                    : i.SubjectUserId == i.SellerId ? i.BuyerId
+                    : i.SubjectUserId == i.BuyerId ? i.SellerId
+                    : (Guid?)null,
                 })
                 .Where(x => x.CounterpartyId.HasValue && x.CounterpartyId.Value != x.SubjectId)
                 .Select(x => x.CounterpartyId!.Value)
@@ -113,15 +116,39 @@ public class AdminCaseService : IAdminCaseService
                 .ToList();
 
             // Populate Dictionaries in parallel / async tasks
-            var subjectDict = (await Task.WhenAll(subjectUserIds.Select(async id => new { Id = id, Party = await _parties.GetAsync(id, ct) })))
+            var subjectDict = (
+                await Task.WhenAll(
+                    subjectUserIds.Select(async id => new
+                    {
+                        Id = id,
+                        Party = await _parties.GetAsync(id, ct),
+                    })
+                )
+            )
                 .Where(x => x.Party != null)
                 .ToDictionary(x => x.Id, x => x.Party!);
 
-            var counterpartyDict = (await Task.WhenAll(counterpartyIds.Select(async id => new { Id = id, Party = await _parties.GetAsync(id, ct) })))
+            var counterpartyDict = (
+                await Task.WhenAll(
+                    counterpartyIds.Select(async id => new
+                    {
+                        Id = id,
+                        Party = await _parties.GetAsync(id, ct),
+                    })
+                )
+            )
                 .Where(x => x.Party != null)
                 .ToDictionary(x => x.Id, x => x.Party!);
 
-            var snapshotDict = (await Task.WhenAll(reservationIds.Select(async resId => new { ResId = resId, Snapshot = await _snapshots.GetByReservationIdAsync(resId, ct) })))
+            var snapshotDict = (
+                await Task.WhenAll(
+                    reservationIds.Select(async resId => new
+                    {
+                        ResId = resId,
+                        Snapshot = await _snapshots.GetByReservationIdAsync(resId, ct),
+                    })
+                )
+            )
                 .Where(x => x.Snapshot != null)
                 .ToDictionary(x => x.ResId, x => x.Snapshot!);
 
@@ -131,7 +158,15 @@ public class AdminCaseService : IAdminCaseService
                 .Distinct()
                 .ToList();
 
-            var listingTitleDict = (await Task.WhenAll(listingIds.Select(async lid => new { ListingId = lid, Listing = await _listings.GetByIdAsync(lid) })))
+            var listingTitleDict = (
+                await Task.WhenAll(
+                    listingIds.Select(async lid => new
+                    {
+                        ListingId = lid,
+                        Listing = await _listings.GetByIdAsync(lid),
+                    })
+                )
+            )
                 .Where(x => x.Listing != null)
                 .ToDictionary(x => x.ListingId, x => x.Listing!.Title);
 
@@ -143,7 +178,10 @@ public class AdminCaseService : IAdminCaseService
                         1
                     );
                     var (slaHours, slaBreached) = Sla(item.Type, ageHours);
-                    var subjectInitials = subjectDict.TryGetValue(item.SubjectUserId, out var subject)
+                    var subjectInitials = subjectDict.TryGetValue(
+                        item.SubjectUserId,
+                        out var subject
+                    )
                         ? MakeInitials(subject.FirstName, subject.LastName)
                         : "??";
 
@@ -158,16 +196,25 @@ public class AdminCaseService : IAdminCaseService
                         counterpartyId = null;
                     }
 
-                    var counterpartyInitials = counterpartyId.HasValue && counterpartyDict.TryGetValue(counterpartyId.Value, out var cp)
-                        ? MakeInitials(cp.FirstName, cp.LastName)
-                        : "??";
+                    var counterpartyInitials =
+                        counterpartyId.HasValue
+                        && counterpartyDict.TryGetValue(counterpartyId.Value, out var cp)
+                            ? MakeInitials(cp.FirstName, cp.LastName)
+                            : "??";
 
                     string? title = null;
-                    if (item.ReservationId.HasValue && snapshotDict.TryGetValue(item.ReservationId.Value, out var snap))
+                    if (
+                        item.ReservationId.HasValue
+                        && snapshotDict.TryGetValue(item.ReservationId.Value, out var snap)
+                    )
                     {
                         title = snap.Title;
                     }
-                    if (title == null && item.ListingId.HasValue && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle))
+                    if (
+                        title == null
+                        && item.ListingId.HasValue
+                        && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle)
+                    )
                     {
                         title = listTitle;
                     }
@@ -187,7 +234,10 @@ public class AdminCaseService : IAdminCaseService
                         CounterpartyInitials = counterpartyInitials,
                     };
                 })
-                .Where(c => string.IsNullOrEmpty(status) || c.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+                .Where(c =>
+                    string.IsNullOrEmpty(status)
+                    || c.Status.Equals(status, StringComparison.OrdinalIgnoreCase)
+                );
 
             res.AddRange(mappedDisputes);
         }
@@ -264,7 +314,12 @@ public class AdminCaseService : IAdminCaseService
             return null;
         }
 
-        if (decision is DisputeCaseDecision.Approve or DisputeCaseDecision.Reject or DisputeCaseDecision.Resubmit)
+        if (
+            decision
+            is DisputeCaseDecision.Approve
+                or DisputeCaseDecision.Reject
+                or DisputeCaseDecision.Resubmit
+        )
         {
             throw new DisputesException("decision_not_allowed");
         }
@@ -302,14 +357,16 @@ public class AdminCaseService : IAdminCaseService
         );
 
         var resolvedStatus = decision == DisputeCaseDecision.Dismiss ? "dismiss" : ResolvedString;
-        await _disputes.MarkResolvedAsync(
-            disputeData.DisputeId,
-            adminId,
-            resolvedStatus,
-            ct
-        );
+        await _disputes.MarkResolvedAsync(disputeData.DisputeId, adminId, resolvedStatus, ct);
 
-        await _broadcast.NotifyAdminAsync("dispute_resolved", new { caseId, status = decision == DisputeCaseDecision.Dismiss ? DismissedString : ResolvedString });
+        await _broadcast.NotifyAdminAsync(
+            "dispute_resolved",
+            new
+            {
+                caseId,
+                status = decision == DisputeCaseDecision.Dismiss ? DismissedString : ResolvedString,
+            }
+        );
 
         return await GetCaseByIdAsync(caseId, ct);
     }
@@ -353,9 +410,10 @@ public class AdminCaseService : IAdminCaseService
             );
         }
 
-        var applied = outcomes.Count == 0
-            ? decision.ToString().ToLowerInvariant()
-            : $"{decision.ToString().ToLowerInvariant()}: {string.Join(", ", outcomes)}";
+        var applied =
+            outcomes.Count == 0
+                ? decision.ToString().ToLowerInvariant()
+                : $"{decision.ToString().ToLowerInvariant()}: {string.Join(", ", outcomes)}";
 
         var auditRequest = new AuditWriteRequest(
             ActorId: adminId,
@@ -454,7 +512,8 @@ public class AdminCaseService : IAdminCaseService
     private static string DecisionMessage(VerificationDecision decision) =>
         decision switch
         {
-            VerificationDecision.Approve => "Your student verification has been approved. You can now publish listings.",
+            VerificationDecision.Approve =>
+                "Your student verification has been approved. You can now publish listings.",
             VerificationDecision.Reject => "Your student verification was not approved.",
             VerificationDecision.Resubmit => "Please resubmit your student verification.",
             _ => "Your verification status was updated.",
@@ -515,8 +574,8 @@ public class AdminCaseService : IAdminCaseService
                 .ToList();
         }
 
-        var filedByRole = d.Type == ReportListingString
-            ? "reporter"
+        var filedByRole =
+            d.Type == ReportListingString ? "reporter"
             : d.RaisedBy == d.SellerId ? "seller"
             : d.RaisedBy == d.BuyerId ? "buyer"
             : "unknown";
