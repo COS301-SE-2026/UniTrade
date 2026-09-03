@@ -165,8 +165,6 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
     if (string.IsNullOrWhiteSpace(connectionString))
@@ -182,7 +180,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     {
         options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
     });
-});
 
 builder.Services.Configure<JsonOptions>(options =>
 {
