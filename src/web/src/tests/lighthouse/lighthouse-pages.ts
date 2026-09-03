@@ -1,63 +1,66 @@
-export interface LighthouseThresholds{
-performance: number;
-accessibility: number;
-"best practices" : number;
-seo: number;
-}
 
-export interface LighthousePageConfig{
-name: string;
-path: string;
-admin?: boolean;
-thresholds: LighthouseThresholds;
-}
-
-const default_thresholds: LighthouseThresholds = {
+const default_thresholds = {
 performance: 70,
 accessibility: 90,
 "best practices" : 85,
 seo: 80,
 };
 
-export const Lighthouse_pages: LighthousePageConfig[] = [
+export const Lighthouse_pages = [
 {
 name: "login",
 path: "/auth/Login",
+authRole: "none",
+thresholds: {...default_thresholds} ,
+},
+{
+name: "home",
+path: "/auth/HomePage",
+authRole: "none",
 thresholds: {...default_thresholds} ,
 },
 {
 name: "signup",
 path: "/auth/Signup",
+authRole: "none",
 thresholds: {...default_thresholds} ,
 },
 {
 name: "browse-listings",
 path: "/buyer/listings",
+authRole: "none", 
 thresholds: {...default_thresholds} ,
 },
 {
 name: "admin-dashboard",
 path: "/admin/dashboard",
-admin: true,
+authRole: "admin",
 thresholds: {...default_thresholds} ,
 },
 {
 name: "admin-verifications-queue",
 path: "/admin/verifications",
-admin: true,
+authRole: "admin",
 thresholds: {...default_thresholds} ,
 },
 
 {
 name: "admin-listings-queue",
 path: "/admin/listings",
-admin: true,
+authRole: "admin",
 thresholds: {...default_thresholds} ,
 },
 {
 name: "admin-disputes",
 path: "/admin/disputes",
-admin: true,
+authRole: "admin",
+thresholds: { ...default_thresholds} ,
+},
+
+{
+name: "admin-users",
+path: "/admin/users",
+authRole: "admin",
 thresholds: { ...default_thresholds} ,
 },
 ];
