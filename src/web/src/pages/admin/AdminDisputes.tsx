@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '../../lib/queryKeys'
 import { useNavigate } from 'react-router'
 import chemImg from '../../assets/bio-textbook.jpg'
 import calcImg from '../../assets/calculas-textbook.jpg'
@@ -45,47 +47,33 @@ function getPlaceholder(type: CaseType): string {
 }
 
 export default function AdminDisputes() {
-  const [rows, setRows] = useState<DisputeRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'No-show' | 'Listing-quality' | 'Report'>('all');
   const navigate = useNavigate();
 
-  useEffect(() => {
-  let active = true;
-  getCases()
-    .then(async (response) => {
+  const { data: rows = [], isLoading, error } = useQuery({
+    queryKey: queryKeys.disputes(),
+    queryFn: async () => {
+      const response = await getCases();
 
       const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
-      const cases = Array.isArray(response)? response : response?.cases?? [];
+      const cases = Array.isArray(response) ? response : response?.cases ?? [];
       const filtered = cases.filter(c => disputeTypes.has(c.type));
 
-      const enriched = filtered.map(summary => ({
+      return filtered.map(summary => ({
         id: summary.caseId,
         title: summary.title ?? 'Unknown listing',
         buyerInitials: summary.counterpartyInitials ?? '??',
         sellerInitials: summary.subjectInitials ?? '??',
         timeAgo: getTimeAgo(summary.ageHours),
         type: getDisplayType(summary.type as DisputeCaseType),
-        image: getPlaceholder(summary.type as DisputeCaseType),
+        image: getPlaceholder(summary.type as CaseType),
 
-      }));
-      if (active) {
-        setRows(enriched);
-        setLoading(false);
-      }
-    })
-    .catch((err) => {
-      if (active) {
-        setError(err.message || 'Failed to load disputes');
-        setLoading(false);
-      }
-    });
-  return () => {
-    active = false;
-  };
-}, []);
+      })) as DisputeRow[];
+
+    },
+  })
+
   const filteredRows = rows.filter((row) => {
     const matchSearch = row.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.buyerInitials.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,10 +89,11 @@ export default function AdminDisputes() {
   const numReport = rows.filter(r => r.type === 'Report').length;
 
 
-  if (loading) {
-    return <LoadingState message = "Loading disputes..."/> }
+  if (isLoading) {
+    return <LoadingState message="Loading disputes..." />
+  }
   if (error) {
-    return <p className='text-sm text-red-700'>{error}</p>;
+    return <p className='text-sm text-red-600'>{(error as Error).message || 'Failed to load disputes.'}</p>;
   }
 
   return (
@@ -141,68 +130,64 @@ export default function AdminDisputes() {
           <div className="text-xs text-gray-600 mt-0.5">Report</div>
         </div>
       </div>
-      <div className='relative max-w-xs w-full sm:w-auto'>
-        <input type='text' placeholder='Search disputes...'
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className='w-full pl-4 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]'
-        />
-      </div>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
+        <div className='relative max-w-xs w-full sm:w-auto'>
+          <input type='text' placeholder='Search disputes...'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className='w-full pl-4 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-700'
+          />
+        </div>
 
-      <div className="flex items-center space-x-3 pt-2">
-        <button
-          type="button"
-          onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => setFilter('all')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'all'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          All
-        </button>
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            All
+          </button>
 
 
-        <button
-          type="button"
-          onClick={() => setFilter('No-show')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+          <button
+            type="button"
+            onClick={() => setFilter('No-show')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'No-show'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          No-show
-        </button>
-
-
-        <button
-          type="button"
-          onClick={() => setFilter('Listing-quality')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            No-show
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter('Listing-quality')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'Listing-quality'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          Quality
-        </button>
-
-
-        <button
-          type="button"
-          onClick={() => setFilter('Report')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            Quality
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter('Report')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'Report'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          Report
-        </button>
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            Report
+          </button>
+        </div>
       </div>
-
-
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -251,23 +236,9 @@ export default function AdminDisputes() {
                       <button
                         type="button"
                         onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
-                        className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] 
+                        className="bg-navy-700 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-navy-500 
                 transition-colors cursor-pointer">
                         Review
-                      </button>
-                      <button
-                        type="button"
-
-                        className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
-                transition-colors cursor-pointer text-[10px] leading-tight">
-                        Message Seller
-                      </button>
-                      <button
-                        type="button"
-
-                        className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
-                transition-colors cursor-pointer text-[10px] leading-tight">
-                        Message Buyer
                       </button>
                     </div>
                   </td>
@@ -279,4 +250,3 @@ export default function AdminDisputes() {
     </div>
   );
 }
-

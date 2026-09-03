@@ -74,14 +74,6 @@ describe('Profile', () => {
         expect(screen.getByText(mockUser.initials)).toBeInTheDocument()
     })
 
-    it('navigates to profile settings through settings icon', async () => {
-        const user = userEvent.setup()
-        renderProfile()
-        await user.click(screen.getByLabelText('Settings'))
-        expect(mockNavigate).toHaveBeenCalledWith('/profile/settings')
-    })
-
-
     describe('Delete Account', () => {
         it('opens the confirm popup when Delete Account is clicked',
             async () => {

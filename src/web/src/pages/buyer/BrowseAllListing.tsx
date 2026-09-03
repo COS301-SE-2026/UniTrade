@@ -15,6 +15,7 @@ import {
 import { useToast } from "../../components/layout/useToast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { LoadingState } from "../../components/layout/Spinner";
+import { IconMessageCircle2 } from "@tabler/icons-react";
 
 function CategoryCard({
   title,
@@ -107,7 +108,7 @@ function ListingCard({
       showToast("error", "You can't reserve your own listing.");
     } else if (result.error.code === "already_reserved") {
       showToast("error", "Item was already reserved!!");
-    } else  if (result.error.code === "not_verified"){
+    } else if (result.error.code === "not_verified") {
       showToast("error", "You need to complete verification before reserving items.");
     } else {
       const msg = result.error.message ?? "Could not reserve this item.";
@@ -147,6 +148,13 @@ function ListingCard({
             {listing.condition}
           </span>
         </div>
+
+        {(listing.answeredQuestionCount ?? 0) > 0 && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-600 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded-full w-fit">
+            <IconMessageCircle2 size={11} />
+            {listing.answeredQuestionCount} question{listing.answeredQuestionCount === 1 ? '' : 's'} answered
+          </span>
+        )}
 
         <p className="text-xs text-gray-400 capitalize">
           {getDisplayCategory(listing.category)}

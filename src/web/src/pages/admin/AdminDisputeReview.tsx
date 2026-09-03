@@ -1,8 +1,7 @@
 import { useEffect, useState, useReducer } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
+import { IconBulb, IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
 import {
-  Breadcrumb,
   InfoRow,
   Panel,
   PersonCard,
@@ -16,7 +15,7 @@ import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type Disp
 import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
 import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
 import { getApiUrl } from '../../config';
-import {LoadingState} from '../../components/layout/Spinner';
+import { LoadingState } from '../../components/layout/Spinner';
 
 
 export interface DisputeCase {
@@ -47,7 +46,7 @@ const decisionLabel: Record<DisputeDecision, string> = {
   'more-info': 'Marked as needing more info',
   'side-buyer': 'Sided with buyer',
   'side-seller': 'Sided with seller',
-  
+
   'remove-listing': 'Listing removed',
   'warn-seller': 'Seller warned',
 };
@@ -90,7 +89,7 @@ function disputeReducer(state: State, action: Action): State {
   }
 }
 
-function transformCaseDetail(detail: CaseDetail) : DisputeCase{
+function transformCaseDetail(detail: CaseDetail): DisputeCase {
 
 
   const mapPerson = (p: PartySummary | undefined) => {
@@ -124,7 +123,7 @@ function transformCaseDetail(detail: CaseDetail) : DisputeCase{
     return {
       title: snapshot.title,
       condition: snapshot.condition,
-      category: snapshot.courseTags?.join(', ') || 'N/A',
+      category: snapshot.categoryName || 'N/A',
       moduleCode: snapshot.courseTags?.[0] || 'N/A',
       price: `R${snapshot.price.toFixed(2)}`,
       status: currentStatus ?? 'Unknown',
@@ -223,7 +222,7 @@ export default function AdminDisputeReview() {
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
   const [decisionNote, setDecisionNote] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
-  const[pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
+  const [pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
   useEffect(() => {
     let active = true;
 
@@ -270,9 +269,9 @@ export default function AdminDisputeReview() {
   }
 
 
-   if(state.loading) {
-    return <LoadingState message = "Loading case..." />;
-   }
+  if (state.loading) {
+    return <LoadingState message="Loading case..." />;
+  }
 
   if (state.error || !state.data) {
     return <p className="text-sm text-gray-600">Dispute case not found</p>;
@@ -284,11 +283,20 @@ export default function AdminDisputeReview() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Breadcrumb trail={['Active Disputes', 'Case Review']} />
+        <div className='flex items-center gap-1.5 text-sm text-gray-400'>
+          <button type='button' onClick={() => navigate('/admin/disputes')}
+            className='text-[#00aaff] hover:underline cursor-pointer'
+          >Active Disputes
+
+          </button>
+          <IconChevronRight size={12} />
+          <span className='text-gray-400'></span>
+          <span className='text-gray-600' >Case Review</span>
+        </div>
         <StatusBadge label={badge.label} tone={badge.tone} />
       </div>
 
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">Case #{dispute.id}</h1>
+      {/*<h1 className="text-2xl font-bold text-navy-700 dark:text-white">Case #{dispute.id}</h1>*/}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
@@ -300,7 +308,7 @@ export default function AdminDisputeReview() {
 
           <Panel title="Actions">
             <div className="mb-4">
-              <OutlineButton onClick={() => navigate(`/buyer/listings/${dispute.listingId ?? dispute.id}`)} disabled={!dispute.listingId}>View Listing</OutlineButton>
+              <OutlineButton onClick={() => { if (dispute.listingId) navigate(`/buyer/listings/${dispute.listingId}`); }} disabled={!dispute.listingId} className='text-center border-navy-700 text-navy-700'>View Listing</OutlineButton>
             </div>
 
             {completedDecision ? (
@@ -308,7 +316,6 @@ export default function AdminDisputeReview() {
             ) : (
               <>
                 <div className="mb-4">
-                  
                   <textarea
                     id="decision-note"
                     value={decisionNote}
@@ -320,6 +327,16 @@ export default function AdminDisputeReview() {
                 </div>
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
+                )}
+                 {dispute.suggestedDecision && (
+          <div className='mb-4 flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3'>
+            <IconBulb size={16} className='text-sky-600 shrink-0 mt-0.5'/>
+            <p className='text-xs text-sky-900'>
+              <span className='font-semibold'>System suggestion:</span> based on the evidence,
+              this looks like a case to <span className='font-semibold'>{recommendationText(dispute.suggestedDecision)}</span>.
+              This is a guide — your judgement decides.
+            </p>
+          </div>
                 )}
                 <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
               </>
@@ -364,7 +381,12 @@ export default function AdminDisputeReview() {
     </div>
   );
 }
+function recommendationText(d: DisputeDecision): string {
+  if (d === 'uphold') return 'side with the buyer';
+  if (d === 'dismiss') return 'side with the seller';
+  return 'review carefully';
 
+}
 function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
 
   if (dispute.type === 'no_show') {
@@ -376,7 +398,7 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
   return (
     <Panel title="Item">
       <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-lg bg-gray-100 darkLbg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {dispute.item.imageUrl && (
             <img src={dispute.item.imageUrl} alt={dispute.item.title} className="w-full h-full object-cover" />
           )}
@@ -533,10 +555,9 @@ function DecisionActions({
   type,
   submitting,
   onDecide,
-  suggestedDecision
 }: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void; suggestedDecision?: DisputeDecision }>) {
 
-  
+
   if (type === 'no_show') {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
@@ -558,21 +579,14 @@ function DecisionActions({
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
           {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
-          {suggestedDecision=== 'uphold' && (
-            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
-          )}
+   
         </DecisionButton>
         <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
           {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
-          {suggestedDecision=== 'dismiss' && (
-            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
-          )}
+          
         </DecisionButton>
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
           {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
-          {suggestedDecision=== 'dismiss' && (
-            <span className='ml-2 text-xs text-blue-500'>(recommended)</span>
-          )}
         </DecisionButton>
       </div>
     );

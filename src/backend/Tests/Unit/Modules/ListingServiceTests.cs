@@ -5,8 +5,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
@@ -23,14 +25,38 @@ public class ListingServiceTests
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
     private readonly Mock<ISellerVerificationQuery> _verificationMock;
+    private readonly Mock<IListingQuestionRepository> _questionRepo;
     private readonly ListingService _sut;
+    private readonly Mock<ILogger<ListingService>> _loggerMock;
+    private readonly Mock<IListingQuestionRepository> _questionRepoMock;
+    private readonly Mock<IListingPublishedListener> _listingPublishedListener;
 
     public ListingServiceTests()
     {
         _repo = new Mock<IListingRepository>();
         _imageRepo = new Mock<IListingImageRepository>();
         _verificationMock = new Mock<ISellerVerificationQuery>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object, _verificationMock.Object);
+        _questionRepo = new Mock<IListingQuestionRepository>();
+        _loggerMock = new Mock<ILogger<ListingService>>();
+        _questionRepoMock = new Mock<IListingQuestionRepository>();
+        _listingPublishedListener = new Mock<IListingPublishedListener>();
+        _questionRepo
+            .Setup(r =>
+                r.GetAnsweredQuestionCountsAsync(
+                    It.IsAny<IEnumerable<Guid>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new Dictionary<Guid, int>());
+
+        _sut = new ListingService(
+            _repo.Object,
+            _imageRepo.Object,
+            _verificationMock.Object,
+            _listingPublishedListener.Object,
+            _loggerMock.Object,
+            _questionRepo.Object
+        );
     }
 
     // GetByIdAsync Tests

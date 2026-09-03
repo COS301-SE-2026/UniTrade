@@ -38,6 +38,7 @@ public class ListingSnapshotService : IListingSnapshotService
                 ? new List<string> { listing.Course.CourseName }
                 : new List<string>(),
             CapturedAt = _clock.GetUtcNow().UtcDateTime,
+            CategoryName = listing.Category?.Name,
         };
 
         await _snapshots.AddAsync(snapshot, ct);
@@ -74,6 +75,7 @@ public class ListingSnapshotService : IListingSnapshotService
                 ? new List<string> { listing.Course.CourseName }
                 : new List<string>(),
             CapturedAt = _clock.GetUtcNow().UtcDateTime,
+            CategoryName = listing.Category?.Name,
         };
         await _snapshots.AddAsync(snapshot, ct);
         return MapToDto(snapshot);
@@ -100,5 +102,6 @@ public class ListingSnapshotService : IListingSnapshotService
             PhotoRefs = s.PhotoRefs,
             CapturedAt = s.CapturedAt,
             SnapshotId = s.SnapshotId,
+            CategoryName = s.CategoryName,
         };
 }

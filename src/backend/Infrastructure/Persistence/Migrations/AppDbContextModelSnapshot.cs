@@ -632,6 +632,50 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Modules.ListingQuestions.Models.ListingQuestion", b =>
+                {
+                    b.Property<Guid>("QuestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("question_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("AnswerText")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("answer_text");
+
+                    b.Property<DateTime?>("AnsweredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("answered_at");
+
+                    b.Property<DateTime>("AskedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("asked_at");
+
+                    b.Property<Guid>("AskerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asker_id");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_id");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("question_text");
+
+                    b.HasKey("QuestionId")
+                        .HasName("pk_listing_questions");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("ix_listing_questions_listing_id");
+
+                    b.ToTable("listing_questions", "unitrade");
+                });
+
             modelBuilder.Entity("Modules.Listings.Models.BookDetails", b =>
                 {
                     b.Property<Guid>("ListingId")
@@ -939,6 +983,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("captured_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<string>("CategoryName")
+                        .HasColumnType("text")
+                        .HasColumnName("category_name");
 
                     b.Property<string>("Condition")
                         .IsRequired()
@@ -1526,6 +1574,57 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_review_type", "review_type IN ('buyer_to_seller', 'seller_to_buyer')");
                         });
+                });
+
+            modelBuilder.Entity("Modules.SavedSearches.Models.SavedSearch", b =>
+                {
+                    b.Property<Guid>("SearchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("search_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("buyer_id");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal?>("MaxPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("max_price");
+
+                    b.Property<decimal?>("MinPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("min_price");
+
+                    b.Property<string>("Query")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("query");
+
+                    b.HasKey("SearchId")
+                        .HasName("pk_saved_searches");
+
+                    b.HasIndex("BuyerId")
+                        .HasDatabaseName("ix_saved_searches_buyer_id");
+
+                    b.ToTable("saved_searches", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.SharedKernel.Image", b =>

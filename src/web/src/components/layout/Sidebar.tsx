@@ -45,7 +45,7 @@ const buyerNav: NavSection[] = [
       { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} /> },
       { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
       { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} /> },
-      {label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} />},
+      { label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} /> },
     ],
   },
   {
@@ -83,20 +83,20 @@ const adminNav: NavSection[] = [
   {
     heading: 'Main',
     items: [
-      //{ label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} /> },
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} /> },
       //{ label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />},
       { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
-  {
+  /*{
     heading: 'Manage',
     items: [
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
 
     ],
-  },
+  },*/
 ]
 
 interface UserPopoverProps {

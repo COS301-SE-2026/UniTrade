@@ -32,6 +32,7 @@ public sealed class AdminApiFactory : WebApplicationFactory<Program>, IAsyncLife
             "Firebase__CredentialsJson",
             ""
         );
+        Environment.SetEnvironmentVariable("PayFast__Passphrase", "verymuchexistentpassphrase");
         builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration(
             (context, config) =>

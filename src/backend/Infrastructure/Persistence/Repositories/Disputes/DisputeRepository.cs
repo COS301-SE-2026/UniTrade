@@ -1,10 +1,9 @@
 using Infrastructure.Persistence;
-using Modules.Disputes.Models;
-using Modules.Disputes.Repositories;
-using Modules.Disputes.Models.Dto;
-using Modules.Identity.Models;
-
 using Microsoft.EntityFrameworkCore;
+using Modules.Disputes.Models;
+using Modules.Disputes.Models.Dto;
+using Modules.Disputes.Repositories;
+using Modules.Identity.Models;
 
 namespace Infrastructure.Persistence.Repositories.Disputes;
 
@@ -17,7 +16,10 @@ public class DisputeRepository : IDisputeRepository
         _db = db;
     }
 
-    public async Task<IReadOnlyList<CaseSummaryDto>> ListPendingAsync(string? type, CancellationToken ct = default)
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListPendingAsync(
+        string? type,
+        CancellationToken ct = default
+    )
     {
         var query = _db.Disputes.Where(d => d.Status == "open" || d.Status == "under_review");
         if (!string.IsNullOrWhiteSpace(type))
@@ -34,7 +36,10 @@ public class DisputeRepository : IDisputeRepository
         return results;
     }
 
-    public async Task<DisputeCaseData?> GetCaseDataAsync(Guid disputeId, CancellationToken ct = default)
+    public async Task<DisputeCaseData?> GetCaseDataAsync(
+        Guid disputeId,
+        CancellationToken ct = default
+    )
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
         if (d is null)
@@ -76,8 +81,8 @@ public class DisputeRepository : IDisputeRepository
             }
             if (d.ReservationId is not null)
             {
-                var txn = await _db.Transactions
-                    .Where(t => t.ReservationId == d.ReservationId)
+                var txn = await _db
+                    .Transactions.Where(t => t.ReservationId == d.ReservationId)
                     .OrderByDescending(t => t.CreatedAt)
                     .FirstOrDefaultAsync(ct);
                 data.PinStatus = txn?.PinStatus;
@@ -86,14 +91,21 @@ public class DisputeRepository : IDisputeRepository
         return data;
     }
 
-    public async Task MarkResolvedAsync(Guid disputeId, Guid adminId, string resolution, CancellationToken ct = default)
+    public async Task MarkResolvedAsync(
+        Guid disputeId,
+        Guid adminId,
+        string resolution,
+        CancellationToken ct = default
+    )
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
         if (d is null)
         {
             return;
         }
-        d.Status = string.Equals(resolution, "dismiss", StringComparison.OrdinalIgnoreCase) ? "closed" : "resolved";
+        d.Status = string.Equals(resolution, "dismiss", StringComparison.OrdinalIgnoreCase)
+            ? "closed"
+            : "resolved";
         d.AssignedAdminId = adminId;
         d.Resolution = resolution;
         d.ResolvedAt = DateTime.UtcNow;
@@ -162,18 +174,34 @@ public class DisputeRepository : IDisputeRepository
         return dispute.DisputeId;
     }
 
-    public async Task<bool> HasOpenDisputeAsync(Guid filedByUserId, Guid subjectUserId, CancellationToken ct = default)
+    public async Task<bool> HasOpenDisputeAsync(
+        Guid filedByUserId,
+        Guid subjectUserId,
+        CancellationToken ct = default
+    )
     {
-        return await _db.Disputes.AnyAsync(d => d.RaisedBy == filedByUserId && d.SubjectUserId == subjectUserId && (d.Status == "open" || d.Status == "under_review"), ct);
+        return await _db.Disputes.AnyAsync(
+            d =>
+                d.RaisedBy == filedByUserId
+                && d.SubjectUserId == subjectUserId
+                && (d.Status == "open" || d.Status == "under_review"),
+            ct
+        );
     }
 
-    private async Task<(Guid? BuyerId, Guid? SellerId)> ResolvePartiesAsync(Dispute d, CancellationToken ct)
+    private async Task<(Guid? BuyerId, Guid? SellerId)> ResolvePartiesAsync(
+        Dispute d,
+        CancellationToken ct
+    )
     {
         if (d.ReservationId is null)
         {
             return (null, null);
         }
-        var reservation = await _db.Reservations.FirstOrDefaultAsync(r => r.ReservationId == d.ReservationId, ct);
+        var reservation = await _db.Reservations.FirstOrDefaultAsync(
+            r => r.ReservationId == d.ReservationId,
+            ct
+        );
         return reservation is null ? (null, null) : (reservation.BuyerId, reservation.SellerId);
     }
 
@@ -186,14 +214,19 @@ public class DisputeRepository : IDisputeRepository
         string? title = null;
         if (d.ReservationId is not null)
         {
-            var snapshot = await _db.ListingSnapshot.FirstOrDefaultAsync(s => s.ReservationId == d.ReservationId, ct);
+            var snapshot = await _db.ListingSnapshot.FirstOrDefaultAsync(
+                s => s.ReservationId == d.ReservationId,
+                ct
+            );
             title = snapshot?.Title;
         }
 
         if (title is null && d.ListingId is not null)
         {
-            var listing = await _db.Listings.FirstOrDefaultAsync(l => l.ListingId == d.ListingId, ct);
-            title = listing?.Title;
+            title = await _db
+                .Listings.Where(l => l.ListingId == d.ListingId)
+                .Select(l => l.Title)
+                .FirstOrDefaultAsync(ct);
         }
         var subject = await _db.Users.FirstOrDefaultAsync(u => u.UserId == d.SubjectUserId, ct);
         var subjectInitials = Initials(subject);
@@ -227,10 +260,13 @@ public class DisputeRepository : IDisputeRepository
             BuyerId = buyerId,
             SellerId = sellerId,
             ReservationId = d.ReservationId,
-            ListingId = d.ListingId
+            ListingId = d.ListingId,
         };
     }
-    private static string? Initials(User? u) => u is null ? null : $"{FirstChar(u.FirstName)}{FirstChar(u.LastName)}";
-    private static string FirstChar(string? s) => string.IsNullOrEmpty(s) ? string.Empty : s[0].ToString().ToUpperInvariant();
 
+    private static string? Initials(User? u) =>
+        u is null ? null : $"{FirstChar(u.FirstName)}{FirstChar(u.LastName)}";
+
+    private static string FirstChar(string? s) =>
+        string.IsNullOrEmpty(s) ? string.Empty : s[0].ToString().ToUpperInvariant();
 }
