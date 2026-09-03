@@ -1,5 +1,5 @@
 import { test, expect, vi, afterEach } from 'vitest';
-import { screen, render, waitFor } from '@testing-library/react';
+import { screen, render, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { http, HttpResponse } from 'msw';
@@ -8,10 +8,11 @@ import App from '../../App';
 import { useAuthStore } from '../../store/useAuthStore';
 import { server } from '../mocks/server';
 import { ToastProvider } from '../../components/layout/Toast';
-//import { fireEvent } from '@testing-library/react';
+//import { getApiUrl } from '../../config';
 
 afterEach(() => {
   vi.clearAllMocks();
+  server.resetHandlers();
 });
 
 vi.mock('../../config', () => ({
@@ -35,8 +36,14 @@ vi.mock('../../services/realtime/connectionManager', () => ({
     onListingChanged: vi.fn(() => vi.fn()),
     onDisputeCreated: vi.fn(() => vi.fn()),
     onDisputeResolved: vi.fn(() => vi.fn()),
-    onSavedSearchMatch: vi.fn(() => vi.fn())
+    onSavedSearchMatch: vi.fn(() => vi.fn()),
+    onVerificationCreated: vi.fn(() => vi.fn()),
+    onVerificationUpdated: vi.fn(() => vi.fn()),
   },
+}));
+
+vi.mock('../../providers/RealtimeProvider', () => ({
+  RealtimeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const renderWithProviders = (ui: React.ReactElement, { initialEntries = ['/'] } = {}) => {
@@ -58,16 +65,17 @@ const renderWithProviders = (ui: React.ReactElement, { initialEntries = ['/'] } 
 
 /*test('signup -> otp -> lands on proof of registration upload', async () => {
   const user = userEvent.setup();
+  const baseUrl = getApiUrl();
 
   server.use(
-    http.post('auth/register', async () => {
+    http.post(`${baseUrl}/auth/register`, async () => {
       useAuthStore.setState({ pendingEmail: 'tafadzwa@tuks.co.za' });
       return HttpResponse.json({
         message: 'OTP sent to email',
         pendingEmail: 'tafadzwa@tuks.co.za',
       });
     }),
-    http.post('auth/verify-otp', async () => {
+    http.post(`${baseUrl}/auth/verify-otp`, async () => {
       useAuthStore.setState({ pendingEmail: null });
       return HttpResponse.json({
         token: 'fake-token',
@@ -82,7 +90,7 @@ const renderWithProviders = (ui: React.ReactElement, { initialEntries = ['/'] } 
     })
   );
 
-  const { container } = renderWithProviders(<App />, { initialEntries: ['/auth/Signup'] });
+  renderWithProviders(<App />, { initialEntries: ['/auth/Signup'] });
 
   await screen.findByText(/get started/i);
 
@@ -97,18 +105,16 @@ const renderWithProviders = (ui: React.ReactElement, { initialEntries = ['/'] } 
   await user.type(screen.getByPlaceholderText(/year of study/i), '3');
   await user.type(screen.getByPlaceholderText(/password/i), 'Password123!');
 
-  const form = container.querySelector('form');
-  if (form) {
-    fireEvent.submit(form);
-  } else {
-    await user.click(screen.getByRole('button', { name: /^signup$/i }));
-  }
+  await user.click(screen.getByRole('button', { name: /^signup$/i }));
 
-  const termsHeading = await screen.findByRole(
-    'heading',
-    { name: /terms/i },
-    { timeout: 3000 }
-  ).catch(() => null);
+  await waitFor(() => {
+    expect(useAuthStore.getState().pendingEmail).toBe('tafadzwa@tuks.co.za');
+  });
+
+
+  const termsHeading = await screen
+    .findByRole('heading', { name: /terms/i }, { timeout: 3000 })
+    .catch(() => null);
 
   if (termsHeading) {
     const checkbox = await screen.findByRole('checkbox');
@@ -146,7 +152,6 @@ test('login -> profile -> logout', async () => {
         },
       });
     }),
-
     http.get('http://localhost:5000/auth/me', () => {
       return HttpResponse.json({
         user: {
@@ -158,6 +163,7 @@ test('login -> profile -> logout', async () => {
       });
     })
   );
+
   renderWithProviders(<App />, { initialEntries: ['/auth/Login'] });
 
   await screen.findByText('Welcome Back!');

@@ -90,13 +90,13 @@ const adminNav: NavSection[] = [
       { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
-  {
+  /*{
     heading: 'Manage',
     items: [
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
 
     ],
-  },
+  },*/
 ]
 
 interface UserPopoverProps {

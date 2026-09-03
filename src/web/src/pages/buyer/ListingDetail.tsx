@@ -155,8 +155,8 @@ export default function ListingDetail() {
       setReportError(null);
       showToast("success", "Thanks — your report has been submitted and a UniTrade admin will review it shortly.");
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "";
-      const message_row = raw === "dispute_already_open" ? "You've already reported this listing." : raw === "listing_not_live" ? "This listings is no longer available to report." : "Something went wrong submitting your report. Please try again.";
+      const code = (err as {code?: string})?.code?? "";
+      const message_row = code === "dispute_already_open" ? "You've already reported this listing." : code === "listing_not_live" ? "This listing is no longer available to report." : "Something went wrong submitting your report. Please try again.";
       setReportError(message_row);
     } finally {
       setReportSubmitting(false);

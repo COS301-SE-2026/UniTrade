@@ -84,6 +84,7 @@ export interface VerificationCase {
   slaLabel: string
   slaOverdue: boolean
   decision?: VerificationDecision
+  hasDocument?: boolean;
 }
 
 export type ListingRiskLevel = 'High Risk' | 'Medium Risk' | 'Low Risk'

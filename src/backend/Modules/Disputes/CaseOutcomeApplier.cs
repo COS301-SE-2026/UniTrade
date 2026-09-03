@@ -1,5 +1,8 @@
+using Modules.Identity.Repositories;
 using Modules.Listings.Moderation;
+using Modules.Notifications;
 using Modules.Reputation;
+using Modules.Reservations;
 
 namespace Modules.Disputes;
 
@@ -7,11 +10,26 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
 {
     private readonly IReputationService _reputation;
     private readonly IModerationService _moderation;
+    private readonly INotificationDispatcher _notifications;
+    private readonly IEmailService _emails;
+    private readonly IBroadCastService _broadCast;
+    private readonly IUserRepository _users;
 
-    public CaseOutcomeApplier(IReputationService reputation, IModerationService moderation)
+    public CaseOutcomeApplier(
+        IReputationService reputation,
+        IModerationService moderation,
+        INotificationDispatcher notifications,
+        IEmailService emails,
+        IUserRepository users,
+        IBroadCastService broadCastService
+    )
     {
         _reputation = reputation;
         _moderation = moderation;
+        _notifications = notifications;
+        _emails = emails;
+        _users = users;
+        _broadCast = broadCastService;
     }
 
     public async Task ApplyAsync(
@@ -57,5 +75,60 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                     break;
             }
         }
+        if (outcomes.Count > 0)
+        {
+            var summary = BuildOutcomeSummary(outcomes);
+
+            try
+            {
+                await _notifications.NotifyAsync(
+                    context.SubjectUserId,
+                    "dispute_outcome",
+                    $"{summary}{(string.IsNullOrWhiteSpace(context.Reason) ? "" : $" Reason: {context.Reason}")}",
+                    ct
+                );
+            }
+            catch { }
+
+            try
+            {
+                await _broadCast.SendToUserAsync(
+                    context.SubjectUserId,
+                    "dispute_outcome",
+                    new { message = summary, reason = context.Reason }
+                );
+            }
+            catch { }
+
+            try
+            {
+                var user = await _users.GetByIdAsync(context.SubjectUserId);
+                if (user is not null && !string.IsNullOrWhiteSpace(user.Email))
+                {
+                    await _emails.SendDisputeOutcomeEmailAsync(
+                        user.Email,
+                        user.FirstName ?? "there",
+                        summary,
+                        context.Reason
+                    );
+                }
+            }
+            catch { }
+        }
+    }
+
+    private static string BuildOutcomeSummary(IReadOnlyList<DisputeOutcome> outcomes)
+    {
+        var parts = new List<string>();
+        if (outcomes.Contains(DisputeOutcome.RemoveListing))
+            parts.Add("your listing was removed");
+        if (outcomes.Contains(DisputeOutcome.Strike))
+            parts.Add("a strike was applied to your account");
+        if (outcomes.Contains(DisputeOutcome.RefusalFlag))
+            parts.Add("a refusal flag was applied to your account");
+        if (outcomes.Count == 0)
+            return "A dispute involving your account was resolved.";
+        var joined = string.Join(" and ", parts);
+        return $"A dispute was resolved: {char.ToUpper(joined[0])}{joined[1..]}.";
     }
 }
