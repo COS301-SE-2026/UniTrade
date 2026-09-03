@@ -18,5 +18,6 @@ namespace Modules.Listings.Models
         public Reservation? Reservation { get; set; }
         public Listing Listing { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string? CategoryName { get; set; }
     }
 }

@@ -316,7 +316,7 @@ export default function AdminVerifications() {
                       <button
                         type="button"
                         onClick={() => navigate(`/admin/verifications/${ver.id}`)}
-                        className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] transition-colors cursor-pointer text-[10px] leading-tight"
+                        className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-navy-500 transition-colors cursor-pointer text-[10px] leading-tight"
                       >
                         Review
                       </button>
