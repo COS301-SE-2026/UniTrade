@@ -60,4 +60,47 @@ test.describe("Lighthouse - accessibility", () => {
 }
 });
 
+test.describe("Lighthouse - performance", () => {
+    for (const pageConfig of Lighthouse_pages) {
+        test(`perf: ${pageConfig.name}`, async ({ page, request},
+            testInfo) => {
+                await authenticate(page, request, pageConfig.authRole);
+                await page.goto(pageConfig.path);
+                await page.waitForLoadState("networkidle");
+
+                const jsonName = `${pageConfig.name}-perf`;
+                const htmlReportPath = path.join(reportDir, `${jsonName}.report.html`); 
+                const jsonReportPath = path.join(reportDir, `${jsonName}.report.json`);
+
+                try{
+                    await playAudit({
+                        page, port: cdp_port,
+                        thresholds: { performance: 
+                            pageConfig.thresholds.performance
+                        },
+                        opts: { onlyCategories: ["performance"] },
+                        reports: { formats: { html: true, json: true },name:
+                    jsonName, directory: reportDir }
+                    })
+                } finally {
+                    if (fs.existsSync(jsonReportPath)) {
+                        const lhr = JSON.parse(fs.readFileSync(jsonReportPath, "utf-8"));
+                        const score = Math.round((lhr.categories.performance?.score ?? 0) * 100);
+                        console.log(`lighthouse performance score for ${pageConfig.name}:`, score);
+                            await testInfo.attach(`${pageConfig.name}-performance-score`, { body: JSON.stringify({ performance: score },
+                            null, 2),
+                            contentType: "application/json", });
+                    }
+        
+    if(fs.existsSync(htmlReportPath)){
+        await testInfo.attach(`${pageConfig.name}-performance-report`, { path: htmlReportPath, contentType: "text/html" });
+    }
+}
+})
+}
+});
+
+
+
+
 
