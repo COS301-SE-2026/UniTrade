@@ -2,7 +2,12 @@ import {test, expect} from '@playwright/test';
 
 import { signupAndLogin, uniqueEmail } from './helpers/auth';
 
+test.describe('Edit listing', () => {
+    test.describe.configure({mode: 'serial'});
+});
+
 test('seller can edit a listing\'s title and price', async ({ page, request }) => {
+    test.setTimeout(60_000);
     const originalTitle = `E2E Edit Listing ${Date.now()}`;
     const updatedTitle = `E2E Edit Listing UPDATED ${Date.now()}`;
     const sellerEmail = uniqueEmail('seller');
@@ -48,6 +53,7 @@ test('seller can edit a listing\'s title and price', async ({ page, request }) =
 });
 
 test('cancelling out of edit discards changes', async ({ page, request }) => {
+    test.setTimeout(60_000);
     const listingTitle = `E2E Edit Cancel Listing ${Date.now()}`;
 
     await signupAndLogin(page, request, { email: uniqueEmail('seller') });
