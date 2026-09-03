@@ -7,6 +7,9 @@ import type { Reservation, ReservationListItem, ChatMessage } from "../types/Res
 import type { ClientChatMessage } from "../types/chat";
 import { registerForPushN, onForegroundMessage } from "../services/fcmService";
 import { useToast } from "../components/layout/useToast";
+import { authService } from "../services/authService";
+import { useNavigate } from "react-router";
+
 
 export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   /*if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
@@ -16,8 +19,9 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }*/
 
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { user, clearUser } = useAuthStore();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
 if (import.meta.env.DEV || !user) return;
@@ -175,6 +179,28 @@ if (import.meta.env.DEV || !user) return;
       showToast("info", e.message);
     })
 
+     })
+
+    const offForceLogout = connectionManager.onForceLogout(async () => {
+      showToast("info", "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.");
+      try {
+        await authService.logout(() => connectionManager.disconnect());
+
+      } catch (err) {
+        console.error("logout request failed", err);
+      } finally {
+        clearUser();
+        navigate("/auth/Login", { replace: true});
+      }
+});
+
+const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
+  showToast("info", e.reason
+    ? `More info needed for your verificatin: ${e.reason}`
+    : "Please resubmit your proof of registration."
+  );
+  navigate("/auth/ProofUpload");
+});
     return () => {
       offMessage();
       offReconnected();
@@ -186,10 +212,12 @@ if (import.meta.env.DEV || !user) return;
       offSavedSearchMatch();
       offVerificationCreated();
       offDisputeOutcome();
+      offForceLogout();
+      offVerificationResubmission();
       if(user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }
     };
-  }, [queryClient, user, showToast]);
+  }, [queryClient, user, showToast, navigate, clearUser]);
   return <>{children}</>;
 }

@@ -97,7 +97,6 @@ function VerificationStatusModal({
 const Login: React.FC = () => {
   const navigate = useNavigate()
   const { setUser, setPendingEmail } = useAuthStore()
-  //const { showToast} = useToast()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)

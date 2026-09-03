@@ -65,6 +65,9 @@ class ConnectionManager {
     (e: { caseId: string }) => void
   >();
 
+  private readonly forceLogoutListeners = new Set<(e: { reason: string}) => void>();
+  private readonly verificationResubmissionListeners = new Set<(e: {reason: string | null}) => void>()
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -136,7 +139,16 @@ class ConnectionManager {
       );
       conn.on("dispute_outcome", (e: { message: string; reason?: string }) =>
         this.disputeOutcomeListeners.forEach((cb) => cb(e)),
+        this.verificationCreatedListeners.forEach((cb) => cb(e)),);
+      conn.on(
+        "dispute_resolved",
+        (data: { caseId: string; status: string }) =>
+          this.disputeResolvedListeners.forEach((cb) => cb(data)),
       );
+      conn.on("force_logout", (e: {reason: string}) => 
+      this.forceLogoutListeners.forEach((cb) => cb(e)),);
+      conn.on("verification_resubmission_required", (e: {reason: string | null}) =>
+      this.verificationResubmissionListeners.forEach((cb) => cb(e)))
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
@@ -318,6 +330,7 @@ class ConnectionManager {
     return () => this.verificationCreatedListeners.delete(callback);
   }
 
+
   onDisputeResolved(
     callback: (data: { caseId: string; status: string }) => void,
   ): Unsubscribe {
@@ -325,6 +338,19 @@ class ConnectionManager {
     return () => this.disputeResolvedListeners.delete(callback);
   }
 
+  onForceLogout(
+    callback: (e: {reason: string}) => void,
+  ): Unsubscribe {
+    this.forceLogoutListeners.add(callback);
+    return () => this.forceLogoutListeners.delete(callback);
+  }
+
+  onVerificationResubmissionRequired(
+    callback: (e: { reason: string | null}) => void,
+  ): Unsubscribe {
+    this.verificationResubmissionListeners.add(callback);
+    return () => this.verificationResubmissionListeners.delete(callback);
+  }
   private notifyState(state: ConnectionState): void {
     this.stateListeners.forEach((cb) => cb(state));
   }
