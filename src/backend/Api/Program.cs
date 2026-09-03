@@ -178,7 +178,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
     var dataSource = dataSourceBuilder.Build();
 
-    options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+    builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+    });
 });
 
 builder.Services.Configure<JsonOptions>(options =>
