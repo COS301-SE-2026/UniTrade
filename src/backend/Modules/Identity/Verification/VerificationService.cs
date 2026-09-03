@@ -23,7 +23,7 @@ public class VerificationService : IVerificationService
     private readonly IIdentityService _identity;
     private readonly IConfiguration _config;
     private readonly IBroadCastService _broadcast;
-    private readonly ILogger <VerificationService> _logger;
+    private readonly ILogger<VerificationService> _logger;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
     private const int _resendCooldownSeconds = 60;
@@ -45,8 +45,8 @@ public class VerificationService : IVerificationService
         _porStorage = porStorage;
         _identity = identity;
         _config = config;
-        _broadcast= broadcast;
-        _logger=logger;
+        _broadcast = broadcast;
+        _logger = logger;
     }
 
     public async Task InitiateAsync(string email, Guid userId)
@@ -151,11 +151,13 @@ public class VerificationService : IVerificationService
         record.OtpVerifiedAt = DateTime.UtcNow;
         await _verifications.UpdateAsync(record);
 
-        try{
-            var caseDto= await _verifications.GetCaseByIdAsync(record.VerificationId);
-            await _broadcast.NotifyAdminAsync("verification_created", new {caseId=caseDto });
+        try
+        {
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
         }
-        catch(Exception ex){
+        catch (Exception ex)
+        {
             //never fail verification over a broadcast
             _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
         }
@@ -311,11 +313,13 @@ public class VerificationService : IVerificationService
         record.AdminDecision = null;
         await _verifications.UpdateAsync(record);
 
-        try{
-            var caseDto= await _verifications.GetCaseByIdAsync(record.VerificationId);
-            await _broadcast.NotifyAdminAsync("verification_created", new {caseId=caseDto });
+        try
+        {
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
         }
-        catch(Exception ex){
+        catch (Exception ex)
+        {
             //never fail verification over a broadcast
             _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
         }
