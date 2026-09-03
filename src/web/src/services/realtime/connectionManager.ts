@@ -23,6 +23,12 @@ class ConnectionManager {
   private readonly messageListeners = new Set<(m: ChatMessage) => void>();
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
+  private readonly listingQuestionAskedListeners = new Set<(e: {
+    listingId: string; questionId: string
+  }) => void>();
+  private readonly listingQuestionAnsweredListeners = new Set<(e: {
+    listingId: string; questionId: string
+  }) => void>();
   private readonly listingListeners = new Set<
     (listingId: string, event: "reserved" | "released" | "created") => void
   >();
@@ -36,14 +42,18 @@ class ConnectionManager {
     (e: { reservationId: string }) => void
   >();
   private readonly disputeCreatedListeners = new Set<
-  (data: {caseId: string; type: string}) => void
+    (data: { caseId: string; type: string }) => void
   >();
   private readonly disputeResolvedListeners = new Set<
-  (data: {caseId: string; status: string}) => void
+    (data: { caseId: string; status: string }) => void
   >();
 
- private readonly savedSearchMatchListeners = new Set<
-  (e: {listingId: string; title: string; price: number; message: string }) => void
+  private readonly savedSearchMatchListeners = new Set<
+    (e: { listingId: string; title: string; price: number; message: string }) => void
+  >();
+
+  private readonly verificationCreatedListeners= new Set<
+    (e: {caseId: string}) => void
   >();
 
   connect(): Promise<void> {
@@ -86,16 +96,22 @@ class ConnectionManager {
         this.paymentCompletedListeners.forEach((cb) => cb(e)),
       );
 
-      conn.on("saved_search_match", (e: {listingId: string; title: string; price: number; message: string }) =>
+      conn.on("saved_search_match", (e: { listingId: string; title: string; price: number; message: string }) =>
         this.savedSearchMatchListeners.forEach((cb) => cb(e)),
       );
 
-      conn.on("dispute_created", (data: {caseId: string; type: string}) =>
+      conn.on("listing_question_asked", (e: { listingId: string; questionId: string }) =>
+        this.listingQuestionAskedListeners.forEach((cb) => cb(e)),);
+      conn.on("listing_question_answered", (e: { listingId: string; questionId: string }) =>
+        this.listingQuestionAnsweredListeners.forEach((cb) => cb(e)))
+      conn.on("dispute_created", (data: { caseId: string; type: string }) =>
         this.disputeCreatedListeners.forEach((cb) => cb(data)),
       );
+      conn.on("verification_created", (e: {caseId: string}) =>
+        this.verificationCreatedListeners.forEach((cb)=> cb(e)),);
       conn.on(
         "dispute_resolved",
-        (data: {caseId: string; status: string}) =>
+        (data: { caseId: string; status: string }) =>
           this.disputeResolvedListeners.forEach((cb) => cb(data)),
       );
       conn.onreconnecting(() => {
@@ -106,8 +122,8 @@ class ConnectionManager {
         await Promise.allSettled(
           [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
-        if(this.isAdminGroupJoined) {
-          await conn.invoke("JoinAdminGroup").catch(() => {})
+        if (this.isAdminGroupJoined) {
+          await conn.invoke("JoinAdminGroup").catch(() => { })
         }
 
         this.notifyState("Connected");
@@ -144,7 +160,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
     }
   }
   async disconnect(): Promise<void> {
@@ -160,7 +176,7 @@ class ConnectionManager {
 
   async leaveAdminGroup(): Promise<void> {
     this.isAdminGroupJoined = false;
-    await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
+    await this.connection?.invoke("LeaveAdminGroup").catch(() => { });
   }
 
   getState(): ConnectionState {
@@ -231,29 +247,44 @@ class ConnectionManager {
     return () => this.paymentCompletedListeners.delete(callback);
   }
 
-  onSavedSearchMatch( 
+  onListingQuestionAsked(cb: (e: { listingId: string; questionId: string })
+    => void): Unsubscribe {
+    this.listingQuestionAskedListeners.add(cb);
+    return () => this.listingQuestionAskedListeners.delete(cb);
+  }
+  onListingQuestionAnswered(cb: (e: { listingId: string; questionId: string }) => void): Unsubscribe {
+    this.listingQuestionAnsweredListeners.add(cb);
+    return () => this.listingQuestionAnsweredListeners.delete(cb);
+  }
+  onSavedSearchMatch(
     callback: (e: { listingId: string; title: string; price: number; message: string }) => void,
   ): Unsubscribe {
     this.savedSearchMatchListeners.add(callback);
     return () => this.savedSearchMatchListeners.delete(callback)
   }
-  
-
   onReconnected(callback: () => void): Unsubscribe {
     this.reconnectedListeners.add(callback);
     return () => this.reconnectedListeners.delete(callback);
   }
 
   onDisputeCreated(
-    callback: (data: {caseId: string; type: string}) => void,
+    callback: (data: { caseId: string; type: string }) => void,
 
   ): Unsubscribe {
     this.disputeCreatedListeners.add(callback);
     return () => this.disputeCreatedListeners.delete(callback);
   }
 
+  onVerificationCreated(
+    callback: (e: {caseId: string}) => void,
+  ): Unsubscribe{
+    this.verificationCreatedListeners.add(callback);
+    return ()=> this.verificationCreatedListeners.delete(callback);
+  }
+  
+
   onDisputeResolved(
-    callback: (data: {caseId: string; status: string}) => void,
+    callback: (data: { caseId: string; status: string }) => void,
   ): Unsubscribe {
     this.disputeResolvedListeners.add(callback);
     return () => this.disputeResolvedListeners.delete(callback);

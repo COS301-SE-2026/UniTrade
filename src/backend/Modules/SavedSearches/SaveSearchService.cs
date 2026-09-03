@@ -69,7 +69,7 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             foreach (var search in matching)
             {
                 var msg =
-                    $"New listing matches your search: {listingEvent.Title}- R{listingEvent.Price: F2}";
+                    $"New listing matches your search: {listingEvent.Title}- R{listingEvent.Price:F2}";
                 await _notifications.NotifyAsync(search.BuyerId, "saved_search", msg, ct);
 
                 await _broadcast.SendToUserAsync(

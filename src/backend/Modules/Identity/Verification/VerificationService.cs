@@ -6,6 +6,8 @@ using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
 using Modules.SharedKernel;
+using Modules.Reservations;
+using Microsoft.Extensions.Logging;
 
 namespace Modules.Identity.Verification;
 
@@ -20,6 +22,8 @@ public class VerificationService : IVerificationService
     private readonly IProofOfRegistrationStorageService _porStorage;
     private readonly IIdentityService _identity;
     private readonly IConfiguration _config;
+    private readonly IBroadCastService _broadcast;
+    private readonly ILogger<VerificationService> _logger;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
     private const int _resendCooldownSeconds = 60;
@@ -30,7 +34,9 @@ public class VerificationService : IVerificationService
         IEmailService emails,
         IProofOfRegistrationStorageService porStorage,
         IIdentityService identity,
-        IConfiguration config
+        IConfiguration config,
+        IBroadCastService broadcast,
+        ILogger<VerificationService> logger
     )
     {
         _verifications = verifications;
@@ -39,6 +45,8 @@ public class VerificationService : IVerificationService
         _porStorage = porStorage;
         _identity = identity;
         _config = config;
+        _broadcast = broadcast;
+        _logger = logger;
     }
 
     public async Task InitiateAsync(string email, Guid userId)
@@ -58,12 +66,7 @@ public class VerificationService : IVerificationService
             await _verifications.UpdateAsync(existing);
         }
         var otp = GenerateOtp();
-        var secret =
-            _config["Otp:Secret"]
-            ?? throw new InvalidOperationException(
-                "Otp:Secret environment variable is not configured"
-            );
-        var hash = OtpSecurity.HashOtp(otp, secret);
+        var hash = HashOtp(otp);
 
         var record = new VerificationRequest
         {
@@ -110,12 +113,7 @@ public class VerificationService : IVerificationService
             throw new VerificationException("otp_expired");
         }
 
-        var secret =
-            _config["Otp:Secret"]
-            ?? throw new InvalidOperationException(
-                "Otp:Secret environment variable is not configured"
-            );
-        var hash = OtpSecurity.HashOtp(otp, secret);
+        var hash = HashOtp(otp);
         var hashBytes = Convert.FromBase64String(hash);
         var storedBytes = Convert.FromBase64String(record.OtpCodeHash!);
 
@@ -153,6 +151,17 @@ public class VerificationService : IVerificationService
         record.OtpVerifiedAt = DateTime.UtcNow;
         await _verifications.UpdateAsync(record);
 
+        try
+        {
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
+        }
+        catch (Exception ex)
+        {
+            //never fail verification over a broadcast
+            _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
+        }
+
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
         {
@@ -183,12 +192,7 @@ public class VerificationService : IVerificationService
             throw new VerificationException("cooldown_active");
 
         var otp = GenerateOtp();
-        var secret =
-            _config["Otp:Secret"]
-            ?? throw new InvalidOperationException(
-                "Otp:Secret environment variable is not configured"
-            );
-        var hash = OtpSecurity.HashOtp(otp, secret);
+        var hash = HashOtp(otp);
 
         record.OtpCodeHash = hash;
         record.OtpSentAt = DateTime.UtcNow;
@@ -308,6 +312,17 @@ public class VerificationService : IVerificationService
         record.Status = "under_review";
         record.AdminDecision = null;
         await _verifications.UpdateAsync(record);
+
+        try
+        {
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
+        }
+        catch (Exception ex)
+        {
+            //never fail verification over a broadcast
+            _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
+        }
     }
 
     private static string GenerateOtp()
@@ -315,6 +330,19 @@ public class VerificationService : IVerificationService
         var bytes = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
 
         return bytes;
+    }
+
+    private string HashOtp(string otp)
+    {
+        var secret =
+            _config["Otp:Secret"]
+            ?? throw new InvalidOperationException(
+                "Otp:Secret environment variable is not configured"
+            );
+
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(otp));
+        return Convert.ToBase64String(hash);
     }
 
     private static TimeSpan ComputeDelay(int count)

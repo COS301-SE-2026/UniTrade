@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
@@ -15,6 +16,7 @@ public class ListingService : IListingService
     private readonly IListingImageRepository _images;
     private readonly ISellerVerificationQuery _verification;
     private readonly IListingPublishedListener _listener;
+    private readonly IListingQuestionRepository _questions;
 
     private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
@@ -29,7 +31,8 @@ public class ListingService : IListingService
         IListingImageRepository images,
         ISellerVerificationQuery verification,
         IListingPublishedListener listener,
-        ILogger<ListingService> logger
+        ILogger<ListingService> logger,
+        IListingQuestionRepository questions
     )
     {
         _listings = listings;
@@ -37,21 +40,43 @@ public class ListingService : IListingService
         _verification = verification;
         _listener = listener;
         _logger = logger;
+        _questions = questions;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
     {
         var listing = await _listings.GetByIdAsync(listingId);
-        return listing == null ? null : MapToSummary(listing);
+        if (listing == null)
+            return null;
+
+        var countsDict = await _questions.GetAnsweredQuestionCountsAsync(new[] { listingId });
+
+        return MapToSummary(listing) with
+        {
+            AnsweredQuestionCount = countsDict.GetValueOrDefault(listingId, 0),
+        };
     }
 
     public async Task<PagedResult<ListingSummaryDto>> ListAsync(ListFilterDto filter)
     {
         var (items, total) = await _listings.ListAsync(filter);
-        return new PagedResult<ListingSummaryDto>(items.Select(MapToSummary).ToList(), total);
+
+        var listingIds = items.Select(l => l.ListingId).ToList();
+        var countsDict = await _questions.GetAnsweredQuestionCountsAsync(listingIds);
+
+        var summaries = items
+            .Select(l =>
+                MapToSummary(l) with
+                {
+                    AnsweredQuestionCount = countsDict.GetValueOrDefault(l.ListingId, 0),
+                }
+            )
+            .ToList();
+
+        return new PagedResult<ListingSummaryDto>(summaries, total);
     }
 
-    internal static ListingSummaryDto MapToSummary(Listing l) =>
+    public static ListingSummaryDto MapToSummary(Listing l) =>
         new(
             ListingId: l.ListingId,
             SellerId: l.SellerId,
@@ -172,8 +197,10 @@ public class ListingService : IListingService
                     Title = newListing.Title,
                     Description = newListing.Description,
                     Price = newListing.Price,
+                    CategoryId = newListing.CategoryId,
                     CourseId = newListing.CourseId,
                     SellerId = newListing.SellerId,
+
                 };
                 await _listener.OnListingPublishedEventAsync(evnt, ct);
             }
@@ -351,7 +378,7 @@ public class ListingService : IListingService
             throw new InvalidOperationException("seller_not_verified");
         }
         listing.ListingStatus = newStatus;
-        listing.UpdatedAt = DateTime.Now;
+        listing.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
         listing.ListingStatus = newStatus;
         listing.UpdatedAt = DateTime.UtcNow;
@@ -365,6 +392,7 @@ public class ListingService : IListingService
                     Title = listing.Title,
                     Description = listing.Description,
                     Price = listing.Price,
+                    CategoryId = listing.CategoryId,
                     CourseId = listing.CourseId,
                     SellerId = listing.SellerId,
                 };

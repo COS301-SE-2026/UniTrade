@@ -5,9 +5,13 @@ import { getApiUrl, getFirebaseConfig } from "../config";
 let messagingInstance: ReturnType<typeof getMessaging> | null = null;
 
 function getMessagingInstance() {
+  
   if (messagingInstance) {
     return messagingInstance;
   }
+  const config = getFirebaseConfig();
+if(!config?.apiKey) return null;
+
 
   const firebaseConfig = getFirebaseConfig();
   const app =
@@ -21,6 +25,8 @@ export async function registerForPushN(): Promise<void> {
   if (!("Notification" in window) || !("serviceWorker" in navigator)) {
     return;
   }
+  const config = getFirebaseConfig();
+if(!config?.apiKey) return ;
 
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
@@ -41,7 +47,7 @@ export async function registerForPushN(): Promise<void> {
 
   const { vapidKey } = getFirebaseConfig();
 
-  const token = await getToken(getMessagingInstance(), {
+  const token = await getToken(getMessagingInstance()!, {
     vapidKey,
   });
 
@@ -60,9 +66,13 @@ export async function registerForPushN(): Promise<void> {
 export function onForegroundMessage(
   callback: (title: string, body: string) => void,
 ) {
-  return onMessage(getMessagingInstance(), (payload) => {
+  const config = getFirebaseConfig();
+if(!config?.apiKey) return ;
+  return onMessage(getMessagingInstance()!, (payload) => {
     const title = payload.notification?.title ?? "UT";
     const body = payload.notification?.body ?? "";
     callback(title, body);
   });
 }
+
+

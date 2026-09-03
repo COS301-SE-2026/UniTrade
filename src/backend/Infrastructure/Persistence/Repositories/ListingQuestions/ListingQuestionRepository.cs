@@ -40,4 +40,21 @@ public class ListingQuestionRepository : IListingQuestionRepository
             .ToListAsync(ct);
 
     public Task SaveAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);
+    public async Task<Dictionary<Guid, int>> GetAnsweredQuestionCountsAsync(
+     IEnumerable<Guid> listingIds,
+     CancellationToken ct = default
+ )
+    {
+        var ids = listingIds.ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, int>();
+        }
+        return await _db.ListingQuestions
+               .AsNoTracking()
+               .Where(q => ids.Contains(q.ListingId) && q.AnswerText != null && q.AnswerText != "")
+               .GroupBy(q => q.ListingId)
+               .Select(g => new { ListingId = g.Key, Count = g.Count() })
+               .ToDictionaryAsync(x => x.ListingId, x => x.Count, ct);
+    }
 }

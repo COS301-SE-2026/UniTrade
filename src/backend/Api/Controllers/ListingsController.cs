@@ -276,6 +276,14 @@ public class ListingController : ControllerBase
         {
             return Conflict(new { error = "description_required" });
         }
+        catch (InvalidOperationException ex) when (ex.Message == "seller_not_verified")
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "seller_not_verified" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_status")
+        {
+            return BadRequest(new { error = "invalid_status" });
+        }
     }
 
     public record UpdateStatusRequest(string Status);

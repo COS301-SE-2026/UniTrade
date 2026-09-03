@@ -14,5 +14,7 @@ namespace Modules.Listings.Models.Dto
         public Guid ListingId { get; set; }
         public string? Description { get; set; }
         public Guid SnapshotId { get; set; }
+        public string? CategoryName { get; set; }
+
     }
 }

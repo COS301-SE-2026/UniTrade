@@ -45,7 +45,7 @@ const buyerNav: NavSection[] = [
       { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} /> },
       { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
       { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} /> },
-      {label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} />},
+      { label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} /> },
     ],
   },
   {
@@ -251,7 +251,7 @@ export default function Sidebar() {
           {collapsed ? 'UT' : 'UniTrade'}
         </span>
         {!collapsed && user?.role === 'admin' && (
-          <span className="text-[10px] text-white/40 font-normal">Admin</span>
+          <span className="text-[10px] text-white/70 font-normal">Admin</span>
         )}
       </div>
 
@@ -260,7 +260,7 @@ export default function Sidebar() {
         {sections.map((section) => (
           <div key={section.heading}>
             {!collapsed && (
-              <p className="px-4 pt-4 pb-1 text-[10px] uppercase tracking-widest text-white/40">
+              <p className="px-4 pt-4 pb-1 text-[10px] uppercase tracking-widest text-white/60">
                 {section.heading}
               </p>
             )}

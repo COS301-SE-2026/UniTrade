@@ -100,102 +100,98 @@ export default function AdminDisputes() {
     <div className='space-y-6'>
       <div>
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">Active Disputes</h1>
-        <p className="text-xs text-gray-400 mt-1">Manage all the Disputes in one place.</p>
+        <p className="text-xs text-gray-600 mt-1">Manage all the Disputes in one place.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">{totalDisputes}
           </div>
-          <div className="text-xs text-gray-400 mt-0.5">Total Disputes</div>
+          <div className="text-xs text-gray-600 mt-0.5">Total Disputes</div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">{numNoShow}
             </div>
-            <div className="text-xs text-gray-400 mt-0.5">No Show</div>
+            <div className="text-xs text-gray-600 mt-0.5">No Show</div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">{numListingQuality}
           </div>
-          <div className="text-xs text-gray-400 mt-0.5">Listing Quality</div>
+          <div className="text-xs text-gray-600 mt-0.5">Listing Quality</div>
         </div>
 
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">{numReport}
           </div>
-          <div className="text-xs text-gray-400 mt-0.5">Report</div>
+          <div className="text-xs text-gray-600 mt-0.5">Report</div>
         </div>
       </div>
-      <div className='relative max-w-xs w-full sm:w-auto'>
-        <input type='text' placeholder='Search disputes...'
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className='w-full pl-4 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0a1931]'
-        />
-      </div>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
+        <div className='relative max-w-xs w-full sm:w-auto'>
+          <input type='text' placeholder='Search disputes...'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className='w-full pl-4 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-700'
+          />
+        </div>
 
-      <div className="flex items-center space-x-3 pt-2">
-        <button
-          type="button"
-          onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => setFilter('all')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'all'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          All
-        </button>
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            All
+          </button>
 
 
-        <button
-          type="button"
-          onClick={() => setFilter('No-show')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+          <button
+            type="button"
+            onClick={() => setFilter('No-show')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'No-show'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          No-show
-        </button>
-
-
-        <button
-          type="button"
-          onClick={() => setFilter('Listing-quality')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            No-show
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter('Listing-quality')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'Listing-quality'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          Quality
-        </button>
-
-
-        <button
-          type="button"
-          onClick={() => setFilter('Report')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            Quality
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter('Report')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
             ${filter === 'Report'
-              ? 'bg-[#0a1931] text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          Report
-        </button>
+                ? 'bg-navy-700 text-white'
+                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+          >
+            Report
+          </button>
+        </div>
       </div>
-
-
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-xs text-gray-400 font-normal">
+            <tr className="text-xs text-gray-600 font-normal">
               <th className="py-3 px-4">Listing</th>
               <th className="py-3 px-4 text-center">Dispute type</th>
               <th className="py-3 px-4 text-right pr-12">Actions</th>
@@ -204,7 +200,7 @@ export default function AdminDisputes() {
           <tbody className="divide-y divide-gray-100 text-xs">
             {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={3} className='py-6 text-center text-gray-400'>No disputes match your criteria.</td>
+                <td colSpan={3} className='py-6 text-center text-gray-600'>No disputes match your criteria.</td>
               </tr>
             ) : (
               filteredRows.map((dispute) => (
@@ -217,7 +213,7 @@ export default function AdminDisputes() {
                     />
                     <div>
                       <div className="font-bold text-gray-900">{dispute.title}</div>
-                      <div className="text-[10px] text-gray-400 mt-0.5">
+                      <div className="text-[10px] text-gray-600 mt-0.5">
                         Buyer: {dispute.buyerInitials} &bull; Seller: {dispute.sellerInitials} &bull; {dispute.timeAgo}
                       </div>
                     </div>
@@ -226,7 +222,7 @@ export default function AdminDisputes() {
                   <td className="py-4 px-4 text-center">
                     <span
                       className={`inline-block px-3 py-1 rounded-full text-[10px] font-medium ${dispute.type === 'No-show'
-                        ? 'bg-rose-200 text-rose-700'
+                        ? 'bg-rose-200 text-rose-800'
                         : dispute.type === 'Listing-quality'
                           ? 'bg-amber-100 text-amber-700'
                           : 'bg-sky-200 text-sky-700'
@@ -240,23 +236,9 @@ export default function AdminDisputes() {
                       <button
                         type="button"
                         onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
-                        className="bg-[#0a1931] text-white px-5 py-1.5 rounded-full font-semibold hover:bg-[#153462] 
+                        className="bg-navy-700 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-navy-500 
                 transition-colors cursor-pointer">
                         Review
-                      </button>
-                      <button
-                        type="button"
-
-                        className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
-                transition-colors cursor-pointer text-[10px] leading-tight">
-                        Message Seller
-                      </button>
-                      <button
-                        type="button"
-
-                        className="bg-white text-[#0a1931] border px-5 py-1.5 border-gray-300 rounded-full font-semibold hover:bg-gray-50
-                transition-colors cursor-pointer text-[10px] leading-tight">
-                        Message Buyer
                       </button>
                     </div>
                   </td>
@@ -268,4 +250,3 @@ export default function AdminDisputes() {
     </div>
   );
 }
-

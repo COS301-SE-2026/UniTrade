@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconFileText, IconCircleCheck, IconX } from '@tabler/icons-react';
-import { Breadcrumb, InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared';
+import { IconFileText, IconCircleCheck, IconX, IconChevronRight } from '@tabler/icons-react';
+import { InfoRow, Panel, PersonCard, StatusBadge, DecisionButton } from './AdminReviewShared';
 import { type VerificationCase, type VerificationDecision } from '../../types/mockAdmin';
 import type { CaseDetail, ApiError } from '../../types/admin_disputes';
 import { decideCase, getCaseById } from '../../services/adminService';
@@ -65,7 +65,6 @@ function transformVerificationDetail(detail: CaseDetail): VerificationCase {
     document: {
       name: hasDocument ? 'Proof of Registration' : 'Not yet submitted',
       uploadedDate: new Date(detail.submittedAt).toLocaleDateString('en-ZA'),
-      sizeLabel: 'Unknown size',
       url: hasDocument
         ? `${getApiUrl()}/admin/cases/${detail.caseId}/document`
         : '#',
@@ -88,12 +87,12 @@ function ReasonModal({
   onCancel,
   onSubmit,
   submitting,
-}: Readonly<{
+}: {
   decision: VerificationDecision;
   onCancel: () => void;
   onSubmit: (reason: string) => void;
   submitting: boolean;
-}>) {
+}) {
   const [reason, setReason] = useState('');
 
   return (
@@ -107,7 +106,7 @@ function ReasonModal({
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-900">Reason</h2>
-          <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+          <button type="button" onClick={onCancel} className="text-gray-600 hover:text-gray-600" aria-label="Close">
             <IconX size={20} />
           </button>
         </div>
@@ -208,7 +207,7 @@ export default function AdminVerificationReview() {
   }
 
   if (state.loading) {
-    return <LoadingState message = "Loading Verifications..." />
+    return <LoadingState message="Loading Verifications..." />
   }
 
   if (state.error || !state.data) {
@@ -216,11 +215,22 @@ export default function AdminVerificationReview() {
   }
 
   const record = state.data;
+  const badge = { label: 'Verification', tone: 'blue' } as const;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Breadcrumb trail={['Verifications', 'Case Review']} />
+        <div className='flex items-center gap-1.5 text-sm text-gray-400'>
+          <button type='button' onClick={() => navigate('/admin/verifications')}
+            className='text-[#00aaff] hover:underline cursor-pointer'
+          >Verifications
+
+          </button>
+          <IconChevronRight size={12} />
+          <span className='text-gray-400'></span>
+          <span className='text-gray-600' >Case Review</span>
+        </div>
+        <StatusBadge label={badge.label} tone={badge.tone} />
         <StatusBadge label="Verification" tone="green" />
       </div>
 
@@ -243,18 +253,18 @@ export default function AdminVerificationReview() {
             />
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-2">
-                <IconFileText size={18} className="text-gray-400" />
+                <IconFileText size={18} className="text-gray-600" />
                 <div>
                   <p className="text-sm text-navy-700 dark:text-white">{record.document.name}</p>
-                  <p className="text-xs text-gray-400">
-                    Uploaded {record.document.uploadedDate} · {record.document.sizeLabel}
+                  <p className="text-xs text-gray-600">
+                    Uploaded {record.document.uploadedDate}
                   </p>
                 </div>
               </div>
               {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-[#00aaff] hover:underline">
                 View
               </a>) : (
-                <span className='text-xs text-gray-400'>Document not available</span>
+                <span className='text-xs text-gray-600'>Document not available</span>
               )}
 
             </div>
@@ -272,7 +282,7 @@ export default function AdminVerificationReview() {
                 {submitting === 'reject' ? 'Rejecting…' : 'Reject'}
               </DecisionButton>
             </div>
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-xs text-gray-600 mt-3">
               Resubmission asks the applicant to re-upload proof of registration without closing the case.
             </p>
           </Panel>

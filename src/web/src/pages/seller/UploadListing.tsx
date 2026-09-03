@@ -432,7 +432,7 @@ const UploadListing: React.FC = () => {
                     <span
                       className={
                         totalSizeBytes > 35 * 1024 * 1024
-                          ? "text-amber-500 font-semibold"
+                          ? "text-amber-700 font-semibold"
                           : ""
                       }
                     >

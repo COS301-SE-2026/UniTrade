@@ -27,7 +27,29 @@ export async function signupAndLogin(
 
   await page.locator('input[name="yearOfStudy"]').fill("2");
   await page.locator('input[name="password"]').fill(password);
-  await page.getByRole("button", { name: /^signup$/i }).click();
+ 
+
+  const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
+  if (await termsHeading.isVisible({timeout: 3000}).catch(() => false)) {
+    const scrollRegion = page.getByRole("region", {name: "Terms and Conditions"});
+    await scrollRegion.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+
+    const agreeCheckbox = page.getByRole("checkbox", {
+      name: /I have read and agree to the Terms & Conditions/i,
+    });
+    await expect(agreeCheckbox).toBeEnabled({timeout: 5000});
+    await agreeCheckbox.check()
+
+    const acceptButton = page.getByRole("button", {name: "Accept & Continue"});
+    await expect(acceptButton).toBeEnabled();
+    await acceptButton.click();
+    await expect(termsHeading).not.toBeVisible({timeout: 5000});
+  }
+
+
+   await page.getByRole("button", { name: /^signup$/i }).click();
 
   await page.waitForURL(/verify-otp/);
 
@@ -49,7 +71,20 @@ export async function signupAndLogin(
     await otpInputs.nth(i).fill(code[i]);
   }
   await page.getByRole("button", { name: /^verify otp$/i }).click();
-  await page.waitForURL(/\/auth\/Login/);
+  await page.waitForURL(/\/auth\/ProofUpload/);
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "proof-of-registration.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4\n%%EOF"),
+  });
+
+  await expect(page.getByText("success", { exact: true })).toBeVisible({
+    timeout: 20000,
+  });
+
+  
+  await page.waitForURL(/\/auth\/Login/, {timeout: 10000});
 
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);

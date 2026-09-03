@@ -24,7 +24,7 @@ type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: Readonly<{ status: string }>) {
+function StatusBadge({ status }: { status: string }) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -79,7 +79,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
   meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
+export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
       <span className="text-navy-700">{icon}</span>
@@ -91,7 +91,7 @@ export function SummaryCard({ label, value, icon }: Readonly<{ label: string; va
   );
 }
 
-function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
+function StageTag({ stage }: { stage: TimerStage }) {
   const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
@@ -100,7 +100,7 @@ function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
   )
 }
 
-function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
+function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }) {
   if (msRemaining <= 0) return null;
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -112,7 +112,7 @@ function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number
   )
 }
 
-function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpen: boolean; onClose: () => void; reservationId: string }>) {
+function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolean; onClose: () => void; reservationId: string }) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
@@ -219,7 +219,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 
         <div className="space-y-5">
           <div>
-            <label htmlFor="images" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -274,7 +274,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Description
             </label>
             <textarea
@@ -303,10 +303,10 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 function ReservationCard({
   reservation,
   onCancel,
-}: Readonly<{
+}: {
   reservation: ReservationListItem
   onCancel: (id: string) => void
-}>) {
+}) {
   const navigate = useNavigate()
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [, forceTick] = useState(0)
@@ -521,7 +521,6 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
                   <button
-                  type='button'
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -549,7 +548,6 @@ export default function Reservations() {
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
                   <button
-                  type='button'
                     key={opt}
                     onClick={() => {
                       setStatusFilter(opt);

@@ -80,6 +80,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 42,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CH",
+    categoryName: ''
   },
   {
     id: "2",
@@ -89,6 +90,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 25,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=LP",
+    categoryName: ''
   },
   {
     id: "3",
@@ -98,6 +100,7 @@ const mockMyListings: ListingSummary[] = [
     status: "pending",
     views: 68,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=GS",
+    categoryName: ''
   },
   {
     id: "4",
@@ -107,6 +110,7 @@ const mockMyListings: ListingSummary[] = [
     status: "draft",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CA",
+    categoryName: ''
   },
   {
     id: "5",
@@ -116,6 +120,7 @@ const mockMyListings: ListingSummary[] = [
     status: "rejected",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=MB",
+    categoryName: ''
   },
 ];
 
@@ -242,6 +247,7 @@ function mapWishListItem(item: unknown): WishlistListing {
       metadata?: ListingMetadata;
       images: { imageId: number; isPrimary: boolean; path: string }[];
       seller?: { sellerId: string; fullName: string } | null;
+      answeredQuestionCount?: number;
     };
   };
   const l = w.listing;
@@ -260,6 +266,7 @@ function mapWishListItem(item: unknown): WishlistListing {
     sellerName: l.seller?.fullName ?? null,
     status: l.listingStatus as ListingStatus,
     addedAt: w.addedAt,
+    answeredQuestionCount: l.answeredQuestionCount ?? 0,
   };
 }
 
@@ -397,6 +404,7 @@ export const listingsService = {
         metadata?: ListingMetadata;
         images: { imageId: number; isPrimary: boolean; path: string }[];
         seller?: { sellerId: string };
+        answeredQuestionCount?: number;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -410,6 +418,7 @@ export const listingsService = {
         image: primary ? imageUrl(primary) : biologyTextbook,
         metadata: l.metadata ?? null,
         sellerId: l.seller?.sellerId ?? "",
+        answeredQuestionCount: l.answeredQuestionCount ?? 0,
       };
     });
 

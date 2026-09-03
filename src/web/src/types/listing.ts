@@ -63,6 +63,7 @@ export interface ListingSummary {
   status: ListingStatus
   views: number
   imageUrl: string
+  categoryName: string
 }
 
 export interface MyListingsResponse {
@@ -111,6 +112,7 @@ export interface BrowseListing {
   condition: BrowseCondition
   metadata: ListingMetadata
   sellerId: string
+  answeredQuestionCount?: number
 }
 
 export interface BrowseListingsResponse {
