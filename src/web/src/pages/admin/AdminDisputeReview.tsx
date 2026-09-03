@@ -1,6 +1,6 @@
 import { useEffect, useState, useReducer } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IconBulb, IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
+import { IconAlertTriangle, IconBulb, IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
 import {
   InfoRow,
   Panel,
@@ -41,26 +41,35 @@ const typeBadge: Record<DisputeType, { label: string; tone: 'red' | 'amber' | 'b
 };
 
 const decisionLabel: Record<DisputeDecision, string> = {
-  uphold: 'Dispute upheld',
-  dismiss: 'Dispute dismissed',
+  uphold: 'Uphold Dispute',
+  dismiss: 'Dismiss Dispute',
   'more-info': 'Marked as needing more info',
-  'side-buyer': 'Sided with buyer',
-  'side-seller': 'Sided with seller',
+  'side-buyer': 'Side with buyer',
+  'side-seller': 'Side with seller',
 
-  'remove-listing': 'Listing removed',
-  'warn-seller': 'Seller warned',
+  'remove-listing': 'Remove Listing',
+  'warn-seller': 'Warn Seller',
 };
 
 const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
   'remove-listing': 'Are you sure you want to remove this listing?',
   'warn-seller': 'Are you sure you want to warn this seller?',
-  dismiss: 'Are you sure you want to dismiss this dispute?'
+  dismiss: 'Are you sure you want to dismiss this dispute?',
+
+  uphold: 'Are you sure you want to uphold this dispute?',
+  'side-buyer': 'Are you sure you want to side with the buyer?',
+  'side-seller': 'Are you sure you want to side with the seller?',
+  'more-info': 'Are you sure you want to request more information?',
 };
 
 const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
   'remove-listing': 'This will remove the listing from the platform and notify the seller.This cannot be undone',
   'warn-seller': 'You are about to issue a formal warning to this seller. The seller will be notified.',
-  'dismiss': 'This will dismiss the dispute without taking any action.'
+  'dismiss': 'This will dismiss the dispute without taking any action.',
+
+  uphold: 'This will uphold the dispute and apply the recommended outcome',
+  'side-buyer': 'You are deciding in favor of the buyer. The dispute will be resolved.',
+  'side-seller': ' You are deciding in favor of the seller. The dispute will be resolved.',
 };
 
 const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
@@ -220,7 +229,7 @@ export default function AdminDisputeReview() {
   });
   const [submitting, setSubmitting] = useState<DisputeDecision | null>(null);
   const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
-  const [decisionNote, setDecisionNote] = useState('');
+  const [modalReason, setModalReason] = useState('');
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const [pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
   useEffect(() => {
@@ -245,12 +254,12 @@ export default function AdminDisputeReview() {
     };
   }, [id]);
 
-  async function handleDecision(decision: DisputeDecision) {
+  async function handleDecision(decision: DisputeDecision, reason?: string) {
     if (!state.data) return;
     setSubmitting(decision);
     setDecisionError(null);
     try {
-      await decideCaseWithAction(state.data.id, state.data.type as CaseType, decision as ButtonAction, decisionNote.trim() || undefined);
+      await decideCaseWithAction(state.data.id, state.data.type as CaseType, decision as ButtonAction, reason?.trim() || undefined);
       setCompletedDecision(decision);
     } catch (error) {
       const apiError = error as ApiError;
@@ -261,11 +270,8 @@ export default function AdminDisputeReview() {
   }
 
   function handleDecisionClick(decision: DisputeDecision) {
-    if (disputeConfirmTitles[decision]) {
-      setPendingConfirmDecision(decision);
-    } else {
-      handleDecision(decision);
-    }
+    setPendingConfirmDecision(decision);
+    setModalReason('');
   }
 
 
@@ -315,30 +321,23 @@ export default function AdminDisputeReview() {
               <DecisionConfirmation dispute={dispute} decision={completedDecision} onBack={() => navigate('/admin/disputes')} />
             ) : (
               <>
-                <div className="mb-4">
-                  <textarea
-                    id="decision-note"
-                    value={decisionNote}
-                    onChange={(e) => setDecisionNote(e.target.value)}
-                    placeholder="e.g. Reasoning the parties should see in the email…"
-                    rows={2}
-                    className="w-full text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
-                  />
-                </div>
+
                 {decisionError && (
                   <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
                 )}
-                 {dispute.suggestedDecision && (
-          <div className='mb-4 flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3'>
-            <IconBulb size={16} className='text-sky-600 shrink-0 mt-0.5'/>
-            <p className='text-xs text-sky-900'>
-              <span className='font-semibold'>System suggestion:</span> based on the evidence,
-              this looks like a case to <span className='font-semibold'>{recommendationText(dispute.suggestedDecision)}</span>.
-              This is a guide — your judgement decides.
-            </p>
-          </div>
+                {dispute.suggestedDecision && (
+                  <div className='mb-4 flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3'>
+                    <IconBulb size={16} className='text-sky-600 shrink-0 mt-0.5' />
+                    <p className='text-xs text-sky-900'>
+                      <span className='font-semibold'>System suggestion:</span> based on the evidence,
+                      this looks like a case to <span className='font-semibold'>{recommendationText(dispute.suggestedDecision)}</span>.
+                      This is a guide — your judgement decides.
+                    </p>
+                  </div>
                 )}
-                <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
+                <div className='p-3 bg-gray-50 dark:bg-navy-700/50 rounded-xl border border-gray-200 dark:border-white/10'>
+                  <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
+                </div>
               </>
             )}
           </Panel>
@@ -370,10 +369,12 @@ export default function AdminDisputeReview() {
             'neutral'
           }
           submitting={!!submitting}
+          reason={modalReason}
+          setReason={setModalReason}
           onCancel={() => setPendingConfirmDecision(null)}
           onConfirm={() => {
 
-            handleDecision(pendingConfirmDecision);
+            handleDecision(pendingConfirmDecision, modalReason);
             setPendingConfirmDecision(null);
           }}
         />
@@ -502,8 +503,11 @@ function PhotoComparisonPanel({ photos }: Readonly<{ photos: NonNullable<Dispute
 function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
   return (
     <Panel title="Report reason">
-      <div className="bg-gray-50 dark:bg-navy-700 rounded-lg p-4">
-        <p className="text-sm text-gray-600 dark:text-white/70 italic">"{reason}"</p>
+      <div className='flex gap-3 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-navy-700 p-4'>
+        <IconAlertTriangle size={18} className='text-amber-500 shrink-0 mt-0.5' />
+        <p className='text-sm text-gray-700 dark:text-white/80 dark:text-white/80 leading-relaxed' >
+          {reason}</p>
+
       </div>
     </Panel>
   );
@@ -579,11 +583,11 @@ function DecisionActions({
       <div className="flex flex-col sm:flex-row gap-3">
         <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
           {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
-   
+
         </DecisionButton>
         <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
           {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
-          
+
         </DecisionButton>
         <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
           {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}

@@ -233,4 +233,30 @@ public class AcsEmailService : IEmailService
       ";
         await SendAsync(email, subject, html);
     }
+
+    public async Task SendDisputeOutcomeEmailAsync(
+        string toEmail,
+        string firstName,
+        string outcomeSummary,
+        string? reason
+    )
+    {
+        var subject = "Update on a dispute involving your account";
+        var reasonBlock = string.IsNullOrWhiteSpace(reason)
+            ? ""
+            : $"<p style='color:#444;'<strong>Reason:</strong> {reason} </p>";
+        var html = $"""
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
+            <p style="color:#444;">A dispute involving your account has been resolved.</p>
+            <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:16px 0;">
+              <p style="margin:0;color:#0f2d6b;font-weight:bold;">{outcomeSummary}</p>
+            </div>
+            {reasonBlock}
+            <p style="color:#888;font-size:13px;">If you have questions, please contact UniTrade support.</p>
+            </div>
+            """;
+
+        await SendAsync(toEmail, subject, html);
+    }
 }

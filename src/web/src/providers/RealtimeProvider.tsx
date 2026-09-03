@@ -171,6 +171,10 @@ if (import.meta.env.DEV || !user) return;
 
     })
 
+    const offDisputeOutcome = connectionManager.onDisputeOutcome((e)=>{
+      showToast("info", e.message);
+    })
+
     return () => {
       offMessage();
       offReconnected();
@@ -181,6 +185,7 @@ if (import.meta.env.DEV || !user) return;
       offDisputeResolved();
       offSavedSearchMatch();
       offVerificationCreated();
+      offDisputeOutcome();
       if(user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }
