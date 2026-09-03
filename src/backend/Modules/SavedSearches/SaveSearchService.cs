@@ -12,6 +12,8 @@ using Modules.SavedSearches.Models;
 using Modules.SavedSearches.Models.Dto;
 using Modules.SavedSearches.Repositories;
 using Modules.Listings.Models.Dto;
+using System.Text.RegularExpressions;
+
 
 namespace Modules.SavedSearches;
 
@@ -55,26 +57,13 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             );
             var candidates = await _repo.GetCandidatesForListingAsync(listingEvent, ct);
             _logger.LogInformation("Found {Count} candidates", candidates.Count);
-            var stck = $"{listingEvent.Title}{listingEvent.Description ?? ""}".ToLowerInvariant();
-            _logger.LogInformation("Haystack: {HayStack}", stck);
+            
+            var stck = $"{listingEvent.Title} {listingEvent.Description ?? ""}";
 
             var matching = candidates
-                .Where(s =>
-                {
-                    var words = s
-                        .Query.ToLowerInvariant()
-                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    var allMatch = words.All(w => stck.Contains(w));
-                    _logger.LogInformation(
-                        "Query '{Query}' => Words: {Words}, Match: {Match}",
-                        s.Query,
-                        string.Join(", ", words),
-                        allMatch
-                    );
-
-                    return allMatch; /////PSS move this so it doesnt break our magnificent arch!!
-                })
+                .Where(s => IsExactWordMatch(s.Query, stck))
                 .ToList();
+
             _logger.LogInformation("Found {Count} matches", matching.Count);
 
             foreach (var search in matching)
@@ -123,7 +112,7 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             _logger.LogError(
                 ex,
                 "Saved search notification failed for listing {ListingId}",
-                listingEvent
+                listingEvent.ListingId
             );
         }
     }
@@ -167,6 +156,16 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             );
         }
         await _repo.DeleteAsync(searchId, ct);
+    }
+
+    private static bool IsExactWordMatch(string query, string stck)
+    {
+        var words = query
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(Regex.Escape);
+
+        return words.All(w =>
+            Regex.IsMatch(stck, $@"\b{w}\b", RegexOptions.IgnoreCase));
     }
 
     private static SavedSearchDto MapToDto(SavedSearch s) =>
