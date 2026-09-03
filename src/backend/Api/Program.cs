@@ -169,9 +169,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    if(string.IsNullOrWhiteSpace(connectionString))
+    if (string.IsNullOrWhiteSpace(connectionString))
     {
-        connectionString="Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+        connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
     }
 
     var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
