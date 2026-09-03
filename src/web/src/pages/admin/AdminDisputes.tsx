@@ -240,7 +240,7 @@ export default function AdminDisputes() {
                         ? 'bg-rose-200 text-rose-800'
                         : dispute.type === 'Listing-quality'
                           ? 'bg-amber-100 text-amber-700'
-                          : 'bg-sky-200 text-sky-700'
+                          : 'bg-sky-100 text-sky-700'
                         }`}>
                       {dispute.type}
                     </span>
