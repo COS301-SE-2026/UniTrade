@@ -132,6 +132,7 @@ jobs:
           PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
           PAYFAST__MERCHANTKEY: ${{ secrets.PAYFAST__MERCHANTKEY }}  
+          SIGNALR__CONN: ${{ secrets.SIGNALR_CONN_STRING_STAGING }}
 
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
@@ -150,7 +151,8 @@ jobs:
               "payfast-cancelurl=$PAYFAST__CANCELURL" \
               "payfast-notifyurl=$PAYFAST__NOTIFYURL" \
               "payfast-sandboxurl=$PAYFAST__SANDBOXURL" \
-              "payfast-returnurl=$PAYFAST__RETURNURL"
+              "payfast-returnurl=$PAYFAST__RETURNURL" \
+              "signalr-conn=$SIGNALR_CONN"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -170,7 +172,8 @@ jobs:
                 "PayFast__CancelUrl=secretref:payfast-cancelurl" \
                 "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
                 "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
-                "PayFast__ReturnUrl=secretref:payfast-returnurl" 
+                "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -381,6 +384,7 @@ jobs:
           PAYFAST__NOTIFYURL: ${{ secrets.PAYFAST__NOTIFYURL }}          
           PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
+          SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_PROD}}
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
 
@@ -398,7 +402,8 @@ jobs:
               "payfast-cancelurl=$PAYFAST__CANCELURL" \
               "payfast-notifyurl=$PAYFAST__NOTIFYURL" \
               "payfast-sandboxurl=$PAYFAST__SANDBOXURL" \
-              "payfast-returnurl=$PAYFAST__RETURNURL"
+              "payfast-returnurl=$PAYFAST__RETURNURL" \
+              "signalr-conn=$SIGNALR_CONN" 
               
 
           az containerapp update \
@@ -419,7 +424,8 @@ jobs:
                 "PayFast__CancelUrl=secretref:payfast-cancelurl" \
                 "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
                 "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
-                "PayFast__ReturnUrl=secretref:payfast-returnurl"
+                "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
