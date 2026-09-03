@@ -19,20 +19,16 @@ class ConnectionManager {
 
   private readonly stateListeners: Set<(state: ConnectionState) => void> =
     new Set();
-  private readonly disputeOutcomeListeners = new Set<
-    (e: { message: string; reason?: string }) => void
-  >();
-
   private readonly reconnectedListeners: Set<() => void> = new Set();
   private readonly messageListeners = new Set<(m: ChatMessage) => void>();
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
-  private readonly listingQuestionAskedListeners = new Set<
-    (e: { listingId: string; questionId: string }) => void
-  >();
-  private readonly listingQuestionAnsweredListeners = new Set<
-    (e: { listingId: string; questionId: string }) => void
-  >();
+  private readonly listingQuestionAskedListeners = new Set<(e: {
+    listingId: string; questionId: string
+  }) => void>();
+  private readonly listingQuestionAnsweredListeners = new Set<(e: {
+    listingId: string; questionId: string
+  }) => void>();
   private readonly listingListeners = new Set<
     (listingId: string, event: "reserved" | "released" | "created") => void
   >();
@@ -53,12 +49,7 @@ class ConnectionManager {
   >();
 
   private readonly savedSearchMatchListeners = new Set<
-    (e: {
-      listingId: string;
-      title: string;
-      price: number;
-      message: string;
-    }) => void
+    (e: { listingId: string; title: string; price: number; message: string }) => void
   >();
 
   private readonly verificationCreatedListeners = new Set<
@@ -108,37 +99,18 @@ class ConnectionManager {
         this.paymentCompletedListeners.forEach((cb) => cb(e)),
       );
 
-      conn.on(
-        "saved_search_match",
-        (e: {
-          listingId: string;
-          title: string;
-          price: number;
-          message: string;
-        }) => this.savedSearchMatchListeners.forEach((cb) => cb(e)),
+      conn.on("saved_search_match", (e: { listingId: string; title: string; price: number; message: string }) =>
+        this.savedSearchMatchListeners.forEach((cb) => cb(e)),
       );
 
-      conn.on(
-        "listing_question_asked",
-        (e: { listingId: string; questionId: string }) =>
-          this.listingQuestionAskedListeners.forEach((cb) => cb(e)),
-      );
-      conn.on(
-        "listing_question_answered",
-        (e: { listingId: string; questionId: string }) =>
-          this.listingQuestionAnsweredListeners.forEach((cb) => cb(e)),
-      );
+      conn.on("listing_question_asked", (e: { listingId: string; questionId: string }) =>
+        this.listingQuestionAskedListeners.forEach((cb) => cb(e)),);
+      conn.on("listing_question_answered", (e: { listingId: string; questionId: string }) =>
+        this.listingQuestionAnsweredListeners.forEach((cb) => cb(e)))
       conn.on("dispute_created", (data: { caseId: string; type: string }) =>
         this.disputeCreatedListeners.forEach((cb) => cb(data)),
       );
       conn.on("verification_created", (e: { caseId: string }) =>
-        this.verificationCreatedListeners.forEach((cb) => cb(e)),
-      );
-      conn.on("dispute_resolved", (data: { caseId: string; status: string }) =>
-        this.disputeResolvedListeners.forEach((cb) => cb(data)),
-      );
-      conn.on("dispute_outcome", (e: { message: string; reason?: string }) =>
-        this.disputeOutcomeListeners.forEach((cb) => cb(e)),
         this.verificationCreatedListeners.forEach((cb) => cb(e)),);
       conn.on(
         "dispute_resolved",
@@ -158,7 +130,7 @@ class ConnectionManager {
           [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
         if (this.isAdminGroupJoined) {
-          await conn.invoke("JoinAdminGroup").catch(() => {});
+          await conn.invoke("JoinAdminGroup").catch(() => { })
         }
 
         this.notifyState("Connected");
@@ -195,7 +167,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
     }
   }
   async disconnect(): Promise<void> {
@@ -211,7 +183,7 @@ class ConnectionManager {
 
   async leaveAdminGroup(): Promise<void> {
     this.isAdminGroupJoined = false;
-    await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
+    await this.connection?.invoke("LeaveAdminGroup").catch(() => { });
   }
 
   getState(): ConnectionState {
@@ -243,12 +215,6 @@ class ConnectionManager {
   ): Unsubscribe {
     this.pinConfirmedListeners.add(callback);
     return () => this.pinConfirmedListeners.delete(callback);
-  }
-  onDisputeOutcome(
-    e: (e: { message: string; reason?: string }) => void,
-  ): Unsubscribe {
-    this.disputeOutcomeListeners.add(e);
-    return () => this.disputeOutcomeListeners.delete(e);
   }
   async sendMessage(
     reservationId: string,
@@ -288,28 +254,20 @@ class ConnectionManager {
     return () => this.paymentCompletedListeners.delete(callback);
   }
 
-  onListingQuestionAsked(
-    cb: (e: { listingId: string; questionId: string }) => void,
-  ): Unsubscribe {
+  onListingQuestionAsked(cb: (e: { listingId: string; questionId: string })
+    => void): Unsubscribe {
     this.listingQuestionAskedListeners.add(cb);
     return () => this.listingQuestionAskedListeners.delete(cb);
   }
-  onListingQuestionAnswered(
-    cb: (e: { listingId: string; questionId: string }) => void,
-  ): Unsubscribe {
+  onListingQuestionAnswered(cb: (e: { listingId: string; questionId: string }) => void): Unsubscribe {
     this.listingQuestionAnsweredListeners.add(cb);
     return () => this.listingQuestionAnsweredListeners.delete(cb);
   }
   onSavedSearchMatch(
-    callback: (e: {
-      listingId: string;
-      title: string;
-      price: number;
-      message: string;
-    }) => void,
+    callback: (e: { listingId: string; title: string; price: number; message: string }) => void,
   ): Unsubscribe {
     this.savedSearchMatchListeners.add(callback);
-    return () => this.savedSearchMatchListeners.delete(callback);
+    return () => this.savedSearchMatchListeners.delete(callback)
   }
   onReconnected(callback: () => void): Unsubscribe {
     this.reconnectedListeners.add(callback);
@@ -318,6 +276,7 @@ class ConnectionManager {
 
   onDisputeCreated(
     callback: (data: { caseId: string; type: string }) => void,
+
   ): Unsubscribe {
     this.disputeCreatedListeners.add(callback);
     return () => this.disputeCreatedListeners.delete(callback);
