@@ -7,11 +7,11 @@ targetScope='subscription'
 param environment string
 
 param location string ='southafricanorth'
-param projectName string='unitrade'
+param projectName string='devnexus'
 
 param acrName string
 
-param adminUsername string='unitradeadmin'
+param adminUsername string='devnexusadmin'
 
 @secure()
 param adminPassword string
