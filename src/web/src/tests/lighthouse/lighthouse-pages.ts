@@ -28,7 +28,7 @@ thresholds: {...default_thresholds} ,
 {
 name: "browse-listings",
 path: "/buyer/listings",
-authRole: "none", 
+authRole: "student", 
 thresholds: {...default_thresholds} ,
 },
 {

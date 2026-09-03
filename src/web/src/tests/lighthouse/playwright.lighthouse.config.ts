@@ -13,7 +13,7 @@ export default defineConfig({
 ],
 
 use: {
-    baseURL: `http://localhost: ${preview_port}`,
+    baseURL: `http://localhost:${preview_port}`,
     trace: "off",
     video: "off",
     screenshot: "off",
@@ -32,7 +32,7 @@ projects: [
 ],
 webServer:
 {
-    command: `npm run build && npm run preview -- --port${preview_port} -- strictPort`,
+    command: `npm run build && npm run preview -- --port ${preview_port} -- strictPort`,
     url: `http://localhost:${preview_port}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
