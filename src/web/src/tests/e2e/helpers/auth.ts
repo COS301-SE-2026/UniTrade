@@ -83,6 +83,8 @@ export async function signupAndLogin(
     timeout: 20000,
   });
 
+  await page.getByRole("button", {name: "Proceed to Login"}).click();
+
   
   await page.waitForURL(/\/auth\/Login/, {timeout: 10000});
 
