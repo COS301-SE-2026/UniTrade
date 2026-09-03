@@ -167,9 +167,18 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options
-        .UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"])
-        .UseSnakeCaseNamingConvention();
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if(string.IsNullOrWhiteSpace(connectionString))
+    {
+        connectionString="Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+    }
+
+    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+    dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
+    var dataSource = dataSourceBuilder.Build();
+
+    options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
 });
 
 builder.Services.Configure<JsonOptions>(options =>
