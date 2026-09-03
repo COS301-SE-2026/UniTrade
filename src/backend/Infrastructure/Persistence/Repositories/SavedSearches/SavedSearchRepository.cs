@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence;
-using Modules.SavedSearches.Models;
-using Modules.SavedSearches.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Modules.Listings;
 using Modules.Listings.Models;
-
+using Modules.SavedSearches.Models;
+using Modules.SavedSearches.Repositories;
 
 namespace Infrastructure.Persistence.SavedSearches;
 
@@ -28,9 +27,14 @@ public class SavedSearchRepository : ISavedSearchRepository
         return search;
     }
 
-    public async Task<IReadOnlyList<SavedSearch>> GetByBuyerAsync(Guid buyerId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<SavedSearch>> GetByBuyerAsync(
+        Guid buyerId,
+        CancellationToken ct = default
+    )
     {
-        return await _db.SavedSearches.Where(s => s.BuyerId == buyerId && s.IsActive).ToListAsync(ct);
+        return await _db
+            .SavedSearches.Where(s => s.BuyerId == buyerId && s.IsActive)
+            .ToListAsync(ct);
     }
 
     public async Task<SavedSearch> GetByIdAsync(Guid searchId, CancellationToken ct = default)
@@ -38,20 +42,26 @@ public class SavedSearchRepository : ISavedSearchRepository
         return await _db.SavedSearches.FirstOrDefaultAsync(s => s.SearchId == searchId, ct);
     }
 
-    public async Task<IReadOnlyList<SavedSearch>> GetCandidatesForListingAsync(ListingPublishedEvent listingEvent, CancellationToken ct = default)
+    public async Task<IReadOnlyList<SavedSearch>> GetCandidatesForListingAsync(
+        ListingPublishedEvent listingEvent,
+        CancellationToken ct = default
+    )
     {
         var query = _db.SavedSearches.Where(s => s.IsActive);
         query = query.Where(s => s.BuyerId != listingEvent.SellerId);
 
         if (listingEvent.CategoryId.HasValue)
-            query = query.Where(s => s.CategoryId == null || s.CategoryId == listingEvent.CategoryId);
+            query = query.Where(s =>
+                s.CategoryId == null || s.CategoryId == listingEvent.CategoryId
+            );
 
         if (listingEvent.CourseId.HasValue)
             query = query.Where(s => s.CourseId == null || s.CourseId == listingEvent.CourseId);
 
         query = query.Where(s =>
-            (s.MinPrice == null || listingEvent.Price >= s.MinPrice) &&
-            (s.MaxPrice == null || listingEvent.Price <= s.MaxPrice));
+            (s.MinPrice == null || listingEvent.Price >= s.MinPrice)
+            && (s.MaxPrice == null || listingEvent.Price <= s.MaxPrice)
+        );
 
         return await query.ToListAsync(ct);
     }
@@ -72,10 +82,13 @@ public class SavedSearchRepository : ISavedSearchRepository
         }
     }
 
-    public async Task<IReadOnlyList<Listing>> GetMatchingListingsAsync(SavedSearch search, CancellationToken ct)
+    public async Task<IReadOnlyList<Listing>> GetMatchingListingsAsync(
+        SavedSearch search,
+        CancellationToken ct
+    )
     {
-        var query = _db.Listings
-            .Where(l => l.ListingStatus == "live")
+        var query = _db
+            .Listings.Where(l => l.ListingStatus == "live")
             .Include(l => l.Category)
             .Include(l => l.Images)
             .AsQueryable();
@@ -102,15 +115,14 @@ public class SavedSearchRepository : ISavedSearchRepository
 
         var candidates = await query.ToListAsync(ct);
 
-        var words = search.Query
-            .ToLowerInvariant()
+        var words = search
+            .Query.ToLowerInvariant()
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         var matching = candidates
             .Where(l =>
             {
-                var text = $"{l.Title} {l.Description ?? ""}"
-                    .ToLowerInvariant();
+                var text = $"{l.Title} {l.Description ?? ""}".ToLowerInvariant();
 
                 return words.All(w => text.Contains(w));
             })
@@ -118,6 +130,4 @@ public class SavedSearchRepository : ISavedSearchRepository
             .ToList();
         return matching;
     }
-
-
 }

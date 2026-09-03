@@ -30,12 +30,15 @@ public class AdminCaseService : IAdminCaseService
     private readonly IListingService _listings;
     private readonly IBroadCastService _broadcast;
 
-    // constants
-    private const string _resolvedString = "resolved";
-    private const string _underReviewString = "under_review";
-    private const string _pendingString = "pending";
-    private const string _verificationString = "verification";
-    private const string _reportListingString = "report_listing";
+    // Constants
+    private const string ResolvedString = "resolved";
+    private const string UnderReviewString = "under_review";
+    private const string PendingString = "pending";
+    private const string VerificationString = "verification";
+    private const string ReportListingString = "report_listing";
+    private const string ListingQualityString = "listing_quality";
+    private const string NoShowString = "no_show";
+    private const string DismissedString = "dismissed";
 
     public AdminCaseService(
         IVerificationService verification,
@@ -72,19 +75,31 @@ public class AdminCaseService : IAdminCaseService
     {
         var res = new List<CaseSummaryDto>();
 
-        if (type is null or _verificationString)
+        // 1. Verification Cases
+        if (type is null or VerificationString)
         {
-            res.AddRange((await _verification.ListPendingAsync(ct)).Select(MapToSummary));
+            var verificationCases = await _verification.ListPendingAsync(ct);
+            var mappedVerification = verificationCases
+                .Select(MapToSummary)
+                .Where(c =>
+                    string.IsNullOrEmpty(status)
+                    || c.Status.Equals(status, StringComparison.OrdinalIgnoreCase)
+                );
+
+            res.AddRange(mappedVerification);
         }
-        if (type is null or "listing_quality" or "no_show" or _reportListingString)
+
+        // 2. Dispute Cases
+        if (type is null or ListingQualityString or NoShowString or ReportListingString)
         {
             var disputeItems = await _disputes.ListPendingAsync(type, ct);
+
             var subjectUserIds = disputeItems.Select(i => i.SubjectUserId).Distinct().ToList();
             var counterpartyIds = disputeItems
                 .Select(i => new
                 {
                     SubjectId = i.SubjectUserId,
-                    CounterpartyId = i.Type == _reportListingString ? i.RaisedBy
+                    CounterpartyId = i.Type == ReportListingString ? i.RaisedBy
                     : i.SubjectUserId == i.SellerId ? i.BuyerId
                     : i.SubjectUserId == i.BuyerId ? i.SellerId
                     : (Guid?)null,
@@ -100,102 +115,134 @@ public class AdminCaseService : IAdminCaseService
                 .Distinct()
                 .ToList();
 
-            var subjectDict = new Dictionary<Guid, PartyIdentity>();
-            foreach (var id in subjectUserIds)
-            {
-                var party = await _parties.GetAsync(id, ct);
-                if (party != null)
-                    subjectDict[id] = party;
-            }
+            // Populate Dictionaries in parallel / async tasks
+            var subjectDict = (
+                await Task.WhenAll(
+                    subjectUserIds.Select(async id => new
+                    {
+                        Id = id,
+                        Party = await _parties.GetAsync(id, ct),
+                    })
+                )
+            )
+                .Where(x => x.Party != null)
+                .ToDictionary(x => x.Id, x => x.Party!);
 
-            var counterpartyDict = new Dictionary<Guid, PartyIdentity>();
-            foreach (var id in counterpartyIds)
-            {
-                var party = await _parties.GetAsync(id, ct);
-                if (party != null)
-                    counterpartyDict[id] = party;
-            }
-            var snapshotDict = new Dictionary<Guid, ListingSnapshotDto>();
-            foreach (var resId in reservationIds)
-            {
-                var snapshot = await _snapshots.GetByReservationIdAsync(resId, ct);
-                if (snapshot != null)
-                    snapshotDict[resId] = snapshot;
-            }
+            var counterpartyDict = (
+                await Task.WhenAll(
+                    counterpartyIds.Select(async id => new
+                    {
+                        Id = id,
+                        Party = await _parties.GetAsync(id, ct),
+                    })
+                )
+            )
+                .Where(x => x.Party != null)
+                .ToDictionary(x => x.Id, x => x.Party!);
+
+            var snapshotDict = (
+                await Task.WhenAll(
+                    reservationIds.Select(async resId => new
+                    {
+                        ResId = resId,
+                        Snapshot = await _snapshots.GetByReservationIdAsync(resId, ct),
+                    })
+                )
+            )
+                .Where(x => x.Snapshot != null)
+                .ToDictionary(x => x.ResId, x => x.Snapshot!);
+
             var listingIds = disputeItems
                 .Where(i => i.ListingId.HasValue && !i.ReservationId.HasValue)
                 .Select(i => i.ListingId!.Value)
                 .Distinct()
                 .ToList();
 
-            var listingTitleDict = new Dictionary<Guid, string>();
-            foreach (var lid in listingIds)
-            {
-                var listing = await _listings.GetByIdAsync(lid);
-                if (listing != null)
-                    listingTitleDict[lid] = listing.Title;
-            }
+            var listingTitleDict = (
+                await Task.WhenAll(
+                    listingIds.Select(async lid => new
+                    {
+                        ListingId = lid,
+                        Listing = await _listings.GetByIdAsync(lid),
+                    })
+                )
+            )
+                .Where(x => x.Listing != null)
+                .ToDictionary(x => x.ListingId, x => x.Listing!.Title);
 
-            var mapped = disputeItems.Select(item =>
-            {
-                var ageHours = Math.Round(
-                    (_clock.GetUtcNow().UtcDateTime - item.SubmittedAt).TotalHours,
-                    1
-                );
-                var (slaHours, slaBreached) = Sla(item.Type, ageHours);
-                var SubjectInitials = subjectDict.TryGetValue(item.SubjectUserId, out var subject)
-                    ? MakeInitials(subject.FirstName, subject.LastName)
-                    : "??";
-
-                Guid? counterpartyId =
-                    item.Type == _reportListingString ? item.RaisedBy
-                    : item.SubjectUserId == item.SellerId ? item.BuyerId
-                    : item.SubjectUserId == item.BuyerId ? item.SellerId
-                    : null;
-                if (counterpartyId == item.SubjectUserId)
-                    counterpartyId = null;
-
-                var counterpartyInitials =
-                    counterpartyId.HasValue
-                    && counterpartyDict.TryGetValue(counterpartyId.Value, out var cp)
-                        ? MakeInitials(cp.FirstName, cp.LastName)
+            var mappedDisputes = disputeItems
+                .Select(item =>
+                {
+                    var ageHours = Math.Round(
+                        (_clock.GetUtcNow().UtcDateTime - item.SubmittedAt).TotalHours,
+                        1
+                    );
+                    var (slaHours, slaBreached) = Sla(item.Type, ageHours);
+                    var subjectInitials = subjectDict.TryGetValue(
+                        item.SubjectUserId,
+                        out var subject
+                    )
+                        ? MakeInitials(subject.FirstName, subject.LastName)
                         : "??";
 
-                string? title = null;
-                if (
-                    item.ReservationId.HasValue
-                    && snapshotDict.TryGetValue(item.ReservationId.Value, out var snap)
-                )
-                {
-                    title = snap.Title;
-                }
-                if (
-                    title == null
-                    && item.ListingId.HasValue
-                    && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle)
-                )
-                {
-                    title = listTitle;
-                }
-                title ??= "Unknown listing";
-                return new CaseSummaryDto
-                {
-                    CaseId = item.CaseId,
-                    Type = item.Type,
-                    Status = MapDisputeStatus(item.Status),
-                    SubjectUserId = item.SubjectUserId,
-                    SubmittedAt = item.SubmittedAt,
-                    AgeHours = ageHours,
-                    SlaHours = slaHours,
-                    SlaBreached = slaBreached,
-                    Title = title,
-                    SubjectInitials = SubjectInitials,
-                    CounterpartyInitials = counterpartyInitials,
-                };
-            });
-            res.AddRange(mapped); // empty till the BE2 dispute ready
+                    Guid? counterpartyId =
+                        item.Type == ReportListingString ? item.RaisedBy
+                        : item.SubjectUserId == item.SellerId ? item.BuyerId
+                        : item.SubjectUserId == item.BuyerId ? item.SellerId
+                        : null;
+
+                    if (counterpartyId == item.SubjectUserId)
+                    {
+                        counterpartyId = null;
+                    }
+
+                    var counterpartyInitials =
+                        counterpartyId.HasValue
+                        && counterpartyDict.TryGetValue(counterpartyId.Value, out var cp)
+                            ? MakeInitials(cp.FirstName, cp.LastName)
+                            : "??";
+
+                    string? title = null;
+                    if (
+                        item.ReservationId.HasValue
+                        && snapshotDict.TryGetValue(item.ReservationId.Value, out var snap)
+                    )
+                    {
+                        title = snap.Title;
+                    }
+                    if (
+                        title == null
+                        && item.ListingId.HasValue
+                        && listingTitleDict.TryGetValue(item.ListingId.Value, out var listTitle)
+                    )
+                    {
+                        title = listTitle;
+                    }
+
+                    return new CaseSummaryDto
+                    {
+                        CaseId = item.CaseId,
+                        Type = item.Type,
+                        Status = MapDisputeStatus(item.Status),
+                        SubjectUserId = item.SubjectUserId,
+                        SubmittedAt = item.SubmittedAt,
+                        AgeHours = ageHours,
+                        SlaHours = slaHours,
+                        SlaBreached = slaBreached,
+                        Title = title ?? "Unknown listing",
+                        SubjectInitials = subjectInitials,
+                        CounterpartyInitials = counterpartyInitials,
+                    };
+                })
+                .Where(c =>
+                    string.IsNullOrEmpty(status)
+                    || c.Status.Equals(status, StringComparison.OrdinalIgnoreCase)
+                );
+
+            res.AddRange(mappedDisputes);
         }
-        return res.OrderBy(c => c.SubmittedAt).ToList(); // NOTE TO FUTURE SELF(ZS): TESTING QR 7A
+
+        return res.OrderBy(c => c.SubmittedAt).ToList();
     }
 
     public async Task<CaseDetailDto?> GetCaseByIdAsync(Guid caseId, CancellationToken ct = default)
@@ -205,8 +252,8 @@ public class AdminCaseService : IAdminCaseService
         {
             return await ToDetailAsync(verificationCase, ct);
         }
-        var dispute = await _disputes.GetCaseDataAsync(caseId, ct); //also waiting on BE2 disputes to be ready
 
+        var dispute = await _disputes.GetCaseDataAsync(caseId, ct);
         return dispute is null ? null : await ToDisputeDetailAsync(dispute, ct);
     }
 
@@ -224,13 +271,9 @@ public class AdminCaseService : IAdminCaseService
         {
             throw new DisputesException("outcomes_not_allowed");
         }
-        /*if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
-        {
-            throw new DisputesException("outcomes_required");
-        }*/
-        // verification cases
-        var verificationCase = await _verification.GetCaseAsync(caseId, ct);
 
+        // Check if verification case
+        var verificationCase = await _verification.GetCaseAsync(caseId, ct);
         if (verificationCase is not null)
         {
             var verificationDecision = decision switch
@@ -248,10 +291,12 @@ public class AdminCaseService : IAdminCaseService
                 request.Reason,
                 ct
             );
+
             if (updatedVerificationRecord is null)
             {
                 return null;
             }
+
             await _notifications.NotifyAsync(
                 updatedVerificationRecord.UserId,
                 NotificationTypes.Verification,
@@ -261,8 +306,8 @@ public class AdminCaseService : IAdminCaseService
 
             return await ToDetailAsync(updatedVerificationRecord, ct);
         }
-        // dispute cases
 
+        // Process dispute case
         var disputeData = await _disputes.GetCaseDataAsync(caseId, ct);
         if (disputeData is null)
         {
@@ -280,7 +325,7 @@ public class AdminCaseService : IAdminCaseService
         }
 
         var finalOutcomes = outcomes;
-        if (disputeData.Type == "listing_quality")
+        if (disputeData.Type == ListingQualityString)
         {
             var snapshot = disputeData.ReservationId is null
                 ? null
@@ -292,23 +337,14 @@ public class AdminCaseService : IAdminCaseService
                 disputeData.SellerRefusedPhotos
             );
 
-            /*if (decision != verdict.Decision)
-            {
-                throw new DisputesException("decision_contradicts_evidence");
-            } */
             finalOutcomes = verdict.Outcomes;
         }
 
-
-        // the no show, report listing, outcomes come form the request as they are
         if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
         {
             finalOutcomes = new List<DisputeOutcome> { DisputeOutcome.Strike };
         }
-        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
-        {
-            throw new DisputesException("outcomes_required");
-        }
+
         await ApplyDisputeDecisionAsync(
             disputeData.DisputeId,
             disputeData.SubjectUserId,
@@ -320,14 +356,17 @@ public class AdminCaseService : IAdminCaseService
             ct
         );
 
-        await _disputes.MarkResolvedAsync(
-            disputeData.DisputeId,
-            adminId,
-            decision == DisputeCaseDecision.Dismiss ? "dismiss" : "resolved",
-            ct
-        );
+        var resolvedStatus = decision == DisputeCaseDecision.Dismiss ? "dismiss" : ResolvedString;
+        await _disputes.MarkResolvedAsync(disputeData.DisputeId, adminId, resolvedStatus, ct);
 
-        await _broadcast.NotifyAdminAsync("dispute_resolved", new { caseId, status = decision == DisputeCaseDecision.Dismiss ? "dismissed" : "resolved" });
+        await _broadcast.NotifyAdminAsync(
+            "dispute_resolved",
+            new
+            {
+                caseId,
+                status = decision == DisputeCaseDecision.Dismiss ? DismissedString : ResolvedString,
+            }
+        );
 
         return await GetCaseByIdAsync(caseId, ct);
     }
@@ -341,8 +380,8 @@ public class AdminCaseService : IAdminCaseService
     private static int SlaHours(string caseType) =>
         caseType switch
         {
-            _verificationString => 48,
-            _ => 72, // no show, listing quality, report listing
+            VerificationString => 48,
+            _ => 72,
         };
 
     private (int slaHours, bool breached) Sla(string type, double ageHours)
@@ -401,25 +440,25 @@ public class AdminCaseService : IAdminCaseService
             (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
             1
         );
-        var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
+        var (slaHours, slaBreached) = Sla(VerificationString, ageHours);
 
         return new CaseSummaryDto
         {
             CaseId = caseDto.VerificationId,
-            Type = _verificationString,
+            Type = VerificationString,
             Status = MapStatus(caseDto),
             SubjectUserId = caseDto.UserId,
             SubmittedAt = caseDto.SubmittedAt,
             AgeHours = ageHours,
             SlaHours = slaHours,
             SlaBreached = slaBreached,
-            Title = caseDto.University, // since verifications have no listings
+            Title = caseDto.University,
             SubjectInitials = MakeInitials(caseDto.FirstName, caseDto.LastName),
             SubjectName = $"{caseDto.FirstName} {caseDto.LastName}".Trim(),
             SubjectDegree = caseDto.Degree,
             SubjectYear = caseDto.Year,
             CounterpartyInitials = null,
-            HasDocument = caseDto.Status is "under_review" or "approved" or "rejected",
+            HasDocument = caseDto.Status is UnderReviewString or "approved" or "rejected",
         };
     }
 
@@ -432,13 +471,13 @@ public class AdminCaseService : IAdminCaseService
             (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
             1
         );
-        var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
-        var hasDocument = caseDto.Status is "under_review" or "approved" or "rejected";
+        var (slaHours, slaBreached) = Sla(VerificationString, ageHours);
+        var hasDocument = caseDto.Status is UnderReviewString or "approved" or "rejected";
 
         return new CaseDetailDto
         {
             CaseId = caseDto.VerificationId,
-            Type = _verificationString,
+            Type = VerificationString,
             Status = MapStatus(caseDto),
             SubjectUserId = caseDto.UserId,
             SubmittedAt = caseDto.SubmittedAt,
@@ -463,11 +502,11 @@ public class AdminCaseService : IAdminCaseService
     private static string MapStatus(VerificationCaseDto caseDto) =>
         caseDto.AdminDecision switch
         {
-            null => caseDto.Status == _underReviewString ? _underReviewString : _pendingString,
-            "approved" => _resolvedString,
-            "rejected" => _resolvedString,
-            "resubmission" => "dismissed",
-            _ => _pendingString,
+            null => caseDto.Status == UnderReviewString ? UnderReviewString : PendingString,
+            "approved" => ResolvedString,
+            "rejected" => ResolvedString,
+            "resubmission" => DismissedString,
+            _ => PendingString,
         };
 
     private static string DecisionMessage(VerificationDecision decision) =>
@@ -482,9 +521,8 @@ public class AdminCaseService : IAdminCaseService
 
     private async Task<CaseDetailDto> ToDisputeDetailAsync(DisputeCaseData d, CancellationToken ct)
     {
-        // for fetching based on report type
         ListingSnapshotDto? snapshot = null;
-        if (d.Type == _reportListingString && d.SnapshotId.HasValue)
+        if (d.Type == ReportListingString && d.SnapshotId.HasValue)
         {
             snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
         }
@@ -500,24 +538,30 @@ public class AdminCaseService : IAdminCaseService
             var listing = await _listings.GetByIdAsync(listingId.Value);
             currentListingStatus = listing?.ListingStatus;
         }
+
         var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
-        // for reporting a listing counterparty is the reporter
+
         Guid? counterpartyId =
-            d.Type == _reportListingString ? d.RaisedBy
+            d.Type == ReportListingString ? d.RaisedBy
             : d.SubjectUserId == d.SellerId ? d.BuyerId
             : d.SubjectUserId == d.BuyerId ? d.SellerId
             : null;
+
         if (counterpartyId == d.SubjectUserId)
+        {
             counterpartyId = null;
+        }
 
         var counterparty = counterpartyId is null
             ? null
             : await BuildPartyAsync(counterpartyId.Value, RoleOf(d, counterpartyId.Value), ct);
+
         var ageHours = Age(d.SubmittedAt);
         var (slaHours, slaBreached) = Sla(d.Type, ageHours);
+
         string? suggestedDecision = null;
         List<string>? suggestedOutcomes = null;
-        if (d.Type == "listing_quality" && snapshot != null)
+        if (d.Type == ListingQualityString && snapshot != null)
         {
             var verdict = ListingQualityEvaluator.Evaluate(
                 snapshot,
@@ -529,6 +573,12 @@ public class AdminCaseService : IAdminCaseService
                 .Outcomes.Select(o => o.ToString().ToLowerInvariant())
                 .ToList();
         }
+
+        var filedByRole =
+            d.Type == ReportListingString ? "reporter"
+            : d.RaisedBy == d.SellerId ? "seller"
+            : d.RaisedBy == d.BuyerId ? "buyer"
+            : "unknown";
 
         return new CaseDetailDto
         {
@@ -543,10 +593,7 @@ public class AdminCaseService : IAdminCaseService
             Subject = subject,
             CounterParty = counterparty,
             FiledByUserId = d.RaisedBy,
-            FiledByRole =
-                d.RaisedBy == d.SellerId ? "seller"
-                : d.RaisedBy == d.BuyerId ? "buyer"
-                : "buyer",
+            FiledByRole = filedByRole,
             Evidence = BuildDisputeEvidence(d, snapshot, currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
@@ -560,21 +607,21 @@ public class AdminCaseService : IAdminCaseService
     ) =>
         d.Type switch
         {
-            "listing_quality" => new CaseEvidenceDto
+            ListingQualityString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
                 BuyerPhotos = d.Photos,
                 SellerRefusedPhotos = d.SellerRefusedPhotos,
                 CurrentListingStatus = currentListingStatus,
             },
-            _reportListingString => new CaseEvidenceDto
+            ReportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
                 ListingId = d.ListingId,
                 ReportReason = d.Description,
                 CurrentListingStatus = currentListingStatus,
             },
-            "no_show" => new CaseEvidenceDto
+            NoShowString => new CaseEvidenceDto
             {
                 MeetupId = d.MeetupId,
                 BuyerCheckedIn = d.BuyerCheckedIn,
@@ -604,6 +651,7 @@ public class AdminCaseService : IAdminCaseService
         {
             return null;
         }
+
         var strikes = await _reputation.GetStrikesAsync(userId, ct);
         var reputation = await _reputation.GetReputationSummaryAsync(userId, ct);
 
@@ -630,10 +678,10 @@ public class AdminCaseService : IAdminCaseService
     private static string MapDisputeStatus(string s) =>
         s switch
         {
-            "open" => _pendingString,
-            _underReviewString => _underReviewString,
-            "resolved" => _resolvedString,
-            "closed" => "dismissed",
-            _ => _pendingString,
+            "open" => PendingString,
+            UnderReviewString => UnderReviewString,
+            ResolvedString => ResolvedString,
+            "closed" => DismissedString,
+            _ => PendingString,
         };
 }

@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
-using Modules.SharedKernel;
 using Modules.Reservations;
-using Microsoft.Extensions.Logging;
+using Modules.SharedKernel;
 
 namespace Modules.Identity.Verification;
 
@@ -151,7 +151,7 @@ public class VerificationService : IVerificationService
         record.OtpVerifiedAt = DateTime.UtcNow;
         await _verifications.UpdateAsync(record);
 
-        try
+        /*try
         {
             var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
             await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
@@ -159,8 +159,12 @@ public class VerificationService : IVerificationService
         catch (Exception ex)
         {
             //never fail verification over a broadcast
-            _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
-        }
+            _logger.LogWarning(
+                ex,
+                "failed to broadcast verification_created for {UserId}",
+                record.UserId
+            );
+        }*/
 
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
@@ -280,9 +284,24 @@ public class VerificationService : IVerificationService
 
         var result = await _verifications.GetCaseByIdAsync(verificationId, ct);
 
-        if (decision == VerificationDecision.Reject)
+        switch (decision)
         {
-            await _identity.DeleteAccountAsync(vr.UserId.ToString());
+            case VerificationDecision.Reject:
+                await _broadcast.SendToUserAsync(
+                    vr.UserId,
+                    "force_logout",
+                    new { reason = "verification_rejected" }
+                );
+                await _identity.DeleteAccountAsync(vr.UserId.ToString());
+                break;
+
+            case VerificationDecision.Resubmit:
+                await _broadcast.SendToUserAsync(
+                    vr.UserId,
+                    "verification_resubmission_required",
+                    new { reason = reason }
+                );
+                break;
         }
         return result;
     }
@@ -321,7 +340,11 @@ public class VerificationService : IVerificationService
         catch (Exception ex)
         {
             //never fail verification over a broadcast
-            _logger.LogWarning(ex, "failed to broadcast verification_created for {UserId}", record.UserId);
+            _logger.LogWarning(
+                ex,
+                "failed to broadcast verification_created for {UserId}",
+                record.UserId
+            );
         }
     }
 

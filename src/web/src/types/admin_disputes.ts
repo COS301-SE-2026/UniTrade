@@ -42,7 +42,7 @@ export interface VerificationEvidence {
   degree: string;
   year: number;
   email: string;
-  proofDocumentUrl: string; //the url to the actual proof of registration
+  proofDocumentUrl?: string; //the url to the actual proof of registration
 }
 
 export interface ListingQualityEvidence {
@@ -88,6 +88,7 @@ export interface CaseEvidence {
   year?: number;
   email?: string;
   domainValid?: boolean;
+  proofDocument?:string;
   // listing_quality
   snapshot?: ListingSnapshot;
   buyerPhotos?: string[];
@@ -105,7 +106,6 @@ export interface CaseEvidence {
   pinStatus?: string;
   checkInWindowClosesAt?: string | null;
 
-  proofDocument?: string; // for when the BE actually send the POR
 }
 
 export interface CaseSummary {
