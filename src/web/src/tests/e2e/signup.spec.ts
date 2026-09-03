@@ -1,7 +1,21 @@
 
 import { test, expect } from '@playwright/test';
+import { signupAndLogin, uniqueEmail } from './helpers/auth';
 
-function uniqueEmail() {
+test('user can sign up, verify OTP , and reach the login page, reach their listings dashboard', async({page, request}) => {
+
+  const email = uniqueEmail();
+  const password = 'Tafadzwa123!';
+
+  await signupAndLogin(page, request, {email, password});
+
+  await expect(page).toHaveURL(/\/buyer\/listings/);
+  await expect(page.getByText(/browse all listings/i)).toBeVisible();
+
+
+})
+
+/*function uniqueEmail() {
   return `e2e-${Date.now()}@tuks.co.za`;
 }
 
@@ -51,3 +65,4 @@ test('user can sign up, verify OTP, and reach the login page, login, reach their
   await expect(page).toHaveURL(/\/buyer\/listings/);
   await expect(page.getByText(/browse all listings/i)).toBeVisible();
 });
+*/
