@@ -45,7 +45,7 @@ resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existin
     
 }
 
-var acrLoginServer=deployAcr ? containerRegistry.outputs.loginServer : existingAcr.properties.loginServer
+var acrLoginServer=deployAcr ? containerRegistry!.outputs.loginServer : existingAcr!.properties.loginServer
 
 module containerAppsEnv 'modules/container-apps-env.bicep'={
     name: 'deploy-cae-${environment}'
@@ -83,7 +83,6 @@ module backendApp 'modules/container-app-backend.bicep'={
     name: 'deploy-backend-${environment}'
     scope: rg
     params: {
-        projectName: projectName
         environment: environment
         location: location
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
@@ -97,7 +96,6 @@ module frontendApp 'modules/container-app-frontend.bicep'={
     name: 'deploy-frontend'
     scope: rg
     params:{
-        projectName: projectName
         environment: environment
         location: location
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
