@@ -11,12 +11,12 @@ concurrency:
     cancel-in-progress: false
 
 jobs: 
-    # backend-ci:
-    #     uses: ./.github/workflows/backend-ci.yml
-    #     secrets: inherit
-    # web-ci:
-    #     uses: ./.github/workflows/web-ci.yml
-    #     secrets: inherit
+    backend-ci:
+        uses: ./.github/workflows/backend-ci.yml
+        secrets: inherit
+    web-ci:
+        uses: ./.github/workflows/web-ci.yml
+        secrets: inherit
     deploy:
         #needs: [backend-ci, web-ci]
         uses: ./.github/workflows/cd.yml
