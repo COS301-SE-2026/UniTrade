@@ -2,7 +2,9 @@ import { Routes, Route, Navigate, useParams } from "react-router";
 import { useEffect, useState, lazy, Suspense } from "react";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/useAuthStore";
-
+import { getApiUrl } from "./config";
+import ChatLayout from "./components/ChatLayout";
+import { RealtimeProvider } from "./providers/RealtimeProvider";
 /*
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -37,9 +39,7 @@ import ChatPage from "./pages/chat/ChatPage";
 import SellerReservations from "./pages/seller/SellerReservation";
 */
 
-import { getApiUrl } from "./config";
-import ChatLayout from "./components/ChatLayout";
-import { RealtimeProvider } from "./providers/RealtimeProvider";
+
 //import Login from "./pages/auth/Login";
 /*
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
