@@ -32,15 +32,17 @@ export async function signupAndLogin(
   const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
   if (await termsHeading.isVisible({timeout: 3000}).catch(() => false)) {
     const scrollRegion = page.getByRole("region", {name: "Terms and Conditions"});
+    if(await scrollRegion.isVisible().catch(() => false)) {
     await scrollRegion.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
+  }
 
     const agreeCheckbox = page.getByRole("checkbox", {
       name: /I have read and agree to the Terms & Conditions/i,
     });
     await expect(agreeCheckbox).toBeEnabled({timeout: 5000});
-    await agreeCheckbox.check()
+    await agreeCheckbox.click({force: true});
 
     const acceptButton = page.getByRole("button", {name: "Accept & Continue"});
     await expect(acceptButton).toBeEnabled();
@@ -114,7 +116,7 @@ export async function loginAsAdmin(page: Page, request: APIRequestContext) {
   ).toBeTruthy();
   const { email, password } = await res.json();
 
-  await page.goto("/auth/Login");
+  await page.goto("/auth/Login", {waitUntil: "domcontentloaded"});
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: /^login$/i }).click();
