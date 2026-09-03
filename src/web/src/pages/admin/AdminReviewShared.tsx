@@ -11,6 +11,8 @@ interface ConfirmModalProps {
   cancelLabel?: string;
   tone?: "danger" | "success" | "neutral";
   submitting?: boolean;
+  reason?: string;
+  setReason?: (value: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -19,9 +21,9 @@ const confirmModalToneClasses: Record<
   "danger" | "success" | "neutral",
   string
 > = {
-  danger: "bg-red-600 hover:bg-red-700 ",
-  success: "bg-green-600 hover:bg-green-700 ",
-  neutral: "bg-navy-700 hover:bg-navy-700 ",
+  danger: "bg-red-600 hover:bg-red-700 border border-transparent",
+  success: "bg-green-600 hover:bg-green-700 border border-transparent",
+  neutral: "bg-navy-700 hover:bg-navy-700 border border-transparent",
 };
 
 export function ConfirmModal({
@@ -31,6 +33,8 @@ export function ConfirmModal({
   cancelLabel = "Cancel",
   tone = "neutral",
   submitting = false,
+  reason = "",
+  setReason,
   onCancel,
   onConfirm,
 }: Readonly<ConfirmModalProps>) {
@@ -44,12 +48,12 @@ export function ConfirmModal({
       aria-describedby="confirm-modal-message"
     >
       <div
-        className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
+        className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl font-sans"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2
-            id="confirmm-modal-title"
+            id="confirm-modal-title"
             className="text-xl font-bol text-gray-900"
           >
             {title}
@@ -66,19 +70,31 @@ export function ConfirmModal({
         <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">
           {message}
         </p>
+        <div className="mb-4">
+          <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
+          <textarea
+            id="modal-reason"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason?.(e.target.value)}
+            placeholder="Prove reasoning for this decision..."
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
+          ></textarea>
+        </div>
         <div className="flex gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+            disabled={submitting}
+            className="flex-1 flex items-center justify-center text-center border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            disabled={submitting}
-            className={`flex-1 py-3 text-white font-bold rounded-xl transition-colors
+            disabled={submitting || !reason.trim()}
+            className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors
               disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
           >
             {submitting ? "Submitting..." : confirmLabel}
@@ -261,10 +277,10 @@ export function PrimaryButton({
 type DecisionTone = "success" | "danger" | "neutral";
 
 const decisionToneClasses: Record<DecisionTone, string> = {
-  success: "bg-green-600 hover:bg-green-700 text-white",
-  danger: "bg-red-600 hover:bg-red-700 text-white",
+  success: "bg-green-600 hover:bg-green-700 text-white border border-transparent",
+  danger: "bg-red-600 hover:bg-red-700 text-white border border-transparent",
   neutral:
-    "border border-navy-700 text-navy-700 dark:text-white dark:border-white/30 hover:bg-gray-50 dark:hover:bg-white/5",
+    "border border-navy-700 text-navy-700 dark:text-white dark:border-white/30 hover:bg-secondary-500 hover:text-primary-700 hover:border-secondary-500",
 };
 
 export function DecisionButton({
@@ -283,7 +299,7 @@ export function DecisionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex-1 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${decisionToneClasses[tone]}`}
+      className={`flex-1 flex items-center justify-center text-center text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${decisionToneClasses[tone]}`}
     >
       {children}
     </button>

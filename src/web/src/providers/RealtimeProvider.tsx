@@ -171,6 +171,14 @@ if (import.meta.env.DEV || !user) return;
 
     const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
       showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
+
+
+    })
+
+    const offDisputeOutcome = connectionManager.onDisputeOutcome((e)=>{
+      showToast("info", e.message);
+    })
+
      })
 
     const offForceLogout = connectionManager.onForceLogout(async () => {
@@ -203,6 +211,7 @@ const offVerificationResubmission = connectionManager.onVerificationResubmission
       offDisputeResolved();
       offSavedSearchMatch();
       offVerificationCreated();
+      offDisputeOutcome();
       offForceLogout();
       offVerificationResubmission();
       if(user?.role === "admin") {
