@@ -109,7 +109,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
@@ -165,12 +165,21 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options
-        .UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"])
-        .UseSnakeCaseNamingConvention();
-});
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+    }
+
+    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+    dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
+    var dataSource = dataSourceBuilder.Build();
+
+    builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+    });
 
 builder.Services.Configure<JsonOptions>(options =>
 {
