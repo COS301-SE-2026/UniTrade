@@ -243,6 +243,7 @@ export interface ApiError {
   status: number;
   code: string;
   message: string;
+  error?: string;
 }
 
 export type ListCasesResponse = {

@@ -1,6 +1,13 @@
-import { useEffect, useState, useReducer } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { IconAlertTriangle, IconBulb, IconChevronRight, IconCircleCheck, IconCircleX, IconMail } from '@tabler/icons-react';
+import { useEffect, useState, useReducer } from "react";
+import { useNavigate, useParams } from "react-router";
+import {
+  IconAlertTriangle,
+  IconBulb,
+  IconChevronRight,
+  IconCircleCheck,
+  IconCircleX,
+  IconMail,
+} from "@tabler/icons-react";
 import {
   InfoRow,
   Panel,
@@ -10,69 +17,101 @@ import {
   OutlineButton,
   NotesPanel,
   ConfirmModal,
-} from './AdminReviewShared';
-import { type CheckInEvidence, type DisputeDecision, type DisputeItem, type DisputeType, type ListingPhotos, type PersonSummary, type ReportInfo } from '../../types/mockAdmin';
-import { getCaseById, decideCaseWithAction, type ButtonAction } from '../../services/adminService';
-import type { CaseDetail, CaseType, ListingSnapshot, PartySummary, ApiError } from '../../types/admin_disputes';
-import { getApiUrl } from '../../config';
-import { LoadingState } from '../../components/layout/Spinner';
-
-
+} from "./AdminReviewShared";
+import {
+  type CheckInEvidence,
+  type DisputeDecision,
+  type DisputeItem,
+  type DisputeType,
+  type ListingPhotos,
+  type PersonSummary,
+  type ReportInfo,
+} from "../../types/mockAdmin";
+import {
+  getCaseById,
+  decideCaseWithAction,
+  type ButtonAction,
+} from "../../services/adminService";
+import type {
+  CaseDetail,
+  CaseType,
+  ListingSnapshot,
+  PartySummary,
+  ApiError,
+} from "../../types/admin_disputes";
+import { getApiUrl } from "../../config";
+import { LoadingState } from "../../components/layout/Spinner";
+import { getSimilarListings } from "../../utils/similarListings";
+import { listingsService } from "../../services/listingsService";
 export interface DisputeCase {
-  id: string
-  type: DisputeType
-  item: DisputeItem
-  buyer: PersonSummary
-  seller: PersonSummary
-  datePlaced: string
-  filedBy: 'Buyer' | 'Seller' | 'Applicant' | 'System'
-  checkIn?: CheckInEvidence
-  photos?: ListingPhotos
-  report?: ReportInfo
-  decision?: DisputeDecision
-  listingId?: string
-  suggestedDecision?: DisputeDecision
-};
-
-const typeBadge: Record<DisputeType, { label: string; tone: 'red' | 'amber' | 'blue' }> = {
-  'no_show': { label: 'No-show', tone: 'red' },
-  'listing_quality': { label: 'Listing quality', tone: 'amber' },
-  'report_listing': { label: 'Report listing', tone: 'blue' },
+  id: string;
+  type: DisputeType;
+  item: DisputeItem;
+  buyer: PersonSummary;
+  seller: PersonSummary;
+  datePlaced: string;
+  filedBy: "Buyer" | "Seller" | "Applicant" | "System";
+  checkIn?: CheckInEvidence;
+  photos?: ListingPhotos;
+  report?: ReportInfo;
+  decision?: DisputeDecision;
+  listingId?: string;
+  suggestedDecision?: DisputeDecision;
+}
+import type { SimilarListing } from "../../types/listing";
+const typeBadge: Record<
+  DisputeType,
+  { label: string; tone: "red" | "amber" | "blue" }
+> = {
+  no_show: { label: "No-show", tone: "red" },
+  listing_quality: { label: "Listing quality", tone: "amber" },
+  report_listing: { label: "Report listing", tone: "blue" },
 };
 
 const decisionLabel: Record<DisputeDecision, string> = {
-  uphold: 'Uphold Dispute',
-  dismiss: 'Dismiss Dispute',
-  'more-info': 'Marked as needing more info',
-  'side-buyer': 'Side with buyer',
-  'side-seller': 'Side with seller',
+  uphold: "Uphold Dispute",
+  dismiss: "Dismiss Dispute",
+  "more-info": "Marked as needing more info",
+  "side-buyer": "Side with buyer",
+  "side-seller": "Side with seller",
 
-  'remove-listing': 'Remove Listing',
-  'warn-seller': 'Warn Seller',
+  "remove-listing": "Remove Listing",
+  "warn-seller": "Warn Seller",
 };
 
 const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
-  'remove-listing': 'Are you sure you want to remove this listing?',
-  'warn-seller': 'Are you sure you want to warn this seller?',
-  dismiss: 'Are you sure you want to dismiss this dispute?',
+  "remove-listing": "Are you sure you want to remove this listing?",
+  "warn-seller": "Are you sure you want to warn this seller?",
+  dismiss: "Are you sure you want to dismiss this dispute?",
 
-  uphold: 'Are you sure you want to uphold this dispute?',
-  'side-buyer': 'Are you sure you want to side with the buyer?',
-  'side-seller': 'Are you sure you want to side with the seller?',
-  'more-info': 'Are you sure you want to request more information?',
+  uphold: "Are you sure you want to uphold this dispute?",
+  "side-buyer": "Are you sure you want to side with the buyer?",
+  "side-seller": "Are you sure you want to side with the seller?",
+  "more-info": "Are you sure you want to request more information?",
 };
 
 const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
-  'remove-listing': 'This will remove the listing from the platform and notify the seller.This cannot be undone',
-  'warn-seller': 'You are about to issue a formal warning to this seller. The seller will be notified.',
-  'dismiss': 'This will dismiss the dispute without taking any action.',
+  "remove-listing":
+    "This will remove the listing from the platform and notify the seller.This cannot be undone",
+  "warn-seller":
+    "You are about to issue a formal warning to this seller. The seller will be notified.",
+  dismiss: "This will dismiss the dispute without taking any action.",
 
-  uphold: 'This will uphold the dispute and apply the recommended outcome',
-  'side-buyer': 'You are deciding in favor of the buyer. The dispute will be resolved.',
-  'side-seller': ' You are deciding in favor of the seller. The dispute will be resolved.',
+  uphold: "This will uphold the dispute and apply the recommended outcome",
+  "side-buyer":
+    "You are deciding in favor of the buyer. The dispute will be resolved.",
+  "side-seller":
+    " You are deciding in favor of the seller. The dispute will be resolved.",
 };
 
-const finalDecisions: DisputeDecision[] = ['uphold', 'dismiss', 'side-buyer', 'side-seller', 'remove-listing', 'warn-seller'];
+const finalDecisions: DisputeDecision[] = [
+  "uphold",
+  "dismiss",
+  "side-buyer",
+  "side-seller",
+  "remove-listing",
+  "warn-seller",
+];
 
 type State = {
   data: DisputeCase | null;
@@ -81,17 +120,17 @@ type State = {
 };
 
 type Action =
-  | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; payload: DisputeCase }
-  | { type: 'FETCH_ERROR' };
+  | { type: "FETCH_START" }
+  | { type: "FETCH_SUCCESS"; payload: DisputeCase }
+  | { type: "FETCH_ERROR" };
 
 function disputeReducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'FETCH_START':
+    case "FETCH_START":
       return { ...state, loading: true, error: false };
-    case 'FETCH_SUCCESS':
+    case "FETCH_SUCCESS":
       return { data: action.payload, loading: false, error: false };
-    case 'FETCH_ERROR':
+    case "FETCH_ERROR":
       return { ...state, loading: false, error: true };
     default:
       return state;
@@ -99,11 +138,17 @@ function disputeReducer(state: State, action: Action): State {
 }
 
 function transformCaseDetail(detail: CaseDetail): DisputeCase {
-
-
   const mapPerson = (p: PartySummary | undefined) => {
     if (!p) {
-      return { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 }
+      return {
+        id: "",
+        initials: "?",
+        name: "Unknown",
+        faculty: "N/A",
+        reputationScore: 0,
+        reviewAverage: 0,
+        reviewCount: 0,
+      };
     }
     return {
       id: p.userId,
@@ -113,51 +158,56 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
       reviewAverage: p.reviewAverage,
       reputationScore: p.reputationScore,
       strikeCount: p.strikeCount,
-      reviewCount: 0
+      reviewCount: 0,
     };
   };
   const apiBase = getApiUrl();
 
-  const buildItemFromSnapshot = (snapshot?: ListingSnapshot, currentStatus?: string | null): DisputeItem => {
+  const buildItemFromSnapshot = (
+    snapshot?: ListingSnapshot,
+    currentStatus?: string | null,
+  ): DisputeItem => {
     if (!snapshot) {
       return {
-        title: 'Unknown Item',
-        condition: 'N/A',
-        category: 'N/A',
-        moduleCode: 'N/A',
-        price: 'N/A',
-        status: currentStatus ?? 'Unkonwn',
+        title: "Unknown Item",
+        condition: "N/A",
+        category: "N/A",
+        moduleCode: "N/A",
+        price: "N/A",
+        status: currentStatus ?? "Unkonwn",
       };
     }
     return {
       title: snapshot.title,
       condition: snapshot.condition,
-      category: snapshot.categoryName || 'N/A',
-      moduleCode: snapshot.courseTags?.[0] || 'N/A',
+      category: snapshot.categoryName || "N/A",
+      moduleCode: snapshot.courseTags?.[0] || "N/A",
       price: `R${snapshot.price.toFixed(2)}`,
-      status: currentStatus ?? 'Unknown',
-      imageUrl: snapshot.photoRefs?.[0] ? `${apiBase}${snapshot.photoRefs[0].replace(/^\/api/, '')}` : undefined // if not rendering in prod.. check the element if its missing an api
+      status: currentStatus ?? "Unknown",
+      imageUrl: snapshot.photoRefs?.[0]
+        ? `${apiBase}${snapshot.photoRefs[0].replace(/^\/api/, "")}`
+        : undefined, // if not rendering in prod.. check the element if its missing an api
     };
   };
 
   const subject = detail.subject;
   const counterparty = detail.counterParty;
 
-  const roleMap: Record<string, 'Buyer' | 'Seller' | 'Applicant' | 'System'> = {
-    buyer: 'Buyer',
-    seller: 'Seller',
-    applicant: 'Applicant',
-    system: 'System',
+  const roleMap: Record<string, "Buyer" | "Seller" | "Applicant" | "System"> = {
+    buyer: "Buyer",
+    seller: "Seller",
+    applicant: "Applicant",
+    system: "System",
   };
-  const filedBy = roleMap[detail.filedByRole] ?? 'Unknown';
+  const filedBy = roleMap[detail.filedByRole] ?? "Unknown";
 
   let item: DisputeItem = {
-    title: 'Unknown Item',
-    condition: 'N/A',
-    category: 'N/A',
-    moduleCode: 'N/A',
-    price: 'N/A',
-    status: 'Reserved',
+    title: "Unknown Item",
+    condition: "N/A",
+    category: "N/A",
+    moduleCode: "N/A",
+    price: "N/A",
+    status: "Reserved",
   };
 
   let checkIn: CheckInEvidence | undefined = undefined;
@@ -166,18 +216,19 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
   let listingId: string | undefined = undefined;
   const ev = detail.evidence;
 
-  if (detail.type === 'no_show') {
+  if (detail.type === "no_show") {
     checkIn = {
       buyerCheckedIn: ev.buyerCheckedIn ?? false,
       buyerCheckInTime: ev.buyerCheckInTime ?? undefined,
       sellerCheckedIn: ev.sellerCheckedIn ?? false,
       sellerCheckInTime: ev.sellerCheckInTime ?? undefined,
-      pinEntered: ev.pinStatus === 'confirmed',
-      checkInWindow: ev.checkInWindowClosesAt ? `Closes at ${new Date(ev.checkInWindowClosesAt).toLocaleString()}` : 'No window set',
-
+      pinEntered: ev.pinStatus === "confirmed",
+      checkInWindow: ev.checkInWindowClosesAt
+        ? `Closes at ${new Date(ev.checkInWindowClosesAt).toLocaleString()}`
+        : "No window set",
     };
   }
-  if (detail.type == 'listing_quality') {
+  if (detail.type == "listing_quality") {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
       listingId = ev.snapshot.listingId;
@@ -187,14 +238,24 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
       buyerPhotos: ev.buyerPhotos ?? [],
     };
   }
-  if (detail.type == 'report_listing') {
+  if (detail.type == "report_listing") {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
     }
     listingId = ev.listingId;
     report = {
-      reason: ev.reportReason || 'No reason provided',
-      reportedBy: counterparty ? mapPerson(counterparty) : { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 },
+      reason: ev.reportReason || "No reason provided",
+      reportedBy: counterparty
+        ? mapPerson(counterparty)
+        : {
+          id: "",
+          initials: "?",
+          name: "Unknown",
+          faculty: "N/A",
+          reputationScore: 0,
+          reviewAverage: 0,
+          reviewCount: 0,
+        },
     };
   }
   let suggestedDecision: DisputeDecision | undefined;
@@ -206,18 +267,28 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     type: detail.type as DisputeType,
 
     item,
-    buyer: counterparty ? mapPerson(counterparty) : { id: '', initials: '?', name: 'Unknown', faculty: 'N/A', reputationScore: 0, reviewAverage: 0, reviewCount: 0 },
+    buyer: counterparty
+      ? mapPerson(counterparty)
+      : {
+        id: "",
+        initials: "?",
+        name: "Unknown",
+        faculty: "N/A",
+        reputationScore: 0,
+        reviewAverage: 0,
+        reviewCount: 0,
+      },
     seller: mapPerson(subject),
-    datePlaced: new Date(detail.submittedAt).toLocaleDateString('en-ZA'),
+    datePlaced: new Date(detail.submittedAt).toLocaleDateString("en-ZA"),
     filedBy,
     checkIn,
     photos,
     report,
     decision: undefined,
     listingId,
-    suggestedDecision
+    suggestedDecision,
   };
-};
+}
 
 export default function AdminDisputeReview() {
   const { id } = useParams<{ id: string }>();
@@ -228,24 +299,34 @@ export default function AdminDisputeReview() {
     error: false,
   });
   const [submitting, setSubmitting] = useState<DisputeDecision | null>(null);
-  const [completedDecision, setCompletedDecision] = useState<DisputeDecision | null>(null);
-  const [modalReason, setModalReason] = useState('');
+  const [completedDecision, setCompletedDecision] =
+    useState<DisputeDecision | null>(null);
+  const [modalReason, setModalReason] = useState("");
   const [decisionError, setDecisionError] = useState<string | null>(null);
-  const [pendingConfirmDecision, setPendingConfirmDecision] = useState<DisputeDecision | null>(null);
+  const [pendingConfirmDecision, setPendingConfirmDecision] =
+    useState<DisputeDecision | null>(null);
+  const [similar, setSimilar] = useState<SimilarListing[]>([]);
+
+
   useEffect(() => {
+
     let active = true;
 
-    dispatch({ type: 'FETCH_START' });
+    dispatch({ type: "FETCH_START" });
 
-    getCaseById(id ?? '').then((data) => {
-      if (active) {
-        // check response though
-        dispatch({ type: 'FETCH_SUCCESS', payload: transformCaseDetail(data) });
-      }
-    })
+    getCaseById(id ?? "")
+      .then((data) => {
+        if (active) {
+          // check response though
+          dispatch({
+            type: "FETCH_SUCCESS",
+            payload: transformCaseDetail(data),
+          });
+        }
+      })
       .catch(() => {
         if (active) {
-          dispatch({ type: 'FETCH_ERROR' });
+          dispatch({ type: "FETCH_ERROR" });
         }
       });
 
@@ -254,16 +335,39 @@ export default function AdminDisputeReview() {
     };
   }, [id]);
 
+  useEffect(() => {
+    const listingId = state.data?.listingId;
+    if(!listingId) return;
+    (async ()=>{
+      try{
+        const [detail, browse] = await Promise.all([
+          listingsService.getById(listingId),
+          listingsService.getBrowseListings(),
+        ]);
+        setSimilar(getSimilarListings(detail, browse.listings, 4));
+      }
+      catch{
+        setSimilar([]);
+
+      }
+    })();
+  }, [state.data?.listingId]);
+ 
   async function handleDecision(decision: DisputeDecision, reason?: string) {
     if (!state.data) return;
     setSubmitting(decision);
     setDecisionError(null);
     try {
-      await decideCaseWithAction(state.data.id, state.data.type as CaseType, decision as ButtonAction, reason?.trim() || undefined);
+      await decideCaseWithAction(
+        state.data.id,
+        state.data.type as CaseType,
+        decision as ButtonAction,
+        reason?.trim() || undefined,
+      );
       setCompletedDecision(decision);
     } catch (error) {
       const apiError = error as ApiError;
-      setDecisionError(apiError.message || 'Failed to submit decision.');
+      setDecisionError(apiError.message || "Failed to submit decision.");
     } finally {
       setSubmitting(null);
     }
@@ -271,9 +375,8 @@ export default function AdminDisputeReview() {
 
   function handleDecisionClick(decision: DisputeDecision) {
     setPendingConfirmDecision(decision);
-    setModalReason('');
+    setModalReason("");
   }
-
 
   if (state.loading) {
     return <LoadingState message="Loading case..." />;
@@ -289,57 +392,123 @@ export default function AdminDisputeReview() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className='flex items-center gap-1.5 text-sm text-gray-400'>
-          <button type='button' onClick={() => navigate('/admin/disputes')}
-            className='text-[#00aaff] hover:underline cursor-pointer'
-          >Active Disputes
-
+        <div className="flex items-center gap-1.5 text-sm text-gray-400">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/disputes")}
+            className="text-[#00aaff] hover:underline cursor-pointer"
+          >
+            Active Disputes
           </button>
           <IconChevronRight size={12} />
-          <span className='text-gray-400'></span>
-          <span className='text-gray-600' >Case Review</span>
+          <span className="text-gray-400"></span>
+          <span className="text-gray-600">Case Review</span>
         </div>
         <StatusBadge label={badge.label} tone={badge.tone} />
       </div>
 
-      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">Case #{dispute.id}</h1>
+      <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
+        Case #{dispute.id}
+      </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <ItemPanel dispute={dispute} />
 
-          {dispute.type === 'no_show' && dispute.checkIn && <CheckInPanel checkIn={dispute.checkIn} />}
-          {dispute.type === 'listing_quality' && dispute.photos && <PhotoComparisonPanel photos={dispute.photos} />}
-          {dispute.type === 'report_listing' && dispute.report && <ReportReasonPanel reason={dispute.report.reason} />}
+          {dispute.type === "no_show" && dispute.checkIn && (
+            <CheckInPanel checkIn={dispute.checkIn} />
+          )}
+          {dispute.type === "listing_quality" && dispute.photos && (
+            <PhotoComparisonPanel photos={dispute.photos} />
+          )}
+          {dispute.type === "report_listing" && dispute.report && (
+            <ReportReasonPanel reason={dispute.report.reason} />
+          )}
+          {
+            similar.length > 0 && (
+              <Panel title="Similar listings">
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {similar.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigate(`/buyer/listings/${item.id}`)}
+                      className="text-left rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden hover:shadow-sm transition-shadow">
+
+          
+                      <img
+                        src={item.image || "placeholder.png"}
+                        alt={item.title}
+                        className="w-full h-24 object-cover bg-gray-100"
+                      />
+                      <div className="p-2"
+                      >
+                        <p className="text-xs font-medium text-gray-800 dark:text-white truncate" >{item.title}</p>
+                        <p className="text-xs text-navy-700 dark:text-white/80 font-semibold">
+                          R{item.price}
+                        </p>
+                      </div>
+
+                    </button>
+                  ))}
+                </div>
+              </Panel>
+            )
+          }
 
           <Panel title="Actions">
-            <div className="mb-4">
-              <OutlineButton onClick={() => { if (dispute.listingId) navigate(`/buyer/listings/${dispute.listingId}`); }} disabled={!dispute.listingId} className='text-center border-navy-700 text-navy-700'>View Listing</OutlineButton>
-            </div>
+            <div className="flex flex-col gap-4">
+              <OutlineButton
+                onClick={() => {
+                  if (dispute.listingId)
+                    navigate(`/buyer/listings/${dispute.listingId}`);
+                }}
+                disabled={!dispute.listingId}
+                className="text-center border-navy-700 text-navy-700"
+              >
+                View Listing
+              </OutlineButton>
 
-            {completedDecision ? (
-              <DecisionConfirmation dispute={dispute} decision={completedDecision} onBack={() => navigate('/admin/disputes')} />
-            ) : (
-              <>
 
-                {decisionError && (
-                  <div className='text-sm text-red-600 mb-3'>{decisionError}</div>
-                )}
-                {dispute.suggestedDecision && (
-                  <div className='mb-4 flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3'>
-                    <IconBulb size={16} className='text-sky-600 shrink-0 mt-0.5' />
-                    <p className='text-xs text-sky-900'>
-                      <span className='font-semibold'>System suggestion:</span> based on the evidence,
-                      this looks like a case to <span className='font-semibold'>{recommendationText(dispute.suggestedDecision)}</span>.
-                      This is a guide — your judgement decides.
-                    </p>
-                  </div>
-                )}
-                <div className='p-3 bg-gray-50 dark:bg-navy-700/50 rounded-xl border border-gray-200 dark:border-white/10'>
-                  <DecisionActions type={dispute.type} submitting={submitting} onDecide={handleDecisionClick} suggestedDecision={dispute.suggestedDecision} />
+              {completedDecision ? (
+                <DecisionConfirmation
+                  dispute={dispute}
+                  decision={completedDecision}
+                  onBack={() => navigate("/admin/disputes")}
+                />
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {decisionError && (
+                    <div className="text-sm text-red-600">
+                      {decisionError}
+                    </div>
+                  )}
+                  {dispute.suggestedDecision && (
+                    <div className="flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3">
+                      <IconBulb
+                        size={16}
+                        className="text-sky-600 shrink-0 mt-0.5"
+                      />
+                      <p className="text-xs text-sky-900">
+                        <span className="font-semibold">System suggestion:</span>{" "}
+                        based on the evidence, this looks like a case to{" "}
+                        <span className="font-semibold">
+                          {recommendationText(dispute.suggestedDecision)}
+                        </span>
+                        . This is a guide — your judgement decides.
+                      </p>
+                    </div>
+                  )}
+                  <DecisionActions
+                    type={dispute.type}
+                    submitting={submitting}
+                    onDecide={handleDecisionClick}
+                    suggestedDecision={dispute.suggestedDecision}
+                  />
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </Panel>
 
           <NotesPanel caseId={dispute.id} />
@@ -347,8 +516,11 @@ export default function AdminDisputeReview() {
 
         <div className="space-y-4">
           <PersonCard title="Seller" person={dispute.seller} />
-          {dispute.type === 'report_listing' && dispute.report ? (
-            <PersonCard title="Reported by" person={dispute.report.reportedBy} />
+          {dispute.type === "report_listing" && dispute.report ? (
+            <PersonCard
+              title="Reported by"
+              person={dispute.report.reportedBy}
+            />
           ) : (
             <PersonCard title="Buyer" person={dispute.buyer} />
           )}
@@ -362,18 +534,22 @@ export default function AdminDisputeReview() {
 
       {pendingConfirmDecision && (
         <ConfirmModal
-          title={disputeConfirmTitles[pendingConfirmDecision] ?? 'Are you sure?'}
-          message={disputeConfirmMessages[pendingConfirmDecision] ?? 'This action cannot be undone.'}
+          title={
+            disputeConfirmTitles[pendingConfirmDecision] ?? "Are you sure?"
+          }
+          message={
+            disputeConfirmMessages[pendingConfirmDecision] ??
+            "This action cannot be undone."
+          }
           confirmLabel={decisionLabel[pendingConfirmDecision]}
-          tone={pendingConfirmDecision === 'remove-listing' ? 'danger' :
-            'neutral'
+          tone={
+            pendingConfirmDecision === "remove-listing" ? "danger" : "neutral"
           }
           submitting={!!submitting}
           reason={modalReason}
           setReason={setModalReason}
           onCancel={() => setPendingConfirmDecision(null)}
           onConfirm={() => {
-
             handleDecision(pendingConfirmDecision, modalReason);
             setPendingConfirmDecision(null);
           }}
@@ -383,17 +559,18 @@ export default function AdminDisputeReview() {
   );
 }
 function recommendationText(d: DisputeDecision): string {
-  if (d === 'uphold') return 'side with the buyer';
-  if (d === 'dismiss') return 'side with the seller';
-  return 'review carefully';
-
+  if (d === "uphold") return "side with the buyer";
+  if (d === "dismiss") return "side with the seller";
+  return "review carefully";
 }
 function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
-
-  if (dispute.type === 'no_show') {
+  if (dispute.type === "no_show") {
     return (
-      <Panel title='Item'
-      ><p className='text-sm text-gray-500 dark:text-white/50 italic'>Item details are not available for no-show disputes.</p></Panel>
+      <Panel title="Item">
+        <p className="text-sm text-gray-500 dark:text-white/50 italic">
+          Item details are not available for no-show disputes.
+        </p>
+      </Panel>
     );
   }
   return (
@@ -401,24 +578,39 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
       <div className="flex gap-4">
         <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {dispute.item.imageUrl && (
-            <img src={dispute.item.imageUrl} alt={dispute.item.title} className="w-full h-full object-cover" />
+            <img
+              src={dispute.item.imageUrl}
+              alt={dispute.item.title}
+              className="w-full h-full object-cover"
+            />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#00aaff]">{dispute.item.title}</p>
-          <p className="text-xs text-gray-600 mt-0.5">Condition: {dispute.item.condition}</p>
-          <p className="text-xs text-gray-600">Category: {dispute.item.category}</p>
+          <p className="text-sm font-semibold text-[#00aaff]">
+            {dispute.item.title}
+          </p>
+          <p className="text-xs text-gray-600 mt-0.5">
+            Condition: {dispute.item.condition}
+          </p>
+          <p className="text-xs text-gray-600">
+            Category: {dispute.item.category}
+          </p>
         </div>
       </div>
       <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5">
         <InfoRow label="Item price" value={dispute.item.price} />
-        <InfoRow label="Status" value={<StatusBadge label={dispute.item.status} tone="blue" />} />
+        <InfoRow
+          label="Status"
+          value={<StatusBadge label={dispute.item.status} tone="blue" />}
+        />
       </div>
     </Panel>
   );
 }
 
-function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<DisputeCase['checkIn']> }>) {
+function CheckInPanel({
+  checkIn,
+}: Readonly<{ checkIn: NonNullable<DisputeCase["checkIn"]> }>) {
   return (
     <Panel title="Check-in and PIN evidence">
       <div className="grid grid-cols-2 gap-3">
@@ -426,7 +618,7 @@ function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<DisputeCase['
           <p className="text-xs text-gray-600 mb-1">Buyer checked in</p>
           <StatusLine
             ok={checkIn.buyerCheckedIn}
-            okLabel={`Checked in at ${checkIn.buyerCheckInTime ?? ''}`}
+            okLabel={`Checked in at ${checkIn.buyerCheckInTime ?? ""}`}
             notOkLabel="Not checked in"
           />
         </div>
@@ -434,20 +626,27 @@ function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<DisputeCase['
           <p className="text-xs text-gray-600 mb-1">Seller checked in</p>
           <StatusLine
             ok={checkIn.sellerCheckedIn}
-            okLabel={`Checked in at ${checkIn.sellerCheckInTime ?? ''}`}
+            okLabel={`Checked in at ${checkIn.sellerCheckInTime ?? ""}`}
             notOkLabel="Not checked in"
           />
         </div>
       </div>
       <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
-        <InfoRow label="PIN status" value={checkIn.pinEntered ? 'Entered' : 'Not entered'} />
+        <InfoRow
+          label="PIN status"
+          value={checkIn.pinEntered ? "Entered" : "Not entered"}
+        />
         <InfoRow label="Check-in window" value={checkIn.checkInWindow} />
       </div>
     </Panel>
   );
 }
 
-function StatusLine({ ok, okLabel, notOkLabel }: Readonly<{ ok: boolean; okLabel: string; notOkLabel: string }>) {
+function StatusLine({
+  ok,
+  okLabel,
+  notOkLabel,
+}: Readonly<{ ok: boolean; okLabel: string; notOkLabel: string }>) {
   return ok ? (
     <span className="flex items-center gap-1 text-sm text-green-600">
       <IconCircleCheck size={16} /> {okLabel}
@@ -459,38 +658,54 @@ function StatusLine({ ok, okLabel, notOkLabel }: Readonly<{ ok: boolean; okLabel
   );
 }
 
-function PhotoComparisonPanel({ photos }: Readonly<{ photos: NonNullable<DisputeCase['photos']> }>) {
+function PhotoComparisonPanel({
+  photos,
+}: Readonly<{ photos: NonNullable<DisputeCase["photos"]> }>) {
   const apiBase = getApiUrl();
   return (
     <Panel title="Listing snapshot vs buyer photos">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-2">Snapshot at Reservation</p>
+          <p className="text-xs font-medium text-gray-500 mb-2">
+            Snapshot at Reservation
+          </p>
           <div className="grid grid-cols-2 gap-2">
             {photos.snapshotPhotos.map((url, i) => {
-              const imageSrc = url.startsWith('/api') ? `${apiBase}${url.replace(/^\/api/, '')}` : url;
+              const imageSrc = url.startsWith("/api")
+                ? `${apiBase}${url.replace(/^\/api/, "")}`
+                : url;
               return (
-
-
                 <div
                   key={`snapshot-${i}`}
                   className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
                 >
-                  <img src={imageSrc} alt={`Snapshot ${i + 1}`} className='w-full h-full object-cover' />
+                  <img
+                    src={imageSrc}
+                    alt={`Snapshot ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               );
             })}
           </div>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-2">Buyer's Photos</p>
+          <p className="text-xs font-medium text-gray-500 mb-2">
+            Buyer's Photos
+          </p>
           <div className="grid grid-cols-2 gap-2">
             {photos.buyerPhotos.map((url, i) => (
               <div
                 key={`buyer-${i}`}
                 className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center overflow-hidden"
               >
-                {url && <img src={url} alt={`Buyer photo ${i + 1}`} className="w-full h-full object-cover" />}
+                {url && (
+                  <img
+                    src={url}
+                    alt={`Buyer photo ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -503,11 +718,14 @@ function PhotoComparisonPanel({ photos }: Readonly<{ photos: NonNullable<Dispute
 function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
   return (
     <Panel title="Report reason">
-      <div className='flex gap-3 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-navy-700 p-4'>
-        <IconAlertTriangle size={18} className='text-amber-500 shrink-0 mt-0.5' />
-        <p className='text-sm text-gray-700 dark:text-white/80 dark:text-white/80 leading-relaxed' >
-          {reason}</p>
-
+      <div className="flex gap-3 rounded-lg border-l-4 border-gray-300 bg-gray-50 dark:bg-navy-700 p-4">
+        <IconAlertTriangle
+          size={18}
+          className="text-gray-400 shrink-0 mt-0.5"
+        />
+        <p className="text-sm text-gray-700 dark:text-white/80 leading-relaxed">
+          {reason}
+        </p>
       </div>
     </Panel>
   );
@@ -517,30 +735,42 @@ function DecisionConfirmation({
   dispute,
   decision,
   onBack,
-}: Readonly<{ dispute: DisputeCase; decision: DisputeDecision; onBack: () => void }>) {
+}: Readonly<{
+  dispute: DisputeCase;
+  decision: DisputeDecision;
+  onBack: () => void;
+}>) {
   const isFinal = finalDecisions.includes(decision);
 
   return (
     <div>
       <div
         className={`flex items-start gap-3 p-4 rounded-lg border ${isFinal
-          ? 'bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20'
-          : 'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20'
+          ? "bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20"
+          : "bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20"
           }`}
       >
         {isFinal ? (
           <IconMail size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
         ) : (
-          <IconCircleCheck size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <IconCircleCheck
+            size={18}
+            className="text-amber-600 flex-shrink-0 mt-0.5"
+          />
         )}
         <div>
-          <p className="text-sm font-semibold text-navy-700 dark:text-white">{decisionLabel[decision]}</p>
+          <p className="text-sm font-semibold text-navy-700 dark:text-white">
+            {decisionLabel[decision]}
+          </p>
           {isFinal ? (
             <p className="text-xs text-gray-500 dark:text-white/60 mt-1">
-              {dispute.buyer.name} and {dispute.seller.name} will be notified of this outcome by email.
+              {dispute.buyer.name} and {dispute.seller.name} will be notified of
+              this outcome by email.
             </p>
           ) : (
-            <p className="text-xs text-gray-500 dark:text-white/60 mt-1">No email sent yet</p>
+            <p className="text-xs text-gray-500 dark:text-white/60 mt-1">
+              No email sent yet
+            </p>
           )}
         </div>
       </div>
@@ -559,38 +789,63 @@ function DecisionActions({
   type,
   submitting,
   onDecide,
-}: Readonly<{ type: DisputeType; submitting: DisputeDecision | null; onDecide: (d: DisputeDecision) => void; suggestedDecision?: DisputeDecision }>) {
-
-
-  if (type === 'no_show') {
+}: Readonly<{
+  type: DisputeType;
+  submitting: DisputeDecision | null;
+  onDecide: (d: DisputeDecision) => void;
+  suggestedDecision?: DisputeDecision;
+}>) {
+  if (type === "no_show") {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
-        <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('uphold')}>
-          {submitting === 'uphold' ? 'Upholding…' : 'Uphold'}
+        <DecisionButton
+          tone="danger"
+          disabled={!!submitting}
+          onClick={() => onDecide("uphold")}
+        >
+          {submitting === "uphold" ? "Upholding…" : "Uphold"}
         </DecisionButton>
-        <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
-          {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
+        <DecisionButton
+          tone="neutral"
+          disabled={!!submitting}
+          onClick={() => onDecide("dismiss")}
+        >
+          {submitting === "dismiss" ? "Dismissing…" : "Dismiss"}
         </DecisionButton>
-        <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('more-info')}>
-          {submitting === 'more-info' ? 'Requesting…' : 'Ask for More Info'}
+        <DecisionButton
+          tone="neutral"
+          disabled={!!submitting}
+          onClick={() => onDecide("more-info")}
+        >
+          {submitting === "more-info" ? "Requesting…" : "Ask for More Info"}
         </DecisionButton>
       </div>
     );
   }
 
-  if (type === 'listing_quality') {
+  if (type === "listing_quality") {
     return (
       <div className="flex flex-col sm:flex-row gap-3">
-        <DecisionButton tone="success" disabled={!!submitting} onClick={() => onDecide('side-buyer')}>
-          {submitting === 'side-buyer' ? 'Saving…' : 'Side with Buyer'}
-
+        <DecisionButton
+          tone="success"
+          disabled={!!submitting}
+          onClick={() => onDecide("side-buyer")}
+        >
+          {submitting === "side-buyer" ? "Saving…" : "Side with Buyer"}
         </DecisionButton>
-        <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('side-seller')}>
-          {submitting === 'side-seller' ? 'Saving…' : 'Side with Seller'}
-
+        <DecisionButton
+          tone="neutral"
+          disabled={!!submitting}
+          onClick={() => onDecide("side-seller")}
+        >
+          {submitting === "side-seller" ? "Saving…" : "Side with Seller"}
         </DecisionButton>
-        <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
-          {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss'}
+        <DecisionButton
+          tone="danger"
+          disabled={!!submitting}
+          onClick={() => onDecide("dismiss")}
+        >
+          {submitting === "dismiss" ? "Dismissing…" : "Dismiss"}
         </DecisionButton>
       </div>
     );
@@ -598,14 +853,26 @@ function DecisionActions({
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
-      <DecisionButton tone="danger" disabled={!!submitting} onClick={() => onDecide('remove-listing')}>
-        {submitting === 'remove-listing' ? 'Removing…' : 'Remove Listing'}
+      <DecisionButton
+        tone="danger"
+        disabled={!!submitting}
+        onClick={() => onDecide("remove-listing")}
+      >
+        {submitting === "remove-listing" ? "Removing…" : "Remove Listing"}
       </DecisionButton>
-      <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('warn-seller')}>
-        {submitting === 'warn-seller' ? 'Warning…' : 'Warn Seller'}
+      <DecisionButton
+        tone="neutral"
+        disabled={!!submitting}
+        onClick={() => onDecide("warn-seller")}
+      >
+        {submitting === "warn-seller" ? "Warning…" : "Warn Seller"}
       </DecisionButton>
-      <DecisionButton tone="neutral" disabled={!!submitting} onClick={() => onDecide('dismiss')}>
-        {submitting === 'dismiss' ? 'Dismissing…' : 'Dismiss Report'}
+      <DecisionButton
+        tone="neutral"
+        disabled={!!submitting}
+        onClick={() => onDecide("dismiss")}
+      >
+        {submitting === "dismiss" ? "Dismissing…" : "Dismiss Report"}
       </DecisionButton>
     </div>
   );
