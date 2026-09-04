@@ -132,7 +132,7 @@ jobs:
           PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
           PAYFAST__MERCHANTKEY: ${{ secrets.PAYFAST__MERCHANTKEY }}  
-          SIGNALR__CONN: ${{ secrets.SIGNALR_CONN_STRING_STAGING }}
+          SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_STAGING }}
 
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
@@ -152,7 +152,7 @@ jobs:
               "payfast-notifyurl=$PAYFAST__NOTIFYURL" \
               "payfast-sandboxurl=$PAYFAST__SANDBOXURL" \
               "payfast-returnurl=$PAYFAST__RETURNURL" \
-              "signalr-conn=$SIGNALR_CONN"
+              "signalr-conn=$SIGNALR_CONN_STRING_STAGING"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
