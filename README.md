@@ -197,6 +197,14 @@ UniTrade provides a structured, verified marketplace where students can list, br
      </p>
 </details>
 <details>
+  <summary><strong>Updated Use Cases</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/demo3/Updated_UseCases.pdf">
+    <img src="https://img.shields.io/badge/Updated_UseCases-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+<details>
   <summary><strong>Coding Standards</summary>
          <p align="center">
   <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/CODING_%20STANDARDS.pdf">
