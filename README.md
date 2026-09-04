@@ -183,7 +183,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 <details>
   <summary><strong>Software Requirements Specifications</summary>
      <p align="center">
-  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SRS_Document.pdf">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/demo3/SRSDocument_demo_3.pdf">
     <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
      </p>
