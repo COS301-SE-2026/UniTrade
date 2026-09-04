@@ -3,20 +3,29 @@ import { connectionManager } from "../services/realtime/connectionManager";
 import { queryKeys } from "../lib/queryKeys";
 import { useAuthStore } from "../store/useAuthStore";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Reservation, ReservationListItem } from "../types/Reservations";
+import type { Reservation, ReservationListItem, ChatMessage } from "../types/Reservations";
 import type { ClientChatMessage } from "../types/chat";
-import type { ChatMessage } from "../types/Reservations";
 import { registerForPushN, onForegroundMessage } from "../services/fcmService";
 import { useToast } from "../components/layout/useToast";
+import { authService } from "../services/authService";
+import { useNavigate } from "react-router";
 
-export function RealtimeProvider({ children }: { children: React.ReactNode }) {
+
+export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  /*if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
+    return <>
+    {children}
+    </>;
+  }*/
+
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { user, clearUser } = useAuthStore();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+if (import.meta.env.DEV || !user) return;
+
     connectionManager
       .connect()
       .catch((e) => console.error("hub connect failed", e));
@@ -31,9 +40,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+ //if (import.meta.env.DEV || !user) return;
 
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
@@ -43,16 +50,14 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
         })
         .catch((err) => {
-          console.error("Push token failes", err);
+          console.error("Push token failed", err);
           sessionStorage.setItem("pushAttempted", "true");
         })
     }
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+ //if (import.meta.env.DEV || !user) return;
 
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
@@ -62,6 +67,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [user, showToast]);
 
   useEffect(() => {
+  //  if (import.meta.env.DEV || !user) return;
+
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
         const key = queryKeys.reservationMessages(msg.reservationId);
@@ -141,13 +148,67 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
+    if(user?.role === "admin") {
+      connectionManager.joinAdminGroup().catch((e) =>
+      console.error("joinAdminGroup failed", e),
+    );
+    }
+
+    const offDisputeCreated = connectionManager.onDisputeCreated(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    })
+
+    const offVerificationCreated= connectionManager.onVerificationCreated(()=>{
+      queryClient.invalidateQueries({queryKey: queryKeys.verifications()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    });
+
+    const offDisputeResolved = connectionManager.onDisputeResolved(() => {
+      queryClient.invalidateQueries({queryKey: queryKeys.disputes()});
+      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    })
+
+    const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
+      showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
+     })
+
+    const offForceLogout = connectionManager.onForceLogout(async () => {
+      showToast("info", "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.");
+      try {
+        await authService.logout(() => connectionManager.disconnect());
+
+      } catch (err) {
+        console.error("logout request failed", err);
+      } finally {
+        clearUser();
+        navigate("/auth/Login", { replace: true});
+      }
+  });
+
+const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
+  showToast("info", e.reason
+    ? `More info needed for your verification: ${e.reason}`
+    : "Please resubmit your proof of registration."
+  );
+  navigate("/auth/ProofUpload");
+});
     return () => {
       offMessage();
       offReconnected();
       offRead();
       offReservationUpdated();
       offListing();
+      offDisputeCreated();
+      offDisputeResolved();
+      offSavedSearchMatch();
+      offVerificationCreated();
+      offForceLogout();
+      offVerificationResubmission();
+      if(user?.role === "admin") {
+        connectionManager.leaveAdminGroup();
+      }
     };
-  }, [queryClient]);
+  }, [queryClient, user, showToast, navigate, clearUser]);
   return <>{children}</>;
 }

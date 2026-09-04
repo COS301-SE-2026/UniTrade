@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Api;
 using Api.BackgroundServices;
 using Api.Hubs;
 using Api.Middleware;
@@ -9,27 +10,37 @@ using dotenv.net;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.Identity;
 using Infrastructure.Persistence.Repositories.ListingImages;
 using Infrastructure.Persistence.Repositories.Listings;
+using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
+using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Realtime;
 using Infrastructure.Storage;
 using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Modules.Audit;
+using Modules.Audit.Repositories;
 using Modules.Chat;
 using Modules.Chat.Repository;
+using Modules.Disputes;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
 using Modules.Listings;
+using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
 using Modules.ReferenceData;
@@ -37,6 +48,8 @@ using Modules.ReferenceData.Course;
 using Modules.ReferenceData.Course.Repositories;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.Reputation;
+using Modules.Reputation.Repositories;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
@@ -46,12 +59,26 @@ using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
+using Modules.Disputes.Repositories;
+using Infrastructure.Persistence.Repositories.Disputes;
+using Modules.SharedKernel.Repositories;
+using Infrastructure.Persistence.Repositories.Images;
+using Infrastructure.Services;
+using Modules.SavedSearches.Models;
+using Modules.SavedSearches;
+using Modules.SavedSearches.Repositories;
+using Infrastructure.Persistence.SavedSearches;
+using Modules.ListingQuestions.Repositories;
+using Infrastructure.Persistence.Repositories.ListingQuestions;
+using Modules.ListingQuestions;
+
 
 DotEnv.Load(
     options: new DotEnvOptions(
         envFilePaths: new[] { Path.Combine(Directory.GetCurrentDirectory(), "../.env") }
     )
 );
+ThreadPool.SetMinThreads(workerThreads: 100, completionPortThreads: 100);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,75 +86,100 @@ builder.Configuration.AddEnvironmentVariables();
 
 const string UnknownKey = "unknown";
 
+static Func<HttpContext, RateLimitPartition<string>> DevAwarePolicy(
+    Func<HttpContext, RateLimitPartition<string>> policy
+) =>
+    httpContext =>
+    {
+        if (httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+        {
+            return RateLimitPartition.GetNoLimiter(UnknownKey);
+        }
+        return policy(httpContext);
+    };
+
 //rate limiters
 
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy(
         "register",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 50000, // note to future self - restore ratelimiting once done testing
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "login",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 10,
+                    PermitLimit = 1000,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "verify-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.AddPolicy(
         "resend-otp",
-        httpContext =>
+        DevAwarePolicy(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
             )
+        )
     );
 
     options.RejectionStatusCode = 429;
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options
-        .UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"])
-        .UseSnakeCaseNamingConvention();
-});
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+    }
+
+    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+    dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
+    var dataSource = dataSourceBuilder.Build();
+
+    builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+    });
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -140,7 +192,7 @@ var allowedOrigins =
     builder
         .Configuration["Cors:AllowedOrigins"]
         ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:3000", "http://localhost:8080" };
+    ?? new[] { "http://localhost:3000", "http://localhost:8080" ,"http://localhost:4173"};
 
 builder.Services.AddCors(options =>
 {
@@ -156,7 +208,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSignalR();
+var SignalRConnectionString = builder.Configuration["Azure:SignalR:ConnectionString"];
+var signalRBuilder = builder.Services.AddSignalR();
+if (!string.IsNullOrEmpty(SignalRConnectionString))
+{
+    signalRBuilder.AddAzureSignalR(SignalRConnectionString);
+}
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
@@ -166,13 +223,14 @@ builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddScoped<AcsEmailService>();
     builder.Services.AddScoped<IEmailService, TestEmailService>();
 }
 else
 {
+    builder.Services.AddScoped<AcsEmailService>();
     builder.Services.AddScoped<IEmailService, AcsEmailService>();
 }
+
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IListingImageRepository, ListingImageRepository>();
@@ -204,16 +262,57 @@ builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFcmPushService, FcmPushService>();
 builder.Services.AddScoped<IPaymentGateway, PayFastPaymentGateway>();
+builder.Services.AddScoped<IListingSnapshotRepository, ListingSnapshotRepository>();
+builder.Services.AddScoped<IListingSnapshotService, ListingSnapshotService>();
+builder.Services.AddScoped<IAuditRepository, AuditRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IAdminCaseService, AdminCaseService>();
+builder.Services.AddScoped<ISellerVerificationQuery, SellerVerificationQuery>();
+builder.Services.AddScoped<IStrikeRepository, StrikeRepository>();
+builder.Services.AddScoped<IReputationService, ReputationService>();
+builder.Services.AddScoped<ICaseOutcomeApplier, CaseOutcomeApplier>();
+builder.Services.AddScoped<IModerationService, ModerationService>();
+builder.Services.AddScoped<IDisputeService, DisputeService>();
+builder.Services.AddScoped<IPartyDirectory, PartyDirectory>();
+builder.Services.AddHostedService<NoShowDetectionWorker>();
+builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
+builder.Services.AddScoped<IUploadedImageRepository, UploadedImageRepository>();
+builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
+builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
+builder.Services.AddScoped<SavedSearchService>();
+builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<SavedSearchService>());
+builder.Services.AddScoped<IListingPublishedListener>(sp => sp.GetRequiredService<SavedSearchService>());
+builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
+builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
+builder.Services.AddScoped<IListingQuestionRepository, ListingQuestionRepository>();
+builder.Services.AddScoped<IListingQuestionService, ListingQuestionService>();
+builder.Services.AddScoped<IListingQueryForQuestions, ListingQueryForQuestions>();
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton(
+        new EmailClient(
+            builder.Configuration["Acs:ConnectionString"]
+                ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
+        )
+    );
+}
 
-builder.Services.AddSingleton(
-    new EmailClient(
-        builder.Configuration["Acs:ConnectionString"]
-            ?? throw new InvalidOperationException("Acs:ConnectionString is not configured")
-    )
-);
-var jwtSecret =
-    builder.Configuration["Jwt:Secret"]
-    ?? throw new InvalidOperationException("JWT_SECRET is not configured");
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+
+if (string.IsNullOrEmpty(jwtSecret) && builder.Environment.IsDevelopment())
+{
+    jwtSecret = "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5"; // i needed this for the QR testing, it's only ever in dev @Sabira
+    builder.Configuration["Firebase:CredentialsJson"] = "";
+}
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    throw new InvalidOperationException("JWT_SECRET is not configured");
+}
+
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder
@@ -224,6 +323,7 @@ builder
     })
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -231,51 +331,22 @@ builder
             ValidateLifetime = true,
             ValidateIssuer = false,
             ValidateAudience = false,
+            RoleClaimType = "role",
         };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = ctx =>
-            {
-                if (ctx.HttpContext.Request.Path.StartsWithSegments("/chathub"))
-                {
-                    var accessToken = ctx.Request.Query["access_token"];
-                    if (!string.IsNullOrEmpty(accessToken))
-                    {
-                        ctx.Token = accessToken;
-                        return Task.CompletedTask;
-                    }
-                }
-
-                var token = ctx.Request.Cookies["authToken"];
-                if (!string.IsNullOrEmpty(token))
-                {
-                    ctx.Token = token;
-                }
-                return Task.CompletedTask;
-            },
-            OnAuthenticationFailed = ctx =>
-            {
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = ctx =>
-            {
-                var isHub = ctx.HttpContext.Request.Path.StartsWithSegments("/chathub");
-                var aud = ctx.Principal?.FindFirst("aud")?.Value;
-                if (aud == "chat-hub" && !isHub)
-                {
-                    ctx.Fail("hub token used outside the hub");
-                }
-                return Task.CompletedTask;
-            },
-            OnChallenge = ctx =>
-            {
-                return Task.CompletedTask;
-            },
-        };
+        options.Events = AuthEventsFactory.CreateJwtEvents();
     });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 var app = builder.Build();
+
+
+app.UseForwardedHeaders();
 
 app.Use(
     async (context, next) =>
@@ -295,18 +366,20 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
     app.UseHsts();
 }
 
-app.UseForwardedHeaders();
-
 app.UseRouting();
 app.UseCors("AllowReactApp");
 app.UseRateLimiter();
-app.UseMiddleware<ExceptionMiddleware>();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<ExceptionMiddleware>();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok("healthy"));
@@ -314,3 +387,5 @@ app.MapHub<ChatHub>("/chathub");
 app.MapControllers();
 
 await app.RunAsync();
+
+public partial class Program { }

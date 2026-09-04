@@ -18,7 +18,7 @@ public class ReviewsController : ControllerBase
         _reviews = reviews;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
     // POST /api/reviews
     [HttpPost]
@@ -44,7 +44,7 @@ public class ReviewsController : ControllerBase
         return Ok(await _reviews.GetForUserAsync(userId, ct));
     }
 
-    private IActionResult MapError(ReviewException ex) =>
+    private ObjectResult MapError(ReviewException ex) =>
         ex.Message switch
         {
             ReviewErrors.TransactionNotFound => NotFound(new { error = ex.Message }),

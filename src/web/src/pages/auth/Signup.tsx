@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router'
 import girl from '../../assets/girl.png'
 import { authService } from '../../services/authService'
 import type { University } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
+import TersmAndConditions from '../../components/legal/TermsandConditions'
 
 interface ApiError {
   message: string
@@ -13,6 +14,7 @@ interface ApiError {
 
 const Signup: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { setPendingEmail } = useAuthStore()
   const [formData, setFormData] = useState({
     firstName: '',
@@ -27,8 +29,13 @@ const Signup: React.FC = () => {
   const [loading, setLoading] = useState(false)
 
 
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(
+    (location.state as { termsAcceptedAt?: string} | null)?.termsAcceptedAt ?? null
+  )
+  const [showTerms, setShowTerms] = useState(!termsAcceptedAt)
+
   const [universities, setUniversities] = useState<University[]>([]);
-  const [uniLoading, setUniloading] = useState(true);
+  const [uniLoading, setUniLoading] = useState(true);
   const [uniError, setUniError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -41,7 +48,7 @@ const Signup: React.FC = () => {
         const message = err instanceof Error ? err.message : 'Could not load universities';
         setUniError(message);
       } finally {
-        setUniloading(false);
+        setUniLoading(false);
       }
     };
 
@@ -55,14 +62,27 @@ const Signup: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTermsAccept = () => {
+    setTermsAcceptedAt(new Date().toISOString())
+    setShowTerms(false)
+  }
 
+  const handleTermsDecline = () => {
+    navigate('/')
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if(!termsAcceptedAt) {
+      setShowTerms(true)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      await authService.register(formData)
+      await authService.register({...formData, termsAcceptedAt})
       // save email so OTP page knows who to verify
       setPendingEmail(formData.email)
       navigate('/verify-otp')
@@ -91,33 +111,34 @@ const Signup: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
-                <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required
+                <label htmlFor="fname" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
+                <input id="fname" type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
-                <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} required
+                <label htmlFor="lname" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
+                <input id="lname" type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Student Email</label>
-              <input type="text" inputMode="email" name="email" placeholder="Student Email" value={formData.email} onChange={handleChange} required
+              <label htmlFor="email" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Student Email</label>
+              <input id="email" type="text" inputMode="email" name="email" placeholder="Student Email" value={formData.email} onChange={handleChange} required
                 className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
+              <label htmlFor='uni' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">University</label>
               <select
+              id="uni"
                 name="university"
                 value={formData.university}
                 onChange={handleChange}
                 required
                 disabled={uniLoading}
                 className={`w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1
-                 focus:ring-sky-500 transition-all disabled:opacity-60 ${formData.university === ""? "text-gray-400" : "text-gray-900"}`}>
+                 focus:ring-sky-500 transition-all disabled:opacity-60 ${formData.university === "" ? "text-gray-600" : "text-gray-900"}`}>
                 <option value="">
                   {uniLoading
                     ? 'Loading universities...'
@@ -138,21 +159,22 @@ const Signup: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
-                <input type="text" name="degreeProgram" placeholder="Degree Program" value={formData.degreeProgram} onChange={handleChange}
+                <label htmlFor='degree' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
+                <input id="degree" type="text" name="degreeProgram" placeholder="Degree Program" value={formData.degreeProgram} onChange={handleChange}
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
-                <input type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} required
+                <label htmlFor='year' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
+                <input id="year" type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
+              <label htmlFor='password' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Password</label>
               <div className="relative">
                 <input
+                  id='password'
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Password"
@@ -170,7 +192,20 @@ const Signup: React.FC = () => {
                 </button>
               </div>
             </div>
-
+  
+            {!termsAcceptedAt && (
+              <p className="text-xs text-gray-500 text-center">
+                You'll need to accept the{' '}
+                <button 
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="font-semibold text-sky-900 hover:underline"
+                >
+                  Terms &amp; Conditions
+                </button>{' '}
+                before signing up.
+              </p>
+            )}
             <button type="submit" disabled={loading}
               className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50">
               {loading ? 'Signing up...' : 'SIGNUP'}
@@ -186,6 +221,12 @@ const Signup: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-sky-900/80 via-sky-900/40 to-transparent" />
         </div>
       </div>
+
+      <TersmAndConditions
+      isOpen={showTerms}
+      onAccept={handleTermsAccept}
+      onDecline={handleTermsDecline}
+      />
     </div>
   )
 }

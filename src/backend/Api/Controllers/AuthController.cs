@@ -18,6 +18,15 @@ public class AuthController : ControllerBase
     private readonly IVerificationService _verificationService;
     private readonly IWebHostEnvironment _env;
 
+    private static readonly string[] _allowedPorContentTypes =
+    {
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+    };
+
+    private const long _maxPorFileSizeBytes = 5 * 1024 * 1024;
+
     public AuthController(
         IIdentityService identityService,
         IVerificationService verificationService,
@@ -33,6 +42,10 @@ public class AuthController : ControllerBase
     [EnableRateLimiting("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
+        if (dto.TermsAcceptedAt is null)
+        {
+            return UnprocessableEntity(new { error = "terms_not_accepted" });
+        }
         try
         {
             var user = await _identityService.RegisterAsync(dto);
@@ -68,6 +81,9 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = "invalid_otp" });
 
         await _verificationService.VerifyAsync(user.UserId, dto.Otp);
+
+        var token = await _identityService.GenerateAuthTokenAsync(user.UserId);
+        SetAuthCookie(token);
 
         return Ok(new { message = "Verified successfully." });
     }
@@ -119,18 +135,7 @@ public class AuthController : ControllerBase
         {
             var token = await _identityService.LoginAsync(request); //business logic layer comes in. It gives us the results
 
-            Response.Cookies.Append(
-                "authToken",
-                token,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = !_env.IsDevelopment(),
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddHours(24),
-                    Path = "/",
-                }
-            );
+            SetAuthCookie(token);
 
             return Ok(new { message = "Login successful" });
         }
@@ -167,7 +172,8 @@ public class AuthController : ControllerBase
         try
         {
             //'USer' here is built in. .net puts all jwt claims in this Object when client requests
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -189,6 +195,7 @@ public class AuthController : ControllerBase
 
     [HttpGet("hub-token")]
     [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult HubToken()
     {
         var userId =
@@ -200,5 +207,67 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { token = _identityService.GenerateHubToken(userId) });
+    }
+
+    [HttpPost("upload-por")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadProofOfRegistration(IFormFile file)
+    {
+        var userIdClaim =
+            User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { error = "unauthenticated" });
+
+        if (file is null || file.Length == 0)
+            return UnprocessableEntity(new { error = "no_file" });
+
+        if (file.Length > _maxPorFileSizeBytes)
+            return UnprocessableEntity(new { error = "file_too_large" });
+
+        if (!_allowedPorContentTypes.Contains(file.ContentType))
+            return UnprocessableEntity(new { error = "invalid_file_type" });
+
+        await using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+
+        try
+        {
+            await _verificationService.SubmitProofOfRegistrationAsync(
+                userId,
+                stream.ToArray(),
+                file.ContentType,
+                file.FileName
+            );
+
+            return Ok(new { message = "Proof of registration submitted." });
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+                "no_pending_verification" => UnprocessableEntity(
+                    new { error = "no_pending_verification" }
+                ),
+                _ => StatusCode(500, new { error = "server_error" }),
+            };
+        }
+    }
+
+    private void SetAuthCookie(string token)
+    {
+        Response.Cookies.Append(
+            "authToken",
+            token,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_env.IsDevelopment(),
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(24),
+                Path = "/",
+            }
+        );
     }
 }

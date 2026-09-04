@@ -36,6 +36,14 @@ public class ControllerTests : IClassFixture<WebApplicationFactory<Program>>
                     "integration_test_secret_key_that_is_long_enough_12345!!"
                 );
 
+                builder.ConfigureAppConfiguration(
+                    (context, configBuilder) =>
+                    {
+                        configBuilder.AddInMemoryCollection(
+                            new Dictionary<string, string> { { "Firebase:CredentialsJson", "" } }
+                        );
+                    }
+                );
                 builder.ConfigureServices(services =>
                 {
                     var descriptor = services.SingleOrDefault(d =>
@@ -80,7 +88,7 @@ public class ControllerTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task RootOrAuthEndpoint_ShouldRespondWithoutThrowingInternalErrors()
     {
-        var response = await _client.GetAsync("/api/auth/status-check-or-fallback");
+        var response = await _client.GetAsync("/api/auth/me");
         Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 }

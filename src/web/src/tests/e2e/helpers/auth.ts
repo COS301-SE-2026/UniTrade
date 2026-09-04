@@ -1,4 +1,5 @@
-import { Page, APIRequestContext, expect } from "@playwright/test";
+import type { Page, APIRequestContext } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export function uniqueEmail(prefix = "e2e") {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}@tuks.co.za`;
@@ -9,21 +10,47 @@ export async function signupAndLogin(
   request: APIRequestContext,
   { email, password = "Tafadzwa123!" }: { email: string; password?: string },
 ) {
-  await page.goto("/auth/Signup");
+  const universityResponse = page.waitForResponse(
+    (res) => res.url().includes("/api/universities") && res.status() === 200,
+  );
 
+  await page.goto("/auth/Signup");
+  await universityResponse;
   await page.locator('input[name="firstName"]').fill("Test");
   await page.locator('input[name="lastName"]').fill("User");
   await page.locator('input[name="email"]').fill(email);
 
   const universitySelect = page.locator('select[name="university"]');
   await expect(universitySelect.locator("option").nth(1)).not.toHaveText("", {
-    timeout: 10000,
+    timeout: 20000,
   });
   await universitySelect.selectOption({ index: 1 });
 
   await page.locator('input[name="yearOfStudy"]').fill("2");
   await page.locator('input[name="password"]').fill(password);
-  await page.getByRole("button", { name: /^signup$/i }).click();
+ 
+
+  const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
+  if (await termsHeading.isVisible({timeout: 3000}).catch(() => false)) {
+    const scrollRegion = page.getByRole("region", {name: "Terms and Conditions"});
+    await scrollRegion.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+
+    const agreeCheckbox = page.getByRole("checkbox", {
+      name: /I have read and agree to the Terms & Conditions/i,
+    });
+    await expect(agreeCheckbox).toBeEnabled({timeout: 5000});
+    await agreeCheckbox.check()
+
+    const acceptButton = page.getByRole("button", {name: "Accept & Continue"});
+    await expect(acceptButton).toBeEnabled();
+    await acceptButton.click();
+    await expect(termsHeading).not.toBeVisible({timeout: 5000});
+  }
+
+
+   await page.getByRole("button", { name: /^signup$/i }).click();
 
   await page.waitForURL(/verify-otp/);
 
@@ -45,11 +72,40 @@ export async function signupAndLogin(
     await otpInputs.nth(i).fill(code[i]);
   }
   await page.getByRole("button", { name: /^verify otp$/i }).click();
-  await page.waitForURL(/\/auth\/Login/);
+  await page.waitForURL(/\/auth\/ProofUpload/);
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "proof-of-registration.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4\n%%EOF"),
+  });
+
+  await expect(page.getByText("success", { exact: true })).toBeVisible({
+    timeout: 20000,
+  });
+
+  
+  await page.waitForURL(/\/auth\/Login/, {timeout: 10000});
 
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: /^login$/i }).click();
 
   await page.waitForURL(/\/buyer\/listings/);
+}
+
+export async function loginAsAdmin(page: Page, request: APIRequestContext) {
+  const res = await request.post("http://localhost:8080/api/dev/admin");
+  expect(
+    res.ok(),
+    "dev admin endpoint failed - is the backend in Development?",
+  ).toBeTruthy();
+  const { email, password } = await res.json();
+
+  await page.goto("/auth/Login");
+  await page.locator('input[name="email"]').fill(email);
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole("button", { name: /^login$/i }).click();
+
+  await page.waitForURL(/\/admin\/disputes/);
 }

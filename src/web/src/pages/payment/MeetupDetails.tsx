@@ -1,15 +1,16 @@
 import { useNavigate, useLocation } from 'react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CheckInModal from '../../components/CheckInModal';
-import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck, Flag } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { listingsService } from '../../services/listingsService';
 import { getReservationById } from '../../services/reservationService';
 import LocationPicker from '../../components/layout/LocationPicker';
-import { useEffect } from 'react';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { LoadingState } from '../../components/layout/Spinner';
+import { useToast } from '../../components/layout/useToast';
+import { fileDispute } from '../../services/adminService';
 
 interface MeetupDetailsState {
   reservationId?: string;
@@ -27,12 +28,58 @@ interface MeetupDetailsState {
 function formatMeetupTime(iso?: string): string {
   if (!iso) return 'Time to be confirmed';
   const date = new Date(iso);
-  if (isNaN(date.getTime())) return 'Invalid Date';
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
   return date.toLocaleDateString('en-ZA', {
     weekday: undefined,
     month: 'short',
     day: 'numeric',
   }) + `, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+}
+
+function useTransactionStatus(reservationId: string | undefined, isSeller: boolean) {
+  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
+
+  useEffect(() => {
+    if (!reservationId || !isSeller) {
+      return;
+    }
+
+    const refresh = () => {
+      getTransactionStatus(reservationId).then((r) => {
+        if (r.success) {
+          setTxStatus(r.data);
+        }
+      });
+    };
+
+    refresh();
+    connectionManager.connect().catch((e) => console.error('connect failed', e));
+    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
+
+    const off = connectionManager.onPaymentCompleted((e) => {
+      if (e.reservationId === reservationId) {
+
+        refresh();
+
+      }
+
+    });
+
+    const offPin = connectionManager.onPinGenerated((e) => {
+      if (e.reservationId === reservationId) refresh();
+    });
+    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
+      if (e.reservationId === reservationId) refresh();
+    });
+    return () => {
+      off();
+      offPin();
+      offPinConfirmed();
+    };
+  }, [reservationId, isSeller]);
+
+
+  return txStatus;
 }
 export default function MeetupDetails() {
   const navigate = useNavigate();
@@ -43,8 +90,7 @@ export default function MeetupDetails() {
   const isSeller = navState.role === 'seller'
   const reservationId = navState.reservationId;
   const [showCheckIn, setShowCheckIn] = useState(false);
-  const [txStatus, setTxStatus] = useState<TransactionStatusResponse | null>(null);
-
+  const { showToast } = useToast();
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
     queryKey: ['reservation', reservationId],
@@ -113,42 +159,16 @@ export default function MeetupDetails() {
       : navState.meetupLat != null && navState.meetupLng != null
         ? { lat: navState.meetupLat, lng: navState.meetupLng }
         : null;
+  const reservationStatus = reservation?.reservationStatus;
 
-  useEffect(() => {
-    if (!reservationId || !isSeller) return;
+  const canReportNoShow =
+    !!meetup && reservationStatus === 'active' &&
+    new Date(meetup.checkinWindowClosesAt) < new Date() &&
+    (isSeller
+      ? meetup.sellerCheckedIn && !meetup.buyerCheckedIn
+      : meetup.buyerCheckedIn && !meetup.sellerCheckedIn);
 
-    getTransactionStatus(reservationId).then((result) => {
-      if (result.success) setTxStatus(result.data);
-    });
-
-    connectionManager.connect().catch((e) => console.error('connect failed', e));
-    connectionManager.joinRoom(reservationId).catch((e) => console.error('join room failed', e));
-
-    const off = connectionManager.onPaymentCompleted((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-
-    const offPin = connectionManager.onPinGenerated((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-    const offPinConfirmed = connectionManager.onPinConfirmed((e) => {
-      if (e.reservationId !== reservationId) return;
-      getTransactionStatus(reservationId).then((result) => {
-        if (result.success) setTxStatus(result.data);
-      });
-    });
-    return () => {
-      off();
-      offPin();
-      offPinConfirmed();
-    };
-  }, [reservationId, isSeller]);
+  const txStatus = useTransactionStatus(reservationId, isSeller);
 
   const handlePayNow = async () => {
     if (!reservationId) return;
@@ -171,6 +191,57 @@ export default function MeetupDetails() {
     document.body.appendChild(form);
     form.submit();
   };
+  const handleReportNoShow = async () => {
+    if (!reservation) return;
+
+    const reason = window.prompt(
+      "Please provide any additional context for the no-show report (optional):",
+    );
+    if (reason === null) return;
+
+    try {
+      await fileDispute({
+        type: "no_show",
+        reservationId: reservation.reservationId,
+        description: reason || undefined,
+      });
+      showToast(
+        "success",
+        "No-show report submitted. A UniTrade admin will review it.",
+      );
+    } catch (err: unknown) {
+      const error = err as{code? : string,message?: string};
+      if (error.code === "checkin_window_not_closed") {
+        showToast(
+          "info",
+          "The check-in window has not closed yet. Please wait.",
+        );
+      }
+      if (error.code === "current_user_not_checked_in") {
+        showToast(
+          "info",
+          "You need to check in at the meetup before reporting a non-show.",
+        );
+      }
+      if (error.code === "other_party_checked_in") {
+        showToast(
+          "info",
+          "The other party checkin. This is not a valid non-show.",
+        );
+      }
+      if (
+        error.code === "dispute_already_open" ||
+        error.message?.includes("dispute_already_open")
+      ) {
+        showToast(
+          "info",
+          "You already filled a no-show report for this reservation. Please wait for admin review",
+        );
+      } else {
+        showToast("error", error.message || "Failed to submit no-show report.");
+      }
+    }
+  };
 
   if (!reservationId) {
     return (
@@ -179,6 +250,7 @@ export default function MeetupDetails() {
           We couldn't find the details for this meetup. Please go back to your conversation and try again.
         </p>
         <button
+          type='button'
           onClick={() => navigate(-1)}
           className="bg-blue-500 hover:bg-blue-900 text-white font-bold py-2.5 px-5 rounded-xl"
         >
@@ -197,7 +269,7 @@ export default function MeetupDetails() {
       <div className="bg-navy-800 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg transition text-white">
+            <button type='button' onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg transition text-white">
               <ChevronLeft className="w-6 h-6" />
             </button>
             <div >
@@ -302,11 +374,13 @@ export default function MeetupDetails() {
                   <strong>Safety Guarantee:</strong>{' '}
                   {!isSeller ? (
                     <>
-                      Your funds are held securely by UniTrade. The sale completes once you enter the PIN shown by {counterpartyName} at the physical meetup. 
+                      Payments are secured with Payfast. Once you enter the PIN given by{' '}
+                      {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   ) : (
                     <>
-                      Show your PIN to {counterpartyName} at the physical meetup. The sale completes once they enter it.
+                      Payments are secured with Payfast. Once you provide the PIN to{' '}
+                      {counterpartyName} at the physical meetup, the transaction will be marked complete.
                     </>
                   )}
                 </p>
@@ -315,7 +389,7 @@ export default function MeetupDetails() {
                 <div className="space-y-3">
                   {!meetup?.buyerCheckedIn ? (
                     <>
-                      <button
+                      <button type='button'
                         onClick={() => setShowCheckIn(true)}
                         disabled={!!timeRemaining}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
@@ -329,7 +403,7 @@ export default function MeetupDetails() {
                     </>
                   ) : (
                     <>
-                      <button
+                      <button type='button'
                         onClick={handlePayNow}
                         disabled={!meetup?.paymentUnlocked || price == null}
                         className="w-full bg-blue-950 hover:bg-blue-900 disabled:bg-gray-300 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
@@ -346,6 +420,7 @@ export default function MeetupDetails() {
                 <div className="space-y-3">
                   {!meetup?.sellerCheckedIn ? (
                     <button
+                      type='button'
                       onClick={() => setShowCheckIn(true)}
                       disabled={!!timeRemaining}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
@@ -354,6 +429,7 @@ export default function MeetupDetails() {
                     </button>
                   ) : txStatus?.transactionStatus === 'completed' && txStatus?.pinStatus === 'pending' ? (
                     <button
+                      type='button'
                       onClick={() => navigate('/payment/generate-pin', { state: { pin: txStatus.pin, reservationId } })}
                       className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
                     >
@@ -370,6 +446,15 @@ export default function MeetupDetails() {
                   )}
                 </div>
               )}
+              <button
+                type="button"
+                onClick={handleReportNoShow}
+                disabled={!canReportNoShow}
+                className='w-full mt-2 border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold py-2.5 px-4 rounded-xl transition'
+                >
+                  <Flag className='w-4 h-4 inline-block mr-2'/>
+                  Report No-Show
+              </button>
             </div>
           </div>
 

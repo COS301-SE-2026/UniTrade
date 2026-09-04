@@ -16,6 +16,7 @@ import {
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
 import { LoadingState } from '../../components/layout/Spinner';
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
 type SortOption = "Date added" | "Price low" | "Price high";
 
@@ -37,7 +38,7 @@ const conditionColours: Record<
   Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
-function ConditionBadge({ condition }: { condition: BrowseCondition }) {
+function ConditionBadge({ condition }: Readonly<{ condition: BrowseCondition }>) {
   const s = conditionColours[condition] ?? conditionColours.Fair;
   return (
     <span
@@ -52,10 +53,10 @@ function ConditionBadge({ condition }: { condition: BrowseCondition }) {
 function WishlistCard({
   listing,
   onRemoved,
-}: {
+}: Readonly<{
   listing: WishlistListing;
   onRemoved: (id: string) => void;
-}) {
+}>) {
   const navigate = useNavigate();
   const [reserving, setReserving] = useState(false);
   const [reserved, setReserved] = useState(false);
@@ -100,17 +101,22 @@ function WishlistCard({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <img
-        src={listing.image}
-        alt={listing.title}
+      <button
+        type="button"
         onClick={() => navigate(`/listings/${listing.id}`)}
-        className="w-20 h-20 rounded-lg object-cover shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-      />
-
+        className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
+      >
+        <img
+          src={listing.image}
+          alt={listing.title}
+          className="w-full h-full object-cover"
+        />
+      </button>
       <div className="flex-1 min-w-0">
-        <div
+        <button
+          type="button"
           onClick={() => navigate(`/listings/${listing.id}`)}
-          className="min-w-0 cursor-pointer"
+          className="min-w-0 cursor-pointer group text-left bg-transparent border-0 p-0"
         >
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-bold text-gray-800 truncate">
@@ -125,7 +131,7 @@ function WishlistCard({
             </span>{" "}
             . {listing.category}
           </p>
-        </div>
+        </button>
 
         <div className="flex items-center justify-between gap-4 mt-2 flex-wrap">
           <span className="text-sm font-bold text-gray-800">
@@ -180,17 +186,26 @@ export default function Wishlist() {
 
   const handleRemoved = (id: string) => {
     queryClient.setQueryData<WishlistResponse>(["wishlist"], (old) =>
-      old && { ...old, listings: old.listings.filter((l) => l.id !== id), total: old.total-1},
+      old && { ...old, listings: old.listings.filter((l) => l.id !== id), total: old.total - 1 },
     );
   };
 
-  const filtered = useMemo(
-    () =>
-      conditionFilter === "All"
-        ? listings
-        : listings.filter((l) => l.condition === conditionFilter),
-    [listings, conditionFilter],
-  );
+  const searchQuery = useSearchQuery()
+  const filtered = useMemo(() => {
+    let result = conditionFilter === 'All'
+    ? listings
+    : listings.filter((l) => l.condition === conditionFilter)
+
+    if (searchQuery) {
+      result = result.filter(
+        (l) =>
+          l.title.toLowerCase().includes(searchQuery) ||
+        (l.sellerName ?? '').toLowerCase().includes(searchQuery)
+      )
+    }
+
+    return result
+  }, [listings, conditionFilter, searchQuery])
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -239,6 +254,7 @@ export default function Wishlist() {
                   ["Date added", "Price low", "Price high"] as SortOption[]
                 ).map((opt) => (
                   <button
+                    type='button'
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -268,6 +284,7 @@ export default function Wishlist() {
                 {(["All", "like_new", "Good", "Fair", "Poor"] as const).map(
                   (opt) => (
                     <button
+                      type='button'
                       key={opt}
                       onClick={() => {
                         setConditionFilter(opt);
@@ -298,15 +315,15 @@ export default function Wishlist() {
         />
       </div>
 
-      {isLoading && <LoadingState message = "Loading wishlist ..." />}
+      {isLoading && <LoadingState message="Loading wishlist ..." />}
 
-        {!isLoading && error && (
-          <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
-            <p className="text-sm font-semibold text-rose-600">
-              {error instanceof Error ? error.message : "Failed to listings"}
-            </p>
-          </div>
-        )}
+      {!isLoading && error && (
+        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+          <p className="text-sm font-semibold text-rose-600">
+            {error instanceof Error ? error.message : "Failed to listings"}
+          </p>
+        </div>
+      )}
 
         {!isLoading && !error && sorted.length === 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
@@ -314,18 +331,21 @@ export default function Wishlist() {
               Your wishlist is empty
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Browse listings and tap "Add to Wishlist" to save items here.
+              {searchQuery
+              ? `No items match "${searchQuery}".`
+              : 'Browse listings and tap "Add to Wishlist" to save items here.' }
+
             </p>
           </div>
         )}
 
-        {sorted.map((listing) => (
-          <WishlistCard
-            key={listing.id}
-            listing={listing}
-            onRemoved={handleRemoved}
-          />
-        ))}
-      </div>
+      {sorted.map((listing) => (
+        <WishlistCard
+          key={listing.id}
+          listing={listing}
+          onRemoved={handleRemoved}
+        />
+      ))}
+    </div>
   );
 }

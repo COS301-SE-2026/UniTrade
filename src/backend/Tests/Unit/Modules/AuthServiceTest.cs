@@ -1,20 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Modules.Identity;
 using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
+using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.Reservations;
+using Modules.SharedKernel;
 using Moq;
 using Xunit;
 using UniversityDto = Modules.Identity.Models.DTO.University;
@@ -32,10 +38,14 @@ public class IdentityServiceTests
 
     private readonly Mock<IConfiguration> _configMock;
     private readonly IdentityService _service;
+    private readonly Mock<IProofOfRegistrationStorageService> _proofStorageMock;
 
     private readonly Mock<IVerificationRepository> _verificationRepositoryMock;
     private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<IIdentityService> _identityServiceMock;
     private readonly VerificationService _verificationService;
+    private readonly Mock<IBroadCastService> _broadcastMock;
+    private readonly Mock<ILogger<VerificationService>> _loggerMock;
 
     public IdentityServiceTests()
     {
@@ -43,24 +53,36 @@ public class IdentityServiceTests
         _universityRepositoryMock = new Mock<IUniversityRepository>();
         _configMock = new Mock<IConfiguration>();
         _listingRepositoryMock = new Mock<IListingRepository>();
+        _proofStorageMock = new Mock<IProofOfRegistrationStorageService>();
+        _identityServiceMock = new Mock<IIdentityService>();
+        _verificationRepositoryMock = new Mock<IVerificationRepository>();
+        _broadcastMock = new Mock<IBroadCastService>();
+        _loggerMock = new Mock<ILogger<VerificationService>>();
 
         _configMock
             .Setup(c => c["Jwt:Secret"])
             .Returns("super_secret_key_that_is_at_least_32_bytes_long_12345!!");
         _configMock.Setup(c => c["Otp:Secret"]).Returns("ut-otp-secret");
+
         _service = new IdentityService(
             _userRepositoryMock.Object,
             _universityRepositoryMock.Object,
+            _verificationRepositoryMock.Object,
             _listingRepositoryMock.Object,
             _configMock.Object
         );
-        _verificationRepositoryMock = new Mock<IVerificationRepository>();
+
         _emailServiceMock = new Mock<IEmailService>();
+
         _verificationService = new VerificationService(
             _verificationRepositoryMock.Object,
             _userRepositoryMock.Object,
             _emailServiceMock.Object,
-            _configMock.Object
+            _proofStorageMock.Object,
+            _identityServiceMock.Object,
+            _configMock.Object,
+            _broadcastMock.Object,
+            _loggerMock.Object
         );
     }
 
@@ -326,6 +348,7 @@ public class IdentityServiceTests
         var testService = new IdentityService(
             _userRepositoryMock.Object,
             _universityRepositoryMock.Object,
+            _verificationRepositoryMock.Object,
             _listingRepositoryMock.Object,
             configMock.Object
         );
@@ -421,6 +444,7 @@ public class IdentityServiceTests
         var dto = Assert.IsType<UserDto>(result);
         Assert.Equal("Bob", dto.FirstName);
         Assert.Equal("bob@uni.ac.za", dto.Email);
+        Assert.Equal("admin", dto.UserRole);
     }
 
     [Theory]

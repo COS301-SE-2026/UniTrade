@@ -4,10 +4,6 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 concurrency:
   group: cd-deploy-${{ github.ref }}
   cancel-in-progress: false
@@ -15,6 +11,9 @@ concurrency:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 30
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
@@ -37,19 +36,27 @@ jobs:
 
       - name: Set image tag
         id: set_tag
-        run: echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: echo "image_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Backend image
+        env:
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+
         run: |
-          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{github.sha}} -f src/backend/Api/Dockerfile .
-          docker push ${{ secrets.ACR_REGISTRY }}/unitrade-backend:${{github.sha}}
+          docker build -t "$ACR_REGISTRY/unitrade-backend:${{github.sha}}" -f src/backend/Api/Dockerfile .
+          docker push "$ACR_REGISTRY/unitrade-backend:${{github.sha}}"
 
       - name: Build and push Frontend image
+        env:
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
         run: |
-          docker build -t ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}} src/web
-          docker push ${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${{github.sha}}
+          docker build -t "$ACR_REGISTRY/unitrade-frontend:${{ github.sha }}" src/web
+          docker push "$ACR_REGISTRY/unitrade-frontend:${{ github.sha }}"
 
   deploy-staging:
+    permissions:
+      id-token: write
+      contents: read
     needs: build-and-push
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -109,48 +116,91 @@ jobs:
 
       - name: Deploy backend green revision
         id: backend_rev
+        env:
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          DB_CONN: ${{ secrets.DB_CONNECTION_STRING_STAGING }}
+          ACS_CONN: ${{secrets.Acs__ConnectionString}}
+          JWT_SECRET: ${{secrets.JWT_Secret}}
+          OTP_SECRET: ${{secrets.OTP_SECRET}}
+          FIREBASE_CREDS: ${{secrets.FIREBASE_CREDENTIALS}}
+          FRONTEND_URL_STAGING: ${{ secrets.FRONTEND_URL_STAGING }}
+          ACS_SENDER_ADDRESS: ${{ secrets.ACS_SENDER_ADDRESS }}
+          PAYFAST__PASSPHRASE: ${{ secrets.PAYFAST__PASSPHRASE }}          
+          PAYFAST__MERCHANTID: ${{ secrets.PAYFAST__MERCHANTID }}          
+          PAYFAST__CANCELURL: ${{ secrets.PAYFAST__CANCELURL }}          
+          PAYFAST__NOTIFYURL: ${{ secrets.PAYFAST__NOTIFYURL }}          
+          PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
+          PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
+          PAYFAST__MERCHANTKEY: ${{ secrets.PAYFAST__MERCHANTKEY }}  
+          SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_STAGING }}
+
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
 
           az containerapp secret set \
             --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
             --secrets \
-              "db-conn=${{ secrets.DB_CONNECTION_STRING_STAGING }}" \
-              "acs-conn=${{secrets.Acs__ConnectionString}}" \
-              "jwt-secret=${{secrets.JWT_Secret}}"  \
-              "otp-secret=${{secrets.OTP_SECRET}}" \
-              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
+              "db-conn=$DB_CONN" \
+              "acs-conn=$ACS_CONN" \
+              "jwt-secret=$JWT_SECRET"  \
+              "otp-secret=$OTP_SECRET" \
+              "firebase-creds=$(echo "$FIREBASE_CREDS" | jq -c .)" \
+              "payfast-passphrase=$PAYFAST__PASSPHRASE" \
+              "payfast-merchant-key=$PAYFAST__MERCHANTKEY" \
+              "payfast-merchant-id=$PAYFAST__MERCHANTID" \
+              "payfast-cancelurl=$PAYFAST__CANCELURL" \
+              "payfast-notifyurl=$PAYFAST__NOTIFYURL" \
+              "payfast-sandboxurl=$PAYFAST__SANDBOXURL" \
+              "payfast-returnurl=$PAYFAST__RETURNURL" \
+              "signalr-conn=$SIGNALR_CONN"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-              --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
+              --image "$ACR_REGISTRY/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
                 "Jwt__Secret=secretref:jwt-secret" \
                 "Otp__Secret=secretref:otp-secret" \
-                "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL_STAGING }}" \
-                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
-                "Firebase__CredentialsJson=secretref:firebase-creds"
+                "Cors__AllowedOrigins=$FRONTEND_URL_STAGING" \
+                "Acs__SenderAddress=$ACS_SENDER_ADDRESS" \
+                "Firebase__CredentialsJson=secretref:firebase-creds" \
+                "PayFast__MerchantId=secretref:payfast-merchant-id" \
+                "PayFast__MerchantKey=secretref:payfast-merchant-key" \
+                "PayFast__PassPhrase=secretref:payfast-passphrase" \
+                "PayFast__CancelUrl=secretref:payfast-cancelurl" \
+                "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
+                "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
+                "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
         id: front_rev
+        env:
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          VITE_API_URL_STAGING: ${{ secrets.VITE_API_URL_STAGING }}
+          FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
+          FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
+          FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
+          FIREBASE_SENDER_ID: ${{secrets.VITE_FIREBASE_SENDER_ID}}
+          FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
+          FIREBASE_VAPID_KEY: ${{secrets.VITE_FIREBASE_VAPID_KEY}}
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
           az containerapp update \
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-              --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
+              --image "$ACR_REGISTRY/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-              "VITE_API_URL=${{ secrets.VITE_API_URL_STAGING }}" \
-              "FIREBASE_API_KEY=${{secrets.VITE_FIREBASE_API_KEY}}" \
-              "FIREBASE_AUTH_DOMAIN=${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}" \
-              "FIREBASE_PROJECT_ID=${{secrets.VITE_FIREBASE_PROJECT_ID}}" \
-              "FIREBASE_SENDER_ID=${{secrets.VITE_FIREBASE_SENDER_ID}}" \
-              "FIREBASE_APP_ID=${{secrets.VITE_FIREBASE_APP_ID}}" \
-              "FIREBASE_VAPID_KEY=${{secrets.VITE_FIREBASE_VAPID_KEY}}"
+              "VITE_API_URL=$VITE_API_URL_STAGING" \
+              "FIREBASE_API_KEY=$FIREBASE_API_KEY" \
+              "FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN" \
+              "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" \
+              "FIREBASE_SENDER_ID=$FIREBASE_SENDER_ID" \
+              "FIREBASE_APP_ID=$FIREBASE_APP_ID" \
+              "FIREBASE_VAPID_KEY=$FIREBASE_VAPID_KEY"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
       - name: Wait for backend revision to be Running
         run: |
@@ -164,7 +214,7 @@ jobs:
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
            --query "properties.fqdn" -o tsv)
-          for i in $(seq 1 10); do
+          for _ in $(seq 1 10); do
              if curl -fsS "https://$FQDN/health"; then exit 0; fi
              sleep 7
           done
@@ -182,8 +232,10 @@ jobs:
           --revision-weight "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}=100"
 
       - name: Smoke test staging
+        env:
+          API_URL: ${{ secrets.VITE_API_URL_STAGING }}
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL_STAGING }}/health" > /dev/null
+          curl -fsS "$API_URL/health" > /dev/null
       
       - name: Rollback to previous revisions (failure event)
         if: failure()
@@ -257,6 +309,9 @@ jobs:
       - run: echo "Approved for production deploy"
 
   deploy-prod:
+    permissions:
+      id-token: write
+      contents: read
     needs: [build-and-push, approval-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -313,49 +368,91 @@ jobs:
               echo "Frontend live: ${FRONT_LIVE:-<none>}"
       - name: Deploy backend green revision
         id: backend_rev
+        env:
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          DB_CONN: ${{ secrets.DB_CONNECTION_STRING_PROD }}
+          ACS_CONN: ${{secrets.Acs__ConnectionString}}
+          JWT_SECRET: ${{secrets.JWT_Secret}}
+          OTP_SECRET: ${{secrets.OTP_SECRET}}
+          FIREBASE_CREDS: ${{secrets.FIREBASE_CREDENTIALS}}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          ACS_SENDER_ADDRESS: ${{ secrets.ACS_SENDER_ADDRESS }}
+          PAYFAST__PASSPHRASE: ${{ secrets.PAYFAST__PASSPHRASE }}          
+          PAYFAST__MERCHANTKEY: ${{ secrets.PAYFAST__MERCHANTKEY }}          
+          PAYFAST__MERCHANTID: ${{ secrets.PAYFAST__MERCHANTID }}          
+          PAYFAST__CANCELURL: ${{ secrets.PAYFAST__CANCELURL }}          
+          PAYFAST__NOTIFYURL: ${{ secrets.PAYFAST__NOTIFYURL }}          
+          PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
+          PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
+          SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_PROD}}
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
 
           az containerapp secret set \
             --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
             --secrets \
-              "db-conn=${{ secrets.DB_CONNECTION_STRING_PROD}}" \
-              "acs-conn=${{secrets.Acs__ConnectionString}}" \
-              "jwt-secret=${{secrets.JWT_Secret}}" \
-              "otp-secret=${{secrets.OTP_SECRET}}" \
-              "firebase-creds=$(echo '${{secrets.FIREBASE_CREDENTIALS}}' | jq -c .)"
+              "db-conn=$DB_CONN" \
+              "acs-conn=$ACS_CONN" \
+              "jwt-secret=$JWT_SECRET" \
+              "otp-secret=$OTP_SECRET" \
+              "firebase-creds=$(echo "$FIREBASE_CREDS" | jq -c .)" \
+              "payfast-passphrase=$PAYFAST__PASSPHRASE" \
+              "payfast-merchant-key=$PAYFAST__MERCHANTKEY" \
+              "payfast-merchant-id=$PAYFAST__MERCHANTID" \
+              "payfast-cancelurl=$PAYFAST__CANCELURL" \
+              "payfast-notifyurl=$PAYFAST__NOTIFYURL" \
+              "payfast-sandboxurl=$PAYFAST__SANDBOXURL" \
+              "payfast-returnurl=$PAYFAST__RETURNURL" \
+              "signalr-conn=$SIGNALR_CONN" 
               
 
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-              --image "${{ secrets.ACR_REGISTRY }}/unitrade-backend:${IMAGE_TAG}" \
+              --image "$ACR_REGISTRY/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
                 "Jwt__Secret=secretref:jwt-secret" \
                 "Otp__Secret=secretref:otp-secret" \
-                "Cors__AllowedOrigins=${{ secrets.FRONTEND_URL }}" \
-                "Acs__SenderAddress=${{ secrets.ACS_SENDER_ADDRESS }}" \
-                "Firebase__CredentialsJson=secretref:firebase-creds"
+                "Cors__AllowedOrigins=$FRONTEND_URL" \
+                "Acs__SenderAddress=$ACS_SENDER_ADDRESS" \
+                "Firebase__CredentialsJson=secretref:firebase-creds" \
+                "PayFast__MerchantId=secretref:payfast-merchant-id" \
+                "PayFast__MerchantKey=secretref:payfast-merchant-key" \
+                "PayFast__PassPhrase=secretref:payfast-passphrase" \
+                "PayFast__CancelUrl=secretref:payfast-cancelurl" \
+                "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
+                "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
+                "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
         id: front_rev
+        env:
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          FIREBASE_API_KEY: ${{secrets.VITE_FIREBASE_API_KEY}}
+          FIREBASE_AUTH_DOMAIN: ${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}
+          FIREBASE_PROJECT_ID: ${{secrets.VITE_FIREBASE_PROJECT_ID}}
+          FIREBASE_SENDER_ID: ${{secrets.VITE_FIREBASE_SENDER_ID}}
+          FIREBASE_APP_ID: ${{secrets.VITE_FIREBASE_APP_ID}}
+          FIREBASE_VAPID_KEY: ${{secrets.VITE_FIREBASE_VAPID_KEY}}
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
           az containerapp update \
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
-              --image "${{ secrets.ACR_REGISTRY }}/unitrade-frontend:${IMAGE_TAG}" \
+              --image "$ACR_REGISTRY/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
               --set-env-vars \
-              "VITE_API_URL=${{ secrets.VITE_API_URL }}" \
-              "FIREBASE_API_KEY=${{secrets.VITE_FIREBASE_API_KEY}}" \
-              "FIREBASE_AUTH_DOMAIN=${{secrets.VITE_FIREBASE_AUTH_DOMAIN}}" \
-              "FIREBASE_PROJECT_ID=${{secrets.VITE_FIREBASE_PROJECT_ID}}" \
-              "FIREBASE_SENDER_ID=${{secrets.VITE_FIREBASE_SENDER_ID}}" \
-              "FIREBASE_APP_ID=${{secrets.VITE_FIREBASE_APP_ID}}" \
-              "FIREBASE_VAPID_KEY=${{secrets.VITE_FIREBASE_VAPID_KEY}}"
+              "VITE_API_URL=$VITE_API_URL" \
+              "FIREBASE_API_KEY=$FIREBASE_API_KEY" \
+              "FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN" \
+              "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" \
+              "FIREBASE_SENDER_ID=$FIREBASE_SENDER_ID" \
+              "FIREBASE_APP_ID=$FIREBASE_APP_ID" \
+              "FIREBASE_VAPID_KEY=$FIREBASE_VAPID_KEY"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Health check production backend (green)
@@ -364,7 +461,7 @@ jobs:
           --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
           --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
             --query "properties.fqdn" -o tsv)
-          for i in $(seq 1 10); do
+          for _ in $(seq 1 10); do
               if curl -fsS "https://$FQDN/health"; then exit 0; fi
               sleep 7
           done
@@ -382,8 +479,10 @@ jobs:
           --revision-weight "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}=100"
 
       - name: Smoke test prod
+        env:
+          API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          curl -fsS "${{ secrets.VITE_API_URL }}/health" > /dev/null
+          curl -fsS "$API_URL/health" > /dev/null
       
       - name: Rollback to previous revisions (failure event)
         if: failure()

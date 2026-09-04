@@ -62,5 +62,5 @@ describe('GeneratePin', () => {
         expect(containerss[5].textContent).toBe('');
     })
 
-   // NOTE (FE) Add test for going to orders/ sales
+
 });

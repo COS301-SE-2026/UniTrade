@@ -15,6 +15,10 @@ public class ListingController : ControllerBase
     private readonly IListingService _listings;
     private readonly IImageStorageService _images;
 
+    // constants , strings
+    private readonly string _unauthenticatedString = "unauthenticated";
+    private readonly string _statusLockedString = "status_locked";
+
     public ListingController(IListingService listings, IImageStorageService images)
     {
         _listings = listings;
@@ -23,7 +27,7 @@ public class ListingController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateListingDto request)
+    public async Task<IActionResult> Create([FromBody] CreateListingDto request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(request.Title))
             return BadRequest(new { error = "Field(s) missing." });
@@ -40,11 +44,11 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
         try
         {
-            var response = await _listings.CreateListings(request, callerId);
+            var response = await _listings.CreateListings(request, callerId, ct);
             return Ok(response);
         }
         catch (ArgumentException ex) when (ex.Message == "invalid_category")
@@ -53,7 +57,7 @@ public class ListingController : ControllerBase
         }
         catch (ArgumentException ex) when (ex.Message == "book_fields_not_allowed")
         {
-            return BadRequest(new { error = "book_fileds_not_allowed" });
+            return BadRequest(new { error = "book_fields_not_allowed" });
         }
         catch (ArgumentException ex) when (ex.Message == "invalid_metadata")
         {
@@ -73,13 +77,37 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
-        var updateL = await _listings.UpdateListings(request, id, callerId, ct);
-        if (!updateL)
-            return NotFound();
-        return Ok("Listings updated successfully");
+        try
+        {
+            var updateL = await _listings.UpdateListings(request, id, callerId, ct);
+            if (!updateL)
+                return NotFound();
+            return Ok("Listings updated successfully");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "listing_locked_for_edit")
+        {
+            return Conflict(new { error = "listing_locked_for_edit" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_category")
+        {
+            return BadRequest(new { error = "invalid_category" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "book_fields_not_allowed")
+        {
+            return BadRequest(new { error = "book_fields_not_allowed" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_metadata")
+        {
+            return BadRequest(new { error = "invalid_metadata" });
+        }
+
     }
 
     [Authorize]
@@ -109,7 +137,7 @@ public class ListingController : ControllerBase
 
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
         try
@@ -141,7 +169,7 @@ public class ListingController : ControllerBase
             User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
         if (!await _listings.IsOwnerAsync(listingId, callerId))
@@ -218,7 +246,7 @@ public class ListingController : ControllerBase
 
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
         try
@@ -232,13 +260,13 @@ public class ListingController : ControllerBase
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
         }
-        catch (InvalidOperationException ex) when (ex.Message == "status_locked")
+        catch (InvalidOperationException ex) when (ex.Message == _statusLockedString)
         {
-            return Conflict(new { error = "status_locked" });
+            return Conflict(new { error = _statusLockedString });
         }
-        catch (InvalidOperationException ex) when (ex.Message == "status_locked")
+        catch (InvalidOperationException ex) when (ex.Message == _statusLockedString)
         {
-            return Conflict(new { error = "status_locked" });
+            return Conflict(new { error = _statusLockedString });
         }
         catch (InvalidOperationException ex) when (ex.Message == "images_required")
         {
@@ -247,6 +275,14 @@ public class ListingController : ControllerBase
         catch (InvalidOperationException ex) when (ex.Message == "description_required")
         {
             return Conflict(new { error = "description_required" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "seller_not_verified")
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "seller_not_verified" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "invalid_status")
+        {
+            return BadRequest(new { error = "invalid_status" });
         }
     }
 

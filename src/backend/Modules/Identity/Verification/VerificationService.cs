@@ -1,9 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
+using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
+using Modules.Reservations;
+using Modules.SharedKernel;
 
 namespace Modules.Identity.Verification;
 
@@ -15,7 +19,11 @@ public class VerificationService : IVerificationService
 
     private readonly IUserRepository _users;
     private readonly IEmailService _emails;
+    private readonly IProofOfRegistrationStorageService _porStorage;
+    private readonly IIdentityService _identity;
     private readonly IConfiguration _config;
+    private readonly IBroadCastService _broadcast;
+    private readonly ILogger<VerificationService> _logger;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
     private const int _resendCooldownSeconds = 60;
@@ -24,13 +32,21 @@ public class VerificationService : IVerificationService
         IVerificationRepository verifications,
         IUserRepository users,
         IEmailService emails,
-        IConfiguration config
+        IProofOfRegistrationStorageService porStorage,
+        IIdentityService identity,
+        IConfiguration config,
+        IBroadCastService broadcast,
+        ILogger<VerificationService> logger
     )
     {
         _verifications = verifications;
         _users = users;
         _emails = emails;
+        _porStorage = porStorage;
+        _identity = identity;
         _config = config;
+        _broadcast = broadcast;
+        _logger = logger;
     }
 
     public async Task InitiateAsync(string email, Guid userId)
@@ -135,10 +151,25 @@ public class VerificationService : IVerificationService
         record.OtpVerifiedAt = DateTime.UtcNow;
         await _verifications.UpdateAsync(record);
 
+        /*try
+        {
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
+        }
+        catch (Exception ex)
+        {
+            //never fail verification over a broadcast
+            _logger.LogWarning(
+                ex,
+                "failed to broadcast verification_created for {UserId}",
+                record.UserId
+            );
+        }*/
+
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
         {
-            User.StudentProfile.VerificationStatus = "verified";
+            User.StudentProfile.VerificationStatus = "partial";
             await _users.UpdateAsync(User);
             await _emails.SendWelcomeEmailAsync(User.Email, User.FirstName);
         }
@@ -175,6 +206,146 @@ public class VerificationService : IVerificationService
 
         await _verifications.UpdateAsync(record);
         await _emails.SendOtpEmailAsync(email, otp);
+    }
+
+    public Task<IReadOnlyList<VerificationCaseDto>> ListPendingAsync(
+        CancellationToken ct = default
+    ) => _verifications.ListPendingAsync(ct);
+
+    public Task<VerificationCaseDto?> GetCaseAsync(
+        Guid verificationId,
+        CancellationToken ct = default
+    ) => _verifications.GetCaseByIdAsync(verificationId, ct);
+
+    public async Task<VerificationCaseDto?> DecideAsync(
+        Guid verificationId,
+        Guid adminId,
+        VerificationDecision decision,
+        string? reason,
+        CancellationToken ct = default
+    )
+    {
+        var vr = await _verifications.GetByIdAsync(verificationId, ct);
+        if (vr is null || !vr.IsCurrent)
+        {
+            return null;
+        }
+
+        if (vr.AdminDecision is "approved" or "rejected")
+        {
+            throw new VerificationException("verification_already_decided");
+        }
+
+        var user = await _users.GetByIdAsync(vr.UserId);
+        if (user?.StudentProfile is null)
+        {
+            throw new VerificationException("user_not_found");
+        }
+
+        vr.AdminId = adminId;
+        vr.DecidedAt = DateTime.UtcNow;
+
+        switch (decision)
+        {
+            case VerificationDecision.Approve:
+                vr.Status = "approved";
+                vr.AdminDecision = "approved";
+                user.StudentProfile.VerificationStatus = "verified";
+                break;
+
+            case VerificationDecision.Reject:
+                vr.Status = "rejected";
+                vr.AdminDecision = "rejected";
+                vr.RejectionReason = reason;
+                user.StudentProfile.VerificationStatus = "rejected";
+                break;
+
+            case VerificationDecision.Resubmit:
+                vr.AdminDecision = "resubmission";
+                vr.RejectionReason = reason;
+                user.StudentProfile.VerificationStatus = "pending";
+                break;
+        }
+
+        await _verifications.UpdateAsync(vr);
+        await _users.UpdateAsync(user);
+
+        await _emails.SendVerificationDecisionEmailAsync(
+            user.Email,
+            user.FirstName,
+            vr.AdminDecision!,
+            reason
+        );
+
+        /*if (decision == VerificationDecision.Approve)
+        {
+            await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
+        }*/
+
+        var result = await _verifications.GetCaseByIdAsync(verificationId, ct);
+
+        switch (decision)
+        {
+            case VerificationDecision.Reject:
+                await _broadcast.SendToUserAsync(
+                    vr.UserId,
+                    "force_logout",
+                    new { reason = "verification_rejected" }
+                );
+                await _identity.DeleteAccountAsync(vr.UserId.ToString());
+                break;
+
+            case VerificationDecision.Resubmit:
+                await _broadcast.SendToUserAsync(
+                    vr.UserId,
+                    "verification_resubmission_required",
+                    new { reason = reason }
+                );
+                break;
+        }
+        return result;
+    }
+
+    public async Task SubmitProofOfRegistrationAsync(
+        Guid userId,
+        byte[] fileData,
+        string contentType,
+        string fileName,
+        CancellationToken ct = default
+    )
+    {
+        var record = await _verifications.GetCurrentByUserIdAsync(userId);
+
+        if (record == null)
+        {
+            throw new VerificationException("no_pending_verification");
+        }
+
+        if (record.Status is not ("por_pending" or "under_review"))
+        {
+            throw new VerificationException("invalid_verification_state");
+        }
+
+        await _porStorage.UploadAsync(record.VerificationId, fileData, contentType, fileName, ct);
+
+        record.Status = "under_review";
+        record.AdminDecision = null;
+        await _verifications.UpdateAsync(record);
+
+        try
+        {
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
+        }
+        catch (Exception ex)
+        {
+            //never fail verification over a broadcast
+            _logger.LogWarning(
+                ex,
+                "failed to broadcast verification_created for {UserId}",
+                record.UserId
+            );
+        }
     }
 
     private static string GenerateOtp()

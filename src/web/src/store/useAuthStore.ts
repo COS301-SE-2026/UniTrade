@@ -25,11 +25,13 @@ interface AuthStore {
   toggleViewMode: () => void
   setViewMode: (mode: ViewMode) => void
 }
+ 
+
 
 export const useAuthStore = create<AuthStore>()(
   persist(
   (set, get) => ({
-  user: null,
+  user: null, //this will also be removed was just user initially 
   pendingEmail: null,
   viewMode: 'buyer',
   setUser: (user) => set({ user }),

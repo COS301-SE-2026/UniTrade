@@ -1,9 +1,10 @@
 importScripts(
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js",
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js",
+  "https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js",
 );
 
-self.__WB_MANIFEST;
+const _precache = self.__WB_MANIFEST;
 
 firebase.initializeApp({
   apiKey: "AIzaSyDuFf0srxj0BURaw-GbbUuJr9a5cJLKCsA",
@@ -21,3 +22,15 @@ messaging.onBackgroundMessage((payload) => {
     icon: "/favicon.svg",
   });
 });
+
+workbox.routing.registerRoute(
+  ({ request }) => request.mode === "navigate",
+  new workbox.strategies.NetworkFirst({
+    cacheName: "navigation-cache",
+    plugins: [
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [200],
+      }),
+    ],
+  }),
+);

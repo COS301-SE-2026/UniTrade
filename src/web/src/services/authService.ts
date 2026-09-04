@@ -8,6 +8,7 @@ export interface RegisterPayload {
   degreeProgram: string;
   yearOfStudy: string;
   password: string;
+  termsAcceptedAt: string;
 }
 
 export interface LoginPayload {
@@ -15,22 +16,35 @@ export interface LoginPayload {
   Password: string;
 }
 
-export interface MeResponse {
+export interface StudentMeResponse {
   user: {
     userId: string;
     firstName: string;
     lastName: string;
     email: string;
     userRole: "student" | "admin";
-    //// university?: string
   };
   std: {
     verificationStatus: string;
+    verificationRequestStatus: string | null;
+    verificationAdminDecision: string | null;
+    verificationRejectionReason: string | null;
     degreeProgram: string;
     yearOfStudy: number;
     university: string;
   };
 }
+
+export interface FlatMeResponse {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  userRole: "student" | "admin";
+  phoneNumber: string | null;
+}
+
+export type MeResponse = StudentMeResponse | FlatMeResponse;
 
 export interface UpdateProfilePayload {
   firstName: string;
@@ -100,15 +114,15 @@ export const authService = {
     }
   },
 
-  getMe: async (): Promise<MeResponse> => {
-    const res = await fetch(`${getApiUrl()}/users/me`, {
-      credentials: "include",
-    });
-    if (!res.ok) {
-      throw new Error("unauthenticated");
-    }
-    return res.json();
-  },
+getMe: async (): Promise<MeResponse> => {
+  const res = await fetch(`${getApiUrl()}/users/me`, {
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("unauthenticated");
+  }
+  return res.json();
+},
 
   updateProfile: async (payload: UpdateProfilePayload): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/users/profile`, {

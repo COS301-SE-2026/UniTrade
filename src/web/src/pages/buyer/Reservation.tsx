@@ -12,8 +12,13 @@ import {
   IconReceipt2,
   IconFilter,
   IconChevronDown,
+  IconUpload,
+  IconX,
+  IconFlag,
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
+import { useSearchQuery } from '../../hooks/useSearchQuery'
+import { fileDispute } from '../../services/adminService'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
@@ -107,6 +112,194 @@ function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency
   )
 }
 
+function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolean; onClose: () => void; reservationId: string }) {
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const apiBase = getApiUrl();
+  const { showToast } = useToast();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', files[0]);
+
+    try {
+      const res = await fetch(`${apiBase}/images/upload`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Upload failed');
+
+
+      }
+      const data = await res.json();
+      const url = `${apiBase}${data.url.replace(/^\/api/,'')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
+      setPhotos((prev) => [...prev, url]);
+      showToast('success', 'Image Uploaded');
+
+    }
+    catch (err) {
+      const message = err instanceof Error ? err.message: String(err);
+      showToast('error', message || 'Failed to uploaded image');
+    }
+    finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemovePhoto = (url: string) => {
+    setPhotos((prev) => prev.filter((p) => p !== url));
+  };
+
+  const handleSubmit = async () => {
+    if (photos.length === 0 && !sellerRefusedPhotos) {
+      showToast('info', 'Please upload photos or mark that the seller refused.');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await fileDispute({
+        type: 'listing_quality',
+        reservationId,
+        sellerRefusedPhotos,
+        photos,
+        description: description || undefined,
+      });
+      showToast('success', 'Listing quality report submitted.');
+      onClose();
+
+      setPhotos([]);
+      setDescription('');
+      setSellerRefusedPhotos(false);
+    }
+    catch (err) {
+      const message = err instanceof Error? err.message :String(err);
+      showToast('error', message || 'Failed to submit report.')
+    }
+    finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type='button'
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
+        >
+          <IconX size={20} />
+        </button>
+
+        <h2 className="text-2xl font-bold text-navy-700 dark:text-white text-center mb-6">
+          Report Listing Quality
+        </h2>
+
+        <div className="space-y-5">
+          <div>
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+              Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {
+                photos.map((url, i) => (
+                  <div key={i} className='relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50'>
+                    <img src={url} alt={`Upload ${i + 1}`} className='w-full h-full object-cover' />
+                    <button type='button'
+                      onClick={() => handleRemovePhoto(url)}
+                      className='absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70'
+                    ><IconX size={14} />
+                    </button>
+                  </div>
+                ))
+              }
+              {photos.length < 5 && (
+                <label className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
+                  {uploading ? (
+                    <div className='w-6 h-6 border-2 border-navy-700 border-t-transparent rounded-full animate-spin' />
+
+                  ) : (
+                    <>
+                      <IconUpload size={22} className='text-gray-400' />
+                      <span className='text-[10px] text-gray-400 mt-1'>Upload</span>
+                    </>
+                  )}
+                  <input
+                    type='file'
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                    className='hidden'
+                  />
+                </label>
+              )}
+            </div>
+
+          </div>
+
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="refuse-photos"
+              checked={sellerRefusedPhotos}
+              onChange={(e) => setSellerRefusedPhotos(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer"
+            />
+            <label htmlFor="refuse-photos" className="text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none">
+              Did the seller refuse to provide more photos?
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+              Description
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              placeholder="Describe the quality issue..."
+              className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl transition-colors shadow-md"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? 'Submitting...' : 'Submit Report'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ReservationCard({
   reservation,
   onCancel,
@@ -115,7 +308,9 @@ function ReservationCard({
   onCancel: (id: string) => void
 }) {
   const navigate = useNavigate()
+  const [reportModalOpen, setReportModalOpen] = useState(false)
   const [, forceTick] = useState(0)
+
   useEffect(() => {
     const interval = setInterval(() => forceTick((t) => t + 1), 1000)
     return () => clearInterval(interval)
@@ -124,94 +319,107 @@ function ReservationCard({
   const msRemaining = getMsRemaining(reservation.expiresAt)
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
-  const apiOrigin = getApiUrl().split('/api')[0];
+  const apiOrigin = getApiUrl().split('/api')[0]
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-      <img
-        src={reservation.listing.imagePath
-          ? `${apiOrigin}${reservation.listing.imagePath}`
-          : '/placeholder.png'}
-        alt={reservation.listing.title}
-        onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-        className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-4">
-          <div
-            onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-            className="min-w-0 cursor-pointer group"
-          >
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-bold text-gray-800 truncate">
-                {reservation.listing.title}
-              </p>
-              <StatusBadge status={reservation.reservationStatus} />
-            </div>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Listed by <span className="font-semibold text-gray-500">
-                {reservation.counterParty.name}
-              </span>
-            </p>
-          </div>
-          {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
-            <div className="text-right flex-shrink-0">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide">
-                Expires in
-              </p>
-              <div className="mt-1">
-                <CountdownBadge msRemaining={msRemaining} urgency={urgency} />
+    <>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+        <img
+          src={reservation.listing.imagePath
+            ? `${apiOrigin}${reservation.listing.imagePath}`
+            : '/placeholder.png'}
+          alt={reservation.listing.title}
+          onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-4">
+            <div
+              onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+              className="min-w-0 cursor-pointer group"
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-bold text-gray-800 truncate">
+                  {reservation.listing.title}
+                </p>
+                <StatusBadge status={reservation.reservationStatus} />
               </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Listed by <span className="font-semibold text-gray-500">
+                  {reservation.counterParty.name}
+                </span>
+              </p>
+            </div>
+            {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
+              <div className="text-right flex-shrink-0">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                  Expires in
+                </p>
+                <div className="mt-1">
+                  <CountdownBadge msRemaining={msRemaining} urgency={urgency} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-2">
+            {isActive && <StageTag stage={reservation.timerStage} />}
+            <span className="text-sm font-bold text-gray-800">
+              {formatPrice(reservation.listing.price)}
+            </span>
+          </div>
+
+          {isActive && (
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
+                  onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+                >
+                  View Reservation
+                </button>
+                <button
+                  type="button"
+                  className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
+                  onClick={() => navigate(`/buyer/messages/${reservation.reservationId}`, {
+                    state: {
+                      counterparty: reservation.counterParty.name,
+                      counterpartyInitials: reservation.counterParty.initials,
+                    },
+                  })}
+                >
+                  Message seller
+                  {reservation.unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {reservation.unreadCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onCancel(reservation.reservationId)}
+                  disabled={reservation.timerStage == 'meetup_confirmed'}
+                  className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(true)}
+                className="inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
+              >
+                <IconFlag size={13} /> Report listing quality
+              </button>
             </div>
           )}
         </div>
-
-        <div className="flex items-center gap-2 mt-2">
-          {isActive && <StageTag stage={reservation.timerStage} />}
-          <span className="text-sm font-bold text-gray-800">
-            {formatPrice(reservation.listing.price)}
-          </span>
-        </div>
-
-        {isActive && (
-          <div className="flex flex-wrap gap-2 mt-3">
-
-            <button
-              type="button"
-              className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
-              onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-            >
-              View Reservation
-            </button>
-            <button
-              type="button"
-              className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
-              onClick={() => navigate(`/buyer/messages/${reservation.reservationId}`, {
-                state: {
-                  counterparty: reservation.counterParty.name,
-                  counterpartyInitials: reservation.counterParty.initials,
-                },
-              })}
-            >
-              Message seller
-              {reservation.unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {reservation.unreadCount}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => onCancel(reservation.reservationId)}
-              disabled={reservation.timerStage == 'meetup_confirmed'}
-              className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
       </div>
-    </div>
+
+      <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} reservationId={reservation.reservationId} />
+    </>
   )
 }
 
@@ -224,6 +432,7 @@ export default function Reservations() {
   const [sortOpen, setSortOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
+  const searchQuery = useSearchQuery()
 
   useEffect(() => {
     getReservations({ role: 'buyer' }).then((result) => {
@@ -248,13 +457,22 @@ export default function Reservations() {
       showToast('success', 'Successfully cancelled the reservation!!');
     }
   }
-  const filtered = useMemo(() => {
-    if (statusFilter === "All") return reservations;
-    return reservations.filter(
-      (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
-    );
-  }, [reservations, statusFilter]);
 
+  const filtered = useMemo(() => {
+    let result = statusFilter === 'All'
+      ? reservations
+      : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
+
+    if (searchQuery) {
+      result = result.filter(
+        (r) =>
+          r.listing.title.toLowerCase().includes(searchQuery) ||
+          r.counterParty.name.toLowerCase().includes(searchQuery)
+      )
+    }
+
+    return result
+  }, [reservations, statusFilter, searchQuery])
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -364,33 +582,32 @@ export default function Reservations() {
         />
       </div>
 
-      
-        {loading && <LoadingState message = "Fetching listings..." />}    
+      {loading && <LoadingState message="Fetching listings..." />}
 
-        {!loading && error && (
-          <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
-            <p className="text-sm font-semibold text-rose-600">{error}</p>
-          </div>
-        )}
+      {!loading && error && (
+        <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
+          <p className="text-sm font-semibold text-rose-600">{error}</p>
+        </div>
+      )}
 
-        {!loading && !error && sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-700">No reservations found</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {statusFilter !== "All"
-                ? `There are no reservations with "${statusFilter}" status.`
-                : "Reserve items from listings to see them here."}
-            </p>
-          </div>
-        )}
+      {!loading && !error && sorted.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">No reservations found</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {searchQuery
+              ? `There are no reservation with "${searchQuery} found.`
+              : "Reserve items from listings to see them here."}
+          </p>
+        </div>
+      )}
 
-        {sorted.map((reservation: ReservationListItem) => (
-          <ReservationCard
-            key={reservation.reservationId}
-            reservation={reservation}
-            onCancel={handleCancel}
-          />
-        ))}
-      </div>
+      {sorted.map((reservation: ReservationListItem) => (
+        <ReservationCard
+          key={reservation.reservationId}
+          reservation={reservation}
+          onCancel={handleCancel}
+        />
+      ))}
+    </div>
   )
 }

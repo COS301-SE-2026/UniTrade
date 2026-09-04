@@ -7,9 +7,9 @@ on:
     paths:
       - "src/backend/**"
       - ".github/workflows/backend-ci.yml"
- 
+
   pull_request:
-    branches: ["dev","main"]
+    branches: ["dev", "main"]
     paths:
       - "src/backend/**"
       - ".github/workflows/backend-ci.yml"
@@ -18,33 +18,30 @@ concurrency:
   group: backend-ci-${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 jobs:
-
   gitleaks:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with: 
+        with:
           fetch-depth: 0
 
-      - name: Install Gitleaks 
+      - name: Install Gitleaks
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o gitleaks.tar.gz
+          curl -fSL --proto '=https' https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o gitleaks.tar.gz
           echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  gitleaks.tar.gz" | sha256sum -c -
           tar -xzf gitleaks.tar.gz gitleaks
-          sudo mv gitleaks /usr/local/bin 
+          sudo mv gitleaks /usr/local/bin
 
       - name: Run Gitleaks scan
         run: gitleaks detect --source . --config .gitleaks.toml --verbose --redact
-
-
 
   build-and-test:
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     services:
       postgres:
         image: postgres:18
@@ -66,7 +63,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             src/backend/Api/packages.lock.json
@@ -79,7 +76,7 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore UniTrade.sln
-      
+
       - name: Start SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -90,29 +87,63 @@ jobs:
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
-        
-         
+
       - name: Build solution
         run: dotnet build UniTrade.sln --configuration Release --no-restore
 
       - name: Run Unit Tests with Coverage
         working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Unit" 
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Unit"
 
       - name: Run Integration Tests
         working-directory: src/backend/Tests
-        run: dotnet test --configuration Release --no-build  --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Integration" 
-      
+        run: dotnet test --configuration Release --no-build  --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Integration"
+
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end
 
+  nfr-checks:
+    needs: gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: cipass
+          POSTGRES_USER: ciuser
+          POSTGRES_DB: unitrade_test_ci_nfr_migcheck
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with: { dotnet-version: "10.0.x" }
+
+      - name: Migration apply from empty DB (QR-05b)
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=unitrade_test_ci_nfr_migcheck;Username=ciuser;Password=cipass"
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet restore UniTrade.sln
+          dotnet ef database update --project src/backend/Infrastructure --startup-project src/backend/Api
+      - name: Dependency CVE scan (QR-03e)
+        run: |
+          dotnet restore UniTrade.sln
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee vulnerabilities.txt
+          grep -E "High|Critical" vulnerabilities.txt && { echo "::error::vulnerable packages"; exit 1; } || true
   code-quality:
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -120,7 +151,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: "10.0.x"
           cache: true
           cache-dependency-path: |
             src/backend/Api/packages.lock.json
@@ -128,16 +159,16 @@ jobs:
             src/backend/Modules/packages.lock.json
             src/backend/Tests/packages.lock.json
       - name: Set up Java 21 for SonarScanner
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
-         java-version: '21'
-         distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
       - name: Restore dependencies
         run: dotnet restore UniTrade.sln
-      
+
       - name: Check code formatting
         run: dotnet format --verify-no-changes --no-restore src/backend/Api/Api.csproj
 

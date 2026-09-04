@@ -8,18 +8,23 @@ public class ReservationExpiryWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ReservationExpiryWorker> _logger;
-    private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+
 
     public ReservationExpiryWorker(
         IServiceScopeFactory scopeFactory,
-        ILogger<ReservationExpiryWorker> logger
+        ILogger<ReservationExpiryWorker> logger,
+        IConfiguration configuration = null
     )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+
+        var seconds = configuration?.GetValue<int>("Workers:ReservationExpiryIntervalSeconds", 60) ?? 60;
+        _interval = TimeSpan.FromSeconds(seconds);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken ct)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(_interval);
 
@@ -27,9 +32,9 @@ public class ReservationExpiryWorker : BackgroundService
         {
             try
             {
-                await CleanupAsync(ct);
+                await CleanupAsync(stoppingToken);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
             }
@@ -40,7 +45,7 @@ public class ReservationExpiryWorker : BackgroundService
                     "Reservation expiry cleanup failed, next will retry the next tick"
                 );
             }
-        } while (await timer.WaitForNextTickAsync(ct));
+        } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupAsync(CancellationToken ct)
@@ -56,7 +61,10 @@ public class ReservationExpiryWorker : BackgroundService
         {
             return;
         }
-        _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Expired {Count} reservations(s)", expired.Count);
+        }
 
         foreach (var reservation in expired)
         {
