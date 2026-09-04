@@ -152,7 +152,7 @@ jobs:
               "payfast-notifyurl=$PAYFAST__NOTIFYURL" \
               "payfast-sandboxurl=$PAYFAST__SANDBOXURL" \
               "payfast-returnurl=$PAYFAST__RETURNURL" \
-              "signalr-conn=$SIGNALR_CONN_STRING_STAGING"
+              "signalr-conn=$SIGNALR_CONN"
           
           az containerapp update \
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
