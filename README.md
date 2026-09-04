@@ -162,7 +162,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
   <br/>
   <b>Tafadzwa Musiiwa</b><br />
-  <sub>Frontend Lead & Integration Engineer</sub><br/><br/>
+  <sub>Frontend Lead & Integration Engineer </sub><br/><br/>
   <a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
 <a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
   </td>
