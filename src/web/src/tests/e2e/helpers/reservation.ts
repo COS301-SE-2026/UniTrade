@@ -67,13 +67,16 @@ export async function createListingAndReserve(
   request: APIRequestContext,
 ): Promise<ReservedListing> {
   await signupAndLogin(sellerPage, request, { email: uniqueEmail("seller") });
-  await sellerPage.getByText('Switch', {exact: true}).click();
-  await sellerPage.waitForURL(/\seller\/listings/);
+
+  const switchButton = sellerPage.getByRole('button', { name: 'Switch', exact: true });
+  await switchButton.waitFor({ state: 'visible' });
+  await switchButton.click();
+  await sellerPage.waitForURL(/\/seller\/listings/);  
 
   const {listingTitle, price} = await createSellerListing(sellerPage);
 
   await signupAndLogin(buyerPage, request, { email: uniqueEmail("buyer") });
-  await buyerPage.waitForURL(/\buyer\/listings/);
+  await buyerPage.waitForURL(/\/buyer\/listings/); 
 
   const listingCard = buyerPage
   .getByTestId('listing-card')
@@ -81,12 +84,13 @@ export async function createListingAndReserve(
   await expect(listingCard).toBeVisible({timeout: 10000});
 
   await listingCard.locator('img').click();
-  await buyerPage.waitForURL(/\buyer\/listings\/.+/);
+  await buyerPage.waitForURL(/\/buyer\/listings\/.+/);
+ 
   await buyerPage.getByRole('button', {name: /reserve this item/i}).click();
-  await buyerPage.waitForURL(/\buyer\/reservations/);
+  await buyerPage.waitForURL(/\/buyer\/reservations/);
   
   await buyerPage.getByRole('button', {name: /message seller/i}).click();
-  await buyerPage.waitForURL(/\buyer\/messages\/(.+)/);
+  await buyerPage.waitForURL(/\/buyer\/messages\/(.+)/);
 
   const reservationId = new URL(buyerPage.url()).pathname.split('/').pop()!;
   

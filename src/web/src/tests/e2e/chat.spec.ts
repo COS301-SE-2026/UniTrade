@@ -50,7 +50,7 @@ test('chat is locked for both the seller and the buyer until the seller accepts 
     const buyerContext = await browser.newContext();
     const buyerPage = await buyerContext.newPage();
 
-    await signupAndLogin(buyerPage, request, { email: uniqueEmail('buyer') });
+    await signupAndLogin(buyerPage, request, { email: buyerEmail });
     await buyerPage.waitForURL(/\/buyer\/listings/);
 
     const buyerCaseId = await findPendingVerificationCaseId(adminPage, buyerEmail);
