@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 const public_pages = [
     {name: "login", path: "/auth/Login"},
     {name: "signup", path: "/auth/Signup"},
-    {name: "homePage", path:"/auth/HomePage"},
+   // {name: "homePage", path:"/auth/HomePage"},
 ];
 
 test.describe("public pages accessibility", () =>

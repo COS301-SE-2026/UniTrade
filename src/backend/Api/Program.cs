@@ -192,7 +192,7 @@ var allowedOrigins =
     builder
         .Configuration["Cors:AllowedOrigins"]
         ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:3000", "http://localhost:8080" };
+    ?? new[] { "http://localhost:3000", "http://localhost:8080" ,"http://localhost:4173"};
 
 builder.Services.AddCors(options =>
 {

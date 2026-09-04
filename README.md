@@ -162,7 +162,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
   <br/>
   <b>Tafadzwa Musiiwa</b><br />
-  <sub>Frontend Lead & Integration Engineer</sub><br/><br/>
+  <sub>Frontend Lead & Integration Engineer </sub><br/><br/>
   <a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
 <a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
   </td>
@@ -176,13 +176,14 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 </div>
 
-## Demo 2
+##  Demo 3
+
 <br>
 
 <details>
   <summary><strong>Software Requirements Specifications</summary>
      <p align="center">
-  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SRS_Document.pdf">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/demo3/SRSDocument_demo_3.pdf">
     <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
      </p>
@@ -192,6 +193,14 @@ UniTrade provides a structured, verified marketplace where students can list, br
          <p align="center">
   <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SAS.pdf">
     <img src="https://img.shields.io/badge/SAS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+<details>
+  <summary><strong>Updated Use Cases</summary>
+         <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/demo3/Updated_UseCases.pdf">
+    <img src="https://img.shields.io/badge/Updated_UseCases-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
      </p>
 </details>
@@ -253,6 +262,51 @@ UniTrade provides a structured, verified marketplace where students can list, br
 <details>
   <summary><strong>Brand Style Guide PDF</summary>
      <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Brand-style-doc.pdf">
+    <img src="https://img.shields.io/badge/Brand_Style_Guide-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+     </p>
+</details>
+
+
+## Demo 2
+<br>
+
+<details>
+  <summary><strong>Demo 2 Documentation</summary>
+     <p align="center">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SRS_Document.pdf">
+    <img src="https://img.shields.io/badge/SRS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+    
+<a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SAS.pdf">
+    <img src="https://img.shields.io/badge/SAS-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/CODING_%20STANDARDS.pdf">
+    <img src="https://img.shields.io/badge/Coding_Standards-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Testing_Policy.pdf">
+    <img src="https://img.shields.io/badge/Testing_Policy-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/API_Contracts.pdf">
+    <img src="https://img.shields.io/badge/API_Contracts-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/User_Manual%20(2).pdf">
+    <img src="https://img.shields.io/badge/User_Manual-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
+  <a href="https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Capstone-wireframes?node-id=0-1&t=TGxL1XFTdsDd1qtU-1">
+    <img src="https://img.shields.io/badge/Figma_Document-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
+  <a href="https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/Brand-style-doc">
+    <img src="https://img.shields.io/badge/Brand_Style_Deployed-View%20Document-04B4FD?style=for-the-badge" height="40">
+  </a>
+
   <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/Brand-style-doc.pdf">
     <img src="https://img.shields.io/badge/Brand_Style_Guide-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
