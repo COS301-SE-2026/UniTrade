@@ -15,21 +15,10 @@ export async function signupAndLogin(
 
   await page.goto("/auth/Signup");
   await universityResponse;
-  await page.locator('input[name="firstName"]').fill("Test");
-  await page.locator('input[name="lastName"]').fill("User");
-  await page.locator('input[name="email"]').fill(email);
-
-  const universitySelect = page.locator('select[name="university"]');
-  await expect(universitySelect.locator("option").nth(1)).not.toHaveText("", {
-    timeout: 20000,
-  });
-  await universitySelect.selectOption({ index: 1 });
-
-  await page.locator('input[name="yearOfStudy"]').fill("2");
-  await page.locator('input[name="password"]').fill(password);
- 
 
   const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
+
+  async function dismissTermsIfPresent(){
   if (await termsHeading.isVisible({timeout: 3000}).catch(() => false)) {
     const scrollRegion = page.getByRole("region", {name: "Terms and Conditions"});
     if(await scrollRegion.isVisible().catch(() => false)) {
@@ -49,7 +38,26 @@ export async function signupAndLogin(
     await acceptButton.click();
     await expect(termsHeading).not.toBeVisible({timeout: 5000});
   }
+}
 
+await dismissTermsIfPresent();
+
+
+  await page.locator('input[name="firstName"]').fill("Test");
+  await page.locator('input[name="lastName"]').fill("User");
+  await page.locator('input[name="email"]').fill(email);
+
+  const universitySelect = page.locator('select[name="university"]');
+  await expect(universitySelect.locator("option").nth(1)).not.toHaveText("", {
+    timeout: 20000,
+  });
+  await universitySelect.selectOption({ index: 1 });
+
+  await page.locator('input[name="yearOfStudy"]').fill("2");
+  await page.locator('input[name="password"]').fill(password);
+ 
+
+  await dismissTermsIfPresent();
 
    await page.getByRole("button", { name: /^signup$/i }).click();
 

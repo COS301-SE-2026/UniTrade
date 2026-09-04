@@ -1,18 +1,32 @@
 import {test, expect} from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { signupAndLogin,  uniqueEmail } from './helpers/auth';
+import { signupAndLogin,  uniqueEmail, loginAsAdmin } from './helpers/auth';
+import { findPendingVerificationCaseId, approveVerificationCase } from './helpers/admin';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
 test('chat is locked for both the seller and the buyer until the seller accepts the reservation ', async({browser, request}) => {
+    test.setTimeout(240_000);
     const listingTitle = `E2E Chat Listing ${Date.now()}`;
+    const sellerEmail = uniqueEmail('seller');
+    const buyerEmail = uniqueEmail('buyer');
+
 
     const sellerContext = await browser.newContext();
     const sellerPage = await sellerContext.newPage();
 
-    await signupAndLogin(sellerPage, request, {email: uniqueEmail('seller')});
+    await signupAndLogin(sellerPage, request, {email: sellerEmail});
+
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAsAdmin(adminPage, request);
+    const sellerCaseId = await findPendingVerificationCaseId(adminPage, sellerEmail);
+    await approveVerificationCase(adminPage, sellerCaseId);
+    
+
+    await sellerPage.reload();
 
     await sellerPage.getByText('Switch', {exact: true}).click();
     await sellerPage.waitForURL(/\/seller\/listings/);
@@ -37,6 +51,14 @@ test('chat is locked for both the seller and the buyer until the seller accepts 
     const buyerPage = await buyerContext.newPage();
 
     await signupAndLogin(buyerPage, request, { email: uniqueEmail('buyer') });
+    await buyerPage.waitForURL(/\/buyer\/listings/);
+
+    const buyerCaseId = await findPendingVerificationCaseId(adminPage, buyerEmail);
+    await approveVerificationCase(adminPage, buyerCaseId);
+
+    await adminContext.close();
+
+    await buyerPage.reload();
     await buyerPage.waitForURL(/\/buyer\/listings/);
 
     const listingCard = buyerPage

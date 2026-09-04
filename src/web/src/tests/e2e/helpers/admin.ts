@@ -14,9 +14,11 @@ interface CaseDetailLike extends CaseSummaryLike {
 export async function findPendingVerificationCaseId(
     adminPage: Page,
     studentEmail: string,
+    {retries = 10, delayMs = 100} : { retries?: number; delayMs?:number} = {},
 ) : Promise<string> {
+    for (let attempt = 0; attempt < retries; attempt++ ) {
     const listRes = await adminPage.request.get(
-        `${API_URL}/admin/cases?type=verification&status=pending&limit=50`,
+        `${API_URL}/admin/cases?type=verification&status=under_review&limit=50`,
     );
     expect(listRes.ok(), `Failed to list verification cases: ${listRes.status()}`).toBeTruthy();
 
@@ -30,6 +32,8 @@ export async function findPendingVerificationCaseId(
         if(detail.evidence?.email === studentEmail) {
             return c.caseId;
         }
+    }
+    await adminPage.waitForTimeout(delayMs);
 
     }
     throw new Error(`No pending verification case found for email: ${studentEmail}`);
@@ -37,7 +41,7 @@ export async function findPendingVerificationCaseId(
 
 export async function approveVerificationCase(adminPage: Page, caseId: string): Promise<void> {
     await adminPage.goto(`/admin/verifications/${caseId}`);
-    await expect(adminPage.getByRole('heading', {name: `Case #${caseId}`})).toBeVisible();
+    await expect(adminPage.getByRole('button', {name: 'Approve', exact: true})).toBeVisible();
 
 
     const decisionResponse = adminPage.waitForResponse(
