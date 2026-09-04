@@ -70,7 +70,7 @@ jobs:
         run: npm audit --audit-level=high
         
       - name: Set up Java 21 for SonarScanner
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
         with:
          java-version: '21'
          distribution: 'temurin'
