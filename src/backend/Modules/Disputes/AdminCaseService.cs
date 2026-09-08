@@ -31,14 +31,14 @@ public class AdminCaseService : IAdminCaseService
     private readonly IBroadCastService _broadcast;
 
     // Constants
-    private const string ResolvedString = "resolved";
-    private const string UnderReviewString = "under_review";
-    private const string PendingString = "pending";
-    private const string VerificationString = "verification";
-    private const string ReportListingString = "report_listing";
-    private const string ListingQualityString = "listing_quality";
-    private const string NoShowString = "no_show";
-    private const string DismissedString = "dismissed";
+    private const string _resolvedString = "resolved";
+    private const string _underReviewString = "under_review";
+    private const string _pendingString = "pending";
+    private const string _verificationString = "verification";
+    private const string _reportListingString = "report_listing";
+    private const string _listingQualityString = "listing_quality";
+    private const string _noShowString = "no_show";
+    private const string _dismissedString = "dismissed";
 
     public AdminCaseService(
         IVerificationService verification,
@@ -76,7 +76,7 @@ public class AdminCaseService : IAdminCaseService
         var res = new List<CaseSummaryDto>();
 
         // 1. Verification Cases
-        if (type is null or VerificationString)
+        if (type is null or _verificationString)
         {
             var verificationCases = await _verification.ListPendingAsync(ct);
             var mappedVerification = verificationCases
@@ -90,7 +90,7 @@ public class AdminCaseService : IAdminCaseService
         }
 
         // 2. Dispute Cases
-        if (type is null or ListingQualityString or NoShowString or ReportListingString)
+        if (type is null or _listingQualityString or _noShowString or _reportListingString)
         {
             var disputeItems = await _disputes.ListPendingAsync(type, ct);
 
@@ -99,7 +99,7 @@ public class AdminCaseService : IAdminCaseService
                 .Select(i => new
                 {
                     SubjectId = i.SubjectUserId,
-                    CounterpartyId = i.Type == ReportListingString ? i.RaisedBy
+                    CounterpartyId = i.Type == _reportListingString ? i.RaisedBy
                     : i.SubjectUserId == i.SellerId ? i.BuyerId
                     : i.SubjectUserId == i.BuyerId ? i.SellerId
                     : (Guid?)null,
@@ -186,7 +186,7 @@ public class AdminCaseService : IAdminCaseService
                         : "??";
 
                     Guid? counterpartyId =
-                        item.Type == ReportListingString ? item.RaisedBy
+                        item.Type == _reportListingString ? item.RaisedBy
                         : item.SubjectUserId == item.SellerId ? item.BuyerId
                         : item.SubjectUserId == item.BuyerId ? item.SellerId
                         : null;
@@ -325,7 +325,7 @@ public class AdminCaseService : IAdminCaseService
         }
 
         var finalOutcomes = outcomes;
-        if (disputeData.Type == ListingQualityString)
+        if (disputeData.Type == _listingQualityString)
         {
             var snapshot = disputeData.ReservationId is null
                 ? null
@@ -356,7 +356,7 @@ public class AdminCaseService : IAdminCaseService
             ct
         );
 
-        var resolvedStatus = decision == DisputeCaseDecision.Dismiss ? "dismiss" : ResolvedString;
+        var resolvedStatus = decision == DisputeCaseDecision.Dismiss ? "dismiss" : _resolvedString;
         await _disputes.MarkResolvedAsync(disputeData.DisputeId, adminId, resolvedStatus, ct);
 
         await _broadcast.NotifyAdminAsync(
@@ -364,7 +364,7 @@ public class AdminCaseService : IAdminCaseService
             new
             {
                 caseId,
-                status = decision == DisputeCaseDecision.Dismiss ? DismissedString : ResolvedString,
+                status = decision == DisputeCaseDecision.Dismiss ? _dismissedString : _resolvedString,
             }
         );
 
@@ -380,7 +380,7 @@ public class AdminCaseService : IAdminCaseService
     private static int SlaHours(string caseType) =>
         caseType switch
         {
-            VerificationString => 48,
+            _verificationString => 48,
             _ => 72,
         };
 
@@ -440,12 +440,12 @@ public class AdminCaseService : IAdminCaseService
             (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
             1
         );
-        var (slaHours, slaBreached) = Sla(VerificationString, ageHours);
+        var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
 
         return new CaseSummaryDto
         {
             CaseId = caseDto.VerificationId,
-            Type = VerificationString,
+            Type = _verificationString,
             Status = MapStatus(caseDto),
             SubjectUserId = caseDto.UserId,
             SubmittedAt = caseDto.SubmittedAt,
@@ -458,7 +458,7 @@ public class AdminCaseService : IAdminCaseService
             SubjectDegree = caseDto.Degree,
             SubjectYear = caseDto.Year,
             CounterpartyInitials = null,
-            HasDocument = caseDto.Status is UnderReviewString or "approved" or "rejected",
+            HasDocument = caseDto.Status is _underReviewString or "approved" or "rejected",
         };
     }
 
@@ -471,13 +471,13 @@ public class AdminCaseService : IAdminCaseService
             (_clock.GetUtcNow().UtcDateTime - caseDto.SubmittedAt).TotalHours,
             1
         );
-        var (slaHours, slaBreached) = Sla(VerificationString, ageHours);
-        var hasDocument = caseDto.Status is UnderReviewString or "approved" or "rejected";
+        var (slaHours, slaBreached) = Sla(_verificationString, ageHours);
+        var hasDocument = caseDto.Status is _underReviewString or "approved" or "rejected";
 
         return new CaseDetailDto
         {
             CaseId = caseDto.VerificationId,
-            Type = VerificationString,
+            Type = _verificationString,
             Status = MapStatus(caseDto),
             SubjectUserId = caseDto.UserId,
             SubmittedAt = caseDto.SubmittedAt,
@@ -502,11 +502,11 @@ public class AdminCaseService : IAdminCaseService
     private static string MapStatus(VerificationCaseDto caseDto) =>
         caseDto.AdminDecision switch
         {
-            null => caseDto.Status == UnderReviewString ? UnderReviewString : PendingString,
-            "approved" => ResolvedString,
-            "rejected" => ResolvedString,
-            "resubmission" => DismissedString,
-            _ => PendingString,
+            null => caseDto.Status == _underReviewString ? _underReviewString : _pendingString,
+            "approved" => _resolvedString,
+            "rejected" => _resolvedString,
+            "resubmission" => _dismissedString,
+            _ => _pendingString,
         };
 
     private static string DecisionMessage(VerificationDecision decision) =>
@@ -522,7 +522,7 @@ public class AdminCaseService : IAdminCaseService
     private async Task<CaseDetailDto> ToDisputeDetailAsync(DisputeCaseData d, CancellationToken ct)
     {
         ListingSnapshotDto? snapshot = null;
-        if (d.Type == ReportListingString && d.SnapshotId.HasValue)
+        if (d.Type == _reportListingString && d.SnapshotId.HasValue)
         {
             snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
         }
@@ -542,7 +542,7 @@ public class AdminCaseService : IAdminCaseService
         var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
 
         Guid? counterpartyId =
-            d.Type == ReportListingString ? d.RaisedBy
+            d.Type == _reportListingString ? d.RaisedBy
             : d.SubjectUserId == d.SellerId ? d.BuyerId
             : d.SubjectUserId == d.BuyerId ? d.SellerId
             : null;
@@ -561,7 +561,7 @@ public class AdminCaseService : IAdminCaseService
 
         string? suggestedDecision = null;
         List<string>? suggestedOutcomes = null;
-        if (d.Type == ListingQualityString && snapshot != null)
+        if (d.Type == _listingQualityString && snapshot != null)
         {
             var verdict = ListingQualityEvaluator.Evaluate(
                 snapshot,
@@ -575,7 +575,7 @@ public class AdminCaseService : IAdminCaseService
         }
 
         var filedByRole =
-            d.Type == ReportListingString ? "reporter"
+            d.Type == _reportListingString ? "reporter"
             : d.RaisedBy == d.SellerId ? "seller"
             : d.RaisedBy == d.BuyerId ? "buyer"
             : "unknown";
@@ -607,21 +607,21 @@ public class AdminCaseService : IAdminCaseService
     ) =>
         d.Type switch
         {
-            ListingQualityString => new CaseEvidenceDto
+            _listingQualityString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
                 BuyerPhotos = d.Photos,
                 SellerRefusedPhotos = d.SellerRefusedPhotos,
                 CurrentListingStatus = currentListingStatus,
             },
-            ReportListingString => new CaseEvidenceDto
+            _reportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
                 ListingId = d.ListingId,
                 ReportReason = d.Description,
                 CurrentListingStatus = currentListingStatus,
             },
-            NoShowString => new CaseEvidenceDto
+            _noShowString => new CaseEvidenceDto
             {
                 MeetupId = d.MeetupId,
                 BuyerCheckedIn = d.BuyerCheckedIn,
@@ -678,10 +678,10 @@ public class AdminCaseService : IAdminCaseService
     private static string MapDisputeStatus(string s) =>
         s switch
         {
-            "open" => PendingString,
-            UnderReviewString => UnderReviewString,
-            ResolvedString => ResolvedString,
-            "closed" => DismissedString,
-            _ => PendingString,
+            "open" => _pendingString,
+            _underReviewString => _underReviewString,
+            _resolvedString => _resolvedString,
+            "closed" => _dismissedString,
+            _ => _pendingString,
         };
 }
