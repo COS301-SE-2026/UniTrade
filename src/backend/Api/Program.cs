@@ -165,21 +165,21 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    if (string.IsNullOrWhiteSpace(connectionString))
-    {
-        connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
-    }
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+}
 
-    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
-    dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
-    var dataSource = dataSourceBuilder.Build();
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
+var dataSource = dataSourceBuilder.Build();
 
-    builder.Services.AddDbContext<AppDbContext>(options =>
-    {
-        options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
-    });
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+});
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -192,7 +192,7 @@ var allowedOrigins =
     builder
         .Configuration["Cors:AllowedOrigins"]
         ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:3000", "http://localhost:8080" ,"http://localhost:4173"};
+    ?? new[] { "http://localhost:3000", "http://localhost:8080", "http://localhost:4173" };
 
 builder.Services.AddCors(options =>
 {
