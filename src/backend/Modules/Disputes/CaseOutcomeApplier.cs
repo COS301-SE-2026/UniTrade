@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Repositories;
 using Modules.Listings.Moderation;
 using Modules.Notifications;
@@ -14,6 +15,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
     private readonly IEmailService _emails;
     private readonly IBroadCastService _broadCast;
     private readonly IUserRepository _users;
+    private readonly ILogger<CaseOutcomeApplier> _logger;
 
     public CaseOutcomeApplier(
         IReputationService reputation,
@@ -21,7 +23,8 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
         INotificationDispatcher notifications,
         IEmailService emails,
         IUserRepository users,
-        IBroadCastService broadCastService
+        IBroadCastService broadCastService,
+        ILogger<CaseOutcomeApplier> logger
     )
     {
         _reputation = reputation;
@@ -30,6 +33,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
         _emails = emails;
         _users = users;
         _broadCast = broadCastService;
+        _logger = logger;
     }
 
     public async Task ApplyAsync(
@@ -88,7 +92,15 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                     ct
                 );
             }
-            catch { }
+            catch (Exception e)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Failed to send notification for outcome {Outcome} to user {UserId}",
+                    summary,
+                    context.SubjectUserId
+                );
+            }
 
             try
             {
@@ -98,7 +110,15 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                     new { message = summary, reason = context.Reason }
                 );
             }
-            catch { }
+            catch (Exception e)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Failed to send broadcast for outcome {Outcome} to user {UserId}",
+                    summary,
+                    context.SubjectUserId
+                );
+            }
 
             try
             {
@@ -113,7 +133,15 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                     );
                 }
             }
-            catch { }
+            catch (Exception e)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Failed to send email for outcome {Outcome} to user {UserId}",
+                    summary,
+                    context.SubjectUserId
+                );
+            }
         }
     }
 

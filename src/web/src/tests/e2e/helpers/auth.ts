@@ -1,4 +1,5 @@
-import { Page, APIRequestContext, expect } from "@playwright/test";
+import type { Page, APIRequestContext } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export function uniqueEmail(prefix = "e2e") {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}@tuks.co.za`;

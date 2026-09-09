@@ -62,7 +62,7 @@ function record(res, scenario) {
 }
 export function feed(data) {
   const res = http.get(
-    `${BASE}/api/listings?listingStatus=live&excludeSellerId=01a00656-30f7-791d-82a7-d592718af946`,
+    `${BASE}/api/listings?listingStatus=live&excludeSellerId=019f678c-b787-73a6-b17e-35d9ed0ac82f`,
     {
       cookies: { authToken: data.authCookie },
     },
@@ -78,7 +78,7 @@ export function feed(data) {
 
 export function browse(data) {
   const res = http.get(
-    `${BASE}/api/listings/e2017858-d319-49fa-bea4-c407ea9921e4`,
+    `${BASE}/api/listings/a9fb9879-e282-427d-b403-fa99053389d2`,
     {
       cookies: { authToken: data.authCookie },
     },
@@ -94,7 +94,7 @@ export function browse(data) {
 
 export function search(data) {
   const res = http.get(
-    `${BASE}/api/listings?listingStatus=live&excludeSellerId=01a00656-30f7-791d-82a7-d592718af946&search=calculus`,
+    `${BASE}/api/listings?listingStatus=live&excludeSellerId=01a00656-30f7-791d-82a7-d592718af946&search=Textbook`,
     {
       cookies: { authToken: data.authCookie },
     },

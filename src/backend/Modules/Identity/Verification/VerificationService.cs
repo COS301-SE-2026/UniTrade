@@ -27,6 +27,7 @@ public class VerificationService : IVerificationService
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
     private const int _resendCooldownSeconds = 60;
+    private const string _rejectedString = "rejected";
 
     public VerificationService(
         IVerificationRepository verifications,
@@ -151,21 +152,6 @@ public class VerificationService : IVerificationService
         record.OtpVerifiedAt = DateTime.UtcNow;
         await _verifications.UpdateAsync(record);
 
-        /*try
-        {
-            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
-            await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
-        }
-        catch (Exception ex)
-        {
-            //never fail verification over a broadcast
-            _logger.LogWarning(
-                ex,
-                "failed to broadcast verification_created for {UserId}",
-                record.UserId
-            );
-        }*/
-
         var User = await _users.GetByIdAsync(userId);
         if (User?.StudentProfile != null)
         {
@@ -231,7 +217,7 @@ public class VerificationService : IVerificationService
             return null;
         }
 
-        if (vr.AdminDecision is "approved" or "rejected")
+        if (vr.AdminDecision is "approved" or _rejectedString)
         {
             throw new VerificationException("verification_already_decided");
         }
@@ -254,10 +240,10 @@ public class VerificationService : IVerificationService
                 break;
 
             case VerificationDecision.Reject:
-                vr.Status = "rejected";
-                vr.AdminDecision = "rejected";
+                vr.Status = _rejectedString;
+                vr.AdminDecision = _rejectedString;
                 vr.RejectionReason = reason;
-                user.StudentProfile.VerificationStatus = "rejected";
+                user.StudentProfile.VerificationStatus = _rejectedString;
                 break;
 
             case VerificationDecision.Resubmit:
@@ -276,11 +262,6 @@ public class VerificationService : IVerificationService
             vr.AdminDecision!,
             reason
         );
-
-        /*if (decision == VerificationDecision.Approve)
-        {
-            await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
-        }*/
 
         var result = await _verifications.GetCaseByIdAsync(verificationId, ct);
 
@@ -334,7 +315,7 @@ public class VerificationService : IVerificationService
 
         try
         {
-            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId);
+            var caseDto = await _verifications.GetCaseByIdAsync(record.VerificationId, ct);
             await _broadcast.NotifyAdminAsync("verification_created", new { caseId = caseDto });
         }
         catch (Exception ex)

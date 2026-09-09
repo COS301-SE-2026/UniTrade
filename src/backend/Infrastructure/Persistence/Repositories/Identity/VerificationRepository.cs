@@ -45,10 +45,11 @@ public class VerificationRepository : IVerificationRepository
                 && vr.AdminDecision == null
                 && (vr.Status == "por_pending" || vr.Status == "under_review")
             join u in _db.Users on vr.UserId equals u.UserId
+            where u.Role == "student"
             join spOuter in _db.StudentProfiles on u.UserId equals spOuter.StudentId into spGroup
             from sp in spGroup.DefaultIfEmpty()
             join uniOuter in _db.Universities
-                on sp!.UniversityId equals uniOuter.UniversityId
+                on sp.UniversityId equals uniOuter.UniversityId
                 into uniGroup
             from uni in uniGroup.DefaultIfEmpty()
             orderby vr.SubmittedAt
@@ -82,7 +83,7 @@ public class VerificationRepository : IVerificationRepository
             join spOuter in _db.StudentProfiles on u.UserId equals spOuter.StudentId into spGroup
             from sp in spGroup.DefaultIfEmpty()
             join uniOuter in _db.Universities
-                on sp!.UniversityId equals uniOuter.UniversityId
+                on sp.UniversityId equals uniOuter.UniversityId
                 into uniGroup
             from uni in uniGroup.DefaultIfEmpty()
             select new VerificationCaseDto

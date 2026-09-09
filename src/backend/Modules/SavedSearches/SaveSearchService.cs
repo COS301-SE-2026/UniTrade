@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Modules.Identity.Repositories;
 using Modules.Listings;
+using Modules.Listings.Models.Dto;
 using Modules.Notifications;
 using Modules.Reservations;
 using Modules.SavedSearches.Models;
 using Modules.SavedSearches.Models.Dto;
 using Modules.SavedSearches.Repositories;
-using Modules.Listings.Models.Dto;
-using System.Text.RegularExpressions;
-
 
 namespace Modules.SavedSearches;
 
@@ -50,21 +49,28 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
     {
         try
         {
-            _logger.LogInformation(
-                "Listing published: {Title} (ID: {ListingId})",
-                listingEvent.Title,
-                listingEvent.ListingId
-            );
-            var candidates = await _repo.GetCandidatesForListingAsync(listingEvent, ct);
-            _logger.LogInformation("Found {Count} candidates", candidates.Count);
-            
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Listing published: {Title}", listingEvent.Title);
+            }
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
+            var tokenTimeout = timeoutCts.Token;
+
+            var candidates = await _repo.GetCandidatesForListingAsync(listingEvent, tokenTimeout);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Found {Count} candidates", candidates.Count);
+            }
             var stck = $"{listingEvent.Title} {listingEvent.Description ?? ""}";
 
-            var matching = candidates
-                .Where(s => IsExactWordMatch(s.Query, stck))
-                .ToList();
-
-            _logger.LogInformation("Found {Count} matches", matching.Count);
+            var matching = new List<SavedSearch>();
+            foreach (var candidate in candidates)
+            {
+                tokenTimeout.ThrowIfCancellationRequested();
+                if (IsExactWordMatch(candidate.Query, stck, tokenTimeout))
+                    matching.Add(candidate);
+            }
 
             foreach (var search in matching)
             {
@@ -158,14 +164,24 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
         await _repo.DeleteAsync(searchId, ct);
     }
 
-    private static bool IsExactWordMatch(string query, string stck)
+    private static bool IsExactWordMatch(string query, string stck, CancellationToken ct)
     {
-        var words = query
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Select(Regex.Escape);
+        var words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Regex.Escape);
+        foreach (var word in words)
+        {
+            ct.ThrowIfCancellationRequested();
 
-        return words.All(w =>
-            Regex.IsMatch(stck, $@"\b{w}\b", RegexOptions.IgnoreCase));
+            if (
+                !Regex.IsMatch(
+                    stck,
+                    $@"\b{word}\b",
+                    RegexOptions.IgnoreCase,
+                    TimeSpan.FromSeconds(1)
+                )
+            )
+                return false;
+        }
+        return true;
     }
 
     private static SavedSearchDto MapToDto(SavedSearch s) =>
@@ -180,17 +196,26 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             IsActive = s.IsActive,
         };
 
-    public async Task<IReadOnlyList<ListingSummaryDto>> GetMatchingListingAsync(Guid searchId, Guid buyerId, CancellationToken ct)
+    public async Task<IReadOnlyList<ListingSummaryDto>> GetMatchingListingAsync(
+        Guid searchId,
+        Guid buyerId,
+        CancellationToken ct
+    )
     {
-        var search = await _repo.GetByIdAsync(searchId, ct);
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
+        var tokenTimeout = timeoutCts.Token;
+
+        var search = await _repo.GetByIdAsync(searchId, tokenTimeout);
         if (search == null || search.BuyerId != buyerId || !search.IsActive)
         {
-            throw new InvalidOperationException("Saved search not found or does not belong to you.");
+            throw new InvalidOperationException(
+                "Saved search not found or does not belong to you."
+            );
         }
 
-        var listings = await _repo.GetMatchingListingsAsync(search, ct);
+        var listings = await _repo.GetMatchingListingsAsync(search, tokenTimeout);
 
         return listings.Select(ListingService.MapToSummary).ToList();
     }
-
 }

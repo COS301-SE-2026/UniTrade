@@ -14,8 +14,18 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
 {
     private readonly IMeetupService _meetups = meetups;
 
-    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
     // POST /api/reservations/__/meetup
     [HttpPost("propose")]
     public async Task<IActionResult> Propose(

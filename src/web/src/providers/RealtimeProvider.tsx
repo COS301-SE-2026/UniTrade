@@ -171,14 +171,6 @@ if (import.meta.env.DEV || !user) return;
 
     const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
       showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
-
-
-    })
-
-    const offDisputeOutcome = connectionManager.onDisputeOutcome((e)=>{
-      showToast("info", e.message);
-    })
-
      })
 
     const offForceLogout = connectionManager.onForceLogout(async () => {
@@ -192,11 +184,11 @@ if (import.meta.env.DEV || !user) return;
         clearUser();
         navigate("/auth/Login", { replace: true});
       }
-});
+  });
 
 const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
   showToast("info", e.reason
-    ? `More info needed for your verificatin: ${e.reason}`
+    ? `More info needed for your verification: ${e.reason}`
     : "Please resubmit your proof of registration."
   );
   navigate("/auth/ProofUpload");
@@ -211,7 +203,6 @@ const offVerificationResubmission = connectionManager.onVerificationResubmission
       offDisputeResolved();
       offSavedSearchMatch();
       offVerificationCreated();
-      offDisputeOutcome();
       offForceLogout();
       offVerificationResubmission();
       if(user?.role === "admin") {

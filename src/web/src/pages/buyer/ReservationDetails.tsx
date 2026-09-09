@@ -18,7 +18,6 @@ import {
 } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
 import { useQuery } from "@tanstack/react-query";
-import { fileDispute } from "../../services/adminService";
 
 //type ReservationListItem = ReservationListResponse["items"][number];
 
@@ -378,58 +377,7 @@ export default function ReservationDetails() {
     }
     setIsCancelling(false);
   };
-  const handleReportNoShow = async () => {
-    if (!reservation) return;
 
-    const reason = window.prompt(
-      "Please provide any additional context for the no-show report (optional):",
-    );
-    if (reason === null) return;
-
-    try {
-      await fileDispute({
-        type: "no_show",
-        reservationId: reservation.reservationId,
-        description: reason || undefined,
-      });
-      showToast(
-        "success",
-        "No-show report submitted. A UniTrade admin will review it.",
-      );
-    } catch (err: unknown) {
-      const error = err as { code?: string, message?: string };
-
-      if (error.code === "checkin_window_not_closed") {
-        showToast(
-          "info",
-          "The  check-in window has not closed yet. Please wait.",
-        );
-      }
-      if (error.code === "current_user_not_checked_in") {
-        showToast(
-          "info",
-          "You need to check in at the meetup before reporting a non-show.",
-        );
-      }
-      if (error.code === "other_party_checked_in") {
-        showToast(
-          "info",
-          "The other party checkin. This is not a valid non-show.",
-        );
-      }
-      if (
-        error.code === "dispute_already_open" ||
-        error.message?.includes("dispute_already_open")
-      ) {
-        showToast(
-          "info",
-          "You already filled a no-show report for this reservation. Please wait for admin review",
-        );
-      } else {
-        showToast("error", error.message || "Failed to submit no-show report.");
-      }
-    }
-  };
 
   const handleViewMeetupDetails = () => {
     if (!reservation) return;
@@ -477,7 +425,6 @@ export default function ReservationDetails() {
     );
   }
   const isCancelled = reservation.reservationStatus === "cancelled";
-  const isActive = reservation.reservationStatus === "active";
   const isCoordinating = reservation.timerStage === "coordinating";
   const isMeetupConfirmed = reservation.timerStage === "meetup_confirmed";
   const expiresDate = new Date(reservation.expiresAt);
@@ -505,15 +452,7 @@ export default function ReservationDetails() {
   const otherPartyName = reservation.counterParty?.name ?? otherPartyLabel;
   const otherPartyInitials =
     reservation.counterParty?.initials ?? otherPartyLabel[0];
-  const canReportNoShow =
-    isActive &&
-    !isCancelled &&
-    !isExpired &&
-    meetup &&
-    new Date(meetup.checkinWindowClosesAt) < new Date() &&
-    (isSeller
-      ? meetup.sellerCheckedIn && !meetup.buyerCheckedIn
-      : meetup.buyerCheckedIn && !meetup.sellerCheckedIn);
+
   return (
     <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
@@ -635,13 +574,6 @@ export default function ReservationDetails() {
                 label={cancelLabel}
                 onClick={handleCancel}
                 disabled={!canCancel}
-                variant="danger"
-              />
-              <ActionButton
-                icon={<IconFlag size={16} />}
-                label="Report No-Show"
-                onClick={handleReportNoShow}
-                disabled={!canReportNoShow}
                 variant="danger"
               />
             </div>

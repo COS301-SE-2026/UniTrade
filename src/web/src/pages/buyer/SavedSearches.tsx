@@ -144,7 +144,7 @@ export default function SavedSearches() {
         </div>
 
         <div className="w-40">
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label htmlFor="category" className="block text-xs font-medium text-gray-700 mb-1">
             Category
           </label>
           <select
@@ -162,7 +162,7 @@ export default function SavedSearches() {
         </div>
 
         <div className="w-32">
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label htmlFor="min-price" className="block text-xs font-medium text-gray-700 mb-1">
             Min Price (R)
           </label>
           <input
@@ -176,7 +176,7 @@ export default function SavedSearches() {
         </div>
 
         <div className="w-32">
-          <label className="block text-xs font-medium text-gray-700 mb-1">
+          <label htmlFor="max-price" className="block text-xs font-medium text-gray-700 mb-1">
             Max Price (R)
           </label>
           <input
