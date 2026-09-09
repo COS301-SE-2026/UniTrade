@@ -95,7 +95,7 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
         run:  |
-          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs')
+          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs)
           echo "last_migration=$LAST" >> "$GITHUB_OUTPUT"
           echo "Last applied migration: $LAST"
 
