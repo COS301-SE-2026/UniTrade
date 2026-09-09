@@ -94,8 +94,8 @@ jobs:
         working-directory: src/backend/Api
         env:
           ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
-        run:
-          LAST=$(dotnet ef migrations list --project ../Infrastructure . --no-build 2>/dev/null | grep -v '(Pending) | tail -n 1 | xargs')
+        run:  |
+          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs')
           echo "last_migration=$LAST" >> "$GITHUB_OUTPUT"
           echo "Last applied migration: $LAST"
 
@@ -107,20 +107,6 @@ jobs:
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
 
-      - name: Rollback migrations
-        if: failure()
-        working-directory: src/backend/Api
-        env:
-          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
-          Acs__ConnectionString: ${{secrets.Acs__ConnectionString}}
-        run:  |
-          TARGET="${{ steps.last_migration.outputs.last_migration}}"
-          if [-n "$TARGET"]; then
-            echo "rolling back db to migration: $TARGET"
-            dotnet ef database update "$TARGET" --project ../Infrastructure --startup-project .
-          else
-            echo "no prior migration captured(this is skipping rb)"
-          fi
       
       - name: Capture current live revisions 
         id: live_revs
@@ -309,6 +295,21 @@ jobs:
               fi
           else
             echo "No previous frontend revision found."
+          fi
+
+     - name: Rollback migrations
+       if: failure()
+       working-directory: src/backend/Api
+       env:
+        ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+        Acs__ConnectionString: ${{secrets.Acs__ConnectionString}}
+       run:  |
+          TARGET="${{ steps.last_migration.outputs.last_migration}}"
+          if [ -n "$TARGET" ]; then
+            echo "rolling back db to migration: $TARGET"
+            dotnet ef database update "$TARGET" --project ../Infrastructure --startup-project .
+          else
+            echo "no prior migration captured(this is skipping rb)"
           fi
 
       - name: Deactivate old backend revisions
