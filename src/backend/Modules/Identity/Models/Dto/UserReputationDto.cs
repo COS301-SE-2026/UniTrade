@@ -8,7 +8,7 @@ public class UserReputationDto
     public string UniversityName { get; set; } = "";
     public string Degree { get; set; } = "";
     public int Year { get; set; }
-    public string VerificationStatus { get; set; }
+    public string VerificationStatus { get; set; } = null!;
     public double ReviewAverage { get; set; }
     public int ReputationScore { get; set; }
     public int ReviewCount { get; set; }

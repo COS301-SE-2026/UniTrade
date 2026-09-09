@@ -17,6 +17,7 @@ using Modules.Listings.Models;
 using Modules.Reservations.Models;
 using Modules.Reservations.StateMachine;
 using Xunit;
+namespace Api.Tests.Integration.Api;
 
 [Trait("Category", "Integration")]
 public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>

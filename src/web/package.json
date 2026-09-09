@@ -18,7 +18,9 @@
     "lint:fix": "eslint . --fix",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:lighthouse": "playwright test --config=src/tests/lighthouse/playwright.lighthouse.config.ts",
+    "test:all": "npm run test && npm run test:lighthouse"
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
@@ -66,6 +68,10 @@
     "vitest": "^4.1.6"
   },
   "overrides": {
-    "brace-expansion": "^5.0.9"
+    "brace-expansion": "^5.0.9",
+    "@opentelemetry/core": "2.8.0",
+    "@opentelemetry/resources": "2.8.0",
+    "@opentelemetry/sdk-trace-base": "2.8.0",
+    "@puppeteer/browsers":"^3.2.0"
   }
 }

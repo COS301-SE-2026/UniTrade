@@ -13,6 +13,7 @@ using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Moq;
 using Xunit;
+namespace Api.Tests.Integration.Workers;
 
 [Trait("Category", "Integration")]
 public class ReservationExpiryWorkerTests

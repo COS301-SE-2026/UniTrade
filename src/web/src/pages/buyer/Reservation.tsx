@@ -24,7 +24,7 @@ type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -79,7 +79,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
   meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
     <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
       <span className="text-navy-700">{icon}</span>
@@ -91,7 +91,7 @@ export function SummaryCard({ label, value, icon }: { label: string; value: stri
   );
 }
 
-function StageTag({ stage }: { stage: TimerStage }) {
+function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
   const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
@@ -100,7 +100,7 @@ function StageTag({ stage }: { stage: TimerStage }) {
   )
 }
 
-function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }) {
+function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
   if (msRemaining <= 0) return null;
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -112,7 +112,7 @@ function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency
   )
 }
 
-function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolean; onClose: () => void; reservationId: string }) {
+function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpen: boolean; onClose: () => void; reservationId: string }>) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
@@ -143,13 +143,13 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 
       }
       const data = await res.json();
-      const url = `${apiBase}${data.url.replace(/^\/api/,'')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
+      const url = `${apiBase}${data.url.replace(/^\/api/, '')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
       setPhotos((prev) => [...prev, url]);
       showToast('success', 'Image Uploaded');
 
     }
     catch (err) {
-      const message = err instanceof Error ? err.message: String(err);
+      const message = err instanceof Error ? err.message : String(err);
       showToast('error', message || 'Failed to uploaded image');
     }
     finally {
@@ -186,7 +186,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
       setSellerRefusedPhotos(false);
     }
     catch (err) {
-      const message = err instanceof Error? err.message :String(err);
+      const message = err instanceof Error ? err.message : String(err);
       showToast('error', message || 'Failed to submit report.')
     }
     finally {
@@ -198,10 +198,29 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
+      onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onClose();
+          }
+          return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClose();
+        }
+
+      }}
+
     >
       <div
+        role="presentation"
+        tabIndex={-1}
         className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
@@ -219,8 +238,8 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 
         <div className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
-              Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
+            <label htmlFor='images' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+              Images <span className="text-gray-400 font-normal">(Upload)</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
               {
@@ -236,7 +255,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
                 ))
               }
               {photos.length < 5 && (
-                <label className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
+                <label htmlFor='upload' className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
                   {uploading ? (
                     <div className='w-6 h-6 border-2 border-navy-700 border-t-transparent rounded-full animate-spin' />
 
@@ -247,6 +266,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
                     </>
                   )}
                   <input
+                    id="upload"
                     type='file'
                     accept="image/*"
                     onChange={handleFileUpload}
@@ -274,7 +294,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label htmlFor='desc' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Description
             </label>
             <textarea
@@ -303,10 +323,10 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 function ReservationCard({
   reservation,
   onCancel,
-}: {
+}: Readonly<{
   reservation: ReservationListItem
   onCancel: (id: string) => void
-}) {
+}>) {
   const navigate = useNavigate()
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [, forceTick] = useState(0)
@@ -324,18 +344,34 @@ function ReservationCard({
   return (
     <>
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-        <img
-          src={reservation.listing.imagePath
-            ? `${apiOrigin}${reservation.listing.imagePath}`
-            : '/placeholder.png'}
-          alt={reservation.listing.title}
+        <button
+          type='button'
           onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-        />
+
+          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
+
+        >
+          <img
+            src={reservation.listing.imagePath
+              ? `${apiOrigin}${reservation.listing.imagePath}`
+              : '/placeholder.png'}
+            alt={reservation.listing.title}
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
             <div
+              role='button'
+              tabIndex={0}
+
               onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/buyer/reservations/${reservation.reservationId}`);
+                }
+              }}
               className="min-w-0 cursor-pointer group"
             >
               <div className="flex items-center gap-2 flex-wrap">

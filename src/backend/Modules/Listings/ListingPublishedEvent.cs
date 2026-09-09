@@ -2,7 +2,7 @@ namespace Modules.Listings;
 
 public interface IListingPublishedListener
 {
-    Task OnListingPublishedEventAsync(ListingPublishedEvent @event, CancellationToken ct);
+    Task OnListingPublishedEventAsync(ListingPublishedEvent @listingEvent, CancellationToken ct);
 }
 
 public class ListingPublishedEvent

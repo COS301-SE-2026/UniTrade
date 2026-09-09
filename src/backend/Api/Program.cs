@@ -109,7 +109,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
@@ -124,7 +124,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 10,
+                    PermitLimit = 1000,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
@@ -139,7 +139,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }
@@ -154,7 +154,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5,
+                    PermitLimit = 5000,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
@@ -165,11 +165,20 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+}
+
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options
-        .UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"])
-        .UseSnakeCaseNamingConvention();
+    options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
 });
 
 builder.Services.Configure<JsonOptions>(options =>
@@ -183,7 +192,7 @@ var allowedOrigins =
     builder
         .Configuration["Cors:AllowedOrigins"]
         ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:3000", "http://localhost:8080" ,"http://localhost:4173"};
+    ?? new[] { "http://localhost:3000", "http://localhost:8080", "http://localhost:4173" };
 
 builder.Services.AddCors(options =>
 {
@@ -199,7 +208,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSignalR();
+var SignalRConnectionString = builder.Configuration["Azure:SignalR:ConnectionString"];
+var signalRBuilder = builder.Services.AddSignalR();
+if (!string.IsNullOrEmpty(SignalRConnectionString))
+{
+    signalRBuilder.AddAzureSignalR(SignalRConnectionString);
+}
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
@@ -330,6 +344,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 var app = builder.Build();
+
 
 app.UseForwardedHeaders();
 

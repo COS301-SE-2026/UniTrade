@@ -191,7 +191,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 <details>
   <summary><strong>Software Architecture Specifications</summary>
          <p align="center">
-  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/feature/FrontEnd/docs/Demo2_Docs/SAS.pdf">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/main/docs/demo3/Software%20Architecture%20Specifications.pdf">
     <img src="https://img.shields.io/badge/SAS-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
      </p>
