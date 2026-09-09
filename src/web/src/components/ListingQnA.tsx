@@ -10,7 +10,7 @@ interface Props {
     canAsk: boolean;
 }
 
-export default function ListingQnA({ listingId, isSeller, canAsk }: Props) {
+export default function ListingQnA({ listingId, isSeller, canAsk }: Readonly<Props>) {
     const { showToast } = useToast();
     const [draft, setDraft] = useState("");
     const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});

@@ -99,7 +99,6 @@ public class PayFastPaymentGateway : IPaymentGateway
         {
             sb.Length -= 1; // why is this wrong-->-1 is invalid cause it throws an out of range exception
         }
-        var baseString = sb.ToString();
 
         using var md5 = MD5.Create();
         var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
@@ -131,12 +130,6 @@ public class PayFastPaymentGateway : IPaymentGateway
 
         return hash == receivedSign.ToLowerInvariant();
     }
-
-    private static readonly Regex _urlEncodingRegex = new Regex(
-        "%[0-9a-f]{2}",
-        RegexOptions.None,
-        TimeSpan.FromSeconds(1)
-    );
 
     private static string PayFastEncode(string value)
     {

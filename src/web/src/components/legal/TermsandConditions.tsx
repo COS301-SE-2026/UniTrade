@@ -61,7 +61,7 @@ export default function TermsAndConditionsModal({
   isOpen,
   onAccept,
   onDecline,
-}: TermsandConditions) {
+}: Readonly<TermsandConditions>) {
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
   const [checked, setChecked] = useState(false);
 

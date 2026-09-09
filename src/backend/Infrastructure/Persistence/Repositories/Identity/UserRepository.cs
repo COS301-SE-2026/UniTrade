@@ -24,6 +24,13 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(x => x.Email == email);
     }
 
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
+    {
+        return await _db
+            .Users.Include(u => u.StudentProfile)
+            .FirstOrDefaultAsync(x => x.Email == email, ct);
+    }
+
     public async Task<User?> GetByIdAsync(Guid userId)
     {
         return await _db
@@ -50,13 +57,6 @@ public class UserRepository : IUserRepository
     {
         _db.Users.Update(user);
         await _db.SaveChangesAsync();
-    }
-
-    public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
-    {
-        return await _db
-            .Users.Include(u => u.StudentProfile)
-            .FirstOrDefaultAsync(x => x.Email == email, ct);
     }
 
     public async Task<List<User>> ListAsync(

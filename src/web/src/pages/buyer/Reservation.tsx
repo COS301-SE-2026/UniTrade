@@ -24,7 +24,7 @@ type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
 type SortOption = 'Date added' | 'Price low' | 'Price high';
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: Readonly<{ status: string }>) {
   if (!status) return null;
   const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
 
@@ -79,7 +79,7 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
   meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
 }
 
-export function SummaryCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
     <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
       <span className="text-navy-700">{icon}</span>
@@ -91,7 +91,7 @@ export function SummaryCard({ label, value, icon }: { label: string; value: stri
   );
 }
 
-function StageTag({ stage }: { stage: TimerStage }) {
+function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
   const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
   return (
     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
@@ -100,7 +100,7 @@ function StageTag({ stage }: { stage: TimerStage }) {
   )
 }
 
-function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency: UrgencyLevel }) {
+function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
   if (msRemaining <= 0) return null;
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -112,7 +112,7 @@ function CountdownBadge({ msRemaining, urgency }: { msRemaining: number; urgency
   )
 }
 
-function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolean; onClose: () => void; reservationId: string }) {
+function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpen: boolean; onClose: () => void; reservationId: string }>) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
@@ -314,10 +314,10 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 function ReservationCard({
   reservation,
   onCancel,
-}: {
+}: Readonly<{
   reservation: ReservationListItem
   onCancel: (id: string) => void
-}) {
+}>) {
   const navigate = useNavigate()
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [, forceTick] = useState(0)
@@ -342,13 +342,13 @@ function ReservationCard({
           className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
 
         >
-        <img
-          src={reservation.listing.imagePath
-            ? `${apiOrigin}${reservation.listing.imagePath}`
-            : '/placeholder.png'}
-          alt={reservation.listing.title}
-          className="w-full h-full object-cover rounded-lg"
-        />
+          <img
+            src={reservation.listing.imagePath
+              ? `${apiOrigin}${reservation.listing.imagePath}`
+              : '/placeholder.png'}
+            alt={reservation.listing.title}
+            className="w-full h-full object-cover rounded-lg"
+          />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">

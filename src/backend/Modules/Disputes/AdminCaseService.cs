@@ -374,7 +374,7 @@ public class AdminCaseService : IAdminCaseService
             _ => 72,
         };
 
-    private (int slaHours, bool breached) Sla(string type, double ageHours)
+    private static (int slaHours, bool breached) Sla(string type, double ageHours)
     {
         var sla = SlaHours(type);
         return (sla, ageHours > sla);
@@ -474,7 +474,7 @@ public class AdminCaseService : IAdminCaseService
             AgeHours = ageHours,
             SlaHours = slaHours,
             SlaBreached = slaBreached,
-            Subject = await BuildPartyAsync(caseDto.UserId, PartyRole.Seller, ct),
+            Subject = await BuildPartyAsync(caseDto.UserId, ct),
             FiledByUserId = caseDto.UserId,
             FiledByRole = "applicant",
             Evidence = new CaseEvidenceDto
@@ -529,7 +529,7 @@ public class AdminCaseService : IAdminCaseService
             currentListingStatus = listing?.ListingStatus;
         }
 
-        var subject = await BuildPartyAsync(d.SubjectUserId, RoleOf(d, d.SubjectUserId), ct);
+        var subject = await BuildPartyAsync(d.SubjectUserId, ct);
 
         Guid? counterpartyId =
             d.Type == _reportListingString ? d.RaisedBy
@@ -544,7 +544,7 @@ public class AdminCaseService : IAdminCaseService
 
         var counterparty = counterpartyId is null
             ? null
-            : await BuildPartyAsync(counterpartyId.Value, RoleOf(d, counterpartyId.Value), ct);
+            : await BuildPartyAsync(counterpartyId.Value, ct);
 
         var ageHours = Age(d.SubmittedAt);
         var (slaHours, slaBreached) = Sla(d.Type, ageHours);
@@ -632,7 +632,6 @@ public class AdminCaseService : IAdminCaseService
 
     private async Task<PartySummaryDto?> BuildPartyAsync(
         Guid userId,
-        PartyRole role,
         CancellationToken ct
     )
     {

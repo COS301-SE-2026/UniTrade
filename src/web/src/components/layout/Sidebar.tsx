@@ -109,7 +109,7 @@ interface UserPopoverProps {
 }
 function UserPopover({
   name, initials, roleLabel, onClose, onLogout,
-}: UserPopoverProps) {
+}: Readonly<UserPopoverProps>) {
   const ref = useRef<HTMLDivElement>(null)
   const [showTerms, setShowTerms] = useState(false)
 

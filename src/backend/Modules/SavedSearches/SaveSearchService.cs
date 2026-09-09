@@ -49,17 +49,19 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
     {
         try
         {
-            _logger.LogInformation(
-                "Listing published: {Title}",
-                listingEvent.Title
-            );
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Listing published: {Title}", listingEvent.Title);
+            }
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
             var tokenTimeout = timeoutCts.Token;
 
             var candidates = await _repo.GetCandidatesForListingAsync(listingEvent, tokenTimeout);
-            _logger.LogInformation("Found {Count} candidates", candidates.Count);
-
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Found {Count} candidates", candidates.Count);
+            }
             var stck = $"{listingEvent.Title} {listingEvent.Description ?? ""}";
 
             var matching = new List<SavedSearch>();
@@ -69,8 +71,6 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
                 if (IsExactWordMatch(candidate.Query, stck, tokenTimeout))
                     matching.Add(candidate);
             }
-
-            _logger.LogInformation("Found {Count} matches", matching.Count);
 
             foreach (var search in matching)
             {
@@ -171,7 +171,14 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
         {
             ct.ThrowIfCancellationRequested();
 
-            if (!Regex.IsMatch(stck, $@"\b{word}\b", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1)))
+            if (
+                !Regex.IsMatch(
+                    stck,
+                    $@"\b{word}\b",
+                    RegexOptions.IgnoreCase,
+                    TimeSpan.FromSeconds(1)
+                )
+            )
                 return false;
         }
         return true;

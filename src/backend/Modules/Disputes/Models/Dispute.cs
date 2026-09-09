@@ -20,16 +20,8 @@ public class Dispute
 
     public DateTime SubmittedAt { get; set; }
 
-    //public string? AdminDecision { get; set; } //should be betw approve,reject,resubkitt ,uphold,dismiss, and request info
-    //public List<string> Outcomes { get; set; } = new();
-    //public string? Reason { get; set; }
-    //public Guid? DecidedByAdminId { get; set; }
-    //public DateTime? ResolvedAt { get; set; }
-
-    //public Guid AgainstUser { get; set; } // subject user id    
     public Guid? AssignedAdminId { get; set; }
     public string? Resolution { get; set; }
-    //public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public Guid? SnapshotId { get; set; }
     public ListingSnapshot? Snapshot { get; set; }
