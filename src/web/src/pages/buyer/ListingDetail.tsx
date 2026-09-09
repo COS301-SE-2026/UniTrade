@@ -71,10 +71,18 @@ function ReportModal({
       className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
       onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onClose();
+          }
+          return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onClose();
         }
+
       }}
     >
       <div

@@ -104,10 +104,18 @@ function ReasonModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onCancel}
       onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onCancel();
+          }
+          return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onCancel();
         }
+
       }}
     >
       <div

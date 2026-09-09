@@ -203,10 +203,18 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
       className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
       onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onClose();
+          }
+          return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onClose();
         }
+
       }}
 
     >
@@ -231,7 +239,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
         <div className="space-y-5">
           <div>
             <label htmlFor='images' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
-              Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
+              Images <span className="text-gray-400 font-normal">(Upload)</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
               {
@@ -258,6 +266,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
                     </>
                   )}
                   <input
+                    id="upload"
                     type='file'
                     accept="image/*"
                     onChange={handleFileUpload}

@@ -45,10 +45,18 @@ export function ConfirmModal({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onCancel();
+          }
+          return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onCancel();
         }
+
       }}
     >
       <div
