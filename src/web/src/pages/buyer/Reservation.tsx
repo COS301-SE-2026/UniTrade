@@ -143,13 +143,13 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 
       }
       const data = await res.json();
-      const url = `${apiBase}${data.url.replace(/^\/api/,'')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
+      const url = `${apiBase}${data.url.replace(/^\/api/, '')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
       setPhotos((prev) => [...prev, url]);
       showToast('success', 'Image Uploaded');
 
     }
     catch (err) {
-      const message = err instanceof Error ? err.message: String(err);
+      const message = err instanceof Error ? err.message : String(err);
       showToast('error', message || 'Failed to uploaded image');
     }
     finally {
@@ -186,7 +186,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
       setSellerRefusedPhotos(false);
     }
     catch (err) {
-      const message = err instanceof Error? err.message :String(err);
+      const message = err instanceof Error ? err.message : String(err);
       showToast('error', message || 'Failed to submit report.')
     }
     finally {
@@ -198,10 +198,21 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+
     >
       <div
+        role="presentation"
+        tabIndex={-1}
         className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
@@ -219,7 +230,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
 
         <div className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label htmlFor='images' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Images <span className="text-gray-400 font-normal">(Drag & Drop or Upload)</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -236,7 +247,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
                 ))
               }
               {photos.length < 5 && (
-                <label className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
+                <label htmlFor='upload' className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
                   {uploading ? (
                     <div className='w-6 h-6 border-2 border-navy-700 border-t-transparent rounded-full animate-spin' />
 
@@ -274,7 +285,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: { isOpen: boolea
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label htmlFor='desc' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Description
             </label>
             <textarea
@@ -324,18 +335,34 @@ function ReservationCard({
   return (
     <>
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+        <button
+          type='button'
+          onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+
+          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
+
+        >
         <img
           src={reservation.listing.imagePath
             ? `${apiOrigin}${reservation.listing.imagePath}`
             : '/placeholder.png'}
           alt={reservation.listing.title}
-          onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+          className="w-full h-full object-cover rounded-lg"
         />
+        </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
             <div
+              role='button'
+              tabIndex={0}
+
               onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/buyer/reservations/${reservation.reservationId}`);
+                }
+              }}
               className="min-w-0 cursor-pointer group"
             >
               <div className="flex items-center gap-2 flex-wrap">

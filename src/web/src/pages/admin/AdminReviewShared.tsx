@@ -42,63 +42,79 @@ export function ConfirmModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onCancel}
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="confirm-modal-title"
-      aria-describedby="confirm-modal-message"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onCancel();
+        }
+      }}
     >
       <div
+        role='alertdialog'
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        aria-describedby="confirm-modal-message"
         className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl font-sans"
-        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2
-            id="confirm-modal-title"
-            className="text-xl font-bol text-gray-900"
-          >
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <IconX size={20} />
-          </button>
-        </div>
-        <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">
-          {message}
-        </p>
-        <div className="mb-4">
-          <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
-          <textarea
-            id="modal-reason"
-            rows={3}
-            value={reason}
-            onChange={(e) => setReason?.(e.target.value)}
-            placeholder="Prove reasoning for this decision..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
-          ></textarea>
-        </div>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={submitting}
-            className="flex-1 flex items-center justify-center text-center border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={submitting || !reason.trim()}
-            className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors
+        <div
+          role="presentation"
+          tabIndex={-1}
+          onClick={(e) => e.stopPropagation()}
+
+        >
+
+
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              id="confirm-modal-title"
+              className="text-xl font-bol text-gray-900"
+            >
+              {title}
+            </h2>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-gray-400 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <IconX size={20} />
+            </button>
+          </div>
+          <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">
+            {message}
+          </p>
+          <div className="mb-4">
+            <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
+            <textarea
+              id="modal-reason"
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason?.(e.target.value)}
+              placeholder="Prove reasoning for this decision..."
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
+            ></textarea>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={submitting}
+              className="flex-1 flex items-center justify-center text-center border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              {cancelLabel}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={submitting || !reason.trim()}
+              className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors
               disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
-          >
-            {submitting ? "Submitting..." : confirmLabel}
-          </button>
+            >
+              {submitting ? "Submitting..." : confirmLabel}
+            </button>
+          </div>
         </div>
       </div>
     </div>

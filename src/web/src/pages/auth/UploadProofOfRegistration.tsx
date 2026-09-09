@@ -166,8 +166,16 @@ export default function ProofOfRegistrationUpload() {
                     Proof Of Registration Upload
                 </h1>
                 <div
+                    role='button'
+                    tabIndex={0}
                     className="w-full max-w-[900px] border-2 border-dashed border-gray-300 dark:border-navy-600 rounded-[24px] py-20 flex flex-col items-center justify-center mb-10 transition-colors hover:border-navy-500 dark:hover:border-secondary-500 cursor-pointer"
                     onClick={handleFileClick}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleFileClick();
+                        }
+                    }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                         e.preventDefault();
