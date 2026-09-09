@@ -116,41 +116,31 @@ public class AdminCaseService : IAdminCaseService
                 .ToList();
 
             // Populate Dictionaries in parallel / async tasks
-            var subjectDict = (
-                await Task.WhenAll(
-                    subjectUserIds.Select(async id => new
-                    {
-                        Id = id,
-                        Party = await _parties.GetAsync(id, ct),
-                    })
-                )
-            )
-                .Where(x => x.Party != null)
-                .ToDictionary(x => x.Id, x => x.Party!);
+            var subjectDict = new Dictionary<Guid, PartyIdentity>();
+            foreach (var id in subjectUserIds)
+            {
+                var party = await _parties.GetAsync(id, ct);
+                if (party != null)
+                    subjectDict[id] = party;
+            }
 
-            var counterpartyDict = (
-                await Task.WhenAll(
-                    counterpartyIds.Select(async id => new
-                    {
-                        Id = id,
-                        Party = await _parties.GetAsync(id, ct),
-                    })
-                )
-            )
-                .Where(x => x.Party != null)
-                .ToDictionary(x => x.Id, x => x.Party!);
+            var counterpartyDict = new Dictionary<Guid, PartyIdentity>();
+            foreach (var id in counterpartyIds)
+            {
+                var party = await _parties.GetAsync(id, ct);
+                if (party != null)
+                    counterpartyDict[id] = party;
+            }
 
-            var snapshotDict = (
-                await Task.WhenAll(
-                    reservationIds.Select(async resId => new
-                    {
-                        ResId = resId,
-                        Snapshot = await _snapshots.GetByReservationIdAsync(resId, ct),
-                    })
-                )
-            )
-                .Where(x => x.Snapshot != null)
-                .ToDictionary(x => x.ResId, x => x.Snapshot!);
+            var snapshotDict = new Dictionary<Guid, ListingSnapshotDto>();
+            foreach (var resId in reservationIds)
+            {
+                var snapshot = await _snapshots.GetByReservationIdAsync(resId, ct);
+                if (snapshot != null)
+                {
+                    snapshotDict[resId] = snapshot;
+                }
+            }
 
             var listingIds = disputeItems
                 .Where(i => i.ListingId.HasValue && !i.ReservationId.HasValue)
@@ -158,17 +148,15 @@ public class AdminCaseService : IAdminCaseService
                 .Distinct()
                 .ToList();
 
-            var listingTitleDict = (
-                await Task.WhenAll(
-                    listingIds.Select(async lid => new
-                    {
-                        ListingId = lid,
-                        Listing = await _listings.GetByIdAsync(lid),
-                    })
-                )
-            )
-                .Where(x => x.Listing != null)
-                .ToDictionary(x => x.ListingId, x => x.Listing!.Title);
+            var listingTitleDict = new Dictionary<Guid, string>();
+            foreach (var lid in listingIds)
+            {
+                var listing = await _listings.GetByIdAsync(lid);
+                if (listing != null)
+                {
+                    listingTitleDict[lid] = listing.Title;
+                }
+            }
 
             var mappedDisputes = disputeItems
                 .Select(item =>
@@ -364,7 +352,9 @@ public class AdminCaseService : IAdminCaseService
             new
             {
                 caseId,
-                status = decision == DisputeCaseDecision.Dismiss ? _dismissedString : _resolvedString,
+                status = decision == DisputeCaseDecision.Dismiss
+                    ? _dismissedString
+                    : _resolvedString,
             }
         );
 
