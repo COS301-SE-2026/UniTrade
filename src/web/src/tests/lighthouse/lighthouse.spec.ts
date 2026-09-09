@@ -7,7 +7,7 @@ import {loginAsAdmin, signupAndLogin, uniqueEmail } from "../e2e/helpers/auth";
 import type { Page, APIRequestContext } from "@playwright/test";
 
 const cdp_port = 9222;
-const reportDir = path.join(process.cwd(), "lighthouse-reports");
+const reportDir = path.join(process.cwd(), "../../../tests/nfr/evidence/perf-access-lighthouse");
 fs.mkdirSync(reportDir, { recursive: true });
 
 async function authenticate(page: Page, request: APIRequestContext, authRole: string)

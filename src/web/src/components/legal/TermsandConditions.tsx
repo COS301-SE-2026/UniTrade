@@ -87,7 +87,6 @@ export default function TermsAndConditionsModal({
         </div>
         <div
           onScroll={handleScroll}
-          tabIndex={0}
           role="region"
           aria-label="Terms and Conditions"
           className="max-h-[60vh] overflow-y-auto px-6 py-4 text-sm leading-relaxed text-slate-700"
