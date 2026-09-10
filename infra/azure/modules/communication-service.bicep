@@ -22,6 +22,9 @@ resource domain 'Microsoft.Communication/emailServices/domains@2023-04-01'={
 resource acs 'Microsoft.Communication/communicationServices@2023-04-01'={
     name: acsName
     location: 'global'
+    identity: {
+        type: 'SystemAssigned'
+    }
     dependsOn: [
             domain
         ]
