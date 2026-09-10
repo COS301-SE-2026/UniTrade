@@ -41,6 +41,8 @@ jobs:
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      Jwt__Secret: ${{ secrets.JWT_SECRET_CI }}
 
     services:
       postgres:
@@ -184,4 +186,3 @@ jobs:
           image-ref: unitrade-backend-ci
           severity: HIGH,CRITICAL
           exit-code: '1'
-          ignore-unfixed: true

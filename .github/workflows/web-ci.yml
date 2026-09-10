@@ -112,7 +112,6 @@ jobs:
           image-ref: unitrade-web-ci
           severity: HIGH,CRITICAL
           exit-code: '1'
-          ignore-unfixed: true
 
       - name: Install SonarScanner
         run: npm install -g @sonar/scan@4.3.0 --ignore-scripts
