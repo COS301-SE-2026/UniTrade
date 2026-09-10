@@ -1,5 +1,9 @@
 import type { Page, APIRequestContext } from "@playwright/test";
 import { expect } from "@playwright/test";
+import {
+  approveVerificationCase,
+  findPendingVerificationCaseId,
+} from "./admin";
 
 export function uniqueEmail(prefix = "e2e") {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}@tuks.co.za`;
@@ -28,11 +32,14 @@ export async function signupAndLogin(
 
   await page.locator('input[name="yearOfStudy"]').fill("2");
   await page.locator('input[name="password"]').fill(password);
- 
 
-  const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
-  if (await termsHeading.isVisible({timeout: 3000}).catch(() => false)) {
-    const scrollRegion = page.getByRole("region", {name: "Terms and Conditions"});
+  const termsHeading = page.getByRole("heading", {
+    name: "Terms & Conditions",
+  });
+  if (await termsHeading.isVisible({ timeout: 3000 }).catch(() => false)) {
+    const scrollRegion = page.getByRole("region", {
+      name: "Terms and Conditions",
+    });
     await scrollRegion.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
@@ -40,17 +47,18 @@ export async function signupAndLogin(
     const agreeCheckbox = page.getByRole("checkbox", {
       name: /I have read and agree to the Terms & Conditions/i,
     });
-    await expect(agreeCheckbox).toBeEnabled({timeout: 5000});
-    await agreeCheckbox.check()
+    await expect(agreeCheckbox).toBeEnabled({ timeout: 5000 });
+    await agreeCheckbox.check();
 
-    const acceptButton = page.getByRole("button", {name: "Accept & Continue"});
+    const acceptButton = page.getByRole("button", {
+      name: "Accept & Continue",
+    });
     await expect(acceptButton).toBeEnabled();
     await acceptButton.click();
-    await expect(termsHeading).not.toBeVisible({timeout: 5000});
+    await expect(termsHeading).not.toBeVisible({ timeout: 5000 });
   }
 
-
-   await page.getByRole("button", { name: /^signup$/i }).click();
+  await page.getByRole("button", { name: /^signup$/i }).click();
 
   await page.waitForURL(/verify-otp/);
 
@@ -83,14 +91,25 @@ export async function signupAndLogin(
   await expect(page.getByText("success", { exact: true })).toBeVisible({
     timeout: 20000,
   });
+  await page.getByRole("button", { name: /proceed to login/i }).click();
 
-  
-  await page.waitForURL(/\/auth\/Login/, {timeout: 10000});
+  await page.waitForURL(/\/auth\/Login/, { timeout: 10000 });
 
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: /^login$/i }).click();
 
+  const continueBtn = page.getByRole("button", { name: /^continue$/i });
+
+  try {
+    await continueBtn.waitFor({ state: "visible", timeout: 5000 });
+    await continueBtn.click();
+  } catch {
+    // the user is already verified, no need for verification modal at all
+  }
+  await page.waitForURL((url) => !url.pathname.includes("/auth/Login"), {
+    timeout: 15000,
+  });
   await page.waitForURL(/\/buyer\/listings/);
 }
 
@@ -108,4 +127,24 @@ export async function loginAsAdmin(page: Page, request: APIRequestContext) {
   await page.getByRole("button", { name: /^login$/i }).click();
 
   await page.waitForURL(/\/admin\/disputes/);
+}
+
+export async function signupVerifyAndLogin(
+  page: Page,
+  request: APIRequestContext,
+  adminPage: Page,
+  { email, password = "Tafadzwa123!" }: { email: string; password?: string },
+) {
+  await signupAndLogin(page, request, { email, password });
+
+  await loginAsAdmin(adminPage, request);
+  const caseId = await findPendingVerificationCaseId(adminPage, email);
+  await approveVerificationCase(adminPage, caseId);
+
+  await page.goto("/auth/Login");
+  await page.locator('input[name="email"]').fill(email);
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole("button", { name: /^login$/i }).click();
+
+  await page.waitForURL(/\/buyer\/listings/, { timeout: 15000 });
 }

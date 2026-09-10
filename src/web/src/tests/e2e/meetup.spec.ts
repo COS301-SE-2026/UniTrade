@@ -36,6 +36,7 @@ test.describe("meetup scheduling and check-in", () => {
       sellerPage,
       buyerPage,
       request,
+      browser
     );
     await scheduleMeetupAndCheckIn(sellerPage, buyerPage, reservationId);
 
@@ -51,13 +52,14 @@ test.describe("meetup scheduling and check-in", () => {
   });
 
   test("buyer can decline a meetup proposal", async ({ browser, request }) => {
+    test.setTimeout(150_000);
     const sellerContext = await browser.newContext();
     const buyerContext = await browser.newContext();
 
     const sellerPage = await sellerContext.newPage();
     const buyerPage = await buyerContext.newPage();
 
-    await createListingAndReserve(sellerPage, buyerPage, request);
+    await createListingAndReserve(sellerPage, buyerPage, request, browser);
 
     await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
     await expect(
@@ -123,7 +125,7 @@ test.describe("meetup scheduling and check-in", () => {
         configurable: true,
       });
     });
-    await createListingAndReserve(sellerPage, buyerPage, request);
+    await createListingAndReserve(sellerPage, buyerPage, request, browser);
 
     await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
     await expect(

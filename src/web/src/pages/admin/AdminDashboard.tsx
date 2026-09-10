@@ -165,7 +165,7 @@ export default function AdminDashboard() {
           title="SLA Breaches"
           value={slaBreached}
           sub={slaBreached > 0 ? "Needs urgent review" : "All within SLA"}
-          subColor={slaBreached > 0 ? "text-red-500" : "text-green-600"}
+          subColor={slaBreached > 0 ? "text-red-600" : "text-green-600"}
           subIcon={<IconAlertTriangle size={13} />}
         />
 
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             <button
               type='button'
               onClick={() => navigate('/admin/verifications')}
-              className="text-xs text-[#00aaff] hover:underline"
+              className="text-xs text-sky-700 hover:underline"
             >
               View All
             </button>
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
             <button
               type='button'
               onClick={() => navigate('/admin/disputes')}
-              className="text-xs text-[#00aaff] hover:underline"
+              className="text-xs text-sky-700 hover:underline"
             >
               View All
             </button>
