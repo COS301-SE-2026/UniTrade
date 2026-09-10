@@ -36,19 +36,20 @@ jobs:
       - name: Run Gitleaks scan
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            gitleaks defect \
+            gitleaks detect \
               --source . \
-              --log-opts = $"{{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" \
+              --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" \
               --config .gitleaks.toml \
               --verbose \
               --redact
           else
-            gitleaks defect \
+            gitleaks detect \
               --source . \
-              --log-opts = $"{{ github.event.before }}..${{ github.sha }}" \
+              --log-opts="${{ github.event.before }}..${{ github.sha }}" \
               --config .gitleaks.toml \
               --verbose \
               --redact
+          fi
             
 
   
