@@ -35,7 +35,21 @@ jobs:
           sudo mv gitleaks /usr/local/bin
 
       - name: Run Gitleaks scan
-        run: gitleaks detect --source . --config .gitleaks.toml --verbose --redact
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            gitleaks defect \
+              --source . \
+              --log-opts = $"{{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" \
+              --config .gitleaks.toml \
+              --verbose \
+              --redact
+          else
+            gitleaks defect \
+              --source . \
+              --log-opts = $"{{ github.event.before }}..${{ github.sha }}" \
+              --config .gitleaks.toml \
+              --verbose \
+              --redact
 
   build-and-test:
     needs: gitleaks
