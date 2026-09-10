@@ -109,7 +109,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5000,
+                    PermitLimit = 5,
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
@@ -124,7 +124,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 1000,
+                    PermitLimit = 10,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
@@ -139,7 +139,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5000,
+                    PermitLimit = 5,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }
@@ -154,7 +154,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5000,
+                    PermitLimit = 5,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
