@@ -109,18 +109,7 @@ public class ChatService : IChatService
         }
 
         var dto = ToDto(result);
-
-        try
-        {
-            var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
-            var receivingPartyId = parties.BuyerId == senderId ? parties.SellerId : parties.BuyerId;
-            var preview = content.Length > 100 ? content[..100] + "..." : content;
-            await _pushNotifier.NotifyAsync(receivingPartyId, NotificationTypes.Chat, preview, ct);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Chat push failed for reservation: {ReservationId}", reservationId);
-        }
+        await NotifyRecipientAsync(reservationId, senderId, content, ct);
         return dto;
     }
 
@@ -355,5 +344,25 @@ public class ChatService : IChatService
         }
 
         return dto;
+    }
+
+    private async Task NotifyRecipientAsync(
+        Guid reservationId,
+        Guid senderId,
+        string content,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var parties = await _membership.GetReservationPartiesAsync(reservationId, ct);
+            var receivingPartyId = parties.BuyerId == senderId ? parties.SellerId : parties.BuyerId;
+            var preview = content.Length > 100 ? content[..100] + "..." : content;
+            await _pushNotifier.NotifyAsync(receivingPartyId, NotificationTypes.Chat, preview, ct);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Chat push failed for reservation: {ReservationId}", reservationId);
+        }
     }
 }

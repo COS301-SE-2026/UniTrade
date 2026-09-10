@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Modules.Reviews.Models;
 using Modules.Reviews.Repositories;
 
+namespace Infrastructure.Persistence.Repositories.Reviews;
+
 public class ReviewRepository(AppDbContext db) : IReviewRepository
 {
     private readonly AppDbContext _db = db;

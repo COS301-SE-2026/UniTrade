@@ -16,7 +16,7 @@ export function StarRating({
     onChange, 
     size = 28, 
     readOnly = false,
-} : StarRatingProps) {
+} : Readonly<StarRatingProps>) {
     const stars = [1, 2, 3, 4, 5]
 
     return (
@@ -28,11 +28,12 @@ export function StarRating({
                     <button 
                     key = {star}
                     type = "button"
+                    role={readOnly? undefined : 'radio'}
                     disabled = {readOnly}
                     onClick = {() => onChange?.(star)}
                     className = {`transition-transform ${readOnly ? 'cursor-default' : 'hover:scale-110 cursor-pointer'}`}
                     aria-label = {`${star} star${star > 1 ? 's' : ''}`}
-                    aria-checked = {filled}
+                    aria-checked = {readOnly? undefined : filled}
                 >
                     {filled ? (
                         <IconStarFilled size = {size} className = "text-amber-400" />
@@ -71,7 +72,7 @@ export default function ReviewFrom({
     revieweeLabel,
     onSubmitted,
     onCancel,
-}: ReviewFormProps) {
+}: Readonly<ReviewFormProps>) {
     const [rating, setRating] = useState(0)
     const [comment, setComment] = useState('')
     const [submitting, setSubmitting] = useState(false)

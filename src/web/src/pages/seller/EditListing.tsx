@@ -310,9 +310,9 @@ const EditListing: React.FC = () => {
               </h4>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">
+                <span className="block text-xs font-semibold text-slate-500 mb-2">
                   Category
-                </label>
+                </span>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((cat) => (
                     <button
@@ -525,7 +525,7 @@ const EditListing: React.FC = () => {
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">Pricing</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">
+                  <label htmlFor="edit-price" className="block text-xs font-semibold text-slate-500 mb-1">
                     Price (ZAR)
                   </label>
                   <div className="relative rounded-xl shadow-xs">
@@ -535,6 +535,7 @@ const EditListing: React.FC = () => {
                       </span>
                     </div>
                     <input
+                      id="edit-price"
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleChange("price", e.target.value)}
@@ -543,9 +544,9 @@ const EditListing: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">
+                  <span className="block text-xs font-semibold text-slate-500 mb-2">
                     Condition
-                  </label>
+                  </span>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {(["Like_New", "Good", "Fair", "Worn"] as const).map(
                       (item) => (

@@ -190,9 +190,7 @@ describe("Initial loding, data fethcing", () => {
       </QueryClientProvider>
     );
 
-    await waitFor(() =>
-      expect(screen.getByText(/failed to load categories/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/failed to load categories/i)).toBeInTheDocument();
   });
 
   it("sets an error message if getById fails", async () => {
@@ -205,9 +203,7 @@ describe("Initial loding, data fethcing", () => {
       </QueryClientProvider>
     );
 
-    await waitFor(() =>
-      expect(screen.getByText(/failed to load listing/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/failed to load listing/i)).toBeInTheDocument();
 
     expect(screen.queryByText(/^loading/i)).not.toBeInTheDocument();
   });
@@ -450,7 +446,7 @@ describe("New file uploads", () => {
       const previews = Array.from(grid.querySelectorAll("img")).filter((el) =>
         (el as HTMLImageElement).src.includes("blob:mock-url"),
       );
-      expect(previews.length).toBe(1);
+      expect(previews).toHaveLength(1);
     });
     expect(globalThis.URL.createObjectURL).toHaveBeenCalledWith(file);
   });
@@ -463,9 +459,7 @@ describe("New file uploads", () => {
 
     fireEvent.change(fileInput, { target: { files: [bigFile] } });
 
-    await waitFor(() =>
-      expect(screen.getByText(/exceed the 10mb limit/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/exceed the 10mb limit/i)).toBeInTheDocument();
     expect(screen.getByText(/huge\.png/)).toBeInTheDocument();
     expect(fileInput.value).toBe("");
   });
@@ -487,7 +481,7 @@ describe("New file uploads", () => {
       const previews = Array.from(grid.querySelectorAll("img")).filter((el) =>
         (el as HTMLImageElement).src.includes("blob:mock-url"),
       );
-      expect(previews.length).toBe(2);
+      expect(previews).toHaveLength(2);
     });
   });
 
@@ -498,9 +492,7 @@ describe("New file uploads", () => {
     const fileInput = getHiddenFileInput(container);
     fireEvent.change(fileInput, { target: { files: [makeFile("x.png", 1000)] } });
 
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /remove new image/i })).toBeInTheDocument(),
-    );
+    expect(await screen.findByRole("button", { name: /remove new image/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /remove new image/i }));
 
@@ -519,7 +511,7 @@ describe("New file uploads", () => {
       const slotButtons = screen.queryAllByRole("button").filter(
         (b) => b.querySelector('[data-testid="icon-upload"]') !== null,
       );
-      expect(slotButtons.length).toBe(0);
+      expect(slotButtons).toHaveLength(0);
     });
   });
 });
@@ -533,8 +525,7 @@ describe("Save flow", () => {
 
     await renderAndLoad({ category: "book", courseCode: "301" });
 
-    await waitFor(() =>
-      expect(screen.getByText(/module selected/i)).toBeInTheDocument());
+    expect(await screen.findByText(/module selected/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalledTimes(1));
@@ -595,9 +586,7 @@ describe("Save flow", () => {
 
     await renderAndLoad({ category: "book", courseCode: "114" });
 
-    await waitFor(() =>
-      expect(screen.getByText(/module selected/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/module selected/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
     await waitFor(() => expect(updateListing).toHaveBeenCalled());
@@ -671,9 +660,7 @@ describe("Save flow", () => {
 
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/failed to save changes/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/failed to save changes/i)).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /save changes/i })).not.toBeDisabled();
   });
@@ -689,9 +676,7 @@ describe("Save flow", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    await waitFor(() =>
-      expect(screen.getByText(/failed to save changes/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/failed to save changes/i)).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

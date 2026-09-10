@@ -6,7 +6,7 @@ namespace Modules.Listings;
 
 public interface IListingService
 {
-    Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId);
+    Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId, CancellationToken ct = default);
     Task<bool> UpdateListings(
         UpdateListingDto listings,
         Guid id,

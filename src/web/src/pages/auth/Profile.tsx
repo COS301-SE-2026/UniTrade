@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import React, { useEffect, useState } from "react";
 import {
-  IconSettings, IconHistory, IconChevronRight, IconShieldLock, IconTrash,
+  IconChevronRight, IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
   IconCalendarStats, IconCircleCheck, IconClock,
 } from "@tabler/icons-react";
@@ -32,9 +32,10 @@ interface ProfileRowProps {
   danger?: boolean;
 }
 
-function ProfileRow({ icon, label, onClick, danger }: ProfileRowProps) {
+function ProfileRow({ icon, label, onClick, danger }: Readonly<ProfileRowProps>) {
   return (
     <button
+      type='button'
       onClick={onClick}
       className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text-left">
 
@@ -53,12 +54,12 @@ function InfoRow({
   icon,
   label,
   value,
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   label: string;
   value: string;
 
-}) {
+}>) {
   return (
     <div className="flex items-center gap-3 px-4 py-3.5">
       <span className="w-9 h-9 rounded-full bg-gray-50 text-navy-700 flex items-center justify-center flex-shrink-0">
@@ -73,7 +74,7 @@ function InfoRow({
   );
 }
 
-function VerificationBadge({ status }: { status: string }) {
+function VerificationBadge({ status }: Readonly<{ status: string }>) {
   const isVerified = status.toLowerCase() === "verified";
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold ${isVerified ? "bg-emerald-500/80 text-emerald-50" :
@@ -109,7 +110,7 @@ export default function Profile() {
   useEffect(() => {
     authService.getMe()
       .then((data) => {
-        if (data.std) {
+        if ('std' in data) {
           setProfile({
             email: data.user.email,
             university: data.std.university,
@@ -118,7 +119,7 @@ export default function Profile() {
             verificationStatus: data.std.verificationStatus
           });
         } else {
-          setProfile({ email: data.user.email });
+          setProfile({ email: data.email });
         }
       }).catch(() => setProfileError("Could not load profile details.")).finally(() => setLoadingProfile(false));
   }, []);
@@ -161,6 +162,7 @@ export default function Profile() {
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-start mb-4">
             <button
+              type='button'
               onClick={() => navigate(-1)}
               className="text-white/70 hover:text-white transition-colors mb-2"
               aria-label="Back">
@@ -169,20 +171,12 @@ export default function Profile() {
             <h1 className="text-2xl font-bold text-white">Profile</h1>
           </div>
 
-          <button
-            onClick={() => navigate("/profile/settings")}
-            className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all mt-4"
-            aria-label="Settings">
-            <IconSettings size={20} />
-          </button>
         </div>
 
         <div className="flex items-center gap-5">
           <div className="w-40 h-40 rounded-full bg-white text-navy-700 flex items-center justify-center text-5xl font-bold shadow-lg">
             {user.initials}
           </div>
-
-
           <div>
             <p className="text-base font-bold text-white text-xl">
               {user.name}
@@ -190,7 +184,7 @@ export default function Profile() {
             <div className="flex items-center gap-2 mt-5 flex-wrap">
 
               <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold ">
-                Student
+                {user.role}
               </span>
               {profile?.verificationStatus && (<VerificationBadge status={profile.verificationStatus} />
               )}
@@ -302,21 +296,8 @@ export default function Profile() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
 
-        <div className="pointer-events-none opacity-50">
-          <ProfileRow
-            icon={<IconHistory size={19} />}
-            label="View Activity History"
-            onClick={() => navigate("/activity")}
-          />
-        </div>
 
-        <div className="pointer-events-none opacity-50">
-          <ProfileRow
-            icon={<IconShieldLock size={19} />}
-            label="Privacy & Security"
-            onClick={() => navigate("/profile/privacy")}
-          />
-        </div>
+
 
 
         <ProfileRow
@@ -342,6 +323,7 @@ export default function Profile() {
                 <h3 className="font-bold text-navy-900">Delete Account </h3>
               </div>
               <button
+                type='button'
                 onClick={() => setShowDeleteConfirm(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Close">
@@ -357,11 +339,13 @@ export default function Profile() {
             )}
             <div className="flex gap-3">
               <button
+                type='button'
                 onClick={() => setShowDeleteConfirm(false)}
                 className="flex-1 rounded-full border border-gray-200 text-gray-600 font-semibold text-sm py-2.5 hover:bg-gray-50 transition-colors">
                 Cancel
               </button>
               <button
+                type='button'
                 data-testid="confirm-delete-button"
 
                 onClick={handleDeleteAccount}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Api.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -44,7 +45,7 @@ public class ListingControllerTests
     {
         var dto = ACreateDto(title: title, condition: condition, price: price);
 
-        var result = await _sut.Create(dto);
+        var result = await _sut.Create(dto, CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
@@ -118,7 +119,7 @@ public class ListingControllerTests
             .Setup(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId))
             .ReturnsAsync(ASummaryDto());
 
-        var result = await _sut.Create(dto);
+        var result = await _sut.Create(dto, CancellationToken.None);
 
         Assert.IsType<OkObjectResult>(result);
         _service.Verify(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId));
@@ -133,7 +134,7 @@ public class ListingControllerTests
             .Setup(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId))
             .ReturnsAsync(ASummaryDto());
 
-        var result = await _sut.Create(dto);
+        var result = await _sut.Create(dto, CancellationToken.None);
 
         Assert.IsType<OkObjectResult>(result);
     }
@@ -144,7 +145,7 @@ public class ListingControllerTests
         AuthenticateEnvoker();
         var dto = ADraftDto(title: "");
 
-        var result = await _sut.Create(dto);
+        var result = await _sut.Create(dto, CancellationToken.None);
 
         Assert.IsType<BadRequestObjectResult>(result);
         _service.Verify(
@@ -162,7 +163,7 @@ public class ListingControllerTests
             .Setup(s => s.CreateListings(It.IsAny<CreateListingDto>(), callerId))
             .ReturnsAsync(ASummaryDto());
 
-        var result = await _sut.Create(dto);
+        var result = await _sut.Create(dto, CancellationToken.None);
 
         Assert.IsType<OkObjectResult>(result);
     }

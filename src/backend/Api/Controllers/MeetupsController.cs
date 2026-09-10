@@ -1,8 +1,9 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modules.Reservations;
 using Modules.Chat.Models.Dto;
+using Modules.Reservations;
 
 namespace Api.Controllers;
 
@@ -13,8 +14,18 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
 {
     private readonly IMeetupService _meetups = meetups;
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
     // POST /api/reservations/__/meetup
     [HttpPost("propose")]
     public async Task<IActionResult> Propose(
@@ -113,7 +124,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
     }
 
     // decline proposal, and put for location change, add a edit unconfirmed meeutp, one a meetup is confirmed disacrd he other one
-    private IActionResult MapError(ReservationException ex) =>
+    private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
             ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),
@@ -142,12 +153,12 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
 
     public record ProposeMeetupRequest(
         string LocationName,
-        decimal Lat,
-        decimal Lng,
-        DateTime ProposedTime
+        [property: JsonRequired] decimal Lat,
+        [property: JsonRequired] decimal Lng,
+        [property: JsonRequired] DateTime ProposedTime
     );
 
-    public record RespondMeetupRequest(int ProposalMessageId);
+    public record RespondMeetupRequest([property: JsonRequired] int ProposalMessageId);
 
     public record CheckInRequest(decimal? Lat = null, decimal? Lng = null);
 }

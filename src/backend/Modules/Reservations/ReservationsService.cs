@@ -8,6 +8,7 @@ using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 using Modules.Wishlist;
+using Modules.Listings.Snapshot;
 
 namespace Modules.Reservations;
 
@@ -21,7 +22,8 @@ public class ReservationService(
     INotificationDispatcher pushNotifier,
     ILogger<ReservationService> logger,
     IWishlistService wishlist,
-    TimeProvider clock
+    TimeProvider clock,
+    IListingSnapshotService snapshots
 ) : IReservationService
 {
     private readonly IListingRepository _listings = listings;
@@ -34,6 +36,7 @@ public class ReservationService(
     private readonly INotificationDispatcher _pushNotifier = pushNotifier;
     private readonly ILogger<ReservationService> _logger = logger;
     private readonly TimeProvider _clock = clock;
+    private readonly IListingSnapshotService _snapshots = snapshots;
 
     public async Task<ReservationDto> CreateAsync(
         Guid listingId,
@@ -68,6 +71,7 @@ public class ReservationService(
         };
 
         await _reservations.AddAsync(reservation, ct);
+        await _snapshots.CreateSnapshotAsync(reservation.ReservationId, listing, ct);
         await _reservations.SaveAsync(ct);
         await _listingNotifier.ListingReservedAsync(listingId, ct);
         await _chat.SendSystemAsync(
@@ -179,21 +183,21 @@ public class ReservationService(
         CancellationToken ct = default
     )
     {
-        var reservations =
+        var reservation_s =
             role == "buyer"
                 ? await _reservations.ListForBuyerAsync(userId, ct)
                 : await _reservations.ListForSellerAsync(userId, ct);
 
-        if (reservations.Count == 0)
+        if (reservation_s.Count == 0)
         {
             return Array.Empty<ReservationListItemDto>();
         }
 
-        var ids = reservations.Select(r => r.ReservationId);
+        var ids = reservation_s.Select(r => r.ReservationId);
 
         var unread = await _chat.GetUnreadCountsAsync(ids, userId, ct);
         var lastMessages = await _chat.GetLastMessagesAsync(ids, ct);
-        return reservations
+        return reservation_s
             .Select(r =>
             {
                 var lastMsg = lastMessages.GetValueOrDefault(r.ReservationId);

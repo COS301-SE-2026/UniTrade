@@ -1,5 +1,6 @@
 using Modules.Chat.Models.Dto;
 using Modules.Reservations.Models.Dto;
+using Modules.Reservations.Models;
 
 namespace Modules.Reservations;
 
@@ -39,4 +40,6 @@ public interface IMeetupService
         int proposalMessageId,
         CancellationToken ct = default
     );
+
+    Task<IReadOnlyList<Meetup>> DetectNoShowsAsync(DateTime asOf, CancellationToken ct = default);
 }

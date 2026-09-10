@@ -30,4 +30,6 @@ public interface IListingRepository
         IEnumerable<Guid> sellerIds,
         CancellationToken ct = default
     );
+
+    Task<bool> AdminRemoveAsync(Guid listingId, string reason, CancellationToken ct = default);
 }

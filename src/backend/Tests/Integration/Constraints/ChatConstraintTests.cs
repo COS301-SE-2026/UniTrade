@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Api.Tests.Integration;
+using Docker.DotNet.Models;
 using Microsoft.EntityFrameworkCore;
 using Modules.Chat.Models;
 using Npgsql;
@@ -11,9 +12,13 @@ namespace UniTrade.Tests.Integration.Constraints;
 
 [Trait("Category", "Integration")]
 [Collection("DatabaseCollection")]
-
 public sealed class ChatConstraintTests
 {
+    private static readonly string[] _messageTypeOrPayloadConstraints =
+    {
+        "chk_message_type",
+        "chk_payload_type",
+    };
     private readonly DbFixture _fixture;
 
     public ChatConstraintTests(DbFixture fixture) => _fixture = fixture;
@@ -50,7 +55,7 @@ public sealed class ChatConstraintTests
         var exception = await Assert.ThrowsAnyAsync<DbUpdateException>(() => db.SaveChangesAsync());
         var postgres = Assert.IsType<PostgresException>(exception.InnerException);
         Assert.Equal("23514", postgres.SqlState);
-        Assert.Contains(postgres.ConstraintName, new[] { "chk_message_type", "chk_payload_type" });
+        Assert.Contains(postgres.ConstraintName, _messageTypeOrPayloadConstraints);
     }
 
     [Fact]

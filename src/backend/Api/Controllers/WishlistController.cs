@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms.Mapping;
 using Microsoft.AspNetCore.Mvc;
@@ -21,15 +22,28 @@ public class WishlistController : ControllerBase
         _wishlist = wishlist;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private bool TryGetCallerId(out Guid callerId)
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(callerIdClaim, out callerId);
+    }
 
     // POST /api/wishlist
     [HttpPost]
-    public async Task<IActionResult> Add([FromBody] AddToWishlistRequest request, CancellationToken ct)
+    public async Task<IActionResult> Add(
+        [FromBody] AddToWishlistRequest request,
+        CancellationToken ct
+    )
     {
+        if (!TryGetCallerId(out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
         try
         {
-            var item = await _wishlist.AddAsync(CallerId, request.ListingId, ct);
+            var item = await _wishlist.AddAsync(callerId, request.ListingId, ct);
             return Ok(item);
         }
         catch (WishlistException ex)
@@ -42,7 +56,12 @@ public class WishlistController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken ct)
     {
-        var items = await _wishlist.ListAsync(CallerId, ct);
+        if (!TryGetCallerId(out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        var items = await _wishlist.ListAsync(callerId, ct);
 
         return Ok(new { items, total = items.Count });
     }
@@ -51,18 +70,23 @@ public class WishlistController : ControllerBase
     [HttpDelete("{listingId:guid}")]
     public async Task<IActionResult> Remove(Guid listingId, CancellationToken ct)
     {
-        var removed = await _wishlist.RemoveAsync(CallerId, listingId, ct);
+        if (!TryGetCallerId(out var callerId))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+        var removed = await _wishlist.RemoveAsync(callerId, listingId, ct);
         return removed ? NoContent() : NotFound(new { error = WishlistErrors.NotFound });
     }
 
-    private IActionResult MapError(WishlistException ex) => ex.Message switch
-    {
-        WishlistErrors.ListingNotFound => NotFound(new { error = ex.Message }),
-        WishlistErrors.NotFound => NotFound(new { error = ex.Message }),
-        WishlistErrors.AlreadyWishlisted => Conflict(new { error = ex.Message }),
-        WishlistErrors.ListingUnavailable => Conflict(new { error = ex.Message }),
-        _ => StatusCode(500, new { error = "server_error" }),
-    };
+    private ObjectResult MapError(WishlistException ex) =>
+        ex.Message switch
+        {
+            WishlistErrors.ListingNotFound => NotFound(new { error = ex.Message }),
+            WishlistErrors.NotFound => NotFound(new { error = ex.Message }),
+            WishlistErrors.AlreadyWishlisted => Conflict(new { error = ex.Message }),
+            WishlistErrors.ListingUnavailable => Conflict(new { error = ex.Message }),
+            _ => StatusCode(500, new { error = "server_error" }),
+        };
 
-    public record AddToWishlistRequest(Guid ListingId);
+    public record AddToWishlistRequest([property: JsonRequired] Guid ListingId);
 }

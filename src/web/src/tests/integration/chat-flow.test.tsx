@@ -1,10 +1,9 @@
-import { test, vi, beforeEach, afterEach } from 'vitest'
+import { test, vi, beforeEach, afterEach, expect } from 'vitest'
 import { screen, render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTestQueryClient } from '../test-utils'
-//import { createMoackConnectionManager } from '../mocks/mockConnectionManager'
 import { resetMockReservations, seedMockReservation, resetMockListings, seedMockListing, resetMockMessages } from '../mocks/handlers'
 import { useAuthStore } from '../../store/useAuthStore'
 import { ToastProvider } from '../../components/layout/Toast'
@@ -100,5 +99,6 @@ test('buyer sends a mesage and sees it appear in the chat thread', async () => {
     await user.type(input, 'Hey, is this still available?')
     await user.click(screen.getByRole('button', { name: /send message/i}))
 
-    await screen.findByText('Hey, is this still available?')
+    const message =await screen.findByText('Hey, is this still available?')
+    expect(message).toBeInTheDocument()
 })

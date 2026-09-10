@@ -9,11 +9,23 @@ public static class ReservationStateMachine
     public static readonly TimeSpan SellerReleaseAfterBuyerSilence = TimeSpan.FromHours(12);
     public static readonly TimeSpan CheckinWindowAfterMeetup = TimeSpan.FromMinutes(30);
 
-    public static string DeriveTimerStage(Reservation r) =>
-        r.MeetupConfirmedAt is not null ? TimerStages.MeetupConfirmed
-        : r.BuyerRespondedAt is not null ? TimerStages.Coordinating
-        : r.SellerAcknowledgedAt is not null ? TimerStages.AwaitingBuyer
-        : TimerStages.AwaitingSeller;
+    public static string DeriveTimerStage(Reservation r)
+    {
+        if (r.MeetupConfirmedAt is not null)
+        {
+            return TimerStages.MeetupConfirmed;
+        }
+
+        if (r.BuyerRespondedAt is not null)
+        {
+            return TimerStages.Coordinating;
+        }
+        if (r.SellerAcknowledgedAt is not null)
+        {
+            return TimerStages.AwaitingBuyer;
+        }
+        return TimerStages.AwaitingSeller;
+    }
 
     // to be called after the system generates the first message
     public static void Acknowledge(Reservation r, Guid calledId, DateTime now)

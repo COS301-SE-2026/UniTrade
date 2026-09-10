@@ -1,5 +1,12 @@
 title = "UniTrade Gitleaks"
 
+[[rules]]
+id = "jwt-signing-secret"
+description = "Detect hardcoded JWT signing secrets"
+regex = '''(?i)(jwtsecret|jwt-key|jwt_secret|jwt-secret-key|signing[_-]?secret)\s*[:=]\s*["']([A-Za-z0-9+/=_-]{32,})["']'''
+secretGroup = 2
+keywords = ["jwt", "signing", "secret"]
+
 [[allowlists]]
 description = "Public Firebase Web API key used by the Web SDK"
 regexes = [

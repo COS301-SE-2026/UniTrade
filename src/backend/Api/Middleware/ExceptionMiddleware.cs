@@ -92,6 +92,6 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             new { error = error, retry_after_seconds = retryAfter }
         );
 
-        await response.WriteAsync(result);
+        await response.WriteAsync(result, context.RequestAborted);
     }
 }

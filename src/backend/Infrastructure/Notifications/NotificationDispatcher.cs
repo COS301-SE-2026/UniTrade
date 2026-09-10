@@ -47,13 +47,15 @@ public class NotificationDispatcher : INotificationDispatcher
 
         await _db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
-            "Notify: user={UserId}, online={IsOnline}, type={Type}",
-            userId,
-            _tracker.IsOnline(userId),
-            type
-        );
-
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Notify: user={UserId}, online={IsOnline}, type={Type}",
+                userId,
+                _tracker.IsOnline(userId),
+                type
+            );
+        }
         if (_tracker.IsOnline(userId))
         {
             return;
@@ -69,6 +71,8 @@ public class NotificationDispatcher : INotificationDispatcher
             "meetup_reminder" => "Meetup reminder",
             "listing_status" => "Listing update",
             "verification" => "Verification update",
+            "saved_search" => "New match for your search",
+            "listing_question" => "Listing Q&A",
             _ => "UT",
         };
 }

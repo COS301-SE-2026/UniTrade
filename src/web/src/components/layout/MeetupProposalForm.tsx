@@ -21,7 +21,7 @@ function currentTime(): string {
     return `${hours}:${minutes}`;
 }
 
-export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }: MeetupProposalFormProps) {
+export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }: Readonly<MeetupProposalFormProps>) {
     const [date, setDate] = useState(todayISODate());
     const [time, setTime] = useState(currentTime);
     const [locationName, setLocationName] = useState('');
@@ -49,17 +49,27 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                 }
             }
             catch {
-               // 
+                // 
             }
         })();
         return () => controller.abort();
     }, [coords, nameEdited]);
 
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key == 'Escape') {
+                onCancel();
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [onCancel]);
 
-    const canSubmit = !!date && !!time && !!locationName.trim() && coords !== null;
+    const hasValidCoords = coords != null && Number.isFinite(coords.lat) && Number.isFinite(coords.lng);
+    const canSubmit = !!date && !!time && !!locationName.trim() && hasValidCoords;
 
     const handleSubmit = () => {
-        if (!canSubmit || !coords) return;
+        if (!canSubmit || !hasValidCoords || !coords) return;
 
         onSubmit({
             date, time, location: { name: locationName.trim(), lat: coords.lat, lng: coords.lng },
@@ -69,11 +79,9 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
     return (
         <div
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
-            onClick={onCancel}
         >
             <div
                 className="w-full max-w-md bg-white rounded-t-3xl p-5 pb-6 shadow-xl max-h-[90vh] overflow-y-auto"
-                onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-5">
                     <h2 className="text-lg font-bold text-gray-900">
@@ -84,12 +92,13 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                     </button>
                 </div>
 
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <label htmlFor='date' className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                     Date
                 </label>
                 <div className="relative mb-4">
                     <IconCalendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
+                        id="date"
                         type="date"
                         value={date}
                         min={todayISODate()}
@@ -98,12 +107,14 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                     />
                 </div>
 
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <label htmlFor="time" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                     Time
                 </label>
                 <div className="relative mb-4">
                     <IconClock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
+
+                        id="time"
                         type="time"
                         value={time}
                         onChange={(e) => setTime(e.target.value)}
@@ -111,12 +122,13 @@ export default function MeetupProposalForm({ onCancel, onSubmit, isSubmitting }:
                     />
                 </div>
 
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <label htmlFor='location' className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                     Meetup Location
                 </label>
                 <div className="relative mb-2">
                     <IconMapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
+                        id="location"
                         type="text"
                         value={locationName}
                         onChange={(e) => { setLocationName(e.target.value); setNameEdited(true); }}

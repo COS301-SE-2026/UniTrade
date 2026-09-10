@@ -84,7 +84,7 @@ const SellerDashboard: React.FC = () => {
             <p className="text-white text-sm font-bold">New Listing</p>
             <span className="text-white/70"><IconPlus size={16} /></span>
           </div>
-          <button
+          <button type='button'
             onClick={() => navigate('/seller/upload')}
             className="w-full h-[52px] flex items-center justify-center text-slate-300 hover:text-[#003366] transition-colors"
           >
@@ -99,7 +99,7 @@ const SellerDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-sm font-bold text-gray-800">Recent Orders</h2>
-            <button className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
+            <button type='button' className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
               All <IconDots size={12} />
             </button>
           </div>
@@ -148,7 +148,7 @@ const SellerDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-sm font-bold text-gray-800">Sales Performance</h2>
-            <button className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
+            <button type='button' className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
               Last 7 days <IconCalendar size={12} />
             </button>
           </div>

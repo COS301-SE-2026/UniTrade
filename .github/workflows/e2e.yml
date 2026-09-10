@@ -3,9 +3,9 @@ name: E2E Tests
 on:
     workflow_call:
     pull_request:
-        branches: ["dev", "main"]
+        branches-ignore: ["**"]
     push:
-        branches-ignore: ["main", "dev"]
+         branches: ["feature/TL_FX"]
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}
@@ -14,7 +14,7 @@ concurrency:
 jobs:
     e2e-tests:
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 45
         
         steps:
             - name: Checkout code
@@ -30,10 +30,17 @@ jobs:
             - name: Install frontend dependencies
               working-directory: src/web
               run: npm ci --ignore-scripts
+              
+            - name: Cache Playwright browsers
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  
+              id: playwright-cache
+              with:
+                path: ~/.cache/ms-playwright
+                key: playwright-${{ runner.os }}-${{ hashFiles('src/web/package-lock.json')}}
 
             - name: Install Playwright browsers
               working-directory: src/web
-              run: npx playwright install --with-deps
+              run: npx --no-install playwright install --with-deps
             
             - name: Start db, backend, frontend
               working-directory: infra/docker
@@ -82,7 +89,7 @@ jobs:
                     if curl -sf http://localhost:3000/config.json > /dev/null; then
                         echo "Frontend is up"; exit 0
                     fi
-                    echo "Waiting for frontend ... ($i/30)"; sleep 5
+                    echo "Waiting for frontend ... ($i/20)"; sleep 5
                 done
                 echo "Frontend did not become healthy in time"; exit 1
   
@@ -121,6 +128,16 @@ jobs:
                 path: infra/docker/e2e-container-logs.txt
                 retention-days: 7
 
+            - name: Upload Playwright test results
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+              with:
+                name: playwright-test-results
+                path: src/web/test-results
+                retention-days: 7
+                if-no-files-found: ignore
+            
+
             - name: Upload Playwright report
               if: always()
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -128,6 +145,7 @@ jobs:
                 name: playwright-report
                 path: src/web/playwright-report
                 retention-days: 7
+            
 
             - name: Compose down containers
               if: always()

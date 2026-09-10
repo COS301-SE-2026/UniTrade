@@ -130,10 +130,9 @@ export interface MessagesReadEvent {
     upToMessageId: number;
     readBy: string;
 }
-export type ApiErrorCode = 'already_reserved' | string;
 
 export interface ApiError {
-    code: ApiErrorCode;
+    code: string;
     message?: string;
     status: number;
 }

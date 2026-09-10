@@ -79,3 +79,5 @@ docker-compose.override.yml
 **/values.dev.yaml
 LICENSE
 README.md
+
+.sonarqube/

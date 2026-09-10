@@ -18,6 +18,7 @@ using Modules.Listings.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
+using Modules.Identity.Verification;
 
 namespace Modules.Identity;
 
@@ -27,22 +28,26 @@ public class IdentityService : IIdentityService
 {
     private readonly IUserRepository _users;
     private readonly IUniversityRepository _universities;
+    private readonly IVerificationRepository _verifications;
 
     private readonly IListingRepository _listings;
     private readonly IConfiguration _config;
 
     private const string _studentRole = "student";
     private const string _pendingStatus = "pending";
+    private const string _notFoundString = "not_found";
 
     public IdentityService(
         IUserRepository users,
         IUniversityRepository universities,
+        IVerificationRepository verifications,
         IListingRepository listing,
         IConfiguration config
     )
     {
         _users = users;
         _universities = universities;
+        _verifications = verifications;
         _listings = listing;
         _config = config;
     }
@@ -122,6 +127,7 @@ public class IdentityService : IIdentityService
             PhoneNumber = dto.PhoneNumber ?? "",
             PasswordHash = passwordHash,
             Role = _studentRole,
+            TermsAcceptedAt = dto.TermsAcceptedAt,
 
             StudentProfile = new StudentProfile
             {
@@ -377,7 +383,7 @@ public class IdentityService : IIdentityService
 
         if (user.Role == _studentRole)
         {
-            claims.Add(new Claim("verification_status"!, verificationStatus!));
+            claims.Add(new Claim("verification_status", verificationStatus!));
         }
 
         //blueprint for the token(form)
@@ -395,11 +401,12 @@ public class IdentityService : IIdentityService
 
         if (getUser == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
 
         if (getUser.Role == _studentRole)
         {
+            var currentVerification = await _verifications.GetCurrentByUserIdAsync(getUser.UserId);
             //make a student dto
             return new
             {
@@ -416,6 +423,9 @@ public class IdentityService : IIdentityService
                 {
                     VerificationStatus =
                         getUser.StudentProfile?.VerificationStatus ?? _pendingStatus,
+                    VerificationRequestStatus = currentVerification?.Status,
+                    VerificationAdminDecision = currentVerification?.AdminDecision,
+                    VerificationRejectionReason = currentVerification?.RejectionReason,
                     DegreeProgram = getUser.StudentProfile?.DegreeProgram ?? string.Empty,
                     YearOfStudy = getUser.StudentProfile?.YearOfStudy ?? 1,
                     University = getUser.StudentProfile?.University?.Name ?? string.Empty,
@@ -431,6 +441,7 @@ public class IdentityService : IIdentityService
             FirstName = getUser.FirstName,
             LastName = getUser.LastName,
             Email = getUser.Email,
+            UserRole = getUser.Role,
         };
     }
 
@@ -440,7 +451,7 @@ public class IdentityService : IIdentityService
 
         if (user == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
         if (dto.YearOfStudy < 1 || dto.YearOfStudy > 8)
         {
@@ -485,7 +496,7 @@ public class IdentityService : IIdentityService
         var user = await _users.GetByIdAsync(Guid.Parse(userId));
         if (user == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
 
         user.IsDeleted = true;
@@ -514,5 +525,26 @@ public class IdentityService : IIdentityService
             signingCredentials: creds
         );
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<string> GenerateAuthTokenAsync(Guid userId)
+    {
+        var user = await _users.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new IdentityException(_notFoundString);
+        }
+
+        string verificationStatus;
+        if (user.Role == _studentRole)
+        {
+            verificationStatus = user.StudentProfile?.VerificationStatus ?? _pendingStatus;
+        }
+        else
+        {
+            verificationStatus = _pendingStatus;
+        }
+
+        return TokenGenerator(user, verificationStatus);
     }
 }

@@ -15,7 +15,7 @@ public sealed class BrowseFilterTests
 
     public BrowseFilterTests(DbFixture fixture) => _fixture = fixture;
 
-    private ListingRepository Repo(AppDbContext context) => new(context);
+    private static ListingRepository Repo(AppDbContext context) => new(context);
 
     [Fact]
     public async Task ListAsync_ExcludesRemovedListings_EvenWithoutTheStatusFilter()

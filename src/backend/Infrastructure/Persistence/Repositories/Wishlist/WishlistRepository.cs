@@ -29,11 +29,11 @@ public class WishlistRepository : IWishlistRepository
             .WishlistItems.AsNoTracking()
             .Where(w => w.StudentId == student)
             .Include(w => w.Listing)
-                .ThenInclude(l => l!.Images)
+                .ThenInclude(l => l.Images)
             .Include(w => w.Listing)
-                .ThenInclude(l => l!.Category)
+                .ThenInclude(l => l.Category)
             .Include(w => w.Listing)
-                .ThenInclude(l => l!.BookDetails)
+                .ThenInclude(l => l.BookDetails)
             .OrderByDescending(w => w.AddedAt)
             .ToListAsync(ct);
 

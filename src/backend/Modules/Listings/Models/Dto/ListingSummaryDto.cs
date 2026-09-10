@@ -23,5 +23,6 @@ public record ListingSummaryDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     IReadOnlyList<ListingImageDto> Images,
-    SellerInfoDto? Seller
+    SellerInfoDto? Seller,
+    int AnsweredQuestionCount = 0
 );

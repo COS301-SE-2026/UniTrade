@@ -36,6 +36,7 @@ function makeCandidate(overrides: Partial<BrowseListing> = {}): BrowseListing {
     condition: 'Good',
     metadata: null,
     sellerId: 'seller-2',
+    answeredQuestionCount: 2,
     ...overrides,
   }
 }

@@ -24,7 +24,7 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
-            .Include(l => l.Images)
+            .Include(l => l.Course)
             .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
@@ -34,6 +34,7 @@ public class ListingRepository : IListingRepository
         {
             return null;
         }
+        await AttachImagesAsync(new[] { listing });
         await AttachSellerInfoAsync(new[] { listing });
 
         return listing;
@@ -56,8 +57,8 @@ public class ListingRepository : IListingRepository
         IQueryable<Listing> query = _db
             .Listings.AsNoTracking()
             .Include(l => l.Category)
-            .Include(l => l.BookDetails)
-            .Include(l => l.Images);
+            .Include(l => l.BookDetails);
+
         query = query.Where(l => l.ListingStatus != _removedStatus);
         query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
@@ -85,14 +86,17 @@ public class ListingRepository : IListingRepository
 
         var total = await query.CountAsync();
 
+        var take = Math.Clamp(listingFilterDto.Take, 1, 100);
+
         // Map to entity
         var items = await query
             .OrderByDescending(l => l.CreatedAt)
+            .ThenByDescending(l => l.ListingId)
             .Skip(listingFilterDto.Skip)
-            .Take(listingFilterDto.Take)
-            .AsSplitQuery()
+            .Take(take)
             .ToListAsync();
 
+        await AttachImagesAsync(items);
         await AttachSellerInfoAsync(items);
 
         return (items, total);
@@ -222,7 +226,7 @@ public class ListingRepository : IListingRepository
                 && (l.ListingStatus == "live" || l.ListingStatus == "pending")
             )
             .ToListAsync();
-        if (!listings.Any())
+        if (listings.Count == 0)
         {
             return;
         }
@@ -271,5 +275,64 @@ public class ListingRepository : IListingRepository
             .GroupBy(l => l.SellerId)
             .Select(g => new { SellerId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.SellerId, x => x.Count, ct);
+    }
+
+    private async Task AttachImagesAsync(IReadOnlyCollection<Listing> listings)
+    {
+        if (listings.Count == 0)
+        {
+            return;
+        }
+
+        var listingIds = listings.Select(l => l.ListingId).ToList();
+
+        var images = await _db
+            .ListingImages.AsNoTracking()
+            .Where(img => listingIds.Contains(img.ListingId))
+            .Select(img => new
+            {
+                img.ImageId,
+                img.ListingId,
+                img.IsPrimary,
+            })
+            .ToListAsync();
+
+        var byListing = images
+            .GroupBy(img => img.ListingId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var listing in listings)
+        {
+            listing.Images = byListing.TryGetValue(listing.ListingId, out var imgs)
+                ? imgs.Select(i => new ListingImage
+                {
+                    ImageId = i.ImageId,
+                    ListingId = i.ListingId,
+                    IsPrimary = i.IsPrimary,
+                    ImageData = Array.Empty<byte>(),
+                    ContentType = string.Empty,
+                })
+                    .ToList()
+                : new List<ListingImage>();
+        }
+    }
+
+    public async Task<bool> AdminRemoveAsync(
+        Guid listingId,
+        string reason,
+        CancellationToken ct = default
+    )
+    {
+        var rowsFetched = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus != _removedStatus)
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, "removed")
+                        .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+
+        return rowsFetched == 1;
     }
 }
