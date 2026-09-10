@@ -177,3 +177,11 @@ jobs:
 
       - name: Validate backend docker image
         run: docker build -f src/backend/Api/Dockerfile -t unitrade-backend-ci .
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 
+        with:
+          image-ref: unitrade-backend-ci
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
