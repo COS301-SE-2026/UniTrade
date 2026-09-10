@@ -105,6 +105,14 @@ jobs:
       - name: Validate Frontend docker image
         working-directory: src/web
         run: docker build -t unitrade-web-ci .
+      
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 
+        with:
+          image-ref: unitrade-web-ci
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
 
       - name: Install SonarScanner
         run: npm install -g @sonar/scan@4.3.0 --ignore-scripts
