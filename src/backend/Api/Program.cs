@@ -13,14 +13,19 @@ using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.Disputes;
 using Infrastructure.Persistence.Repositories.Identity;
+using Infrastructure.Persistence.Repositories.Images;
 using Infrastructure.Persistence.Repositories.ListingImages;
+using Infrastructure.Persistence.Repositories.ListingQuestions;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
 using Infrastructure.Persistence.Repositories.Transactions;
+using Infrastructure.Persistence.SavedSearches;
 using Infrastructure.Realtime;
+using Infrastructure.Services;
 using Infrastructure.Storage;
 using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -34,9 +39,12 @@ using Modules.Audit.Repositories;
 using Modules.Chat;
 using Modules.Chat.Repository;
 using Modules.Disputes;
+using Modules.Disputes.Repositories;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
@@ -54,24 +62,15 @@ using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
 using Modules.Reviews.Repositories;
+using Modules.SavedSearches;
+using Modules.SavedSearches.Models;
+using Modules.SavedSearches.Repositories;
 using Modules.SharedKernel;
+using Modules.SharedKernel.Repositories;
 using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
-using Modules.Disputes.Repositories;
-using Infrastructure.Persistence.Repositories.Disputes;
-using Modules.SharedKernel.Repositories;
-using Infrastructure.Persistence.Repositories.Images;
-using Infrastructure.Services;
-using Modules.SavedSearches.Models;
-using Modules.SavedSearches;
-using Modules.SavedSearches.Repositories;
-using Infrastructure.Persistence.SavedSearches;
-using Modules.ListingQuestions.Repositories;
-using Infrastructure.Persistence.Repositories.ListingQuestions;
-using Modules.ListingQuestions;
-
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -169,7 +168,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+    connectionString =
+        "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
 }
 
 var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
@@ -281,8 +281,13 @@ builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
 builder.Services.AddScoped<SavedSearchService>();
 builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<SavedSearchService>());
-builder.Services.AddScoped<IListingPublishedListener>(sp => sp.GetRequiredService<SavedSearchService>());
-builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
+builder.Services.AddScoped<IListingPublishedListener>(sp =>
+    sp.GetRequiredService<SavedSearchService>()
+);
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
 builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
 builder.Services.AddScoped<IListingQuestionRepository, ListingQuestionRepository>();
 builder.Services.AddScoped<IListingQuestionService, ListingQuestionService>();
@@ -305,7 +310,9 @@ var jwtSecret = builder.Configuration["Jwt:Secret"];
 
 if (string.IsNullOrEmpty(jwtSecret))
 {
-    throw new InvalidOperationException("JWT_SECRET is not configured, use user-secrets (dotnet) locally, or the ci-secret");
+    throw new InvalidOperationException(
+        "JWT_SECRET is not configured, use user-secrets (dotnet) locally, or the ci-secret"
+    );
 }
 
 var key = Encoding.UTF8.GetBytes(jwtSecret);
@@ -339,7 +346,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 var app = builder.Build();
-
 
 app.UseForwardedHeaders();
 
