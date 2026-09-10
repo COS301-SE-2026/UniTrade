@@ -8,3 +8,7 @@ build
 .env.local
 .env.*.local
 .env.*
+playwright-report
+test-results
+lighthouse-reports
+coverage
