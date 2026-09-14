@@ -242,7 +242,7 @@ export default function AdminVerificationReview() {
   return (
     <div className="space-y-4">
 
-      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+      <div className="flex items-center gap-1.5 text-xs text-gray-600">
         <button
           type="button"
           className="text-sky-700 cursor-pointer hover:underline"

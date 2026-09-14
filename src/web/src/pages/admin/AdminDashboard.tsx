@@ -125,7 +125,7 @@ export default function AdminDashboard() {
   }
 
   if (error) {
-    return <p className="text-sm text-gray-400">Failed to load dashboard data</p>;
+    return <p className="text-sm text-gray-600">Failed to load dashboard data</p>;
   }
   function getTimeAgo(ageHours: number): string {
     if (ageHours < 1) return 'Just now'
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
           title="SLA Breaches"
           value={slaBreached}
           sub={slaBreached > 0 ? "Needs urgent review" : "All within SLA"}
-          subColor={slaBreached > 0 ? "text-red-600" : "text-green-600"}
+          subColor={slaBreached > 0 ? "text-red-600" : "text-green-700"}
           subIcon={<IconAlertTriangle size={13} />}
         />
 
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
 
           {
             verificationRows.length === 0 ? (
-              <p className='text-sm text-gray-400'>No pending verifications.</p>
+              <p className='text-sm text-gray-600'>No pending verifications.</p>
             ) :
               (
                 (verificationRows.map((row, idx) =>
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
             </button>
           </div>
           {disputeRows.length === 0 ? (
-            <p className='text-sm text-gray-400'>No active disputes</p>
+            <p className='text-sm text-gray-600'>No active disputes</p>
           ) : (
             disputeRows.map((row, idx) => (
               <DisputeRow key={idx} {...row} />
