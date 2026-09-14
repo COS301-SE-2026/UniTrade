@@ -10,6 +10,26 @@
 ### The trusted peer-to-peer marketplace for South African university students
 
 <br/>
+<!---
+<table>
+  <tr>
+    <td>
+      <img src="src/web/src/assets/DevNexus-Logo.png" alt="DevNexus" height="70">
+      <br/>
+      <sub><em>Built by</em></sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="src/web/src/assets/AgileBridgeLogo.png" alt="Agile Bridge" height="55">
+      <br/>
+      <sub><em>In Collaboration with </em></sub>
+    </td>
+  </tr>
+</table>
+
+<br/>
+<sub><em>Built by the DevNexus Team · University of Pretoria · COS301 Capstone 2026</em></sub>
+
+<br/><br/>
 
 <!-- CI/CD Status Pipeline Badges -->
 
@@ -18,8 +38,7 @@
 
 <!-- Uptime Monitoring Badges-->
 
-[![Uptime Status](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=uptime)](https://stats.uptimerobot.com/)
-[![Uptime Ratio (30d)](https://img.shields.io/uptimerobot/ratio/30/m803674174-30a848fbf196d9ea502cdcc3?label=30d%20uptime)](https://stats.uptimerobot.com/)
+[![Uptime Status](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=status)](https://stats.uptimerobot.com/)
 
 <!-- Quality, Licensing & Contribution Badges -->
 
@@ -29,21 +48,6 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/COS301-SE-2026/UniTrade/blob/main/CONTRIBUTING.md)
 [![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 
-<br/>
-
-<sub>
-<em>Built by the DevNexus Team · University of Pretoria · COS301 Capstone 2026
-</em></sub>
-
-<br/><br/>
-
-<sub><em>In Collaboration with </em></sub>
-
-<br/>
-
-<img src="src/web/src/assets/DevNexus-Logo.png" alt="DevNexus" hright="60">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="src/web/src/assets/AgileBridgeLogo.png" alt="Agile Bridge" hright="60">
 
 </div>
 
