@@ -32,8 +32,18 @@
 <br/>
 
 <sub>
-<em>The DevNexus Team — University of Pretoria · COS301 Capstone 2026
+<em>Built by the DevNexus Team · University of Pretoria · COS301 Capstone 2026
 </em></sub>
+
+<br/><br/>
+
+<sub><em>In Collaboration with </em></sub>
+
+<br/>
+
+<img src="src/web/src/assets/DevNexus-Logo.png" alt="DevNexus" hright="60">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="src/web/src/assets/AgileBridgeLogo.png" alt="Agile Bridge" hright="60">
 
 </div>
 
