@@ -346,9 +346,18 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 </details>
 
+
+---
+
+
+## Project Structure
+
 <details>
   <summary><strong>Project Structure</strong></summary>
 
+  <p align="center">
+         <img src="https://img.shields.io/badge/Project_Structure-View-04b4fd?style=for-the-badge&labelColor=4d4d4d" height="40" alt="Project Structure">
+  </p>
 
 ```
 UniTrade/
@@ -386,7 +395,6 @@ UniTrade/
 
 ```
 </details>
----
 
 ## Development Approach
 
