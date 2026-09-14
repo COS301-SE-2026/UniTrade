@@ -184,6 +184,8 @@ jobs:
           git push
  
   code-quality:
+    permissions:
+      contents: write
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -228,3 +230,22 @@ jobs:
           image-ref: unitrade-backend-ci
           severity: HIGH,CRITICAL
           exit-code: '1'
+          format: table
+          output: "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
+      
+      - name: Upload Trivy backend report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+            name: trivy-backend-report
+            path: "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
+            if-no-files-found: ignore
+
+      - name: Commit Trivy report
+        if: always() && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "tests/nfr/evidence/Container Image Scans/"
+          git diff --staged --quiet || git commit -m "QR:update trivy backend report [skip ci]"
+          git push
