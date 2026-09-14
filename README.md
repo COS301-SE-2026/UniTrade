@@ -5,7 +5,6 @@
 
 <br>
 
-
 # UniTrade
 
 ### The trusted peer-to-peer marketplace for South African university students
@@ -13,12 +12,17 @@
 <br/>
 
 <!-- CI/CD Status Pipeline Badges -->
+
 [![Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml)
 [![Web Frontend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
+
 <!-- Uptime Monitoring Badges-->
+
 [![Uptime Status](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=uptime)](https://stats.uptimerobot.com/)
 [![Uptime Ratio (30d)](https://img.shields.io/uptimerobot/ratio/30/m803674174-30a848fbf196d9ea502cdcc3?label=30d%20uptime)](https://stats.uptimerobot.com/)
+
 <!-- Quality, Licensing & Contribution Badges -->
+
 [![Vitest Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/COS301-SE-2026/UniTrade/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
@@ -26,8 +30,6 @@
 [![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 
 <br/>
-
-
 
 <sub>
 <em>The DevNexus Team — University of Pretoria · COS301 Capstone 2026
@@ -42,11 +44,12 @@
 # UniTrade
 </div>
 
-A web and mobile marketplace for South African university students to buy and sell second-hand academic materials safely and affordably.
+A web marketplace for South African university students to buy and sell second-hand academic materials safely and affordably.
 
 <div align="center">
 
 ## The problem
+
 </div>
 
 University students in South Africa face significant financial pressure, from high tuition fees, rising living costs, and expensive prescribed textbooks. The current alternatives are bleak: buy new materials at full price, or rely on informal peer networks that are unreliable, unverified, and often unsafe.
@@ -60,52 +63,56 @@ There is currently no structured and trusted platform where students can safely 
 UniTrade provides a structured, verified marketplace where students can list, browse, and purchase used academic materials directly from peers at their institution. Every user is verified as an active, currently enrolled student before they can transact, ensuring the platform remains trusted and scalable.
 
 <div align="center">
-  
+
 ## Key Features
+
 </div>
 
-| Feature | Description |
-|---|---|
-| **Student Verification** | Every account is verified against university enrollment records before transacting |
-| **AI Listing Verification** | Azure Computer Vision checks listing images for accuracy and detects fraud at delivery |
-| **Real-Time Chat** | Secure in-app messaging between buyers and sellers to coordinate meetups |
-| **Location Pickup** | Google Maps integration for arranging safe, campus-based handovers |
-| **Secure Payments** | OZOW integration — pay directly from your bank account, no card needed |
-| **AI Material Suggestions** | OpenAI-powered degree-specific material recommendations and price optimization |
-| **Multi-Channel Notifications** | Push notifications (FCM) and transactional emails (Resend) |
+| Feature                         | Description                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| **Student Verification**        | Every account is verified against university enrollment records before transacting     |
+| **AI Listing Verification**     | Azure Computer Vision checks listing images for accuracy and detects fraud at delivery |
+| **Real-Time Chat**              | Secure in-app messaging between buyers and sellers to coordinate meetups               |
+| **Location Pickup**             | OpenStreetMap/Leaflet integration for arranging safe, campus-based handovers                     |
+| **Secure Payments**             | Payfast integration — pay directly from your bank account, no card needed                 |
+| **AI Material Suggestions**     | OpenAI-powered degree-specific material recommendations and price optimization         |
+| **Multi-Channel Notifications** | Push notifications (FCM) and transactional emails (Azure Communication Services)                             |
 
 ---
+
 <div align="center">
   
 ## Tech Stack
 
 ### Frontend
+
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
 
-### Mobile
-![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-
 ### Backend
+
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 
-
 ### Database
+
 ![PostgresSQL Server](https://img.shields.io/badge/PostgresSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 
 ### Cloud & DevOps
+
 ![Azure](https://img.shields.io/badge/Microsoft_Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 
-### AI & Integrations
-![Azure](https://img.shields.io/badge/Azure_Computer_Vision-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
+### AI, Maps & Integrations
+
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
-![Google Maps](https://img.shields.io/badge/Google_Maps-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)
+![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white)
+![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)
+
 </div>
 
 ---
@@ -176,7 +183,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 </div>
 
-##  Demo 3
+## Demo 3
 
 <br>
 
@@ -268,8 +275,8 @@ UniTrade provides a structured, verified marketplace where students can list, br
      </p>
 </details>
 
-
 ## Demo 2
+
 <br>
 
 <details>
@@ -313,8 +320,6 @@ UniTrade provides a structured, verified marketplace where students can list, br
      </p>
 </details>
 
-
-
 ## Demo 1
 
 <details>
@@ -341,184 +346,46 @@ UniTrade provides a structured, verified marketplace where students can list, br
 
 </details>
 
+<details>
+  <summary><strong>Project Structure</strong></summary>
 
-## Project Structure
 
 ```
 UniTrade/
 │
-├── .github/
-│   ├── workflows/
-│   │   ├── backend-ci.yml
-│   │   ├── web-ci.yml
-│   │   ├── mobile-ci.yml
-│   │   ├── cd.yml
-│  
+├── .github/workflows/                    # CI/CD pipelines
+├── contracts/                            # OpenAPI contracts
+├── database/
+├── docs/                                 # SRS/SAS, Wireframes
 │
-├── docs/
-│   ├── diagrams/
-│   ├── requirements/
-│   ├── design-docs/
-│   └── security-research/
-│
+├── infra/                                # Azure Bicep + Docker Compose
+|
 ├── src/
 │   │
-│   ├── web/                               # React.js
-│   │   ├── public/
-│   │   ├── src/
-│   │   │   ├── assets/
-│   │   │   ├── components/                # Shared UI components
-│   │   │   ├── features/
-│   │   │   │   ├── auth/
-│   │   │   │   ├── listings/
-│   │   │   │   ├── reservations/
-│   │   │   │   ├── chat/
-│   │   │   │   ├── payments/
-│   │   │   │   └── profile/
-│   │   │   ├── hooks/
-│   │   │   ├── services/                  # API client calls
-│   │   │   ├── store/                     # State management
-│   │   │   ├── types/
-│   │   │   └── utils/
-│   │   ├── tests/
-│   │   │   ├── unit/                      # Individual component tests (Jest)
-│   │   │   ├── integration/               # Multi-component + service layer tests (RTL)
-│   │   │   └── e2e/                       # Full browser flows (Playwright)
-│   │   ├── .env.example
-│   │   ├── Dockerfile
-│   │   └── package.json
-|   |
-│   │
-│   └── backend/                           # C# — Modular Monolith
-│       ├── Api/                  # Entry point — controllers, middleware, startup
-│       │   ├── Controllers/
-│       │   │   ├── AuthController.cs
-│       │   │   ├── ListingsController.cs
-│       │   │   ├── ReservationsController.cs
-│       │   │   ├── PaymentsController.cs
-│       │   │   ├── ChatController.cs
-│       │   │   └── WebhookController.cs   # Ozow inbound webhook
-│       │   ├── Hubs/
-│       │   │   └── ChatHub.cs             # SignalR/WebSocket hub
-│       │   ├── Middleware/
-│       │   │   ├── AuthMiddleware.cs
-│       │   │   └── ExceptionMiddleware.cs
-│       │   ├── appsettings.json
-│       │   ├── appsettings.Development.json
-│       │   ├── Program.cs
-│       │   ├── Dockerfile
-│       │   └── Api.csproj
-│       │
-│       ├── Modules/              # All business logic
-│       │   ├── Identity/
-│       │   │   ├── IIdentityService.cs
-│       │   │   ├── IdentityService.cs
-│       │   │   ├── Verification/
-│       │   │   │   ├── IVerificationService.cs
-│       │   │   │   └── VerificationService.cs
-│       │   │   └── Models/
-│       │   ├── Listings/
-│       │   │   ├── IListingsService.cs
-│       │   │   ├── ListingsService.cs
-│       │   │   ├── Moderation/
-│       │   │   │   ├── IModerationService.cs
-│       │   │   │   └── ModerationService.cs
-│       │   │   └── Models/
-│       │   ├── Reservations/
-│       │   │   ├── IReservationsService.cs
-│       │   │   ├── ReservationsService.cs
-│       │   │   ├── StateMachine/
-│       │   │   │   ├── ReservationStateMachine.cs
-│       │   │   │   └── ReservationStates.cs
-│       │   │   └── Models/
-│       │   ├── Payments/
-│       │   │   ├── IPaymentsService.cs
-│       │   │   ├── PaymentsService.cs
-│       │   │   └── Models/
-│       │   ├── Chat/
-│       │   │   ├── IChatService.cs
-│       │   │   ├── ChatService.cs
-│       │   │   └── Models/
-│       │   ├── Disputes/
-│       │   │   ├── IDisputesService.cs
-│       │   │   ├── DisputesService.cs
-│       │   │   └── Models/
-│       │   ├── Reputation/
-│       │   │   ├── IReputationService.cs
-│       │   │   ├── ReputationService.cs
-│       │   │   └── Models/
-│       │   ├── Notifications/
-│       │   │   ├── INotificationsService.cs
-│       │   │   ├── NotificationsService.cs
-│       │   │   └── Models/
-│       │   └── Audit/
-│       │       ├── IAuditService.cs
-│       │       ├── AuditService.cs
-│       │       └── Models/
-│       │
-│       ├── Infrastructure/       # All external concerns
-│       │   ├── Persistence/
-│       │   │   ├── AppDbContext.cs
-│       │   │   └── Repositories/
-│       │   ├── Cache/
-│       │   │   └── RedisCache.cs
-│       │   ├── Storage/
-│       │   │   └── BlobStorageService.cs
-│       │   ├── Messaging/
-│       │   │   └── ServiceBusPublisher.cs
-│       │   ├── Search/
-│       │   │   └── AzureSearchService.cs
-│       │   ├── AI/
-│       │   │   ├── ComputerVisionService.cs
-│       │   │   └── OpenAIService.cs
-│       │   ├── Payments/
-│       │   │   └── OzowClient.cs
-│       │   ├── Maps/
-│       │   │   └── GoogleMapsService.cs
-│       │   └── Notifications/
-│       │       ├── ResendEmailService.cs
-│       │       └── FcmPushService.cs
-│       │
-│       ├── Workers/
-│       │   ├── ReservationExpiryWorker.cs
-│       │   ├── ListingModerationWorker.cs
-│       │   ├── VerificationWorker.cs
-│       │   ├── NotificationWorker.cs
-│       │   └── Workers.csproj
-│       │
-│       └── Tests/
-│       |   ├── Unit/
-│       |   │   ├── Modules/
-│       |    │   └── Workers/
-│       |   ├── Integration/               # DB + Redis + Service Bus via Docker
-│       |   │   ├── Modules/
-│       |   │   └── Infrastructure/
-│       |   └── UniTrade.Tests.csproj
-│       ├── swagger/
-│       │   └── openapi.json
-│
-├── database/
-│   ├── migrations/
-│   ├── seeds/
-│   └── scripts/
-│
-├── infra/
-│   ├── azure/
-│   │   ├── container-apps.bicep
-│   │   ├── sql.bicep
-│   │   ├── redis.bicep
-│   │   ├── servicebus.bicep
-│   │   ├── storage.bicep
-│   │   └── frontdoor.bicep
-│   └── docker/
-│       └── docker-compose.yml             # Local dev: spins up SQL, Redis, Service Bus
-│
-│
-├── .env.example
-├── .gitignore
+│   └── backend/                          # .NET modular monolith
+│   |    ├── Api/                         # Controllers, hubs, middleware, background services
+│   |    │
+│   |    ├── Modules/                     # All business logic
+│   |    │
+│   |    ├── Infrastructure/              # DB, cache, storage, AI, payments, notifications
+│   |    │
+│   |    ├── Workers/                     # Background workers
+│   |    │
+│   |    └── Tests/                       # Unit, Integration tests
+│   |
+│   |
+│   |
+│   |
+|   └── web/                             # React + TypeScript frontend
+|
+├── tests/nfr/                           # Non-functional test evidence/ scripts
 ├── README.md
-└── UniTrade.sln
+├── UniTrade.sln
+└── package.json
+└── zap.yaml
+
 ```
+</details>
 ---
 
 ## Development Approach
@@ -553,7 +420,6 @@ UniTrade is built using a **hybrid Agile (Scrum-inspired)** methodology:
 [![Email Badge](https://img.shields.io/badge/Email-devnexus28%40gmail.com-blue?style=for-the-badge&logo=gmail&logoColor=white)](mailto:devnexus28@gmail.com)
 
 </div>
-
 
 ---
 
