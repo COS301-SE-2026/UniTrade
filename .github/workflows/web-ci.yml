@@ -80,11 +80,7 @@ jobs:
       - name: Lint code
         working-directory: src/web
         run: npm run lint
-      
-      - name: Dependency audit (QR-03e)
-        working-directory: src/web
-        run: npm audit --audit-level=high
-        
+              
       - name: Set up Java 21 for SonarScanner
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
@@ -140,3 +136,43 @@ jobs:
          export PATH="$JAVA_HOME/bin:$PATH"
          java -version 
          sonar-scanner
+
+  nfr-checks:
+      permissions:
+       contents: write 
+      needs: gitleaks
+      runs-on: ubuntu-latest
+      timeout-minutes: 15
+      steps:
+          - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+          - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+            with:
+              node-version: "20.x"
+              cache: "npm"
+              cache-dependency-path: "src/web/package-lock.json"
+
+          - working-directory: src/web
+            run: npm ci --ignore-scripts
+      
+          - name: Dependency audit (QR-03e)
+            working-directory: src/web
+            run: |
+              npm audit --audit-level=high 2>&1 | tee "../../tests/nfr/evidence/Dependency Audits/npm-audit-report.txt"
+          
+          - name: Upload CVE Report
+            if: always()
+            uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+            with:
+              name: npm-audit-report
+              path: "tests/nfr/evidence/Dependency Audits/npm-audit-report.txt"
+
+          - name: Commit audit report
+            if: always() && github.event_name == 'push'
+            run: |
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add "tests/nfr/evidence/Dependency Audits/"
+              git diff --staged --quiet || git commit -m "QR 3e :update npm audit report [skip ci]"
+              git push
+              
+
