@@ -102,9 +102,9 @@ jobs:
           /k:"COS301-SE-2026_UniTrade" \
           /o:"cos301-se-2026" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**" \
+          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**,*/node_modules/**,**/build/**,**/*.test.ts,**/*.spec.ts,tests/nfr/evidence/**/*" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
-
+      
       - name: Build solution
         run: dotnet build UniTrade.sln --configuration Release --no-restore
 
@@ -115,7 +115,15 @@ jobs:
       - name: Run Integration Tests
         working-directory: src/backend/Tests
         run: dotnet test --configuration Release --no-build  --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Integration"
-
+      
+      - name: Upload backend coverage 
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+            name: backend-coverage
+            path: "src/backend/Tests/TestResults/**/coverage.opencover.xml"
+            if-no-files-found: ignore
+        
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
