@@ -79,29 +79,16 @@ export async function createListingAndReserve(
   request: APIRequestContext,
   browser: Browser,
 ): Promise<ReservedListing> {
-<<<<<<< HEAD
-  await signupAndLogin(sellerPage, request, { email: uniqueEmail("seller") });
-
-  const switchButton = sellerPage.getByRole('button', { name: 'Switch', exact: true });
-  await switchButton.waitFor({ state: 'visible' });
-  await switchButton.click();
-  await sellerPage.waitForURL(/\/seller\/listings/);  
-=======
   const sellerAdminContext = await browser.newContext();
   const sellerAdminPage = await sellerAdminContext.newPage();
   await signupVerifyAndLogin(sellerPage, request, sellerAdminPage, {
     email: uniqueEmail("seller"),
   });
   await sellerAdminContext.close();
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   await sellerPage.getByText("Switch", { exact: true }).click();
   await sellerPage.waitForURL(/\/seller\/listings/);
 
-<<<<<<< HEAD
-  await signupAndLogin(buyerPage, request, { email: uniqueEmail("buyer") });
-  await buyerPage.waitForURL(/\/buyer\/listings/); 
-=======
   const { listingTitle, price } = await createSellerListing(sellerPage);
 
 const buyerAdminContext = await browser.newContext();
@@ -111,23 +98,12 @@ const buyerAdminContext = await browser.newContext();
   });
   await buyerAdminContext.close();
   await buyerPage.waitForURL(/\/buyer\/listings/);
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   const listingCard = buyerPage
     .getByTestId("listing-card")
     .filter({ hasText: listingTitle });
   await expect(listingCard).toBeVisible({ timeout: 10000 });
 
-<<<<<<< HEAD
-  await listingCard.locator('img').click();
-  await buyerPage.waitForURL(/\/buyer\/listings\/.+/);
- 
-  await buyerPage.getByRole('button', {name: /reserve this item/i}).click();
-  await buyerPage.waitForURL(/\/buyer\/reservations/);
-  
-  await buyerPage.getByRole('button', {name: /message seller/i}).click();
-  await buyerPage.waitForURL(/\/buyer\/messages\/(.+)/);
-=======
   await listingCard.locator("img").click();
   await buyerPage.waitForURL(/\/buyer\/listings\/.+/);
   await buyerPage.getByRole("button", { name: /reserve this item/i }).click();
@@ -137,7 +113,6 @@ const buyerAdminContext = await browser.newContext();
   await buyerPage.waitForURL(/\/buyer\/messages\/(.+)/);
 
   const reservationId = new URL(buyerPage.url()).pathname.split("/").pop()!;
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   await expect(
     buyerPage.getByText(/waiting for seller to accept reservation/i),
