@@ -18,8 +18,18 @@ public class ReviewsController : ControllerBase
         _reviews = reviews;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
     // POST /api/reviews
     [HttpPost]
     public async Task<IActionResult> Add(

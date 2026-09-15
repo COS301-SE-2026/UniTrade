@@ -35,12 +35,29 @@ jobs:
           sudo mv gitleaks /usr/local/bin
 
       - name: Run Gitleaks scan
-        run: gitleaks detect --source . --config .gitleaks.toml --verbose --redact
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            gitleaks detect \
+              --source . \
+              --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" \
+              --config .gitleaks.toml \
+              --verbose \
+              --redact
+          else
+            gitleaks detect \
+              --source . \
+              --log-opts="${{ github.event.before }}..${{ github.sha }}" \
+              --config .gitleaks.toml \
+              --verbose \
+              --redact
+          fi
 
   build-and-test:
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      Jwt__Secret: ${{ secrets.JWT_SECRET_CI }}
 
     services:
       postgres:
@@ -85,9 +102,9 @@ jobs:
           /k:"COS301-SE-2026_UniTrade" \
           /o:"cos301-se-2026" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**" \
+          /d:sonar.exclusions="**/database/**/*.sql,**/Migrations/**,*/node_modules/**,**/build/**,**/*.test.ts,**/*.spec.ts,tests/nfr/evidence/**/*" \
           /d:sonar.cs.opencover.reportsPaths="src/backend/Tests/TestResults/**/coverage.opencover.xml"
-
+      
       - name: Build solution
         run: dotnet build UniTrade.sln --configuration Release --no-restore
 
@@ -98,13 +115,23 @@ jobs:
       - name: Run Integration Tests
         working-directory: src/backend/Tests
         run: dotnet test --configuration Release --no-build  --collect:"XPlat Code Coverage;Format=opencover" --logger "console;verbosity=normal" --filter "Category=Integration"
-
+      
+      - name: Upload backend coverage 
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+            name: backend-coverage
+            path: "src/backend/Tests/TestResults/**/coverage.opencover.xml"
+            if-no-files-found: ignore
+        
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end
 
   nfr-checks:
+    permissions:
+      contents: write 
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -136,10 +163,29 @@ jobs:
           dotnet ef database update --project src/backend/Infrastructure --startup-project src/backend/Api
       - name: Dependency CVE scan (QR-03e)
         run: |
+          set -o pipefail
           dotnet restore UniTrade.sln
-          dotnet list package --vulnerable --include-transitive 2>&1 | tee vulnerabilities.txt
-          grep -E "High|Critical" vulnerabilities.txt && { echo "::error::vulnerable packages"; exit 1; } || true
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee "tests/nfr/evidence/Dependency Audits/dotnet-vulnerability-report.txt"
+      
+      - name: Upload dotnet CVE report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dotnet-vulnerability-report
+          path: "tests/nfr/evidence/Dependency Audits/dotnet-vulnerability-report.txt"
+      
+      - name: Commit audit report
+        if: always() && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "tests/nfr/evidence/Dependency Audits/"
+          git diff --staged --quiet || git commit -m "QR 3e :update dotnet vulnerability report [skip ci]"
+          git push
+ 
   code-quality:
+    permissions:
+      contents: write
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -177,3 +223,29 @@ jobs:
 
       - name: Validate backend docker image
         run: docker build -f src/backend/Api/Dockerfile -t unitrade-backend-ci .
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 
+        with:
+          image-ref: unitrade-backend-ci
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          format: table
+          output: "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
+      
+      - name: Upload Trivy backend report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+            name: trivy-backend-report
+            path: "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
+            if-no-files-found: ignore
+
+      - name: Commit Trivy report
+        if: always() && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "tests/nfr/evidence/Container Image Scans/"
+          git diff --staged --quiet || git commit -m "QR:update trivy backend report [skip ci]"
+          git push

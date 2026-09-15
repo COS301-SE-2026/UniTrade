@@ -332,7 +332,7 @@ export default function AdminVerifications() {
                           <span>View Doc</span>
                         </a>
                       ) : (
-                        <span className="text-gray-300 border border-gray-200 rounded-full text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1 cursor-not-allowed">
+                        <span className="text-gray-600 border border-gray-200 rounded-full text-[10px] leading-tight px-3 py-1.5 inline-flex gap-1 cursor-not-allowed">
                           <IconEye className="w-3.5 h-3.5" />
                           <span>View Doc</span>
                         </span>

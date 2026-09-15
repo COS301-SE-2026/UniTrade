@@ -9,6 +9,7 @@ namespace Infrastructure.Persistence.Repositories.Reservations;
 public class MeetupRepository : IMeetupRepository
 {
     private readonly AppDbContext _db;
+    private const string _scheduledString = "scheduled";
 
     public MeetupRepository(AppDbContext db) => _db = db;
 
@@ -25,7 +26,7 @@ public class MeetupRepository : IMeetupRepository
         CancellationToken ct = default
     ) =>
         _db
-            .Meetups.Where(m => m.ReservationId == reservationId && m.Status == "scheduled")
+            .Meetups.Where(m => m.ReservationId == reservationId && m.Status == _scheduledString)
             .OrderByDescending(m => m.AgreedTime)
             .FirstOrDefaultAsync(ct);
 
@@ -36,7 +37,7 @@ public class MeetupRepository : IMeetupRepository
         CancellationToken ct = default
     ) =>
         await _db.Meetups.AnyAsync(
-            m => m.ReservationId == reservationId && m.Status == "scheduled",
+            m => m.ReservationId == reservationId && m.Status == _scheduledString,
             ct
         );
 
@@ -45,14 +46,14 @@ public class MeetupRepository : IMeetupRepository
         CancellationToken ct = default
     ) =>
         await _db
-            .Meetups.Where(m => m.ReservationId == reservationId && m.Status == "scheduled")
+            .Meetups.Where(m => m.ReservationId == reservationId && m.Status == _scheduledString)
             .OrderByDescending(m => m.AgreedTime)
             .FirstOrDefaultAsync(ct);
 
     public async Task<IReadOnlyList<Meetup>> GetDueForNoShowDetectionAsync(DateTime asOf, int batchSize, CancellationToken ct = default)
     {
         return await _db.Meetups
-            .Where(m => m.Status == "scheduled" && m.CheckinWindowClosesAt <= asOf)
+            .Where(m => m.Status == _scheduledString && m.CheckinWindowClosesAt <= asOf)
             .Take(batchSize)
             .ToListAsync(ct);
     }

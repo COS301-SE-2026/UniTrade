@@ -33,7 +33,6 @@ public class SavedSearchesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSavedSearchDto dto, CancellationToken ct)
     {
-        if (CallerId == null) return Unauthorized();
 
         var result = await _service.CreateAsync(CallerId, dto, ct);
 
@@ -43,14 +42,12 @@ public class SavedSearchesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMine(CancellationToken ct)
     {
-        if (CallerId == null) return Unauthorized();
         return Ok(await _service.GetByBuyerAsync(CallerId, ct));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        if (CallerId == null) return Unauthorized();
         await _service.DeleteAsync(id, CallerId, ct);
         return NoContent();
     }
@@ -58,10 +55,6 @@ public class SavedSearchesController : ControllerBase
     [HttpGet("{searchId:guid}/listings")]
     public async Task<IActionResult> GetMatchingListings(Guid searchId, CancellationToken ct)
     {
-        if (CallerId == null)
-        {
-            return Unauthorized();
-        }
 
         try
         {

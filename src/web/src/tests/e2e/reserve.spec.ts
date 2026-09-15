@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "url";
-import { signupAndLogin, uniqueEmail } from "./helpers/auth";
+import { signupVerifyAndLogin, uniqueEmail } from "./helpers/auth";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,12 +10,19 @@ test("buyer can view and reserve a seller's listing", async ({
   browser,
   request,
 }) => {
+  test.setTimeout(180000);
+
   const listingTitle = `E2E Listing ${Date.now()}`;
 
+  const sellerAdminContext = await browser.newContext();
+  const sellerAdminPage = await sellerAdminContext.newPage();
   const sellerContext = await browser.newContext();
   const sellerPage = await sellerContext.newPage();
 
-  await signupAndLogin(sellerPage, request, { email: uniqueEmail("seller") });
+  await signupVerifyAndLogin(sellerPage, request, sellerAdminPage, {
+    email: uniqueEmail("seller"),
+  });
+  await sellerAdminContext.close();
 
   await sellerPage.getByText("Switch", { exact: true }).click();
   await sellerPage.waitForURL(/\/seller\/listings/);
@@ -45,10 +52,16 @@ test("buyer can view and reserve a seller's listing", async ({
 
   await sellerContext.close();
 
+  const buyerAdminContext = await browser.newContext();
+  const buyerAdminPage = await buyerAdminContext.newPage();
   const buyerContext = await browser.newContext();
   const buyerPage = await buyerContext.newPage();
 
-  await signupAndLogin(buyerPage, request, { email: uniqueEmail("buyer") });
+  await signupVerifyAndLogin(buyerPage, request, buyerAdminPage, {
+    email: uniqueEmail("buyer"),
+  });
+  await buyerAdminContext.close();
+
   await buyerPage.waitForURL(/\/buyer\/listings/);
 
   const listingCard = buyerPage
@@ -67,18 +80,26 @@ test("buyer can view and reserve a seller's listing", async ({
 
   await buyerPage.waitForURL(/\/buyer\/reservations/);
   await expect(buyerPage).toHaveURL(/\/buyer\/reservations/);
+
+  await buyerContext.close();
 });
 
 test("reservation filter narrows the list to the selected status", async ({
   browser,
   request,
 }) => {
+  test.setTimeout(120000);
+
+  const buyerAdminContext = await browser.newContext();
+  const buyerAdminPage = await buyerAdminContext.newPage();
   const buyerContext = await browser.newContext();
   const buyerPage = await buyerContext.newPage();
 
-  await signupAndLogin(buyerPage, request, {
+  await signupVerifyAndLogin(buyerPage, request, buyerAdminPage, {
     email: uniqueEmail("buyer-filter"),
   });
+  await buyerAdminContext.close();
+
   await buyerPage.waitForURL(/\/buyer\/listings/);
 
   await buyerPage.goto("/buyer/reservations");
@@ -88,7 +109,7 @@ test("reservation filter narrows the list to the selected status", async ({
 
   await expect(buyerPage.getByText(/no reservations found/i)).toBeVisible();
   await expect(
-    buyerPage.getByText(/there are no reservations with "cancelled" status/i),
+    buyerPage.getByText(/reserve items from listings to see them here/i),
   ).toBeVisible();
 
   await buyerContext.close();

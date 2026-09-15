@@ -7,9 +7,9 @@ using Modules.Listings;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
 using Modules.Listings.Snapshot;
+using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
-using Modules.Reservations;
 
 namespace Modules.Disputes;
 
@@ -18,17 +18,9 @@ public class DisputeService : IDisputeService
     private readonly IReservationMembership _membership;
     private readonly IListingSnapshotService _snapshots;
     private readonly IDisputeRepository _disputes;
-    private readonly IListingService _listings;
     private readonly IMeetupRepository _meetups;
     private readonly IListingRepository _listingRepository;
     private readonly IBroadCastService _broadcast;
-
-    //casesrepo
-
-    private static readonly HashSet<string> _types = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "listing_quality",
-    };
 
     public DisputeService(
         IReservationMembership membership,
@@ -43,7 +35,6 @@ public class DisputeService : IDisputeService
         _membership = membership;
         _snapshots = snapshots;
         _disputes = disputes;
-        _listings = listings;
         _meetups = meetups;
         _listingRepository = listingRepository;
         _broadcast = broadcast;
@@ -155,16 +146,18 @@ public class DisputeService : IDisputeService
         var subjectUserId = (filedByUserId == parties.BuyerId) ? parties.SellerId : parties.BuyerId;
 
         var now = DateTime.UtcNow;
-        if (meetup.CheckinWindowClosesAt == null || now <= meetup.CheckinWindowClosesAt)
+        if (now <= meetup.CheckinWindowClosesAt)
         {
             throw new DisputesException("checkin_window_not_closed");
         }
-        var currentUserCheckedIn = (filedByUserId == parties.BuyerId) ? meetup.BuyerCheckedIn : meetup.SellerCheckedIn;
+        var currentUserCheckedIn =
+            (filedByUserId == parties.BuyerId) ? meetup.BuyerCheckedIn : meetup.SellerCheckedIn;
         if (!currentUserCheckedIn)
         {
             throw new DisputesException("current_user_not_checked_in");
         }
-        var otherUserCheckedIn = (subjectUserId == parties.BuyerId) ? meetup.BuyerCheckedIn : meetup.SellerCheckedIn;
+        var otherUserCheckedIn =
+            (subjectUserId == parties.BuyerId) ? meetup.BuyerCheckedIn : meetup.SellerCheckedIn;
         if (otherUserCheckedIn)
         {
             throw new DisputesException("other_party_checked_in");
@@ -236,7 +229,10 @@ public class DisputeService : IDisputeService
             throw new DisputesException("listing_not_live");
         }
         var snapshot = await _snapshots.CaptureForListingAsync(listing, ct);
-
+        if (snapshot is null)
+        {
+            throw new DisputesException("snapshot_not_found");
+        }
         await GuardOneOpenDisputeAsync(filedByUserId, listing.SellerId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
@@ -252,7 +248,10 @@ public class DisputeService : IDisputeService
             ct
         );
 
-        await _broadcast.NotifyAdminAsync("dispute_created", new { caseId, type = "report_listing" });
+        await _broadcast.NotifyAdminAsync(
+            "dispute_created",
+            new { caseId, type = "report_listing" }
+        );
         return new FileDisputeResultDto(caseId);
     }
 

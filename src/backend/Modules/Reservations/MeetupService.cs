@@ -30,6 +30,7 @@ public class MeetupService : IMeetupService
         TimeProvider clock,
         IMeetupRepository meetups,
         INotificationDispatcher pushNotifier,
+        IDisputeRepository disputes,
         ILogger<MeetupService> logger
     )
     {
@@ -39,6 +40,7 @@ public class MeetupService : IMeetupService
         _pushNotifier = pushNotifier;
         _logger = logger;
         _clock = clock;
+        _disputes = disputes;
     }
 
     public async Task<ChatMessageDto> ProposeAsync(

@@ -1663,6 +1663,59 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("images", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Timetable.Models.TimetableEntry", b =>
+                {
+                    b.Property<Guid>("EntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("entry_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer")
+                        .HasColumnName("day_of_week");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time")
+                        .HasColumnName("end_time");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time")
+                        .HasColumnName("start_time");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("EntryId")
+                        .HasName("pk_timetable_entries");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_timetable_entries_user");
+
+                    b.HasIndex("UserId", "DayOfWeek")
+                        .HasDatabaseName("ix_timetable_entries_user_day");
+
+                    b.HasIndex("UserId", "DayOfWeek", "StartTime", "EndTime")
+                        .IsUnique()
+                        .HasDatabaseName("ix_timetable_entries_user_slot");
+
+                    b.ToTable("timetable_entries", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_timetable_day", "day_of_week BETWEEN 0 AND 6");
+
+                            t.HasCheckConstraint("chk_timetable_hours", "start_time >= TIME '08:00' AND end_time <= TIME '20:00'");
+
+                            t.HasCheckConstraint("chk_timetable_range", "start_time < end_time");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
                 {
                     b.Property<Guid>("TransactionId")
@@ -2127,6 +2180,16 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_reviews_transactions_transaction_id");
 
                     b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("Modules.Timetable.Models.TimetableEntry", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_timetable_entries_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>

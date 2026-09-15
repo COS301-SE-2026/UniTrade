@@ -47,7 +47,7 @@ export function setup() {
 
 export function feed(data) {
   const res = http.get(
-    `${BASE}/api/listings?listingStatus=live&excludeSellerId=01a00656-30f7-791d-82a7-d592718af946`,
+    `${BASE}/api/listings?listingStatus=live&excludeSellerId=019f678c-b787-73a6-b17e-35d9ed0ac82f`,
     {
       cookies: { authToken: data.authCookie },
     },

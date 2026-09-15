@@ -14,7 +14,7 @@ public class ReservationExpiryWorker : BackgroundService
     public ReservationExpiryWorker(
         IServiceScopeFactory scopeFactory,
         ILogger<ReservationExpiryWorker> logger,
-        IConfiguration configuration = null
+        IConfiguration? configuration = null
     )
     {
         _scopeFactory = scopeFactory;

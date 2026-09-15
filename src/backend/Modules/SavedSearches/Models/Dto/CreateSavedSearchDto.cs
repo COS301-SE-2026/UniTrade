@@ -5,7 +5,7 @@ namespace Modules.SavedSearches.Models.Dto;
 
 public class CreateSavedSearchDto
 {
-    public string Query { get; set; }
+    public string Query { get; set; } = null!;
     public int? CategoryId { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }

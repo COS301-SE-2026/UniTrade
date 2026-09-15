@@ -184,11 +184,11 @@ if (import.meta.env.DEV || !user) return;
         clearUser();
         navigate("/auth/Login", { replace: true});
       }
-});
+  });
 
 const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
   showToast("info", e.reason
-    ? `More info needed for your verificatin: ${e.reason}`
+    ? `More info needed for your verification: ${e.reason}`
     : "Please resubmit your proof of registration."
   );
   navigate("/auth/ProofUpload");
