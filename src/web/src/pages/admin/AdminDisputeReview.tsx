@@ -392,7 +392,7 @@ export default function AdminDisputeReview() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm text-gray-400">
+        <div className="flex items-center gap-1.5 text-sm text-gray-600">
           <button
             type="button"
             onClick={() => navigate("/admin/disputes")}
@@ -716,7 +716,7 @@ function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
       <div className="flex gap-3 rounded-lg border-l-4 border-gray-300 bg-gray-50 dark:bg-navy-700 p-4">
         <IconAlertTriangle
           size={18}
-          className="text-gray-400 shrink-0 mt-0.5"
+          className="text-gray-500 shrink-0 mt-0.5"
         />
         <p className="text-sm text-gray-700 dark:text-white/80 leading-relaxed">
           {reason}
