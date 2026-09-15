@@ -385,6 +385,10 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapHub<ChatHub>("/chathub");
 app.MapControllers();
+app.MapGet("/debug-ip", (HttpContext ctx) => Results.Ok(new{
+    RemoteIp = ctx.Connection.RemoteIpAddress?.ToString(),
+    XForwardedFor=ctx.Request.Headers["X-Forwarded-For"].ToString()
+}));
 
 await app.RunAsync();
 
