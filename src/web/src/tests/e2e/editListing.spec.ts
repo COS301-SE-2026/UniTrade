@@ -5,17 +5,6 @@ import {
   uniqueEmail,
 } from "./helpers/auth";
 
-<<<<<<< HEAD
-test.describe('Edit listing', () => {
-    test.describe.configure({mode: 'serial'});
-});
-
-test('seller can edit a listing\'s title and price', async ({ page, request }) => {
-    test.setTimeout(60_000);
-    const originalTitle = `E2E Edit Listing ${Date.now()}`;
-    const updatedTitle = `E2E Edit Listing UPDATED ${Date.now()}`;
-    const sellerEmail = uniqueEmail('seller');
-=======
 test("seller can edit a listing's title and price", async ({
   browser,
   page,
@@ -24,7 +13,6 @@ test("seller can edit a listing's title and price", async ({
     test.setTimeout(120000);
   const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   const originalTitle = `E2E Edit Listing ${Date.now()}`;
   const updatedTitle = `E2E Edit Listing UPDATED ${Date.now()}`;
@@ -74,14 +62,8 @@ test("seller can edit a listing's title and price", async ({
   await expect(page.getByText("R300", { exact: false }).last()).toBeVisible();
 });
 
-<<<<<<< HEAD
-test('cancelling out of edit discards changes', async ({ page, request }) => {
-    test.setTimeout(60_000);
-    const listingTitle = `E2E Edit Cancel Listing ${Date.now()}`;
-=======
 test("cancelling out of edit discards changes", async ({ browser, page, request }) => {
     test.setTimeout(120000);
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
      const adminContext = await browser.newContext();
   const adminPage = await adminContext.newPage();
