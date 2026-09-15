@@ -54,7 +54,7 @@ public class TimetableService : ITimetableService
         }
     }
 
-    internal static (TimeOnly Start, TimeOnly End) Parse_Validate(CreateTimetableEntryDto dto)
+    public static (TimeOnly Start, TimeOnly End) Parse_Validate(CreateTimetableEntryDto dto)
     {
         if (dto.DayOfWeek is < 0 or > 6)
         {
