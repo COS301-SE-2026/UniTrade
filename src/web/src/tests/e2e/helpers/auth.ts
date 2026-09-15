@@ -21,7 +21,7 @@ export async function signupAndLogin(
   await page.goto("/auth/Signup");
   await universityResponse;
 
-  const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
+  //const termsHeading = page.getByRole("heading", {name: "Terms & Conditions"});
 
   async function dismissTermsIfPresent(){
   if (await termsHeading.isVisible({timeout: 3000}).catch(() => false)) {
