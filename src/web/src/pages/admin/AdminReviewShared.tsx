@@ -84,7 +84,7 @@ export function ConfirmModal({
             <button
               type="button"
               onClick={onCancel}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-500 hover:text-gray-700"
               aria-label="Close"
             >
               <IconX size={20} />
@@ -367,7 +367,7 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
         <div className="flex flex-col items-center justify-center text-center py-6 mb-3">
           <IconNote size={28} className="text-gray-300 mb-2" />
           <p className="text-sm font-medium text-gray-500">No notes yet</p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-600 mt-0.5">
             Add an internal note to keep a record for this case.
           </p>
         </div>

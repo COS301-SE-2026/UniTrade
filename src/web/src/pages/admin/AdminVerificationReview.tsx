@@ -242,10 +242,10 @@ export default function AdminVerificationReview() {
   return (
     <div className="space-y-4">
 
-      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+      <div className="flex items-center gap-1.5 text-xs text-gray-600">
         <button
           type="button"
-          className="text-[#00aaff] cursor-pointer hover:underline"
+          className="text-sky-700 cursor-pointer hover:underline"
           onClick={() => navigate("/admin/verifications")}
         >
           Verifications
@@ -285,7 +285,7 @@ export default function AdminVerificationReview() {
                   </p>
                 </div>
               </div>
-              {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-[#00aaff] hover:underline">
+              {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-sky-700 hover:underline">
                 View
               </a>) : (
                 <span className='text-xs text-gray-600'>Document not available</span>

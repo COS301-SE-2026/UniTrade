@@ -12,6 +12,9 @@ var databaseName='unitrade'
 resource newServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview'=if(createServer){
     name: serverName
     location: location
+    identity: {
+        type: 'SystemAssigned'
+    }
     sku:{
         name: 'Standard_B1ms'
         tier: 'Burstable'
@@ -54,7 +57,7 @@ resource firewallOnNewServer 'Microsoft.DBforPostgreSQL/flexibleServers/firewall
     name: 'AllowAllAzureServicesAndGitHubActions'
     properties:{
         startIpAddress: '0.0.0.0'
-        endIpAddress: '255.255.255.255'
+        endIpAddress: '0.0.0.0'
     }
 }
 
@@ -63,7 +66,7 @@ resource firewallOnExistingServer 'Microsoft.DBforPostgreSQL/flexibleServers/fir
     name: 'AllowAllAzureServicesAndGitHubActions'
     properties:{
         startIpAddress: '0.0.0.0'
-        endIpAddress: '255.255.255.255'
+        endIpAddress: '0.0.0.0'
     }
 }
 
