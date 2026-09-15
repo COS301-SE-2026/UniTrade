@@ -115,9 +115,9 @@ export async function getReservations(
 }
 
 export async function getSmartBudgetPreview(
-  params: SmartBudgetRequest,
+  //params: SmartBudgetRequest,
 ): Promise<Result<SmartBudgetPreviewResponse>> {
-  const res = await fetch(`${getApiUrl()}/reservations/smart-budget/preview?${params.listingIds}&${params.maxBudget}`, {
+  const res = await fetch(`${getApiUrl()}/reservations/smart-budget/preview`, {
     credentials: "include",
   });
   return handleResponse<SmartBudgetPreviewResponse>(res)
