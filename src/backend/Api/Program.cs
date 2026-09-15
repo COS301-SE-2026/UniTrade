@@ -22,6 +22,7 @@ using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
+using Infrastructure.Persistence.Repositories.Timetable;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Persistence.SavedSearches;
 using Infrastructure.Realtime;
@@ -67,6 +68,8 @@ using Modules.SavedSearches.Models;
 using Modules.SavedSearches.Repositories;
 using Modules.SharedKernel;
 using Modules.SharedKernel.Repositories;
+using Modules.Timetable;
+using Modules.Timetable.Repositories;
 using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
@@ -296,6 +299,9 @@ builder.Services.AddScoped<
     IProofOfRegistrationStorageService,
     PostgresProofOfRegistrationStorageService
 >();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+builder.Services.AddScoped<ITimetableService, TimetableService>();
+
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
