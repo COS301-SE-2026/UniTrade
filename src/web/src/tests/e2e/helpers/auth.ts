@@ -61,11 +61,6 @@ await dismissTermsIfPresent();
   await page.locator('input[name="yearOfStudy"]').fill("2");
   await page.locator('input[name="password"]').fill(password);
 
-<<<<<<< HEAD
-  await dismissTermsIfPresent();
-
-   await page.getByRole("button", { name: /^signup$/i }).click();
-=======
   const termsHeading = page.getByRole("heading", {
     name: "Terms & Conditions",
   });
@@ -92,7 +87,6 @@ await dismissTermsIfPresent();
   }
 
   await page.getByRole("button", { name: /^signup$/i }).click();
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   await page.waitForURL(/verify-otp/);
 
@@ -127,32 +121,12 @@ await dismissTermsIfPresent();
   });
   await page.getByRole("button", { name: /proceed to login/i }).click();
 
-<<<<<<< HEAD
-  await page.getByRole("button", {name: "Proceed to Login"}).click();
-
-  
-  await page.waitForURL(/\/auth\/Login/, {timeout: 10000});
-=======
   await page.waitForURL(/\/auth\/Login/, { timeout: 10000 });
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: /^login$/i }).click();
 
-<<<<<<< HEAD
-  const verificationHeading = page.getByRole("heading", {name: "Verification Status"});
-  const modalAppeared = await verificationHeading
-  .waitFor({state: "visible", timeout: 5000})
-  .then(() => true)
-  .catch(() => false);
-
-  if (modalAppeared) {
-    await page.getByRole("button", { name: /^continue$/i}).click();
-  }
-
-
-=======
   const continueBtn = page.getByRole("button", { name: /^continue$/i });
 
   try {
@@ -164,7 +138,6 @@ await dismissTermsIfPresent();
   await page.waitForURL((url) => !url.pathname.includes("/auth/Login"), {
     timeout: 15000,
   });
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
   await page.waitForURL(/\/buyer\/listings/);
 }
 
