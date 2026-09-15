@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import {formatPrice} from "../../utils/formatters";
 import type { WishlistListing, BrowseCondition } from "../../types/listing";
 import { useWishlist } from "../../hooks/useWishlist";
@@ -132,8 +132,81 @@ export default function SmartBudgetReserve() {
                 </p>
             </div>
 
-            
-        </div>
-    )
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 flex-wrap">
+               <label htmlFor="max-budget" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <IconWallet size={18} className="text-navy-700" />
+                Maximum budget
+               </label>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R</span>
+                    <input
+                    id="max-budget"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    inputMode="decimal"
+                    value={maxBudget}
+                    onChange={(e) => setMaxBudget(e.target.value)}
+                    placeholder="0.00"
+                    className="w-40 rounded-lg border border-gray-300 pl-7 pr-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-navy-700 focus:border-navy-700"
+                 />
+                </div>
 
-}
+                <div className = "ml-auto text-sm text-gray-500">
+                    <span className = "font-semibold text-gray-800">
+                        {selectedIds.size}
+                    </span>
+                    {" "}
+                    {selectedIds.size === 1 ? "item" : "items"} selected {" "}
+                    <span className = "font-semibold text-gray-800">
+                        {formatPrice(selectedTotal)}
+                    </span>
+                    total 
+                </div>
+                </div>
+
+                {isLoading && <LoadingState message = "Loading wishlist ..." />}
+
+                {!isLoading && error && (
+                    <div className = "bg-white rounded-xl border border-rose-200 p-6 text-center">
+                        <p className = "text-sm font-semibold text-rose-600">
+                            {error instanceof Error ? error.message : " Failed to load wishlist"}
+                        </p>
+                    </div>
+                )}
+
+                {!isLoading &&  !error && listings.length === 0 && (
+                    <div className = "bg-white rounded-xl border border-gray-200 p-8 text-center">
+                        <p className = "text-sm font-semibold text-gray-700 flex items-center justify-center gap-1.5">
+                            <IconHeart size = {14} />
+                            Your wishlist is empty
+                        </p>
+                        <p className = "text-xs text-gray-400 mt-1">
+                            Add items to your wishlist first , them come back to reserve within your budget
+                        </p>
+                    </div>
+                )}
+
+                <div className = "flex flex-col gap-3">
+                    {listings.map((listing) => (
+                        <SelectableItemRow
+                        key = {listing.id}
+                        listing = {listing}
+                        selected = {selectedIds.has(listing.id)}
+                        onToggle= {toggleSelected}
+                        />
+                    ))}
+                </div>
+
+                <div className = "sticky bottom-4 flex justify-end">
+                    <button
+                    type = "button"
+                    disabled = {!budgetIsValid || selectedIds.size === 0}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    >
+                        Continue
+                    </button>
+                </div>
+            </div>
+            );
+        }
