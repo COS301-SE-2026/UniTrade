@@ -165,3 +165,7 @@ export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
     reason: "over_budget" | "taken";
 }
 
+export interface SmartBudgetReservedItem extends SmartBudgetItem {
+    sellerId: string;
+}
+
