@@ -7,6 +7,8 @@ import type {
   GetMessagesParams,
   Result,
   TransactionRequestResponse,
+  SmartBudgetRequest,
+  SmartBudgetResponse
 } from "../types/Reservations";
 import { getApiUrl } from "../config";
 
@@ -63,6 +65,17 @@ export async function createReservation(
   return handleResponse<Reservation>(res);
 }
 
+export async function createSmartBudgetReservation(
+  payload: SmartBudgetRequest,
+): Promise<Result<SmartBudgetResponse>> {
+  const res = await fetch (`${getApiUrl()}/reservations/smart-budget`, {
+    method: "POST",
+    credentials: "include",
+    headers: {"Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<SmartBudgetResponse>(res);
+}
 export async function acknowledgeReservatioin(
   reservationId: string,
 ): Promise<Result<Reservation>> {
