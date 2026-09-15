@@ -1,7 +1,9 @@
 using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using Modules.Timetable.Models;
 using Modules.Timetable.Models.Dto;
 using Modules.Timetable.Repositories;
+using Npgsql;
 
 namespace Modules.Timetable;
 
@@ -32,17 +34,24 @@ public class TimetableService : ITimetableService
     {
         var (start, end) = Parse_Validate(dto);
 
-        var savedEntries = await _timetables.AddAsync(
-            new TimetableEntry
-            {
-                UserId = userId,
-                DayOfWeek = dto.DayOfWeek,
-                StartTime = start,
-                EndTime = end,
-            },
-            ct
-        );
-        return MapToDto(savedEntries);
+        try
+        {
+            var savedEntries = await _timetables.AddAsync(
+                new TimetableEntry
+                {
+                    UserId = userId,
+                    DayOfWeek = dto.DayOfWeek,
+                    StartTime = start,
+                    EndTime = end,
+                },
+                ct
+            );
+            return MapToDto(savedEntries);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            throw new TimetableException(TimetableErrors.OverlappingEntry);
+        }
     }
 
     public async Task DeleteAsync(Guid userId, Guid entryId, CancellationToken ct = default)
@@ -105,4 +114,7 @@ public class TimetableService : ITimetableService
 
     private static string FormatTime(TimeOnly time) =>
         time.ToString("HH:mm", CultureInfo.InvariantCulture);
+
+    private static bool IsUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is Npgsql.PostgresException { SqlState: "23505" };
 }

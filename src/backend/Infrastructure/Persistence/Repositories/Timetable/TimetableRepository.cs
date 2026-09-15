@@ -2,7 +2,6 @@ using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Modules.Timetable.Models;
 using Modules.Timetable.Repositories;
-
 namespace Infrastructure.Persistence.Repositories.Timetable;
 
 public class TimetableRepository : ITimetableRepository
@@ -20,6 +19,16 @@ public class TimetableRepository : ITimetableRepository
             .Where(e => e.UserId == userId)
             .OrderBy(e => e.DayOfWeek)
             .ThenBy(e => e.StartTime)
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<TimetableEntry>> ListForUserAndDayAsync(
+        Guid userId,
+        int dayOfWeek,
+        CancellationToken ct = default
+    ) =>
+        await _db
+            .TimetableEntries.AsNoTracking()
+            .Where(e => e.UserId == userId && e.DayOfWeek == dayOfWeek)
             .ToListAsync(ct);
 
     public async Task<TimetableEntry> AddAsync(TimetableEntry entry, CancellationToken ct = default)
@@ -45,4 +54,5 @@ public class TimetableRepository : ITimetableRepository
             .ExecuteDeleteAsync(ct);
         return rowsAffected > 0;
     }
+
 }

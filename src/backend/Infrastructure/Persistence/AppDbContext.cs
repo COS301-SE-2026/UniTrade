@@ -1136,6 +1136,16 @@ public class AppDbContext : DbContext
             entity
                 .HasIndex(x => new { x.UserId, x.DayOfWeek })
                 .HasDatabaseName("ix_timetable_entries_user_day");
+            entity
+                .HasIndex(e => new
+                {
+                    e.UserId,
+                    e.DayOfWeek,
+                    e.StartTime,
+                    e.EndTime,
+                })
+                .IsUnique()
+                .HasDatabaseName("ix_timetable_entries_user_slot");
         });
     }
 }
