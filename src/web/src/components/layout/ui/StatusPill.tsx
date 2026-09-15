@@ -21,7 +21,7 @@ const statusLabel: Record<ListingStatus, string> = {
  
 }
 
-export default function StatusPill({ status }: { status: ListingStatus }) {
+export default function StatusPill({ status }: Readonly<{ status: ListingStatus }>) {
   return (
     <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusStyles[status]}`}>
       {statusLabel[status]}

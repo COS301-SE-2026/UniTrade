@@ -15,6 +15,7 @@ public class User
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
+    public DateTime? TermsAcceptedAt { get; set; }
     public StudentProfile? StudentProfile { get; set; }
     public AdminProfile? AdminProfile { get; set; }
 }

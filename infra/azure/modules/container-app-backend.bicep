@@ -1,4 +1,4 @@
-param projectName string
+//param projectName string
 param environment string
 param location string
 param containerAppsEnvId string
@@ -7,7 +7,7 @@ param placeholderImage string
 
 //param acrUsername string
 //param acrPassword string
-param useManagedIdentity bool=true
+//param useManagedIdentity bool=true
 param useAcrRegistry bool=false
 
 var appName='ca-backend-${environment}'
@@ -47,8 +47,18 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                 }
             ]
             scale:{
-                minReplicas:1
+                minReplicas:0
                 maxReplicas:3
+                rules:[
+                    {
+                        name:'http-scale'
+                        http:{
+                            metadata:{
+                                concurrentRequests:'10'
+                            }
+                        }
+                    }
+                ]
             }
         }
     }

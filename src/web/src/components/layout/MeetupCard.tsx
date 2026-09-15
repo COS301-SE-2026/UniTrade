@@ -40,7 +40,7 @@ export default function MeetupCard({
     isResponding,
     checkInDisabled,
     checkInMessage
-}: MeetupCardProps) {
+}: Readonly<MeetupCardProps>) {
     const date = new Date(time);
     const { bg, label } = STATUS_STYLES[status];
 

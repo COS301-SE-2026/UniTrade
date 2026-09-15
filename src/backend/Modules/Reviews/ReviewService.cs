@@ -66,7 +66,6 @@ public class ReviewService : IReviewService
         await _reviews.AddAsync(review, ct);
         await _reviews.SaveAsync(ct);
 
-        // NOTE TO FUTURE SELF(ZS): MANUAL TRIGGER INSERTION TO THE MIGRATION FILE
         return MapToDo(review);
     }
 

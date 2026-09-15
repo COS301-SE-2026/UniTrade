@@ -48,7 +48,7 @@ export default function LocationPicker({
     center = default_center,
     height = 400,
     readOnly = false,
-}: LocationPickerProps) {
+}: Readonly<LocationPickerProps>) {
     return (
         <div className="isolate rounded-2xl overflow-hidden border border-gray-200" style={{height}}>
             <MapContainer

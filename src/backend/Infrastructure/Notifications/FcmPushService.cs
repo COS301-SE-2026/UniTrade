@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
 
+namespace Infrastructure.Notifications;
+
 public class FcmPushService : IFcmPushService
 {
     private readonly IDeviceTokenRepository _tokens;
@@ -27,11 +29,14 @@ public class FcmPushService : IFcmPushService
         {
             return false;
         }
-        _logger.LogInformation(
-            "FCM SENT: user={UserId}, tokenCount={Count}",
-            userId,
-            tokenList.Count
-        );
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "FCM SENT: user={UserId}, tokenCount={Count}",
+                userId,
+                tokenList.Count
+            );
+        }
 
         var fcmMessages = tokenList
             .Select(token => new Message

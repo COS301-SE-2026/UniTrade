@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, it, vi, beforeEach, expect, beforeAll } from 'vitest'
 import HelpCenter from '../../pages/auth/HelpCenter'
+import userEvent from '@testing-library/user-event';
 
 
 beforeAll(() => {
@@ -162,16 +163,17 @@ describe('HelpCenter', () => {
         fireEvent.change(textbox, { target: { value: '   ' } })
         fireEvent.keyDown(textbox, { key: 'Enter' })
 
-        expect(screen.getAllByText(/Hey! I'm Alex/).length).toBe(1)
+        expect(screen.getAllByText(/Hey! I'm Alex/)).toHaveLength(1)
     })
 
     it('shows the fallback reply for an unmatched message', async () => {
+        const user = userEvent.setup();
         renderHelpCenter()
-        fireEvent.click(screen.getByRole('button', { name: 'Chat with Alex' }))
+        await user.click(screen.getByRole('button', { name: 'Chat with Alex' }))
         const textbox = screen.getByPlaceholderText('Ask Alex anything...')
 
-        fireEvent.change(textbox, { target: { value: 'zzz qqq unmatched' } })
-        fireEvent.keyDown(textbox, { key: 'Enter' })
+        await user.type(textbox, 'zzz qqq unmatched')
+        await user.keyboard( '{Enter}' )
 
         expect(await screen.findByText(/Could you tell me more about what you need/)).toBeInTheDocument()
     })

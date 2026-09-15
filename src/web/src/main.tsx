@@ -17,23 +17,22 @@ const updateSW = registerSW({
       updateSW(true);
     }
   },
-  onOfflineReady(){
+  onOfflineReady() {
     console.log("UniTrade is ready to work offline.");
   },
 })
 //const queryClient = new QueryClient();
-
-loadConfig().then(() => {
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+await loadConfig()
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <ToastProvider>
-         <OfflineBanner />
+          <OfflineBanner />
           <App />
-          </ToastProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </StrictMode>,
-  );
-});
+        </ToastProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>,
+);
+

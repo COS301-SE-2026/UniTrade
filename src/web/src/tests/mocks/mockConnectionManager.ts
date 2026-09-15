@@ -15,7 +15,9 @@ interface MockChatMessage {
 export function createMoackConnectionManager() {
     const state: 'Connected' | 'Disconnected' = 'Connected'
     const messageListeners = new Set<(m: MockChatMessage) => void>()
-
+    const pinGeneratedListeners = new Set<(e: { reservationId: string; pin: string }) => void>()
+    const paymentCompletedListeners = new Set<(e: { reservationId: string }) => void>()
+    const pinConfirmedListeners = new Set<(e: { reservationId: string }) => void>()
     return {
         connect: vi.fn().mockResolvedValue(undefined),
         joinRoom: vi.fn().mockResolvedValue(undefined),
@@ -26,11 +28,22 @@ export function createMoackConnectionManager() {
             messageListeners.add(cb)
             return () => messageListeners.delete(cb)
         }),
+        onMessagesRead: vi.fn(() => () => { }),
         onMessagesReceived: vi.fn(() => () => { }),
         onReservationUpdated: vi.fn(() => () => { }),
         onListingChanged: vi.fn(() => () => { }),
-        onPinGenerated: vi.fn(() => () => { }),
-        onPaymentCompleted: vi.fn(() => () => { }),
+        onPinGenerated: vi.fn((cb: (e: { reservationId: string; pin: string }) => void) => {
+            pinGeneratedListeners.add(cb)
+            return () => pinGeneratedListeners.delete(cb)
+        }),
+        onPaymentCompleted: vi.fn((cb: (e: { reservationId: string }) => void) => {
+            paymentCompletedListeners.add(cb)
+            return () => paymentCompletedListeners.delete(cb)
+        }),
+        onPinConfirmed: vi.fn((cb: (e: { reservationId: string }) => void) => {
+            pinConfirmedListeners.add(cb)
+            return () => pinConfirmedListeners.delete(cb)
+        }),
         onStateChange: vi.fn(() => () => { }),
         onReconnected: vi.fn(() => () => { }),
         sendMessage: vi.fn(async (reservationId: string, content: string, clientId: string) => ({
@@ -48,5 +61,15 @@ export function createMoackConnectionManager() {
         __simulateIncomingMessage(message: MockChatMessage) {
             messageListeners.forEach(cb => cb(message))
         },
+        __simulatePinGenerated(e: { reservationId: string; pin: string }) {
+            pinGeneratedListeners.forEach(cb => cb(e))
+        },
+        __simulatePaymentCompleted(e: { reservationId: string }) {
+            paymentCompletedListeners.forEach(cb => cb(e))
+        },
+        __simulatePinConfirmed(e: { reservationId: string }) {
+            pinConfirmedListeners.forEach(cb => cb(e))
+        },
     }
 }
+   

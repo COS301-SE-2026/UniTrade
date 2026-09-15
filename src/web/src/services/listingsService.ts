@@ -19,14 +19,13 @@ import type {
   SubmitReviewPayload,
   Review,
   OrderItem,
-  SaleItem
+  SaleItem,
 } from "../types/listing";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
 import { getSimilarListings as computeSimilarListings } from "../utils/similarListings";
 import { getReservations, getTransactionStatus } from "./reservationService";
-
 
 import { getApiUrl } from "../config";
 
@@ -35,6 +34,23 @@ export function imageUrl(path: string): string {
 
   return `${origin}${path}`;
 }
+
+export interface CreateListingResult {
+  listingId: string;
+  listingStatus: string;
+}
+function toRefNum(reservationId: string): string {
+  return `#${reservationId.slice(0, 8).toUpperCase()}`;
+}
+
+function formatOrderDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-ZA", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function mapCondition(condition: string): BrowseCondition {
   const map: Record<string, BrowseCondition> = {
     new: "like_new",
@@ -49,8 +65,9 @@ function getFirstUploadedImagePath(
   images: { imageId: number; isPrimary: boolean; path: string }[],
 ): string | undefined {
   if (images.length === 0) return undefined;
-  return images.reduce((earliest, img) =>
-    img.imageId < earliest.imageId ? img : earliest,
+  return images.reduce(
+    (earliest, img) => (img.imageId < earliest.imageId ? img : earliest),
+    images[0],
   ).path;
 }
 
@@ -63,6 +80,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 42,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CH",
+    categoryName: ''
   },
   {
     id: "2",
@@ -72,6 +90,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 25,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=LP",
+    categoryName: ''
   },
   {
     id: "3",
@@ -81,6 +100,7 @@ const mockMyListings: ListingSummary[] = [
     status: "pending",
     views: 68,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=GS",
+    categoryName: ''
   },
   {
     id: "4",
@@ -90,6 +110,7 @@ const mockMyListings: ListingSummary[] = [
     status: "draft",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CA",
+    categoryName: ''
   },
   {
     id: "5",
@@ -99,6 +120,7 @@ const mockMyListings: ListingSummary[] = [
     status: "rejected",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=MB",
+    categoryName: ''
   },
 ];
 
@@ -225,6 +247,7 @@ function mapWishListItem(item: unknown): WishlistListing {
       metadata?: ListingMetadata;
       images: { imageId: number; isPrimary: boolean; path: string }[];
       seller?: { sellerId: string; fullName: string } | null;
+      answeredQuestionCount?: number;
     };
   };
   const l = w.listing;
@@ -243,6 +266,7 @@ function mapWishListItem(item: unknown): WishlistListing {
     sellerName: l.seller?.fullName ?? null,
     status: l.listingStatus as ListingStatus,
     addedAt: w.addedAt,
+    answeredQuestionCount: l.answeredQuestionCount ?? 0,
   };
 }
 
@@ -342,8 +366,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-            imageUrl((i as { path: string }).path),
-          )
+              imageUrl((i as { path: string }).path),
+            )
           : mockSellerListingDetail.images,
     };
   },
@@ -380,6 +404,7 @@ export const listingsService = {
         metadata?: ListingMetadata;
         images: { imageId: number; isPrimary: boolean; path: string }[];
         seller?: { sellerId: string };
+        answeredQuestionCount?: number;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -393,6 +418,7 @@ export const listingsService = {
         image: primary ? imageUrl(primary) : biologyTextbook,
         metadata: l.metadata ?? null,
         sellerId: l.seller?.sellerId ?? "",
+        answeredQuestionCount: l.answeredQuestionCount ?? 0,
       };
     });
 
@@ -420,7 +446,7 @@ export const listingsService = {
     return imageIds;
   },
 
-  createListing: async (payload: CreateListingPayload): Promise<string> => {
+  createListing: async (payload: CreateListingPayload): Promise<CreateListingResult> => {
     const res = await fetch(`${getApiUrl()}/listings`, {
       method: "POST",
       credentials: "include",
@@ -439,7 +465,7 @@ export const listingsService = {
     });
     if (!res.ok) throw new Error("Failed to create listing");
     const createdListing = await res.json();
-    return createdListing.listingId;
+    return { listingId: createdListing.listingId, listingStatus: createdListing.listingStatus};
   },
 
   updateListing: async (
@@ -557,7 +583,7 @@ export const listingsService = {
     }
     return mapWishListItem(await res.json());
   },
-
+//heyy
   removeFromWishlist: async (listingId: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
       method: "DELETE",
@@ -663,7 +689,7 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
   },
-
+//just triggering pipeline
   getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
     const res = await fetch(`${getApiUrl()}/reviews/users/${userId}`, {
       credentials: "include",
@@ -690,13 +716,13 @@ export const listingsService = {
   },
 
   getCompletedOrders: async (): Promise<OrderItem[]> => {
-    const res = await getReservations({ role: 'buyer' });
+    const res = await getReservations({ role: "buyer" });
     if (!res.success) {
-      throw new Error(res.error.message ?? 'Failed to load your orders');
+      throw new Error(res.error.message ?? "Failed to load your orders");
     }
 
     const completed = res.data.items.filter(
-      (r) => r.reservationStatus === 'completed',
+      (r) => r.reservationStatus === "completed",
     );
 
     if (completed.length === 0) return [];
@@ -710,7 +736,7 @@ export const listingsService = {
           const detail = await listingsService.getById(listingId);
           conditionMap.set(listingId, detail.condition);
         } catch {
-          conditionMap.set(listingId, 'Unknown');
+          conditionMap.set(listingId, "Unknown");
         }
       }),
     );
@@ -736,18 +762,6 @@ export const listingsService = {
       }),
     );
 
-    function toRefNum(reservationId: string): string {
-      return `#${reservationId.slice(0, 8).toUpperCase()}`;
-    }
-
-    function formatOrderDate(iso: string): string {
-      return new Date(iso).toLocaleDateString('en-ZA', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      });
-    }
-
     return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
       const sellerReviews = reviewsMap.get(r.counterParty.userId) ?? [];
@@ -760,27 +774,27 @@ export const listingsService = {
         transactionId: transactionId ?? null,
         refNum: toRefNum(r.reservationId),
         title: r.listing.title,
-        condition: conditionMap.get(r.listingId) ?? 'Unknown',
+        condition: conditionMap.get(r.listingId) ?? "Unknown",
         sellerName: r.counterParty.name,
         sellerInitials: r.counterParty.initials,
         price: r.listing.price,
         date: formatOrderDate(r.createdAt),
-        status: 'Completed' as const,
+        status: "Completed" as const,
         rating: theReview?.rating ?? 0,
         _createdAtIso: r.createdAt,
-        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
-      }
+        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : "",
+      };
     });
   },
 
   getCompletedSales: async (): Promise<SaleItem[]> => {
-    const res = await getReservations({ role: 'seller' });
+    const res = await getReservations({ role: "seller" });
     if (!res.success) {
-      throw new Error(res.error.message ?? 'Failed to load your sales');
+      throw new Error(res.error.message ?? "Failed to load your sales");
     }
 
     const completed = res.data.items.filter(
-      (r) => r.reservationStatus === 'completed',
+      (r) => r.reservationStatus === "completed",
     );
 
     if (completed.length === 0) return [];
@@ -788,17 +802,13 @@ export const listingsService = {
     const listingIds = [...new Set(completed.map((r) => r.listingId))];
     const conditionMap = new Map<string, string>();
 
-
     await Promise.all(
       listingIds.map(async (listingId) => {
         try {
           const detail = await listingsService.getById(listingId);
           conditionMap.set(listingId, detail.condition);
-
-
         } catch {
-          conditionMap.set(listingId, 'Unknown');
-
+          conditionMap.set(listingId, "Unknown");
         }
       }),
     );
@@ -821,21 +831,8 @@ export const listingsService = {
         } catch {
           reviewsMap.set(buyerId, []);
         }
-      })
+      }),
     );
-
-
-    function toRefNum(reservationId: string): string {
-      return `#${reservationId.slice(0, 8).toUpperCase()}`;
-    }
-
-    function formatOrderDate(iso: string): string {
-      return new Date(iso).toLocaleDateString('en-ZA', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      });
-    }
 
     return completed.map((r) => {
       const transactionId = txMap.get(r.reservationId);
@@ -849,17 +846,16 @@ export const listingsService = {
         transactionId: transactionId ?? null,
         refNum: toRefNum(r.reservationId),
         title: r.listing.title,
-        condition: conditionMap.get(r.listingId) ?? 'Unknown',
+        condition: conditionMap.get(r.listingId) ?? "Unknown",
         buyerName: r.counterParty.name,
         buyerInitials: r.counterParty.initials,
         price: r.listing.price,
         date: formatOrderDate(r.createdAt),
-        status: 'Completed' as const,
+        status: "Completed" as const,
         rating: theReview?.rating ?? 0,
         _createdAtIso: r.createdAt,
-        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : '',
-      }
+        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : "",
+      };
     });
   },
-
-}
+};

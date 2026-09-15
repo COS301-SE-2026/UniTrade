@@ -12,6 +12,7 @@ public interface IIdentityService
     Task<object> GetMeAsync(string userId);
     Task<object> UpdateProfileAsync(string userId, UpdateProfileDto dto);
     Task DeleteAccountAsync(string userId);
+    Task<string> GenerateAuthTokenAsync(Guid userId);
 
     string GenerateHubToken(string userId);
 }

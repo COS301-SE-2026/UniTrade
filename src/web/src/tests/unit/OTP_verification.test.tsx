@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import OTPVerification from '../../pages/auth/OTP_verification'
+import OTPVerification from '../../pages/auth/OtpVerification'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../store/useAuthStore'
 

@@ -5,7 +5,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
+using Modules.Identity.Verification;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
@@ -21,13 +24,39 @@ public class ListingServiceTests
 {
     private readonly Mock<IListingRepository> _repo;
     private readonly Mock<IListingImageRepository> _imageRepo;
+    private readonly Mock<ISellerVerificationQuery> _verificationMock;
+    private readonly Mock<IListingQuestionRepository> _questionRepo;
     private readonly ListingService _sut;
+    private readonly Mock<ILogger<ListingService>> _loggerMock;
+    private readonly Mock<IListingQuestionRepository> _questionRepoMock;
+    private readonly Mock<IListingPublishedListener> _listingPublishedListener;
 
     public ListingServiceTests()
     {
         _repo = new Mock<IListingRepository>();
         _imageRepo = new Mock<IListingImageRepository>();
-        _sut = new ListingService(_repo.Object, _imageRepo.Object);
+        _verificationMock = new Mock<ISellerVerificationQuery>();
+        _questionRepo = new Mock<IListingQuestionRepository>();
+        _loggerMock = new Mock<ILogger<ListingService>>();
+        _questionRepoMock = new Mock<IListingQuestionRepository>();
+        _listingPublishedListener = new Mock<IListingPublishedListener>();
+        _questionRepo
+            .Setup(r =>
+                r.GetAnsweredQuestionCountsAsync(
+                    It.IsAny<IEnumerable<Guid>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new Dictionary<Guid, int>());
+
+        _sut = new ListingService(
+            _repo.Object,
+            _imageRepo.Object,
+            _verificationMock.Object,
+            _listingPublishedListener.Object,
+            _loggerMock.Object,
+            _questionRepo.Object
+        );
     }
 
     // GetByIdAsync Tests
@@ -902,6 +931,12 @@ public class ListingServiceTests
         listing.ListingStatus = from;
         _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync(listing);
 
+        if (to == "live")
+        {
+            _verificationMock
+                .Setup(v => v.IsVerifiedAsync(seller, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+        }
         var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, to);
 
         Assert.True(result);
@@ -1033,6 +1068,10 @@ public class ListingServiceTests
         );
         listing.ListingStatus = "draft";
         _repo.Setup(r => r.GetByIdTrackedAsync(listing.ListingId)).ReturnsAsync((listing));
+
+        _verificationMock
+            .Setup(v => v.IsVerifiedAsync(seller, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var result = await _sut.UpdateStatusAsync(listing.ListingId, seller, "live");
         Assert.True(result);

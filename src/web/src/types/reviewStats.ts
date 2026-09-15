@@ -18,9 +18,9 @@ export function reviewerRoleLabel(reviewType: ReviewType) : 'Buyer' | 'Seller' {
 
 
 export function ratingAsSeller(data: UserReviewsResponse) : number {
-    return data.buyerScore
+    return data.sellerScore
 }
 
 export function ratingAsBuyer(data: UserReviewsResponse): number {
-    return data.sellerScore
+    return data.buyerScore
 }

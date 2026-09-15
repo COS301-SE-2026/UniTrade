@@ -72,6 +72,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 123,
     metadata: null,
     sellerId: "1",
+    answeredQuestionCount: 2
   },
   {
     id: '2',
@@ -84,6 +85,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 456,
     metadata: null,
     sellerId: "1",
+    answeredQuestionCount: 2
   },
   {
     id: '3',
@@ -96,6 +98,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 789,
     sellerId: "1",
     metadata: null,
+    answeredQuestionCount: 2,
   },
   {
     id: '4',
@@ -108,6 +111,7 @@ const makeListings = (): BrowseListing[] => [
     courseId: 101,
     metadata: null,
     sellerId: "1",
+    answeredQuestionCount: 2,
   },
 ];
 
@@ -116,8 +120,7 @@ const makeListings = (): BrowseListing[] => [
 describe('BrowseAllListing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // category fetch is non-critical to most tests; default to a resolved value
-    // so it doesn't hang or throw unless a test overrides it
+
     vi.mocked(listingsService.getListingsCategories).mockResolvedValue(mockCategories)
   })
 
@@ -189,7 +192,6 @@ describe('BrowseAllListing', () => {
     it('renders Reserve and Add to Wishlist buttons for each card', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
       expect(screen.getAllByRole('button', { name: /add to wishlist/i })).toHaveLength(4)
     })
 
@@ -210,7 +212,7 @@ describe('BrowseAllListing', () => {
     it('renders all category filter buttons', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      // category chips load async from getListingsCategories, so wait for one to appear
+      
       await screen.findByRole('button', { name: 'Textbooks' })
       for (const cat of ['All', 'Textbooks', 'Clothing', 'Electronics', 'Furniture','Stationery', 'Other']) {
         expect(screen.getByRole('button', { name: cat })).toBeInTheDocument()
@@ -236,7 +238,7 @@ describe('BrowseAllListing', () => {
     it('"All" is active by default', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      // all 4 listings visible
+    
       expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
     })
 

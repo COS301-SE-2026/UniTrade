@@ -126,6 +126,7 @@ export default function EnterPin() {
                     Remaining Time: <span className="text-[#0d2a5c] font-extrabold">00:{String(timeLeft).padStart(2, '0')}s</span>
                 </div>
                 <button
+                    type='button'
                     onClick={handleVerify}
                     disabled={!isComplete || isVerifying}
                     className={`w-full max-w-xs py-4 rounded-full text-white font-bold text-lg tracking-wide transition-all ${isComplete && !isVerifying

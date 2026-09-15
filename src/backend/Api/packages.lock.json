@@ -11,6 +11,12 @@
           "Azure.Core": "1.49.0"
         }
       },
+      "BCrypt.Net-Next": {
+        "type": "Direct",
+        "requested": "[4.2.0, )",
+        "resolved": "4.2.0",
+        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
+      },
       "dotenv.net": {
         "type": "Direct",
         "requested": "[4.0.2, )",
@@ -33,6 +39,17 @@
         "contentHash": "0aqIF1t+sA2T62LIeMtXGSiaV7keGQaJnvwwmu+htQdjCaKYARfXAeqp4nHH9y2etpilyZ/tnQzZg4Ilmo/c4Q==",
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
+        }
+      },
+      "Microsoft.Azure.SignalR": {
+        "type": "Direct",
+        "requested": "[1.33.1, )",
+        "resolved": "1.33.1",
+        "contentHash": "WdHXYYxR8Ed7EAivuK143oSQMAp3dDlql6pf7p5xwW/l5hxAM5IF9KlHE+SeHz0B5dg2jUnRNCYCAplVEcBHdg==",
+        "dependencies": {
+          "Azure.Identity": "1.11.4",
+          "Microsoft.Azure.SignalR.Protocols": "1.33.1",
+          "Newtonsoft.Json": "13.0.3"
         }
       },
       "Microsoft.EntityFrameworkCore.Design": {
@@ -135,11 +152,6 @@
           "System.IO.Hashing": "10.0.3"
         }
       },
-      "BCrypt.Net-Next": {
-        "type": "Transitive",
-        "resolved": "4.2.0",
-        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
-      },
       "EFCore.NamingConventions": {
         "type": "Transitive",
         "resolved": "10.0.1",
@@ -206,6 +218,11 @@
         "type": "Transitive",
         "resolved": "2.14.1",
         "contentHash": "lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw=="
+      },
+      "Microsoft.Azure.SignalR.Protocols": {
+        "type": "Transitive",
+        "resolved": "1.33.1",
+        "contentHash": "LrYSu8y0aSrt1r50A40mcNPpOgHbHEKXkp069YvJcdOTj4E7X1ZKHOtBOfNAeu/O03qSkaOw+GACcf+JIhP/1A=="
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",

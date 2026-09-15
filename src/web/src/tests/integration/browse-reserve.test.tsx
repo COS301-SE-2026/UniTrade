@@ -1,4 +1,4 @@
-import { test, beforeEach, afterEach, vi } from 'vitest'
+import { test, beforeEach, afterEach, vi, expect } from 'vitest'
 import { screen, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router'
@@ -52,7 +52,8 @@ test('browse listings, reserve one, and see it in My Reservations', async () => 
 
     renderApp('/buyer/listings')
 
-    await screen.findByText('Chemistry Textbook - 3rd Ed')
+    const reserved = await screen.findByText('Chemistry Textbook - 3rd Ed')
+    expect(reserved).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /^reserve$/i }))
 
     await screen.findByRole('heading', { name: /my reservations/i }, { timeout: 3000 })

@@ -15,7 +15,21 @@ public class DeviceTokensController(IFcmPushService fcm) : ControllerBase
 {
     private readonly IFcmPushService _fcm = fcm;
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId
+    {
+        get
+        {
+            var value =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException(
+                    "Authenticated request is missing a valid user id."
+                );
+            }
+            return id;
+        }
+    }
 
     [HttpPost]
     public async Task<IActionResult> Register(
@@ -41,7 +55,7 @@ public class DeviceTokensController(IFcmPushService fcm) : ControllerBase
         {
             return Unauthorized(new { error = "invalid_user_claim" });
         }
-        await _fcm.RegisterTokenAsync(CallerId, body.Token, body.Platform, ct);
+        await _fcm.RegisterTokenAsync(userId, body.Token, body.Platform, ct);
         return Ok(new { message = "Token registered" });
     }
 

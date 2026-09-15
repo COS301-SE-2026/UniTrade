@@ -1,8 +1,11 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Chat;
 using Modules.Reservations;
+using Modules.Listings.Snapshot;
+using Modules.Listings.Models.Dto;
 
 namespace Api.Controllers;
 
@@ -13,14 +16,27 @@ public class ReservationsController : ControllerBase
 {
     private readonly IReservationService _reservations;
     private readonly IChatService _chat;
+    private readonly IListingSnapshotService _snapshot;
 
-    public ReservationsController(IReservationService reservations, IChatService chat)
+    public ReservationsController(IReservationService reservations, IChatService chat, IListingSnapshotService snapshot)
     {
         _reservations = reservations;
         _chat = chat;
+        _snapshot = snapshot;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
     private bool IsVerified => User.FindFirst("verification_status")?.Value == "verified";
 
     // POST /api/reservations
@@ -97,6 +113,7 @@ public class ReservationsController : ControllerBase
     // get /api/reservations/{id}
 
     [HttpGet("{id:guid}")]
+    [ResponseCache(NoStore = true)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var dto = await _reservations.GetByIdAsync(id, CallerId, ct);
@@ -127,7 +144,20 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    private IActionResult MapError(ReservationException ex) =>
+    //get /reservation/{reservationId}/snapshot
+    [HttpGet("{reservationId:guid}/snapshot")]
+    [Authorize]
+    public async Task<ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
+    {
+        var snapshot = await _snapshot.GetByReservationIdAsync(reservationId, ct);
+        if (snapshot is null)
+        {
+            return NotFound();
+        }
+        return Ok(snapshot);
+    }
+
+    private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
             ReservationErrors.ListingNotFound => NotFound(new { error = ex.Message }),
@@ -142,5 +172,5 @@ public class ReservationsController : ControllerBase
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
-    public record CreateReservationRequest(Guid ListingId);
+    public record CreateReservationRequest([property: JsonRequired] Guid ListingId);
 }

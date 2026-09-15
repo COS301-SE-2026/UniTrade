@@ -3,10 +3,10 @@ import {Loader2} from 'lucide-react'
 export function Spinner({
     size = 20,
     className = ''
-}: {
+}: Readonly<{
     size?: number
     className?: string
-}) {
+}>) {
     return <Loader2 size={size} className = {`animate-spin text-navy-700 ${className}` } />
 
 }
@@ -14,9 +14,9 @@ export function Spinner({
 
 export function LoadingState({
     message = 'Loading...',
-} : {
+} : Readonly<{
     message?: string
-}) {
+}>) {
     return (
         <div className = "flex flex-col items-center justify-center py-16 text-gray-500">
             <Spinner size = {28} className = "mb-2" />

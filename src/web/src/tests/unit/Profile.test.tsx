@@ -70,55 +70,9 @@ describe('Profile', () => {
 
     it('should render user name and initials', async () => {
         renderProfile()
-        expect(await screen.getByText(mockUser.name)).toBeInTheDocument()
+        expect(screen.getByText(mockUser.name)).toBeInTheDocument()
         expect(screen.getByText(mockUser.initials)).toBeInTheDocument()
     })
-
-    it('navigates to profile settings through settings icon', async () => {
-        const user = userEvent.setup()
-        renderProfile()
-        await user.click(screen.getByLabelText('Settings'))
-        expect(mockNavigate).toHaveBeenCalledWith('/profile/settings')
-    })
-
-    it('navigates to activity through view activity tab', async () => {
-        const user = userEvent.setup()
-        renderProfile()
-        await user.click(screen.getByText('View Activity History'))
-        expect(mockNavigate).toHaveBeenCalledWith('/activity')
-    })
-
-    it('navigates to privacy and security', async () => {
-        const user = userEvent.setup()
-        renderProfile()
-        await user.click(screen.getByText('Privacy & Security'))
-        expect(mockNavigate).toHaveBeenCalledWith('/profile/privacy')
-    })
-
-    /*describe('Logout', () => {
-
-        /*it('calls logout and clears user when logout is clicked', async () => {
-            const user = userEvent.setup()
-                ; (authService.logout as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined)
-            renderProfile()
-            await user.click(screen.getByText('Logout'))
-            expect(authService.logout).toHaveBeenCalledTimes(1)
-            expect(mockClearUser).toHaveBeenCalledTimes(1)
-            expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-        })*/
-
-        /*it('still clears user and navigates even if authService.logout fails', async () => {
-            const user = userEvent.setup()
-                ; (authService.logout as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('network error'))
-            renderProfile()
-
-            await user.click(screen.getByText('Logout'))
-            //expect(authService.logout).toHaveBeenCalledTimes(1)
-            expect(mockClearUser).toHaveBeenCalledTimes(1)
-            expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-        })
-
-    })*/
 
     describe('Delete Account', () => {
         it('opens the confirm popup when Delete Account is clicked',

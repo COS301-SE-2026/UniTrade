@@ -1,13 +1,13 @@
-param projectName string
+//param projectName string
 param environment string
 param location string
 param containerAppsEnvId string
 param acrLoginServer string
 param placeholderImage string
+param useAcrRegistry bool =false//set this true once you get acces to acrpull
 
 
 var appName='ca-frontend-${environment}'
-param useAcrRegistry bool =false//set this true once you get acces to acrpull
 
 resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
     name: appName
@@ -44,7 +44,7 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                 }
             ]
             scale:{
-                minReplicas:1
+                minReplicas:0
                 maxReplicas:3
             }
         }

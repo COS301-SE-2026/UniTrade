@@ -15,7 +15,7 @@ const styles: Record<ToastType, { bg: string; icon: React.ReactNode }> = {
     info: { bg: 'bg-info-700', icon: <IconInfoCircle size={18} /> },
 };
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+export function ToastProvider({ children }: Readonly<{ children: React.ReactNode }>) {
     const [toasts, setToasts] = useState<ToastItem[]>([]);
 
     const showToast = useCallback((type: ToastType, message: string) => {
@@ -39,7 +39,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                     >
                         <span className="mt-0.5 shrink-0">{styles[t.type].icon}</span>
                         <p className="text-sm font-medium flex-1">{t.message}</p>
-                        <button onClick={() => dismiss(t.id)} className="text-white/70 hover:text-white shrink-0">
+                        <button type='button' onClick={() => dismiss(t.id)} className="text-white/70 hover:text-white shrink-0">
                             <IconX size={16} />
                         </button>
                     </div>

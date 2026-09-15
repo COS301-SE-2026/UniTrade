@@ -15,7 +15,7 @@ export default function PaymentComplete() {
     if (!reservationId) return;
     const goAndEnterPin = () => navigate('/payment/buyer-pin', { state: { reservationId } });
 
-    
+
     connectionManager.connect().catch((e) => console.error('connect failed', e));
 
     const off = connectionManager.onPaymentCompleted((e) => {
@@ -57,6 +57,7 @@ export default function PaymentComplete() {
           We couldn't find the details for this payment. Please check your reservations for the latest status.
         </p>
         <button
+          type='button'
           onClick={() => navigate('/buyer/reservations')}
           className="bg-blue-950 hover:bg-blue-900 text-white font-bold py-2.5 px-5 rounded-xl"
         >
@@ -78,7 +79,7 @@ export default function PaymentComplete() {
             {completionMessage}
           </p>
         </div>
-        <button onClick={() => navigate(redirectPath)} className='w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer'>{buttonLabel}</button>
+        <button type='button' onClick={() => navigate(redirectPath)} className='w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer'>{buttonLabel}</button>
 
       </div>
     );

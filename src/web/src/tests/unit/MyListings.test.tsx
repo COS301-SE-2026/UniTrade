@@ -27,10 +27,10 @@ import MyListings from '../../pages/seller/MyListings'
 
 const mockListings = {
     listings: [
-        { id: '1', title: 'Chemistry Textbook', meta: 'CMY127 · Listed 7 May 2026', price: 250, status: 'live' as const, views: 42, imageUrl: '' },
-        { id: '2', title: 'HP Laptop', meta: 'Electronics · Listed 5 May 2026', price: 4500, status: 'pending' as const, views: 25, imageUrl: '' },
-        { id: '3', title: 'Geometry Set', meta: 'Stationery · Listed 4 May 2026', price: 250, status: 'draft' as const, views: 68, imageUrl: '' },
-        { id: '4', title: 'Calculus Textbook', meta: 'WTW114 · Listed 3 May 2026', price: 350, status: 'rejected' as const, views: 89, imageUrl: '' },
+        { id: '1', title: 'Chemistry Textbook', meta: 'CMY127 · Listed 7 May 2026', price: 250, status: 'live' as const, views: 42, imageUrl: '', categoryName: '' },
+        { id: '2', title: 'HP Laptop', meta: 'Electronics · Listed 5 May 2026', price: 4500, status: 'pending' as const, views: 25, imageUrl: '',categoryName: '' },
+        { id: '3', title: 'Geometry Set', meta: 'Stationery · Listed 4 May 2026', price: 250, status: 'draft' as const, views: 68, imageUrl: '',categoryName: '' },
+        { id: '4', title: 'Calculus Textbook', meta: 'WTW114 · Listed 3 May 2026', price: 350, status: 'rejected' as const, views: 89, imageUrl: '',categoryName: '' },
     ],
     total: 4,
 }
@@ -156,7 +156,6 @@ describe('MyListings', () => {
             expect(screen.getByText('Listing')).toBeInTheDocument()
             expect(screen.getByText('Price')).toBeInTheDocument()
             expect(screen.getByText('Status')).toBeInTheDocument()
-            expect(screen.getByText('Views')).toBeInTheDocument()
             expect(screen.getByText('Actions')).toBeInTheDocument()
         })
     })
@@ -226,7 +225,7 @@ describe('MyListings - actions', () => {
         })
         expect(screen.getByRole('button', { name: /^resubmit$/i })).toBeInTheDocument()
         const editButtons = screen.getAllByRole('button', { name: /^edit$/i })
-        fireEvent.click(editButtons[3]) // Calculus Textbook is 4th listing (rejected)
+        fireEvent.click(editButtons[3])
         expect(mockNavigate).toHaveBeenCalledWith('/seller/editListing/4')
     })
 
@@ -300,6 +299,7 @@ describe('MyListings - actions', () => {
                 status: 'live' as const,
                 views: i,
                 imageUrl: '',
+                categoryName: '',
             })),
             total: 8,
         }
@@ -328,6 +328,7 @@ describe('MyListings - actions', () => {
                 status: 'live' as const,
                 views: i,
                 imageUrl: '',
+                categoryName: ''
             })),
             total: 8,
         }

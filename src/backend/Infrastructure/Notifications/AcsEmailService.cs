@@ -179,4 +179,84 @@ public class AcsEmailService : IEmailService
             </body>
             </html>
             """;
+
+    public async Task SendVerificationDecisionEmailAsync(
+        string toEmail,
+        string firstName,
+        string decision,
+        string? reason = null
+    )
+    {
+        var (subject, bodyMessage) = decision switch
+        {
+            "approved" => (
+                "Your UniTrade verification was approved",
+                "<p>Great news, your student verification has been approved. You can now reserve and publish listings on UniTrade.</p>"
+            ),
+            "rejected" => (
+                "Your UniTrade verification was not approved",
+                $"<p>Unfortunately, your student verification was not approved.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
+            ),
+            "resubmission" => (
+                "Action needed: resubmit your UniTrade verification",
+                $"<p>We need you to resubmit your proof of registration to complete verification.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
+            ),
+            _ => (
+                "Your UniTrade verification status was updated",
+                "<p>Your verification status has changed.</p>"
+            ),
+        };
+
+        var html = $"""
+                      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                          <h2 style="color: rgb(26,26,26);">Hi {firstName},</h2>
+                          {bodyMessage}
+                          </div>
+            """;
+        await SendAsync(toEmail, subject, html);
+    }
+
+    public async Task SendSavedSearchMatchEmailAsync(string email, string title, decimal price)
+    {
+        var subject = "New listing matches your saved search";
+        var html =
+            $@"
+      <div style='font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;'>
+      <h2 style='color: #0f2d6b;'>New match for your search!</h2>
+      <p>A listing you might be interested in has just been posted;</p>
+      <div style='background: #f4f4f4; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+      <strong>{title}</strong><br/>
+      <span style='color: #0f2d6b; font-weight: bold;'>R{price:F2}</span>
+      </div>
+      <p style='color: #888; font-size: 13px;'>You received this because you saved a search on UniTrade.</p>
+      </div>
+      ";
+        await SendAsync(email, subject, html);
+    }
+
+    public async Task SendDisputeOutcomeEmailAsync(
+        string toEmail,
+        string firstName,
+        string outcomeSummary,
+        string? reason
+    )
+    {
+        var subject = "Update on a dispute involving your account";
+        var reasonBlock = string.IsNullOrWhiteSpace(reason)
+            ? ""
+            : $"<p style='color:#444;'<strong>Reason:</strong> {reason} </p>";
+        var html = $"""
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
+            <p style="color:#444;">A dispute involving your account has been resolved.</p>
+            <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:16px 0;">
+              <p style="margin:0;color:#0f2d6b;font-weight:bold;">{outcomeSummary}</p>
+            </div>
+            {reasonBlock}
+            <p style="color:#888;font-size:13px;">If you have questions, please contact UniTrade support.</p>
+            </div>
+            """;
+
+        await SendAsync(toEmail, subject, html);
+    }
 }

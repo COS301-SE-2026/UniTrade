@@ -1,7 +1,7 @@
 import { Outlet, useParams } from "react-router";
 import ConversationsSidebar from "./layout/ConversationsSidebar";
 
-export default function ChatLayout({ role }: { role: 'buyer' | 'seller' }) {
+export default function ChatLayout({ role }: Readonly<{ role: 'buyer' | 'seller' }>) {
     const { reservationId } = useParams<{ reservationId: string }>();
     const hasActiveConversation = !!reservationId;
     return (

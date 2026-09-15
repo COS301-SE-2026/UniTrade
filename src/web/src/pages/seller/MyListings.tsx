@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,22 +18,24 @@ import type { ApiError } from "../../types/Reservations";
 import { useToast } from "../../components/layout/useToast";
 import { useMyListings } from "../../hooks/useMyListings";
 import { LoadingState } from "../../components/layout/Spinner";
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
 function ActionButtons({
   listing,
   onDelete,
   onSubmit,
   submitting,
-}: {
+}: Readonly<{
   listing: ListingSummary;
   onDelete: (id: string) => void;
   onSubmit: (id: string) => void;
   submitting: boolean;
-}) {
+}>) {
   const navigate = useNavigate();
 
   const deleteBtn = (
     <button
+      type='button'
       onClick={() => onDelete(listing.id)}
       aria-label="Delete listing"
       className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
@@ -46,12 +48,14 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
           View
         </button>
         <button
+          type='button'
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -66,6 +70,7 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => onSubmit(listing.id)}
           disabled={submitting}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
@@ -73,6 +78,7 @@ function ActionButtons({
           {submitting ? "Submitting...." : "Submit"}
         </button>
         <button
+          type='button'
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -86,10 +92,11 @@ function ActionButtons({
   if (listing.status === "rejected") {
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-        <button className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap">
+        <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap">
           Resubmit
         </button>
         <button
+          type='button'
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -104,18 +111,21 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
           View
         </button>
         <button
+          type='button'
           disabled
           className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full cursor-not-allowed whitespace-nowrap"
         >
           Edit
         </button>
         <button
+          type='button'
           disabled
           aria-label="Delete listing"
           className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-2 rounded-full cursor-not-allowed flex-shrink-0"
@@ -129,6 +139,7 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 fle-wrap md:flex-nowrap">
         <button
+          type='button'
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
@@ -151,12 +162,13 @@ export default function MyListings() {
   const { showToast } = useToast();
 
   const { data, isLoading, error } = useMyListings();
-  const listings = data?.listings ?? [];
+  const listings =useMemo(() => data?.listings ?? [], [data?.listings]);
   const total = data?.total ?? 0;
 
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const searchQuery = useSearchQuery()
 
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
@@ -179,8 +191,9 @@ export default function MyListings() {
       const error = err as ApiError;
       const theError =
         error.message === "images_required" ||
-          error.message === "description_required"
-          ? "Please add at least one photo and Description before uploading this listing"
+          error.message === "description_required" ||
+          error.message === "seller_not_verified"
+          ? "Please add at least one photo and Description before uploading this listing, and makesure you are fully verified, If you are not verified, your listing will only go live once you are verified."
           : "Failed to submit listing";
 
       showToast("error", theError);
@@ -209,10 +222,23 @@ export default function MyListings() {
     }
   };
 
-  const filtered =
-    activeTab === "all"
+  const filtered = useMemo(() => {
+      let result = activeTab === "all"
       ? listings
       : listings.filter((l) => l.status === activeTab);
+
+      if (searchQuery) {
+        result = result.filter(
+          (l) => 
+            l.title.toLowerCase().includes(searchQuery)
+           )
+        
+      }
+
+      return result
+
+  }, [listings, activeTab, searchQuery])
+
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice(
@@ -232,10 +258,10 @@ export default function MyListings() {
     { key: "sold", label: `Sold (${count("sold")})` },
   ];
 
-   if (isLoading) {
+  if (isLoading) {
     return <LoadingState message="Loading..." />;
   }
-  
+
 
   if (error)
     return (
@@ -258,6 +284,7 @@ export default function MyListings() {
           </p>
         </div>
         <button
+          type='button'
           onClick={() => navigate("/seller/upload")}
           className="flex items-center justify-center gap-2 bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors w-full sm:w-auto"
         >
@@ -306,6 +333,7 @@ export default function MyListings() {
       <div className="flex gap-2 flex-wrap">
         {tabs.map((tab) => (
           <button
+            type='button'
             key={tab.key}
             onClick={() => {
               setActiveTab(tab.key);
@@ -333,9 +361,6 @@ export default function MyListings() {
             </div>
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
               Status
-            </div>
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-16 text-center">
-              Views
             </div>
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide min-w-[200px] text-right">
               Actions
@@ -375,12 +400,7 @@ export default function MyListings() {
               <div className="w-full md:w-32 flex justify-start md:justify-center mt-1 md:mt-0 flex-shrink-0">
                 <StatusPill status={listing.status} />
               </div>
-
-              <p className="hidden md:block text-sm text-gray-400 w-16 text-center flex-shrink-0">
-                {listing.views}
-              </p>
-
-              <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
+                <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
                 <ActionButtons
                   listing={listing}
                   onDelete={handleDelete}
@@ -410,6 +430,7 @@ export default function MyListings() {
           {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
             (page) => (
               <button
+                type='button'
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page

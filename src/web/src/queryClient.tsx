@@ -4,9 +4,9 @@ import { queryClient } from './lib/queryClient';
 
 export function AppQueryProvider({
   children,
-}: {
+}: Readonly<{
   children: ReactNode;
-}) {
+}>) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}

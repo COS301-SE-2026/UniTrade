@@ -186,4 +186,21 @@ public class ChatHub : Hub
 
     public Task LeaveRoom(Guid reservationId) =>
         Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(reservationId));
+
+    public async Task JoinAdminGroup()
+    {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            throw new HubException("Unauthorized");
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+        await Clients.Caller.SendAsync("JoinedAdminGroup");
+    }
+
+    public async Task LeaveAdminGroup()
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
+    }
 }

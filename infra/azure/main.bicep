@@ -7,11 +7,11 @@ targetScope='subscription'
 param environment string
 
 param location string ='southafricanorth'
-param projectName string='unitrade'
+param projectName string='devnexus'
 
 param acrName string
 
-param adminUsername string='unitradeadmin'
+param adminUsername string='devnexusadmin'
 
 @secure()
 param adminPassword string
@@ -19,6 +19,9 @@ param useAcrRegistry bool =false
 param grantAcrAccess bool =false
 
 param placeholderImage string='mcr.microsoft.com/k8se/quickstart:latest'
+param deployAcr bool=false
+param postgresServerName string
+param createPostgresServer bool=true
 
 var rgName='rg-${projectName}-${environment}'
 
@@ -26,7 +29,6 @@ resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' existing={
     name:rgName
 }
 
-param deployAcr bool=false
 
 module containerRegistry 'modules/container-registry.bicep'=if(deployAcr){
     name: 'deployAcr-${environment}'
@@ -38,11 +40,12 @@ module containerRegistry 'modules/container-registry.bicep'=if(deployAcr){
 }
 
 resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing=if (!deployAcr){
-    name: acrName
     scope: resourceGroup('rg-${projectName}-dev')
+    name: acrName
+    
 }
 
-var acrLoginServer=deployAcr ? containerRegistry.outputs.loginServer : existingAcr.properties.loginServer
+var acrLoginServer=deployAcr ? containerRegistry!.outputs.loginServer : existingAcr!.properties.loginServer
 
 module containerAppsEnv 'modules/container-apps-env.bicep'={
     name: 'deploy-cae-${environment}'
@@ -54,8 +57,7 @@ module containerAppsEnv 'modules/container-apps-env.bicep'={
     }
 }
 
-param postgresServerName string
-param createPostgresServer bool=true
+
 
 module postgresql 'modules/postgresql.bicep'={
     name: 'deploy-postgres-${environment}'
@@ -81,7 +83,7 @@ module backendApp 'modules/container-app-backend.bicep'={
     name: 'deploy-backend-${environment}'
     scope: rg
     params: {
-        projectName: projectName
+        //projectName: projectName
         environment: environment
         location: location
         containerAppsEnvId: containerAppsEnv.outputs.environmentId
@@ -95,7 +97,7 @@ module frontendApp 'modules/container-app-frontend.bicep'={
     name: 'deploy-frontend'
     scope: rg
     params:{
-        projectName: projectName
+        //projectName: projectName
         environment: environment
         location: location
         containerAppsEnvId: containerAppsEnv.outputs.environmentId

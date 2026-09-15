@@ -21,7 +21,8 @@ public class UserController(IIdentityService identityService) : ControllerBase
         try
         {
             //'USer' here is built in. .net puts all jwt claims in this Object when client requests
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -90,12 +91,15 @@ public class UserController(IIdentityService identityService) : ControllerBase
             }
             await _identityService.DeleteAccountAsync(UserId);
 
-            Response.Cookies.Delete("authToken", new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-            });
+            Response.Cookies.Delete(
+                "authToken",
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                }
+            );
 
             return Ok(new { message = "Account deleted successfully" });
         }
@@ -112,6 +116,5 @@ public class UserController(IIdentityService identityService) : ControllerBase
             return StatusCode(500, new { error = _serverErrorMessage });
         }
     }
-
 }
 // random

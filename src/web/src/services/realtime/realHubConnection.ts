@@ -24,7 +24,7 @@ function mapState(state: signalR.HubConnectionState): ConnectionState {
 }
 
 export class RealHubConnection implements IHubConnection {
-  private connection: signalR.HubConnection;
+  private readonly connection: signalR.HubConnection;
 
   constructor() {
     const origin = new URL(getApiUrl()).origin;

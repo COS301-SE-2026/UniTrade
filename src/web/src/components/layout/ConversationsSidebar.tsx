@@ -3,6 +3,7 @@ import { useReservationsList } from '../../hooks/useReservationsList';
 import type { ReservationListItem } from '../../types/Reservations';
 import { useUnreadRealtime } from '../../hooks/useUnreadRealtime';
 import { getApiUrl } from '../../config';
+import {useSearchQuery} from '../../hooks/useSearchQuery';
 
 
 function relativeTime(iso: string): string {
@@ -16,17 +17,32 @@ function relativeTime(iso: string): string {
     return `${days} d ago`;
 }
 
-export default function ConversationsSidebar ({role}: {role: 'buyer' | 'seller'}) {
+export default function ConversationsSidebar ({role}: Readonly<{role: 'buyer' | 'seller'}>) {
     const {data: reservations = [], isLoading} = useReservationsList(role);
     useUnreadRealtime(role);
     const {reservationId: activeId} = useParams<{reservationId: string}>();
     const apiOrigin = getApiUrl().split('/api')[0];
+    const query = useSearchQuery();
+
 
 const active = reservations
     .filter((r: ReservationListItem) => r.reservationStatus === 'active' || r.reservationStatus=='cancelled')
     .filter((reservation, index, self) => 
         self.findIndex(r => r.reservationId === reservation.reservationId) === index
     )
+    .filter((r: ReservationListItem) => {
+        if(!query) return true;
+        const haystack = [
+            r.counterParty.name,
+            r.listing.title,
+            r.lastMessagePreview ?? '',
+        ]
+
+        .join('')
+        .toLowerCase();
+
+        return haystack.includes(query);
+    })
     .sort((a,b) => {
         const aTime = new Date(a.lastMessageAt ?? a.createdAt).getTime();
         const bTime = new Date(b.lastMessageAt ?? b.createdAt).getTime();
@@ -50,8 +66,7 @@ const active = reservations
 
                 {!isLoading && active.length === 0 && (
                     <p className="text-xs text-gray-400 px-4 py-3">
-                        No active conversations
-                    </p>
+                        {query ? `No conversations match "${query}"` : 'No active conversations'}                    </p>
                 )}
 
                 {active.map((r: ReservationListItem) => {
