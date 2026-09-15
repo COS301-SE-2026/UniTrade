@@ -153,3 +153,11 @@ export interface SmartBudgetItem {
     price: number;
 }
 
+export interface SmartBudgetReservationGroup {
+    reservationId: string;
+    sellerId: string;
+    sellerInitials: string;
+    items: SmartBudgetItem[];
+    subtotal: number;
+}
+
