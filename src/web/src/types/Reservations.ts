@@ -169,3 +169,10 @@ export interface SmartBudgetReservedItem extends SmartBudgetItem {
     sellerId: string;
 }
 
+export interface SmartBudgetResponse {
+    totalSpent: number;
+    reservation: SmartBudgetReservationGroup[];
+    reserved: SmartBudgetItem[];
+    notReserved: SmartBudgetNotReservedItem[];
+}
+
