@@ -14,6 +14,7 @@ using Modules.Reservations.Models;
 using Modules.Reviews.Models;
 using Modules.SavedSearches.Models;
 using Modules.SharedKernel;
+using Modules.Timetable.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
 
@@ -84,6 +85,10 @@ public class AppDbContext : DbContext
     // Listing Questions
 
     public DbSet<ListingQuestion> ListingQuestions => Set<ListingQuestion>();
+
+    // Timetable
+    public DbSet<TimetableEntry> TimetableEntries => Set<TimetableEntry>();
+
     //constants - sonarqube
     private readonly string _nowString = "now()";
 
@@ -1098,6 +1103,39 @@ public class AppDbContext : DbContext
             entity.Property(x => x.QuestionText).HasMaxLength(1000).IsRequired();
             entity.Property(x => x.AnswerText).HasMaxLength(2000);
             entity.HasIndex(x => x.ListingId);
+        });
+
+        // Timetable entries
+        modelBuilder.Entity<TimetableEntry>(entity =>
+        {
+            entity.Property(x => x.EntryId).HasDefaultValueSql("gen_random_uuid()");
+            entity.HasKey(x => x.EntryId);
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.DayOfWeek).IsRequired();
+            entity.Property(x => x.StartTime).HasColumnType("time").IsRequired();
+            entity.Property(x => x.EndTime).HasColumnType("time").IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_timetable_day", "day_of_week BETWEEN 0 AND 6");
+                t.HasCheckConstraint("chk_timetable_range", "start_time < end_time");
+                t.HasCheckConstraint(
+                    "chk_timetable_hours",
+                    "start_time >= TIME '08:00' AND end_time <= TIME '20:00'"
+                );
+            });
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_timetable_entries_user");
+            entity
+                .HasIndex(x => new { x.UserId, x.DayOfWeek })
+                .HasDatabaseName("ix_timetable_entries_user_day");
         });
     }
 }
