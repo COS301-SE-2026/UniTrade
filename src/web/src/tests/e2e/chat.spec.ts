@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-import {test, expect} from '@playwright/test';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { signupAndLogin,  uniqueEmail, loginAsAdmin } from './helpers/auth';
-import { findPendingVerificationCaseId, approveVerificationCase } from './helpers/admin';
-=======
 import { test, expect } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,45 +5,22 @@ import {
   signupVerifyAndLogin,
   uniqueEmail,
 } from "./helpers/auth";
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
-<<<<<<< HEAD
-test('chat is locked for both the seller and the buyer until the seller accepts the reservation ', async({browser, request}) => {
-    test.setTimeout(240_000);
-    const listingTitle = `E2E Chat Listing ${Date.now()}`;
-    const sellerEmail = uniqueEmail('seller');
-    const buyerEmail = uniqueEmail('buyer');
-
-=======
 test("chat is locked for both the seller and the buyer until the seller accepts the reservation ", async ({
   browser,
   request,
 }) => {
   test.setTimeout(180000);
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   const listingTitle = `E2E Chat Listing ${Date.now()}`;
 
-<<<<<<< HEAD
-    await signupAndLogin(sellerPage, request, {email: sellerEmail});
-
-    const adminContext = await browser.newContext();
-    const adminPage = await adminContext.newPage();
-    await loginAsAdmin(adminPage, request);
-    const sellerCaseId = await findPendingVerificationCaseId(adminPage, sellerEmail);
-    await approveVerificationCase(adminPage, sellerCaseId);
-    
-
-    await sellerPage.reload();
-=======
   const sellerAdminContext = await browser.newContext();
   const sellerAdminPage = await sellerAdminContext.newPage();
   const sellerContext = await browser.newContext();
   const sellerPage = await sellerContext.newPage();
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   await signupVerifyAndLogin(sellerPage, request, sellerAdminPage, {
     email: uniqueEmail("seller"),
@@ -86,24 +56,11 @@ test("chat is locked for both the seller and the buyer until the seller accepts 
   const buyerContext = await browser.newContext();
   const buyerPage = await buyerContext.newPage();
 
-<<<<<<< HEAD
-    await signupAndLogin(buyerPage, request, { email: buyerEmail });
-    await buyerPage.waitForURL(/\/buyer\/listings/);
-
-    const buyerCaseId = await findPendingVerificationCaseId(adminPage, buyerEmail);
-    await approveVerificationCase(adminPage, buyerCaseId);
-
-    await adminContext.close();
-
-    await buyerPage.reload();
-    await buyerPage.waitForURL(/\/buyer\/listings/);
-=======
   await signupVerifyAndLogin(buyerPage, request, buyerAdminPage, {
     email: uniqueEmail("buyer"),
   });
   await buyerAdminContext.close();
   await buyerPage.waitForURL(/\/buyer\/listings/);
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
   const listingCard = buyerPage
     .getByTestId("listing-card")
