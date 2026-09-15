@@ -39,6 +39,10 @@ public class TimetableController : ControllerBase
 
     // POST /api/Timetable
     [HttpPost]
+    [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status409Conflict)]
+
     public async Task<IActionResult> Add(
         [FromBody] CreateTimetableEntryDto dto,
         CancellationToken ct
