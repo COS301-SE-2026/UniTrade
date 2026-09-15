@@ -10,7 +10,7 @@ public interface ITimetableService
     );
 
     Task<TimetableEntryDto> AddAsync(
-        Guid suerId,
+        Guid userId,
         CreateTimetableEntryDto dto,
         CancellationToken ct = default
     );
