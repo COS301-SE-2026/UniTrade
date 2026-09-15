@@ -57,7 +57,7 @@ public class SavedSearchService : IListingPublishedListener, ISavedSearchService
             );
             var candidates = await _repo.GetCandidatesForListingAsync(listingEvent, ct);
             _logger.LogInformation("Found {Count} candidates", candidates.Count);
-            
+
             var stck = $"{listingEvent.Title} {listingEvent.Description ?? ""}";
 
             var matching = candidates

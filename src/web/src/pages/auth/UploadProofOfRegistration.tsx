@@ -55,7 +55,7 @@ function UploadSuccessModal({ onProceed }: { onProceed: () => void }) {
         </div>
     );
 }
-
+//triggerrr
 export default function ProofOfRegistrationUpload() {
     const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
     const [isInfoOpen, setIsInfoOpen] = useState<boolean>(true);

@@ -1,7 +1,11 @@
 import { Routes, Route, Navigate, useParams } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuthStore } from "./store/useAuthStore";
+import { getApiUrl } from "./config";
+import ChatLayout from "./components/ChatLayout";
+import { RealtimeProvider } from "./providers/RealtimeProvider";
+/*
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import OtpVerification from "./pages/auth/OtpVerification";
@@ -33,8 +37,11 @@ import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
 import ChatPage from "./pages/chat/ChatPage";
 import SellerReservations from "./pages/seller/SellerReservation";
-import { getApiUrl } from "./config";
-import ChatLayout from "./components/ChatLayout";
+*/
+
+
+//import Login from "./pages/auth/Login";
+/*
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 import MeetupDetails from "./pages/payment/MeetupDetails";
 import Redirect from "./pages/payment/Redirect";
@@ -45,6 +52,47 @@ import { RealtimeProvider } from "./providers/RealtimeProvider";
 import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
 import ProofOfRegistrationUpload from "./pages/auth/UploadProofOfRegistration";
 import SavedSearches from "./pages/buyer/SavedSearches";
+*/
+const Login = lazy(() => import("./pages/auth/Login"));
+const Signup = lazy(() => import("./pages/auth/Signup"));
+const OtpVerification = lazy(() => import("./pages/auth/OtpVerification"));
+const UploadListing = lazy(() => import("./pages/seller/UploadListing"));
+const EditListing = lazy(() => import("./pages/seller/EditListing"));
+const AdminVerificationReview = lazy(() => import("./pages/admin/AdminVerificationReview"));
+const AdminDisputeReview = lazy(() => import("./pages/admin/AdminDisputeReview"));
+const HomePage = lazy(() => import("./pages/auth/HomePage"));
+const Orders = lazy(() => import("./pages/buyer/Orders"));
+const Sales = lazy(() => import("./pages/seller/MySales"));
+const OrderDetails = lazy(() => import("./pages/buyer/OrderDetails"));
+const ListingDetail = lazy(() => import("./pages/buyer/ListingDetail"));
+const SellerDashboard = lazy(() => import("./pages/seller/SellerDashboard"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminVerifications = lazy(() => import("./pages/admin/AdminVerifications"));
+const AdminListingQueue = lazy(() => import("./pages/admin/AdminListingQueue"));
+const AdminDisputes = lazy(() => import("./pages/admin/AdminDisputes"));
+const Users = lazy(() => import("./pages/admin/Users"));
+const ViewUser = lazy(() => import("./pages/admin/ViewUser"));
+const BrowseListings = lazy(() => import("./pages/buyer/BrowseAllListing"));
+const Wishlist = lazy(() => import("./pages/buyer/Wishlist"));
+const Reservations = lazy(() => import("./pages/buyer/Reservation"));
+const ReservationDetails = lazy(() => import("./pages/buyer/ReservationDetails"));
+const MyListings = lazy(() => import("./pages/seller/MyListings"));
+const SellerListingDetail = lazy(() => import("./pages/seller/SellerListingDetail"));
+const HelpCenter = lazy(() => import("./pages/auth/HelpCenter"));
+const Profile = lazy(() => import("./pages/auth/Profile"));
+const ChatPage = lazy(() => import("./pages/chat/ChatPage"));
+const SellerReservations = lazy(() => import("./pages/seller/SellerReservation"));
+const NoConversationsSelected = lazy(() => import("./pages/chat/NoConversationsSelected"));
+const MeetupDetails = lazy(() => import("./pages/payment/MeetupDetails"));
+const Redirect = lazy(() => import("./pages/payment/Redirect"));
+const GeneratePin = lazy(() => import("./pages/payment/GeneratePin"));
+const EnterPin = lazy(() => import("./pages/payment/EnterPin"));
+const PaymentComplete = lazy(() => import("./pages/payment/PaymentComplete"));
+const BrandingStyleDoc = lazy(() => import("./pages/auth/BrandingStyleDoc"));
+const ProofOfRegistrationUpload = lazy(() => import("./pages/auth/UploadProofOfRegistration"));
+const SavedSearches = lazy(() => import("./pages/buyer/SavedSearches"));  
+
+
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
@@ -80,6 +128,7 @@ export default function App() {
   }
   return (
     <RealtimeProvider>
+      <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         {/*<Route element={<AppLayout />}>*/}
 
@@ -150,7 +199,7 @@ export default function App() {
         {<Route path="*" element={<Navigate to="/auth/HomePage" replace />} />}
 
       </Routes>
+      </Suspense>
     </RealtimeProvider>
   );
-
 }

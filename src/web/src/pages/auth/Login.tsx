@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import girl from '../../assets/girl.png'
+import girl from '../../assets/girl.webp'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
