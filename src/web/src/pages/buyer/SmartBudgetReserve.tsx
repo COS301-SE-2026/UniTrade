@@ -89,3 +89,51 @@ function SelectableItemRow({
         </button>
   );
 }
+
+export default function SmartBudgetReserve() {
+    const {data, isLoading, error} = useWishlist();
+    const listings = useMemo(() => data?.listings ?? [], [data]);
+
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [maxBudget, setMaxBudget] = useState<string>("");
+
+    const toggleSelected = (id: string) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if(next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+
+    const selectedListings = useMemo(
+        () => listings.filter((l) => selectedIds.has(l.id)),
+        [listings, selectedIds],
+    );
+
+
+    const selectedTotal = useMemo(
+        () => selectedListings.reduce((sum, l) => sum + l.price, 0),
+        [selectedListings],
+    );
+
+    const budgetValue = Number(maxBudget);
+    const budgetIsValid = maxBudget.trim() !== "" && !Number.isNaN(budgetValue) && budgetValue > 0;
+
+    return (
+        <div className = "flex flex-col gap-6">
+            <div>
+                <h1 className = "font-['Fraunces'] font-normal text-[32px] text-gray-800">
+                    Reserve within your desired budget
+                </h1>
+                <p className = "text-sm text-gray-400 mt-1">
+                    Pick the items you are interested in and set a budget. We will work out the best combination that fits.
+                </p>
+            </div>
+
+            
+        </div>
+    )
+
+}
