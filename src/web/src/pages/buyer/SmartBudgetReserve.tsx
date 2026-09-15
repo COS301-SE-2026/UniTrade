@@ -25,3 +25,67 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
         </span>
     );
 }
+
+
+function SelectableItemRow({
+    listing,
+    selected,
+    onToggle,
+}: Readonly<{
+    listing: WishlistListing;
+    selected: boolean;
+    onToggle: (id: string) => void;
+}>) {
+    const unavailable = listing.status !== "live";
+
+    return (
+        <button 
+        type = "button"
+        onClick = {() => !unavailable && onToggle(listing.id)}
+        disabled = {unavailable}
+        className = {`w-full text-left bg-white rounded-xl border p-4 flex items-center gap-4 transition-colors ${
+            unavailable
+            ? "border-gray-200 opacity-50 cursor-not-allowed"
+            : selected
+            ? "border-navy-700 ring-1 ring-navy-700"
+            : "border-gray-200 hover:border-navy-300"
+        }`}
+        >
+            <span 
+            className = {`shrink-0 w-5 h-5 rounded-md border flex items-center justify-center ${
+                selected ? "bg-navy-800 border-navy-800 " : "border-gray-300 bg-white"
+            }`}
+            >
+                {selected && <IconCheck size={14} className = "text-white" />}
+                </span>
+
+                <span className = "w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                    <img src={listing.image} alt={listing.title} className = "w-full h-full object-cover" />
+
+            </span>
+
+            <span className = "flex-1 min-w-0">
+                <span className = "flex items-center gap-2 flex-wrap">
+                    <span className = "text-sm font-bold text-gray-800 truncate">
+                        {listing.title}
+                        <ConditionBadge condition = {listing.condition} />
+                    </span>
+                    <span className = "block text-xs text-gray-400 mt-0.5">
+                        Listed by{" "}
+                        <span className = "font-semibold text-gray-500">
+                            {listing.sellerName ?? "Unknown seller"}
+                        </span>
+                        {unavailable && 
+                            <span className = "text-rose-500 font-semibold"> No longer available 
+                            </span>
+                        }
+                    </span>
+                </span>
+
+                <span className = "text-sm font-bold text-gray-800 shrink-0">
+                    {formatPrice(listing.price)}
+                </span>
+                </span>
+        </button>
+  );
+}
