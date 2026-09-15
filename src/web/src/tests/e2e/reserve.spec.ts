@@ -1,7 +1,4 @@
 import { test, expect } from "@playwright/test";
-<<<<<<< HEAD
-import { signupAndLogin, uniqueEmail} from "./helpers/auth";
-=======
 import path from "path";
 import { fileURLToPath } from "url";
 import { signupVerifyAndLogin, uniqueEmail } from "./helpers/auth";
@@ -86,20 +83,15 @@ test("buyer can view and reserve a seller's listing", async ({
 
   await buyerContext.close();
 });
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
 test("reservation filter narrows the list to the selected status", async ({
   browser,
   request,
 }) => {
-<<<<<<< HEAD
-  test.setTimeout(60_000);
-=======
   test.setTimeout(120000);
 
   const buyerAdminContext = await browser.newContext();
   const buyerAdminPage = await buyerAdminContext.newPage();
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
   const buyerContext = await browser.newContext();
   const buyerPage = await buyerContext.newPage();
 
