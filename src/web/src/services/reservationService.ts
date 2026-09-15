@@ -8,7 +8,8 @@ import type {
   Result,
   TransactionRequestResponse,
   SmartBudgetRequest,
-  SmartBudgetResponse
+  SmartBudgetResponse,
+  SmartBudgetPreviewResponse
 } from "../types/Reservations";
 import { getApiUrl } from "../config";
 
@@ -113,6 +114,14 @@ export async function getReservations(
   return handleResponse<ReservationListResponse>(res);
 }
 
+export async function getSmartBudgetPreview(
+  params: SmartBudgetRequest,
+): Promise<Result<SmartBudgetPreviewResponse>> {
+  const res = await fetch(`${getApiUrl()}/reservations/smart-budget/preview?${params.listingIds}&${params.maxBudget}`, {
+    credentials: "include",
+  });
+  return handleResponse<SmartBudgetPreviewResponse>(res)
+}
 export async function getMessages(
   params: GetMessagesParams,
 ): Promise<Result<ChatHistoryResponse>> {
