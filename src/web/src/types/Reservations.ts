@@ -141,3 +141,9 @@ export type Result<T> =
     | { success: true; data: T }
     | { success: false; error: ApiError };
 
+//smart budget wow factor types
+export interface SmartBudgetRequest {
+    listingIds: string[];
+    maxBudget: number;
+}
+
