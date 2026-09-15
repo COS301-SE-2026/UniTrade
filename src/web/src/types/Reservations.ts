@@ -147,3 +147,9 @@ export interface SmartBudgetRequest {
     maxBudget: number;
 }
 
+export interface SmartBudgetItem {
+    listingId: string;
+    title: string;
+    price: number;
+}
+
