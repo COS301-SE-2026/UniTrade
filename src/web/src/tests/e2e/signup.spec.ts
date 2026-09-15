@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 
 import { test, expect } from '@playwright/test';
 import { signupAndLogin, uniqueEmail } from './helpers/auth';
-=======
-import { test, expect } from "@playwright/test";
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
 test('user can sign up, verify OTP , and reach the login page, reach their listings dashboard', async({page, request}) => {
 
@@ -113,7 +109,4 @@ test("user can sign up, verify OTP, and reach the login page, login, reach their
   await expect(page).toHaveURL(/\/buyer\/listings/);
   await expect(page.getByText(/browse all listings/i)).toBeVisible();
 });
-<<<<<<< HEAD
 */
-=======
->>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
