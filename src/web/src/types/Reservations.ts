@@ -161,3 +161,7 @@ export interface SmartBudgetReservationGroup {
     subtotal: number;
 }
 
+export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
+    reason: "over_budget" | "taken";
+}
+
