@@ -176,3 +176,8 @@ export interface SmartBudgetResponse {
     notReserved: SmartBudgetNotReservedItem[];
 }
 
+export interface SmartBudgetPreviewResponse {
+    wouldReserve: string[];
+    totalCount: number;
+    excluded: string[];
+}
