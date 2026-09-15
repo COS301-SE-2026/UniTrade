@@ -84,7 +84,7 @@ public class TimetableController : ControllerBase
         {
             TimetableErrors.InvalidTimeRange => BadRequest(new { error = ex.Message }),
             TimetableErrors.EntryNotFound => NotFound(new { error = ex.Message }),
-            TimetableErrors.OverlappingEntry => Conflict(new {error= ex.Message}),
+            TimetableErrors.OverlappingEntry => Conflict(new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 }
