@@ -66,12 +66,31 @@ function ReportModal({
   if (!isOpen) return null;
   return (
     <div
+      role="button"
+      tabIndex={0}
       className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
+      onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onClose();
+          }
+          return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClose();
+        }
+
+      }}
     >
       <div
+        role="presentation"
+        tabIndex={-1}
         className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-md p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
         onClick={(e) => e.stopPropagation()}
+
       >
         <button
           onClick={onClose}
@@ -84,7 +103,7 @@ function ReportModal({
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label htmlFor="reason" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
               Reason
             </label>
             <textarea
@@ -155,7 +174,7 @@ export default function ListingDetail() {
       setReportError(null);
       showToast("success", "Thanks — your report has been submitted and a UniTrade admin will review it shortly.");
     } catch (err) {
-      const code = (err as {code?: string})?.code?? "";
+      const code = (err as { code?: string })?.code ?? "";
       const message_row = code === "dispute_already_open" ? "You've already reported this listing." : code === "listing_not_live" ? "This listing is no longer available to report." : "Something went wrong submitting your report. Please try again.";
       setReportError(message_row);
     } finally {
@@ -331,7 +350,7 @@ export default function ListingDetail() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-lg">
-                      
+
                     </div>
                   )}
                 </button>

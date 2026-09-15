@@ -25,7 +25,18 @@ public class ReservationsController : ControllerBase
         _snapshot = snapshot;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
     private bool IsVerified => User.FindFirst("verification_status")?.Value == "verified";
 
     // POST /api/reservations

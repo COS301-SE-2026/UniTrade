@@ -37,9 +37,9 @@ public class SavedSearchRepository : ISavedSearchRepository
             .ToListAsync(ct);
     }
 
-    public async Task<SavedSearch> GetByIdAsync(Guid searchId, CancellationToken ct = default)
+    public async Task<SavedSearch?> GetByIdAsync(Guid searchID, CancellationToken ct = default)
     {
-        return await _db.SavedSearches.FirstOrDefaultAsync(s => s.SearchId == searchId, ct);
+        return await _db.SavedSearches.FirstOrDefaultAsync(s => s.SearchId == searchID, ct);
     }
 
     public async Task<IReadOnlyList<SavedSearch>> GetCandidatesForListingAsync(
@@ -84,7 +84,7 @@ public class SavedSearchRepository : ISavedSearchRepository
 
     public async Task<IReadOnlyList<Listing>> GetMatchingListingsAsync(
         SavedSearch search,
-        CancellationToken ct
+        CancellationToken ct = default
     )
     {
         var query = _db

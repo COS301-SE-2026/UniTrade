@@ -337,22 +337,22 @@ export default function AdminDisputeReview() {
 
   useEffect(() => {
     const listingId = state.data?.listingId;
-    if(!listingId) return;
-    (async ()=>{
-      try{
+    if (!listingId) return;
+    (async () => {
+      try {
         const [detail, browse] = await Promise.all([
           listingsService.getById(listingId),
           listingsService.getBrowseListings(),
         ]);
         setSimilar(getSimilarListings(detail, browse.listings, 4));
       }
-      catch{
+      catch {
         setSimilar([]);
 
       }
     })();
   }, [state.data?.listingId]);
- 
+
   async function handleDecision(decision: DisputeDecision, reason?: string) {
     if (!state.data) return;
     setSubmitting(decision);
@@ -392,7 +392,7 @@ export default function AdminDisputeReview() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm text-gray-400">
+        <div className="flex items-center gap-1.5 text-sm text-gray-600">
           <button
             type="button"
             onClick={() => navigate("/admin/disputes")}
@@ -434,7 +434,7 @@ export default function AdminDisputeReview() {
                       onClick={() => navigate(`/buyer/listings/${item.id}`)}
                       className="text-left rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden hover:shadow-sm transition-shadow">
 
-          
+
                       <img
                         src={item.image || "placeholder.png"}
                         alt={item.title}
@@ -489,12 +489,9 @@ export default function AdminDisputeReview() {
                         className="text-sky-600 shrink-0 mt-0.5"
                       />
                       <p className="text-xs text-sky-900">
-                        <span className="font-semibold">System suggestion:</span>{" "}
-                        based on the evidence, this looks like a case to{" "}
-                        <span className="font-semibold">
+                        <span className="font-semibold">System suggestion:</span> based on the evidence, this looks like a case to <span className="font-semibold">
                           {recommendationText(dispute.suggestedDecision)}
-                        </span>
-                        . This is a guide — your judgement decides.
+                        </span>. This is a guide — your judgement decides.
                       </p>
                     </div>
                   )}
@@ -700,7 +697,7 @@ function PhotoComparisonPanel({
                 {url && (
                   <img
                     src={url}
-                    alt={`Buyer photo ${i + 1}`}
+                    alt={`Snapshot ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
                 )}
@@ -719,7 +716,7 @@ function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
       <div className="flex gap-3 rounded-lg border-l-4 border-gray-300 bg-gray-50 dark:bg-navy-700 p-4">
         <IconAlertTriangle
           size={18}
-          className="text-gray-400 shrink-0 mt-0.5"
+          className="text-gray-500 shrink-0 mt-0.5"
         />
         <p className="text-sm text-gray-700 dark:text-white/80 leading-relaxed">
           {reason}

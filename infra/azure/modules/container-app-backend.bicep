@@ -47,7 +47,7 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
                 }
             ]
             scale:{
-                minReplicas:1
+                minReplicas:0
                 maxReplicas:3
                 rules:[
                     {

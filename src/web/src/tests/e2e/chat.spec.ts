@@ -1,22 +1,40 @@
+<<<<<<< HEAD
 import {test, expect} from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { signupAndLogin,  uniqueEmail, loginAsAdmin } from './helpers/auth';
 import { findPendingVerificationCaseId, approveVerificationCase } from './helpers/admin';
+=======
+import { test, expect } from "@playwright/test";
+import path from "path";
+import { fileURLToPath } from "url";
+import {
+  signupVerifyAndLogin,
+  uniqueEmail,
+} from "./helpers/auth";
+>>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
+<<<<<<< HEAD
 test('chat is locked for both the seller and the buyer until the seller accepts the reservation ', async({browser, request}) => {
     test.setTimeout(240_000);
     const listingTitle = `E2E Chat Listing ${Date.now()}`;
     const sellerEmail = uniqueEmail('seller');
     const buyerEmail = uniqueEmail('buyer');
 
+=======
+test("chat is locked for both the seller and the buyer until the seller accepts the reservation ", async ({
+  browser,
+  request,
+}) => {
+  test.setTimeout(180000);
+>>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
-    const sellerContext = await browser.newContext();
-    const sellerPage = await sellerContext.newPage();
+  const listingTitle = `E2E Chat Listing ${Date.now()}`;
 
+<<<<<<< HEAD
     await signupAndLogin(sellerPage, request, {email: sellerEmail});
 
     const adminContext = await browser.newContext();
@@ -27,29 +45,48 @@ test('chat is locked for both the seller and the buyer until the seller accepts 
     
 
     await sellerPage.reload();
+=======
+  const sellerAdminContext = await browser.newContext();
+  const sellerAdminPage = await sellerAdminContext.newPage();
+  const sellerContext = await browser.newContext();
+  const sellerPage = await sellerContext.newPage();
+>>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
-    await sellerPage.getByText('Switch', {exact: true}).click();
-    await sellerPage.waitForURL(/\/seller\/listings/);
+  await signupVerifyAndLogin(sellerPage, request, sellerAdminPage, {
+    email: uniqueEmail("seller"),
+  });
+  await sellerAdminContext.close();
+  await sellerPage.getByText("Switch", { exact: true }).click();
+  await sellerPage.waitForURL(/\/seller\/listings/);
 
-    await sellerPage.getByRole('link', { name: 'New Listing' }).click();
-    await sellerPage.waitForURL(/\/seller\/upload/);
+  await sellerPage.getByRole("link", { name: "New Listing" }).click();
+  await sellerPage.waitForURL(/\/seller\/upload/);
 
-    await sellerPage.getByTestId('category-buttons').locator('button').first().click();
-    await sellerPage.getByPlaceholder('Title').fill(listingTitle);
-    await sellerPage.getByPlaceholder('Description').fill('A listing created by an automated test.');
-    await sellerPage.locator('input[type="number"]').fill('250');
+  await sellerPage
+    .getByTestId("category-buttons")
+    .locator("button")
+    .first()
+    .click();
+  await sellerPage.getByPlaceholder("Title").fill(listingTitle);
+  await sellerPage
+    .getByPlaceholder("Description")
+    .fill("A listing created by an automated test.");
+  await sellerPage.locator('input[type="number"]').fill("250");
 
-    await sellerPage.setInputFiles(
-        'input[type="file"]',
-        path.join(_dirname, 'fixtures', 'test-image.jpg')
-    );
+  await sellerPage.setInputFiles(
+    'input[type="file"]',
+    path.join(_dirname, "fixtures", "test-image.jpg"),
+  );
 
-    await sellerPage.getByRole('button', { name: /^submit listing$/i }).click();
-    await sellerPage.waitForURL(/\/seller\/listings/);
+  await sellerPage.getByRole("button", { name: /^submit listing$/i }).click();
+  await sellerPage.waitForURL(/\/seller\/listings/);
 
-    const buyerContext = await browser.newContext();
-    const buyerPage = await buyerContext.newPage();
+  const buyerAdminContext = await browser.newContext();
+  const buyerAdminPage = await buyerAdminContext.newPage();
+  const buyerContext = await browser.newContext();
+  const buyerPage = await buyerContext.newPage();
 
+<<<<<<< HEAD
     await signupAndLogin(buyerPage, request, { email: buyerEmail });
     await buyerPage.waitForURL(/\/buyer\/listings/);
 
@@ -60,38 +97,44 @@ test('chat is locked for both the seller and the buyer until the seller accepts 
 
     await buyerPage.reload();
     await buyerPage.waitForURL(/\/buyer\/listings/);
+=======
+  await signupVerifyAndLogin(buyerPage, request, buyerAdminPage, {
+    email: uniqueEmail("buyer"),
+  });
+  await buyerAdminContext.close();
+  await buyerPage.waitForURL(/\/buyer\/listings/);
+>>>>>>> 3238644c14e62d0de69df77e5dfd26d7074eb4ef
 
-    const listingCard = buyerPage
-        .getByTestId('listing-card')
-        .filter({ hasText: listingTitle });
-    await expect(listingCard).toBeVisible({ timeout: 10000 });
+  const listingCard = buyerPage
+    .getByTestId("listing-card")
+    .filter({ hasText: listingTitle });
+  await expect(listingCard).toBeVisible({ timeout: 10000 });
 
-    await listingCard.locator('img').click();
-    await buyerPage.waitForURL(/\/buyer\/listings\/.+/);
-    await buyerPage.getByRole('button', { name: /reserve this item/i }).click();
-    await buyerPage.waitForURL(/\/buyer\/reservations/);
+  await listingCard.locator("img").click();
+  await buyerPage.waitForURL(/\/buyer\/listings\/.+/);
+  await buyerPage.getByRole("button", { name: /reserve this item/i }).click();
+  await buyerPage.waitForURL(/\/buyer\/reservations/);
 
-    await buyerPage.getByRole('button', {name: /message seller/i}).click();
-    await buyerPage.waitForURL(/\/buyer\/messages\/(.+)/);
+  await buyerPage.getByRole("button", { name: /message seller/i }).click();
+  await buyerPage.waitForURL(/\/buyer\/messages\/(.+)/);
 
+  const reservationId = new URL(buyerPage.url()).pathname.split("/").pop();
 
-    const reservationId = new URL(buyerPage.url()).pathname.split('/').pop();
+  await expect(
+    buyerPage.getByText(/waiting for seller to accept reservation/i),
+  ).toBeVisible();
+  await expect(
+    buyerPage.getByPlaceholder("Type a message..."),
+  ).not.toBeVisible();
 
-    await expect(
-        buyerPage.getByText(/waiting for seller to accept reservation/i)
+  await sellerPage.goto(`/seller/messages/${reservationId}`);
+  await expect(
+    sellerPage.getByText(/accept this reservation to start chatting/i),
+  ).toBeVisible();
+  await expect(
+    sellerPage.getByPlaceholder("Type a message..."),
+  ).not.toBeVisible();
 
-    ).toBeVisible();
-    await expect(buyerPage.getByPlaceholder('Type a message...')).not.toBeVisible();
-
-    await sellerPage.goto(`/seller/messages/${reservationId}`);
-    await expect(
-        sellerPage.getByText(/accept this reservation to start chatting/i)
-    ).toBeVisible();
-    await expect(sellerPage.getByPlaceholder('Type a message...')).not.toBeVisible();
-
-    await sellerContext.close();
-    await buyerContext.close();
-
-
-
+  await sellerContext.close();
+  await buyerContext.close();
 });

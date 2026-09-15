@@ -18,7 +18,11 @@ public class ListingController : ControllerBase
     // constants , strings
     private readonly string _unauthenticatedString = "unauthenticated";
     private readonly string _statusLockedString = "status_locked";
+    private readonly string _bookNtAllowedString = "book_fields_not_allowed";
+    private readonly string _forbiddenString = "forbidden";
+    private readonly string _invalidMetaDataString = "invalid_metadata";
 
+    private readonly string _invalidCategory = "invalid_category";
     public ListingController(IListingService listings, IImageStorageService images)
     {
         _listings = listings;
@@ -51,17 +55,17 @@ public class ListingController : ControllerBase
             var response = await _listings.CreateListings(request, callerId, ct);
             return Ok(response);
         }
-        catch (ArgumentException ex) when (ex.Message == "invalid_category")
+        catch (ArgumentException ex) when (ex.Message == _invalidCategory)
         {
-            return BadRequest(new { error = "invalid_category" });
+            return BadRequest(new { error = _invalidCategory });
         }
-        catch (ArgumentException ex) when (ex.Message == "book_fields_not_allowed")
+        catch (ArgumentException ex) when (ex.Message == _bookNtAllowedString)
         {
-            return BadRequest(new { error = "book_fields_not_allowed" });
+            return BadRequest(new { error = _bookNtAllowedString });
         }
-        catch (ArgumentException ex) when (ex.Message == "invalid_metadata")
+        catch (ArgumentException ex) when (ex.Message == _invalidMetaDataString)
         {
-            return BadRequest(new { error = "invalid_metadata" });
+            return BadRequest(new { error = _invalidMetaDataString });
         }
     }
 
@@ -89,23 +93,23 @@ public class ListingController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
         }
         catch (InvalidOperationException ex) when (ex.Message == "listing_locked_for_edit")
         {
             return Conflict(new { error = "listing_locked_for_edit" });
         }
-        catch (ArgumentException ex) when (ex.Message == "invalid_category")
+        catch (ArgumentException ex) when (ex.Message == _invalidCategory)
         {
-            return BadRequest(new { error = "invalid_category" });
+            return BadRequest(new { error = _invalidCategory });
         }
-        catch (ArgumentException ex) when (ex.Message == "book_fields_not_allowed")
+        catch (ArgumentException ex) when (ex.Message == _bookNtAllowedString)
         {
-            return BadRequest(new { error = "book_fields_not_allowed" });
+            return BadRequest(new { error = _bookNtAllowedString });
         }
-        catch (ArgumentException ex) when (ex.Message == "invalid_metadata")
+        catch (ArgumentException ex) when (ex.Message == _invalidMetaDataString)
         {
-            return BadRequest(new { error = "invalid_metadata" });
+            return BadRequest(new { error = _invalidMetaDataString });
         }
 
     }
@@ -150,7 +154,7 @@ public class ListingController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
         }
     }
 
@@ -174,7 +178,7 @@ public class ListingController : ControllerBase
 
         if (!await _listings.IsOwnerAsync(listingId, callerId))
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
         }
 
         const long maxBytes = 10 * 1024 * 1024;
@@ -258,7 +262,7 @@ public class ListingController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = "forbidden" });
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
         }
         catch (InvalidOperationException ex) when (ex.Message == _statusLockedString)
         {

@@ -26,6 +26,7 @@ public class AuthController : ControllerBase
     };
 
     private const long _maxPorFileSizeBytes = 5 * 1024 * 1024;
+    private const string _serverErrorString = "server_error";
 
     public AuthController(
         IIdentityService identityService,
@@ -66,7 +67,7 @@ public class AuthController : ControllerBase
                 "otp_already_sent" => StatusCode(429, new { error = "otp_already_sent" }),
                 "invalid_domain" => UnprocessableEntity(new { error = "invalid_domain" }),
                 "weak_password" => UnprocessableEntity(new { error = "weak_password" }),
-                _ => StatusCode(500, new { error = "server_error" }),
+                _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }
     }
@@ -144,7 +145,7 @@ public class AuthController : ControllerBase
             return e.Message switch
             {
                 "invalid_credentials" => Unauthorized(new { error = "invalid_credentials" }),
-                _ => StatusCode(500, new { error = "server_error" }),
+                _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }
     }
@@ -188,7 +189,7 @@ public class AuthController : ControllerBase
             return ex.Message switch
             {
                 "not_found" => Unauthorized(new { error = "unauthenticatedfailling" }),
-                _ => StatusCode(500, new { error = "server_error" }),
+                _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }
     }
@@ -250,7 +251,7 @@ public class AuthController : ControllerBase
                 "no_pending_verification" => UnprocessableEntity(
                     new { error = "no_pending_verification" }
                 ),
-                _ => StatusCode(500, new { error = "server_error" }),
+                _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }
     }

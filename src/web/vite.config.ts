@@ -59,7 +59,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/tests/setup.ts",
     testTimeout: 50000,
-    exclude: ["src/tests/e2e/**", "node_modules/**"],
+    exclude: ["src/tests/e2e/**", "src/tests/lighthouse/**", "node_modules/**"],
     coverage: {
       provider: "v8",
       reporter: ["lcov", "text", "html"],

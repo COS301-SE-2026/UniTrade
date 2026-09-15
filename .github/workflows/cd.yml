@@ -88,6 +88,58 @@ jobs:
       
       - name: restore dependencies
         run: dotnet restore UniTrade.sln
+      ##capture first for testing
+      - name: Capture last migration
+        id: last_migration
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+        run:  |
+          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs)
+          echo "last_migration=$LAST" >> "$GITHUB_OUTPUT"
+          echo "Last applied migration: $LAST"
+      
+      - name: Backup db before migration(staging)
+        id: db_backup
+        working-directory: src/backend/Api
+        env:
+          PGCONN: ${{ secrets.DB_CONNECTION_STRING_STAGING}}
+        run:  |
+          trap 'rm -f ~/.pgpass' EXIT
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+          HOST=$(echo "$PGCONN" | grep -oP '(?i)(?<=Host=)[^;]+')
+          PORT=$(echo "$PGCONN" | grep -oP '(?i)(?<=Port=)[^;]+' || echo 5432)
+          DBNAME=$(echo "$PGCONN" | grep -oP '(?i)(?<=Database=)[^;]+')
+          PGUSER=$(echo "$PGCONN" | grep -oP '(?i)(?<=Username=)[^;]+')
+          PGPASS=$(echo "$PGCONN" | grep -oP '(?i)(?<=Password=)[^;]+')
+
+          if [ -z "$HOST" ] || [ -z "$DBNAME" ] || [ -z "$PGUSER" ] || [ -z "$PGPASS" ]; then
+            echo "::error:: Failed to parse on or more fields from the connection string.Aborting backup."
+            exit 1
+          fi
+
+          echo "${HOST}:${PORT}:${DBNAME}:${PGUSER}:${PGPASS}" > ~/.pgpass 
+          chmod 600 ~/.pgpass
+
+          pg_dump -h "$HOST" -p "$PORT" -U "$PGUSER" -d "$DBNAME" -Fc -f pre_migration_backup.pg_dump
+          DUMP_STATUS=$?
+
+          rm -f ~/.pgpass
+
+          if [ "$DUMP_STATUS" -ne 0 ]; then
+            echo "::error::pg_dump failed with exit code $DUMP_STATUS"
+            exit 1
+          fi
+
+          echo "Backup created successfully."
+
+      - name: Upload db to backup artifact(staging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-staging-${{ github.sha }}-${{ github.run_attempt }}
+          path: src/backend/Api/pre_migration_backup.pg_dump
+          retention-days: 30
 
       - name: Run migrations (staging)
         working-directory: src/backend/Api
@@ -96,6 +148,7 @@ jobs:
           #do it the longer way after deploying!
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
+
       
       - name: Capture current live revisions 
         id: live_revs
@@ -286,6 +339,21 @@ jobs:
             echo "No previous frontend revision found."
           fi
 
+      - name: Rollback migrations
+        if: failure()
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+          Acs__ConnectionString: ${{secrets.Acs__ConnectionString}}
+        run:  |
+          TARGET="${{ steps.last_migration.outputs.last_migration}}"
+          if [ -n "$TARGET" ]; then
+            echo "rolling back db to migration: $TARGET"
+            dotnet ef database update "$TARGET" --project ../Infrastructure --startup-project .
+          else
+            echo "no prior migration captured(this is skipping rb)"
+          fi
+
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -342,6 +410,58 @@ jobs:
 
       - name: restore dependencies
         run: dotnet restore UniTrade.sln
+
+      - name: Capture last migration
+        id: last_migration
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_PROD}}
+        run:  |
+          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs)
+          echo "last_migration=$LAST" >> "$GITHUB_OUTPUT"
+          echo "Last applied migration: $LAST"
+
+      - name: Backup db before migration(prod)
+        id: db_backup
+        working-directory: src/backend/Api
+        env:
+          PGCONN: ${{ secrets.DB_CONNECTION_STRING_PROD}}
+        run:  |
+          trap 'rm -f ~/.pgpass' EXIT
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+          HOST=$(echo "$PGCONN" | grep -oP '(?i)(?<=Host=)[^;]+')
+          PORT=$(echo "$PGCONN" | grep -oP '(?i)(?<=Port=)[^;]+' || echo 5432)
+          DBNAME=$(echo "$PGCONN" | grep -oP '(?i)(?<=Database=)[^;]+')
+          PGUSER=$(echo "$PGCONN" | grep -oP '(?i)(?<=Username=)[^;]+')
+          PGPASS=$(echo "$PGCONN" | grep -oP '(?i)(?<=Password=)[^;]+')
+
+          if [ -z "$HOST" ] || [ -z "$DBNAME" ] || [ -z "$PGUSER" ] || [ -z "$PGPASS" ]; then
+            echo "::error:: Failed to parse on or more fields from the connection string.Aborting backup."
+            exit 1
+          fi
+
+          echo "${HOST}:${PORT}:${DBNAME}:${PGUSER}:${PGPASS}" > ~/.pgpass 
+          chmod 600 ~/.pgpass
+
+          pg_dump -h "$HOST" -p "$PORT" -U "$PGUSER" -d "$DBNAME" -Fc -f pre_migration_backup.pg_dump
+          DUMP_STATUS=$?
+
+          rm -f ~/.pgpass
+
+          if [ "$DUMP_STATUS" -ne 0 ]; then
+            echo "::error::pg_dump failed with exit code $DUMP_STATUS"
+            exit 1
+          fi
+
+          echo "Backup created successfully."
+
+      - name: Upload db to backup artifact(prod)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-prod-${{ github.sha }}-${{ github.run_attempt }}
+          path: src/backend/Api/pre_migration_backup.pg_dump
+          retention-days: 30
 
       - name: Run migrations (prod)
         working-directory: src/backend/Api
@@ -532,6 +652,22 @@ jobs:
           else
             echo "No previous frontend revision found."
           fi
+
+      - name: Rollback migrations
+        if: failure()
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_PROD}}
+          Acs__ConnectionString: ${{secrets.Acs__ConnectionString}}
+        run:  |
+          TARGET="${{ steps.last_migration.outputs.last_migration}}"
+          if [ -n "$TARGET" ]; then
+            echo "rolling back db to migration: $TARGET"
+            dotnet ef database update "$TARGET" --project ../Infrastructure --startup-project .
+          else
+            echo "no prior migration captured(this is skipping rb)"
+          fi
+
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \

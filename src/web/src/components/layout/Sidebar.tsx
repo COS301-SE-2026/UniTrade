@@ -109,7 +109,7 @@ interface UserPopoverProps {
 }
 function UserPopover({
   name, initials, roleLabel, onClose, onLogout,
-}: UserPopoverProps) {
+}: Readonly<UserPopoverProps>) {
   const ref = useRef<HTMLDivElement>(null)
   const [showTerms, setShowTerms] = useState(false)
 
@@ -331,7 +331,15 @@ export default function Sidebar() {
         <div
           className="relative">
           <div
+            role='button'
+            tabIndex={0}
             onClick={() => setShowPopover((prev) => !prev)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowPopover((prev) => !prev);
+              }
+            }}
             className={clsx(
               'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
               collapsed && 'justify-center'
