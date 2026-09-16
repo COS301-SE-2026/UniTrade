@@ -6,7 +6,7 @@ import { IconSearch } from '@tabler/icons-react';
 
 const Search_hidden = [
   /^\/buyer\/orders\/[^/]+$/,
-  /^\/buyer\/reservations\/[^/]+$/,
+  ///^\/buyer\/reservations\/[^/]+$/,
   /\/listings\/[^/]+$/,
   /\/seller\/sales\/[^/]+$/,
   /^\/admin/,
