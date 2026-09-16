@@ -239,6 +239,7 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<ISmartBudgetService, SmartBudgetService>();
 builder.Services.AddScoped<IReservationMembership, ReservationRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHostedService<ReservationExpiryWorker>();
