@@ -565,11 +565,14 @@ export default function ChatPage() {
 
             {isProposingMeetup && (
                 <MeetupProposalForm
+                    reservationId={reservationId!}
+                    role={role}
                     onCancel={() => setIsProposingMeetup(false)}
                     onSubmit={handleProposeMeetup}
                     isSubmitting={isSendingProposal}
                 />
             )}
+            
 
             {checkInLocation && (
                 <CheckInModal
