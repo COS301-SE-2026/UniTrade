@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import {
   IconChevronRight, IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
-  IconCalendarStats, IconCircleCheck, IconClock,
+  IconCalendarStats,IconCalendarEvent, IconCircleCheck, IconClock,
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
@@ -294,12 +294,17 @@ export default function Profile() {
         {!loadingReviews && !reviewsError && <ReviewList reviews={reviews} />}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50"> 
 
+<div className = "bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+<ProfileRow
+          icon={<IconCalendarEvent size={19} />}
+          label="Create/Edit Timetable"
+          onClick={() => navigate("/auth/timetable")}
+      
 
-
-
-
+/>
+</div>
         <ProfileRow
           icon={<IconTrash size={19} />}
           label="Delete Account"
