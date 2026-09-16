@@ -17,12 +17,14 @@ public class ReservationsController : ControllerBase
     private readonly IReservationService _reservations;
     private readonly IChatService _chat;
     private readonly IListingSnapshotService _snapshot;
+    private readonly ISmartBudgetService _smartBudget;
 
-    public ReservationsController(IReservationService reservations, IChatService chat, IListingSnapshotService snapshot)
+    public ReservationsController(IReservationService reservations, IChatService chat, IListingSnapshotService snapshot, ISmartBudgetService smartBudget)
     {
         _reservations = reservations;
         _chat = chat;
         _snapshot = snapshot;
+        _smartBudget = smartBudget;
     }
 
     private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
@@ -144,6 +146,43 @@ public class ReservationsController : ControllerBase
             return NotFound();
         }
         return Ok(snapshot);
+    }
+
+    //get/api/reservations/smart-budget/preview?listingIds=<guid>,<guid>&maxBudget=1500
+    [HttpGet("smart-budget/preview")]
+    public async Task<IActionResult> PreviewSmartBudget([FromQuery] string? listingIds, [FromQuery] decimal maxBudget, CancellationToken ct)
+    {
+        var ids = ParseListingIds(listingIds);
+        if (ids is null)
+        {
+            return BadRequest(new { error = "invalid_listing_ids" });
+        }
+        if (maxBudget < 0)
+        {
+            return BadRequest(new { error = "invalid_max_budget" });
+        }
+
+        var preview = await _smartBudget.PreviewAsync(ids, maxBudget, ct);
+        return Ok(preview);
+    }
+
+    private static List<Guid>? ParseListingIds(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return new List<Guid>();
+        }
+
+        var ids = new List<Guid>();
+        foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!Guid.TryParse(part, out var id))
+            {
+                return null;
+            }
+            ids.Add(id);
+        }
+        return ids;
     }
 
     private ObjectResult MapError(ReservationException ex) =>
