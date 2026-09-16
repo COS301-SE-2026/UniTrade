@@ -58,62 +58,72 @@ public class SmartBudgetService(IListingRepository listings) : ISmartBudgetServi
             );
         }
 
-        var dp = new decimal?[n + 1, n + 1];
-        dp[0, 0] = 0m;
+        var priceCents = items.Select(i => (int)Math.Round(i.Price * 100m, 0, MidpointRounding.AwayFromZero)).ToArray();
+        var totalCents = priceCents.Sum();
+        var budgetCents = (long)Math.Floor(maxBudget * 100m);
+        var capacity = (int)Math.Min(budgetCents, (long)totalCents);
+
+        var dp = new int?[n + 1, capacity + 1];
+        dp[0, 0] = 0;
 
         for (var i = 1; i <= n; i++)
         {
-            var price = items[i - 1].Price;
+            var price = priceCents[i - 1];
 
-            for (var k = 0; k <= n; k++)
+            for (var k = 0; k <= capacity; k++)
             {
                 var skip = dp[i - 1, k];
-                decimal? take = null;
+                int? take = null;
 
-                if (k > 0 && dp[i - 1, k - 1] is decimal prevSum)
+                if (k >= price && dp[i - 1, k - price] is int prevCount)
                 {
-                    var candidate = prevSum + price;
-                    if (candidate <= maxBudget)
-                    {
-                        take = candidate;
-                    }
+                    take = prevCount + 1;
                 }
                 dp[i, k] = (skip, take) switch
                 {
                     (null, null) => null,
-                    (decimal s, null) => s,
-                    (null, decimal t) => t,
-                    (decimal s, decimal t) => Math.Max(s, t),
+                    (int s, null) => s,
+                    (null, int t) => t,
+                    (int s, int t) => Math.Max(s, t),
                 };
             }
         }
 
         var bestK = 0;
-        for (var k = n; k >= 0; k--)
+        for (var k = 0; k <= capacity; k++)
         {
-            if (dp[n, k] is not null)
+            if (dp[n, k] is int count && count > bestK)
             {
-                bestK = k;
+                bestK = count;
+            }
+        }
+
+        var bestCost = 0;
+        for (var c = capacity; c >= 0; c--)
+        {
+            if (dp[n, c] == bestK)
+            {
+                bestCost = c;
                 break;
             }
         }
 
-        var totalCost = dp[n, bestK] ?? 0m;
+        var totalCost = bestCost / 100m;
 
         var selectedIndexes = new List<int>();
         var ci = n;
-        var ck = bestK;
+        var ck = bestCost;
 
-        while (ci > 0 && ck > 0)
+        while (ci > 0 && ck >= 0)
         {
-            var price = items[ci - 1].Price;
-            var takenValue = dp[ci - 1, ck - 1] is decimal prevSum && prevSum + price <= maxBudget ? prevSum + price : (decimal?)null;
+            var price = priceCents[ci - 1];
+            var takenValue = ck >= price && dp[ci - 1, ck - price] is int prevCount ? prevCount + 1 : (int?)null;
 
             if (takenValue is not null && takenValue == dp[ci, ck])
             {
                 selectedIndexes.Add(ci - 1);
                 ci--;
-                ck--;
+                ck -= price;
             }
             else
             {
