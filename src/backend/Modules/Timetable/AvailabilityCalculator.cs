@@ -161,7 +161,7 @@ public static class AvailabilityCalculator
         var horizonEnd = nowSast.AddDays(horizonDays);
         var slots = new List<DatedSlot>();
 
-        var earliestStart = nowSast.AddMinutes(15);
+        var earliestStart = nowSast.Add(BookingLeadTime);
 
         for (int offset = 0; offset <= horizonDays; offset++)
         {
