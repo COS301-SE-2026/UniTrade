@@ -97,6 +97,97 @@ export default function Timetable() {
   if (isLoading) return <LoadingState message="Loading your timetable..." />;
  
   return (
-<div className="max-w-2xl mx-auto p-4">soon</div>
+  <div className="min-h-screen bg-slate-50/50 pb-12">
+      <div className="bg-navy-800 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 hover:bg-white/10 rounded-lg transition text-white"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <div>
+            <h1 className="text-xl text-white font-bold">Your Timetable</h1>
+            <p className="text-xs text-white/80">
+              Add your class times so buyers and sellers can see when you're free to meet.
+            </p>
+          </div>
+        </div>
+      </div>
+ 
+      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+          <div className="min-w-[640px]">
+            <div className="grid grid-cols-[56px_repeat(7,1fr)] mb-1">
+              <div />
+              {DAY_ORDER.map((d) => (
+                <div
+                  key={d}
+                  className="text-xs font-semibold text-slate-400 text-center pb-2 border-b border-slate-200"
+                >
+                  {DAY_SHORT[d]}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-[56px_repeat(7,1fr)]">
+              <div className="relative h-[600px]">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="absolute -translate-y-1/2 text-[10px] text-slate-400"
+                    style={{ top: `${(i / 12) * 100}%` }}
+                  >
+                    {String(8 + i).padStart(2, '0')}:00
+                  </span>
+                ))}
+              </div>
+              {DAY_ORDER.map((d) => (
+                <div
+                  key={d}
+                  className="relative h-[600px] border-l border-slate-100"
+                  style={{
+                    backgroundImage:
+                      'repeating-linear-gradient(to bottom, transparent 0px, transparent 49px, #f9fafb 50px)',
+                  }}
+                >
+                  {entries.length === 0 && d === DAY_ORDER[0] && (
+                    <p className="absolute inset-0 flex items-center justify-center text-center text-xs text-slate-400 px-6">
+                      No busy times yet
+                    </p>
+                  )}
+                  {entriesByDay[d].map((entry) => {
+                    const s = toMinutes(entry.startTime);
+                    const e = toMinutes(entry.endTime);
+                    const top = ((s - DAY_START_MINUTES) / (DAY_END_MINUTES - DAY_START_MINUTES)) * 100;
+                    const height = ((e-s) /(DAY_END_MINUTES - DAY_START_MINUTES)) * 100;
+                    return (
+                      <div
+                        key={entry.entryId}
+                        className="group absolute left-0.5 right-0.5 bg-blue-950 text-white rounded-lg px-1.5 py-1 text-[10px] leading-tight overflow-hidden"
+                        style={{ top: `${top}%`, height: `${height}%` }}
+                        title={`${DAY_LABEL[d]} ${formatRange(entry.startTime, entry.endTime)}`}
+                      >
+                        {formatRange(entry.startTime, entry.endTime)}
+                        <button
+                          type="button"
+                          aria-label={`Delete ${DAY_LABEL[d]} ${formatRange(entry.startTime, entry.endTime)}`}
+                          onClick={() => deleteMutation.mutate(entry.entryId)}
+                          className="absolute top-0 right-0.5 opacity-0 group-hover:opacity-100 transition text-white/80 hover:text-white"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+ 
+           </div>
+    </div>
   );
 }
