@@ -27,7 +27,7 @@ export interface AvailabilitySlot{
 export type AvailabilityResponse = 
 | { status: 'ok'; slots: AvailabilitySlot[] }
 | {status: 'missing_timetable';missingParty: 'buyer' | 'seller'}|
-{status: 'no-overlap'; slots: []};
+{status: 'no_overlap'; slots: []};
 
 
 export const DAY_LABEL: Record<DayOfWeek, string> = {
