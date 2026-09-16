@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router';
+//import { useNavigate } from 'react-router';
 import { useState, type FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { LoadingState } from '../../components/layout/Spinner';
 import { useToast } from '../../components/layout/useToast';
 import { getMyTimetable, addTimetableEntry, deleteTimetableEntry } from '../../services/timetableService';
@@ -16,7 +16,7 @@ import {
   type DayOfWeek,
   type TimetableEntry,
 } from '../../types/timetable';
- 
+
 function validateEntry(day: DayOfWeek | null, start: string, end: string): string | null {
   if (day === null) return 'Pick a day.';
   if (!start || !end) return 'Pick a start and end time.';
@@ -26,17 +26,17 @@ function validateEntry(day: DayOfWeek | null, start: string, end: string): strin
   if (s < DAY_START_MINUTES || e > DAY_END_MINUTES) return 'Times must fall between 08:00 and 20:00.';
   return null;
 }
- 
+
 export default function Timetable() {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
- 
+
   const [formDay, setFormDay] = useState<DayOfWeek>(1);
   const [formStart, setFormStart] = useState('');
   const [formEnd, setFormEnd] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
- 
+
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['timetable'],
     queryFn: async () => {
@@ -45,7 +45,8 @@ export default function Timetable() {
       return result.data;
     },
   });
- const addMutation = useMutation({
+
+  const addMutation = useMutation({
     mutationFn: (entry: { dayOfWeek: DayOfWeek; startTime: string; endTime: string }) =>
       addTimetableEntry(entry),
     onSuccess: (result) => {
@@ -57,7 +58,7 @@ export default function Timetable() {
     },
     onError: () => showToast('error', 'Could not add that block.'),
   });
- 
+
   const deleteMutation = useMutation({
     mutationFn: (entryId: string) => deleteTimetableEntry(entryId),
     onMutate: async (entryId: string) => {
@@ -72,7 +73,7 @@ export default function Timetable() {
       showToast('error', 'Could not delete that block.');
     },
   });
- 
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const err = validateEntry(formDay, formStart, formEnd);
@@ -85,47 +86,39 @@ export default function Timetable() {
     setFormStart('');
     setFormEnd('');
   }
-  
- 
+
   const entriesByDay = DAY_ORDER.reduce((acc, d) => {
     acc[d] = entries
       .filter((x) => x.dayOfWeek === d)
       .sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
     return acc;
   }, {} as Record<DayOfWeek, TimetableEntry[]>);
- 
+
   if (isLoading) return <LoadingState message="Loading your timetable..." />;
- 
+
   return (
-  <div className="min-h-screen bg-slate-50/50 pb-12">
-      <div className="bg-navy-800 border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="p-2 hover:bg-white/10 rounded-lg transition text-white"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div>
-            <h1 className="text-xl text-white font-bold">Your Timetable</h1>
-            <p className="text-xs text-white/80">
-              Add your class times so buyers and sellers can see when you're free to meet.
-            </p>
-          </div>
+    <div className="flex flex-col gap-6"> 
+    <div className="flex flex-col gap-6">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="font-['Fraunces'] font-normal text-[32px] leading-[1.2] text-black">
+            Your Timetable
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Add your class times so buyers and sellers can see when you're free to meet.
+          </p>
         </div>
       </div>
- 
-      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+</div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6 overflow-x-auto">
           <div className="min-w-[640px]">
             <div className="grid grid-cols-[56px_repeat(7,1fr)] mb-1">
               <div />
               {DAY_ORDER.map((d) => (
                 <div
                   key={d}
-                  className="text-xs font-semibold text-slate-400 text-center pb-2 border-b border-slate-200"
+                  className="text-xs font-semibold text-gray-400 text-center pb-2 border-b border-gray-200"
                 >
                   {DAY_SHORT[d]}
                 </div>
@@ -136,7 +129,7 @@ export default function Timetable() {
                 {Array.from({ length: 12 }, (_, i) => (
                   <span
                     key={i}
-                    className="absolute -translate-y-1/2 text-[10px] text-slate-400"
+                    className="absolute -translate-y-1/2 text-[10px] text-gray-400"
                     style={{ top: `${(i / 12) * 100}%` }}
                   >
                     {String(8 + i).padStart(2, '0')}:00
@@ -146,14 +139,14 @@ export default function Timetable() {
               {DAY_ORDER.map((d) => (
                 <div
                   key={d}
-                  className="relative h-[600px] border-l border-slate-100"
+                  className="relative h-[600px] border-l border-gray-100"
                   style={{
                     backgroundImage:
                       'repeating-linear-gradient(to bottom, transparent 0px, transparent 49px, #f9fafb 50px)',
                   }}
                 >
                   {entries.length === 0 && d === DAY_ORDER[0] && (
-                    <p className="absolute inset-0 flex items-center justify-center text-center text-xs text-slate-400 px-6">
+                    <p className="absolute inset-0 flex items-center justify-center text-center text-xs text-gray-400 px-6">
                       No busy times yet
                     </p>
                   )}
@@ -161,11 +154,11 @@ export default function Timetable() {
                     const s = toMinutes(entry.startTime);
                     const e = toMinutes(entry.endTime);
                     const top = ((s - DAY_START_MINUTES) / (DAY_END_MINUTES - DAY_START_MINUTES)) * 100;
-                    const height = ((e-s) /(DAY_END_MINUTES - DAY_START_MINUTES)) * 100;
+                    const height = ((e - s) / (DAY_END_MINUTES - DAY_START_MINUTES)) * 100;
                     return (
                       <div
                         key={entry.entryId}
-                        className="group absolute left-0.5 right-0.5 bg-blue-950 text-white rounded-lg px-1.5 py-1 text-[10px] leading-tight overflow-hidden"
+                        className="group absolute left-0.5 right-0.5 bg-primary-700 text-white rounded-sm px-1.5 py-1 text-[10px] leading-tight overflow-hidden"
                         style={{ top: `${top}%`, height: `${height}%` }}
                         title={`${DAY_LABEL[d]} ${formatRange(entry.startTime, entry.endTime)}`}
                       >
@@ -186,21 +179,22 @@ export default function Timetable() {
             </div>
           </div>
         </div>
- 
- 
+
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Add a busy time</h2>
+          <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-500">
+              Add a busy time
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1" htmlFor="tt-day">
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide" htmlFor="tt-day">
                   Day
                 </label>
                 <select
                   id="tt-day"
                   value={formDay}
                   onChange={(e) => setFormDay(Number(e.target.value) as DayOfWeek)}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-400 rounded-sm px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
                 >
                   {DAY_ORDER.map((d) => (
                     <option key={d} value={d}>
@@ -211,7 +205,7 @@ export default function Timetable() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1" htmlFor="tt-start">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide" htmlFor="tt-start">
                     Start
                   </label>
                   <input
@@ -221,11 +215,11 @@ export default function Timetable() {
                     min="08:00"
                     max="20:00"
                     onChange={(e) => setFormStart(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-400 rounded-sm px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1" htmlFor="tt-end">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide" htmlFor="tt-end">
                     End
                   </label>
                   <input
@@ -235,39 +229,41 @@ export default function Timetable() {
                     min="08:00"
                     max="20:00"
                     onChange={(e) => setFormEnd(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-400 rounded-sm px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={addMutation.isPending}
-                className="w-full bg-blue-950 hover:bg-blue-900 disabled:bg-gray-300 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition"
+                className="w-full bg-primary-700 hover:bg-primary-500 disabled:bg-gray-300 text-white font-medium tracking-wide py-2.5 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
               >
                 <Plus className="w-4 h-4" /> Add block
               </button>
-              {formError && <p className="text-xs text-red-600">{formError}</p>}
+              {formError && <p className="text-xs text-error-600">{formError}</p>}
             </form>
           </div>
- 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Your busy blocks</h2>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-500 mb-3">
+              Your busy blocks
+            </h2>
             {entries.length === 0 ? (
-              <p className="text-xs text-slate-400">Nothing added yet.</p>
+              <p className="text-xs text-gray-400">Nothing added yet.</p>
             ) : (
               DAY_ORDER.filter((d) => entriesByDay[d].length > 0).map((d) => (
                 <div key={d} className="mb-3 last:mb-0">
-                  <h3 className="text-[11px] font-semibold text-slate-400 mb-1">{DAY_LABEL[d]}</h3>
+                  <h3 className="text-[11px] font-semibold text-gray-400 mb-1">{DAY_LABEL[d]}</h3>
                   {entriesByDay[d].map((entry) => (
                     <div
                       key={entry.entryId}
-                      className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0"
+                      className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0"
                     >
-                      <span className="text-sm text-slate-700">{formatRange(entry.startTime, entry.endTime)}</span>
+                      <span className="text-sm text-black">{formatRange(entry.startTime, entry.endTime)}</span>
                       <button
                         type="button"
                         onClick={() => deleteMutation.mutate(entry.entryId)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="text-error-600 hover:opacity-75 p-1"
                         aria-label="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -279,8 +275,7 @@ export default function Timetable() {
             )}
           </div>
         </div>
-
-           </div>
+      </div>
     </div>
   );
 }

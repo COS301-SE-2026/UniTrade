@@ -86,7 +86,7 @@ export default function MeetupProposalForm({
                 }
             }
             catch {
-                
+                //left on purpose
             }
         })();
         return () => controller.abort();
