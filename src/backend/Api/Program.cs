@@ -60,6 +60,7 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reputation;
 using Modules.Reputation.Repositories;
 using Modules.Reservations;
+using Modules.Reservations.Availability;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
 using Modules.Reviews.Repositories;
@@ -301,6 +302,7 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 
 if (!builder.Environment.IsDevelopment())
 {
