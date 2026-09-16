@@ -2,8 +2,8 @@ namespace Modules.Reservations.Models.Dto;
 
 public record KnapsackItem(Guid ListingId, decimal Price);//
 
-public record KnapsackResult(IReadOnlyList<Guid> selected, IReadOnlyList<Guid> excluded, decimal totalCost);
+public record KnapsackResult(IReadOnlyList<Guid> Selected, IReadOnlyList<Guid> Excluded, decimal TotalCost);
 
-public record SmartBudgetPreviewDto(IReadOnlyList<Guid> wouldReserve, decimal totalCost, IReadOnlyList<Guid> excluded);
+public record SmartBudgetPreviewDto(IReadOnlyList<Guid> WouldReserve, decimal TotalCost, IReadOnlyList<Guid> Excluded);
 
-public record SellerGroupItem(Guid ListingId, Guid SellerId, decimal Price, string Title);
+public record SellerGroupedItem(Guid ListingId, Guid SellerId, decimal Price, string Title);
