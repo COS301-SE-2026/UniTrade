@@ -1,8 +1,10 @@
-import {useMemo, useState} from "react";
+import {useMemo, useState, useEffect} from "react";
 import {formatPrice} from "../../utils/formatters";
 import type { WishlistListing, BrowseCondition } from "../../types/listing";
 import { useWishlist } from "../../hooks/useWishlist";
+import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
+import { getSmartBudgetPreview } from "../../services/reservationService";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
 
 
@@ -26,17 +28,22 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
     );
 }
 
+type FitState = "fits" | "over_budget" | "unknown"; 
+
 
 function SelectableItemRow({
     listing,
     selected,
+    fitState,
     onToggle,
 }: Readonly<{
     listing: WishlistListing;
+    fitState: FitState;
     selected: boolean;
     onToggle: (id: string) => void;
 }>) {
     const unavailable = listing.status !== "live";
+    const overBudget = selected && fitState === "over_budget";
 
     return (
         <button 
@@ -46,6 +53,8 @@ function SelectableItemRow({
         className = {`w-full text-left bg-white rounded-xl border p-4 flex items-center gap-4 transition-colors ${
             unavailable
             ? "border-gray-200 opacity-50 cursor-not-allowed"
+            :overBudget
+            ? "border-amber-300 ring-1 ring-amber-300"
             : selected
             ? "border-navy-700 ring-1 ring-navy-700"
             : "border-gray-200 hover:border-navy-300"
@@ -69,6 +78,11 @@ function SelectableItemRow({
                     <span className = "text-sm font-bold text-gray-800 truncate">
                         {listing.title}
                         <ConditionBadge condition = {listing.condition} />
+                        {overBudget && (
+                            <span className = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700">
+                                Over budget
+                            </ span>
+                        )}
                     </span>
                     <span className = "block text-xs text-gray-400 mt-0.5">
                         Listed by{" "}
@@ -106,20 +120,60 @@ export default function SmartBudgetReserve() {
         });
     };
 
-
-    const selectedListings = useMemo(
-        () => listings.filter((l) => selectedIds.has(l.id)),
-        [listings, selectedIds],
-    );
-
-
-    const selectedTotal = useMemo(
-        () => selectedListings.reduce((sum, l) => sum + l.price, 0),
-        [selectedListings],
-    );
-
     const budgetValue = Number(maxBudget);
     const budgetIsValid = maxBudget.trim() !== "" && !Number.isNaN(budgetValue) && budgetValue > 0;
+
+    const debouncedSelectedIds = useDebounce(selectedIds, 400);
+  const debouncedBudget = useDebounce(maxBudget, 400);
+
+  const [wouldReserve, setWouldReserve] = useState<Set<string>>(new Set());
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [previewTotal, setPreviewTotal] = useState<number>(0);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ids = Array.from(debouncedSelectedIds);
+    const debouncedBudgetValue = Number(debouncedBudget);
+    const debouncedBudgetIsValid =
+      debouncedBudget.trim() !== "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0;
+
+    if (ids.length === 0 || !debouncedBudgetIsValid) {
+      setWouldReserve(new Set());
+      setExcluded(new Set());
+      setPreviewTotal(0);
+      setPreviewError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setPreviewLoading(true);
+    setPreviewError(null);
+
+    getSmartBudgetPreview({ listingIds: ids, maxBudget: debouncedBudgetValue }).then((result) => {
+      if (cancelled) return;
+      if (result.success) 
+      {
+        setWouldReserve(new Set(result.data.wouldReserve));
+        setExcluded(new Set(result.data.excluded));
+        setPreviewTotal(result.data.totalCount);
+      } else 
+      {
+        setPreviewError(result.error.message ?? "Couldn't check what fits your budget.");
+      }
+      setPreviewLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSelectedIds, debouncedBudget]);
+
+  const getFitState = (id: string): FitState => {
+    if (wouldReserve.has(id)) return "fits";
+    if (excluded.has(id)) return "over_budget";
+    return "unknown";
+  };
 
     return (
         <div className = "flex flex-col gap-6">
@@ -152,18 +206,34 @@ export default function SmartBudgetReserve() {
                  />
                 </div>
 
-                <div className = "ml-auto text-sm text-gray-500">
-                    <span className = "font-semibold text-gray-800">
+                <div className="ml-auto text-sm text-gray-500 text-right">
+                    {previewLoading ? (
+                      <span className="text-gray-400">
+                        Checking what fits ... 
+                      </span>
+                ) : (
+                  <>
+                    <span className="font-semibold text-gray-800">
+                        {wouldReserve.size}
+                    </span> of{" "}
+                    <span className="font-semibold text-gray-800">
                         {selectedIds.size}
-                    </span>
-                    {" "}
-                    {selectedIds.size === 1 ? "item" : "items"} selected {" "}
-                    <span className = "font-semibold text-gray-800">
-                        {formatPrice(selectedTotal)}
-                    </span>
-                    total 
-                </div>
-                </div>
+                    </span>{" "}
+                    {selectedIds.size === 1 ? "item" : "items"} would fit ·{" "}
+                    <span className="font-semibold text-gray-800">
+                        {formatPrice(previewTotal)}
+                    </span> 
+                    total
+                  </>
+                )}
+            </div>
+        </div>
+
+      {previewError && (
+        <p className="text-xs text-rose-600 -mt-2">
+            {previewError}
+        </p>
+      )}
 
                 {isLoading && <LoadingState message = "Loading wishlist ..." />}
 
@@ -182,7 +252,7 @@ export default function SmartBudgetReserve() {
                             Your wishlist is empty
                         </p>
                         <p className = "text-xs text-gray-400 mt-1">
-                            Add items to your wishlist first , them come back to reserve within your budget
+                            Add items to your wishlist first , then come back to reserve within your budget
                         </p>
                     </div>
                 )}
@@ -193,6 +263,7 @@ export default function SmartBudgetReserve() {
                         key = {listing.id}
                         listing = {listing}
                         selected = {selectedIds.has(listing.id)}
+                        fitState={getFitState(listing.id)}
                         onToggle= {toggleSelected}
                         />
                     ))}
