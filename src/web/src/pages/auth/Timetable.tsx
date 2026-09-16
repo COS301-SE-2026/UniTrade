@@ -45,7 +45,46 @@ export default function Timetable() {
       return result.data;
     },
   });
+ const addMutation = useMutation({
+    mutationFn: (entry: { dayOfWeek: DayOfWeek; startTime: string; endTime: string }) =>
+      addTimetableEntry(entry),
+    onSuccess: (result) => {
+      if (!result.success) {
+        showToast('error', result.error.message ?? 'Could not add that block.');
+        return;
+      }
+      queryClient.setQueryData<TimetableEntry[]>(['timetable'], (prev = []) => [...prev, result.data]);
+    },
+    onError: () => showToast('error', 'Could not add that block.'),
+  });
  
+  const deleteMutation = useMutation({
+    mutationFn: (entryId: string) => deleteTimetableEntry(entryId),
+    onMutate: async (entryId: string) => {
+      const previous = queryClient.getQueryData<TimetableEntry[]>(['timetable']);
+      queryClient.setQueryData<TimetableEntry[]>(['timetable'], (prev = []) =>
+        prev.filter((e) => e.entryId !== entryId)
+      );
+      return { previous };
+    },
+    onError: (_err, _entryId, context) => {
+      if (context?.previous) queryClient.setQueryData(['timetable'], context.previous);
+      showToast('error', 'Could not delete that block.');
+    },
+  });
+ 
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const err = validateEntry(formDay, formStart, formEnd);
+    if (err) {
+      setFormError(err);
+      return;
+    }
+    setFormError(null);
+    addMutation.mutate({ dayOfWeek: formDay, startTime: formStart, endTime: formEnd });
+    setFormStart('');
+    setFormEnd('');
+  }
   
  
   const entriesByDay = DAY_ORDER.reduce((acc, d) => {
