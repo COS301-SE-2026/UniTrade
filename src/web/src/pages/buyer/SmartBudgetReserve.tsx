@@ -4,6 +4,8 @@ import type { WishlistListing, BrowseCondition } from "../../types/listing";
 import { useWishlist } from "../../hooks/useWishlist";
 import { LoadingState } from "../../components/layout/Spinner";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
+import { useNavigate } from "react-router";
+import { createSmartBudgetReservation } from "../../services/reservationService";
 
 
 const conditionColours: Record<
@@ -96,6 +98,34 @@ export default function SmartBudgetReserve() {
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [maxBudget, setMaxBudget] = useState<string>("");
+    const navigate = useNavigate();
+    const [submitting, setSubmitting] = useState(false);
+    const [, setSubmitError] = useState<string | null>(null);
+
+    const handleContinue = async () => {
+          setSubmitting(true);
+          setSubmitError(null);
+
+        const result = await createSmartBudgetReservation({
+            listingIds: Array.from(selectedIds),
+            maxBudget: budgetValue,
+        });
+
+        if (result.success) {
+            const sellerNamesById = Object.fromEntries(
+                selectedListings
+                  .filter((l) => l.sellerName)
+                  .map((l) => [l.sellerId, l.sellerName as string])
+            );
+            navigate("/buyer/reservations/smart-budget-result", {
+                state: { result: result.data, sellerNamesById },
+            });
+
+        } else {
+            setSubmitError(result.error.message ?? "Could not complete the reservation.");
+        }
+        setSubmitting(false);
+    };
 
     const toggleSelected = (id: string) => {
         setSelectedIds((prev) => {
@@ -107,16 +137,10 @@ export default function SmartBudgetReserve() {
     };
 
 
-    const selectedListings = useMemo(
-        () => listings.filter((l) => selectedIds.has(l.id)),
-        [listings, selectedIds],
-    );
+    const selectedListings = listings.filter((l) => selectedIds.has(l.id))
 
 
-    const selectedTotal = useMemo(
-        () => selectedListings.reduce((sum, l) => sum + l.price, 0),
-        [selectedListings],
-    );
+    const selectedTotal = selectedListings.reduce((sum, l) => sum + l.price, 0);
 
     const budgetValue = Number(maxBudget);
     const budgetIsValid = maxBudget.trim() !== "" && !Number.isNaN(budgetValue) && budgetValue > 0;
@@ -201,7 +225,8 @@ export default function SmartBudgetReserve() {
                 <div className = "sticky bottom-4 flex justify-end">
                     <button
                     type = "button"
-                    disabled = {!budgetIsValid || selectedIds.size === 0}
+                    disabled = {!budgetIsValid || selectedIds.size === 0 || submitting}
+                    onClick={handleContinue}
                     className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
                         Continue
