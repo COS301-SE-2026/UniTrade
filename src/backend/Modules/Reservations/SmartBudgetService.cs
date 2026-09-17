@@ -3,9 +3,10 @@ using Modules.Listings.Repositories;
 using Modules.Reservations.Models.Dto;
 namespace Modules.Reservations;
 
-public class SmartBudgetService(IListingRepository listings) : ISmartBudgetService
+public class SmartBudgetService(IListingRepository listings, IReservationService reservationService) : ISmartBudgetService
 {
     private readonly IListingRepository _listings = listings;
+    private readonly IReservationService _reservationService = reservationService;
 
     public async Task<SmartBudgetPreviewDto> PreviewAsync(IReadOnlyList<Guid> listingsIds, decimal maxBudget, CancellationToken ct = default)
     {
@@ -145,4 +146,91 @@ public class SmartBudgetService(IListingRepository listings) : ISmartBudgetServi
 
     public static IReadOnlyDictionary<Guid, List<SellerGroupedItem>> GroupBySeller(IEnumerable<SellerGroupedItem> items) =>
     items.GroupBy(i => i.SellerId).ToDictionary(g => g.Key, g => g.ToList());
+
+    public async Task<SmartBudgetBatchResultDto> ReserveAsync(Guid buyerId, IReadOnlyList<Guid> listingIds, decimal maxbudget, CancellationToken ct = default)
+    {
+        if (listingIds.Count == 0)
+        {
+            return new SmartBudgetBatchResultDto(
+                TotalSpent: 0m,
+                Reservations: Array.Empty<SellerReservationDto>(),
+                Reserved: Array.Empty<ReservedItemDto>(),
+                NotReserved: Array.Empty<NotReservedItemDto>()
+            );
+        }
+        var resolved = new List<SellerGroupedItem>();
+        var notFound = new List<Guid>();
+
+        foreach (var id in listingIds)
+        {
+            var listing = await _listings.GetByIdAsync(id);
+            if (listing is null)
+            {
+                notFound.Add(id);
+                continue;
+            }
+            var initials = listing.Seller is { } seller ? $"{FirstOrEmpty(seller.FirstName)}{FirstOrEmpty(seller.LastName)}" : string.Empty;
+            resolved.Add(new SellerGroupedItem(listing.ListingId, listing.SellerId, listing.Price, listing.Title, initials));
+        }
+        var byId = resolved.ToDictionary(x => x.ListingId);
+
+        var knapsackItems = resolved.Select(x => new KnapsackItem(x.ListingId, x.Price)).ToList();
+        var knapsck = Solve(knapsackItems, maxbudget);
+        var overBudget = knapsck.Excluded.ToHashSet();
+
+        var toReserve = resolved.Where(x => !overBudget.Contains(x.ListingId));
+        var byseller = GroupBySeller(toReserve);
+
+        var reservations = new List<SellerReservationDto>();
+        var reserved = new List<ReservedItemDto>();
+        var notReserved = new List<NotReservedItemDto>();
+        var totalSpen = 0m;
+
+        foreach (var (sellerId, items) in byseller)
+        {
+            var listingIdsForSeller = items.Select(i => i.ListingId).ToList();
+            var result = await _reservationService.ReserveMultipleAsync(buyerId, sellerId, listingIdsForSeller, ct);
+
+            if (result.ReservationId is Guid reservationId && result.Reserved.Count > 0)
+            {
+                var subTotal = result.Reserved.Sum(i => i.Price);
+                totalSpen += subTotal;
+
+                reservations.Add(new SellerReservationDto(
+                    ReservationId: reservationId,
+                    SellerId: sellerId,
+                    SellerInitials: items[0].SellerInitials,
+                    Items: result.Reserved.Select(i => new ReservationItemDto(
+                        i.ListingId, i.Title, i.Price
+                    )).ToList(),
+                    SubTotal: subTotal
+                ));
+                reserved.AddRange(result.Reserved);
+            }
+
+            foreach (var failedId in result.FailedListingIds)
+            {
+                var item = byId[failedId];
+                notReserved.Add(new NotReservedItemDto(
+                    failedId, item.Title, item.Price, SmartBudgetReasons.Taken
+                ));
+            }
+        }
+        foreach (var excludedId in overBudget)
+        {
+            var item = byId[excludedId];
+            notReserved.Add(new NotReservedItemDto(
+                excludedId, item.Title, item.Price, SmartBudgetReasons.OverBudget
+            ));
+        }
+        foreach (var missingId in notFound)
+        {
+            notReserved.Add(new NotReservedItemDto(missingId, "", 0m, SmartBudgetReasons.OverBudget));
+        }
+
+        return new SmartBudgetBatchResultDto(totalSpen, reservations, reserved, notReserved);
+    }
+
+    private static string FirstOrEmpty(string? s) => string.IsNullOrEmpty(s) ? "" : s[0].ToString();
+
 }
