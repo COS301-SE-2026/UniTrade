@@ -4,7 +4,7 @@ import type { WishlistListing, BrowseCondition } from "../../types/listing";
 import { useWishlist } from "../../hooks/useWishlist";
 import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
-import { getSmartBudgetPreview } from "../../services/reservationService";
+import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
 
 
