@@ -37,11 +37,7 @@ import HelpCenter from "./pages/auth/HelpCenter";
 import Profile from "./pages/auth/Profile";
 import ChatPage from "./pages/chat/ChatPage";
 import SellerReservations from "./pages/seller/SellerReservation";
-*/
 
-
-//import Login from "./pages/auth/Login";
-/*
 import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
 import MeetupDetails from "./pages/payment/MeetupDetails";
 import Redirect from "./pages/payment/Redirect";
@@ -80,6 +76,7 @@ const MyListings = lazy(() => import("./pages/seller/MyListings"));
 const SellerListingDetail = lazy(() => import("./pages/seller/SellerListingDetail"));
 const HelpCenter = lazy(() => import("./pages/auth/HelpCenter"));
 const Profile = lazy(() => import("./pages/auth/Profile"));
+const TimetableScreen = lazy(() => import("./pages/auth/Timetable"));
 const ChatPage = lazy(() => import("./pages/chat/ChatPage"));
 const SellerReservations = lazy(() => import("./pages/seller/SellerReservation"));
 const NoConversationsSelected = lazy(() => import("./pages/chat/NoConversationsSelected"));
@@ -140,6 +137,7 @@ export default function App() {
         <Route path="/verify-otp" element={<OtpVerification />} />
         <Route path="/auth/help-center" element={<HelpCenter />} />
         <Route path="/auth/profile" element={<Profile />} />
+        <Route path="/auth/timetable" element={<TimetableScreen />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
         <Route path="/auth/ProofUpload" element={<ProofOfRegistrationUpload />} />
         

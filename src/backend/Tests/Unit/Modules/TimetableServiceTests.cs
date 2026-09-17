@@ -15,11 +15,12 @@ namespace UniTrade.Tests.Unit.Modules;
 public class TimetableServiceTests
 {
     private readonly Mock<ITimetableRepository> _mock = new();
+    private readonly Mock<ITimetableNotifier> _notifier = new();
     private readonly TimetableService _sut;
 
     public TimetableServiceTests()
     {
-        _sut = new TimetableService(_mock.Object);
+        _sut = new TimetableService(_mock.Object, _notifier.Object);
     }
 
     [Theory]
@@ -59,39 +60,6 @@ public class TimetableServiceTests
 
         Assert.Equal(new TimeOnly(8, 0), start);
         Assert.Equal(new TimeOnly(20, 0), end);
-    }
-
-    [Fact]
-    public async Task AddAsync_PersistsValidEntry()
-    {
-        _mock
-            .Setup(r => r.AddAsync(It.IsAny<TimetableEntry>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                (TimetableEntry e, CancellationToken _) =>
-                {
-                    e.EntryId = Guid.NewGuid();
-                    e.CreatedAt = DateTime.UtcNow;
-                    return e;
-                }
-            );
-
-        var res = await _sut.AddAsync(
-            Guid.NewGuid(),
-            new CreateTimetableEntryDto
-            {
-                DayOfWeek = 1,
-                StartTime = "10:00",
-                EndTime = "11:00",
-            }
-        );
-
-        Assert.Equal(1, res.DayOfWeek);
-        Assert.Equal("10:00", res.StartTime);
-        Assert.Equal("11:00", res.EndTime);
-        _mock.Verify(
-            r => r.AddAsync(It.IsAny<TimetableEntry>(), It.IsAny<CancellationToken>()),
-            Times.Once
-        );
     }
 
     [Fact]

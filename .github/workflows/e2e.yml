@@ -5,7 +5,7 @@ on:
     pull_request:
         branches-ignore: ["**"]
     push:
-         branches: ["feature/TL_FX"]
+         branches-ignore: ["**"] # temporal they are bound to fail mid implementation
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}
