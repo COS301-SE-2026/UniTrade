@@ -1,5 +1,6 @@
 import {useMemo, useState, useEffect} from "react";
 import {formatPrice} from "../../utils/formatters";
+import { useNavigate } from "react-router";
 import type { WishlistListing, BrowseCondition } from "../../types/listing";
 import { useWishlist } from "../../hooks/useWishlist";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -105,6 +106,7 @@ function SelectableItemRow({
 }
 
 export default function SmartBudgetReserve() {
+    const navigate = useNavigate();
     const {data, isLoading, error} = useWishlist();
     const listings = useMemo(() => data?.listings ?? [], [data]);
 
