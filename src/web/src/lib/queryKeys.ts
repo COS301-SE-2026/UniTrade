@@ -6,5 +6,7 @@ export const queryKeys = {
   wishlist: () => ["wishlist"] as const,
   disputes: () => ["disputes"] as const,
   verifications: () => ["verifications"] as const,
-  dashboardStats: () => ["dashboard"] as const 
+  dashboardStats: () => ["dashboard"] as const,
+  meetupAvailability: (reservationId: string) =>
+    ["meetup-availability", reservationId] as const,
 };

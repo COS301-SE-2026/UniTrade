@@ -102,14 +102,16 @@ export function BenefitList({ title, items }: Readonly<BenefitListProps>) {
       </h3>
       <ul className="space-y-4">
         {items.map((item, idx) => (
+          <li key={item} >
           <Reveal key={item} delay={idx * 80}>
-            <li className="flex items-start gap-3 text-sm">
+            <div className="flex items-start gap-3 text-sm">
               <div className="mt-1 text-green-500">
                 <IconPoint size={18} />
               </div>
               <span className="text-gray-700 dark:text-gray-300">{item}</span>
-            </li>
+            </div>
           </Reveal>
+        </li>
         ))}
       </ul>
     </div>

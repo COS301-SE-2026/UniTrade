@@ -141,3 +141,43 @@ export type Result<T> =
     | { success: true; data: T }
     | { success: false; error: ApiError };
 
+//smart budget wow factor types
+export interface SmartBudgetRequest {
+    listingIds: string[];
+    maxBudget: number;
+}
+
+export interface SmartBudgetItem {
+    listingId: string;
+    title: string;
+    price: number;
+}
+
+export interface SmartBudgetReservationGroup {
+    reservationId: string;
+    sellerId: string;
+    sellerInitials: string;
+    items: SmartBudgetItem[];
+    subtotal: number;
+}
+
+export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
+    reason: "over_budget" | "taken";
+}
+
+export interface SmartBudgetReservedItem extends SmartBudgetItem {
+    sellerId: string;
+}
+
+export interface SmartBudgetResponse {
+    totalSpent: number;
+    reservations: SmartBudgetReservationGroup[];
+    reserved: SmartBudgetItem[];
+    notReserved: SmartBudgetNotReservedItem[];
+}
+
+export interface SmartBudgetPreviewResponse {
+    wouldReserve: string[];
+    totalCount: number;
+    excluded: string[];
+}

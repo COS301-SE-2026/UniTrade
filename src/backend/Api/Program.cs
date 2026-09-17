@@ -60,6 +60,7 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reputation;
 using Modules.Reputation.Repositories;
 using Modules.Reservations;
+using Modules.Reservations.Availability;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
 using Modules.Reviews.Repositories;
@@ -261,6 +262,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
 builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
+builder.Services.AddScoped<ITimetableNotifier, TimetableNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
@@ -302,6 +304,8 @@ builder.Services.AddScoped<
 >();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<ITimetableQueryForAvailability, TimetableQueryForAvailability>();
+builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 
 if (!builder.Environment.IsDevelopment())
 {

@@ -7,6 +7,7 @@ public sealed class ReservationException(string code) : Exception(code) { }
 public static class ReservationErrors
 {
     public const string NotFound = "not_found";
+    public const string ReservationNotFound = "reservation_not_found";
     public const string ListingNotFound = "listing_not_found";
     public const string AlreadyReserved = "already_reserved";
     public const string SelfReserve = "self_reserve";
