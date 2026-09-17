@@ -566,6 +566,8 @@ export default function ChatPage() {
             {isProposingMeetup && (
                 <MeetupProposalForm
                     reservationId={reservationId!}
+                    buyerId={reservation!.buyerId}
+                    sellerId={reservation!.sellerId}
                     role={role}
                     onCancel={() => setIsProposingMeetup(false)}
                     onSubmit={handleProposeMeetup}

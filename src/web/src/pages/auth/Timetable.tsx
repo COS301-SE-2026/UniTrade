@@ -16,6 +16,7 @@ import {
   type DayOfWeek,
   type TimetableEntry,
 } from '../../types/timetable';
+import { timetableErrorMessage } from '../../utils/timetableErrors';
 
 function validateEntry(day: DayOfWeek | null, start: string, end: string): string | null {
   if (day === null) return 'Pick a day.';
@@ -51,7 +52,7 @@ export default function Timetable() {
       addTimetableEntry(entry),
     onSuccess: (result) => {
       if (!result.success) {
-        showToast('error', result.error.message ?? 'Could not add that block.');
+        showToast('error', timetableErrorMessage(result.error.code));
         return;
       }
       queryClient.setQueryData<TimetableEntry[]>(['timetable'], (prev = []) => [...prev, result.data]);
@@ -97,19 +98,19 @@ export default function Timetable() {
   if (isLoading) return <LoadingState message="Loading your timetable..." />;
 
   return (
-    <div className="flex flex-col gap-6"> 
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="font-['Fraunces'] font-normal text-[32px] leading-[1.2] text-black">
-            Your Timetable
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Add your class times so buyers and sellers can see when you're free to meet.
-          </p>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="font-['Fraunces'] font-normal text-[32px] leading-[1.2] text-black">
+              Your Timetable
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Add your class times so buyers and sellers can see when you're free to meet.
+            </p>
+          </div>
         </div>
       </div>
-</div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6 overflow-x-auto">
           <div className="min-w-[640px]">
