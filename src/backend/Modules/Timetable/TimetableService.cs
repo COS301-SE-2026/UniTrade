@@ -1,9 +1,7 @@
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
 using Modules.Timetable.Models;
 using Modules.Timetable.Models.Dto;
 using Modules.Timetable.Repositories;
-using Npgsql;
 
 namespace Modules.Timetable;
 
@@ -14,8 +12,13 @@ public class TimetableService : ITimetableService
     private static readonly string[] _timeFormats = ["HH:mm", "H:mm"];
 
     private readonly ITimetableRepository _timetables;
+    private readonly ITimetableNotifier _notifier;
 
-    public TimetableService(ITimetableRepository timetables) => _timetables = timetables;
+    public TimetableService(ITimetableRepository timetables, ITimetableNotifier notifier)
+    {
+        _timetables = timetables;
+        _notifier = notifier;
+    }
 
     public async Task<IReadOnlyList<TimetableEntryDto>> ListMineAsync(
         Guid userId,
@@ -33,25 +36,26 @@ public class TimetableService : ITimetableService
     )
     {
         var (start, end) = Parse_Validate(dto);
-
-        try
-        {
-            var savedEntries = await _timetables.AddAsync(
-                new TimetableEntry
-                {
-                    UserId = userId,
-                    DayOfWeek = dto.DayOfWeek,
-                    StartTime = start,
-                    EndTime = end,
-                },
-                ct
-            );
-            return MapToDto(savedEntries);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        var sameDay = await _timetables.ListForUserAndDayAsync(userId, dto.DayOfWeek, ct);
+        var overlaps = sameDay.Any(e => start < e.EndTime && e.StartTime < end);
+        if (overlaps)
         {
             throw new TimetableException(TimetableErrors.OverlappingEntry);
         }
+
+        var savedEntries = await _timetables.AddAsync(
+            new TimetableEntry
+            {
+                UserId = userId,
+                DayOfWeek = dto.DayOfWeek,
+                StartTime = start,
+                EndTime = end,
+            },
+            ct
+        );
+        var result = MapToDto(savedEntries);
+        await _notifier.TimetableUpdatedAsync(userId, ct);
+        return result;
     }
 
     public async Task DeleteAsync(Guid userId, Guid entryId, CancellationToken ct = default)
@@ -61,6 +65,7 @@ public class TimetableService : ITimetableService
         {
             throw new TimetableException(TimetableErrors.EntryNotFound);
         }
+        await _notifier.TimetableUpdatedAsync(userId, ct);
     }
 
     public static (TimeOnly Start, TimeOnly End) Parse_Validate(CreateTimetableEntryDto dto)
@@ -114,7 +119,4 @@ public class TimetableService : ITimetableService
 
     private static string FormatTime(TimeOnly time) =>
         time.ToString("HH:mm", CultureInfo.InvariantCulture);
-
-    private static bool IsUniqueViolation(DbUpdateException ex) =>
-        ex.InnerException is Npgsql.PostgresException { SqlState: "23505" };
 }

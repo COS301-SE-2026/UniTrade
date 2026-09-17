@@ -262,6 +262,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
 builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
+builder.Services.AddScoped<ITimetableNotifier, TimetableNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
