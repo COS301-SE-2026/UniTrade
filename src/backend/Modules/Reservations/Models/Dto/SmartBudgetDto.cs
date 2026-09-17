@@ -6,7 +6,7 @@ public record KnapsackResult(IReadOnlyList<Guid> Selected, IReadOnlyList<Guid> E
 
 public record SmartBudgetPreviewDto(IReadOnlyList<Guid> WouldReserve, decimal TotalCost, IReadOnlyList<Guid> Excluded);
 
-public record SellerGroupedItem(Guid ListingId, Guid SellerId, decimal Price, string Title);
+public record SellerGroupedItem(Guid ListingId, Guid SellerId, decimal Price, string Title, string SellerInitials);
 
 public static class SmartBudgetReasons
 {
