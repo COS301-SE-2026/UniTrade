@@ -1,4 +1,5 @@
-import {useMemo, useState, useEffect} from "react";
+import {useMemo, useState} from "react";
+import { useQuery } from "@tanstack/react-query";
 import {formatPrice} from "../../utils/formatters";
 import { useNavigate } from "react-router";
 import type { WishlistListing, BrowseCondition } from "../../types/listing";
@@ -130,50 +131,42 @@ export default function SmartBudgetReserve() {
     const debouncedSelectedIds = useDebounce(selectedIds, 400);
     const debouncedBudget = useDebounce(maxBudget, 400);
 
-    const [wouldReserve, setWouldReserve] = useState<Set<string>>(new Set());
-    const [excluded, setExcluded] = useState<Set<string>>(new Set());
-    const [previewTotal, setPreviewTotal] = useState<number>(0);
-    const [previewLoading, setPreviewLoading] = useState(false);
-    const [previewError, setPreviewError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const ids = Array.from(debouncedSelectedIds);
+    const debouncedIds = useMemo(() => Array.from(debouncedSelectedIds).sort(), [debouncedSelectedIds]);
     const debouncedBudgetValue = Number(debouncedBudget);
-    const debouncedBudgetIsValid =
-      debouncedBudget.trim() !== "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0;
+    const debouncedBudgetIsValid = debouncedBudget.trim() != "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0;
+    const canPreview = debouncedIds.length > 0 && debouncedBudgetIsValid;
 
-    if (ids.length === 0 || !debouncedBudgetIsValid) {
-      setWouldReserve(new Set());
-      setExcluded(new Set());
-      setPreviewTotal(0);
-      setPreviewError(null);
-      return;
-    }
 
-    let cancelled = false;
-    setPreviewLoading(true);
-    setPreviewError(null);
+    const {
+        data: previewData,
+        isFetching: previewLoading,
+        error: previewErrorRaw,
+    } = useQuery({
+        queryKey: ["smart-budget-preview", debouncedIds, debouncedBudgetValue],
+        queryFn: async () => {
+            const result = await getSmartBudgetPreview({
+                listingIds: debouncedIds,
+                maxBudget: debouncedBudgetValue,
 
-    getSmartBudgetPreview({ listingIds: ids, maxBudget: debouncedBudgetValue }).then((result) => {
-      if (cancelled) return;
-      if (result.success) 
-      {
-        setWouldReserve(new Set(result.data.wouldReserve));
-        setExcluded(new Set(result.data.excluded));
-        setPreviewTotal(result.data.totalCount);
-      } else 
-      {
-        setPreviewError(result.error.message ?? "Couldn't check what fits your budget.");
-      }
-      setPreviewLoading(false);
+            });
+            if(!result.success) {
+                throw new Error(result.error.message ?? "Could not check what fits your budget");
+
+            }
+            return result.data;
+        },
+        enabled: canPreview,
     });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedSelectedIds, debouncedBudget]);
+    const wouldReserve = useMemo(() => new Set(previewData?.wouldReserve ?? []), [previewData]);
+    const excluded = useMemo(() => new Set(previewData?.excluded ?? []), [previewData]);
+
+    const previewTotal = previewData?.totalCount ?? 0;
+    const previewError = previewErrorRaw instanceof Error ? previewErrorRaw.message : null;
+
 
   const getFitState = (id: string): FitState => {
+    if (!budgetIsValid || selectedIds.size === 0) return "unknown";
     if (wouldReserve.has(id)) return "fits";
     if (excluded.has(id)) return "over_budget";
     return "unknown";
