@@ -53,4 +53,11 @@ public interface IReservationService
         DateTime asOfTime,
         CancellationToken ct
     );
+
+    Task<ReserveMultipleResultDto> ReserveMultipleAsync(
+        Guid buyerId,
+        Guid sellerId,
+        IReadOnlyList<Guid> listingIds,
+        CancellationToken ct = default
+    );
 }
