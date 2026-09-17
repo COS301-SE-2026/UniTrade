@@ -212,4 +212,27 @@ public class ReservationsController : ControllerBase
         };
 
     public record CreateReservationRequest([property: JsonRequired] Guid ListingId);
+
+    public record SmartBudgetReserveRequest([property: JsonRequired] List<Guid> ListingIds, [property: JsonRequired] decimal MaxBudget);
+
+    //post /api/reservation/smart-budget
+    [HttpPost("smart-budget")]
+    public async Task<IActionResult> ReserveSmartBudget([FromBody] SmartBudgetReserveRequest body, CancellationToken ct)
+    {
+        if (!IsVerified)
+        {
+            return StatusCode(403, new { error = "not_verified" });
+        }
+        if (body.ListingIds is null || body.ListingIds.Count == 0)
+        {
+            return BadRequest(new { error = "invalid_listing_ids" });
+        }
+        if (body.MaxBudget < 0)
+        {
+            return BadRequest(new { error = "invalid_max_budget" });
+        }
+        var result = await _smartBudget.ReserveAsync(CallerId, body.ListingIds, body.MaxBudget, ct);
+
+        return Ok(result);
+    }
 }

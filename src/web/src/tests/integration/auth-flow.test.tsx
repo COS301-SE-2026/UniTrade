@@ -172,7 +172,7 @@ test('login -> profile -> logout', async () => {
   await user.type(screen.getByPlaceholderText(/password/i), 'Password123!');
   await user.click(screen.getByRole('button', { name: /^login$/i }));
 
-  const profileLink = await screen.findByRole('link', { name: /profile/i });
+  const profileLink = await screen.findByRole('link', { name: 'Profile' });
   await user.click(profileLink);
   await screen.findByText('Account Details');
 
