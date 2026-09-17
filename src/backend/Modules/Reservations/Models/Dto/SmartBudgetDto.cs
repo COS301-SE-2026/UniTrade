@@ -17,7 +17,7 @@ public static class SmartBudgetReasons
 public record ReserveMultipleResultDto(
     Guid? ReservationId,
     Guid SellerId,
-    IReadOnlyList<ReservationItemDto> Reserved,
+    IReadOnlyList<ReservedItemDto> Reserved,
     IReadOnlyList<Guid> FailedListingIds
 );
 
