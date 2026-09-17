@@ -2,7 +2,6 @@ using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 using Modules.Timetable;
 using Modules.Timetable.Models;
-using Modules.Timetable.Repositories;
 
 namespace Modules.Reservations.Availability;
 
@@ -10,12 +9,12 @@ public sealed class AvailabilityService : IAvailabilityService
 {
     private static readonly TimeZoneInfo _sast = FindSast();
     private readonly IReservationRepository _reservations;
-    private readonly ITimetableRepository _timetables;
+    private readonly ITimetableQueryForAvailability _timetables;
     private readonly TimeProvider _time;
 
     public AvailabilityService(
         IReservationRepository reservations,
-        ITimetableRepository timetables,
+        ITimetableQueryForAvailability timetables,
         TimeProvider time
     )
     {
@@ -53,9 +52,12 @@ public sealed class AvailabilityService : IAvailabilityService
         var sellerBusy = MapBusy(sellerEntries);
         var slots = AvailabilityCalculator.Compute(buyerBusy, sellerBusy, nowSast);
 
-        return slots.Count == 0
-            ? new AvailabilityResult.NoOverlap()
-            : new AvailabilityResult.Ok(slots);
+        if (slots.Count == 0)
+            return new AvailabilityResult.NoOverlap();
+
+        var windows = slots.Select(s => new AvailabilityWindow(s.Date, s.Start, s.End)).ToList();
+
+        return new AvailabilityResult.Ok(windows);
     }
 
     private DateTime GetNowSast() =>

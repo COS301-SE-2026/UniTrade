@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Reservations;
 using Modules.Reservations.Availability;
-using Modules.Timetable;
 
 namespace Api.Controllers;
 
@@ -75,7 +74,7 @@ public class AvailabilityController : ControllerBase
             ),
         };
 
-    private static AvailabilitySlotDto ToDto(DatedSlot slot) =>
+    private static AvailabilitySlotDto ToDto(AvailabilityWindow slot) =>
         new(
             slot.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
             (int)slot.Date.DayOfWeek,

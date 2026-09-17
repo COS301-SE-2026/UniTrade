@@ -10,6 +10,7 @@ using Modules.Reservations.Availability;
 using Modules.Reservations.Models;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
+using Modules.Timetable;
 using Modules.Timetable.Models;
 using Modules.Timetable.Repositories;
 using Moq;
@@ -21,7 +22,7 @@ namespace UniTrade.Tests.Unit.Tests;
 public class AvailabilityServiceTests
 {
     private readonly Mock<IReservationRepository> _reservations = new();
-    private readonly Mock<ITimetableRepository> _timetables = new();
+    private readonly Mock<ITimetableQueryForAvailability> _timetables = new();
     private readonly AvailabilityService _sut;
 
     private static readonly DateTimeOffset _fixedUtcNow = new(2026, 9, 21, 6, 0, 0, TimeSpan.Zero);

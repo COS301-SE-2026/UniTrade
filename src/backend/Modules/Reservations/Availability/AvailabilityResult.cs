@@ -4,7 +4,7 @@ public abstract record AvailabilityResult
 {
     private AvailabilityResult() { }
 
-    public sealed record Ok(IReadOnlyList<Timetable.DatedSlot> Slots) : AvailabilityResult;
+    public sealed record Ok(IReadOnlyList<AvailabilityWindow> Slots) : AvailabilityResult;
 
     public sealed record NoOverlap : AvailabilityResult;
 
