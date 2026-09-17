@@ -30,3 +30,14 @@ public record SellerReservationDto(
     IReadOnlyList<ReservationItemDto> Items,
     decimal SubTotal
 );
+
+public record ReservedItemDto(Guid ListingId, string Title, decimal Price, Guid SellerId);
+
+public record NotReservedItemDto(Guid ListingId, string Title, decimal Price, string Reason);
+
+public record SmartBudgetBatchResultDto(
+    decimal TotalSpent,
+    IReadOnlyList<SellerReservationDto> Reservations,
+    IReadOnlyList<ReservedItemDto> Reserved,
+    IReadOnlyList<NotReservedItemDto> NotReserved
+);
