@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router";
+//import { useState } from "react";
 import { formatPrice } from "../../utils/formatters";
 import type {
     SmartBudgetResponse,
@@ -38,6 +39,7 @@ function ReservedGroupCard({
     sellerName,
 }: Readonly<{ group: SmartBudgetReservationGroup; sellerName?: string }>) {
     const navigate = useNavigate();
+    //const [reservation, ] = useState<SmartBudgetReservationGroup | null>(null)
     return (
     
         <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -75,7 +77,7 @@ function ReservedGroupCard({
                 </div>
                 <button
                     type="button"
-                    onClick={() => navigate(`/buyer/reservations/${group.reservationId}`)}
+                    onClick={() => navigate(`/buyer/messages/${group.reservationId}`)}
                     className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md bg-navy-800 text-white hover:bg-navy-700 transition-colors"
                 >
                     <IconMessageCircle size={14} />
