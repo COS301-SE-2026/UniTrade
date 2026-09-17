@@ -156,6 +156,9 @@ public sealed class IcsImportService : IIcsImportService
         CancellationToken ct = default
     )
     {
+        const int MaxPatternsImport = 50;
+        if (patterns.Count > MaxPatternsImport)
+            throw new TimetableException(TimetableErrors.ImportParseFailed);
         var imported = 0;
         var conflicts = new List<ImportConflictDto>();
 
