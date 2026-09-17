@@ -1,4 +1,3 @@
-//import React from "react";
 import { useNavigate, useLocation } from "react-router";
 import { formatPrice } from "../../utils/formatters";
 import type {
