@@ -112,6 +112,8 @@ export default function SmartBudgetReserve() {
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [maxBudget, setMaxBudget] = useState<string>("");
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null); 
 
     const toggleSelected = (id: string) => {
         setSelectedIds((prev) => {
@@ -126,13 +128,13 @@ export default function SmartBudgetReserve() {
     const budgetIsValid = maxBudget.trim() !== "" && !Number.isNaN(budgetValue) && budgetValue > 0;
 
     const debouncedSelectedIds = useDebounce(selectedIds, 400);
-  const debouncedBudget = useDebounce(maxBudget, 400);
+    const debouncedBudget = useDebounce(maxBudget, 400);
 
-  const [wouldReserve, setWouldReserve] = useState<Set<string>>(new Set());
-  const [excluded, setExcluded] = useState<Set<string>>(new Set());
-  const [previewTotal, setPreviewTotal] = useState<number>(0);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
+    const [wouldReserve, setWouldReserve] = useState<Set<string>>(new Set());
+    const [excluded, setExcluded] = useState<Set<string>>(new Set());
+    const [previewTotal, setPreviewTotal] = useState<number>(0);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
     const ids = Array.from(debouncedSelectedIds);
@@ -177,6 +179,32 @@ export default function SmartBudgetReserve() {
     return "unknown";
   };
 
+  const handleContinue = async () => {
+    if (!budgetIsValid || selectedIds.size === 0 || submitting) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const result = await createSmartBudgetReservation({
+        listingIds: Array.from(selectedIds),
+        maxBudget: budgetValue,
+    });
+
+    if(result.success) {
+        const sellerNamesById : Record<string, string> = {};
+        for (const listing of listings) {
+            if(listing.sellerName) sellerNamesById[listing.sellerId] = listing.sellerName;
+        }
+
+        navigate("/buyer/reservations/smart-budget-result", {
+            state: { result: result.data, sellerNamesById},
+        });
+    } else {
+        setSubmitError(result.error.message ?? "Could not complete the reservation. Please Try again.");
+        setSubmitting(false);
+    }
+  };
+
     return (
         <div className = "flex flex-col gap-6">
             <div>
@@ -209,7 +237,15 @@ export default function SmartBudgetReserve() {
                 </div>
 
                 <div className="ml-auto text-sm text-gray-500 text-right">
-                    {previewLoading ? (
+                    {selectedIds.size === 0 ? (
+                        <span className = "text-gray-400">
+                            Select items below to get started
+                        </span>
+                    ) : !budgetIsValid ? (
+                        <span className = "text-gray-400">
+                            Enter a budget to see what fits
+                        </span>
+                    ) : previewLoading ? (
                       <span className="text-gray-400">
                         Checking what fits ... 
                       </span>
@@ -221,7 +257,7 @@ export default function SmartBudgetReserve() {
                     <span className="font-semibold text-gray-800">
                         {selectedIds.size}
                     </span>{" "}
-                    {selectedIds.size === 1 ? "item" : "items"} would fit ·{" "}
+                    {selectedIds.size === 1 ? "item" : "items"} would fit {" "}
                     <span className="font-semibold text-gray-800">
                         {formatPrice(previewTotal)}
                     </span> 
@@ -271,15 +307,22 @@ export default function SmartBudgetReserve() {
                     ))}
                 </div>
 
-                <div className = "sticky bottom-4 flex justify-end">
-                    <button
-                    type = "button"
-                    disabled = {!budgetIsValid || selectedIds.size === 0}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                    >
-                        Continue
-                    </button>
+                     <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-gradient-to-t from-white via-white to-transparent">
+                        {submitError && (
+                          <p className="text-xs text-rose-600 text-right mb-2">{submitError}</p>
+                        )}
+                        <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleContinue}
+                          disabled={!budgetIsValid || selectedIds.size === 0 || submitting}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                        >
+                          {submitting ? "Reserving..." : "Continue"}
+                        </button>
+                       </div>
+                    </div>
                 </div>
-            </div>
+
             );
         }
