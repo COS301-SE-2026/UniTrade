@@ -406,7 +406,6 @@ public class ReservationService(
             ReservationId = Guid.NewGuid(),
             BuyerId = buyerId,
             SellerId = sellerId,
-            IsBundle = listingIds.Count > 1,
             ReservationStatus = ReservationState.Active,
             ExpiresAt = now + ReservationStateMachine.ResponseWindow,
             CreatedAt = now,
@@ -451,6 +450,7 @@ public class ReservationService(
                 FailedListingIds: failedListingIds
             );
         }
+        reservation.IsBundle = reservedItems.Count > 1;
         await _reservations.AddAsync(reservation, ct);
         await _reservations.SaveAsync(ct);
 
