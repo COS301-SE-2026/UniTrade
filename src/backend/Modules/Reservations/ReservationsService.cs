@@ -387,4 +387,89 @@ public class ReservationService(
         }
         return results;
     }
+
+    public async Task<ReserveMultipleResultDto> ReserveMultipleAsync(Guid buyerId, Guid sellerId, IReadOnlyList<Guid> listingIds, CancellationToken ct = default)
+    {
+        if (listingIds.Count == 0)
+        {
+            return new ReserveMultipleResultDto(
+                ReservationId: null,
+                SellerId: sellerId,
+                Reserved: Array.Empty<ReservedItemDto>(),
+                FailedListingIds: Array.Empty<Guid>()
+            );
+        }
+
+        var now = _clock.GetUtcNow().UtcDateTime;
+        var reservation = new Reservation
+        {
+            ReservationId = Guid.NewGuid(),
+            BuyerId = buyerId,
+            SellerId = sellerId,
+            ReservationStatus = ReservationState.Active,
+            ExpiresAt = now + ReservationStateMachine.ResponseWindow,
+            CreatedAt = now,
+        };
+        var reservedItems = new List<ReservedItemDto>();
+        var failedListingIds = new List<Guid>();
+
+        foreach (var listingId in listingIds)
+        {
+            if (!await _listings.TryReserveAsync(listingId, ct))
+            {
+                failedListingIds.Add(listingId);
+                continue;
+            }
+            var listing = await _listings.GetByIdAsync(listingId);
+            if (listing is null)
+            {
+                await _listings.ReleaseAsync(listingId, ct);
+                failedListingIds.Add(listingId);
+                continue;
+            }
+
+            reservation.ReservationListings.Add(new ReservationListing
+            {
+                ListingId = listingId
+            });
+
+            reservedItems.Add(new ReservedItemDto(
+                listingId,
+                listing.Title,
+                listing.Price, sellerId
+            ));
+
+            await _snapshots.CreateSnapshotAsync(reservation.ReservationId, listing, ct);
+        }
+        if (reservedItems.Count == 0)
+        {
+            return new ReserveMultipleResultDto(
+                ReservationId: null,
+                SellerId: sellerId,
+                Reserved: Array.Empty<ReservedItemDto>(),
+                FailedListingIds: failedListingIds
+            );
+        }
+        reservation.IsBundle = reservedItems.Count > 1;
+        await _reservations.AddAsync(reservation, ct);
+        await _reservations.SaveAsync(ct);
+
+        //p.ss PLAce in repo!!
+        var itemTitles = string.Join(", ", reservedItems.Select(i => $"\"{i.Title}\""));
+        await _chat.SendSystemAsync(reservation.ReservationId, reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}", ct);
+
+        foreach (var item in reservedItems)
+        {
+            await _listingNotifier.ListingReservedAsync(item.ListingId, ct);
+            await _wishlist.SuppressForListingAsync(item.ListingId, reservation.ReservationId, ct);
+        }
+        await GuardedPushAsync(sellerId, NotificationTypes.ReservationStatus, reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} of your items.", ct);
+
+        return new ReserveMultipleResultDto(
+            ReservationId: reservation.ReservationId,
+            SellerId: sellerId,
+            Reserved: reservedItems,
+            FailedListingIds: failedListingIds
+        );
+    }
 }
