@@ -37,6 +37,7 @@ const { mockConnectionManager } = vi.hoisted(() => {
             onPaymentCompleted: vi.fn(() => () => { }),
             onStateChange: vi.fn(() => () => { }),
             onReconnected: vi.fn(() => () => { }),
+            onTimetableUpdated: vi.fn(()=> ()=>{}),
             sendMessage: vi.fn(),
             markRead: vi.fn().mockResolvedValue(undefined),
         },
