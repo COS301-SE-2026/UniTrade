@@ -89,6 +89,7 @@ const BrandingStyleDoc = lazy(() => import("./pages/auth/BrandingStyleDoc"));
 const ProofOfRegistrationUpload = lazy(() => import("./pages/auth/UploadProofOfRegistration"));
 const SavedSearches = lazy(() => import("./pages/buyer/SavedSearches"));  
 const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResult"));
+const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
 
 
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
@@ -154,6 +155,7 @@ export default function App() {
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
+          <Route path="/buyer/smart-budget-reserve" element={<SmartBudgetReserve />} />
           <Route path = "/buyer/saved-searches" element={<SavedSearches />} />
           <Route path = "/buyer/reservations/smart-budget-result" element={<SmartBudgetReservation />} />
           <Route path="/seller/reservations" element={<SellerReservations />} />
