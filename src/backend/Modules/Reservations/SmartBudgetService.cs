@@ -64,8 +64,8 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
         var budgetCents = (long)Math.Floor(maxBudget * 100m);
         var capacity = (int)Math.Min(budgetCents, (long)totalCents);
 
-        var dp = new int?[n + 1, capacity + 1];
-        dp[0, 0] = 0;
+        var dpCount = new int[n + 1, capacity + 1];
+        var dpCost = new int[n + 1, capacity + 1];
 
         for (var i = 1; i <= n; i++)
         {
@@ -73,63 +73,41 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
 
             for (var k = 0; k <= capacity; k++)
             {
-                var skip = dp[i - 1, k];
-                int? take = null;
+                var bestCount = dpCount[i - 1, k];
+                var bestCost = dpCost[i - 1, k];
 
-                if (k >= price && dp[i - 1, k - price] is int prevCount)
+                if (k >= price)
                 {
-                    take = prevCount + 1;
+                    var candCount = dpCount[i - 1, k - price] + 1;
+                    var candCost = dpCost[i - 1, k - price] + price;
+
+                    if (candCount > bestCount || (candCount == bestCount && candCost > bestCost))
+                    {
+                        bestCount = candCount;
+                        bestCost = candCost;
+                    }
                 }
-                dp[i, k] = (skip, take) switch
-                {
-                    (null, null) => null,
-                    (int s, null) => s,
-                    (null, int t) => t,
-                    (int s, int t) => Math.Max(s, t),
-                };
+                dpCount[i, k] = bestCount;
+                dpCost[i, k] = bestCost;
             }
         }
 
-        var bestK = 0;
-        for (var k = 0; k <= capacity; k++)
-        {
-            if (dp[n, k] is int count && count > bestK)
-            {
-                bestK = count;
-            }
-        }
-
-        var bestCost = 0;
-        for (var c = capacity; c >= 0; c--)
-        {
-            if (dp[n, c] == bestK)
-            {
-                bestCost = c;
-                break;
-            }
-        }
-
-        var totalCost = bestCost / 100m;
+        var bestK = dpCount[n, capacity];
+        var totalCostCents = dpCost[n, capacity];
+        var totalCost = totalCostCents / 100m;
 
         var selectedIndexes = new List<int>();
         var ci = n;
-        var ck = bestCost;
+        var ck = capacity;
 
-        while (ci > 0 && ck >= 0)
+        while (ci > 0)
         {
-            var price = priceCents[ci - 1];
-            var takenValue = ck >= price && dp[ci - 1, ck - price] is int prevCount ? prevCount + 1 : (int?)null;
-
-            if (takenValue is not null && takenValue == dp[ci, ck])
+            if (dpCount[ci, ck] != dpCount[ci - 1, ck] || dpCost[ci, ck] != dpCost[ci - 1, ck])
             {
                 selectedIndexes.Add(ci - 1);
-                ci--;
-                ck -= price;
+                ck -= priceCents[ci - 1];
             }
-            else
-            {
-                ci--;
-            }
+            ci--;
         }
 
         var selectedSet = selectedIndexes.ToHashSet();
@@ -222,10 +200,6 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
             notReserved.Add(new NotReservedItemDto(
                 excludedId, item.Title, item.Price, SmartBudgetReasons.OverBudget
             ));
-        }
-        foreach (var missingId in notFound)
-        {
-            notReserved.Add(new NotReservedItemDto(missingId, "", 0m, SmartBudgetReasons.OverBudget));
         }
 
         return new SmartBudgetBatchResultDto(totalSpen, reservations, reserved, notReserved);
