@@ -39,6 +39,7 @@ function ReservedGroupCard({
 }: Readonly<{ group: SmartBudgetReservationGroup; sellerName?: string }>) {
     const navigate = useNavigate();
     return (
+    
         <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                 <div className="flex items-center gap-2">
@@ -65,7 +66,7 @@ function ReservedGroupCard({
             </div>
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-sm">
                 <span className="text-gray-500">Subtotal</span>
-                <span className="font-bold text-gray-800">{formatPrice(group.subtotal)}</span>
+                <span className="font-bold text-gray-800">{formatPrice(group.subTotal)}</span>
             </div>
             <div className="flex items-center justify-between mt-3 rounded-lg px-3 py-2 bg-navy-50">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-navy-700">
@@ -157,7 +158,7 @@ export default function SmartBudgetResult() {
                         <p className="text-lg font-bold text-gray-800">{formatPrice(totalSpent)}</p>
                     </div>
                 </div>
-                <div className="flex-1 bg-whote rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+                <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
                         <IconCircleCheck size={20} />
                     </div>

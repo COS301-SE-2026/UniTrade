@@ -95,7 +95,7 @@ test('buyer proposes a meetup and sees it as pending', async () => {
     const user = userEvent.setup()
     renderApp('/buyer/messages/1')
 
-    await user.click(await screen.findByRole('button', { name: /schedule a meetup/i }))
+    await user.click(await screen.findByRole('button', { name: '/schedule a meetup/i' }))
     await user.click(await screen.findByRole('button', { name: /enter a time manually/i }, {timeout: 3000}))
 
     fireEvent.change(document.querySelector('input[type="date"]')!, { target: { value: getTomorrowLocalDate() } })

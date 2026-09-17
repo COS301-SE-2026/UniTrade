@@ -158,7 +158,7 @@ export interface SmartBudgetReservationGroup {
     sellerId: string;
     sellerInitials: string;
     items: SmartBudgetItem[];
-    subtotal: number;
+    subTotal: number;
 }
 
 export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
