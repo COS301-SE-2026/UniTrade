@@ -52,6 +52,12 @@ jobs:
         run: |
           docker build -t "$ACR_REGISTRY/unitrade-frontend:${{ github.sha }}" src/web
           docker push "$ACR_REGISTRY/unitrade-frontend:${{ github.sha }}"
+      - name: Build and push CLIP image
+        env: 
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }} 
+        run: |
+          docker build -t "$ACR_REGISTRY/unitrade-clip:${{ github.sha }}" -f src/clip-service/Dockerfile src/clip-service
+          docker push "$ACR_REGISTRY/unitrade-clip:${{ github.sha }}"
 
   deploy-staging:
     permissions:
@@ -67,6 +73,9 @@ jobs:
       FRONTEND_RG: rg-devnexus-staging
       BACKEND_APP: ca-backend-staging
       FRONTEND_APP: ca-frontend-staging
+      CLIP_RG: rg-devnexus-staging
+      CLIP_APP: ca-clip-staging
+
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -167,6 +176,22 @@ jobs:
               echo "Backend live: ${BACK_LIVE:-<none>}"
               echo "Frontend live: ${FRONT_LIVE:-<none>}"
 
+      - name: Deploy CLIP 
+        env: 
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+        run: |
+          az containerapp update \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --image "$ACR_REGISTRY/unitrade-clip:${IMAGE_TAG}"
+      
+      - name: Get CLIP internal FQDN
+        id: clip_fqdn
+        run: |
+          FQDN=$(az containerapp show \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "fqdn=$FQDN" >> "$GITHUB_OUTPUT"
+
       - name: Deploy backend green revision
         id: backend_rev
         env:
@@ -186,6 +211,7 @@ jobs:
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
           PAYFAST__MERCHANTKEY: ${{ secrets.PAYFAST__MERCHANTKEY }}  
           SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_STAGING }}
+          CLIP_BASE_URL: https://${{ steps.clip_fqdn.outputs.fqdn }}
 
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
@@ -226,7 +252,8 @@ jobs:
                 "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
                 "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
                 "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
-                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn" \
+                "Clip__BaseUrl=$CLIP_BASE_URL"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -390,6 +417,8 @@ jobs:
       FRONTEND_RG: rg-devnexus-prod
       BACKEND_APP: ca-backend-prod
       FRONTEND_APP: ca-frontend-prod
+      CLIP_RG: rg-devnexus-prod
+      CLIP_APP: ca-clip-prod
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -486,6 +515,23 @@ jobs:
 
               echo "Backend live: ${BACK_LIVE:-<none>}"
               echo "Frontend live: ${FRONT_LIVE:-<none>}"
+
+      - name: Deploy CLIP 
+        env: 
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+        run: |
+          az containerapp update \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --image "$ACR_REGISTRY/unitrade-clip:${IMAGE_TAG}"
+      
+      - name: Get CLIP internal FQDN
+        id: clip_fqdn
+        run: |
+          FQDN=$(az containerapp show \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "fqdn=$FQDN" >> "$GITHUB_OUTPUT"
+
       - name: Deploy backend green revision
         id: backend_rev
         env:
@@ -505,6 +551,7 @@ jobs:
           PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
           SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_PROD}}
+          CLIP_BASE_URL: https://${{ steps.clip_fqdn.outputs.fqdn }}
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
 
@@ -545,7 +592,9 @@ jobs:
                 "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
                 "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
                 "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
-                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn" \
+                "Clip__BaseUrl=$CLIP_BASE_URL"
+                
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
