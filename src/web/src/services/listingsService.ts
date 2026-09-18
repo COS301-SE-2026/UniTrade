@@ -28,8 +28,6 @@ import { getSimilarListings as computeSimilarListings } from "../utils/similarLi
 import { getReservations, getTransactionStatus } from "./reservationService";
 
 import { getApiUrl } from "../config";
-import { handleRequest } from "msw";
-import { handleResponse } from "./adminService";
 
 export function imageUrl(path: string): string {
   const origin = new URL(getApiUrl()).origin;

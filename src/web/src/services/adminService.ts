@@ -341,10 +341,12 @@ export async function decideListing(
 interface FlaggedListing{
   listingId: string;
 }
+/*
 interface ListingDecisionBody{
   action: "approve"|"remove";
   reason?:string;
 }
+  */
 interface ListingDecisionResponse{
-
+  randomWordSoLintingPassesInTHeMeanWHile: string
 }
