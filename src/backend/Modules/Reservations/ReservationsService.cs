@@ -2,13 +2,13 @@ using Microsoft.Extensions.Logging;
 using Modules.Chat;
 using Modules.Listings;
 using Modules.Listings.Repositories;
+using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 using Modules.Wishlist;
-using Modules.Listings.Snapshot;
 
 namespace Modules.Reservations;
 
@@ -202,8 +202,18 @@ public class ReservationService(
             {
                 var lastMsg = lastMessages.GetValueOrDefault(r.ReservationId);
                 var isBuyer = r.BuyerId == userId;
-                var listing = r.ReservationListings.First().Listing;
                 var other = isBuyer ? r.Seller : r.Buyer;
+
+                var listings = r
+                    .ReservationListings.Select(rl => new ReservationListingSummaryDto(
+                        rl.Listing.ListingId,
+                        rl.Listing.Title,
+                        rl.Listing.Price,
+                        rl.Listing.Images.Count > 0
+                            ? $"/api/listings/{rl.Listing.ListingId}/images/{rl.Listing.Images.First().ImageId}"
+                            : null
+                    ))
+                    .ToList();
 
                 return new ReservationListItemDto(
                     ReservationId: r.ReservationId,
@@ -216,14 +226,9 @@ public class ReservationService(
                         $"{other.FirstName} {other.LastName}",
                         $"{other.FirstName[0]}{other.LastName[0]}"
                     ),
-                    Listing: new ReservationListingSummaryDto(
-                        listing.ListingId,
-                        listing.Title,
-                        listing.Price,
-                        listing.Images.Count > 0
-                            ? $"/api/listings/{listing.ListingId}/images/{listing.Images.First().ImageId}"
-                            : null
-                    ),
+                    Listings: listings,
+                    TotalPrice: listings.Sum(x => x.Price),
+                    IsBundle: listings.Count > 1,
                     UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0),
                     LastMessagePreview: lastMsg.Content,
                     LastMessageAt: lastMsg.SentAt == default ? (DateTime?)null : lastMsg.SentAt
@@ -271,6 +276,17 @@ public class ReservationService(
             }
         }
 
+        var listings = r
+            .ReservationListings.Select(rl => new ReservationListingSummaryDto(
+                rl.Listing.ListingId,
+                rl.Listing.Title,
+                rl.Listing.Price,
+                rl.Listing.Images.Count > 0
+                    ? $"/api/listings/{rl.Listing.ListingId}/images/{rl.Listing.Images.First().ImageId}"
+                    : null
+            ))
+            .ToList();
+
         return new ReservationDto(
             ReservationId: r.ReservationId,
             ListingId: listingId ?? r.ReservationListings.First().ListingId,
@@ -281,7 +297,10 @@ public class ReservationService(
             ExpiresAt: r.ExpiresAt,
             CreatedAt: r.CreatedAt,
             CompletedAt: r.CompletedAt,
-            CounterParty: counterParty
+            CounterParty: counterParty,
+            Listings: listings,
+            TotalPrice: listings.Sum(x => x.Price),
+            IsBundle: listings.Count > 1
         );
     }
 
@@ -388,7 +407,12 @@ public class ReservationService(
         return results;
     }
 
-    public async Task<ReserveMultipleResultDto> ReserveMultipleAsync(Guid buyerId, Guid sellerId, IReadOnlyList<Guid> listingIds, CancellationToken ct = default)
+    public async Task<ReserveMultipleResultDto> ReserveMultipleAsync(
+        Guid buyerId,
+        Guid sellerId,
+        IReadOnlyList<Guid> listingIds,
+        CancellationToken ct = default
+    )
     {
         if (listingIds.Count == 0)
         {
@@ -428,16 +452,11 @@ public class ReservationService(
                 continue;
             }
 
-            reservation.ReservationListings.Add(new ReservationListing
-            {
-                ListingId = listingId
-            });
+            reservation.ReservationListings.Add(new ReservationListing { ListingId = listingId });
 
-            reservedItems.Add(new ReservedItemDto(
-                listingId,
-                listing.Title,
-                listing.Price, sellerId
-            ));
+            reservedItems.Add(
+                new ReservedItemDto(listingId, listing.Title, listing.Price, sellerId)
+            );
 
             await _snapshots.CreateSnapshotAsync(reservation.ReservationId, listing, ct);
         }
@@ -456,14 +475,27 @@ public class ReservationService(
 
         //p.ss PLAce in repo!!
         var itemTitles = string.Join(", ", reservedItems.Select(i => $"\"{i.Title}\""));
-        await _chat.SendSystemAsync(reservation.ReservationId, reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}", ct);
+        await _chat.SendSystemAsync(
+            reservation.ReservationId,
+            reservedItems.Count == 1
+                ? $"A buyer is interested in {itemTitles}."
+                : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}",
+            ct
+        );
 
         foreach (var item in reservedItems)
         {
             await _listingNotifier.ListingReservedAsync(item.ListingId, ct);
             await _wishlist.SuppressForListingAsync(item.ListingId, reservation.ReservationId, ct);
         }
-        await GuardedPushAsync(sellerId, NotificationTypes.ReservationStatus, reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} of your items.", ct);
+        await GuardedPushAsync(
+            sellerId,
+            NotificationTypes.ReservationStatus,
+            reservedItems.Count == 1
+                ? $"A buyer is interested in {itemTitles}."
+                : $"A buyer is interested in {reservedItems.Count} of your items.",
+            ct
+        );
 
         return new ReserveMultipleResultDto(
             ReservationId: reservation.ReservationId,

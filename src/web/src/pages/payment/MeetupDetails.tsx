@@ -136,19 +136,23 @@ export default function MeetupDetails() {
 
 
 
-  const { data: listing, isLoading: isListingLoading } = useQuery({
+  /*const { data: listing, isLoading: isListingLoading } = useQuery({
     queryKey: ['listing', reservation?.listingId],
     queryFn: () => listingsService.getById(reservation!.listingId),
     enabled: !!reservation?.listingId,
-  });
+  });*/
 
-  const isLoading = !!reservationId && (isReservationLoading || isMeetupLoading || (!!reservation && isListingLoading));
+  const isLoading = !!reservationId && (isReservationLoading || isMeetupLoading);
 
   const counterpartyName = navState.counterpartyName ?? (isSeller ? 'Buyer' : 'Seller');
   const meetupLocation = meetup?.agreedLocationName ?? navState.meetupLocation ?? 'Location to be confirmed';
   const meetupTime = meetup?.agreedTime ?? navState.meetupTime;
-  const price = navState.listingPrice ?? listing?.price;
-  const listingTitle = navState.listingTitle ?? listing?.title;
+  const price = navState.listingPrice ?? reservation?.totalPrice;
+  const listingTitle = navState.listingTitle ?? (
+    reservation?.isBundle
+      ? `${reservation.listings?.length ?? 0} items`
+      : reservation?.listings[0]?.title
+  );
 
   const meetupCoords =
     meetup?.agreedLatitude != null && meetup?.agreedLongitude != null

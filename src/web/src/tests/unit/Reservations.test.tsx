@@ -33,26 +33,43 @@ vi.mock('../../services/reservationService', () => ({
 
 let idCpunter = 1;
 
-const makeReservation = (overrides: Partial<ReservationListItem> = {}): ReservationListItem => {
-    const base: ReservationListItem = {
-        reservationId: `res-${idCpunter++}`,
-        listingId: `listing-${idCpunter}`,
-        buyerId: 'buyer-1',
-        sellerId: 'seller-1',
-        reservationStatus: 'active',
-        timerStage: 'awaiting_seller',
-        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hrs out
-        createdAt: new Date().toISOString(),
-        sellerAcknowledgedAt: null,
-        handoverConfirmedAt: null,
-        completedAt: null,
-        counterParty: { userId: 'seller-1', name: 'Jane Seller', initials: 'JS' },
-        listing: { title: 'Sample Textbook', price: 100, imagePath: '' },
-        unreadCount: 0,
-        lastMessagePreview: null,
-        lastMessageAt: null,
-    };
-    return { ...base, ...overrides } as ReservationListItem;
+const makeReservation = (
+  overrides: Partial<ReservationListItem> & {
+    listing?: { listingId?: string; title: string; price: number; imagePath: string };
+  } = {}
+): ReservationListItem => {
+  const { listing, ...restOverrides } = overrides;
+
+  const currentListingId = `listing-${idCpunter}`;
+
+  const defaultListing = {
+    listingId: listing?.listingId ?? currentListingId,
+    title: listing?.title ?? 'Sample Textbook',
+    price: listing?.price ?? 100,
+    imagePath: listing?.imagePath ?? '',
+  };
+
+  const base: ReservationListItem = {
+    reservationId: `res-${idCpunter++}`,
+    buyerId: 'buyer-1',
+    sellerId: 'seller-1',
+    reservationStatus: 'active',
+    timerStage: 'awaiting_seller',
+    expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+    sellerAcknowledgedAt: null,
+    handoverConfirmedAt: null,
+    completedAt: null,
+    counterParty: { userId: 'seller-1', name: 'Jane Seller', initials: 'JS' },
+    listings: [defaultListing],
+    totalPrice: defaultListing.price,
+    isBundle: false,
+    unreadCount: 0,
+    lastMessagePreview: null,
+    lastMessageAt: null,
+  };
+
+  return { ...base, ...restOverrides } as ReservationListItem;
 };
 
 const resolveReservations = (items: ReservationListItem[]) =>

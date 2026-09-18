@@ -58,13 +58,19 @@ vi.mock('../../components/layout/LocationPicker', () => ({
 }));
 
 function reservationFixture(overrides: Partial<Record<string, unknown>> = {}) {
+  const { listings: listingsOverride, ...rest } = overrides;
+  const listings = (listingsOverride as { listingId: string; title: string; price: number; imagePath: string | null }[] | undefined) ?? [
+    { listingId: '1', title: 'Calculus Theory edition 2', price: 250, imagePath: null },
+  ];
   return {
     reservationId: 'REF441',
-    listingId: '1',
     buyerId: '223',
     sellerId: '47',
     reservationStatus: 'active',
-    ...overrides,
+    listings,
+    totalPrice: listings.reduce((sum, l) => sum + (l.price ?? 0), 0),
+    isBundle: listings.length > 1,
+    ...rest,
   };
 }
 
@@ -208,9 +214,13 @@ describe('buyer view', () => {
   });
 
   it('shows R- when no price is available', async () => {
-    vi.mocked(listingsService.getById).mockResolvedValue(
-      listingFixture({ price: undefined }) as unknown as Awaited<ReturnType<typeof listingsService.getById>>
-    );
+    vi.mocked(getReservationById).mockResolvedValue({
+      success: true,
+      data: reservationFixture({
+        listings: [{ listingId: '1', title: 'Calculus Theory edition 2', price: undefined, imagePath: null }],
+        totalPrice: undefined,
+      }),
+    } as unknown as Awaited<ReturnType<typeof getReservationById>>);
     renderMeetupDetails({ reservationId: 'REF441', role: 'buyer' });
     expect(await screen.findByText('R-')).toBeInTheDocument();
   });
@@ -272,7 +282,7 @@ describe('seller view', () => {
 
     renderMeetupDetails(sellerState);
     await waitFor(() => expect(connectionManager.connect).toHaveBeenCalled());
-    expect(connectionManager.joinRoom).toHaveBeenCalledWith('REF441'); // fixed method name
+    expect(connectionManager.joinRoom).toHaveBeenCalledWith('REF441');
 
     vi.mocked(getTransactionStatus).mockClear();
     capturedHandler?.({ reservationId: 'REF441' });
