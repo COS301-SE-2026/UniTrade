@@ -74,7 +74,10 @@ export default function ConversationsSidebar({ role }: Readonly<{ role: 'buyer' 
                     const isActive = r.reservationId === activeId;
                     const hasUnread = r.unreadCount > 0;
                     const primaryListing = r.listings[0];
-                    const preview = r.lastMessagePreview ?? primaryListing?.title ?? '';
+                    const listingLabel = r.isBundle
+                        ? `${r.listings.length} items`
+                        : primaryListing?.title;
+                    const preview = r.lastMessagePreview ?? listingLabel ?? '';
                     const timestamp = r.lastMessageAt ?? r.createdAt;
 
                     return (
@@ -114,7 +117,7 @@ export default function ConversationsSidebar({ role }: Readonly<{ role: 'buyer' 
                                     </span>
                                 </div>
                                 <p className={`text-xs truncate ${hasUnread ? 'text-gray-800 font-semibold' : 'text-gray-600 font-medium'}`}>
-                                    Listing: {primaryListing?.title}
+                                    Listing: {listingLabel}
                                 </p>
                                 <div className="flex items-center justify-between gap-2 mt-0.5">
                                     <p className={`text-xs truncate ${hasUnread ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>

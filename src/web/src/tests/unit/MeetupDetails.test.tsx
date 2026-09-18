@@ -166,7 +166,7 @@ describe('buyer view', () => {
     );
     renderMeetupDetails();
     const checkInButton = await screen.findByRole('button', { name: /check in at meetup/i });
-    expect(checkInButton).toBeDisabled();
+    await waitFor(() => expect(checkInButton).toBeDisabled());
   });
 
   it('opens CheckInModal and refetches on close', async () => {

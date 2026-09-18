@@ -126,8 +126,11 @@ function ReservationCard({
         const interval = setInterval(() => forceTick(), 1000)
         return () => clearInterval(interval)
     }, [])
-
-    const listing = reservation.listings?.[0]
+    
+    const primaryItem = reservation.listings?.[0]
+    const displayTitle = reservation.isBundle
+          ? `${reservation.listings.length} items for ${reservation.counterParty.name}`
+             : primaryItem?.title
     const msRemaining = getMsRemaining(reservation.expiresAt)
     const urgency = getUrgency(msRemaining)
     const isActive = reservation.reservationStatus === 'active'
@@ -135,10 +138,10 @@ function ReservationCard({
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-            <img src={listing?.imagePath
-                ? `${apiOrigin}${listing.imagePath}`
+            <img src={primaryItem?.imagePath
+                ? `${apiOrigin}${primaryItem.imagePath}`
                 : '/placeholder.png'}
-                alt={listing?.title ?? 'Listing'}
+                alt={displayTitle ?? 'Listing'}
                 className="w-20 h-20 rounded-lg object-cover flex shrink-0"
             />
             <div className="flex-1 min-w-0">
@@ -146,7 +149,7 @@ function ReservationCard({
                     <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-bold text-gray-800 truncate">
-                                {listing?.title}
+                                {displayTitle}
                             </p>
                             <StatusBadge status={reservation.reservationStatus} />
                         </div>
@@ -171,7 +174,7 @@ function ReservationCard({
                 <div className="flex items-center gap-2 mt-2">
                     {isActive && <StageTag stage={reservation.timerStage} />}
                     <span className="text-sm font-bold text-gray-800">
-                        {formatPrice(listing?.price ?? 0)}
+                        {formatPrice(reservation.totalPrice)}
                     </span>
                 </div>
 

@@ -284,11 +284,19 @@ export default function MeetupDetails() {
 
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Session Info</h2>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl max-w-sm">
+              <div className="flex gap-3 items-start p-3 bg-slate-50 rounded-xl">
                 <Users className="w-5 h-5 text-blue-600" />
                 <div>
                   <p className="text-sm font-bold text-slate-800">2 Attendees</p>
-                  <p className="text-xs text-slate-500">{listingTitle ? `Collecting: ${listingTitle}` : 'Item collection'}</p>
+                  <p className="text-xs text-slate-500">
+                    {listingTitle
+                      ? isSeller
+                        ? `Handing over: ${listingTitle}`
+                        : `Collecting: ${listingTitle}`
+                      : isSeller
+                        ? 'Item handover'
+                        : 'Item collection'}
+                  </p>
                 </div>
               </div>
             </div>
