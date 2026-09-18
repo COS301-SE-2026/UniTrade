@@ -12,6 +12,8 @@ export function timetableErrorMessage(
       return "That block no longer exists - it may have been deleted already.";
     case "reservation_not_found":
       return "This reservation isn't available for scheduling.";
+    case "import_parse_failed":
+      return "That file couldn't be read. Try exporting again or enter times manually.";
     default:
       return fallback ?? "Something went wrong. Please try again.";
   }

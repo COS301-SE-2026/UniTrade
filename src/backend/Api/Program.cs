@@ -306,6 +306,7 @@ builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
 builder.Services.AddScoped<ITimetableQueryForAvailability, TimetableQueryForAvailability>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IIcsImportService, IcsImportService>();
 
 if (!builder.Environment.IsDevelopment())
 {

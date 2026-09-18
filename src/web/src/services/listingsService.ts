@@ -80,7 +80,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 42,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CH",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "2",
@@ -90,7 +90,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 25,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=LP",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "3",
@@ -100,7 +100,7 @@ const mockMyListings: ListingSummary[] = [
     status: "pending",
     views: 68,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=GS",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "4",
@@ -110,7 +110,7 @@ const mockMyListings: ListingSummary[] = [
     status: "draft",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CA",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "5",
@@ -120,7 +120,7 @@ const mockMyListings: ListingSummary[] = [
     status: "rejected",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=MB",
-    categoryName: ''
+    categoryName: "",
   },
 ];
 
@@ -446,7 +446,9 @@ export const listingsService = {
     return imageIds;
   },
 
-  createListing: async (payload: CreateListingPayload): Promise<CreateListingResult> => {
+  createListing: async (
+    payload: CreateListingPayload,
+  ): Promise<CreateListingResult> => {
     const res = await fetch(`${getApiUrl()}/listings`, {
       method: "POST",
       credentials: "include",
@@ -874,4 +876,20 @@ export const listingsService = {
       };
     });
   },
+
+  getListingStatus: async (id: string): Promise<ListingStatusResponse> => {
+    const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to fetch listing status");
+    }
+    return res.json();
+  },
 };
+//TEMP:
+// this is just so builds dont fail, the real types will come from FE3
+interface ListingStatusResponse {
+  listingId: string;
+}
