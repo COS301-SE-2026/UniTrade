@@ -4,4 +4,3 @@ uvicorn[standard]
 torch
 transformers
 pillow 
-requests
