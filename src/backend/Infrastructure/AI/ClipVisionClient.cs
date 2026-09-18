@@ -2,7 +2,6 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Modules.Listings.Scoring;
-using Modules.SharedKernel;
 
 namespace Infrastructure.AI;
 
