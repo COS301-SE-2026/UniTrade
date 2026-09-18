@@ -22,6 +22,7 @@ interface MockListing {
   metadata: Record<string, unknown> | null;
   images: string[];
 }
+
 interface AcceptMeetupRequestBody {
   proposalMessageId: number;
 }
@@ -60,6 +61,7 @@ export function resetMockListings() {
   mockListings = [];
   nextId = 1;
 }
+
 export function resetMockReservations() {
   mockReservations = [];
   nextReservationId = 1;
@@ -154,11 +156,23 @@ export function seedMockListing(overrides: Partial<MockListing> = {}) {
 }
 
 export function seedMockReservation(
-  overrides: Partial<ReservationListItem> = {},
+  overrides: Partial<ReservationListItem> & { listingId?: string } = {},
 ): ReservationListItem {
-  const reservation: ReservationListItem = {
+  const { listingId, listings: providedListings, ...restOverrides } = overrides;
+
+  const listings = providedListings ?? [
+    {
+      listingId: listingId ?? "1",
+      title: "Chemistry Textbook",
+      price: 250,
+      imagePath: "",
+    },
+  ];
+
+  const calculatedTotalPrice = listings.reduce((sum, item) => sum + item.price, 0);
+const reservation: ReservationListItem = {
     reservationId: String(nextReservationId++),
-    listingId: "1",
+    listings,
     buyerId: "buyer-1",
     sellerId: "seller-1",
     reservationStatus: "active",
@@ -169,19 +183,18 @@ export function seedMockReservation(
     handoverConfirmedAt: null,
     completedAt: null,
     counterParty: { userId: "buyer-1", name: "Test Buyer", initials: "TB" },
-    listing: {
-      title: "Chemistry Textbook - 3rd Ed",
-      price: 250,
-      imagePath: "",
-    },
     unreadCount: 0,
     lastMessagePreview: null,
     lastMessageAt: null,
-    ...overrides,
+    ...restOverrides,
+    // Provide strict fallback values after spreading overrides to prevent undefined
+    totalPrice: restOverrides.totalPrice ?? calculatedTotalPrice,
+    isBundle: restOverrides.isBundle ?? listings.length > 1,
   };
   mockReservations.push(reservation);
   return reservation;
 }
+
 export const listingLifecycleHandlers = [
   http.post("http://localhost:5000/api/listings", async ({ request }) => {
     const body = (await request.json()) as Omit<
@@ -252,6 +265,7 @@ export const listingLifecycleHandlers = [
     mockListings = mockListings.filter((l) => l.listingId !== params.id);
     return new HttpResponse(null, { status: 204 });
   }),
+
   http.patch(
     "http://localhost:5000/api/listings/:id/status",
     async ({ params, request }) => {
@@ -298,7 +312,9 @@ export const browseAndReserveHandlers = [
     }
 
     const alreadyReserved = mockReservations.some(
-      (r) => r.listingId === body.listingId && r.reservationStatus === "active",
+      (r) =>
+        r.listings.some((l) => l.listingId === body.listingId) &&
+        r.reservationStatus === "active",
     );
     if (alreadyReserved) {
       return HttpResponse.json({ error: "already_reserved" }, { status: 409 });
@@ -306,7 +322,16 @@ export const browseAndReserveHandlers = [
 
     const reservation: ReservationListItem = {
       reservationId: String(nextReservationId++),
-      listingId: body.listingId,
+      listings: [
+        {
+          listingId: body.listingId,
+          title: listing?.title ?? "Unknown listing",
+          price: listing?.price ?? 0,
+          imagePath: "",
+        },
+      ],
+      totalPrice: listing?.price ?? 0,
+      isBundle: false,
       buyerId: "buyer-1",
       sellerId: listing?.sellerId ?? "seller-1",
       reservationStatus: "active",
@@ -321,26 +346,21 @@ export const browseAndReserveHandlers = [
         name: "Test Seller",
         initials: "TS",
       },
-      listing: {
-        title: listing?.title ?? "Unknown listing",
-        price: listing?.price ?? 0,
-        imagePath: "",
-      },
       unreadCount: 0,
       lastMessagePreview: null,
       lastMessageAt: null,
     };
-
     mockReservations.push(reservation);
     return HttpResponse.json(reservation, { status: 201 });
   }),
 
   http.get("http://localhost:5000/api/reservations/", () => {
     const items = mockReservations.map((r) => {
-      const listing = mockListings.find((l) => l.listingId === r.listingId);
+      const firstListingId = r.listings[0]?.listingId;
+      const listing = mockListings.find((l) => l.listingId === firstListingId);
       return {
         reservationId: r.reservationId,
-        listingId: r.listingId,
+        listings: r.listings,
         reservationStatus: r.reservationStatus,
         createdAt: r.createdAt,
         expiresAt:
@@ -349,8 +369,8 @@ export const browseAndReserveHandlers = [
         timerStage: r.timerStage ?? "awaiting_seller",
         unreadCount: 0,
         listing: {
-          title: listing?.title ?? "Unknown listing",
-          price: listing?.price ?? 0,
+          title: listing?.title ?? r.listings[0]?.title ?? "Unknown listing",
+          price: listing?.price ?? r.listings[0]?.price ?? 0,
           imagePath: "",
         },
         counterParty: {
@@ -460,7 +480,6 @@ export const meetupHandlers = [
     "http://localhost:5000/api/reservations/:id/meetup/accept",
     async ({ params, request }) => {
       const body = (await request.json()) as AcceptMeetupRequestBody;
-      //const proposal = mockMessages.find(m => m.messageId === body.proposalMessageId)
       const message: ChatMessage = {
         messageId: Date.now(),
         reservationId: String(params.id),

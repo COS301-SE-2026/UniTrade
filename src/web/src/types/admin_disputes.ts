@@ -15,7 +15,6 @@ export type Decision =
   | "dismiss"
   | "request_info";
 
-//assumptions for now as I'm waiting for som confirmation from backend
 export type Outcome = "strike" | "remove_listing" | "refusal_flag";
 
 export type PinStatus =
@@ -27,7 +26,6 @@ export type PinStatus =
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
 
-//for the admintoken this is not clear, so might change aftetr confirmation from backend
 
 export interface AdminTokenClaims {
   sub: string;
@@ -36,13 +34,13 @@ export interface AdminTokenClaims {
   iat: number;
 }
 
-//evidence types
+
 export interface VerificationEvidence {
   university: string;
   degree: string;
   year: number;
   email: string;
-  proofDocumentUrl?: string; //the url to the actual proof of registration
+  proofDocumentUrl?: string;
 }
 
 export interface ListingQualityEvidence {
@@ -66,7 +64,7 @@ export interface NoShowEvidence {
   meetupWindowEnd: string;
 }
 
-//the actual listing snapshot
+
 export interface ListingSnapshot {
   listingId: string;
   reservationId: string;
@@ -170,6 +168,7 @@ export interface NoShowFiling {
 export interface ListingQualityFiling {
   type: "listing_quality";
   reservationId: string;
+  listingId?: string;
   sellerRefusedPhotos: boolean;
   photos?: string[];
   description?: string;
@@ -262,7 +261,7 @@ export interface ListAuditResponse {
   entries: AuditEntry[];
   total: number;
 }
-export type GetListingSnapshotResponse = ListingSnapshot;
+export type GetListingSnapshotResponse = ListingSnapshot[];
 
 export interface ListUsersResponse {
   users: UserListItem[];

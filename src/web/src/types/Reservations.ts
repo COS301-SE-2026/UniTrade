@@ -16,6 +16,9 @@ export interface Reservation {
     counterParty: ReservationCounterparty | null;
     handoverConfirmedAt: string | null
     completedAt: string | null
+    listings: ReservationListingPreview[];
+    totalPrice: number;
+    isBundle: boolean;
 }
 
 export interface ReservationCounterparty {
@@ -25,14 +28,17 @@ export interface ReservationCounterparty {
 }
 
 export interface ReservationListingPreview {
+    listingId: string;
     title: string;
     price: number;
     imagePath: string;
 }
 
-export interface ReservationListItem extends Reservation {
+export interface ReservationListItem extends Omit<Reservation, 'listingId'> {
     counterParty: ReservationCounterparty;
-    listing: ReservationListingPreview;
+    listings: ReservationListingPreview[];
+    totalPrice: number;
+    isBundle: boolean;
     unreadCount: number;
     lastMessagePreview: string | null;
     lastMessageAt: string | null;
@@ -141,7 +147,7 @@ export type Result<T> =
     | { success: true; data: T }
     | { success: false; error: ApiError };
 
-//smart budget wow factor types
+
 export interface SmartBudgetRequest {
     listingIds: string[];
     maxBudget: number;
@@ -158,7 +164,7 @@ export interface SmartBudgetReservationGroup {
     sellerId: string;
     sellerInitials: string;
     items: SmartBudgetItem[];
-    subtotal: number;
+    subTotal: number;
 }
 
 export interface SmartBudgetNotReservedItem extends SmartBudgetItem {

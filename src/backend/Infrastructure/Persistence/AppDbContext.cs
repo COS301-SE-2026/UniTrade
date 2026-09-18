@@ -928,8 +928,8 @@ public class AppDbContext : DbContext
             });
             entity
                 .HasOne(x => x.Reservation)
-                .WithOne(r => r.ListingSnapshot)
-                .HasForeignKey<ListingSnapshot>(x => x.ReservationId)
+                .WithMany(r => r.ListingSnapshots)
+                .HasForeignKey(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
