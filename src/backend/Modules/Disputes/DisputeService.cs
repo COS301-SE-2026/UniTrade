@@ -53,7 +53,7 @@ public class DisputeService : IDisputeService
         return req.Type.ToLowerInvariant() switch
         {
             "listing_quality" => await FileListingQualityAsync(req, filedByUserId, ct),
-            //add no show , filereportlistings
+
             "no_show" => await FileNoShowAsync(req, filedByUserId, ct),
             "report_listing" => await FileReportListingAsync(req, filedByUserId, ct),
             _ => throw new DisputesException("invalid_dispute_type"),
@@ -92,10 +92,26 @@ public class DisputeService : IDisputeService
             throw new DisputesException("photos_required");
         }
 
-        var snapshot = await _snapshots.GetByReservationIdAsync(reservationId, ct);
-        if (snapshot is null)
+        var snapshots = await _snapshots.GetByReservationIdAsync(reservationId, ct);
+        if (snapshots.Count == 0)
         {
             throw new DisputesException("snapshot_not found");
+        }
+
+        ListingSnapshotDto snapshot;
+        if (snapshots.Count == 1)
+        {
+            snapshot = snapshots[0];
+        }
+        else
+        {
+            if (req.ListingId is null)
+            {
+                throw new DisputesException("listing_id_required_for_bundle");
+            }
+            snapshot =
+                snapshots.FirstOrDefault(s => s.ListingId == req.ListingId.Value)
+                ?? throw new DisputesException("listing_not_in_reservation");
         }
 
         await GuardOneOpenDisputeAsync(filedByUserId, parties.SellerId, ct);
@@ -187,7 +203,7 @@ public class DisputeService : IDisputeService
         CancellationToken ct = default
     )
     {
-        return _disputes.ListPendingAsync(type, ct); // where status in open , or under review order by the created at
+        return _disputes.ListPendingAsync(type, ct);
     }
 
     public Task<DisputeCaseData?> GetCaseDataAsync(Guid disputeId, CancellationToken ct = default)

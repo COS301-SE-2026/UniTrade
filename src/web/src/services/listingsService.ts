@@ -467,10 +467,7 @@ export const listingsService = {
     });
     if (!res.ok) throw new Error("Failed to create listing");
     const createdListing = await res.json();
-    return {
-      listingId: createdListing.listingId,
-      listingStatus: createdListing.listingStatus,
-    };
+    return { listingId: createdListing.listingId, listingStatus: createdListing.listingStatus };
   },
 
   updateListing: async (
@@ -528,7 +525,7 @@ export const listingsService = {
     if (search.trim()) {
       params.set("search", search);
     }
-    params.set("universityId", "2"); // this has the UP courses only
+    params.set("universityId", "2");
     params.set("limit", "50");
     const res = await fetch(`${getApiUrl()}/courses?${params}`, {
       method: "GET",
@@ -588,7 +585,7 @@ export const listingsService = {
     }
     return mapWishListItem(await res.json());
   },
-  //heyy
+
   removeFromWishlist: async (listingId: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
       method: "DELETE",
@@ -694,7 +691,7 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
   },
-  //just triggering pipeline
+ 
   getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
     const res = await fetch(`${getApiUrl()}/reviews/users/${userId}`, {
       credentials: "include",
@@ -732,7 +729,7 @@ export const listingsService = {
 
     if (completed.length === 0) return [];
 
-    const listingIds = [...new Set(completed.map((r) => r.listingId))];
+    const listingIds = [...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId)))];
     const conditionMap = new Map<string, string>();
 
     await Promise.all(
@@ -774,20 +771,28 @@ export const listingsService = {
         ? sellerReviews.find((rev) => rev.transactionId === transactionId)
         : undefined;
 
+      const primaryItem = r.listings[0];
+      const title = r.isBundle
+        ? `${r.listings.length} items from ${r.counterParty.name}`
+        : primaryItem.title;
+      const condition = r.isBundle
+        ? "Mixed"
+        : conditionMap.get(primaryItem.listingId) ?? "Unknown";
+
       return {
         id: r.reservationId,
         transactionId: transactionId ?? null,
         refNum: toRefNum(r.reservationId),
-        title: r.listing.title,
-        condition: conditionMap.get(r.listingId) ?? "Unknown",
+        title,
+        condition,
         sellerName: r.counterParty.name,
         sellerInitials: r.counterParty.initials,
-        price: r.listing.price,
+        price: r.totalPrice,
         date: formatOrderDate(r.createdAt),
         status: "Completed" as const,
         rating: theReview?.rating ?? 0,
         _createdAtIso: r.createdAt,
-        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : "",
+        imageUrl: primaryItem.imagePath ? imageUrl(primaryItem.imagePath) : "",
       };
     });
   },
@@ -804,7 +809,7 @@ export const listingsService = {
 
     if (completed.length === 0) return [];
 
-    const listingIds = [...new Set(completed.map((r) => r.listingId))];
+    const listingIds = [...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId)))];
     const conditionMap = new Map<string, string>();
 
     await Promise.all(
@@ -846,20 +851,28 @@ export const listingsService = {
         ? buyerReviews.find((rev) => rev.transactionId === transactionId)
         : undefined;
 
+      const primaryItem = r.listings[0];
+      const title = r.isBundle
+        ? `${r.listings.length} items to ${r.counterParty.name}`
+        : primaryItem.title;
+      const condition = r.isBundle
+        ? "Mixed"
+        : conditionMap.get(primaryItem.listingId) ?? "Unknown";
+
       return {
         id: r.reservationId,
         transactionId: transactionId ?? null,
         refNum: toRefNum(r.reservationId),
-        title: r.listing.title,
-        condition: conditionMap.get(r.listingId) ?? "Unknown",
+        title,
+        condition,
         buyerName: r.counterParty.name,
         buyerInitials: r.counterParty.initials,
-        price: r.listing.price,
+        price: r.totalPrice,
         date: formatOrderDate(r.createdAt),
         status: "Completed" as const,
         rating: theReview?.rating ?? 0,
         _createdAtIso: r.createdAt,
-        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : "",
+        imageUrl: primaryItem.imagePath ? imageUrl(primaryItem.imagePath) : "",
       };
     });
   },
