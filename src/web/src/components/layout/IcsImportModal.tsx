@@ -143,7 +143,7 @@ export default function IcsImportModal({ onClose }: Readonly<Props>) {
                             <>
                                 <div className="flex items-center justify-between text-xs text-gray-500">
                                     <span>
-                                        Found
+                                        Found{" "}
                                         <strong className="text-navy-900">
                                             {editedPatterns.length}
                                         </strong>{" "}
