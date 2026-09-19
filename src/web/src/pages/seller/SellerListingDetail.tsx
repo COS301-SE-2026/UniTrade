@@ -55,8 +55,8 @@ export default function SellerListingDetail() {
             .then((course) => setCourseCode(course.courseCode))
             .catch(() => setCourseCode(null));
         }
-        listingsService
-        .getListingStatus(id)
+        Promise.resolve()
+        .then(() => listingsService.getListingStatus(id))
         .then(setStatusData)
         .catch(() => setStatusData(mockStatusFromListing(data)));
       })
