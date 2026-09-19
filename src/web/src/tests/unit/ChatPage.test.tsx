@@ -163,13 +163,19 @@ const defaultReservation: ReservationResult = {
     success: true,
     data: {
         reservationId: '123',
-        listingId: 'listing-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
         reservationStatus: 'active',
         timerStage: null,
         counterParty: {
             name: 'Mahadio Tlaka',
             initials: 'MT',
         },
+        listings: [
+            { listingId: 'listing-1', title: 'Test Listing', price: 100, imagePath: null },
+        ],
+        totalPrice: 100,
+        isBundle: false,
     },
 } as unknown as ReservationResult;
 
@@ -305,24 +311,34 @@ describe('reservation meet-up flow within the chatting ', () => {
             success: true,
             data: {
                 reservationId: '123',
-                listingId: 'listing-1',
+                buyerId: 'buyer-1',
+                sellerId: 'seller-1',
                 reservationStatus: 'active',
                 timerStage: 'awaiting_seller',
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                createdAt: new Date().toISOString(),
+                sellerAcknowledgedAt: null,
+                handoverConfirmedAt: null,
+                completedAt: null,
                 counterParty: {
                     name: 'Mahadio Tlaka',
                     initials: 'MT'
                 },
+                listings: [
+                    { listingId: 'listing-1', title: 'Test Listing', price: 100, imagePath: null },
+                ],
+                totalPrice: 100,
+                isBundle: false,
             },
-        } as ReservationResult);
+        } as unknown as ReservationResult);
 
         renderWithProviders(<ChatPage />, '/buyer/messages/123');
         expect(
             await screen.findByText('Waiting for seller to accept reservation'),
-
         ).toBeInTheDocument();
         expect(screen.queryByPlaceholderText('Type a message...')).not.toBeInTheDocument();
     });
-it('must show the button that says schedule meetup for a reservation that is active', async () => {
+    it('must show the button that says schedule meetup for a reservation that is active', async () => {
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('SCHEDULE A MEETUP')).toBeInTheDocument();
     });
@@ -353,17 +369,31 @@ it('must show the button that says schedule meetup for a reservation that is act
 
 
 describe('listing summary card', () => {
-    /*it('renders the listing title and price and navigates to the reservation on click', async () => {
+    it('renders the listing title and price and navigates to the reservation on click', async () => {
         renderWithProviders(<ChatPage />);
         expect(await screen.findByText('Test Listing')).toBeInTheDocument();
-        expect(screen.getByText('R 100')).toBeInTheDocument();
+        expect(screen.getByText('R 100.00')).toBeInTheDocument();
 
         fireEvent.click(screen.getByText('View Reservation'));
         expect(navigateMock).toHaveBeenCalledWith('/buyer/reservations/123');
-    });*/
+    });
 
-    it('does not render the listing card while the listing is unavailable', async () => {
-        vi.mocked(listingsService.getById).mockResolvedValue(undefined as unknown as ListingResult);
+    it('does not render the listing card when the reservation has no listings', async () => {
+        vi.mocked(getReservationById).mockResolvedValue({
+            success: true,
+            data: {
+                reservationId: '123',
+                buyerId: 'buyer-1',
+                sellerId: 'seller-1',
+                reservationStatus: 'active',
+                timerStage: null,
+                counterParty: { name: 'Mahadio Tlaka', initials: 'MT' },
+                listings: [],
+                totalPrice: 0,
+                isBundle: false,
+            },
+        } as unknown as ReservationResult);
+
         renderWithProviders(<ChatPage />);
         await screen.findByPlaceholderText('Type a message...');
         expect(screen.queryByText('Listing')).not.toBeInTheDocument();

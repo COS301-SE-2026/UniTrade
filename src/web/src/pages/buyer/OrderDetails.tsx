@@ -43,7 +43,8 @@ function useOrderDetails(reservationId: string | undefined) {
                 const resData = resResult.data;
                 setReservation(resData);
 
-                const listingData = await listingsService.getById(resData.listingId);
+                const primaryListingId = resData.listings[0]?.listingId ?? resData.listingId;
+                const listingData = await listingsService.getById(primaryListingId);
                 setListing(listingData);
 
                 const [meetupResult, txResult, reviewsResult] = await Promise.allSettled([
@@ -107,6 +108,11 @@ export default function OrderDetails() {
         );
     }
 
+    const isBundle = reservation.isBundle;
+    const displayTitle = isBundle
+        ? `${reservation.listings.length} items from ${reservation.counterParty?.name ?? 'seller'}`
+        : listing.title;
+    const displayPrice = reservation.totalPrice;
     const formatDate = (iso?: string | null) =>
         iso ? new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '_';
 
@@ -129,7 +135,7 @@ export default function OrderDetails() {
                         {backLabel}
                     </Link>
                     <IconChevronRight className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-600 font-semibold">{listing.title}</span>
+                    <span className="text-slate-600 font-semibold">{displayTitle}</span>
                 </nav>
                 <span className="bg-emerald-100 text-emerald-700 text-xs px-4 py-1.5 rounded-full font-semibold">
                     {reservation.reservationStatus === 'completed' ? 'Completed' : reservation.reservationStatus}
@@ -142,23 +148,36 @@ export default function OrderDetails() {
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             Item
                         </h3>
-                        <div className="flex gap-5">
-                            <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0">
-                                {listing.images?.[0] ? (
-                                    <img src={listing.images[0].url} alt={listing.title} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white text-xs">
-                                        No Image
-                                    </div>
-
-                                )}
+                        {!isBundle ? (
+                            <div className="flex gap-5">
+                                <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0">
+                                    {listing.images?.[0] ? (
+                                        <img src={listing.images[0].url} alt={listing.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white text-xs">
+                                            No Image
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <h4 className="font-bold text-xl text-slate-900">{listing.title}</h4>
+                                    <p className="text-sm text-slate-600">Condition: {listing.condition}</p>
+                                    <p className="text-sm text-slate-600">Category: {listing.category}</p>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <h4 className="font-bold text-xl text-slate-900">{listing.title}</h4>
-                                <p className="text-sm text-slate-600">Condition: {listing.condition}</p>
-                                <p className="text-sm text-slate-600">Category: {listing.category}</p>
+                        ) : (
+                            <div className="space-y-3">
+                                <h4 className="font-bold text-xl text-slate-900">{displayTitle}</h4>
+                                <div className="space-y-2">
+                                    {reservation.listings.map((item) => (
+                                        <div key={item.listingId} className="flex items-center justify-between text-sm text-slate-600">
+                                            <span>{item.title}</span>
+                                            <span className="font-medium">R{item.price.toLocaleString('en-ZA')}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
@@ -211,8 +230,8 @@ export default function OrderDetails() {
                         </h3>
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">Item price</span>
-                                <span className="font-medium">R{listing.price.toLocaleString('en-ZA')}</span>
+                                <span className="text-slate-600">{isBundle ? 'Items subtotal' : 'Item price'}</span>
+                                <span className="font-medium">R{displayPrice.toLocaleString('en-ZA')}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-600">Platform fee</span>
@@ -224,7 +243,7 @@ export default function OrderDetails() {
                             </div>
                             <div className="pt-4 border-t border-slate-200 flex justify-between font-semibold text-base">
                                 <span>Total Paid</span>
-                                <span>R{listing.price.toLocaleString('en-ZA')}</span>
+                                <span>R{displayPrice.toLocaleString('en-ZA')}</span>
                             </div>
                         </div>
                     </div>

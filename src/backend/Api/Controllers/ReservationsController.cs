@@ -149,7 +149,7 @@ public class ReservationsController : ControllerBase
     //get /reservation/{reservationId}/snapshot
     [HttpGet("{reservationId:guid}/snapshot")]
     [Authorize]
-    public async Task<ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<ListingSnapshotDto>>> GetSnapshot(Guid reservationId, CancellationToken ct)
     {
         var snapshot = await _snapshot.GetByReservationIdAsync(reservationId, ct);
         if (snapshot is null)

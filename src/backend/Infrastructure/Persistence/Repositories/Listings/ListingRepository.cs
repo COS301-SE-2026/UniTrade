@@ -133,7 +133,7 @@ public class ListingRepository : IListingRepository
     }
 
     // helper function to attach a seller (with their information) to a listing
-    private async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
+    public async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
     {
         if (listings.Count == 0)
         {

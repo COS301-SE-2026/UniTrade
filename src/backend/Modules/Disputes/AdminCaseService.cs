@@ -132,11 +132,11 @@ public class AdminCaseService : IAdminCaseService
                     counterpartyDict[id] = party;
             }
 
-            var snapshotDict = new Dictionary<Guid, ListingSnapshotDto>();
+            var snapshotDict = new Dictionary<Guid, IReadOnlyList<ListingSnapshotDto>>();
             foreach (var resId in reservationIds)
             {
                 var snapshot = await _snapshots.GetByReservationIdAsync(resId, ct);
-                if (snapshot != null)
+                if (snapshot.Count > 0)
                 {
                     snapshotDict[resId] = snapshot;
                 }
@@ -193,10 +193,13 @@ public class AdminCaseService : IAdminCaseService
                     string? title = null;
                     if (
                         item.ReservationId.HasValue
-                        && snapshotDict.TryGetValue(item.ReservationId.Value, out var snap)
+                        && snapshotDict.TryGetValue(item.ReservationId.Value, out var snapshot)
                     )
                     {
-                        title = snap.Title;
+                        var match = item.ListingId.HasValue
+                            ? snapshot.FirstOrDefault(s => s.ListingId == item.ListingId.Value)
+                            : snapshot.FirstOrDefault();
+                        title = match?.Title;
                     }
                     if (
                         title == null
@@ -260,7 +263,6 @@ public class AdminCaseService : IAdminCaseService
             throw new DisputesException("outcomes_not_allowed");
         }
 
-        // Check if verification case
         var verificationCase = await _verification.GetCaseAsync(caseId, ct);
         if (verificationCase is not null)
         {
@@ -295,7 +297,7 @@ public class AdminCaseService : IAdminCaseService
             return await ToDetailAsync(updatedVerificationRecord, ct);
         }
 
-        // Process dispute case
+
         var disputeData = await _disputes.GetCaseDataAsync(caseId, ct);
         if (disputeData is null)
         {
@@ -317,7 +319,8 @@ public class AdminCaseService : IAdminCaseService
         {
             var snapshot = disputeData.ReservationId is null
                 ? null
-                : await _snapshots.GetByReservationIdAsync(disputeData.ReservationId.Value, ct);
+                : (await _snapshots.GetByReservationIdAsync(disputeData.ReservationId.Value, ct))
+                   .FirstOrDefault(s => disputeData.ListingId == null || s.ListingId == disputeData.ListingId);
 
             var verdict = ListingQualityEvaluator.Evaluate(
                 snapshot,
@@ -518,7 +521,8 @@ public class AdminCaseService : IAdminCaseService
         }
         else if (d.ReservationId.HasValue)
         {
-            snapshot = await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
+            var snaps = await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
+            snapshot = snaps.FirstOrDefault(s => d.ListingId == null || s.ListingId == d.ListingId) ?? snaps.FirstOrDefault();
         }
 
         var listingId = d.ListingId ?? snapshot?.ListingId;

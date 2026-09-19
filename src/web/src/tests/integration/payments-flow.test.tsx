@@ -243,7 +243,9 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
 
     const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => { })
     const buyerMount2 = renderMeetupDetails(reservationId, 'buyer', queryClient)
-    const payButton = await within(buyerMount2.container).findByRole('button', { name: /pay r250\.00/i })
+    const payButton = await within(buyerMount2.container).findByRole('button', {
+        name: /pay\s+r\s*250(\.00)?/i,
+    })
     await waitFor(() => expect(payButton).not.toBeDisabled())
     fireEvent.click(payButton)
     await waitFor(() => expect(submitSpy).toHaveBeenCalled())
@@ -293,7 +295,7 @@ test('buyer and seller check in, buyer pays, buyer enters PIN, seller sees confi
 
     const sellerGeneratePinMount = renderGeneratePin(reservationId, '482913')
     await within(sellerGeneratePinMount.container).findByRole('heading', { name: /transaction pin/i })
-    expect(within(sellerGeneratePinMount.container).getByText('4')).toBeInTheDocument() // first digit rendered
+    expect(within(sellerGeneratePinMount.container).getByText('4')).toBeInTheDocument()
 
 
     await waitFor(() => expect(mockConnectionManager.onPinConfirmed).toHaveBeenCalled())

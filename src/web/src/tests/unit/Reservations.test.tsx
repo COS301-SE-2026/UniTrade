@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Reservations, { SummaryCard } from "../../pages/buyer/Reservation";
 import type { ReservationListItem } from "../../types/Reservations";
 import { MemoryRouter } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 
 const mockNavigate = vi.fn();
@@ -33,26 +34,43 @@ vi.mock('../../services/reservationService', () => ({
 
 let idCpunter = 1;
 
-const makeReservation = (overrides: Partial<ReservationListItem> = {}): ReservationListItem => {
+const makeReservation = (
+    overrides: Partial<ReservationListItem> & {
+        listing?: { listingId?: string; title: string; price: number; imagePath: string };
+    } = {}
+): ReservationListItem => {
+    const { listing, ...restOverrides } = overrides;
+
+    const currentListingId = `listing-${idCpunter}`;
+
+    const defaultListing = {
+        listingId: listing?.listingId ?? currentListingId,
+        title: listing?.title ?? 'Sample Textbook',
+        price: listing?.price ?? 100,
+        imagePath: listing?.imagePath ?? '',
+    };
+
     const base: ReservationListItem = {
         reservationId: `res-${idCpunter++}`,
-        listingId: `listing-${idCpunter}`,
         buyerId: 'buyer-1',
         sellerId: 'seller-1',
         reservationStatus: 'active',
         timerStage: 'awaiting_seller',
-        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hrs out
+        expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
         createdAt: new Date().toISOString(),
         sellerAcknowledgedAt: null,
         handoverConfirmedAt: null,
         completedAt: null,
         counterParty: { userId: 'seller-1', name: 'Jane Seller', initials: 'JS' },
-        listing: { title: 'Sample Textbook', price: 100, imagePath: '' },
+        listings: [defaultListing],
+        totalPrice: defaultListing.price,
+        isBundle: false,
         unreadCount: 0,
         lastMessagePreview: null,
         lastMessageAt: null,
     };
-    return { ...base, ...overrides } as ReservationListItem;
+
+    return { ...base, ...restOverrides } as ReservationListItem;
 };
 
 const resolveReservations = (items: ReservationListItem[]) =>
@@ -75,10 +93,15 @@ describe('SummaryCard', () => {
 describe('Reservation pag', () => {
     it('shows a loading indicator when the fetching is happenign', () => {
         mockGetReservations.mockReturnValue(new Promise(() => { }));
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> )
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>)
         expect(screen.getByText(/fetching listings/i)).toBeInTheDocument();
     });
 
@@ -87,10 +110,15 @@ describe('Reservation pag', () => {
             success: false,
             error: { code: 'server_error', status: 500, message: 'Could not load your reservations.' },
         });
-               render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         expect(await screen.findByText('Could not load your reservations.')).toBeInTheDocument();
         expect(mockShowToast).toHaveBeenCalledWith('error', expect.any(String));
     })
@@ -100,19 +128,29 @@ describe('Reservation pag', () => {
             success: false,
             error: { code: 'server_error', status: 500 },
         });
-                render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         expect(await screen.findByText(/could not load your reservations/i)).toBeInTheDocument();
     });
 
     it('shows the empty state with a hint that there are no reservations to show at all', async () => {
         resolveReservations([]);
-                render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         expect(await screen.findByText('No reservations found')).toBeInTheDocument();
         expect(screen.getByText(/reserve items from listings to see them here/i)).toBeInTheDocument();
         expect(mockShowToast).toHaveBeenCalledWith('success', expect.any(String));
@@ -127,10 +165,15 @@ describe('Reservations page - list rendering', () => {
             makeReservation({ reservationStatus: 'cancelled', listing: { title: 'COS330 Textbook', price: 70, imagePath: '' } }),
             makeReservation({ reservationStatus: 'expired', listing: { title: 'COS326 Textbooks', price: 80, imagePath: '' } }),
         ]);
-                render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301 Textbook');
 
         expect(screen.getByText('Active')).toBeInTheDocument();
@@ -146,10 +189,15 @@ describe('Reservations page - list rendering', () => {
                 listing: { title: 'COS332', price: 90, imagePath: '' },
             } as unknown as Partial<ReservationListItem>),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS332');
         expect(screen.getByText('Expired')).toBeInTheDocument();
     });
@@ -164,10 +212,15 @@ describe('Reservations page - list rendering', () => {
                 listing: { title: 'CO330', price: 30, imagePath: '' },
             } as unknown as Partial<ReservationListItem>),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
 
         expect(screen.getByText('Coordination pickup')).toBeInTheDocument();
@@ -179,10 +232,15 @@ describe('Reservations page - list rendering', () => {
         resolveReservations([
             makeReservation({ unreadCount: 3, listing: { title: 'COS301', price: 10, imagePath: '' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
         expect(screen.getByText('3')).toBeInTheDocument();
     });
@@ -191,10 +249,15 @@ describe('Reservations page - list rendering', () => {
         resolveReservations([
             makeReservation({ timerStage: 'meetup_confirmed', listing: { title: 'COS301', price: 10, imagePath: '' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
         expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled();
     })
@@ -203,10 +266,15 @@ describe('Reservations page - list rendering', () => {
             makeReservation({ listing: { title: 'COS301', price: 10, imagePath: '' } }),
             makeReservation({ listing: { title: 'COS326', price: 10, imagePath: '/uploads/COS326.jpg' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
 
         const placeHolderImage = screen.getByAltText('COS301') as HTMLImageElement;
@@ -237,10 +305,15 @@ describe('Reservations page - summary counts', () => {
                 listing: { title: 'COS326', price: 999, imagePath: '' },
             }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
 
         expect(screen.getByText('2')).toBeInTheDocument();
@@ -268,10 +341,15 @@ describe('Reservations page - sorting', () => {
 
     it('sorts by date added by default', async () => {
         setupThreeItems();
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS326');
 
         const text = document.body.textContent ?? '';
@@ -281,10 +359,15 @@ describe('Reservations page - sorting', () => {
 
     it('sorts by price low to high when used', async () => {
         setupThreeItems();
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS326');
 
         const sortToggle = screen.getByRole('button', { name: /sort by/i });
@@ -299,10 +382,15 @@ describe('Reservations page - sorting', () => {
 
     it('sorts by price high to low when used', async () => {
         setupThreeItems();
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS326');
 
         const sortToggle = screen.getByRole('button', { name: /sort by/i });
@@ -322,10 +410,15 @@ describe('Reservations page - filtering', () => {
             makeReservation({ reservationStatus: 'active', listing: { title: 'COS301', price: 10, imagePath: '' } }),
             makeReservation({ reservationStatus: 'cancelled', listing: { title: 'COS341', price: 10, imagePath: '' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
 
         const filterToggle = screen.getByRole('button', { name: /filter/i });
@@ -363,10 +456,15 @@ describe('Reservations page - cancel flow', () => {
         resolveReservations([
             makeReservation({ timerStage: 'coordinating', listing: { title: 'COS301', price: 10, imagePath: '' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
 
         fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
@@ -384,10 +482,15 @@ describe('Reservations page - cancel flow', () => {
         resolveReservations([
             makeReservation({ timerStage: 'coordinating', listing: { title: 'COS301', price: 10, imagePath: '' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('COS301');
 
         fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
@@ -403,10 +506,15 @@ describe('Reservations page - navigation', () => {
         resolveReservations([
             makeReservation({ reservationId: 'res-42', listing: { title: 'COS301', price: 10, imagePath: '' } }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         const title = await screen.findByText('COS301');
         fireEvent.click(title);
         expect(mockNavigate).toHaveBeenCalledWith('/buyer/reservations/res-42');
@@ -420,10 +528,15 @@ describe('Reservations page - navigation', () => {
                 listing: { title: 'Message Item', price: 10, imagePath: '' },
             }),
         ]);
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false, gcTime: 0 } },
+        });
         render(
-        <MemoryRouter>
-        <Reservations />
-        </MemoryRouter> );
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Reservations />
+                </MemoryRouter>
+            </QueryClientProvider>);
         await screen.findByText('Message Item');
         fireEvent.click(screen.getByRole('button', { name: /message seller/i }));
 

@@ -12,6 +12,7 @@ import {
   IconTrash,
   IconFilter,
   IconChevronDown,
+  IconWallet,
 } from "@tabler/icons-react";
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
@@ -174,7 +175,7 @@ function WishlistCard({
 }
 
 export default function Wishlist() {
-  //const navigate = useNavigate()
+  const navigate = useNavigate()
   const [sortOption, setSortOption] = useState<SortOption>("Date added");
   const [sortOpen, setSortOpen] = useState(false);
   const { data, isLoading, error } = useWishlist();
@@ -193,14 +194,14 @@ export default function Wishlist() {
   const searchQuery = useSearchQuery()
   const filtered = useMemo(() => {
     let result = conditionFilter === 'All'
-    ? listings
-    : listings.filter((l) => l.condition === conditionFilter)
+      ? listings
+      : listings.filter((l) => l.condition === conditionFilter)
 
     if (searchQuery) {
       result = result.filter(
         (l) =>
           l.title.toLowerCase().includes(searchQuery) ||
-        (l.sellerName ?? '').toLowerCase().includes(searchQuery)
+          (l.sellerName ?? '').toLowerCase().includes(searchQuery)
       )
     }
 
@@ -317,6 +318,30 @@ export default function Wishlist() {
 
       {isLoading && <LoadingState message="Loading wishlist ..." />}
 
+      {listings.length > 0 && (
+        <div className="bg-navy-50 rounded-xl border border-navy-100 p-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white text-navy-700 flex items-center justify-center shrink-0">
+              <IconWallet size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-800">Reserve within a budget</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Set a budget and we will reserve as many of your saved items as possible in one go.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/buyer/smart-budget-reserve")}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-navy-800 text-white px-4 py-2 text-sm font-semibold hover:bg-navy-700 transitions-colors shrink-0"
+          >
+            <IconWallet size={16} />
+            Reserve within budget
+          </button>
+        </div>
+      )}
+
       {!isLoading && error && (
         <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
           <p className="text-sm font-semibold text-rose-600">
@@ -325,19 +350,19 @@ export default function Wishlist() {
         </div>
       )}
 
-        {!isLoading && !error && sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-700">
-              Your wishlist is empty
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {searchQuery
+      {!isLoading && !error && sorted.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">
+            Your wishlist is empty
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            {searchQuery
               ? `No items match "${searchQuery}".`
-              : 'Browse listings and tap "Add to Wishlist" to save items here.' }
+              : 'Browse listings and tap "Add to Wishlist" to save items here.'}
 
-            </p>
-          </div>
-        )}
+          </p>
+        </div>
+      )}
 
       {sorted.map((listing) => (
         <WishlistCard

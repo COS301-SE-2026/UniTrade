@@ -42,13 +42,10 @@ function StatusBadge({ status }: Readonly<{ status: string }>) {
             {currentConfig.label}
         </span>
     );
-
-
 }
 
 type UrgencyLevel = 'normal' | 'expiring'
 const baseBtn = 'inline-flex items-center justify-center gap-1 rounded-lg border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-
 
 function getMsRemaining(expiresAt: string): number {
     return new Date(expiresAt).getTime() - Date.now()
@@ -88,7 +85,6 @@ function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: st
                 <p className="text-2xl font-extrabold text-gray-800">{value}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{label}</p>
             </div>
-
         </div>
     );
 }
@@ -96,15 +92,13 @@ function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: st
 function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
     const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
     return (
-        <span className={
-            `text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
             {meta.label}
-        </span>)
+        </span>
+    )
 }
 
-function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>
-) {
-
+function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
     if (msRemaining <= 0) return null;
     const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
         : 'bg-sky-50 text-sky-700 border border-sky-200'
@@ -126,13 +120,17 @@ function ReservationCard({
     onCancel: (id: string) => void
 }>) {
     const navigate = useNavigate()
-    const [, forceTick] = useReducer((x: number)=> x+1, 0)
+    const [, forceTick] = useReducer((x: number) => x + 1, 0)
 
     useEffect(() => {
         const interval = setInterval(() => forceTick(), 1000)
         return () => clearInterval(interval)
     }, [])
-
+    
+    const primaryItem = reservation.listings?.[0]
+    const displayTitle = reservation.isBundle
+          ? `${reservation.listings.length} items for ${reservation.counterParty.name}`
+             : primaryItem?.title
     const msRemaining = getMsRemaining(reservation.expiresAt)
     const urgency = getUrgency(msRemaining)
     const isActive = reservation.reservationStatus === 'active'
@@ -140,19 +138,18 @@ function ReservationCard({
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-
-            <img src={reservation.listing.imagePath
-                ? `${apiOrigin}${reservation.listing.imagePath}`
+            <img src={primaryItem?.imagePath
+                ? `${apiOrigin}${primaryItem.imagePath}`
                 : '/placeholder.png'}
-                alt={reservation.listing.title}
+                alt={displayTitle ?? 'Listing'}
                 className="w-20 h-20 rounded-lg object-cover flex shrink-0"
             />
             <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                        <div className="flexi items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-bold text-gray-800 truncate">
-                                {reservation.listing.title}
+                                {displayTitle}
                             </p>
                             <StatusBadge status={reservation.reservationStatus} />
                         </div>
@@ -170,32 +167,31 @@ function ReservationCard({
                             <div className="mt-1">
                                 <CountdownBadge msRemaining={msRemaining} urgency={urgency} />
                             </div>
-                        </div>)}
-
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2 mt-2">
-                    {isActive &&
-                        <StageTag stage={reservation.timerStage} />}
+                    {isActive && <StageTag stage={reservation.timerStage} />}
                     <span className="text-sm font-bold text-gray-800">
-                        {formatPrice(reservation.listing.price)}</span>
+                        {formatPrice(reservation.totalPrice)}
+                    </span>
                 </div>
 
                 {isActive && (
                     <div className="flex flex-wrap gap-2 mt-3">
-
-                        {reservation.timerStage == 'awaiting_seller' ? (
+                        {reservation.timerStage === 'awaiting_seller' ? (
                             <button
                                 type="button"
                                 onClick={() => onAcknowledge(reservation.reservationId)}
-                                className={`${baseBtn}flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors`}>
+                                className={`${baseBtn} flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors`}>
                                 Accept Reservation
                             </button>
-                        ) :
-                            (<div className={`${baseBtn}flex-1 py-2 bg-white/100 text-gray-400 text-xs font-medium rounded-lg transition-colors`}>
+                        ) : (
+                            <div className={`${baseBtn} flex-1 py-2 bg-white/100 text-gray-400 text-xs font-medium rounded-lg transition-colors`}>
                                 Awaiting Payment Completion
-
-                            </div>)}
+                            </div>
+                        )}
 
                         <button
                             type="button"
@@ -203,7 +199,6 @@ function ReservationCard({
                             onClick={() => navigate(`/seller/reservations/${reservation.reservationId}/chat`)}
                         >
                             Message buyer
-
                             {reservation.unreadCount > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold">
                                     {reservation.unreadCount}
@@ -214,15 +209,15 @@ function ReservationCard({
                             <button
                                 type='button'
                                 onClick={() => onCancel(reservation.reservationId)}
-                                className=" py-2 px-3 border border-gray-300 text-rose-600 text-xs
-                font-semibold rounded-lg hover:bg-rose-50 transition-colors" >
-                                {reservation.timerStage === 'awaiting_seller' ? 'Reject' : 'Cancel Reservation'}</button>
+                                className="py-2 px-3 border border-gray-300 text-rose-600 text-xs font-semibold rounded-lg hover:bg-rose-50 transition-colors">
+                                {reservation.timerStage === 'awaiting_seller' ? 'Reject' : 'Cancel Reservation'}
+                            </button>
                         )}
-                    </div>)}
+                    </div>
+                )}
             </div>
         </div>
     )
-
 }
 
 export default function Reservations() {
@@ -236,6 +231,7 @@ export default function Reservations() {
 
     const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reserved listings.') : null
     const [actionError, setActionError] = useState<string | null>(null)
+
     const handleAcknowledge = async (reservationId: string) => {
         const result = await acknowledgeReservatioin(reservationId)
         if (result.success) {
@@ -243,12 +239,9 @@ export default function Reservations() {
         }
     }
 
-
     const handleCancel = async (reservationId: string) => {
-
         const result = await cancelReservation(reservationId)
         if (result.success) {
-
             setActionError(null)
             queryClient.invalidateQueries({ queryKey: queryKeys.reservations('seller') })
         } else {
@@ -261,18 +254,15 @@ export default function Reservations() {
     }
 
     const filtered = useMemo(() => {
-
         let result = statusFilter === "All"
             ? reservations
             : reservations.filter(
-            (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
-        );
+                (r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase()
+            );
 
         if (searchQuery) {
-            result = result.filter(
-                (r) =>
-                    r.listing.title.toLowerCase().includes(searchQuery)
-                    
+            result = result.filter((r) =>
+                r.listings.some((l) => l.title.toLowerCase().includes(searchQuery.toLowerCase()))
             )
         }
 
@@ -282,9 +272,9 @@ export default function Reservations() {
     const sorted = useMemo(() => {
         const copy = [...filtered];
         if (sortOption === "Price low") {
-            copy.sort((a, b) => a.listing.price - b.listing.price);
+            copy.sort((a, b) => (a.listings[0]?.price ?? 0) - (b.listings[0]?.price ?? 0));
         } else if (sortOption === "Price high") {
-            copy.sort((a, b) => b.listing.price - a.listing.price);
+            copy.sort((a, b) => (b.listings[0]?.price ?? 0) - (a.listings[0]?.price ?? 0));
         } else {
             copy.sort(
                 (a, b) =>
@@ -294,23 +284,26 @@ export default function Reservations() {
         }
         return copy;
     }, [filtered, sortOption]);
+
     const summary = useMemo(() => {
         const activeItems = reservations.filter((r) => r.reservationStatus === 'active')
         const activeCount = activeItems.length
         const actionRequiredCount = activeItems.filter((r) => r.timerStage === 'awaiting_seller').length
-        const totalValue = activeItems.reduce((sum, r) => sum + r.listing.price, 0)
+        const totalValue = activeItems.reduce(
+            (sum, r) => sum + r.listings.reduce((acc, item) => acc + item.price, 0),
+            0
+        )
 
         return { activeCount, actionRequiredCount, totalValue }
-    }, [reservations]
-    )
-
+    }, [reservations])
 
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
-                        My Reserved Items</h1>
+                        My Reserved Items
+                    </h1>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="relative">
@@ -372,16 +365,23 @@ export default function Reservations() {
             </div>
 
             <div className="flex gap-4">
-                <SummaryCard label="Active reservations"
+                <SummaryCard
+                    label="Active reservations"
                     value={String(summary.activeCount)}
-                    icon={<IconPresentationAnalytics size={20} />} />
-                <SummaryCard label="Action required" value={String(summary.actionRequiredCount)}
-                    icon={<IconActivity size={20} />} />
-
-                <SummaryCard label="Pending reserved value"
+                    icon={<IconPresentationAnalytics size={20} />}
+                />
+                <SummaryCard
+                    label="Action required"
+                    value={String(summary.actionRequiredCount)}
+                    icon={<IconActivity size={20} />}
+                />
+                <SummaryCard
+                    label="Pending reserved value"
                     value={formatPrice(summary.totalValue)}
-                    icon={<IconReceipt2 size={20} />} />
+                    icon={<IconReceipt2 size={20} />}
+                />
             </div>
+
             <div className="flex flex-col gap-4">
                 {actionError && (
                     <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center justify-between">
@@ -396,7 +396,6 @@ export default function Reservations() {
                 )}
                 {loading && <LoadingState message="Loading..." />}
 
-
                 {!loading && error && sorted.length === 0 && (
                     <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
                         <p className="text-sm font-semibold text-rose-600">{error}</p>
@@ -408,7 +407,7 @@ export default function Reservations() {
                     </div>
                 )}
 
-                    {!loading && filtered.length === 0 && (
+                {!loading && filtered.length === 0 && (
                     <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
                         <p className="text-sm font-semibold text-rose-600">{error}</p>
                         <p className="text-xs text-gray-400 mt-1">
@@ -427,10 +426,7 @@ export default function Reservations() {
                         onAcknowledge={handleAcknowledge}
                     />
                 ))}
-
-
             </div>
-
         </div>
     )
 }
