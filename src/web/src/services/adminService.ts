@@ -23,6 +23,7 @@ import type {
   FlaggedListing,
   ListingDecisionResponse,
   ListingStatusResponse,
+  FlaggedListingDetail,
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -346,6 +347,14 @@ export async function getListingStatus(id: string): Promise<ListingStatusRespons
   });
 
   return handleResponse<ListingStatusResponse>(res);
+}
+
+export async function getFlaggedListing(id: string): Promise<FlaggedListingDetail> {
+  const res = await fetch(`${getApiUrl()}/admin/listings/${id}/flagged`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<FlaggedListingDetail>(res)
 }
 //TEMP:
 // this is just so builds dont fail, the real types will come from FE3
