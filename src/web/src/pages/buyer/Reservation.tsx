@@ -505,7 +505,7 @@ function ReservationCard({
 export default function Reservations() {
   const queryClient = useQueryClient()
   const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('buyer')
-  const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load reservations.') : null
+  const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
 
   const { showToast } = useToast()
   const [sortOption, setSortOption] = useState<SortOption>("Date added")
