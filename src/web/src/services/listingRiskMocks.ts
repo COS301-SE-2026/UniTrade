@@ -13,6 +13,11 @@ const Mock : FlaggedListing[] = [
         price: 450,
         sellerId: "S001",
         sellerInitials: "TM",
+        riskScore: 82,
+        riskLevel: "high",
+        reasons: ["price_anomaly", "duplicate_image"],
+        imageMatchScore: 0.31,
+        createdAt: hoursAgo(2),
 
     }
 ]
