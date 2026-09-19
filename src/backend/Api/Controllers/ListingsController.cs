@@ -204,6 +204,8 @@ public class ListingController : ControllerBase
             );
             imageIds.Add(id);
         }
+        
+        await _listings.DuplicateImagesToGroupAsync(listingId, ct);
 
         return Ok(new { imageIds });
     }

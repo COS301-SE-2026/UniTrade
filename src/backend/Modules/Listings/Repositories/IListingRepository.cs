@@ -34,4 +34,8 @@ public interface IListingRepository
     );
 
     Task<bool> AdminRemoveAsync(Guid listingId, string reason, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Listing>> GetByGroupIdAsync(Guid groupId, CancellationToken ct = default);
+    Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default);
+    Task AddRangeAsync(IReadOnlyList<Listing> listings);
 }

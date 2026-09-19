@@ -305,13 +305,13 @@ public class ListingRepository : IListingRepository
         {
             listing.Images = byListing.TryGetValue(listing.ListingId, out var imgs)
                 ? imgs.Select(i => new ListingImage
-                {
-                    ImageId = i.ImageId,
-                    ListingId = i.ListingId,
-                    IsPrimary = i.IsPrimary,
-                    ImageData = Array.Empty<byte>(),
-                    ContentType = string.Empty,
-                })
+                    {
+                        ImageId = i.ImageId,
+                        ListingId = i.ListingId,
+                        IsPrimary = i.IsPrimary,
+                        ImageData = Array.Empty<byte>(),
+                        ContentType = string.Empty,
+                    })
                     .ToList()
                 : new List<ListingImage>();
         }
@@ -334,5 +334,80 @@ public class ListingRepository : IListingRepository
             );
 
         return rowsFetched == 1;
+    }
+
+    public async Task<IReadOnlyList<Listing>> GetByGroupIdAsync(
+        Guid groupId,
+        CancellationToken ct = default
+    ) =>
+        await _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingGroupId == groupId && l.ListingStatus != _removedStatus)
+            .ToListAsync(ct);
+
+    public async Task DuplicateImagesToGroupAsync(
+        Guid sourceListingId,
+        CancellationToken ct = default
+    )
+    {
+        var groupId = await _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingId == sourceListingId)
+            .Select(l => l.ListingGroupId)
+            .FirstOrDefaultAsync(ct);
+
+        if (groupId is null)
+            return;
+
+        var sourceImages = await _db
+            .ListingImages.AsNoTracking()
+            .Where(img => img.ListingId == sourceListingId)
+            .ToListAsync(ct);
+
+        var siblingIds = await _db
+            .Listings.Where(l =>
+                l.ListingGroupId == groupId
+                && l.ListingId != sourceListingId
+                && l.ListingStatus != _removedStatus
+            )
+            .Select(l => l.ListingId)
+            .ToListAsync(ct);
+
+        if (siblingIds.Count == 0)
+            return;
+
+        await using var txn = await _db.Database.BeginTransactionAsync(ct);
+        await _db
+            .ListingImages.Where(img => siblingIds.Contains(img.ListingId))
+            .ExecuteDeleteAsync(ct);
+
+        if (sourceImages.Count > 0)
+        {
+            foreach (var siblingId in siblingIds)
+            {
+                foreach (var img in sourceImages)
+                {
+                    _db.ListingImages.Add(
+                        new ListingImage
+                        {
+                            ListingId = siblingId,
+                            ImageData = img.ImageData,
+                            ContentType = img.ContentType,
+                            FileSize = img.FileSize,
+                            IsPrimary = img.IsPrimary,
+                            UploadedAt = DateTime.UtcNow,
+                        }
+                    );
+                }
+            }
+            await _db.SaveChangesAsync(ct);
+        }
+        await txn.CommitAsync(ct);
+    }
+
+    public async Task AddRangeAsync(IReadOnlyList<Listing> listings)
+    {
+        _db.Listings.AddRange(listings);
+        await _db.SaveChangesAsync();
     }
 }
