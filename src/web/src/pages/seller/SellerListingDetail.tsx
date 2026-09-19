@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import type React from "react";
 import { listingsService } from "../../services/listingsService";
 import {
@@ -11,6 +11,9 @@ import {
 import type { SellerListingDetail as SellerListingDetailType } from "../../types/listing";
 import { LoadingState } from "../../components/layout/Spinner";
 import ListingQnA from "../../components/ListingQnA";
+import type { ListingStatusResponse } from "../../types/riskTemp";
+import { mockStatusFromListing } from "../../types/riskTemp";
+
 
 function DetailRow({
   label,
@@ -38,6 +41,7 @@ export default function SellerListingDetail() {
   const [selectedImg, setSelectedImg] = useState(0);
   const [courseCode, setCourseCode] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [statusData, setStatusData] = useState<ListingStatusResponse | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -51,6 +55,10 @@ export default function SellerListingDetail() {
             .then((course) => setCourseCode(course.courseCode))
             .catch(() => setCourseCode(null));
         }
+        listingsService
+        .getListingStatus(id)
+        .then(setStatusData)
+        .catch(() => setStatusData(mockStatusFromListing(data)));
       })
       .catch(() => setError("Failed to load listing"))
       .finally(() => setLoading(false));
@@ -89,11 +97,43 @@ export default function SellerListingDetail() {
         >
           My Listings
         </button>
-        <span>›</span>
+        <span></span>
         <span className="text-navy-700 dark:text-white truncate">
           {listing.title}
         </span>
       </div>
+
+      {statusData && statusData.status !== "live" && (
+      <div
+        className={`rounded-xl border p-4 flex items-start gap-3 ${
+        statusData.status === "under_review"
+        ? "bg-amber-50 border-amber-200"
+        : "bg-red-50 border-red-200"
+      }`}
+      >
+      <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+        statusData.status === "under_review"
+          ? "bg-amber-100 text-amber-600"
+          : "bg-red-100 text-red-600"
+      }`}
+      >
+        {statusData.status === "under_review" ? (
+          <IconClock size={16} />
+          ) : (
+          <IconX size={16} />
+        )}
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-navy-700 dark:text-white">
+          {statusData.status === "under_review" ? "Under review" : "Removed"}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">
+          {statusData.message}
+        </p>
+      </div>
+    </div>
+  )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         <div className="lg:col-span-2 space-y-4">
