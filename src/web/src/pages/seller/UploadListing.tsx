@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
+import { IconUpload, IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
 import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
@@ -34,6 +34,7 @@ const UploadListing: React.FC = () => {
   const [brand, setBrand] = useState("");
   const [dimensions, setDimensions] = useState("");
   const {showToast} = useToast();
+  const [heldListing, setHeldListingId] = useState<string | null>(null);
 
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
@@ -163,6 +164,11 @@ const UploadListing: React.FC = () => {
       });
       await listingsService.uploadImages(listingId, files);
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+
+      if(listingStatus === "under_review") {
+        setHeldListingId(listingId);
+        return;
+      }
       if (listingStatus === "live"){
       showToast('success', 'Listing uploaded successfully');
       } else {
@@ -221,6 +227,18 @@ const UploadListing: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  if(heldListing) {
+    return (
+      <div className = "max-w-2xl w-full mx-auto p-6">
+        <div className = "bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center">
+          <div className = "w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <IconClock size = {14} stroke = {2} />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
