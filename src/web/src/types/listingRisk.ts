@@ -2,7 +2,7 @@ export type RiskLevel = "low" | "medium" | "high"
 
 export type FlaggedListingStatus = "under_review"
 export type ListingDecisionAction  = "approve" | "remove";
-export type SellerListingStatus = "lice" | "under_review" | "removed";
+export type SellerListingStatus = "live" | "under_review" | "removed";
 
 export type KnownRiskReason = 
 | "price_anomaly"
