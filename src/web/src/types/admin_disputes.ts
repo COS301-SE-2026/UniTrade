@@ -313,6 +313,29 @@ export interface FlaggedListing {
   createdAt: string;
 }
 
+export interface FlaggedListingDetail {
+  listingId: string;
+  title: string;
+  description: string;
+  price: number;
+  condition: string;
+  categoryName: string;
+  images: string[];
+  seller: {
+    sellerId: string;
+    name: string;
+    initials: string;
+    verificationStatus: string;
+    strikeCount: number;
+    priorFlagCount: number;
+  };
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  visibilityScore: number;
+  reasons: {code: string; detail?: string}[];
+  imageMatchScore: number | null;
+  createdAt: string;
+}
 export interface ListingDecisionResponse {
   listingId: string;
   status: string;

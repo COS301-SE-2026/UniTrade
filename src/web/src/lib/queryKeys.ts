@@ -10,4 +10,5 @@ export const queryKeys = {
   meetupAvailability: (reservationId: string) =>
     ["meetup-availability", reservationId] as const,
   flaggedListings: () => ['admin', 'flaggedListings'] as const,
+  flaggedListing: (id: string) => ['admin', 'flaggedListing', id] as const,
 };
