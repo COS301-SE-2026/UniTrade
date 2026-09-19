@@ -77,6 +77,7 @@ using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
+using Modules.Listings.Risk;
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -289,6 +290,7 @@ builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
 builder.Services.AddScoped<SavedSearchService>();
 builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<SavedSearchService>());
+builder.Services.AddScoped<IListingRiskScoreService, ListingRiskScoreService>();
 builder.Services.AddScoped<IListingPublishedListener>(sp =>
     sp.GetRequiredService<SavedSearchService>()
 );

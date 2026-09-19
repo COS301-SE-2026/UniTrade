@@ -5,6 +5,7 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
+using Modules.Listings.Risk;
 using Modules.SharedKernel;
 
 namespace Modules.Listings;
@@ -17,6 +18,7 @@ public class ListingService : IListingService
     private readonly ISellerVerificationQuery _verification;
     private readonly IListingPublishedListener _listener;
     private readonly IListingQuestionRepository _questions;
+    private readonly IListingRiskScoreService _risk;
 
     private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
@@ -32,7 +34,8 @@ public class ListingService : IListingService
         ISellerVerificationQuery verification,
         IListingPublishedListener listener,
         ILogger<ListingService> logger,
-        IListingQuestionRepository questions
+        IListingQuestionRepository questions,
+        IListingRiskScoreService risk
     )
     {
         _listings = listings;
@@ -41,6 +44,7 @@ public class ListingService : IListingService
         _listener = listener;
         _logger = logger;
         _questions = questions;
+        _risk = risk;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -198,10 +202,22 @@ public class ListingService : IListingService
 
                 newListing.BookDetails = newBook;
             }
+            if (newListing.ListingStatus == "live")
+            {
+                var risk = await _risk.ScoreAsync(newListing, ct);
+                newListing.AiRiskScore = risk.Score;
+                newListing.AiRiskLevel = risk.Level;
+                newListing.VisibilityScore = risk.VisibilityScore;
+
+                if (risk.Level == "high")
+                {
+                    newListing.ListingStatus = "under_review";
+                }
+            }
+
             created.Add(newListing);
         }
         await _listings.AddRangeAsync(created);
-
 
         foreach (var newListing in created.Where(l => l.ListingStatus == "live"))
         {
@@ -390,12 +406,23 @@ public class ListingService : IListingService
         {
             throw new InvalidOperationException("seller_not_verified");
         }
-        listing.ListingStatus = newStatus;
+
+        if (newStatus == "live")
+        {
+            var risk = await _risk.ScoreAsync(listing, ct);
+            listing.AiRiskScore = risk.Score;
+            listing.AiRiskLevel = risk.Level;
+            listing.VisibilityScore = risk.VisibilityScore;
+            listing.ListingStatus = risk.Level == "high" ? "under_review" : newStatus;
+        }
+        else
+        {
+            listing.ListingStatus = newStatus;
+        }
+
         listing.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
-        listing.ListingStatus = newStatus;
-        listing.UpdatedAt = DateTime.UtcNow;
-        if (newStatus == "live")
+        if (listing.ListingStatus == "live")
         {
             try
             {

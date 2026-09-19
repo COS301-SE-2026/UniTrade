@@ -410,4 +410,18 @@ public class ListingRepository : IListingRepository
         _db.Listings.AddRange(listings);
         await _db.SaveChangesAsync();
     }
+    public async Task<IReadOnlyList<decimal>> GetComparablePricesAsync(int categoryId, int? courseId, Guid excludeListingId, CancellationToken ct = default)
+    {
+        IQueryable<Listing> query = _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingId != excludeListingId)
+            .Where(l => l.ListingStatus == "live" || l.ListingStatus == "low_visibility");
+
+        query = courseId.HasValue
+            ? query.Where(l => l.CourseId == courseId)
+            : query.Where(l => l.CategoryId == categoryId);
+
+        return await query.Select(l => l.Price).ToListAsync(ct);
+    }
+
 }
