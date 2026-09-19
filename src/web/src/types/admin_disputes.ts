@@ -312,3 +312,8 @@ export interface FlaggedListing {
   imageMatchScore: number | null;
   createdAt: string;
 }
+
+export interface ListingDecisionResponse {
+  listingId: string;
+  status: string;
+}
