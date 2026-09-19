@@ -1,6 +1,7 @@
 export type RiskLevel = "low" | "medium" | "high"
 
 export type FlaggedListingStatus = "under_review"
+export type ListingDecisionAction  = "approve" | "remove";
 
 export type KnownRiskReason = 
 | "price_anomaly"
@@ -21,4 +22,9 @@ export interface FlaggedListing {
     imageMatchScore: number  | null;
     createdAt: string;
 
+}
+
+export interface ListingDecisionRequest {
+    action: ListingDecisionAction;
+    reason? : string;
 }
