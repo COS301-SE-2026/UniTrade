@@ -363,9 +363,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddHttpClient<IClipVisionClient, ClipVisionClient>((sp, client) =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-    var baseUrl = config["Clip:BaseUrl"]?? "http://clip-service:8000";
-    client.BaseAddress= new Uri(baseUrl);
-    client.Timeout= TimeSpan.FromSeconds(5);
+    var baseUrl = config["Clip:BaseUrl"] ?? "http://clip-service:8000";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(5);
 });
 var app = builder.Build();
 
