@@ -1,9 +1,9 @@
 services:
-   db:
+  db:
     image: postgres:18
     container_name: Unitrade-DB
     ports:
-    - "5432:5432"
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_USER: ${POSTGRES_USER_ID}
@@ -12,17 +12,17 @@ services:
       APP_USER: ${APP_USER_ID}
       APP_USER_PASSWORD: ${APP_USER_PASSWORD}
     volumes:
-    - db_data:/var/lib/postgresql
-    - ../../database/init:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql
+      - ../../database/init:/docker-entrypoint-initdb.d
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_ID} -d ${DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER_ID} -d ${DB_NAME}" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    
-   pgadmin:
+
+  pgadmin:
     image: dpage/pgadmin4
     container_name: unitrade-pgadmin
     ports:
@@ -35,15 +35,15 @@ services:
         condition: service_healthy
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-  
-   backend:
+
+  backend:
     build:
       context: ../..
       dockerfile: src/backend/Api/Dockerfile
     container_name: unitrade-backend
-    
+
     ports:
-    - "8080:8080"
+      - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${DB_NAME};Username=${APP_USER_ID};Password=${APP_USER_PASSWORD}"
@@ -60,28 +60,45 @@ services:
       PayFast__NotifyUrl: ${PayFast__NotifyUrl}
       PayFast__ReturnUrl: ${PayFast__ReturnUrl}
       PayFast__CancelUrl: ${PayFast__CancelUrl}
+      Clip__BaseUrl: ${Clip__BaseUrl}
     depends_on:
-     db: 
-       condition: service_healthy
-   frontend:
+      db:
+        condition: service_healthy
+      clip-service:
+        condition: service_started
+  frontend:
     build:
       context: ../../src/web
       dockerfile: Dockerfile
     container_name: unitrade-web
     environment:
-        VITE_API_URL: ${VITE_API_URL}
-        FIREBASE_API_KEY: ${FIREBASE_API_KEY}
-        FIREBASE_AUTH_DOMAIN: ${FIREBASE_AUTH_DOMAIN}
-        FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
-        FIREBASE_SENDER_ID: ${FIREBASE_SENDER_ID}
-        FIREBASE_APP_ID: ${FIREBASE_APP_ID}
-        FIREBASE_VAPID_KEY: ${FIREBASE_VAPID_KEY}
+      VITE_API_URL: ${VITE_API_URL}
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+      FIREBASE_AUTH_DOMAIN: ${FIREBASE_AUTH_DOMAIN}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_SENDER_ID: ${FIREBASE_SENDER_ID}
+      FIREBASE_APP_ID: ${FIREBASE_APP_ID}
+      FIREBASE_VAPID_KEY: ${FIREBASE_VAPID_KEY}
     ports:
-    - "3000:8080"
+      - "3000:8080"
     depends_on:
-     - backend
-        
+      - backend
 
-volumes: 
+  clip-service:
+    build:
+      context: ../../src/clip-service
+      dockerfile: Dockerfile
+    container_name: unitrade-clip
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
   db_data:
   pgadmin_data:
