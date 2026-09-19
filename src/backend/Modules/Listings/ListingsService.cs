@@ -401,11 +401,7 @@ public class ListingService : IListingService
             listing.AiRiskScore = risk.Score;
             listing.AiRiskLevel = risk.Level;
             listing.VisibilityScore = risk.VisibilityScore;
-
-            if (risk.Level == "high")
-            {
-                listing.ListingStatus = "under_review";
-            }
+            listing.ListingStatus = risk.Level == "high" ? "under_review" : newStatus;
         }
         else
         {

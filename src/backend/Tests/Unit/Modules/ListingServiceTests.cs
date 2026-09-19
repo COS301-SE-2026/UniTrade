@@ -42,6 +42,7 @@ public class ListingServiceTests
         _loggerMock = new Mock<ILogger<ListingService>>();
         _questionRepoMock = new Mock<IListingQuestionRepository>();
         _listingPublishedListener = new Mock<IListingPublishedListener>();
+        _riskMock = new Mock<IListingRiskScoreService>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -50,10 +51,10 @@ public class ListingServiceTests
                 )
             )
             .ReturnsAsync(new Dictionary<Guid, int>());
-        
+
         _riskMock
-            .Setup(r=>r.ScoreAsync(It.IsAny<Listing>(),It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new RiskScoreResult(0m,"low",100,new List<string>()));
+            .Setup(r => r.ScoreAsync(It.IsAny<Listing>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<string>()));
 
         _sut = new ListingService(
             _repo.Object,
