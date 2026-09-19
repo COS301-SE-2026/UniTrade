@@ -34,4 +34,6 @@ public interface IListingRepository
     );
 
     Task<bool> AdminRemoveAsync(Guid listingId, string reason, CancellationToken ct = default);
+
+    Task<IReadOnlyList<decimal>> GetComparablePricesAsync(int categoryId, int? courseId, Guid excludeListingId, CancellationToken ct = default);
 }
