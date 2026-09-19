@@ -855,6 +855,11 @@
         "resolved": "1.4.2",
         "contentHash": "yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A=="
       },
+      "SixLabors.ImageSharp": {
+        "type": "Transitive",
+        "resolved": "3.1.11",
+        "contentHash": "JfPLyigLthuE50yi6tMt7Amrenr/fA31t2CvJyhy/kQmfulIBAqo5T/YFUSRHtuYPXRSaUHygFeh6Qd933EoSw=="
+      },
       "Swashbuckle.AspNetCore": {
         "type": "Transitive",
         "resolved": "10.2.1",
@@ -1051,6 +1056,7 @@
           "Microsoft.Extensions.Configuration.EnvironmentVariables": "[10.0.1, )",
           "Modules": "[1.0.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.2, )",
+          "SixLabors.ImageSharp": "[3.1.11, )",
           "System.Security.Cryptography.Xml": "[10.0.10, )"
         }
       },

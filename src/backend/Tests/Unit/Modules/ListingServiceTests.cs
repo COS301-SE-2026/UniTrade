@@ -16,6 +16,7 @@ using Modules.Listings.Repositories;
 using Modules.SharedKernel;
 using Moq;
 using Xunit;
+using Modules.Listings.Risk;
 
 namespace Modules.Listings.Tests;
 
@@ -30,6 +31,7 @@ public class ListingServiceTests
     private readonly Mock<ILogger<ListingService>> _loggerMock;
     private readonly Mock<IListingQuestionRepository> _questionRepoMock;
     private readonly Mock<IListingPublishedListener> _listingPublishedListener;
+    private readonly Mock<IListingRiskScoreService> _riskMock;
 
     public ListingServiceTests()
     {
@@ -40,6 +42,7 @@ public class ListingServiceTests
         _loggerMock = new Mock<ILogger<ListingService>>();
         _questionRepoMock = new Mock<IListingQuestionRepository>();
         _listingPublishedListener = new Mock<IListingPublishedListener>();
+        _riskMock = new Mock<IListingRiskScoreService>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -49,13 +52,18 @@ public class ListingServiceTests
             )
             .ReturnsAsync(new Dictionary<Guid, int>());
 
+        _riskMock
+            .Setup(r => r.ScoreAsync(It.IsAny<Listing>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<string>()));
+
         _sut = new ListingService(
             _repo.Object,
             _imageRepo.Object,
             _verificationMock.Object,
             _listingPublishedListener.Object,
             _loggerMock.Object,
-            _questionRepo.Object
+            _questionRepo.Object,
+            _riskMock.Object
         );
     }
 
