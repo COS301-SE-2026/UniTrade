@@ -79,6 +79,7 @@ public class ReservationService(
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
+
         await _wishlist.SuppressForListingAsync(listingId, reservation.ReservationId, ct);
         await GuardedPushAsync(
             listing.SellerId,
@@ -86,7 +87,11 @@ public class ReservationService(
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
-        return MapToDto(reservation, listingId: listingId);
+        var saved =
+            await _reservations.GetByIdAsync(reservation.ReservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.NotFound);
+
+        return MapToDto(saved, listingId: listingId);
     }
 
     public async Task<ReservationDto> AcknowledgeAsync(
@@ -205,11 +210,12 @@ public class ReservationService(
                 var other = isBuyer ? r.Seller : r.Buyer;
 
                 var listings = r
-                    .ReservationListings.Select(rl => new ReservationListingSummaryDto(
+                    .ReservationListings.Where(rl => rl.Listing is not null)
+                    .Select(rl => new ReservationListingSummaryDto(
                         rl.Listing.ListingId,
                         rl.Listing.Title,
                         rl.Listing.Price,
-                        rl.Listing.Images.Count > 0
+                        rl.Listing.Images is { Count: > 0 }
                             ? $"/api/listings/{rl.Listing.ListingId}/images/{rl.Listing.Images.First().ImageId}"
                             : null
                     ))
@@ -326,8 +332,6 @@ public class ReservationService(
             }
 
             await _wishlist.RestoreForReservationAsync(reservation.ReservationId, ct);
-
-            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
         }
 

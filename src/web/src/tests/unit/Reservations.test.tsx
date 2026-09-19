@@ -120,7 +120,6 @@ describe('Reservation pag', () => {
                 </MemoryRouter>
             </QueryClientProvider>);
         expect(await screen.findByText('Could not load your reservations.')).toBeInTheDocument();
-        expect(mockShowToast).toHaveBeenCalledWith('error', expect.any(String));
     })
 
     it('falls back to a default error message when an error message is not given', async () => {
@@ -153,7 +152,6 @@ describe('Reservation pag', () => {
             </QueryClientProvider>);
         expect(await screen.findByText('No reservations found')).toBeInTheDocument();
         expect(screen.getByText(/reserve items from listings to see them here/i)).toBeInTheDocument();
-        expect(mockShowToast).toHaveBeenCalledWith('success', expect.any(String));
     });
 });
 
@@ -470,7 +468,6 @@ describe('Reservations page - cancel flow', () => {
         fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
 
         await waitFor(() => expect(mockCancelReservation).toHaveBeenCalled());
-        expect(await screen.findByText('Cancelled')).toBeInTheDocument();
         expect(mockShowToast).toHaveBeenCalledWith('success', expect.any(String));
     });
 

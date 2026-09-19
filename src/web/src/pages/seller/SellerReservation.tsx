@@ -184,7 +184,7 @@ function ReservationCard({
                             <button
                                 type="button"
                                 onClick={() => onAcknowledge(reservation.reservationId)}
-                                className={`${baseBtn} flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors`}>
+                                className={`${baseBtn}flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors`}>
                                 Accept Reservation
                             </button>
                         ) : (
