@@ -46,4 +46,31 @@ const Mock : FlaggedListing[] = [
         createdAt: hoursAgo(4),
 
     },
-]
+];
+
+
+let queue: FlaggedListing[] = Mock.map((l) => ({...l}));
+
+const delay = (ms = 450) => new Promise((r) => setTimeout(r, ms));
+
+export async function mockGetFlaggedListings(): Promise<FlaggedListing[]> {
+    await delay();
+    return queue.map((l) => ({...l}));
+}
+
+export async function mockDecideListing(
+    id: string,
+    body: ListingDecisionRequest,
+
+): Promise<ListingDecisionResponse> {
+    await delay(700);
+    if(id.startsWith("mock-fail")) {
+        throw { status: 500, code: "MOCK_FAILURE", message: "Mock server error"};
+
+    }
+    queue = queue.filter((l) => l.listingId != id);
+    return {
+        listingId: id,
+        status: body.action === "approve" ? "live" : "removed",
+    };
+}
