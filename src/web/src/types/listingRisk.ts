@@ -36,3 +36,10 @@ export interface ListingDecisionResponse {
     status?: string;
     listingStatus?: string;
 }
+
+export interface ListingStatusResponse {
+    listingId: string;
+    status: SellerListingStatus;
+    riskLevel: RiskLevel;
+    message: string;
+}
