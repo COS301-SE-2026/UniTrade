@@ -317,3 +317,10 @@ export interface ListingDecisionResponse {
   listingId: string;
   status: string;
 }
+
+export interface ListingStatusResponse {
+  listingId: string;
+  status: "live" | "under_review" | "removed";
+  riskLevel: "low" | "medium" | "high";
+  message: string;
+}
