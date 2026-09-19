@@ -79,6 +79,20 @@ module communicationService 'modules/communication-service.bicep'=if(deployAcr){
     }
 }
 
+module clipApp 'modules/container-app-clip.bicep'={
+    name: 'deploy-clip-${environment}'
+    scope: rg
+    params: {
+        //projectName: projectName
+        environment: environment
+        location: location
+        containerAppsEnvId: containerAppsEnv.outputs.environmentId
+        acrLoginServer: acrLoginServer
+        placeholderImage: placeholderImage
+        useAcrRegistry: useAcrRegistry
+    }
+}
+
 module backendApp 'modules/container-app-backend.bicep'={
     name: 'deploy-backend-${environment}'
     scope: rg
@@ -90,6 +104,7 @@ module backendApp 'modules/container-app-backend.bicep'={
         acrLoginServer: acrLoginServer
         placeholderImage: placeholderImage
         useAcrRegistry: useAcrRegistry
+        clipBaseUrl: 'https://${clipApp.outputs.fqdn}'
     }
 }
 
@@ -125,6 +140,15 @@ module acrPullFrontend 'modules/acr-pull-access.bicep'=if(grantAcrAccess){
     }
 }
 
+module acrPullClip 'modules/acr-pull-access.bicep'=if(grantAcrAccess){
+    name: 'acrpull-clip-${environment}'
+    scope: resourceGroup('rg-${projectName}-dev')
+    params: {
+        acrName: acrName
+        principalId: clipApp.outputs.principalId
+    }
+}
+
 output resourceGroupName string=rg.name
 output acrLoginServer string =acrLoginServer
 output backendFqdn string=backendApp.outputs.fqdn 
@@ -135,3 +159,5 @@ output appInsightsConnectionString string =containerAppsEnv.outputs.appInsightsC
 
 output backendPrincipalId string =backendApp.outputs.principalId
 output frontendPrincipalId string =frontendApp.outputs.principalId
+output clipFqdn string = clipApp.outputs.fqdn
+output clipPrincipalId string = clipApp.outputs.principalId

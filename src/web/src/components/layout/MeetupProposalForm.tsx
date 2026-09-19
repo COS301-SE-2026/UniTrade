@@ -63,6 +63,7 @@ export default function MeetupProposalForm({
     const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(
         null,
     );
+    const [slotTime, setSlotTime] = useState<string>("");
     const [date, setDate] = useState(todayISODate());
     const [time, setTime] = useState(currentTime);
     const [locationName, setLocationName] = useState("");
@@ -100,6 +101,7 @@ export default function MeetupProposalForm({
         (availabilityError as Error & { code?: string }).code ===
         "reservation_not_found";
 
+    const activeSlot = selectedSlot && availability?.status === "ok" && availability.slots.some((s) => s.date === selectedSlot.date && s.start === selectedSlot.start && s.end === selectedSlot.end,) ? selectedSlot : null;
     useEffect(() => {
         if (!coords || nameEdited) {
             return;
@@ -142,19 +144,22 @@ export default function MeetupProposalForm({
         return () => document.removeEventListener("keydown", handleEscape);
     }, [onCancel]);
 
-    const effectiveDate = mode === "manual" ? date : (selectedSlot?.date ?? "");
-    const effectiveTime = mode === "manual" ? time : (selectedSlot?.start ?? "");
+    const effectiveDate = mode === "manual" ? date : (activeSlot?.date ?? "");
+    const effectiveTime =
+        mode === "manual" ? time : slotTime || activeSlot?.start || "";
 
     const hasValidCoords =
         coords != null &&
         Number.isFinite(coords.lat) &&
         Number.isFinite(coords.lng);
+    const slotTimeInRange = mode === "manual" || !activeSlot || (slotTime >= activeSlot.start && slotTime <= activeSlot.end);
     const canSubmit =
         !!effectiveDate &&
         !!effectiveTime &&
         !!locationName.trim() &&
         hasValidCoords &&
-        !isReservationUnavailable;
+        !isReservationUnavailable &&
+        slotTimeInRange;
 
     const handleSubmit = () => {
         if (!canSubmit || !hasValidCoords || !coords) return;
@@ -221,16 +226,19 @@ export default function MeetupProposalForm({
                             <div className="space-y-2">
                                 {availability.slots.map((slot) => {
                                     const isSelected =
-                                        selectedSlot?.date === slot.date &&
-                                        selectedSlot?.start === slot.start;
+                                        activeSlot?.date === slot.date &&
+                                        activeSlot?.start === slot.start;
                                     return (
                                         <button
                                             key={`${slot.date}-${slot.start}`}
                                             type="button"
-                                            onClick={() => setSelectedSlot(slot)}
+                                            onClick={() => {
+                                                setSelectedSlot(slot);
+                                                setSlotTime(slot.start);
+                                            }}
                                             className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left border transition ${isSelected
-                                                    ? "border-[#003366] bg-[#003366]/5"
-                                                    : "border-transparent bg-gray-100 hover:bg-gray-200"
+                                                ? "border-[#003366] bg-[#003366]/5"
+                                                : "border-transparent bg-gray-100 hover:bg-gray-200"
                                                 }`}
                                         >
                                             <IconClock size={18} className="text-gray-400 shrink-0" />
@@ -239,18 +247,46 @@ export default function MeetupProposalForm({
                                                     {formatSlotDate(slot.date)}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {slot.start}\u2013{slot.end}
+                                                    Free {slot.start}-{slot.end}
                                                 </p>
                                             </div>
                                         </button>
                                     );
                                 })}
+                                {activeSlot && (
+                                    <div className="rounded-2xl border border-[#003366]/20 bg-[#003366]/5 p-3 mt-1">
+                                        <label
+                                            htmlFor="slot-time"
+                                            className="block text-xs font-semibold text-gray-600 mb-1.5"
+                                        >
+                                            What time on {formatSlotDate(activeSlot.date)}?
+                                        </label>
+                                        <div className="relative">
+                                            <IconClock
+                                                size={16}
+                                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                            />
+                                            <input
+                                                id="slot-time"
+                                                type="time"
+                                                value={slotTime}
+                                                min={activeSlot.start}
+                                                max={activeSlot.end}
+                                                onChange={(e) => setSlotTime(e.target.value)}
+                                                className="w-full bg-white rounded-xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
+                                            />
+                                        </div>
+                                        <p className="text-[11px] text-gray-400 mt-1">
+                                            You're both free {activeSlot.start}-{activeSlot.end}.
+                                        </p>
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => setMode("manual")}
                                     className="w-full text-center text-xs text-gray-400 hover:text-gray-600 py-1"
                                 >
-                                    None of these work \u2014 enter a time manually
+                                    None of these work — enter a time manually
                                 </button>
                             </div>
                         )}
