@@ -101,7 +101,7 @@ export default function MeetupProposalForm({
         (availabilityError as Error & { code?: string }).code ===
         "reservation_not_found";
 
-    const availabilitySlotsKey = availability?.status === 'ok' ? availability.slots.map((s) => `${s.date}-${s.start}-${s.end}`).join("|") : "";
+    const activeSlot = selectedSlot && availability?.status === "ok" && availability.slots.some((s) => s.date === selectedSlot.date && s.start === selectedSlot.start && s.end === selectedSlot.end,) ? selectedSlot : null;
     useEffect(() => {
         if (!coords || nameEdited) {
             return;
@@ -144,21 +144,15 @@ export default function MeetupProposalForm({
         return () => document.removeEventListener("keydown", handleEscape);
     }, [onCancel]);
 
-    useEffect(() => {
-        setSelectedSlot(null);
-        setSlotTime("")
-
-    }, [availabilitySlotsKey]);
-
-    const effectiveDate = mode === "manual" ? date : (selectedSlot?.date ?? "");
+    const effectiveDate = mode === "manual" ? date : (activeSlot?.date ?? "");
     const effectiveTime =
-        mode === "manual" ? time : slotTime || selectedSlot?.start || "";
+        mode === "manual" ? time : slotTime || activeSlot?.start || "";
 
     const hasValidCoords =
         coords != null &&
         Number.isFinite(coords.lat) &&
         Number.isFinite(coords.lng);
-    const slotTimeInRange = mode === "manual" || !selectedSlot || (slotTime >= selectedSlot.start && slotTime <= selectedSlot.end);
+    const slotTimeInRange = mode === "manual" || !activeSlot || (slotTime >= activeSlot.start && slotTime <= activeSlot.end);
     const canSubmit =
         !!effectiveDate &&
         !!effectiveTime &&
@@ -232,8 +226,8 @@ export default function MeetupProposalForm({
                             <div className="space-y-2">
                                 {availability.slots.map((slot) => {
                                     const isSelected =
-                                        selectedSlot?.date === slot.date &&
-                                        selectedSlot?.start === slot.start;
+                                        activeSlot?.date === slot.date &&
+                                        activeSlot?.start === slot.start;
                                     return (
                                         <button
                                             key={`${slot.date}-${slot.start}`}
@@ -259,13 +253,13 @@ export default function MeetupProposalForm({
                                         </button>
                                     );
                                 })}
-                                {selectedSlot && (
+                                {activeSlot && (
                                     <div className="rounded-2xl border border-[#003366]/20 bg-[#003366]/5 p-3 mt-1">
                                         <label
                                             htmlFor="slot-time"
                                             className="block text-xs font-semibold text-gray-600 mb-1.5"
                                         >
-                                            What time on {formatSlotDate(selectedSlot.date)}?
+                                            What time on {formatSlotDate(activeSlot.date)}?
                                         </label>
                                         <div className="relative">
                                             <IconClock
@@ -276,14 +270,14 @@ export default function MeetupProposalForm({
                                                 id="slot-time"
                                                 type="time"
                                                 value={slotTime}
-                                                min={selectedSlot.start}
-                                                max={selectedSlot.end}
+                                                min={activeSlot.start}
+                                                max={activeSlot.end}
                                                 onChange={(e) => setSlotTime(e.target.value)}
                                                 className="w-full bg-white rounded-xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
                                             />
                                         </div>
                                         <p className="text-[11px] text-gray-400 mt-1">
-                                            You're both free {selectedSlot.start}-{selectedSlot.end}.
+                                            You're both free {activeSlot.start}-{activeSlot.end}.
                                         </p>
                                     </div>
                                 )}
