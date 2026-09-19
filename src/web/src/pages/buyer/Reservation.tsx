@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { useQuery } from '@tanstack/react-query';
-import { getReservations, cancelReservation } from '../../services/reservationService'
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import { formatPrice } from '../../utils/formatters'
 import { getApiUrl } from '../../config'
@@ -22,6 +22,8 @@ import { LoadingState } from '../../components/layout/Spinner'
 import { useSearchQuery } from '../../hooks/useSearchQuery'
 import { fileDispute } from '../../services/adminService'
 import { getReservationSnapshot } from '../../services/adminService'
+import { useReservationsList } from '../../hooks/useReservationsList';
+import { queryKeys } from '../../lib/queryKeys';
 //import type { ListingSnapshot } from '../../types/admin_disputes'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
@@ -501,9 +503,10 @@ function ReservationCard({
 }
 
 export default function Reservations() {
-  const [reservations, setReservations] = useState<ReservationListItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('buyer')
+  const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load reservations.') : null
+
   const { showToast } = useToast()
   const [sortOption, setSortOption] = useState<SortOption>("Date added")
   const [sortOpen, setSortOpen] = useState(false)
@@ -511,27 +514,14 @@ export default function Reservations() {
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
   const searchQuery = useSearchQuery()
 
-  useEffect(() => {
-    getReservations({ role: 'buyer' }).then((result) => {
-      if (result.success) {
-        setReservations(result.data.items)
-        showToast('success', 'Successfully fetched your reservations!!')
-      } else {
-        setError(result.error.message ?? 'Could not load your reservations.')
-        showToast('error', 'Could not load your reservations!!')
-      }
-    }).finally(() => setLoading(false))
-  }, [showToast])
-
   const handleCancel = async (reservationId: string) => {
-    const previous = reservations
-    setReservations((prev) => prev.map((r) => r.reservationId === reservationId ? { ...r, reservationStatus: 'cancelled' } : r))
     const result = await cancelReservation(reservationId)
-    if (!result.success) {
-      setReservations(previous)
-      showToast('error', 'Failed to cancel reservation.');
-    } else {
+    if (result.success) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.reservations('buyer') })
+
       showToast('success', 'Successfully cancelled the reservation!!');
+    } else {
+      showToast('error', 'Failed to cancel reservation.');
     }
   }
 
