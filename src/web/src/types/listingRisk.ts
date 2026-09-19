@@ -15,7 +15,7 @@ export interface FlaggedListing {
     listingId: string;
     title: string;
     price : number;
-    selllerId: string;
+    sellerId: string;
     sellerInitials: string;
     riskScore: number;
     riskLevel: RiskLevel;
