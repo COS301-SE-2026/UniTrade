@@ -235,6 +235,31 @@ const UploadListing: React.FC = () => {
           <div className = "w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
             <IconClock size = {14} stroke = {2} />
           </div>
+          <h2 className="font-['Fraunces'] text-2xl text-gray-800 mb-2">
+            Your listing is being reviewed
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed mb-6">
+            "{title}" was uploaded successfully, but our automated checks
+              flagged it for a closer look. An admin will review it before it
+              goes live. Do not worry you will  be notified as soon as that happens, you
+              don't need to do anything.
+          </p>
+          <div className = "flex justify-center gap-3">
+            <button 
+            type = "button"
+            onClick = {() => navigate(`/seller/listings/${heldListing}`)}
+            className = "px-5 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold hover:bg-sky-900 transition-all shadow-md"
+            >
+              View listing
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/seller/listings")}
+              className="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              Back to my listings
+            </button>
+          </div>
         </div>
       </div>
     )
