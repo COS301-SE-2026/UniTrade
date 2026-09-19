@@ -9,3 +9,16 @@ export type KnownRiskReason =
 | "seller_history"
 | "image_mismatch";
 
+export interface FlaggedListing {
+    listingId: string;
+    title: string;
+    price : number;
+    selllerId: string;
+    sellerInitials: string;
+    riskScore: number;
+    riskLevel: RiskLevel;
+    reasons: string[];
+    imageMatchScore: number  | null;
+    createdAt: string;
+
+}
