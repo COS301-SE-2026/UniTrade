@@ -5,6 +5,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { LoadingState } from '../../components/layout/Spinner';
 import { useToast } from '../../components/layout/useToast';
 import { getMyTimetable, addTimetableEntry, deleteTimetableEntry } from '../../services/timetableService';
+import {timetableErrorMessage} from '../../lib/timetableErrorMessage';
 import {
   DAY_LABEL,
   DAY_SHORT,
@@ -51,7 +52,7 @@ export default function Timetable() {
       addTimetableEntry(entry),
     onSuccess: (result) => {
       if (!result.success) {
-        showToast('error', result.error.message ?? 'Could not add that block.');
+        showToast('error', timetableErrorMessage(result.error.code));
         return;
       }
       queryClient.setQueryData<TimetableEntry[]>(['timetable'], (prev = []) => [...prev, result.data]);
@@ -68,9 +69,16 @@ export default function Timetable() {
       );
       return { previous };
     },
+
+    onSuccess: (result, _entryId, context) => {
+      if (!result.success) {
+                if (context?.previous) queryClient.setQueryData(['timetable'], context.previous);
+        showToast('error', timetableErrorMessage(result.error.code));
+      }},
+
     onError: (_err, _entryId, context) => {
       if (context?.previous) queryClient.setQueryData(['timetable'], context.previous);
-      showToast('error', 'Could not delete that block.');
+      showToast('error', timetableErrorMessage(null));
     },
   });
 
