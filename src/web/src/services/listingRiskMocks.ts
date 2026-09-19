@@ -32,5 +32,18 @@ const Mock : FlaggedListing[] = [
         imageMatchScore: null,
         createdAt: hoursAgo(4),
 
-    }
+    },
+    {
+        listingId: "003",
+        title: "Adidas Spezialls",
+        price: 650,
+        sellerId: "S003",
+        sellerInitials: "MT",
+        riskScore: 13,
+        riskLevel: "medium",
+        reasons: ["duplicate_image"],
+        imageMatchScore: 0.74,
+        createdAt: hoursAgo(4),
+
+    },
 ]
