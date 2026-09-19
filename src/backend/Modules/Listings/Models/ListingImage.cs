@@ -13,4 +13,5 @@ public class ListingImage
     public bool IsPrimary { get; set; }
     public DateTime UploadedAt { get; set; }
     public Listing? Listing { get; set; } = default!;
+    public string? PerceptualHash { get; set; }
 }

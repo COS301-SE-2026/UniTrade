@@ -561,6 +561,8 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
+            entity.Property(x => x.PerceptualHash).HasMaxLength(16);
+            entity.HasIndex(x => x.PerceptualHash).HasDatabaseName("ix_listing_images_perceptual_hash");
         });
 
         // Reservations
