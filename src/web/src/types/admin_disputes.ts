@@ -299,3 +299,16 @@ export interface UserListing {
   createdAt: string;
   imageUrl?: string | null;
 }
+
+export interface FlaggedListing {
+  listingId: string;
+  title: string;
+  price: number;
+  sellerId: string;
+  sellerInitials: string;
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  reasons: string[];
+  imageMatchScore: number | null;
+  createdAt: string;
+}
