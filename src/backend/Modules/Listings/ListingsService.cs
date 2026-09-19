@@ -201,7 +201,7 @@ public class ListingService : IListingService
             created.Add(newListing);
         }
         await _listings.AddRangeAsync(created);
-        
+
 
         foreach (var newListing in created.Where(l => l.ListingStatus == "live"))
         {

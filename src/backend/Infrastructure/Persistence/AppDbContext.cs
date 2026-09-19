@@ -469,7 +469,7 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
-                
+
             entity
                 .HasIndex(x => x.ListingGroupId)
                 .HasDatabaseName("ix_listings_group")
