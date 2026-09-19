@@ -35,6 +35,8 @@ const UploadListing: React.FC = () => {
   const [dimensions, setDimensions] = useState("");
   const {showToast} = useToast();
   const [heldListing, setHeldListingId] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  //const { showToast } = useToast();
 
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
@@ -105,9 +107,9 @@ const UploadListing: React.FC = () => {
 
     const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
     if (oversized.length > 0) {
-      const eror =  `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`;
+      const eror = `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`;
       setError(
-       eror
+        eror
       );
       showToast('error', eror);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -152,7 +154,7 @@ const UploadListing: React.FC = () => {
           ? { dimensions: dimensions }
           : null;
     try {
-      const {listingId, listingStatus } = await listingsService.createListing({
+      const { listingId, listingStatus } = await listingsService.createListing({
         title,
         description,
         price: Number(price),
@@ -161,6 +163,7 @@ const UploadListing: React.FC = () => {
         courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "live",
         metadata,
+        quantity,
       });
       await listingsService.uploadImages(listingId, files);
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
@@ -185,15 +188,15 @@ const UploadListing: React.FC = () => {
 
   const handleDraft = async () => {
     if (!title) {
-      
+
       showToast('error', 'Please add a title before saving as draft');
       return;
     }
 
-     if (category === "Textbooks" && courseQuery.trim() && !moduleTag) {
-    showToast('error', 'Please pick a module from the list');
-    return;
-     }
+    if (category === "book" && courseQuery.trim() && !moduleTag) {
+      showToast('error', 'Please pick a module from the list');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const metadata: ListingMetadata =
@@ -203,7 +206,7 @@ const UploadListing: React.FC = () => {
           ? { dimensions: dimensions }
           : null;
     try {
-      const {listingId} = await listingsService.createListing({
+      const { listingId } = await listingsService.createListing({
         title,
         description,
         price: Number(price) || 0,
@@ -520,6 +523,7 @@ const UploadListing: React.FC = () => {
                       <span className="text-slate-500 text-sm">R</span>
                     </div>
                     <input
+                      id="price"
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
@@ -549,6 +553,29 @@ const UploadListing: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+              </div>
+              <div>
+                <label
+                  htmlFor="quantity"
+                  className="block text-xs font-semibold text-slate-500 mb-1"
+                >
+                  Quantity
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={quantity}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, Math.min(10, Number(e.target.value) || 1)))
+
+                  }
+                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Listing multiple identical copies? Set how many.
+                </p>
               </div>
             </div>
           </div>
@@ -587,6 +614,7 @@ const UploadListing: React.FC = () => {
                   </h5>
                   <p className="text-xs text-slate-400 capitalize">
                     {category} · R{price || "0"} · {condition.replace("_", " ")}
+                    {quantity > 1 && ` · ${quantity} copies`}
                   </p>
                 </div>
               </div>

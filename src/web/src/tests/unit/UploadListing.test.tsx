@@ -265,7 +265,7 @@ describe('UploadListing', () => {
   it('updates price, condition, and title, reflected in the summary', async () => {
     const user = userEvent.setup()
     renderUpload()
-    const priceInput = screen.getByRole('spinbutton')
+    const priceInput = screen.getByLabelText(/price/i)
     await user.type(priceInput, '250')
     await user.click(screen.getByRole('button', { name: /^fair$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Calculus Textbook')
@@ -295,7 +295,7 @@ describe('UploadListing', () => {
     renderUpload()
     await user.type(screen.getByPlaceholderText('Title'), 'Textbook')
     await user.type(screen.getByPlaceholderText('Description'), 'A good book')
-    await user.type(screen.getByRole('spinbutton'), '100')
+    await user.type(screen.getByLabelText(/price/i), '100')
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
@@ -320,7 +320,7 @@ describe('UploadListing', () => {
     await user.click(await screen.findByRole('button', { name: /^stationery$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Pens')
     await user.type(screen.getByPlaceholderText('Description'), 'Box of pens')
-    await user.type(screen.getByRole('spinbutton'), '50')
+    await user.type(screen.getByLabelText(/price/i), '50')
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
@@ -351,7 +351,7 @@ describe('UploadListing', () => {
     await user.click(await screen.findByRole('button', { name: /^stationery$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Pens')
     await user.type(screen.getByPlaceholderText('Description'), 'Box of pens')
-    await user.type(screen.getByRole('spinbutton'), '50')
+    await user.type(screen.getByLabelText(/price/i), '50')
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
 
@@ -368,7 +368,7 @@ describe('UploadListing', () => {
     await user.click(await screen.findByRole('button', { name: /^stationery$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Pens')
     await user.type(screen.getByPlaceholderText('Description'), 'Box of pens')
-    await user.type(screen.getByRole('spinbutton'), '50')
+    await user.type(screen.getByLabelText(/price/i), '50')
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
 
