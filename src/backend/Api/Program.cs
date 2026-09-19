@@ -7,6 +7,7 @@ using Api.Middleware;
 using Api.Notifiers;
 using Azure.Communication.Email;
 using dotenv.net;
+using Infrastructure.AI;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
@@ -49,6 +50,7 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Scoring;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
@@ -356,6 +358,14 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
+});
+
+builder.Services.AddHttpClient<IClipVisionClient, ClipVisionClient>((sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = config["Clip:BaseUrl"]?? "http://clip-service:8000";
+    client.BaseAddress= new Uri(baseUrl);
+    client.Timeout= TimeSpan.FromSeconds(5);
 });
 var app = builder.Build();
 
