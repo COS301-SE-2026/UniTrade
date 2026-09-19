@@ -469,8 +469,14 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
+                
+            entity
+                .HasIndex(x => x.ListingGroupId)
+                .HasDatabaseName("ix_listings_group")
+                .HasFilter("listing_group_id IS NOT NULL");
         });
 
+        // Listing Category
         modelBuilder.Entity<ListingCategory>(entity =>
         {
             entity.HasKey(x => x.CategoryId);
