@@ -1,10 +1,9 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
-using Modules.ReferenceData.Course;
-using Modules.Identity.Models;
-using System.Collections.Generic;
 using System.Text.Json;
-
+using Modules.Identity.Models;
+using Modules.ReferenceData.Course;
 
 namespace Modules.Listings.Models;
 
@@ -46,4 +45,5 @@ public class Listing
     [NotMapped]
     public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
+    public Guid? ListingGroupId { get; set; }
 }

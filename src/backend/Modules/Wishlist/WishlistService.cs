@@ -117,7 +117,8 @@ public class WishlistService : IWishlistService
                     l.Seller.FullName,
                     l.Seller.University,
                     l.Seller.ActiveListingCount
-                )
+                ),
+                ListingGroupId: l.ListingGroupId
         );
         return new WishlistItemDto(w.WishlistId, w.ListingId, w.AddedAt, listing);
     }

@@ -652,13 +652,14 @@ public class ListingServiceTests
         Assert.NotNull(result);
         _repo.Verify(
             r =>
-                r.AddAsync(
-                    It.Is<Listing>(l =>
-                        l.CategoryId == category.CategoryId
-                        && l.CourseId == 2
-                        && l.BookDetails != null
-                        && l.BookDetails.Isbn == "0-590-76484-5"
-                        && l.BookDetails.Author == "Rohtua Mbhali"
+                r.AddRangeAsync(
+                    It.Is<IReadOnlyList<Listing>>(l =>
+                        l.Count == 1
+                        && l[0].CategoryId == category.CategoryId
+                        && l[0].CourseId == 2
+                        && l[0].BookDetails != null
+                        && l[0].BookDetails.Isbn == "0-590-76484-5"
+                        && l[0].BookDetails.Author == "Rohtua Mbhali"
                     )
                 ),
             Times.Once
@@ -741,7 +742,10 @@ public class ListingServiceTests
         var result = await _sut.CreateListings(dto, Guid.NewGuid());
         Assert.NotNull(result);
 
-        _repo.Verify(r => r.AddAsync(It.Is<Listing>(l => l.Metadata == null)), Times.Once);
+        _repo.Verify(
+            r => r.AddRangeAsync(It.Is<IReadOnlyList<Listing>>(l => l[0].Metadata == null)),
+            Times.Once
+        );
     }
 
     // Mapping to summary
@@ -898,7 +902,8 @@ public class ListingServiceTests
             BookDetails: null,
             Metadata: null,
             Images: images,
-            Seller: null
+            Seller: null,
+            ListingGroupId: null
         );
 
         Assert.Equal(listingId, dto.ListingId);

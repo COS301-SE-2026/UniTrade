@@ -228,6 +228,7 @@ export interface CreateListingPayload {
   courseId: number | null;
   listingStatus: string;
   metadata?: ListingMetadata;
+  quantity?: number;
 }
 
 function mapWishListItem(item: unknown): WishlistListing {
@@ -327,6 +328,7 @@ export const listingsService = {
         listingStatus: string;
         viewCount: number;
         images: { imageId: number; isPrimary: boolean; path: string }[];
+        listingGroupId?: string | null;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -337,6 +339,7 @@ export const listingsService = {
         status: l.listingStatus,
         views: l.viewCount,
         imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+        listingGroupId: l.listingGroupId ?? null,
       };
     });
     return { listings, total: data.total };
@@ -366,8 +369,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-            imageUrl((i as { path: string }).path),
-          )
+              imageUrl((i as { path: string }).path),
+            )
           : mockSellerListingDetail.images,
     };
   },
@@ -463,11 +466,15 @@ export const listingsService = {
         courseId: payload.courseId,
         isBundle: false,
         metadata: payload.metadata ?? null,
+        quantity: payload.quantity ?? 1,
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
     const createdListing = await res.json();
-    return { listingId: createdListing.listingId, listingStatus: createdListing.listingStatus };
+    return {
+      listingId: createdListing.listingId,
+      listingStatus: createdListing.listingStatus,
+    };
   },
 
   updateListing: async (
@@ -691,7 +698,7 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
   },
- 
+
   getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
     const res = await fetch(`${getApiUrl()}/reviews/users/${userId}`, {
       credentials: "include",
@@ -729,7 +736,9 @@ export const listingsService = {
 
     if (completed.length === 0) return [];
 
-    const listingIds = [...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId)))];
+    const listingIds = [
+      ...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId))),
+    ];
     const conditionMap = new Map<string, string>();
 
     await Promise.all(
@@ -777,7 +786,7 @@ export const listingsService = {
         : primaryItem.title;
       const condition = r.isBundle
         ? "Mixed"
-        : conditionMap.get(primaryItem.listingId) ?? "Unknown";
+        : (conditionMap.get(primaryItem.listingId) ?? "Unknown");
 
       return {
         id: r.reservationId,
@@ -809,7 +818,9 @@ export const listingsService = {
 
     if (completed.length === 0) return [];
 
-    const listingIds = [...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId)))];
+    const listingIds = [
+      ...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId))),
+    ];
     const conditionMap = new Map<string, string>();
 
     await Promise.all(
@@ -857,7 +868,7 @@ export const listingsService = {
         : primaryItem.title;
       const condition = r.isBundle
         ? "Mixed"
-        : conditionMap.get(primaryItem.listingId) ?? "Unknown";
+        : (conditionMap.get(primaryItem.listingId) ?? "Unknown");
 
       return {
         id: r.reservationId,
