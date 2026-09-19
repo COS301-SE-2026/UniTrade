@@ -119,7 +119,8 @@ public class ListingService : IListingService
                     l.Seller.FullName,
                     l.Seller.University,
                     l.Seller.ActiveListingCount
-                )
+                ),
+                ListingGroupId: l.ListingGroupId
         );
 
     public async Task<ListingSummaryDto> CreateListings(

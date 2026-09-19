@@ -890,7 +890,8 @@ public class ListingServiceTests
             BookDetails: null,
             Metadata: null,
             Images: images,
-            Seller: null
+            Seller: null,
+            ListingGroupId: null
         );
 
         Assert.Equal(listingId, dto.ListingId);
