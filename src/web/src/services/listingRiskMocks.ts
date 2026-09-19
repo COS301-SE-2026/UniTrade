@@ -19,5 +19,18 @@ const Mock : FlaggedListing[] = [
         imageMatchScore: 0.31,
         createdAt: hoursAgo(2),
 
+    },
+    {
+        listingId: "002",
+        title: "MacBook Pro",
+        price: 2500,
+        sellerId: "S002",
+        sellerInitials: "SK",
+        riskScore: 42,
+        riskLevel: "medium",
+        reasons: ["duplicate_image"],
+        imageMatchScore: null,
+        createdAt: hoursAgo(4),
+
     }
 ]
