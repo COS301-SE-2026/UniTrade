@@ -115,6 +115,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     ) =>
         await _db
             .Reservations.Include(r => r.ReservationListings)
+                .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
             .Where(r =>
                 r.ReservationStatus == ReservationState.Active
                 && r.ExpiresAt <= asOf
@@ -147,7 +149,10 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     )
     {
         return _db
-            .Reservations.Where(r =>
+            .Reservations.Include(r => r.ReservationListings)
+                .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
+            .Where(r =>
                 r.ReservationStatus == ReservationState.Active
                 && r.TwoHourWarningSentAt == null
                 && r.ExpiresAt <= asOfTime.AddHours(2)

@@ -71,19 +71,17 @@ public class PayFastPaymentGateway : IPaymentGateway
             new("cancel_url", $"{_cancelUrl}?reservationId={reservationId}"),
             new("notify_url", _notifyUrl),
             new("name_first", buyerFirstName ?? ""),
-            new("name_last",""),
+            new("name_last", ""),
             new("email_address", buyerEmail ?? ""),
             new("m_payment_id", reservationId.ToString()),
             new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
             new("item_name", Truncate(listingTitle, 100)),
-
         };
         return ordered.Where(f => !string.IsNullOrEmpty(f.Value)).ToList();
     }
 
     private string GenerateSignature(List<KeyValuePair<string, string>> fields)
     {
-
         var sb = new StringBuilder();
 
         foreach (var (key, value) in fields)
@@ -115,7 +113,10 @@ public class PayFastPaymentGateway : IPaymentGateway
             .Split('&', StringSplitOptions.RemoveEmptyEntries)
             .Select(p => p.Split('=', 2))
             .Where(parts => parts[0] != "signature")
-            .Select(parts => new KeyValuePair<string, string>(parts[0], parts.Length > 1 ? parts[1] : ""))
+            .Select(parts => new KeyValuePair<string, string>(
+                parts[0],
+                parts.Length > 1 ? parts[1] : ""
+            ))
             .ToList();
         var baseString = String.Join("&", parsed.Select(kvp => $"{kvp.Key}={kvp.Value}"));
 
@@ -131,8 +132,6 @@ public class PayFastPaymentGateway : IPaymentGateway
         return hash == receivedSign.ToLowerInvariant();
     }
 
-    private static string PayFastEncode(string value)
-    {
-        return Uri.EscapeDataString(value ?? string.Empty);
-    }
+    private static string PayFastEncode(string value) =>
+        Uri.EscapeDataString(value ?? "").Replace("%20", "+");
 }

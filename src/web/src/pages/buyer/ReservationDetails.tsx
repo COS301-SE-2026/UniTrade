@@ -20,8 +20,8 @@ import {
 import { listingsService } from "../../services/listingsService";
 import { useQuery } from "@tanstack/react-query";
 import { getApiUrl } from "../../config";
+import { connectionManager } from "../../services/realtime/connectionManager";
 
-//type ReservationListItem = ReservationListResponse["items"][number];
 
 interface CountdownResult {
   label: string;
@@ -267,7 +267,7 @@ export default function ReservationDetails() {
 
     setError(null);
 
- 
+
     const result = await getReservationById(reservationId);
 
     if (!result.success) {
@@ -290,6 +290,14 @@ export default function ReservationDetails() {
     }
     setIsLoading(false);
   }, [reservationId]);
+
+  useEffect(() => {
+    if (!reservationId) return;
+    const off = connectionManager.onReservationUpdated((r) => {
+      if (r.reservationId === reservationId) void loadReservation();
+    });
+    return off;
+  }, [reservationId, loadReservation]);
 
   useEffect(() => {
     let cancelled = false;
