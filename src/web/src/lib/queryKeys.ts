@@ -9,4 +9,5 @@ export const queryKeys = {
   dashboardStats: () => ["dashboard"] as const,
   meetupAvailability: (reservationId: string) =>
     ["meetup-availability", reservationId] as const,
+  flaggedListings: () => ['admin', 'flaggedListings'] as const,
 };

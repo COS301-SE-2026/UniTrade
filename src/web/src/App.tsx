@@ -92,6 +92,7 @@ const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResul
 const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
 
 
+
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
   return <Navigate to={`/${role}/messages/${reservationId}`} replace />;
