@@ -432,4 +432,10 @@ public class ListingRepository : IListingRepository
             .FirstOrDefaultAsync(l => l.ListingId == listingId);
     }
 
+    public async Task<int> CountHighRiskListingsForSellerAsync(Guid sellerId, Guid excludeListingId, CancellationToken ct = default)
+    {
+        return await _db.Listings
+            .AsNoTracking()
+            .CountAsync(l => l.SellerId == sellerId && l.ListingId != excludeListingId && l.AiRiskLevel == "high", ct);
+    }
 }

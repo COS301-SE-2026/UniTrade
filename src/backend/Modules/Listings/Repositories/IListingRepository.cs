@@ -40,4 +40,5 @@ public interface IListingRepository
     Task AddRangeAsync(IReadOnlyList<Listing> listings);
     Task<IReadOnlyList<decimal>> GetComparablePricesAsync(int categoryId, int? courseId, Guid excludeListingId, CancellationToken ct = default);
     Task<Listing?> GetByIdAnyStatusAsync(Guid listingId);
+    Task<int> CountHighRiskListingsForSellerAsync(Guid sellerId, Guid excludeListingId, CancellationToken ct = default);
 }

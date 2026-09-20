@@ -41,4 +41,11 @@ public sealed class AdminListingsController : AdminControllerBase
         var sub = User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(sub, out var id) ? id : Guid.Empty;
     }
+
+    [HttpGet("{id:guid}/flagged")]
+    public async Task<IActionResult> GetFlaggedDetail(Guid id, CancellationToken ct)
+    {
+        var detail = await _risk.GetFlaggedDetailAsync(id, ct);
+        return detail is null ? NotFound(new { error = "listing_not_found" }) : Ok(detail);
+    }
 }

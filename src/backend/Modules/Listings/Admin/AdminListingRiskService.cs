@@ -4,6 +4,8 @@ using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.Listings;
+using Modules.Reputation.Repositories;
+using Modules.Identity.Repositories;
 
 namespace Modules.Listings.Admin;
 
@@ -13,13 +15,17 @@ public class AdminListingRiskService : IAdminListingRiskService
     private readonly IModerationService _moderation;
     private readonly INotificationDispatcher _notifications;
     private readonly IListingPublishedListener _listener;
+    private readonly IUserRepository _users;
+    private readonly IStrikeRepository _strikes;
 
-    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener)
+    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener, IUserRepository users, IStrikeRepository strikes)
     {
         _listings = listings;
         _moderation = moderation;
         _notifications = notifications;
         _listener = listener;
+        _users = users;
+        _strikes = strikes;
     }
 
     public async Task<IReadOnlyList<FlaggedListingDto>> GetFlaggedAsync(string status, CancellationToken ct = default)
@@ -100,6 +106,48 @@ public class AdminListingRiskService : IAdminListingRiskService
         catch (Exception)
         { }
         return ListingService.MapToSummary(listing);
+    }
+
+    public async Task<FlaggedListingDetailDto?> GetFlaggedDetailAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var listing = await _listings.GetByIdAsync(listingId);
+        if (listing is null)
+        {
+            return null;
+        }
+
+        var seller = await _users.GetByIdAsync(listing.SellerId);
+        var verificationStatus = seller?.StudentProfile?.VerificationStatus ?? "unknown";
+        var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
+        var priorFlagCount = await _listings.CountHighRiskListingsForSellerAsync(listing.SellerId, listing.ListingId, ct);
+
+        var sellerName = listing.Seller is null
+            ? "Unknown"
+            : $"{listing.Seller.FirstName} {listing.Seller.LastName}".Trim();
+
+        return new FlaggedListingDetailDto(
+            listing.ListingId,
+            listing.Title,
+            listing.Description,
+            listing.Price,
+            listing.Condition,
+            listing.Category?.Name ?? "",
+            listing.Images.Select(i => $"/api/listings/{listing.ListingId}/images/{i.ImageId}").ToList(),
+            new FlaggedListingSellerDto(
+                listing.SellerId,
+                sellerName,
+                SellerInitials(listing.Seller),
+                verificationStatus,
+                strikeCount,
+                priorFlagCount
+            ),
+            listing.AiRiskScore ?? 0m,
+            listing.AiRiskLevel ?? "low",
+            listing.VisibilityScore,
+            listing.AiRiskReasons?.Select(r => new ReasonDetailDto(r.Code, r.Detail)).ToList() ?? new List<ReasonDetailDto>(),
+            null,
+            listing.CreatedAt
+        );
     }
 
 }
