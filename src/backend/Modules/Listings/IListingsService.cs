@@ -32,5 +32,5 @@ public interface IListingService
 
     Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default);
     Task RescoreGroupAfterImagesAsync(Guid listingId, CancellationToken ct = default);
-    
+
 }

@@ -48,5 +48,5 @@ public class Listing
     public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
     public Guid? ListingGroupId { get; set; }
-    public double? ImageMatchScore {get; set;}
+    public double? ImageMatchScore { get; set; }
 }
