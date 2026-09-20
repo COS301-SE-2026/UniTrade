@@ -74,9 +74,9 @@ export default function MeetupProposalForm({
 
     useTimetableRealtime(reservationId, buyerId, sellerId);
 
-    type AvailabilityQueryResult = AvailabilityResponse | { status: 'load_error';
+   /* type AvailabilityQueryResult = AvailabilityResponse | { status: 'load_error';
         code?: string 
-    }
+    }*/
     const {
         data: availability,
         isLoading: isLoadingAvailability,
