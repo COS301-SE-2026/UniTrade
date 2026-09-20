@@ -30,9 +30,10 @@ interface ProfileRowProps {
   label: string;
   onClick: () => void;
   danger?: boolean;
+  highlight?: boolean;
 }
 
-function ProfileRow({ icon, label, onClick, danger }: Readonly<ProfileRowProps>) {
+function ProfileRow({ icon, label, onClick, danger, highlight }: Readonly<ProfileRowProps>) {
   return (
     <button
       type='button'
@@ -40,9 +41,15 @@ function ProfileRow({ icon, label, onClick, danger }: Readonly<ProfileRowProps>)
       className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text-left">
 
       <span className={`flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}`}>
-        <span className={danger ? "text-red-400" : "text-gray-400"}>
-          {icon}
-        </span>
+        {highlight ? ( 
+          <span className="w-8 h-8 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+            {icon}
+          </span>
+        ) : (
+          <span className={danger ? "text-red-400" : "text-gray-400"}>
+            {icon}
+          </span>
+        )}
         {label}
       </span>
       <IconChevronRight size={16} className="text-gray-300" />
@@ -296,15 +303,16 @@ export default function Profile() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50"> 
 
-<div className = "bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+
 <ProfileRow
           icon={<IconCalendarEvent size={19} />}
           label="Create/Edit Timetable"
           onClick={() => navigate("/auth/timetable")}
+          highlight
       
 
 />
-</div>
+
         <ProfileRow
           icon={<IconTrash size={19} />}
           label="Delete Account"
