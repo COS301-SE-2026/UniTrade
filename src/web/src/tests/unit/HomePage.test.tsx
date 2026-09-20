@@ -208,7 +208,9 @@ describe('Firstpage', () => {
 
 describe('AlexAvatar', () => {
     beforeEach(() => {
-        vi.useFakeTimers()
+        vi.useFakeTimers({
+            toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+        })
     })
 
     afterEach(() => {
