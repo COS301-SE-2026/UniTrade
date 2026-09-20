@@ -16,14 +16,37 @@ MODEL_NAME = "openai/clip-vit-base-patch32"
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 COMPETITOR_LABELS = [
+    # book
+    "a textbook",
+    "a book",
+    # electronics
     "a laptop",
     "a phone",
-    "an iPhone",
-    "a piece of clothing",
-    "an item of furniture",
-    "stationery",
-    "kitchenware",
+    "a tablet",
+    "a pair of headphones",
+    "a charger or cable",
+    # stationery
+    "a pen or pencil",
+    "a notebook",
+    "a calculator",
+    # furniture
+    "a chair",
+    "a desk or table",
+    "a lamp",
+    # clothing
+    "an item of clothing",
+    "a pair of shoes",
+    "a backpack or bag",
 ]
+
+CATEGORY_PROMPTS = {
+    "book": "a book or textbook",
+    "electronics": "a laptop, phone, or electronic device",
+    "stationery": "stationery such as a pen, notebook, or calculator",
+    "furniture": "a piece of furniture such as a chair, desk, or lamp",
+    "clothing": "an item of clothing, shoes, or a bag",
+    "other": "an item",
+}
 
 
 logger.info(f"Loading {MODEL_NAME}...")
@@ -87,7 +110,8 @@ def _decode_base64(payload: str) -> Image.Image | None:
 
 
 def _score_image(image: Image.Image, label: str) -> float:
-    prompts = [f"a photo of a {label}"] + [f"a photo of {c}" for c in COMPETITOR_LABELS]
+    claimed = CATEGORY_PROMPTS.get(label.strip().lower(), label)
+    prompts = [f"a photo of {claimed}"] + [f"a photo of {c}" for c in COMPETITOR_LABELS]
 
     inputs = processor(text=prompts, images=image, return_tensors="pt", padding=True)
 

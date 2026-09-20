@@ -3,9 +3,9 @@ export type RiskReason = string | { code: string; detail?: string }
 const LABELS: Record<string, string> = {
     price_anomaly: 'Price anomaly',
     duplicate_image: 'Duplicate image',
-    description_quality: 'Weak description',
-    seller_history: 'Seller history',
-    low_image_match: 'Image mismatch',
+    low_seller_rating: 'Low seller rating',
+    seller_strikes: 'Seller strikes',
+    image_mismatch: "Image doesn't match category"
 }
 
 function labelFor(code: string) {

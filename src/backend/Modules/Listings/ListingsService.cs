@@ -30,6 +30,9 @@ public class ListingService : IListingService
         "removed",
     }; // as in removed form the platform because you sold it outside it
 
+    private const double _imageMismatchThreshold = 0.15;
+    private const int _minMediumVisibilityScore = 20;
+
     public ListingService(
         IListingRepository listings,
         IListingImageRepository images,
@@ -440,8 +443,12 @@ public class ListingService : IListingService
             listing.AiRiskScore = risk.Score;
             listing.AiRiskLevel = risk.Level;
             listing.VisibilityScore = risk.VisibilityScore;
-            listing.ListingStatus = risk.Level == "high" ? "under_review" : newStatus;
-            listing.AiRiskReasons = risk.Reasons.ToList();
+
+            var reasons = risk.Reasons.ToList();
+            await ApplyImageMatchAsync(listing, reasons, ct);
+            listing.AiRiskReasons = reasons;
+
+            listing.ListingStatus = listing.AiRiskLevel == "high" ? "under_review" : newStatus;
         }
         else
         {
@@ -543,15 +550,12 @@ public class ListingService : IListingService
         listing.AiRiskScore = risk.Score;
         listing.AiRiskLevel = risk.Level;
         listing.VisibilityScore = risk.VisibilityScore;
-        listing.AiRiskReasons = risk.Reasons.ToList();
 
-        var primary = listing.Images.FirstOrDefault(i=> i.IsPrimary)?? listing.Images.FirstOrDefault();
-        if(primary is not null && primary.ImageData.Length > 0)
-        {
-            var label = listing.Category?.Name ?? "item";
-            listing.ImageMatchScore = await _clip.ScoreAsync(primary.ImageData, label, ct);
-        }
-        if (risk.Level == "high")
+        var reasons = risk.Reasons.ToList();
+        await ApplyImageMatchAsync(listing, reasons, ct);
+        listing.AiRiskReasons = reasons;
+
+        if (listing.AiRiskLevel == "high")
         {
             listing.ListingStatus = "under_review";
         }
@@ -588,6 +592,49 @@ public class ListingService : IListingService
         else
         {
             await RescoreAfterImagesAsync(listingId, ct);
+        }
+    }
+
+    private async Task ApplyImageMatchAsync(
+        Listing listing,
+        List<RiskReason> reasons,
+        CancellationToken ct
+    )
+    {
+        var primary =
+            listing.Images.FirstOrDefault(i => i.IsPrimary) ?? listing.Images.FirstOrDefault();
+        if (primary is null || primary.ImageData.Length == 0)
+        {
+            return;
+        }
+        var category = listing.Category?.Name;
+        var label = category ?? "item";
+        listing.ImageMatchScore = await _clip.ScoreAsync(primary.ImageData, label, ct);
+
+        var isScorable = !string.Equals(category, "other", StringComparison.OrdinalIgnoreCase);
+        if (listing.ImageMatchScore is double s && isScorable && s < _imageMismatchThreshold)
+        {
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "image_mismatch",
+                    Detail =
+                        $"Photo doesn't match the claimed category '{category}' (match {s:P0})",
+                }
+            );
+
+            if (listing.AiRiskLevel == "low")
+            {
+                listing.AiRiskLevel = "medium";
+                listing.VisibilityScore = Math.Max(
+                    _minMediumVisibilityScore,
+                    listing.VisibilityScore ?? _minMediumVisibilityScore
+                );
+            }
+            else if (listing.AiRiskLevel == "medium")
+            {
+                listing.AiRiskLevel = "high";
+            }
         }
     }
 }
