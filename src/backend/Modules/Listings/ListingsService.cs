@@ -521,4 +521,58 @@ public class ListingService : IListingService
 
     public Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default) =>
         _listings.DuplicateImagesToGroupAsync(sourceListingId, ct);
+
+    public async Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+            return;
+
+        if (listing.ListingStatus is not ("live" or "low_visibility"))
+            return;
+
+        var risk = await _risk.ScoreAsync(listing, ct);
+        listing.AiRiskScore = risk.Score;
+        listing.AiRiskLevel = risk.Level;
+        listing.VisibilityScore = risk.VisibilityScore;
+        listing.AiRiskReasons = risk.Reasons.ToList();
+
+        if (risk.Level == "high")
+        {
+            listing.ListingStatus = "under_review";
+        }
+        listing.UpdatedAt = DateTime.UtcNow;
+        await _listings.SaveAsync();
+
+        if (listing.ListingStatus == "under_review")
+        {
+            await _notifier.ListingStatusChangedAsync(
+                listing.SellerId,
+                listing.ListingId,
+                "under_review",
+                listing.AiRiskLevel ?? "low",
+                ct
+            );
+        }
+    }
+
+    public async Task RescoreGroupAfterImagesAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+            return;
+
+        if (listing.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId, ct);
+            foreach (var sibling in siblings)
+            {
+                await RescoreAfterImagesAsync(sibling.ListingId, ct);
+            }
+        }
+        else
+        {
+            await RescoreAfterImagesAsync(listingId, ct);
+        }
+    }
 }
