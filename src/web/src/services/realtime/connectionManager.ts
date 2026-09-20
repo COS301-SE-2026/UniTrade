@@ -95,9 +95,6 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
-      conn.on("ListingReserved", (p: { listingId: string }) => {
-        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));
-      });
       conn.on("pin_confirmed", (e: { reservationId: string }) =>
         this.pinConfirmedListeners.forEach((cb) => cb(e)),
       );
@@ -164,12 +161,13 @@ class ConnectionManager {
       conn.on("timetable_updated", (p: { userId: string }) =>
         this.timetableUpdatedListeners.forEach((cb) => cb(p)),
       );
-      (conn.on("listing_flagged", (e: { listingId: string }) =>
+      conn.on("listing_flagged", (e: { listingId: string }) =>
         this.listingFlaggedListeners.forEach((cb) => cb(e)),
-      ),
-        conn.onreconnecting(() => {
-          this.notifyState("Reconnecting");
-        }));
+      );
+
+      conn.onreconnecting(() => {
+        this.notifyState("Reconnecting");
+      });
 
       conn.onreconnected(async () => {
         await Promise.allSettled(
