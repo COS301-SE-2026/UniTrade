@@ -1,10 +1,7 @@
 import {IconPhoto} from '@tabler/icons-react';
+import {isLowImageMatch} from '../../utils/riskUtils';
 
-const LOW_MATCH_THRESHOLD = 0.5;
 
-export function isLowImageMatch(score: number | null):boolean {
-    return score!== null && score <LOW_MATCH_THRESHOLD;
-}
 
 export default function ImageMatchScore({ score}: Readonly<{score: number | null }>)
 {

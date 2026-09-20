@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { IconChevronRight, IconPhoto, IconX } from '@tabler/icons-react';
+import { IconChevronRight, IconX } from '@tabler/icons-react';
 import { InfoRow, Panel, DecisionButton } from './AdminReviewShared';
 import { getFlaggedListing, decideListing } from '../../services/adminService';
 import type { ApiError } from '../../types/admin_disputes';

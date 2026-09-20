@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { IconCheck, IconX, IconPhoto } from "@tabler/icons-react"
+import { IconCheck, IconX,} from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getFlaggedListings, decideListing } from "../../services/adminService"
@@ -10,7 +10,8 @@ import { formatDate } from "../../utils/formatters"
 
 import RiskBadge from "../../components/risk/RiskBadge"
 import RiskReasons from '../../components/risk/RiskReasons'
-import ImageMatchScore , { isLowImageMatch} from "../../components/risk/ImageMatchScore"
+import ImageMatchScore from "../../components/risk/ImageMatchScore"
+import { isLowImageMatch } from "../../utils/riskUtils"
 
 type Filter = 'All' | 'Price anomaly' | 'Duplicate image' | 'Low image match'
 type SortBy = 'Oldest First' | 'Newest First'
