@@ -26,7 +26,6 @@ export type PinStatus =
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
 
-
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
@@ -298,4 +297,52 @@ export interface UserListing {
   price: number;
   createdAt: string;
   imageUrl?: string | null;
+}
+
+export interface FlaggedListing {
+  listingId: string;
+  title: string;
+  price: number;
+  sellerId: string;
+  sellerInitials: string;
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  reasons: string[];
+  imageMatchScore: number | null;
+  createdAt: string;
+}
+
+export interface FlaggedListingDetail {
+  listingId: string;
+  title: string;
+  description: string;
+  price: number;
+  condition: string;
+  categoryName: string;
+  images: string[];
+  seller: {
+    sellerId: string;
+    name: string;
+    initials: string;
+    verificationStatus: string;
+    strikeCount: number;
+    priorFlagCount: number;
+  };
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  visibilityScore: number;
+  reasons: {code: string; detail?: string}[];
+  imageMatchScore: number | null;
+  createdAt: string;
+}
+export interface ListingDecisionResponse {
+  listingId: string;
+  status: string;
+}
+
+export interface ListingStatusResponse {
+  listingId: string;
+  status: "live" | "under_review" | "removed";
+  riskLevel: "low" | "medium" | "high";
+  message: string;
 }

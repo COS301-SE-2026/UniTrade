@@ -101,7 +101,7 @@ function ListingCard({
 
     if (result.success) {
       setReserved(true);
-      queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
+      queryClient.invalidateQueries({ queryKey: ["browseListings"] });
       navigate("/buyer/reservations");
     } else if (result.error.code === "self_reserve") {
       setReserveError("You can't reserve your own listing.");
