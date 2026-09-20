@@ -50,6 +50,7 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Risk;
 using Modules.Listings.Scoring;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
@@ -367,13 +368,17 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
-builder.Services.AddHttpClient<IClipVisionClient, ClipVisionClient>((sp, client) =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var baseUrl = config["Clip:BaseUrl"] ?? "http://clip-service:8000";
-    client.BaseAddress = new Uri(baseUrl);
-    client.Timeout = TimeSpan.FromSeconds(5);
-});
+builder.Services.AddHttpClient<IClipVisionClient, ClipVisionClient>(
+    (sp, client) =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var baseUrl =
+            config["Clip:BaseUrl"]
+            ?? throw new InvalidOperationException("Clip:BaseUrl is not configured.");
+        client.BaseAddress = new Uri(baseUrl);
+        client.Timeout = TimeSpan.FromSeconds(5);
+    }
+);
 var app = builder.Build();
 
 app.UseForwardedHeaders();

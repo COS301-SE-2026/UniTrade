@@ -1,4 +1,3 @@
-//using Infrastructure.Persistence.Repositories.Listings;
 using Modules.Listings.Repositories;
 using Modules.Reservations.Models.Dto;
 namespace Modules.Reservations;
@@ -8,9 +7,9 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
     private readonly IListingRepository _listings = listings;
     private readonly IReservationService _reservationService = reservationService;
 
-    public async Task<SmartBudgetPreviewDto> PreviewAsync(IReadOnlyList<Guid> listingsIds, decimal maxBudget, CancellationToken ct = default)
+    public async Task<SmartBudgetPreviewDto> PreviewAsync(IReadOnlyList<Guid> listingId, decimal maxbudget, CancellationToken ct = default)
     {
-        if (listingsIds.Count == 0)
+        if (listingId.Count == 0)
         {
             return new SmartBudgetPreviewDto(
                 WouldReserve: Array.Empty<Guid>(),
@@ -21,7 +20,7 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
         var candidates = new List<KnapsackItem>();
         var unresolved = new List<Guid>();
 
-        foreach (var id in listingsIds)
+        foreach (var id in listingId)
         {
             var listing = await _listings.GetByIdAsync(id);
             if (listing is null)
@@ -34,7 +33,7 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
             }
         }
 
-        var result = Solve(candidates, maxBudget);
+        var result = Solve(candidates, maxbudget);
         var excluded = result.Excluded.Concat(unresolved).ToList();
 
         return new SmartBudgetPreviewDto(
@@ -92,7 +91,6 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
             }
         }
 
-        var bestK = dpCount[n, capacity];
         var totalCostCents = dpCost[n, capacity];
         var totalCost = totalCostCents / 100m;
 

@@ -20,6 +20,11 @@ public class ListingRiskScoreService : IListingRiskScoreService
     private const int FullVisibilityScore = 100;
     private const int MinMediumVisibilityScore = 20;
     private const int DuplicateHashThreshold = 8;
+    private const int _minComparableSampleSize = 3;
+    private const decimal _lowRiskUpperBound = 39m;
+    private const decimal _mediumRiskUpperBound = 69m;
+    private const int _fullVisibilityScore = 100;
+    private const int _minMediumVisibilityScore = 20;
 
     private const decimal PriceSignalWeight = 0.4m;
     private const decimal SellerHistorySignalWeight = 0.3m;
@@ -55,8 +60,8 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
         int? visibilityScore = level switch
         {
-            "low" => FullVisibilityScore,
-            "medium" => (int)Math.Max(MinMediumVisibilityScore, FullVisibilityScore - combinedScore),
+            "low" => _fullVisibilityScore,
+            "medium" => (int)Math.Max(_minMediumVisibilityScore, _fullVisibilityScore - combinedScore),
             _ => null,
         };
         return new RiskScoreResult(combinedScore, level, visibilityScore, reasons);
@@ -90,7 +95,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
             ct
         );
 
-        if (comparablePrices.Count < MinComparableSampleSize)
+        if (comparablePrices.Count < _minComparableSampleSize)
         {
             return null;
         }
@@ -112,7 +117,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var zScore = Math.Abs((listing.Price - mean) / stdDev);
         var score = Math.Min(100m, zScore * (100m / 3m));
 
-        if (score > LowRiskUpperBound)
+        if (score > _lowRiskUpperBound)
         {
             reasons.Add("price_anomaly");
         }

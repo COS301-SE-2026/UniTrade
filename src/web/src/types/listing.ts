@@ -35,22 +35,10 @@ export interface ListingDetail {
   status: ListingStatus
   courseCode: string
   courseId: number
-  //university: string
-  //tags: string[]
   images: ListingImage[]
   views: number
   listedAt: string
   sellerId: string
-  //sellerName: string
-  //sellerInitials: string
-  //sellerRating: number
-  //sellerResponseRate: number
-  //sellerTotalListings: number
-  //isReserved: boolean
-  //aiScore: number | null
-  //aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
-  //reviews: SellerReview[]
-  //similarListings: SimilarListing[]
   metadata: ListingMetadata
   seller: ListingSellerInfo | null
 }
@@ -64,6 +52,7 @@ export interface ListingSummary {
   views: number
   imageUrl: string
   categoryName: string
+  listingGroupId?: string | null;
 }
 
 export interface MyListingsResponse {

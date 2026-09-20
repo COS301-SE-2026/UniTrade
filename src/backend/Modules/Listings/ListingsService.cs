@@ -5,8 +5,8 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
-using Modules.SharedKernel;
 using Modules.Listings.Risk;
+using Modules.SharedKernel;
 
 namespace Modules.Listings;
 
@@ -123,7 +123,8 @@ public class ListingService : IListingService
                     l.Seller.FullName,
                     l.Seller.University,
                     l.Seller.ActiveListingCount
-                )
+                ),
+            ListingGroupId: l.ListingGroupId
         );
 
     public async Task<ListingSummaryDto> CreateListings(
@@ -132,6 +133,12 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
+        var quantity = dto.Quantity ?? 1;
+        if (quantity is < 1 or > 10)
+        {
+            throw new ArgumentException("invalid_quantity");
+        }
+
         var category = await _listings.ResolveByNameAsync(dto.CategoryName.Trim(), ct);
         if (category == null)
         {
@@ -158,34 +165,29 @@ public class ListingService : IListingService
         var requestedStatus = dto.ListingStatus;
         var isVerified = await _verification.IsVerifiedAsync(callerId, ct);
         var effectiveStatus = isVerified ? requestedStatus : "draft";
+        var groupId = quantity > 1 ? Guid.NewGuid() : (Guid?)null;
 
-        var newListing = new Listing
+        var created = new List<Listing>(quantity);
+        for (var i = 0; i < quantity; i++)
         {
-            Title = dto.Title,
-            Description = dto.Description,
-            Price = dto.Price,
-            CategoryId = category.CategoryId,
-            Condition = dto.Condition,
-            Metadata = metadataJ,
-            SellerId = callerId,
-            ListingStatus = effectiveStatus,
-            ListingId = Guid.NewGuid(),
-            CourseId = isBook ? dto.CourseId : null,
-            IsBundle = dto.IsBundle,
-            ViewCount = 0,
-            Images = new List<ListingImage>(),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-        };
-
-        if (isBook && dto.BookDetails is not null)
-        {
-            var newBook = new BookDetails
+            var newListing = new Listing
             {
-                ListingId = newListing.ListingId,
-                Author = dto.BookDetails.Author,
-                Isbn = dto.BookDetails.Isbn,
-                Edition = dto.BookDetails.Edition?.Trim(),
+                Title = dto.Title,
+                Description = dto.Description,
+                Price = dto.Price,
+                CategoryId = category.CategoryId,
+                Condition = dto.Condition,
+                Metadata = metadataJ,
+                SellerId = callerId,
+                ListingStatus = effectiveStatus,
+                ListingId = Guid.NewGuid(),
+                CourseId = isBook ? dto.CourseId : null,
+                IsBundle = dto.IsBundle,
+                ListingGroupId = groupId,
+                ViewCount = 0,
+                Images = new List<ListingImage>(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
 
             newListing.BookDetails = newBook;
@@ -202,12 +204,34 @@ public class ListingService : IListingService
 
             if (risk.Level == "high")
             {
-                newListing.ListingStatus = "under_review";
-            }
-        }
+                var newBook = new BookDetails
+                {
+                    ListingId = newListing.ListingId,
+                    Author = dto.BookDetails.Author,
+                    Isbn = dto.BookDetails.Isbn,
+                    Edition = dto.BookDetails.Edition?.Trim(),
+                };
 
-        await _listings.AddAsync(newListing);
-        if (newListing.ListingStatus == "live")
+                newListing.BookDetails = newBook;
+            }
+            if (newListing.ListingStatus == "live")
+            {
+                var risk = await _risk.ScoreAsync(newListing, ct);
+                newListing.AiRiskScore = risk.Score;
+                newListing.AiRiskLevel = risk.Level;
+                newListing.VisibilityScore = risk.VisibilityScore;
+
+                if (risk.Level == "high")
+                {
+                    newListing.ListingStatus = "under_review";
+                }
+            }
+
+            created.Add(newListing);
+        }
+        await _listings.AddRangeAsync(created);
+
+        foreach (var newListing in created.Where(l => l.ListingStatus == "live"))
         {
             try
             {
@@ -230,12 +254,10 @@ public class ListingService : IListingService
                     "Failed to fire listing published event for listing {ListingId}",
                     newListing.ListingId
                 );
-                //log later @Zelamene
-
-                //log later @Zelamene
             }
         }
-        return MapToSummary(newListing);
+
+        return MapToSummary(created[0]);
     }
 
     public async Task<bool> UpdateListings(

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919182522_AddListingGroupId")]
+    partial class AddListingGroupId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -719,10 +722,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("ai_risk_level");
 
-                    b.PrimitiveCollection<string[]>("AiRiskReasons")
-                        .HasColumnType("text[]")
-                        .HasColumnName("ai_risk_reasons");
-
                     b.Property<decimal?>("AiRiskScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)")
@@ -862,7 +861,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')");
                         });
                 });
 
@@ -969,11 +968,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("listing_id");
 
-                    b.Property<string>("PerceptualHash")
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("perceptual_hash");
-
                     b.Property<DateTime>("UploadedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -985,9 +979,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ListingId")
                         .HasDatabaseName("ix_listing_images_listing");
-
-                    b.HasIndex("PerceptualHash")
-                        .HasDatabaseName("ix_listing_images_perceptual_hash");
 
                     b.ToTable("listing_images", "unitrade");
                 });
