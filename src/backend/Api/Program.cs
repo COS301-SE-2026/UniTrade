@@ -79,6 +79,7 @@ using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
 using Modules.Listings.Risk;
 using Infrastructure.Imaging;
+using Modules.Listings.Admin;
 
 
 DotEnv.Load(
@@ -314,6 +315,7 @@ builder.Services.AddScoped<ITimetableQueryForAvailability, TimetableQueryForAvai
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IIcsImportService, IcsImportService>();
 builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
+builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
 
 if (!builder.Environment.IsDevelopment())
 {
