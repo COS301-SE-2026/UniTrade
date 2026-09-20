@@ -252,6 +252,14 @@ class ConnectionManager {
     this.listingListeners.add(cb);
     return () => this.listingListeners.delete(cb);
   }
+
+  onListingStatusChanged(
+    cb : (e: {listingId: string; status: string; riskLevel: string}) => void,
+
+  ): Unsubscribe {
+    this.listingStatusChangedListeners.add(cb);
+    return () => this.listingStatusChangedListeners.delete(cb);
+  }
   onPinConfirmed(
     callback: (e: { reservationId: string }) => void,
   ): Unsubscribe {
