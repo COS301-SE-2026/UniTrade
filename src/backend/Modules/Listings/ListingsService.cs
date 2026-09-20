@@ -603,7 +603,7 @@ public class ListingService : IListingService
     {
         var primary =
             listing.Images.FirstOrDefault(i => i.IsPrimary) ?? listing.Images.FirstOrDefault();
-        if (primary is null || primary.ImageData.Length == 0)
+        if (primary is null || primary.ImageData is null || primary.ImageData.Length == 0)
         {
             return;
         }
