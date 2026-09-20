@@ -13,6 +13,7 @@ import { LoadingState } from "../../components/layout/Spinner";
 import ListingQnA from "../../components/ListingQnA";
 import type { ListingStatusResponse } from "../../types/riskTemp";
 import { mockStatusFromListing } from "../../types/riskTemp";
+import {connectionManager} from "../../services/realtime/connectionManager"
 
 
 function DetailRow({
