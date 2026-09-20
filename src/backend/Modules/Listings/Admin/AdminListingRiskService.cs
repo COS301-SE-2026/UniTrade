@@ -1,13 +1,13 @@
+using Modules.Audit.Models;
+using Modules.Audit.Repositories;
+using Modules.Identity.Repositories;
+using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
 using Modules.Notifications;
-using Modules.Listings;
 using Modules.Reputation.Repositories;
-using Modules.Identity.Repositories;
-using Modules.Audit.Models;
-using Modules.Audit.Repositories;
 
 namespace Modules.Listings.Admin;
 
@@ -21,7 +21,15 @@ public class AdminListingRiskService : IAdminListingRiskService
     private readonly IStrikeRepository _strikes;
     private readonly IAuditRepository _audits;
 
-    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener, IUserRepository users, IStrikeRepository strikes, IAuditRepository audits)
+    public AdminListingRiskService(
+        IListingRepository listings,
+        IModerationService moderation,
+        INotificationDispatcher notifications,
+        IListingPublishedListener listener,
+        IUserRepository users,
+        IStrikeRepository strikes,
+        IAuditRepository audits
+    )
     {
         _listings = listings;
         _moderation = moderation;
@@ -29,10 +37,13 @@ public class AdminListingRiskService : IAdminListingRiskService
         _listener = listener;
         _users = users;
         _strikes = strikes;
-        _audits=audits;
+        _audits = audits;
     }
 
-    public async Task<IReadOnlyList<FlaggedListingDto>> GetFlaggedAsync(string status, CancellationToken ct = default)
+    public async Task<IReadOnlyList<FlaggedListingDto>> GetFlaggedAsync(
+        string status,
+        CancellationToken ct = default
+    )
     {
         var filter = new ListFilterDto { ListingStatus = status, Take = 100 };
         var (items, _) = await _listings.ListAsync(filter);
@@ -49,7 +60,8 @@ public class AdminListingRiskService : IAdminListingRiskService
                 l.AiRiskReasons?.Select(r => r.Code).ToList() ?? new List<string>(),
                 null,
                 l.CreatedAt
-            )).ToList();
+            ))
+            .ToList();
     }
 
     private static string SellerInitials(SellerInfo? seller)
@@ -64,7 +76,13 @@ public class AdminListingRiskService : IAdminListingRiskService
         return initials.Length == 0 ? "??" : initials;
     }
 
-    public async Task<ListingSummaryDto?> DecideAsync(Guid listingId, string action, string reason, Guid adminId, CancellationToken ct = default)
+    public async Task<ListingSummaryDto?> DecideAsync(
+        Guid listingId,
+        string action,
+        string reason,
+        Guid adminId,
+        CancellationToken ct = default
+    )
     {
         if (action != "approve" && action != "remove")
         {
@@ -76,7 +94,7 @@ public class AdminListingRiskService : IAdminListingRiskService
             return null;
         }
 
-        var statusBeforeDecision=listing.ListingStatus;
+        var statusBeforeDecision = listing.ListingStatus;
 
         if (action == "remove")
         {
@@ -92,17 +110,22 @@ public class AdminListingRiskService : IAdminListingRiskService
             await _audits.AddAsync(
                 new AuditLog
                 {
-                    ActorId=adminId,
-                    Action="listing.removed",
-                    EntityType="Listing",
-                    EntityId=listingId.ToString(),
-                    OldValue=statusBeforeDecision,
-                    NewValue="removed",
-                    Reason=reason,
+                    ActorId = adminId,
+                    Action = "listing.removed",
+                    EntityType = "Listing",
+                    EntityId = listingId.ToString(),
+                    OldValue = statusBeforeDecision,
+                    NewValue = "removed",
+                    Reason = reason,
                 },
                 ct
             );
-            await _notifications.NotifyAsync(listing.SellerId, NotificationTypes.ListingStatus, $"Your listing '{listing.Title}' was removed. Reason: {reason}", ct);
+            await _notifications.NotifyAsync(
+                listing.SellerId,
+                NotificationTypes.ListingStatus,
+                $"Your listing '{listing.Title}' was removed. Reason: {reason}",
+                ct
+            );
             return ListingService.MapToSummary(listing);
         }
 
@@ -113,19 +136,24 @@ public class AdminListingRiskService : IAdminListingRiskService
         await _listings.SaveAsync();
 
         await _audits.AddAsync(
-                new AuditLog
-                {
-                    ActorId=adminId,
-                    Action="listing.removed",
-                    EntityType="Listing",
-                    EntityId=listingId.ToString(),
-                    OldValue=statusBeforeDecision,
-                    NewValue="removed",
-                    Reason=reason,
-                },
-                ct
-            );
-        await _notifications.NotifyAsync(listing.SellerId, NotificationTypes.ListingStatus, $"Your listing '{listing.Title}' has been approved and is now live.", ct);
+            new AuditLog
+            {
+                ActorId = adminId,
+                Action = "listing.removed",
+                EntityType = "Listing",
+                EntityId = listingId.ToString(),
+                OldValue = statusBeforeDecision,
+                NewValue = "live",
+                Reason = reason,
+            },
+            ct
+        );
+        await _notifications.NotifyAsync(
+            listing.SellerId,
+            NotificationTypes.ListingStatus,
+            $"Your listing '{listing.Title}' has been approved and is now live.",
+            ct
+        );
 
         try
         {
@@ -141,12 +169,14 @@ public class AdminListingRiskService : IAdminListingRiskService
             };
             await _listener.OnListingPublishedEventAsync(evnt, ct);
         }
-        catch (Exception)
-        { }
+        catch (Exception) { }
         return ListingService.MapToSummary(listing);
     }
 
-    public async Task<FlaggedListingDetailDto?> GetFlaggedDetailAsync(Guid listingId, CancellationToken ct = default)
+    public async Task<FlaggedListingDetailDto?> GetFlaggedDetailAsync(
+        Guid listingId,
+        CancellationToken ct = default
+    )
     {
         var listing = await _listings.GetByIdAsync(listingId);
         if (listing is null)
@@ -157,7 +187,11 @@ public class AdminListingRiskService : IAdminListingRiskService
         var seller = await _users.GetByIdAsync(listing.SellerId);
         var verificationStatus = seller?.StudentProfile?.VerificationStatus ?? "unknown";
         var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
-        var priorFlagCount = await _listings.CountHighRiskListingsForSellerAsync(listing.SellerId, listing.ListingId, ct);
+        var priorFlagCount = await _listings.CountHighRiskListingsForSellerAsync(
+            listing.SellerId,
+            listing.ListingId,
+            ct
+        );
 
         var sellerName = listing.Seller is null
             ? "Unknown"
@@ -170,7 +204,9 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.Price,
             listing.Condition,
             listing.Category?.Name ?? "",
-            listing.Images.Select(i => $"/api/listings/{listing.ListingId}/images/{i.ImageId}").ToList(),
+            listing
+                .Images.Select(i => $"/api/listings/{listing.ListingId}/images/{i.ImageId}")
+                .ToList(),
             new FlaggedListingSellerDto(
                 listing.SellerId,
                 sellerName,
@@ -182,10 +218,10 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.AiRiskScore ?? 0m,
             listing.AiRiskLevel ?? "low",
             listing.VisibilityScore,
-            listing.AiRiskReasons?.Select(r => new ReasonDetailDto(r.Code, r.Detail)).ToList() ?? new List<ReasonDetailDto>(),
+            listing.AiRiskReasons?.Select(r => new ReasonDetailDto(r.Code, r.Detail)).ToList()
+                ?? new List<ReasonDetailDto>(),
             null,
             listing.CreatedAt
         );
     }
-
 }
