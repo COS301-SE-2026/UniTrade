@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY --chown=root:root --chmod=0444 requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --only-binary :all: -r requirements.txt
+    pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt
 
 ENV HF_HOME=/home/clipuser/.cache/huggingface
 RUN mkdir -p ${HF_HOME} && chown -R clipuser:clipuser ${HF_HOME}
