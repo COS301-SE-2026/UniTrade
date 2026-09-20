@@ -631,9 +631,6 @@ public class AdminCaseService : IAdminCaseService
     private double Age(DateTime submittedAt) =>
         Math.Round((_clock.GetUtcNow().UtcDateTime - submittedAt).TotalHours, 1);
 
-    private static PartyRole RoleOf(DisputeCaseData d, Guid userId) =>
-        userId == d.BuyerId ? PartyRole.Buyer : PartyRole.Seller;
-
     private async Task<PartySummaryDto?> BuildPartyAsync(
         Guid userId,
         CancellationToken ct

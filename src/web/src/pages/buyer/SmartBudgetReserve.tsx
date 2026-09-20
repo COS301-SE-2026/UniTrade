@@ -185,6 +185,7 @@ export default function SmartBudgetReserve() {
                     <span className = "font-semibold text-gray-800">
                         {formatPrice(selectedTotal)}
                     </span>
+                    {" "}
                     total 
                 </div>
                 </div>
@@ -206,7 +207,7 @@ export default function SmartBudgetReserve() {
                             Your wishlist is empty
                         </p>
                         <p className = "text-xs text-gray-400 mt-1">
-                            Add items to your wishlist first , them come back to reserve within your budget
+                            Add items to your wishlist first, then come back to reserve within your budget
                         </p>
                     </div>
                 )}
