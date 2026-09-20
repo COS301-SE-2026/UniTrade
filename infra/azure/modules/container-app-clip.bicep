@@ -20,7 +20,7 @@ resource clipApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
         external: false
         targetPort: 8000
         transport: 'auto'
-        clientCertificateMode: 'accept'
+        clientCertificateMode: 'ignore'
       }
       registries: useAcrRegistry
         ? [
