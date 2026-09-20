@@ -89,6 +89,13 @@ export default function Timetable() {
       );
       return { previous };
     },
+
+    onSuccess: (result, _entryId, context) => {
+      if (!result.success) {
+                if (context?.previous) queryClient.setQueryData(['timetable'], context.previous);
+        showToast('error', timetableErrorMessage(result.error.code));
+      }},
+
     onError: (_err, _entryId, context) => {
       if (context?.previous)
         queryClient.setQueryData(["timetable"], context.previous);

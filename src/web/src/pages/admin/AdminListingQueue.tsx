@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { IconCheck, IconX, IconPhoto } from "@tabler/icons-react"
+import { IconCheck, IconX,} from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getFlaggedListings, decideListing } from "../../services/adminService"
@@ -10,11 +10,13 @@ import { formatDate } from "../../utils/formatters"
 
 import RiskBadge from "../../components/risk/RiskBadge"
 import RiskReasons from '../../components/risk/RiskReasons'
+import ImageMatchScore from "../../components/risk/ImageMatchScore"
+import { isLowImageMatch } from "../../utils/riskUtils"
 
 type Filter = 'All' | 'Price anomaly' | 'Duplicate image' | 'Low image match'
 type SortBy = 'Oldest First' | 'Newest First'
 
-const LOW_MATCH_THRESHOLD = 0.5
+//const LOW_MATCH_THRESHOLD = 0.5
 
 const zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })
 
@@ -25,9 +27,9 @@ function timeInQueue(iso: string) {
   return `${Math.floor(hours / 24)}d`
 }
 
-function isLowMatch(l: FlaggedListing) {
+/*function isLowMatch(l: FlaggedListing) {
   return l.imageMatchScore !== null && l.imageMatchScore < LOW_MATCH_THRESHOLD
-}
+}*/
 
 
 export default function AdminListingQueue() {
@@ -64,7 +66,7 @@ export default function AdminListingQueue() {
     if (!matchSearch) return false
     if (filter === 'Price anomaly') return l.reasons.includes('price_anomaly')
     if (filter === 'Duplicate image') return l.reasons.includes('duplicate_image')
-    if (filter === 'Low image match') return isLowMatch(l)
+    if (filter === 'Low image match') return isLowImageMatch(l.imageMatchScore)
     return true
   })
 
@@ -77,7 +79,7 @@ export default function AdminListingQueue() {
   const numTotal = listings.length
   const numPriceAnomaly = listings.filter((l) => l.reasons.includes('price_anomaly')).length
   const numDuplicate = listings.filter((l) => l.reasons.includes('duplicate_image')).length
-  const numLowMatch = listings.filter(isLowMatch).length
+  const numLowMatch = listings.filter((l) => isLowImageMatch(l.imageMatchScore)).length
   const navigate = useNavigate()
 
   if (loading) {
@@ -222,7 +224,7 @@ export default function AdminListingQueue() {
                   </td>
 
                   <td className="py-4 px-4 text-center">
-                    {l.imageMatchScore === null ? (
+                    {/*{l.imageMatchScore === null ? (
                       <span className="text-gray-500 text-[10px]">Not checked</span>
                     ) : (
                       <span
@@ -232,7 +234,8 @@ export default function AdminListingQueue() {
                         <IconPhoto className="w-3.5 h-3.5" />
                         {Math.round(l.imageMatchScore * 100)}%
                       </span>
-                    )}
+                    )}*/}
+                    <ImageMatchScore score={l.imageMatchScore} />
                   </td>
 
                   <td className="py-4 px-4">
