@@ -1,6 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
-fastapi
-uvicorn[standard]
-torch
-transformers
-pillow 
+fastapi==0.141.1
+pillow==12.3.0
+torch==2.14.0+cpu
+transformers==5.17.0
+uvicorn==0.53.0
