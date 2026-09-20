@@ -6,6 +6,8 @@ using Modules.Notifications;
 using Modules.Listings;
 using Modules.Reputation.Repositories;
 using Modules.Identity.Repositories;
+using Modules.Audit.Models;
+using Modules.Audit.Repositories;
 
 namespace Modules.Listings.Admin;
 
@@ -17,14 +19,17 @@ public class AdminListingRiskService : IAdminListingRiskService
     private readonly IListingPublishedListener _listener;
     private readonly IUserRepository _users;
     private readonly IStrikeRepository _strikes;
+    private readonly IAuditRepository _audits;
 
-    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener, IUserRepository users)
+    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener, IUserRepository users, IStrikeRepository strikes, IAuditRepository audits)
     {
         _listings = listings;
         _moderation = moderation;
         _notifications = notifications;
         _listener = listener;
         _users = users;
+        _strikes = strikes;
+        _audits=audits;
     }
 
     public async Task<IReadOnlyList<FlaggedListingDto>> GetFlaggedAsync(string status, CancellationToken ct = default)
@@ -71,6 +76,8 @@ public class AdminListingRiskService : IAdminListingRiskService
             return null;
         }
 
+        var statusBeforeDecision=listing.ListingStatus;
+
         if (action == "remove")
         {
             var removed = await _moderation.RemoveListingAsync(listingId, reason, ct);
@@ -81,6 +88,19 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.ListingStatus = "removed";
             listing.RejectionReason = reason;
             listing.UpdatedAt = DateTime.UtcNow;
+
+            await _audits.AddAsync(
+                new AuditLog
+                {
+                    ActorId=adminId,
+                    Action="listing.removed",
+                    EntityType=listingId.ToString(),
+                    OldValue=statusBeforeDecision,
+                    NewValue="removed",
+                    Reason=reason,
+                },
+                ct
+            );
             await _notifications.NotifyAsync(listing.SellerId, NotificationTypes.ListingStatus, $"Your listing '{listing.Title}' was removed. Reason: {reason}", ct);
             return ListingService.MapToSummary(listing);
         }
