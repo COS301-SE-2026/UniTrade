@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260902105818_AddListingQuestions")]
-    partial class AddListingQuestions
+    [Migration("20260919182522_AddListingGroupId")]
+    partial class AddListingGroupId
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -762,6 +762,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_bundle");
 
+                    b.Property<Guid?>("ListingGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_group_id");
+
                     b.Property<string>("ListingStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -820,6 +824,10 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CourseId1")
                         .HasDatabaseName("ix_listings_course_id1");
+
+                    b.HasIndex("ListingGroupId")
+                        .HasDatabaseName("ix_listings_group")
+                        .HasFilter("listing_group_id IS NOT NULL");
 
                     b.HasIndex("SellerId")
                         .HasDatabaseName("ix_listings_seller");
@@ -987,6 +995,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("captured_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<string>("CategoryName")
+                        .HasColumnType("text")
+                        .HasColumnName("category_name");
+
                     b.Property<string>("Condition")
                         .IsRequired()
                         .HasMaxLength(5)
@@ -1032,7 +1044,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_listing_snapshots_listing_id");
 
                     b.HasIndex("ReservationId")
-                        .IsUnique()
                         .HasDatabaseName("ix_listing_snapshot_reservation_id");
 
                     b.ToTable("listing_snapshot", "unitrade", t =>
@@ -1662,6 +1673,59 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("images", "unitrade");
                 });
 
+            modelBuilder.Entity("Modules.Timetable.Models.TimetableEntry", b =>
+                {
+                    b.Property<Guid>("EntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("entry_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer")
+                        .HasColumnName("day_of_week");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time")
+                        .HasColumnName("end_time");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time")
+                        .HasColumnName("start_time");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("EntryId")
+                        .HasName("pk_timetable_entries");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_timetable_entries_user");
+
+                    b.HasIndex("UserId", "DayOfWeek")
+                        .HasDatabaseName("ix_timetable_entries_user_day");
+
+                    b.HasIndex("UserId", "DayOfWeek", "StartTime", "EndTime")
+                        .IsUnique()
+                        .HasDatabaseName("ix_timetable_entries_user_slot");
+
+                    b.ToTable("timetable_entries", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_timetable_day", "day_of_week BETWEEN 0 AND 6");
+
+                            t.HasCheckConstraint("chk_timetable_hours", "start_time >= TIME '08:00' AND end_time <= TIME '20:00'");
+
+                            t.HasCheckConstraint("chk_timetable_range", "start_time < end_time");
+                        });
+                });
+
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
                 {
                     b.Property<Guid>("TransactionId")
@@ -1991,8 +2055,8 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_listing_snapshot_listings_listing_id");
 
                     b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
-                        .WithOne("ListingSnapshot")
-                        .HasForeignKey("Modules.Listings.Models.ListingSnapshot", "ReservationId")
+                        .WithMany("ListingSnapshots")
+                        .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("fk_listing_snapshot_reservations_reservation_id");
 
@@ -2128,6 +2192,16 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Transaction");
                 });
 
+            modelBuilder.Entity("Modules.Timetable.Models.TimetableEntry", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_timetable_entries_users_user_id");
+                });
+
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
                 {
                     b.HasOne("Modules.Reservations.Models.Reservation", null)
@@ -2185,7 +2259,7 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
-                    b.Navigation("ListingSnapshot");
+                    b.Navigation("ListingSnapshots");
 
                     b.Navigation("Meetups");
 

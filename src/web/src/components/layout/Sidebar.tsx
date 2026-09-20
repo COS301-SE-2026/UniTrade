@@ -5,7 +5,7 @@ import {
   IconSwitchHorizontal,
   //IconSettings,
   IconShieldCheck,
-  //IconListCheck,
+  IconListCheck,
   IconFlag,
   IconUsers,
 
@@ -86,7 +86,7 @@ const adminNav: NavSection[] = [
       { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} /> },
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} /> },
-      //{ label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />},
+      { label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />},
       { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },

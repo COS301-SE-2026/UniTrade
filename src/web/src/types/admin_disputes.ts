@@ -15,7 +15,6 @@ export type Decision =
   | "dismiss"
   | "request_info";
 
-//assumptions for now as I'm waiting for som confirmation from backend
 export type Outcome = "strike" | "remove_listing" | "refusal_flag";
 
 export type PinStatus =
@@ -27,8 +26,6 @@ export type PinStatus =
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
 
-//for the admintoken this is not clear, so might change aftetr confirmation from backend
-
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
@@ -36,13 +33,13 @@ export interface AdminTokenClaims {
   iat: number;
 }
 
-//evidence types
+
 export interface VerificationEvidence {
   university: string;
   degree: string;
   year: number;
   email: string;
-  proofDocumentUrl?: string; //the url to the actual proof of registration
+  proofDocumentUrl?: string;
 }
 
 export interface ListingQualityEvidence {
@@ -66,7 +63,7 @@ export interface NoShowEvidence {
   meetupWindowEnd: string;
 }
 
-//the actual listing snapshot
+
 export interface ListingSnapshot {
   listingId: string;
   reservationId: string;
@@ -170,6 +167,7 @@ export interface NoShowFiling {
 export interface ListingQualityFiling {
   type: "listing_quality";
   reservationId: string;
+  listingId?: string;
   sellerRefusedPhotos: boolean;
   photos?: string[];
   description?: string;
@@ -262,7 +260,7 @@ export interface ListAuditResponse {
   entries: AuditEntry[];
   total: number;
 }
-export type GetListingSnapshotResponse = ListingSnapshot;
+export type GetListingSnapshotResponse = ListingSnapshot[];
 
 export interface ListUsersResponse {
   users: UserListItem[];
@@ -299,4 +297,52 @@ export interface UserListing {
   price: number;
   createdAt: string;
   imageUrl?: string | null;
+}
+
+export interface FlaggedListing {
+  listingId: string;
+  title: string;
+  price: number;
+  sellerId: string;
+  sellerInitials: string;
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  reasons: string[];
+  imageMatchScore: number | null;
+  createdAt: string;
+}
+
+export interface FlaggedListingDetail {
+  listingId: string;
+  title: string;
+  description: string;
+  price: number;
+  condition: string;
+  categoryName: string;
+  images: string[];
+  seller: {
+    sellerId: string;
+    name: string;
+    initials: string;
+    verificationStatus: string;
+    strikeCount: number;
+    priorFlagCount: number;
+  };
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  visibilityScore: number;
+  reasons: {code: string; detail?: string}[];
+  imageMatchScore: number | null;
+  createdAt: string;
+}
+export interface ListingDecisionResponse {
+  listingId: string;
+  status: string;
+}
+
+export interface ListingStatusResponse {
+  listingId: string;
+  status: "live" | "under_review" | "removed";
+  riskLevel: "low" | "medium" | "high";
+  message: string;
 }

@@ -8,6 +8,7 @@ import {
   IconPlus,
   IconTrash,
   IconLivePhoto,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
@@ -35,7 +36,7 @@ function ActionButtons({
 
   const deleteBtn = (
     <button
-      type='button'
+      type="button"
       onClick={() => onDelete(listing.id)}
       aria-label="Delete listing"
       className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
@@ -48,14 +49,14 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
-          type='button'
+          type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
           View
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -70,7 +71,7 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
-          type='button'
+          type="button"
           onClick={() => onSubmit(listing.id)}
           disabled={submitting}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
@@ -78,7 +79,7 @@ function ActionButtons({
           {submitting ? "Submitting...." : "Submit"}
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -92,11 +93,14 @@ function ActionButtons({
   if (listing.status === "rejected") {
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-        <button type='button' className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap">
+        <button
+          type="button"
+          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+        >
           Resubmit
         </button>
         <button
-          type='button'
+          type="button"
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
           className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
         >
@@ -111,21 +115,21 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
         <button
-          type='button'
+          type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
           View
         </button>
         <button
-          type='button'
+          type="button"
           disabled
           className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full cursor-not-allowed whitespace-nowrap"
         >
           Edit
         </button>
         <button
-          type='button'
+          type="button"
           disabled
           aria-label="Delete listing"
           className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-2 rounded-full cursor-not-allowed flex-shrink-0"
@@ -139,7 +143,7 @@ function ActionButtons({
     return (
       <div className="flex items-center gap-2 fle-wrap md:flex-nowrap">
         <button
-          type='button'
+          type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
         >
@@ -152,6 +156,105 @@ function ActionButtons({
   return null;
 }
 
+function GroupCard({
+  group,
+  expanded,
+  onToggle,
+  onDelete,
+  onSubmit,
+  submittingId,
+}: Readonly<{
+  group: { key: string; items: ListingSummary[] };
+  expanded: boolean;
+  onToggle: () => void;
+  onDelete: (id: string) => void;
+  onSubmit: (id: string) => void;
+  submittingId: string | null;
+}>) {
+  const first = group.items[0];
+  const liveCount = group.items.filter((l) => l.status === "live").length;
+  const prices = group.items.map((l) => l.price);
+  const priceLabel =
+    Math.min(...prices) === Math.max(...prices)
+      ? formatPrice(prices[0])
+      : `${formatPrice(Math.min(...prices))}-${formatPrice(Math.max(...prices))}`;
+
+  return (
+    <div className="border-b border-gray-100 dark:border-white/5">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 md:gap-4 px-4 md:px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <img
+          src={first.imageUrl || biologyTextbook}
+          alt={first.title}
+          className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
+            {first.title}
+          </p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {liveCount} of {group.items.length} available
+          </p>
+        </div>
+
+        <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
+          {priceLabel}
+        </p>
+        <div className="hidden md:block w-32 flex-shrink-0" aria-hidden />
+        <div className="w-full md:w-auto md:min-w-[200px] flex md:justify-end flex-shrink-0">
+          <IconChevronDown
+            size={18}
+            className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
+      {expanded && (
+        <div className="border-t border-gray-100 dark:border-white/5">
+          {group.items.map((listing, idx) => (
+            <div
+              key={listing.id}
+              className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 px-4 md:px-5 py-3 border-b border-gray-50 dark:border-white/5 last:border-0"
+            >
+              <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:min-w-0">
+                <div
+                  className="w-10 h-10 md:w-12 md:h-12 shrink-0 flex items-center justify-center"
+                  aria-hidden
+                >
+                  <span className="text-xs font-semibold text-gray-400">
+                    {idx + 1}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-gray-400">
+                  Copy {idx + 1}
+                </p>
+              </div>
+
+              <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
+                {formatPrice(listing.price)}
+              </p>
+
+              <div className="w-full md:w-32 flex md:justify-center">
+                <StatusPill status={listing.status} />
+              </div>
+              <div className="w-full md:w-auto min-w-[200px] flex md:justify-end gap-2">
+                <ActionButtons
+                  listing={listing}
+                  onDelete={onDelete}
+                  onSubmit={onSubmit}
+                  submitting={submittingId === listing.id}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type Tab = "all" | ListingStatus;
 
 const PAGE_SIZE = 6;
@@ -162,13 +265,14 @@ export default function MyListings() {
   const { showToast } = useToast();
 
   const { data, isLoading, error } = useMyListings();
-  const listings =useMemo(() => data?.listings ?? [], [data?.listings]);
+  const listings = useMemo(() => data?.listings ?? [], [data?.listings]);
   const total = data?.total ?? 0;
 
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
-  const searchQuery = useSearchQuery()
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const searchQuery = useSearchQuery();
 
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
@@ -223,25 +327,41 @@ export default function MyListings() {
   };
 
   const filtered = useMemo(() => {
-      let result = activeTab === "all"
-      ? listings
-      : listings.filter((l) => l.status === activeTab);
+    let result =
+      activeTab === "all"
+        ? listings
+        : listings.filter((l) => l.status === activeTab);
 
-      if (searchQuery) {
-        result = result.filter(
-          (l) => 
-            l.title.toLowerCase().includes(searchQuery)
-           )
-        
+    if (searchQuery) {
+      result = result.filter((l) =>
+        l.title.toLowerCase().includes(searchQuery),
+      );
+    }
+
+    return result;
+  }, [listings, activeTab, searchQuery]);
+
+  type Group = { key: string; items: ListingSummary[] };
+
+  const grouped: Group[] = useMemo(() => {
+    const map = new Map<string, ListingSummary[]>();
+    const singles: Group[] = [];
+    for (const l of filtered) {
+      if (!l.listingGroupId) {
+        singles.push({ key: l.id, items: [l] });
+        continue;
       }
+      const arr = map.get(l.listingGroupId) ?? [];
+      arr.push(l);
+      map.set(l.listingGroupId, arr);
+    }
 
-      return result
+    const groups = [...map.entries()].map(([key, items]) => ({ key, items }));
+    return [...groups, ...singles];
+  }, [filtered]);
 
-  }, [listings, activeTab, searchQuery])
-
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice(
+  const totalPages = Math.max(1, Math.ceil(grouped.length / PAGE_SIZE));
+  const paginated = grouped.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
@@ -261,7 +381,6 @@ export default function MyListings() {
   if (isLoading) {
     return <LoadingState message="Loading..." />;
   }
-
 
   if (error)
     return (
@@ -284,7 +403,7 @@ export default function MyListings() {
           </p>
         </div>
         <button
-          type='button'
+          type="button"
           onClick={() => navigate("/seller/upload")}
           className="flex items-center justify-center gap-2 bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors w-full sm:w-auto"
         >
@@ -333,15 +452,15 @@ export default function MyListings() {
       <div className="flex gap-2 flex-wrap">
         {tabs.map((tab) => (
           <button
-            type='button'
+            type="button"
             key={tab.key}
             onClick={() => {
               setActiveTab(tab.key);
               setCurrentPage(1);
             }}
             className={`px-4 md:px-5 py-2 rounded-full text-xs md:text-sm font-semibold border transition-colors ${activeTab === tab.key
-              ? "bg-navy-700 text-white border-navy-700"
-              : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                ? "bg-navy-700 text-white border-navy-700"
+                : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
           >
             {tab.label}
@@ -367,51 +486,75 @@ export default function MyListings() {
             </div>
           </div>
 
-          {paginated.map((listing, i) => (
-            <div
-              key={listing.id}
-              className={`flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 px-4 md:px-5 py-4 ${i < paginated.length - 1
-                ? "border-b border-gray-100 dark:border-white/5"
-                : ""
-                } md:border-b md:border-gray-100 md:dark:border-white/5 border border-gray-200 dark:border-white/10 rounded-xl md:rounded-none mb-3 md:mb-0 bg-white dark:bg-navy-800 md:bg-transparent`}
-            >
-              <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:min-w-0">
-                <img
-                  src={listing.imageUrl || biologyTextbook}
-                  alt={listing.title}
-                  className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
-                    {listing.title}
+          {paginated.map((group, i) => {
+            if (group.items.length === 1) {
+              const listing = group.items[0];
+              return (
+                <div
+                  key={listing.id}
+                  className={`flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 px-4 md:px-5 py-4 ${i < paginated.length - 1
+                      ? "border-b border-gray-100 dark:border-white/5"
+                      : ""
+                    } md:border-b md:border-gray-100 md:dark:border-white/5 border border-gray-200 dark:border-white/10 rounded-xl md:rounded-none mb-3 md:mb-0 bg-white dark:bg-navy-800 md:bg-transparent`}
+                >
+                  <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:min-w-0">
+                    <img
+                      src={listing.imageUrl || biologyTextbook}
+                      alt={listing.title}
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
+                        {listing.title}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {listing.meta}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-navy-700 dark:text-white md:hidden ml-auto">
+                      {formatPrice(listing.price)}
+                    </p>
+                  </div>
+
+                  <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
+                    {formatPrice(listing.price)}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">{listing.meta}</p>
+
+                  <div className="w-full md:w-32 flex justify-start md:justify-center mt-1 md:mt-0 flex-shrink-0">
+                    <StatusPill status={listing.status} />
+                  </div>
+                  <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
+                    <ActionButtons
+                      listing={listing}
+                      onDelete={handleDelete}
+                      onSubmit={handleSubmitListing}
+                      submitting={submittingId === listing.id}
+                    />
+                  </div>
                 </div>
-                <p className="text-sm font-semibold text-navy-700 dark:text-white md:hidden ml-auto">
-                  {formatPrice(listing.price)}
-                </p>
-              </div>
+              );
+            }
+            return (
+              <GroupCard
+                key={group.key}
+                group={group}
+                expanded={expandedGroups.has(group.key)}
+                onToggle={() =>
+                  setExpandedGroups((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(group.key)) next.delete(group.key);
+                    else next.add(group.key);
+                    return next;
+                  })
+                }
+                onDelete={handleDelete}
+                onSubmit={handleSubmitListing}
+                submittingId={submittingId}
+              />
+            );
+          })}
 
-              <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
-                {formatPrice(listing.price)}
-              </p>
-
-
-              <div className="w-full md:w-32 flex justify-start md:justify-center mt-1 md:mt-0 flex-shrink-0">
-                <StatusPill status={listing.status} />
-              </div>
-                <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
-                <ActionButtons
-                  listing={listing}
-                  onDelete={handleDelete}
-                  onSubmit={handleSubmitListing}
-                  submitting={submittingId === listing.id}
-                />
-              </div>
-            </div>
-          ))}
-
-          {filtered.length === 0 && (
+          {paginated.length === 0 && (
             <div className="flex items-center justify-center py-16">
               <p className="text-sm text-gray-400">No listings found.</p>
             </div>
@@ -421,21 +564,20 @@ export default function MyListings() {
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-gray-400">
-          Showing{" "}
-          {paginated.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
-          {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
-          {filtered.length} listings
+          Showing {grouped.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
+          –{Math.min(currentPage * PAGE_SIZE, grouped.length)} of{" "}
+          {grouped.length} listings
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
             (page) => (
               <button
-                type='button'
+                type="button"
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
-                  ? "bg-navy-700 text-white border-navy-700"
-                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
                   }`}
               >
                 {page}

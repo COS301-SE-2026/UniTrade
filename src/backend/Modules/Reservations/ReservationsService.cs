@@ -2,13 +2,13 @@ using Microsoft.Extensions.Logging;
 using Modules.Chat;
 using Modules.Listings;
 using Modules.Listings.Repositories;
+using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 using Modules.Wishlist;
-using Modules.Listings.Snapshot;
 
 namespace Modules.Reservations;
 
@@ -79,6 +79,7 @@ public class ReservationService(
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
+
         await _wishlist.SuppressForListingAsync(listingId, reservation.ReservationId, ct);
         await GuardedPushAsync(
             listing.SellerId,
@@ -86,7 +87,11 @@ public class ReservationService(
             $"A buyer is interested in \"{listing.Title}\".",
             ct
         );
-        return MapToDto(reservation, listingId: listingId);
+        var saved =
+            await _reservations.GetByIdAsync(reservation.ReservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.NotFound);
+
+        return MapToDto(saved, listingId: listingId);
     }
 
     public async Task<ReservationDto> AcknowledgeAsync(
@@ -202,8 +207,19 @@ public class ReservationService(
             {
                 var lastMsg = lastMessages.GetValueOrDefault(r.ReservationId);
                 var isBuyer = r.BuyerId == userId;
-                var listing = r.ReservationListings.First().Listing;
                 var other = isBuyer ? r.Seller : r.Buyer;
+
+                var listings = r
+                    .ReservationListings.Where(rl => rl.Listing is not null)
+                    .Select(rl => new ReservationListingSummaryDto(
+                        rl.Listing.ListingId,
+                        rl.Listing.Title,
+                        rl.Listing.Price,
+                        rl.Listing.Images is { Count: > 0 }
+                            ? $"/api/listings/{rl.Listing.ListingId}/images/{rl.Listing.Images.First().ImageId}"
+                            : null
+                    ))
+                    .ToList();
 
                 return new ReservationListItemDto(
                     ReservationId: r.ReservationId,
@@ -216,14 +232,9 @@ public class ReservationService(
                         $"{other.FirstName} {other.LastName}",
                         $"{other.FirstName[0]}{other.LastName[0]}"
                     ),
-                    Listing: new ReservationListingSummaryDto(
-                        listing.ListingId,
-                        listing.Title,
-                        listing.Price,
-                        listing.Images.Count > 0
-                            ? $"/api/listings/{listing.ListingId}/images/{listing.Images.First().ImageId}"
-                            : null
-                    ),
+                    Listings: listings,
+                    TotalPrice: listings.Sum(x => x.Price),
+                    IsBundle: listings.Count > 1,
                     UnreadCount: unread.GetValueOrDefault(r.ReservationId, 0),
                     LastMessagePreview: lastMsg.Content,
                     LastMessageAt: lastMsg.SentAt == default ? (DateTime?)null : lastMsg.SentAt
@@ -271,6 +282,17 @@ public class ReservationService(
             }
         }
 
+        var listings = r
+            .ReservationListings.Select(rl => new ReservationListingSummaryDto(
+                rl.Listing.ListingId,
+                rl.Listing.Title,
+                rl.Listing.Price,
+                rl.Listing.Images.Count > 0
+                    ? $"/api/listings/{rl.Listing.ListingId}/images/{rl.Listing.Images.First().ImageId}"
+                    : null
+            ))
+            .ToList();
+
         return new ReservationDto(
             ReservationId: r.ReservationId,
             ListingId: listingId ?? r.ReservationListings.First().ListingId,
@@ -281,7 +303,10 @@ public class ReservationService(
             ExpiresAt: r.ExpiresAt,
             CreatedAt: r.CreatedAt,
             CompletedAt: r.CompletedAt,
-            CounterParty: counterParty
+            CounterParty: counterParty,
+            Listings: listings,
+            TotalPrice: listings.Sum(x => x.Price),
+            IsBundle: listings.Count > 1
         );
     }
 
@@ -307,8 +332,6 @@ public class ReservationService(
             }
 
             await _wishlist.RestoreForReservationAsync(reservation.ReservationId, ct);
-
-            await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
             expired.Add(MapToDto(reservation));
         }
 
@@ -386,5 +409,103 @@ public class ReservationService(
             results.Add(MapToDto(reservation));
         }
         return results;
+    }
+
+    public async Task<ReserveMultipleResultDto> ReserveMultipleAsync(
+        Guid buyerId,
+        Guid sellerId,
+        IReadOnlyList<Guid> listingIds,
+        CancellationToken ct = default
+    )
+    {
+        if (listingIds.Count == 0)
+        {
+            return new ReserveMultipleResultDto(
+                ReservationId: null,
+                SellerId: sellerId,
+                Reserved: Array.Empty<ReservedItemDto>(),
+                FailedListingIds: Array.Empty<Guid>()
+            );
+        }
+
+        var now = _clock.GetUtcNow().UtcDateTime;
+        var reservation = new Reservation
+        {
+            ReservationId = Guid.NewGuid(),
+            BuyerId = buyerId,
+            SellerId = sellerId,
+            ReservationStatus = ReservationState.Active,
+            ExpiresAt = now + ReservationStateMachine.ResponseWindow,
+            CreatedAt = now,
+        };
+        var reservedItems = new List<ReservedItemDto>();
+        var failedListingIds = new List<Guid>();
+
+        foreach (var listingId in listingIds)
+        {
+            if (!await _listings.TryReserveAsync(listingId, ct))
+            {
+                failedListingIds.Add(listingId);
+                continue;
+            }
+            var listing = await _listings.GetByIdAsync(listingId);
+            if (listing is null)
+            {
+                await _listings.ReleaseAsync(listingId, ct);
+                failedListingIds.Add(listingId);
+                continue;
+            }
+
+            reservation.ReservationListings.Add(new ReservationListing { ListingId = listingId });
+
+            reservedItems.Add(
+                new ReservedItemDto(listingId, listing.Title, listing.Price, sellerId)
+            );
+
+            await _snapshots.CreateSnapshotAsync(reservation.ReservationId, listing, ct);
+        }
+        if (reservedItems.Count == 0)
+        {
+            return new ReserveMultipleResultDto(
+                ReservationId: null,
+                SellerId: sellerId,
+                Reserved: Array.Empty<ReservedItemDto>(),
+                FailedListingIds: failedListingIds
+            );
+        }
+        reservation.IsBundle = reservedItems.Count > 1;
+        await _reservations.AddAsync(reservation, ct);
+        await _reservations.SaveAsync(ct);
+
+        //p.ss PLAce in repo!!
+        var itemTitles = string.Join(", ", reservedItems.Select(i => $"\"{i.Title}\""));
+        await _chat.SendSystemAsync(
+            reservation.ReservationId,
+            reservedItems.Count == 1
+                ? $"A buyer is interested in {itemTitles}."
+                : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}",
+            ct
+        );
+
+        foreach (var item in reservedItems)
+        {
+            await _listingNotifier.ListingReservedAsync(item.ListingId, ct);
+            await _wishlist.SuppressForListingAsync(item.ListingId, reservation.ReservationId, ct);
+        }
+        await GuardedPushAsync(
+            sellerId,
+            NotificationTypes.ReservationStatus,
+            reservedItems.Count == 1
+                ? $"A buyer is interested in {itemTitles}."
+                : $"A buyer is interested in {reservedItems.Count} of your items.",
+            ct
+        );
+
+        return new ReserveMultipleResultDto(
+            ReservationId: reservation.ReservationId,
+            SellerId: sellerId,
+            Reserved: reservedItems,
+            FailedListingIds: failedListingIds
+        );
     }
 }

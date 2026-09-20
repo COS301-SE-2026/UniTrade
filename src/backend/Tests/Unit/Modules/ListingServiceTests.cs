@@ -16,6 +16,7 @@ using Modules.Listings.Repositories;
 using Modules.SharedKernel;
 using Moq;
 using Xunit;
+using Modules.Listings.Risk;
 
 namespace Modules.Listings.Tests;
 
@@ -30,6 +31,7 @@ public class ListingServiceTests
     private readonly Mock<ILogger<ListingService>> _loggerMock;
     private readonly Mock<IListingQuestionRepository> _questionRepoMock;
     private readonly Mock<IListingPublishedListener> _listingPublishedListener;
+    private readonly Mock<IListingRiskScoreService> _riskMock;
 
     public ListingServiceTests()
     {
@@ -40,6 +42,7 @@ public class ListingServiceTests
         _loggerMock = new Mock<ILogger<ListingService>>();
         _questionRepoMock = new Mock<IListingQuestionRepository>();
         _listingPublishedListener = new Mock<IListingPublishedListener>();
+        _riskMock = new Mock<IListingRiskScoreService>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -49,13 +52,18 @@ public class ListingServiceTests
             )
             .ReturnsAsync(new Dictionary<Guid, int>());
 
+        _riskMock
+            .Setup(r => r.ScoreAsync(It.IsAny<Listing>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<string>()));
+
         _sut = new ListingService(
             _repo.Object,
             _imageRepo.Object,
             _verificationMock.Object,
             _listingPublishedListener.Object,
             _loggerMock.Object,
-            _questionRepo.Object
+            _questionRepo.Object,
+            _riskMock.Object
         );
     }
 
@@ -644,13 +652,14 @@ public class ListingServiceTests
         Assert.NotNull(result);
         _repo.Verify(
             r =>
-                r.AddAsync(
-                    It.Is<Listing>(l =>
-                        l.CategoryId == category.CategoryId
-                        && l.CourseId == 2
-                        && l.BookDetails != null
-                        && l.BookDetails.Isbn == "0-590-76484-5"
-                        && l.BookDetails.Author == "Rohtua Mbhali"
+                r.AddRangeAsync(
+                    It.Is<IReadOnlyList<Listing>>(l =>
+                        l.Count == 1
+                        && l[0].CategoryId == category.CategoryId
+                        && l[0].CourseId == 2
+                        && l[0].BookDetails != null
+                        && l[0].BookDetails.Isbn == "0-590-76484-5"
+                        && l[0].BookDetails.Author == "Rohtua Mbhali"
                     )
                 ),
             Times.Once
@@ -733,7 +742,10 @@ public class ListingServiceTests
         var result = await _sut.CreateListings(dto, Guid.NewGuid());
         Assert.NotNull(result);
 
-        _repo.Verify(r => r.AddAsync(It.Is<Listing>(l => l.Metadata == null)), Times.Once);
+        _repo.Verify(
+            r => r.AddRangeAsync(It.Is<IReadOnlyList<Listing>>(l => l[0].Metadata == null)),
+            Times.Once
+        );
     }
 
     // Mapping to summary
@@ -890,7 +902,8 @@ public class ListingServiceTests
             BookDetails: null,
             Metadata: null,
             Images: images,
-            Seller: null
+            Seller: null,
+            ListingGroupId: null
         );
 
         Assert.Equal(listingId, dto.ListingId);

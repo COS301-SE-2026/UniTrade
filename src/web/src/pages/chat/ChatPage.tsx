@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getApiUrl } from '../../config';
 import {
     IconSend,
     IconCheck,
@@ -18,7 +19,7 @@ import type { ClientChatMessage } from '../../types/chat';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
-import { combineDateAndTime, type MeetupFormValues,type MeetupStatus } from '../../types/meetup';
+import { combineDateAndTime, type MeetupFormValues, type MeetupStatus } from '../../types/meetup';
 import { queryKeys } from '../../lib/queryKeys';
 import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
 import CheckInModal from '../../components/CheckInModal';
@@ -296,11 +297,11 @@ export default function ChatPage() {
 
     const isSeller = reservation ? reservation.sellerId === user?.id : window.location.pathname.startsWith("/seller");
     const role = isSeller ? "seller" : "buyer";
-    const { data: listing } = useQuery({
+    /*const { data: listing } = useQuery({
         queryKey: ["listing", reservation?.listingId],
         queryFn: () => listingsService.getById(reservation!.listingId),
         enabled: !!reservation?.listingId,
-    });
+    });*/
 
     const locationState = location.state as ChatLocationState | null;
     const counterpartyName =
@@ -377,8 +378,10 @@ export default function ChatPage() {
                         meetupTime,
                         meetupLat,
                         meetupLng,
-                        listingTitle: listing?.title,
-                        listingPrice: listing?.price,
+                        listingTitle: reservation?.isBundle
+                            ? `${reservation.listings.length} items`
+                            : reservation?.listings[0]?.title,
+                        listingPrice: reservation?.totalPrice,
                     },
                 });
             } else if (status === "declined") {
@@ -444,12 +447,12 @@ export default function ChatPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-4 bg-[#f8f9fa] space-y-4">
-                {listing && (
+                {reservation && reservation.listings.length > 0 && (
                     <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
-                        {listing.images?.[0]?.url && (
+                        {!reservation.isBundle && reservation.listings[0].imagePath && (
                             <img
-                                src={listing.images[0].url}
-                                alt={listing.title}
+                                src={`${getApiUrl().split('/api')[0]}${reservation.listings[0].imagePath}`}
+                                alt={reservation.listings[0].title}
                                 className="w-16 h-16 rounded-xl object-cover shrink-0"
                             />
                         )}
@@ -460,11 +463,13 @@ export default function ChatPage() {
                                 </span>
                                 <span className="text-[10px] text-gray-400">•</span>
                                 <span className="text-xs text-gray-500 truncate">
-                                    {listing.title}
+                                    {reservation.isBundle
+                                        ? `${reservation.listings.length} items`
+                                        : reservation.listings[0].title}
                                 </span>
                             </div>
                             <p className="text-sm font-semibold text-gray-900">
-                                R {listing.price.toFixed(2)}
+                                R {reservation.totalPrice.toFixed(2)}
                             </p>
                         </div>
                         <button type='button'
@@ -566,13 +571,15 @@ export default function ChatPage() {
             {isProposingMeetup && (
                 <MeetupProposalForm
                     reservationId={reservationId!}
+                    buyerId={reservation!.buyerId}
+                    sellerId={reservation!.sellerId}
                     role={role}
                     onCancel={() => setIsProposingMeetup(false)}
                     onSubmit={handleProposeMeetup}
                     isSubmitting={isSendingProposal}
                 />
             )}
-            
+
 
             {checkInLocation && (
                 <CheckInModal

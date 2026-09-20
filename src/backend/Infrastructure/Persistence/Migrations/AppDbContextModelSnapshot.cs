@@ -759,6 +759,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_bundle");
 
+                    b.Property<Guid?>("ListingGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_group_id");
+
                     b.Property<string>("ListingStatus")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -818,6 +822,10 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("CourseId1")
                         .HasDatabaseName("ix_listings_course_id1");
 
+                    b.HasIndex("ListingGroupId")
+                        .HasDatabaseName("ix_listings_group")
+                        .HasFilter("listing_group_id IS NOT NULL");
+
                     b.HasIndex("SellerId")
                         .HasDatabaseName("ix_listings_seller");
 
@@ -850,7 +858,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review')");
                         });
                 });
 
@@ -1033,7 +1041,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_listing_snapshots_listing_id");
 
                     b.HasIndex("ReservationId")
-                        .IsUnique()
                         .HasDatabaseName("ix_listing_snapshot_reservation_id");
 
                     b.ToTable("listing_snapshot", "unitrade", t =>
@@ -2045,8 +2052,8 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_listing_snapshot_listings_listing_id");
 
                     b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
-                        .WithOne("ListingSnapshot")
-                        .HasForeignKey("Modules.Listings.Models.ListingSnapshot", "ReservationId")
+                        .WithMany("ListingSnapshots")
+                        .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("fk_listing_snapshot_reservations_reservation_id");
 
@@ -2249,7 +2256,7 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
-                    b.Navigation("ListingSnapshot");
+                    b.Navigation("ListingSnapshots");
 
                     b.Navigation("Meetups");
 

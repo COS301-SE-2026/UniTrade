@@ -17,12 +17,14 @@ public class ReservationsController : ControllerBase
     private readonly IReservationService _reservations;
     private readonly IChatService _chat;
     private readonly IListingSnapshotService _snapshot;
+    private readonly ISmartBudgetService _smartBudget;
 
-    public ReservationsController(IReservationService reservations, IChatService chat, IListingSnapshotService snapshot)
+    public ReservationsController(IReservationService reservations, IChatService chat, IListingSnapshotService snapshot, ISmartBudgetService smartBudget)
     {
         _reservations = reservations;
         _chat = chat;
         _snapshot = snapshot;
+        _smartBudget = smartBudget;
     }
 
     private Guid CallerId
@@ -147,7 +149,7 @@ public class ReservationsController : ControllerBase
     //get /reservation/{reservationId}/snapshot
     [HttpGet("{reservationId:guid}/snapshot")]
     [Authorize]
-    public async Task<ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<ListingSnapshotDto>>> GetSnapshot(Guid reservationId, CancellationToken ct)
     {
         var snapshot = await _snapshot.GetByReservationIdAsync(reservationId, ct);
         if (snapshot is null)
@@ -155,6 +157,43 @@ public class ReservationsController : ControllerBase
             return NotFound();
         }
         return Ok(snapshot);
+    }
+
+    //get/api/reservations/smart-budget/preview?listingIds=<guid>,<guid>&maxBudget=1500
+    [HttpGet("smart-budget/preview")]
+    public async Task<IActionResult> PreviewSmartBudget([FromQuery] string? listingIds, [FromQuery] decimal maxBudget, CancellationToken ct)
+    {
+        var ids = ParseListingIds(listingIds);
+        if (ids is null)
+        {
+            return BadRequest(new { error = "invalid_listing_ids" });
+        }
+        if (maxBudget < 0)
+        {
+            return BadRequest(new { error = "invalid_max_budget" });
+        }
+
+        var preview = await _smartBudget.PreviewAsync(ids, maxBudget, ct);
+        return Ok(preview);
+    }
+
+    private static List<Guid>? ParseListingIds(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return new List<Guid>();
+        }
+
+        var ids = new List<Guid>();
+        foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!Guid.TryParse(part, out var id))
+            {
+                return null;
+            }
+            ids.Add(id);
+        }
+        return ids;
     }
 
     private ObjectResult MapError(ReservationException ex) =>
@@ -173,4 +212,27 @@ public class ReservationsController : ControllerBase
         };
 
     public record CreateReservationRequest([property: JsonRequired] Guid ListingId);
+
+    public record SmartBudgetReserveRequest([property: JsonRequired] List<Guid> ListingIds, [property: JsonRequired] decimal MaxBudget);
+
+    //post /api/reservation/smart-budget
+    [HttpPost("smart-budget")]
+    public async Task<IActionResult> ReserveSmartBudget([FromBody] SmartBudgetReserveRequest body, CancellationToken ct)
+    {
+        if (!IsVerified)
+        {
+            return StatusCode(403, new { error = "not_verified" });
+        }
+        if (body.ListingIds is null || body.ListingIds.Count == 0)
+        {
+            return BadRequest(new { error = "invalid_listing_ids" });
+        }
+        if (body.MaxBudget < 0)
+        {
+            return BadRequest(new { error = "invalid_max_budget" });
+        }
+        var result = await _smartBudget.ReserveAsync(CallerId, body.ListingIds, body.MaxBudget, ct);
+
+        return Ok(result);
+    }
 }

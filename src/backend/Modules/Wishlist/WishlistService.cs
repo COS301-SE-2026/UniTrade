@@ -24,6 +24,7 @@ public class WishlistService : IWishlistService
     )
     {
         var items = await _wishlist.ListForStudentAsync(studentId, ct);
+        await _listings.AttachSellerInfoAsync(items.Select(w => w.Listing).ToList());
         return items.Select(w => MapToDto(w)).ToList();
     }
 
@@ -116,7 +117,8 @@ public class WishlistService : IWishlistService
                     l.Seller.FullName,
                     l.Seller.University,
                     l.Seller.ActiveListingCount
-                )
+                ),
+                ListingGroupId: l.ListingGroupId
         );
         return new WishlistItemDto(w.WishlistId, w.ListingId, w.AddedAt, listing);
     }

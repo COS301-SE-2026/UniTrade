@@ -133,7 +133,7 @@ public class ListingRepository : IListingRepository
     }
 
     // helper function to attach a seller (with their information) to a listing
-    private async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
+    public async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
     {
         if (listings.Count == 0)
         {
@@ -335,4 +335,93 @@ public class ListingRepository : IListingRepository
 
         return rowsFetched == 1;
     }
+
+    public async Task<IReadOnlyList<Listing>> GetByGroupIdAsync(
+        Guid groupId,
+        CancellationToken ct = default
+    ) =>
+        await _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingGroupId == groupId && l.ListingStatus != _removedStatus)
+            .ToListAsync(ct);
+
+    public async Task DuplicateImagesToGroupAsync(
+        Guid sourceListingId,
+        CancellationToken ct = default
+    )
+    {
+        var groupId = await _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingId == sourceListingId)
+            .Select(l => l.ListingGroupId)
+            .FirstOrDefaultAsync(ct);
+
+        if (groupId is null)
+            return;
+
+        var sourceImages = await _db
+            .ListingImages.AsNoTracking()
+            .Where(img => img.ListingId == sourceListingId)
+            .ToListAsync(ct);
+
+        var siblingIds = await _db
+            .Listings.Where(l =>
+                l.ListingGroupId == groupId
+                && l.ListingId != sourceListingId
+                && l.ListingStatus != _removedStatus
+            )
+            .Select(l => l.ListingId)
+            .ToListAsync(ct);
+
+        if (siblingIds.Count == 0)
+            return;
+
+        await using var txn = await _db.Database.BeginTransactionAsync(ct);
+        await _db
+            .ListingImages.Where(img => siblingIds.Contains(img.ListingId))
+            .ExecuteDeleteAsync(ct);
+
+        if (sourceImages.Count > 0)
+        {
+            foreach (var siblingId in siblingIds)
+            {
+                foreach (var img in sourceImages)
+                {
+                    _db.ListingImages.Add(
+                        new ListingImage
+                        {
+                            ListingId = siblingId,
+                            ImageData = img.ImageData,
+                            ContentType = img.ContentType,
+                            FileSize = img.FileSize,
+                            IsPrimary = img.IsPrimary,
+                            UploadedAt = DateTime.UtcNow,
+                        }
+                    );
+                }
+            }
+            await _db.SaveChangesAsync(ct);
+        }
+        await txn.CommitAsync(ct);
+    }
+
+    public async Task AddRangeAsync(IReadOnlyList<Listing> listings)
+    {
+        _db.Listings.AddRange(listings);
+        await _db.SaveChangesAsync();
+    }
+    public async Task<IReadOnlyList<decimal>> GetComparablePricesAsync(int categoryId, int? courseId, Guid excludeListingId, CancellationToken ct = default)
+    {
+        IQueryable<Listing> query = _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingId != excludeListingId)
+            .Where(l => l.ListingStatus == "live" || l.ListingStatus == "low_visibility");
+
+        query = courseId.HasValue
+            ? query.Where(l => l.CourseId == courseId)
+            : query.Where(l => l.CategoryId == categoryId);
+
+        return await query.Select(l => l.Price).ToListAsync(ct);
+    }
+
 }

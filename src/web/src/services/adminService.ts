@@ -20,7 +20,12 @@ import type {
   CaseType,
   UserListing,
   CaseSummary,
+  FlaggedListing,
+  ListingDecisionResponse,
+  ListingStatusResponse,
+  FlaggedListingDetail,
 } from "../types/admin_disputes";
+
 
 export type ButtonAction =
   | "approve"
@@ -96,7 +101,7 @@ function toDecisionRequest(
   };
 }*/
 
-async function handleResponse<T>(res: Response): Promise<T> {
+export async function handleResponse<T>(res: Response): Promise<T> {
   if (res.ok) {
     if (res.status === 204) return {} as T;
     return res.json() as Promise<T>;
@@ -313,3 +318,56 @@ export async function getSlaBreachCount(): Promise<number> {
   ]);
   return cases.filter((c) => disputeTypes.has(c.type) && c.slaBreached).length;
 }
+
+export async function getFlaggedListings(): Promise<FlaggedListing[]> {
+    const res = await fetch(
+      `${getApiUrl()}/admin/listings/flagged?status=under_review`,
+      { method: "GET", credentials: "include" },
+    );
+    return handleResponse<FlaggedListing[]>(res);
+  }
+
+export async function decideListing(
+  id: string,
+  body: {action:"approve" | "remove"; reason?:string},
+): Promise<ListingDecisionResponse> {
+  const res = await fetch(`${getApiUrl()}/admin/listings/${id}/decision`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  return handleResponse<ListingDecisionResponse>(res);
+}
+
+export async function getListingStatus(id: string): Promise<ListingStatusResponse> {
+  const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  return handleResponse<ListingStatusResponse>(res);
+}
+
+export async function getFlaggedListing(id: string): Promise<FlaggedListingDetail> {
+  const res = await fetch(`${getApiUrl()}/admin/listings/${id}/flagged`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<FlaggedListingDetail>(res)
+}
+//TEMP:
+// this is just so builds dont fail, the real types will come from FE3
+/*interface FlaggedListing{
+  listingId: string;
+}
+/*
+interface ListingDecisionBody{
+  action: "approve"|"remove";
+  reason?:string;
+}
+  */
+/*interface ListingDecisionResponse{
+  randomWordSoLintingPassesInTHeMeanWHile: string
+}*/

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { getReservations, cancelReservation } from '../../services/reservationService'
+
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
 import { formatPrice } from '../../utils/formatters'
 import { getApiUrl } from '../../config'
@@ -19,6 +21,10 @@ import {
 import { LoadingState } from '../../components/layout/Spinner'
 import { useSearchQuery } from '../../hooks/useSearchQuery'
 import { fileDispute } from '../../services/adminService'
+import { getReservationSnapshot } from '../../services/adminService'
+import { useReservationsList } from '../../hooks/useReservationsList';
+import { queryKeys } from '../../lib/queryKeys';
+//import type { ListingSnapshot } from '../../types/admin_disputes'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
 type FilterStatus = 'All' | ItemStatus;
@@ -118,8 +124,16 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
   const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [manualSelectedListingId, setManualSelectedListingId] = useState<string | null>(null);
   const apiBase = getApiUrl();
-  const { showToast } = useToast();
+  const { showToast } = useToast()
+
+  const { data: items = [], isLoading: loadingItems } = useQuery({
+    queryKey: ['reservation-snapshot', reservationId],
+    queryFn: () => getReservationSnapshot(reservationId),
+    enabled: isOpen,
+  });
+  const selectedListingId = items.length === 1 ? items[0].listingId : manualSelectedListingId;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -143,7 +157,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 
       }
       const data = await res.json();
-      const url = `${apiBase}${data.url.replace(/^\/api/, '')}`;//if this breaks in prod.. its because of the strip, just add a check later @Sabira
+      const url = `${apiBase}${data.url.replace(/^\/api/, '')}`;
       setPhotos((prev) => [...prev, url]);
       showToast('success', 'Image Uploaded');
 
@@ -168,12 +182,17 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
       return;
     }
 
+    if (items.length > 1 && !selectedListingId) {
+      showToast('info', 'Please select which item you are reporting.')
+      return;
+    }
     setSubmitting(true);
 
     try {
       await fileDispute({
         type: 'listing_quality',
         reservationId,
+        listingId: items.length > 1 ? selectedListingId! : undefined,
         sellerRefusedPhotos,
         photos,
         description: description || undefined,
@@ -184,6 +203,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
       setPhotos([]);
       setDescription('');
       setSellerRefusedPhotos(false);
+      setManualSelectedListingId(null);
     }
     catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -279,6 +299,27 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 
           </div>
 
+          {items.length > 1 && (
+            <div>
+              <label htmlFor="item-picker" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+                Which item is this about?
+              </label>
+              <select
+                id="item-picker"
+                value={selectedListingId ?? ''}
+                onChange={(e) => setManualSelectedListingId(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700"
+              >
+                <option value="" disabled>Select an item</option>
+                {items.map((item) => (
+                  <option key={item.listingId} value={item.listingId}>
+                    {item.title} - {formatPrice(item.price)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {loadingItems && <p className="text-xs text-gray-400">Loading items....</p>}
 
           <div className="flex items-center gap-3">
             <input
@@ -316,6 +357,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
           </button>
         </div>
       </div>
+
     </div>
   )
 }
@@ -340,6 +382,10 @@ function ReservationCard({
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
   const apiOrigin = getApiUrl().split('/api')[0]
+  const primaryItem = reservation.listings[0]
+  const displayTitle = reservation.isBundle
+    ? `${reservation.listings.length} items from ${reservation.counterParty.name}`
+    : primaryItem.title
 
   return (
     <>
@@ -347,15 +393,13 @@ function ReservationCard({
         <button
           type='button'
           onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-
           className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
-
         >
           <img
-            src={reservation.listing.imagePath
-              ? `${apiOrigin}${reservation.listing.imagePath}`
+            src={primaryItem.imagePath
+              ? `${apiOrigin}${primaryItem.imagePath}`
               : '/placeholder.png'}
-            alt={reservation.listing.title}
+            alt={displayTitle}
             className="w-full h-full object-cover rounded-lg"
           />
         </button>
@@ -364,7 +408,6 @@ function ReservationCard({
             <div
               role='button'
               tabIndex={0}
-
               onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -376,7 +419,7 @@ function ReservationCard({
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-sm font-bold text-gray-800 truncate">
-                  {reservation.listing.title}
+                  {displayTitle}
                 </p>
                 <StatusBadge status={reservation.reservationStatus} />
               </div>
@@ -401,7 +444,7 @@ function ReservationCard({
           <div className="flex items-center gap-2 mt-2">
             {isActive && <StageTag stage={reservation.timerStage} />}
             <span className="text-sm font-bold text-gray-800">
-              {formatPrice(reservation.listing.price)}
+              {formatPrice(reservation.totalPrice)}
             </span>
           </div>
 
@@ -460,9 +503,10 @@ function ReservationCard({
 }
 
 export default function Reservations() {
-  const [reservations, setReservations] = useState<ReservationListItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('buyer')
+  const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
+
   const { showToast } = useToast()
   const [sortOption, setSortOption] = useState<SortOption>("Date added")
   const [sortOpen, setSortOpen] = useState(false)
@@ -470,27 +514,14 @@ export default function Reservations() {
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
   const searchQuery = useSearchQuery()
 
-  useEffect(() => {
-    getReservations({ role: 'buyer' }).then((result) => {
-      if (result.success) {
-        setReservations(result.data.items)
-        showToast('success', 'Successfully fetched your reservations!!')
-      } else {
-        setError(result.error.message ?? 'Could not load your reservations.')
-        showToast('error', 'Could not load your reservations!!')
-      }
-    }).finally(() => setLoading(false))
-  }, [showToast])
-
   const handleCancel = async (reservationId: string) => {
-    const previous = reservations
-    setReservations((prev) => prev.map((r) => r.reservationId === reservationId ? { ...r, reservationStatus: 'cancelled' } : r))
     const result = await cancelReservation(reservationId)
-    if (!result.success) {
-      setReservations(previous)
-      showToast('error', 'Failed to cancel reservation.');
-    } else {
+    if (result.success) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.reservations('buyer') })
+
       showToast('success', 'Successfully cancelled the reservation!!');
+    } else {
+      showToast('error', 'Failed to cancel reservation.');
     }
   }
 
@@ -502,7 +533,7 @@ export default function Reservations() {
     if (searchQuery) {
       result = result.filter(
         (r) =>
-          r.listing.title.toLowerCase().includes(searchQuery) ||
+          r.listings.some((l) => l.title.toLowerCase().includes(searchQuery)) ||
           r.counterParty.name.toLowerCase().includes(searchQuery)
       )
     }
@@ -513,9 +544,9 @@ export default function Reservations() {
   const sorted = useMemo(() => {
     const copy = [...filtered];
     if (sortOption === "Price low") {
-      copy.sort((a, b) => a.listing.price - b.listing.price);
+      copy.sort((a, b) => a.totalPrice - b.totalPrice);
     } else if (sortOption === "Price high") {
-      copy.sort((a, b) => b.listing.price - a.listing.price);
+      copy.sort((a, b) => b.totalPrice - a.totalPrice);
     } else {
       copy.sort(
         (a, b) =>
@@ -530,7 +561,7 @@ export default function Reservations() {
     const activeCount = reservations.filter((r) => r.reservationStatus === 'active').length
     const expiringCount = reservations.filter(
       (r) => r.reservationStatus === 'active' && getUrgency(getMsRemaining(r.expiresAt)) === 'expiring').length
-    const totalValue = reservations.filter((r) => r.reservationStatus === 'active').reduce((sum, r) => sum + r.listing.price, 0)
+    const totalValue = reservations.filter((r) => r.reservationStatus === 'active').reduce((sum, r) => sum + r.totalPrice, 0)
 
     return { activeCount, expiringCount, totalValue }
   }, [reservations])

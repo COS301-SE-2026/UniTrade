@@ -48,6 +48,7 @@ public class DisputesController : ControllerBase
             when (ex.Message
                 is "reservation_id_required"
                     or "listing_id_required"
+                    or "listing_id_required_for_bundle"
                     or "meetup_id_required"
                     or "report_reason_required"
                     or "photos_required"
@@ -57,7 +58,7 @@ public class DisputesController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
         catch (DisputesException ex)
-            when (ex.Message is "snapshot_not_found" or "meetup_not_found" or "listing_not_found")
+            when (ex.Message is "snapshot_not_found" or "meetup_not_found" or "listing_not_found" or "listing_not_in_reservation")
         {
             return NotFound(new { error = ex.Message });
         }

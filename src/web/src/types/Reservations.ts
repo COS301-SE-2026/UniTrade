@@ -16,6 +16,9 @@ export interface Reservation {
     counterParty: ReservationCounterparty | null;
     handoverConfirmedAt: string | null
     completedAt: string | null
+    listings: ReservationListingPreview[];
+    totalPrice: number;
+    isBundle: boolean;
 }
 
 export interface ReservationCounterparty {
@@ -25,14 +28,17 @@ export interface ReservationCounterparty {
 }
 
 export interface ReservationListingPreview {
+    listingId: string;
     title: string;
     price: number;
     imagePath: string;
 }
 
-export interface ReservationListItem extends Reservation {
+export interface ReservationListItem extends Omit<Reservation, 'listingId'> {
     counterParty: ReservationCounterparty;
-    listing: ReservationListingPreview;
+    listings: ReservationListingPreview[];
+    totalPrice: number;
+    isBundle: boolean;
     unreadCount: number;
     lastMessagePreview: string | null;
     lastMessageAt: string | null;
@@ -141,3 +147,43 @@ export type Result<T> =
     | { success: true; data: T }
     | { success: false; error: ApiError };
 
+
+export interface SmartBudgetRequest {
+    listingIds: string[];
+    maxBudget: number;
+}
+
+export interface SmartBudgetItem {
+    listingId: string;
+    title: string;
+    price: number;
+}
+
+export interface SmartBudgetReservationGroup {
+    reservationId: string;
+    sellerId: string;
+    sellerInitials: string;
+    items: SmartBudgetItem[];
+    subTotal: number;
+}
+
+export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
+    reason: "over_budget" | "taken";
+}
+
+export interface SmartBudgetReservedItem extends SmartBudgetItem {
+    sellerId: string;
+}
+
+export interface SmartBudgetResponse {
+    totalSpent: number;
+    reservations: SmartBudgetReservationGroup[];
+    reserved: SmartBudgetItem[];
+    notReserved: SmartBudgetNotReservedItem[];
+}
+
+export interface SmartBudgetPreviewResponse {
+    wouldReserve: string[];
+    totalCount: number;
+    excluded: string[];
+}

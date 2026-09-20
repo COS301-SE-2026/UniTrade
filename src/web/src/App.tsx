@@ -88,6 +88,10 @@ const PaymentComplete = lazy(() => import("./pages/payment/PaymentComplete"));
 const BrandingStyleDoc = lazy(() => import("./pages/auth/BrandingStyleDoc"));
 const ProofOfRegistrationUpload = lazy(() => import("./pages/auth/UploadProofOfRegistration"));
 const SavedSearches = lazy(() => import("./pages/buyer/SavedSearches"));  
+const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResult"));
+const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
+const AdminListingRiskReview = lazy(() => import("./pages/admin/AdminListingRiskReview"))
+
 
 
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
@@ -153,7 +157,9 @@ export default function App() {
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
+          <Route path="/buyer/smart-budget-reserve" element={<SmartBudgetReserve />} />
           <Route path = "/buyer/saved-searches" element={<SavedSearches />} />
+          <Route path = "/buyer/reservations/smart-budget-result" element={<SmartBudgetReservation />} />
           <Route path="/seller/reservations" element={<SellerReservations />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/upload" element={<UploadListing />} />
@@ -163,9 +169,11 @@ export default function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
+          <Route path="/admin/listings/flagged/:id" element={<AdminListingRiskReview />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/users/:userId" element={<ViewUser />} />
+
 
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
