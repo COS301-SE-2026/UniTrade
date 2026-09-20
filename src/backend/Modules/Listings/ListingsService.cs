@@ -197,6 +197,8 @@ public class ListingService : IListingService
             newListing.AiRiskScore = risk.Score;
             newListing.AiRiskLevel = risk.Level;
             newListing.VisibilityScore = risk.VisibilityScore;
+            newListing.AiRiskReasons = risk.Reasons.ToArray();
+
 
             if (risk.Level == "high")
             {
@@ -402,6 +404,7 @@ public class ListingService : IListingService
             listing.AiRiskLevel = risk.Level;
             listing.VisibilityScore = risk.VisibilityScore;
             listing.ListingStatus = risk.Level == "high" ? "under_review" : newStatus;
+            listing.AiRiskReasons = risk.Reasons.ToArray();
         }
         else
         {
