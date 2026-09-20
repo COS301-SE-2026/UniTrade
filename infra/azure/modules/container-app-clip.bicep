@@ -4,6 +4,7 @@ param containerAppsEnvId string
 param acrLoginServer string
 param placeholderImage string
 param useAcrRegistry bool = false
+param useRealImage bool=false
 
 var appName = 'ca-clip-${environment}'
 
@@ -18,7 +19,7 @@ resource clipApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
     configuration: {
       ingress: {
         external: false
-        targetPort: 8000
+        targetPort: useRealImage ? 8000 : 80
         transport: 'auto'
         clientCertificateMode: 'ignore'
       }
