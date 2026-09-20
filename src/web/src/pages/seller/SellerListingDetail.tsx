@@ -65,6 +65,22 @@ export default function SellerListingDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+    useEffect(() => {
+    if (!id) return;
+
+    const off = connectionManager.onListingStatusChanged((e) => {
+    if (e.listingId !== id) return;
+
+      listingsService
+        .getListingStatus(id)
+        .then(setStatusData)
+        .catch(() => {
+        });
+    });
+
+    return off;
+  }, [id]);
+
   const handleDelete = async () => {
     if (!id) return;
     if (!window.confirm("Delete this listing? This cannot be undone.")) return;
