@@ -6,8 +6,7 @@ RUN groupadd --gid 1001 clipuser \
 WORKDIR /app
 
 COPY --chown=root:root requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt
+RUN pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt
 
 ENV HF_HOME=/home/clipuser/.cache/huggingface
 RUN mkdir -p ${HF_HOME} && chown -R clipuser:clipuser ${HF_HOME}
