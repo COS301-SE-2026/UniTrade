@@ -19,35 +19,35 @@ public class ListingRiskScoreService : IListingRiskScoreService
     private const decimal MediumRiskUpperBound = 69m;
     private const int FullVisibilityScore = 100;
     private const int MinMediumVisibilityScore = 20;
-    private const int DuplicateHashThreshold=8;
+    private const int DuplicateHashThreshold = 8;
 
-    private const decimal PriceSignalWeight=0.4m;
-    private const decimal SellerHistorySignalWeight=0.3m;
-    private const decimal DuplicateSignalWeight=0.3m;
+    private const decimal PriceSignalWeight = 0.4m;
+    private const decimal SellerHistorySignalWeight = 0.3m;
+    private const decimal DuplicateSignalWeight = 0.3m;
 
     //seller hsitory sub signals
-    private const decimal RatingSubWeight=0.5m;
-    private const decimal StrikeSubWeight=0.5m;
-    private const int StrikeRiskPerStrike=34;
+    private const decimal RatingSubWeight = 0.5m;
+    private const decimal StrikeSubWeight = 0.5m;
+    private const int StrikeRiskPerStrike = 34;
 
-    public ListingRiskScoreService(IListingRepository listings,IListingImageRepository images, IPerceptualHashService hashing,IUserRepository users,IStrikeRepository strikes)
+    public ListingRiskScoreService(IListingRepository listings, IListingImageRepository images, IPerceptualHashService hashing, IUserRepository users, IStrikeRepository strikes)
     {
         _listings = listings;
-        _images=images;
-        _hashing=hashing;
-        _users=users;
-        _strikes=strikes;
+        _images = images;
+        _hashing = hashing;
+        _users = users;
+        _strikes = strikes;
     }
 
     public async Task<RiskScoreResult> ScoreAsync(Listing listing, CancellationToken ct = default)
     {
         var reasons = new List<string>();
         var priceScore = await ComputePriceDeviationScoreAsync(listing, reasons, ct);
-        var duplicateSore=await ComputeDuplicateImageScoreAsync(listing, reasons, ct);
+        var duplicateSore = await ComputeDuplicateImageScoreAsync(listing, reasons, ct);
 
         var combinedScore = CombineSignals(
-            (priceScore,PriceSignalWeight),
-            (duplicateSore,DuplicateSignalWeight)
+            (priceScore, PriceSignalWeight),
+            (duplicateSore, DuplicateSignalWeight)
         );
         var level = combinedScore > MediumRiskUpperBound ? "high" : combinedScore > LowRiskUpperBound ? "medium" : "low";
 
@@ -60,21 +60,21 @@ public class ListingRiskScoreService : IListingRiskScoreService
         return new RiskScoreResult(combinedScore, level, visibilityScore, reasons);
     }
 
-    private static decimal CombineSignals(params(decimal? Score, decimal Weight)[] signals)
+    private static decimal CombineSignals(params (decimal? Score, decimal Weight)[] signals)
     {
-        decimal weightedSum=0m;
-        decimal totalWeight=0m;
+        decimal weightedSum = 0m;
+        decimal totalWeight = 0m;
 
-        foreach(var(score,weight) in signals)
+        foreach (var (score, weight) in signals)
         {
-            if(score is null)
+            if (score is null)
             {
                 continue;
             }
-            weightedSum+=score.Value*weight;
-            totalWeight+=weight;
+            weightedSum += score.Value * weight;
+            totalWeight += weight;
         }
-        return totalWeight==0m ? 0m:weightedSum/totalWeight;
+        return totalWeight == 0m ? 0m : weightedSum / totalWeight;
     }
 
 
@@ -119,26 +119,26 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
     private async Task<decimal?> ComputeDuplicateImageScoreAsync(Listing listing, List<string> reasons, CancellationToken ct)
     {
-        var ownHashes=listing
-            .Images.Where(img=>img.PerceptualHash!=null)
-            .Select(img=>img.PerceptualHash!)
+        var ownHashes = listing
+            .Images.Where(img => img.PerceptualHash != null)
+            .Select(img => img.PerceptualHash!)
             .ToList();
-        if(ownHashes.Count==0)
+        if (ownHashes.Count == 0)
         {
             return null;
         }
-        var comparablePool=await _images.GetComparableImageHashesAsync(listing.ListingId,ct);
+        var comparablePool = await _images.GetComparableImageHashesAsync(listing.ListingId, ct);
 
-        if(comparablePool.Count==0)
+        if (comparablePool.Count == 0)
         {
             return 0m;
         }
-        var hasCrossSellerMatch=ownHashes.Any(ownHash=>
-            comparablePool.Any(candidate=>
-                candidate.SellerId!=listing.SellerId
-                && _hashing.HammingDistance(ownHash,candidate.Hash)<=DuplicateHashThreshold));
-        
-        if(hasCrossSellerMatch)
+        var hasCrossSellerMatch = ownHashes.Any(ownHash =>
+            comparablePool.Any(candidate =>
+                candidate.SellerId != listing.SellerId
+                && _hashing.HammingDistance(ownHash, candidate.Hash) <= DuplicateHashThreshold));
+
+        if (hasCrossSellerMatch)
         {
             reasons.Add("duplicate_image");
             return 100m;

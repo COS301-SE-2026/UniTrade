@@ -78,6 +78,8 @@ using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
 using Modules.Listings.Risk;
+using Infrastructure.Imaging;
+
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -311,6 +313,7 @@ builder.Services.AddScoped<ITimetableService, TimetableService>();
 builder.Services.AddScoped<ITimetableQueryForAvailability, TimetableQueryForAvailability>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IIcsImportService, IcsImportService>();
+builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
 
 if (!builder.Environment.IsDevelopment())
 {

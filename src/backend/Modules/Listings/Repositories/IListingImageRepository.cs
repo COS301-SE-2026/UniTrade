@@ -10,5 +10,5 @@ public interface IListingImageRepository
         CancellationToken ct = default
     );
     Task DeleteAsync(int imageId, CancellationToken ct = default);
-    Task<IReadOnlyList<(Guid SellerId,string Hash)>> GetComparableImageHashesAsync(Guid excludeListingId, CancellationToken ct=default);
+    Task<IReadOnlyList<(Guid SellerId, string Hash)>> GetComparableImageHashesAsync(Guid excludeListingId, CancellationToken ct = default);
 }

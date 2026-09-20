@@ -36,16 +36,16 @@ public class ListingImageRepository : IListingImageRepository
         await _db.ListingImages.Where(i => i.ImageId == imageId).ExecuteDeleteAsync(ct);
     }
 
-    public async Task<IReadOnlyList<(Guid SellerId,string Hash)>> GetComparableImageHashesAsync(Guid excludeListingId, CancellationToken ct=default)
+    public async Task<IReadOnlyList<(Guid SellerId, string Hash)>> GetComparableImageHashesAsync(Guid excludeListingId, CancellationToken ct = default)
     {
-        var rows=await _db
+        var rows = await _db
             .ListingImages.AsNoTracking()
-            .Where(img=>img.PerceptualHash!=null)
-            .Where(img=>img.ListingId!=excludeListingId && (img.Listing!.ListingStatus=="live" || img.Listing!.ListingStatus=="low_visibility"))
-            .Select(img=>new {img.Listing!.SellerId,Hash=img.PerceptualHash!})
+            .Where(img => img.PerceptualHash != null)
+            .Where(img => img.ListingId != excludeListingId && (img.Listing!.ListingStatus == "live" || img.Listing!.ListingStatus == "low_visibility"))
+            .Select(img => new { img.Listing!.SellerId, Hash = img.PerceptualHash! })
             .ToListAsync(ct);
 
-        return rows.Select(r=>(r.SellerId,r.Hash)).ToList();
+        return rows.Select(r => (r.SellerId, r.Hash)).ToList();
     }
 
 }
