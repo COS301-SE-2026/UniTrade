@@ -442,4 +442,32 @@ public class ListingService : IListingService
 
         return true;
     }
+
+    public async Task<SellerListingStatusDto?> GetStatusAsync(Guid listingId, Guid callerId)
+    {
+        var listing = await _listings.GetByIdAnyStatusAsync(listingId);
+        if (listing is null)
+        {
+            return null;
+        }
+        if (listing.SellerId != callerId)
+        {
+            throw new UnauthorizedAccessException("forbidden");
+        }
+
+        var (status, message) = MapStatusAndMessage(listing);
+        return new SellerListingStatusDto(listing.ListingId, status, listing.AiRiskLevel ?? "low", message);
+    }
+
+    private static (string Status, string Message) MapStatusAndMessage(Listing listing)
+    {
+        return listing.ListingStatus switch
+        {
+            "live" => ("live", "Your listing is live."),
+            "under_review" => ("under_review", "Your listing is being by an admin."),
+            "removed" => ("removed", $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified}"}"),
+            "low_visibility" => ("live", "Your listing is live."),
+            _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
+        };
+    }
 }
