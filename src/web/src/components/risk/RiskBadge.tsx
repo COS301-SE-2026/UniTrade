@@ -6,7 +6,7 @@ const STYLES: Record<RiskLevel, { label: string; classes: string }> = {
     low: { label: 'Low risk', classes: 'bg-emerald-100 text-emerald-700' },
 }
 
-const FALLBACK = { label: 'Unkown risk', classes: 'bg-gray-100 text-gray-600' }
+const FALLBACK = { label: 'Unknown risk', classes: 'bg-gray-100 text-gray-600' }
 
 export default function RiskBadge({ level }: { level: RiskLevel }) {
     const style = STYLES[level] ?? FALLBACK
