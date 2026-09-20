@@ -94,7 +94,8 @@ public class AdminListingRiskService : IAdminListingRiskService
                 {
                     ActorId=adminId,
                     Action="listing.removed",
-                    EntityType=listingId.ToString(),
+                    EntityType="Listing",
+                    EntityId=listingId.ToString(),
                     OldValue=statusBeforeDecision,
                     NewValue="removed",
                     Reason=reason,
@@ -110,6 +111,20 @@ public class AdminListingRiskService : IAdminListingRiskService
         listing.UpdatedAt = DateTime.UtcNow;
 
         await _listings.SaveAsync();
+
+        await _audits.AddAsync(
+                new AuditLog
+                {
+                    ActorId=adminId,
+                    Action="listing.removed",
+                    EntityType="Listing",
+                    EntityId=listingId.ToString(),
+                    OldValue=statusBeforeDecision,
+                    NewValue="removed",
+                    Reason=reason,
+                },
+                ct
+            );
         await _notifications.NotifyAsync(listing.SellerId, NotificationTypes.ListingStatus, $"Your listing '{listing.Title}' has been approved and is now live.", ct);
 
         try
