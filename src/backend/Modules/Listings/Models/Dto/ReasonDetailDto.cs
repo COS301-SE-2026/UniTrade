@@ -24,6 +24,6 @@ public sealed record FlaggedListingDetailDto(
     string RiskLevel,
     int? VisibilityScore,
     List<ReasonDetailDto> Reasons,
-    decimal? ImageMatchScore,
+    double? ImageMatchScore,
     DateTime CreatedAt
 );

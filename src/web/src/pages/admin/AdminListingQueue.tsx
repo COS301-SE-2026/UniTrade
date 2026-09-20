@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { IconCheck, IconX,} from "@tabler/icons-react"
+import { useEffect, useState } from "react"
+import { IconCheck, IconX, } from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getFlaggedListings, decideListing } from "../../services/adminService"
@@ -12,6 +12,7 @@ import RiskBadge from "../../components/risk/RiskBadge"
 import RiskReasons from '../../components/risk/RiskReasons'
 import ImageMatchScore from "../../components/risk/ImageMatchScore"
 import { isLowImageMatch } from "../../utils/riskUtils"
+import { connectionManager } from "../../services/realtime/connectionManager"
 
 type Filter = 'All' | 'Price anomaly' | 'Duplicate image' | 'Low image match'
 type SortBy = 'Oldest First' | 'Newest First'
@@ -42,6 +43,12 @@ export default function AdminListingQueue() {
   const [removeReason, setRemoveReason] = useState('')
 
   const queryClient = useQueryClient()
+  useEffect(() => {
+    const off = connectionManager.onListingFlagged(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.flaggedListings() })
+    })
+    return off
+  }, [queryClient])
 
   const { data: listings = [], isLoading: loading, error } = useQuery({
     queryKey: queryKeys.flaggedListings(),
@@ -96,6 +103,7 @@ export default function AdminListingQueue() {
     { label: 'Low image match', count: numLowMatch },
   ]
 
+
   return (
     <div className="space-y-6">
       <div>
@@ -128,7 +136,7 @@ export default function AdminListingQueue() {
 
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center space-x-3">
-          {filters.map(({ label}) => (
+          {filters.map(({ label }) => (
             <button
               key={label}
               type="button"
@@ -240,13 +248,13 @@ export default function AdminListingQueue() {
 
                   <td className="py-4 px-4">
                     <div className="flex items-center justify-center space-x-2">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => navigate(`/admin/listings/flagged/${l.listingId}`)}
                         className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-4 py-1.5"
-                        >
-                          Review
-                        </button>
+                      >
+                        Review
+                      </button>
                       <button
                         type="button"
                         disabled={busyId === l.listingId}

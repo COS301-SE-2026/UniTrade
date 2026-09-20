@@ -37,4 +37,7 @@ public class ListingNotifier : IListingNotifier
                 },
                 ct
             );
+
+    public Task ListingFlaggedForAdminAsync(Guid listingId, CancellationToken ct = default) =>
+        _hub.Clients.Group("Admins").SendAsync("listing_flagged", new { listingId }, ct);
 }

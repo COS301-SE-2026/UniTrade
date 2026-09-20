@@ -11,4 +11,5 @@ public interface IListingNotifier
         string riskLevel,
         CancellationToken ct = default
     );
+    Task ListingFlaggedForAdminAsync(Guid listingId, CancellationToken ct = default);
 }

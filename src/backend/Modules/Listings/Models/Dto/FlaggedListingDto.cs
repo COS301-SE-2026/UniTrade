@@ -9,7 +9,7 @@ public record FlaggedListingDto(
     decimal RiskScore,
     string RiskLevel,
     List<string> Reasons,//ireadonlylist?
-    decimal? ImageMatchScore,//for clip
+    double? ImageMatchScore,//for clip
     DateTime CreatedAt
 );
 
@@ -22,6 +22,6 @@ public record FlaggedListingDto(
 //     string LastName,
 //     decimal? AiRiskScore,
 //     string? AiRiskLevel,
-//     string[]? RiskReasons,
+//Listingstring[]? RiskReasons,
 //     DateTime CreatedAt
 // );

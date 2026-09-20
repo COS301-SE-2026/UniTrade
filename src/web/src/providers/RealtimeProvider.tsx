@@ -24,7 +24,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   const navigate = useNavigate();
 
   useEffect(() => {
-if (import.meta.env.DEV || !user) return;
+    if (import.meta.env.DEV || !user) return;
 
     connectionManager
       .connect()
@@ -40,7 +40,7 @@ if (import.meta.env.DEV || !user) return;
   }, [user]);
 
   useEffect(() => {
- //if (import.meta.env.DEV || !user) return;
+    //if (import.meta.env.DEV || !user) return;
 
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
@@ -57,7 +57,7 @@ if (import.meta.env.DEV || !user) return;
   }, [user]);
 
   useEffect(() => {
- //if (import.meta.env.DEV || !user) return;
+    //if (import.meta.env.DEV || !user) return;
 
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
@@ -67,7 +67,7 @@ if (import.meta.env.DEV || !user) return;
   }, [user, showToast]);
 
   useEffect(() => {
-  //  if (import.meta.env.DEV || !user) return;
+    //  if (import.meta.env.DEV || !user) return;
 
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
@@ -148,30 +148,39 @@ if (import.meta.env.DEV || !user) return;
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
-    if(user?.role === "admin") {
+    const offListingStatusChanged = connectionManager.onListingStatusChanged((e) => {
+      queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+      queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
+      queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
+
+      showToast("info", e.status === "under_review" ? "A listing was held for review." : e.status === "removed" ? "A listing was removed by an admin." : "A listing is now live.");
+
+    })
+
+    if (user?.role === "admin") {
       connectionManager.joinAdminGroup().catch((e) =>
-      console.error("joinAdminGroup failed", e),
-    );
+        console.error("joinAdminGroup failed", e),
+      );
     }
 
     const offDisputeCreated = connectionManager.onDisputeCreated(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.disputes()});
-      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     })
 
-    const offVerificationCreated= connectionManager.onVerificationCreated(()=>{
-      queryClient.invalidateQueries({queryKey: queryKeys.verifications()});
-      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+    const offVerificationCreated = connectionManager.onVerificationCreated(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.verifications() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     });
 
     const offDisputeResolved = connectionManager.onDisputeResolved(() => {
-      queryClient.invalidateQueries({queryKey: queryKeys.disputes()});
-      queryClient.invalidateQueries({queryKey: queryKeys.dashboardStats()});
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     })
 
     const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
       showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
-     })
+    })
 
     const offForceLogout = connectionManager.onForceLogout(async () => {
       showToast("info", "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.");
@@ -182,17 +191,17 @@ if (import.meta.env.DEV || !user) return;
         console.error("logout request failed", err);
       } finally {
         clearUser();
-        navigate("/auth/Login", { replace: true});
+        navigate("/auth/Login", { replace: true });
       }
-  });
+    });
 
-const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
-  showToast("info", e.reason
-    ? `More info needed for your verification: ${e.reason}`
-    : "Please resubmit your proof of registration."
-  );
-  navigate("/auth/ProofUpload");
-});
+    const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
+      showToast("info", e.reason
+        ? `More info needed for your verification: ${e.reason}`
+        : "Please resubmit your proof of registration."
+      );
+      navigate("/auth/ProofUpload");
+    });
     return () => {
       offMessage();
       offReconnected();
@@ -205,7 +214,8 @@ const offVerificationResubmission = connectionManager.onVerificationResubmission
       offVerificationCreated();
       offForceLogout();
       offVerificationResubmission();
-      if(user?.role === "admin") {
+      offListingStatusChanged();
+      if (user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }
     };

@@ -33,7 +33,7 @@ class ConnectionManager {
     (listingId: string, event: "reserved" | "released" | "created") => void
   >();
   private readonly listingStatusChangedListeners = new Set<
-  (e: {listingId: string; status: string; riskLevel: string}) => void
+    (e: { listingId: string; status: string; riskLevel: string }) => void
   >();
   private readonly pinGeneratedListeners = new Set<
     (e: { reservationId: string; pin: string }) => void
@@ -73,6 +73,11 @@ class ConnectionManager {
   private readonly timetableUpdatedListeners = new Set<
     (p: { userId: string }) => void
   >();
+
+  private readonly listingFlaggedListeners = new Set<
+    (e: { listingId: string }) => void
+  >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -108,7 +113,7 @@ class ConnectionManager {
 
       conn.on(
         "listing_status_changed",
-        (e: {listingId: string; status: string; riskLevel: string}) => 
+        (e: { listingId: string; status: string; riskLevel: string }) =>
           this.listingStatusChangedListeners.forEach((cb) => cb(e)),
       );
       conn.on("pin_generated", (e: { reservationId: string; pin: string }) =>
@@ -159,9 +164,12 @@ class ConnectionManager {
       conn.on("timetable_updated", (p: { userId: string }) =>
         this.timetableUpdatedListeners.forEach((cb) => cb(p)),
       );
-      conn.onreconnecting(() => {
-        this.notifyState("Reconnecting");
-      });
+      (conn.on("listing_flagged", (e: { listingId: string }) =>
+        this.listingFlaggedListeners.forEach((cb) => cb(e)),
+      ),
+        conn.onreconnecting(() => {
+          this.notifyState("Reconnecting");
+        }));
 
       conn.onreconnected(async () => {
         await Promise.allSettled(
@@ -254,11 +262,14 @@ class ConnectionManager {
   }
 
   onListingStatusChanged(
-    cb : (e: {listingId: string; status: string; riskLevel: string}) => void,
-
+    cb: (e: { listingId: string; status: string; riskLevel: string }) => void,
   ): Unsubscribe {
     this.listingStatusChangedListeners.add(cb);
     return () => this.listingStatusChangedListeners.delete(cb);
+  }
+  onListingFlagged(cb: (e: { listingId: string }) => void): Unsubscribe {
+    this.listingFlaggedListeners.add(cb);
+    return () => this.listingFlaggedListeners.delete(cb);
   }
   onPinConfirmed(
     callback: (e: { reservationId: string }) => void,

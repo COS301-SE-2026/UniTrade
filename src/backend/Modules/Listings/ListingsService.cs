@@ -6,6 +6,7 @@ using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
 using Modules.Listings.Risk;
+using Modules.Listings.Scoring;
 using Modules.SharedKernel;
 
 namespace Modules.Listings;
@@ -20,7 +21,7 @@ public class ListingService : IListingService
     private readonly IListingQuestionRepository _questions;
     private readonly IListingRiskScoreService _risk;
     private readonly IListingNotifier _notifier;
-
+    private readonly IClipVisionClient _clip;
     private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
@@ -37,7 +38,8 @@ public class ListingService : IListingService
         ILogger<ListingService> logger,
         IListingQuestionRepository questions,
         IListingRiskScoreService risk,
-        IListingNotifier notifier
+        IListingNotifier notifier,
+        IClipVisionClient clip
     )
     {
         _listings = listings;
@@ -48,6 +50,7 @@ public class ListingService : IListingService
         _questions = questions;
         _risk = risk;
         _notifier = notifier;
+        _clip = clip;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -233,6 +236,7 @@ public class ListingService : IListingService
                     newListing.AiRiskLevel ?? "low",
                     ct
                 );
+                await _notifier.ListingFlaggedForAdminAsync(newListing.ListingId, ct);
             }
         }
         foreach (var newListing in created.Where(l => l.ListingStatus == "live"))
@@ -453,6 +457,10 @@ public class ListingService : IListingService
             listing.AiRiskLevel ?? "low",
             ct
         );
+        if (listing.ListingStatus == "under_review")
+        {
+            await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
+        }
         if (listing.ListingStatus == "live")
         {
             try
@@ -537,6 +545,12 @@ public class ListingService : IListingService
         listing.VisibilityScore = risk.VisibilityScore;
         listing.AiRiskReasons = risk.Reasons.ToList();
 
+        var primary = listing.Images.FirstOrDefault(i=> i.IsPrimary)?? listing.Images.FirstOrDefault();
+        if(primary is not null && primary.ImageData.Length > 0)
+        {
+            var label = listing.Category?.Name ?? "item";
+            listing.ImageMatchScore = await _clip.ScoreAsync(primary.ImageData, label, ct);
+        }
         if (risk.Level == "high")
         {
             listing.ListingStatus = "under_review";
@@ -553,6 +567,7 @@ public class ListingService : IListingService
                 listing.AiRiskLevel ?? "low",
                 ct
             );
+            await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
         }
     }
 

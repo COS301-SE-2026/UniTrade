@@ -33,7 +33,7 @@ const UploadListing: React.FC = () => {
   const [courseLoading, setCourseLoading] = useState(false);
   const [brand, setBrand] = useState("");
   const [dimensions, setDimensions] = useState("");
-  const {showToast} = useToast();
+  const { showToast } = useToast();
   const [heldListing, setHeldListingId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   //const { showToast } = useToast();
@@ -168,12 +168,20 @@ const UploadListing: React.FC = () => {
       await listingsService.uploadImages(listingId, files);
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
 
-      if(listingStatus === "under_review") {
+      let finalStatus = listingStatus;
+      try {
+        const status = await listingsService.getListingStatus(listingId);
+        finalStatus = status.status;
+      }
+      catch {
+        // left on purpose
+      }
+      if (finalStatus === "under_review") {
         setHeldListingId(listingId);
         return;
       }
-      if (listingStatus === "live"){
-      showToast('success', 'Listing uploaded successfully');
+      if (listingStatus === "live") {
+        showToast('success', 'Listing uploaded successfully');
       } else {
         showToast('info', 'Saved as a draft - you\u2019ll be able to publish once your verification is approved.');
       }
@@ -231,27 +239,27 @@ const UploadListing: React.FC = () => {
     }
   };
 
-  if(heldListing) {
+  if (heldListing) {
     return (
-      <div className = "max-w-2xl w-full mx-auto p-6">
-        <div className = "bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center">
-          <div className = "w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
-            <IconClock size = {14} stroke = {2} />
+      <div className="max-w-2xl w-full mx-auto p-6">
+        <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <IconClock size={14} stroke={2} />
           </div>
           <h2 className="font-['Fraunces'] text-2xl text-gray-800 mb-2">
             Your listing is being reviewed
           </h2>
           <p className="text-sm text-slate-500 leading-relaxed mb-6">
             "{title}" was uploaded successfully, but our automated checks
-              flagged it for a closer look. An admin will review it before it
-              goes live. Do not worry you will  be notified as soon as that happens, you
-              don't need to do anything.
+            flagged it for a closer look. An admin will review it before it
+            goes live. Do not worry you will  be notified as soon as that happens, you
+            don't need to do anything.
           </p>
-          <div className = "flex justify-center gap-3">
-            <button 
-            type = "button"
-            onClick = {() => navigate(`/seller/listings/${heldListing}`)}
-            className = "px-5 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold hover:bg-sky-900 transition-all shadow-md"
+          <div className="flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(`/seller/listings/${heldListing}`)}
+              className="px-5 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold hover:bg-sky-900 transition-all shadow-md"
             >
               View listing
             </button>

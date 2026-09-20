@@ -61,7 +61,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 l.AiRiskScore ?? 0m,
                 l.AiRiskLevel ?? "low",
                 l.AiRiskReasons?.Select(r => r.Code).ToList() ?? new List<string>(),
-                null,
+                l.ImageMatchScore,
                 l.CreatedAt
             ))
             .ToList();
@@ -101,6 +101,10 @@ public class AdminListingRiskService : IAdminListingRiskService
 
         if (action == "remove")
         {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                throw new ArgumentException("reason_required");
+            }
             var removed = await _moderation.RemoveListingAsync(listingId, reason, ct);
             if (!removed)
             {
@@ -237,7 +241,7 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.VisibilityScore,
             listing.AiRiskReasons?.Select(r => new ReasonDetailDto(r.Code, r.Detail)).ToList()
                 ?? new List<ReasonDetailDto>(),
-            null,
+            listing.ImageMatchScore,
             listing.CreatedAt
         );
     }
