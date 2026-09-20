@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { IconCalendar, IconClock, IconMapPin, IconX,IconAlertCircle } from '@tabler/icons-react';
 import type { MeetupFormValues } from '../../types/meetup';
-import type { AvailabilitySlot} from '../../types/timetable';
+import type { AvailabilitySlot, AvailabilityResponse} from '../../types/timetable';
 import {getMutualAvailability} from '../../services/timetableService';
+import {formatRange }from '../../types/timetable'
+import { timetableErrorMessage } from '../../lib/timetableErrorMessage';
 import LocationPicker from './LocationPicker';
 
 interface MeetupProposalFormProps {
@@ -51,15 +53,22 @@ export default function MeetupProposalForm({
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [nameEdited, setNameEdited] = useState(false);
  
+
+    type AvailabilityQueryResult = AvailabilityResponse | { status: 'load_error';
+        code?: string 
+    }
     const {
         data: availability,
-        isLoading: isLoadingAvailability,
-        isError: isAvailabilityError,
+        isLoading: isLoadingAvailability
+        
     } = useQuery({
         queryKey: ['meetup-availability', reservationId],
-        queryFn: async () => {
+        queryFn: async (): Promise<AvailabilityQueryResult> => {
             const result = await getMutualAvailability(reservationId);
-            if (!result.success) throw new Error(result.error.message ?? 'Failed to load availability');
+            if (!result.success) {
+                return { status: 'load_error', code: result.error.code };
+
+            }
             return result.data;
         },
         enabled: !!reservationId,
@@ -117,6 +126,8 @@ export default function MeetupProposalForm({
             location: { name: locationName.trim(), lat: coords.lat, lng: coords.lng },
         });
     };
+
+    if (availability?.status === 'load_error' && availability.code === 'reservation_not_found'){
  
     return (
         <div
@@ -133,7 +144,33 @@ export default function MeetupProposalForm({
                         <IconX size={20} />
                     </button>
                 </div>
- 
+ <div className = "bg-gray-50 rounded-2xl p-4 text-center space-y-3">
+<IconAlertCircle size={22} className="text-amber-500 mx-auto" />
+
+<p className="text-sm text-gray-500">
+    {timetableErrorMessage(availability.code)}</p>
+    </div>
+    </div>
+        </div>
+        );
+        }
+
+        return(
+      <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+        >
+            <div
+                className="w-full max-w-md bg-white rounded-t-3xl p-5 pb-6 shadow-xl max-h-[90vh] overflow-y-auto"
+            >
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-lg font-bold text-gray-900">
+                        Propose a Meetup
+                    </h2>
+                    <button type="button" onClick={onCancel} className="text-gray-400 p-1" aria-label="Close">
+                        <IconX size={20} />
+                    </button>
+                </div>       
+
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                     When
                 </label>
@@ -146,9 +183,9 @@ export default function MeetupProposalForm({
                             </div>
                         )}
  
-                        {isAvailabilityError && (
+                        {availability?.status === 'load_error' && (
                             <div className="bg-gray-50 rounded-2xl p-4 text-center space-y-2">
-                                <p className="text-sm text-gray-500">Couldn't load suggested times.</p>
+                                <p className="text-sm text-gray-500">{timetableErrorMessage(availability.code)}</p>
                                 <button
                                     type="button"
                                     onClick={() => setMode('manual')}
@@ -181,7 +218,7 @@ export default function MeetupProposalForm({
                                                     {formatSlotDate(slot.date)}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {slot.start}\u2013{slot.end}
+                                                    {formatRange(slot.start,slot.end)}
                                                 </p>
                                             </div>
                                         </button>

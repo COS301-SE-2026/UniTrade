@@ -24,6 +24,9 @@ export interface AvailabilitySlot{
 
 }
 
+
+export type AvalabilityStatus = 'ok' | 'missing_timetable' | 'no_overlap'; 
+
 export type AvailabilityResponse = 
 | { status: 'ok'; slots: AvailabilitySlot[] }
 | {status: 'missing_timetable';missingParty: 'buyer' | 'seller'}|
