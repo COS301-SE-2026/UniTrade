@@ -21,6 +21,7 @@ import type {
   OrderItem,
   SaleItem,
 } from "../types/listing";
+import type { ListingStatusResponse } from "../types/riskTemp";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
@@ -901,6 +902,7 @@ export const listingsService = {
 };
 //TEMP:
 // this is just so builds dont fail, the real types will come from FE3
-interface ListingStatusResponse {
+/*interface ListingStatusResponse {
   listingId: string;
 }
+  */
