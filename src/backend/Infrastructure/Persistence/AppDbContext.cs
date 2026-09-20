@@ -17,6 +17,7 @@ using Modules.SharedKernel;
 using Modules.Timetable.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
+using System.Text.Json;
 
 namespace Infrastructure.Persistence;
 
@@ -383,6 +384,12 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
             entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
             entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
+            entity.Property(x => x.AiRiskReasons)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<RiskReason>>(v, (JsonSerializerOptions?)null)
+                );
 
             entity.Property(x => x.RejectionReason);
 
@@ -567,6 +574,8 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
+            entity.Property(x => x.PerceptualHash).HasMaxLength(16);
+            entity.HasIndex(x => x.PerceptualHash).HasDatabaseName("ix_listing_images_perceptual_hash");
         });
 
         // Reservations

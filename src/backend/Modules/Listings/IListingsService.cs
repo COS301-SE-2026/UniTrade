@@ -27,5 +27,6 @@ public interface IListingService
         string newStatus,
         CancellationToken ct = default
     );
+    Task<SellerListingStatusDto?> GetStatusAsync(Guid listingId, Guid callerId);
     Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default);
 }

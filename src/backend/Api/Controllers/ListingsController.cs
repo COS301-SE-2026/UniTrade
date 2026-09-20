@@ -293,4 +293,25 @@ public class ListingController : ControllerBase
     }
 
     public record UpdateStatusRequest(string Status);
+
+    [Authorize]
+    [HttpGet("{id:guid}/status")]
+    public async Task<IActionResult> GetStatus(Guid id)
+    {
+        var callerIdClaim = User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = _unauthenticatedString });
+        }
+
+        try
+        {
+            var status = await _listings.GetStatusAsync(id, callerId);
+            return status is null ? NotFound(new { error = "listing_not_found" }) : Ok(status);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
+        }
+    }
 }

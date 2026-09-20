@@ -5,8 +5,8 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
-using Modules.Listings.Risk;
 using Modules.SharedKernel;
+using Modules.Listings.Risk;
 
 namespace Modules.Listings;
 
@@ -192,22 +192,22 @@ public class ListingService : IListingService
 
             if (isBook && dto.BookDetails is not null)
             {
-                var newBook = new BookDetails
+                newListing.BookDetails = new BookDetails
                 {
                     ListingId = newListing.ListingId,
                     Author = dto.BookDetails.Author,
                     Isbn = dto.BookDetails.Isbn,
                     Edition = dto.BookDetails.Edition?.Trim(),
                 };
-
-                newListing.BookDetails = newBook;
             }
+
             if (newListing.ListingStatus == "live")
             {
                 var risk = await _risk.ScoreAsync(newListing, ct);
                 newListing.AiRiskScore = risk.Score;
                 newListing.AiRiskLevel = risk.Level;
                 newListing.VisibilityScore = risk.VisibilityScore;
+                newListing.AiRiskReasons = risk.Reasons.ToList();
 
                 if (risk.Level == "high")
                 {
@@ -389,7 +389,7 @@ public class ListingService : IListingService
         {
             throw new UnauthorizedAccessException("forbidden");
         }
-        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected")
+        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected" or "under_review")
         {
             throw new InvalidOperationException("status_locked");
         }
@@ -414,6 +414,7 @@ public class ListingService : IListingService
             listing.AiRiskLevel = risk.Level;
             listing.VisibilityScore = risk.VisibilityScore;
             listing.ListingStatus = risk.Level == "high" ? "under_review" : newStatus;
+            listing.AiRiskReasons = risk.Reasons.ToList();
         }
         else
         {
@@ -450,6 +451,34 @@ public class ListingService : IListingService
         }
 
         return true;
+    }
+
+    public async Task<SellerListingStatusDto?> GetStatusAsync(Guid listingId, Guid callerId)
+    {
+        var listing = await _listings.GetByIdAnyStatusAsync(listingId);
+        if (listing is null)
+        {
+            return null;
+        }
+        if (listing.SellerId != callerId)
+        {
+            throw new UnauthorizedAccessException("forbidden");
+        }
+
+        var (status, message) = MapStatusAndMessage(listing);
+        return new SellerListingStatusDto(listing.ListingId, status, listing.AiRiskLevel ?? "low", message);
+    }
+
+    private static (string Status, string Message) MapStatusAndMessage(Listing listing)
+    {
+        return listing.ListingStatus switch
+        {
+            "live" => ("live", "Your listing is live."),
+            "under_review" => ("under_review", "Your listing is being reviewed by an admin."),
+            "removed" => ("removed", $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified"}."),
+            "low_visibility" => ("live", "Your listing is live."),
+            _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
+        };
     }
 
     public Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default) =>

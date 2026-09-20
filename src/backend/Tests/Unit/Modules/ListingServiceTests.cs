@@ -54,7 +54,7 @@ public class ListingServiceTests
 
         _riskMock
             .Setup(r => r.ScoreAsync(It.IsAny<Listing>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<string>()));
+            .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<RiskReason>()));
 
         _sut = new ListingService(
             _repo.Object,
