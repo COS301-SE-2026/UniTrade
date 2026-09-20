@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { IconCheck, IconX, IconPhoto } from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSearchParams } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { getFlaggedListings, decideListing } from "../../services/adminService"
 import { queryKeys } from "../../lib/queryKeys"
 import { LoadingState } from "../../components/layout/Spinner"
@@ -78,6 +78,7 @@ export default function AdminListingQueue() {
   const numPriceAnomaly = listings.filter((l) => l.reasons.includes('price_anomaly')).length
   const numDuplicate = listings.filter((l) => l.reasons.includes('duplicate_image')).length
   const numLowMatch = listings.filter(isLowMatch).length
+  const navigate = useNavigate()
 
   if (loading) {
     return <LoadingState message="Loading flagged listings..." />
@@ -125,18 +126,18 @@ export default function AdminListingQueue() {
 
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center space-x-3">
-          {filters.map(({ label, count }) => (
+          {filters.map(({ label}) => (
             <button
               key={label}
               type="button"
               onClick={() => setFilter(label)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
                 ${filter === label
-                  ? 'bg-[#0a1931] text-white'
+                  ? 'bg-navy-700 text-white'
                   : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                 }`}
             >
-              {label}({count})
+              {label}
             </button>
           ))}
         </div>
@@ -186,7 +187,7 @@ export default function AdminListingQueue() {
                   <td className="py-4 px-4">
                     <div className="flex items-center space-x-3">
                       <div
-                        className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center text-xs font-bold shrink-0"
+                        className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-xs font-bold shrink-0"
                         title="Seller"
                       >
                         {l.sellerInitials}
@@ -236,11 +237,18 @@ export default function AdminListingQueue() {
 
                   <td className="py-4 px-4">
                     <div className="flex items-center justify-center space-x-2">
+                      <button 
+                        type="button"
+                        onClick={() => navigate(`/admin/listings/flagged/${l.listingId}`)}
+                        className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-4 py-1.5"
+                        >
+                          Review
+                        </button>
                       <button
                         type="button"
                         disabled={busyId === l.listingId}
                         onClick={() => decision.mutate({ id: l.listingId, action: 'approve' })}
-                        className="bg-[#0a1931] text-white px-4 py-1.5 rounded-full font-semibold hover:bg-navy-500 transition-colors cursor-pointer text-[10px] leading-tight inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-navy-700 text-white px-4 py-1.5 rounded-full font-semibold hover:bg-navy-500 transition-colors cursor-pointer text-[10px] leading-tight inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <IconCheck className="w-3.5 h-3.5" />
                         <span>Approve</span>

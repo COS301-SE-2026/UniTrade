@@ -90,6 +90,7 @@ const ProofOfRegistrationUpload = lazy(() => import("./pages/auth/UploadProofOfR
 const SavedSearches = lazy(() => import("./pages/buyer/SavedSearches"));  
 const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResult"));
 const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
+const AdminListingRiskReview = lazy(() => import("./pages/admin/AdminListingRiskReview"))
 
 
 
@@ -168,9 +169,11 @@ export default function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
+          <Route path="/admin/listings/flagged/:id" element={<AdminListingRiskReview />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/users/:userId" element={<ViewUser />} />
+
 
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />

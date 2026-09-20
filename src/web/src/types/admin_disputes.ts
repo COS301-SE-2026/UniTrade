@@ -26,7 +26,6 @@ export type PinStatus =
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
 
-
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
