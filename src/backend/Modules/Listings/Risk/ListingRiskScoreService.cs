@@ -44,10 +44,12 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var reasons = new List<string>();
         var priceScore = await ComputePriceDeviationScoreAsync(listing, reasons, ct);
         var duplicateSore = await ComputeDuplicateImageScoreAsync(listing, reasons, ct);
+        var sellerHistoryScore = await ComputeSellerHistoryScoreAsync(listing, reasons, ct);
 
         var combinedScore = CombineSignals(
             (priceScore, PriceSignalWeight),
-            (duplicateSore, DuplicateSignalWeight)
+            (duplicateSore, DuplicateSignalWeight),
+            (sellerHistoryScore, SellerHistorySignalWeight)
         );
         var level = combinedScore > MediumRiskUpperBound ? "high" : combinedScore > LowRiskUpperBound ? "medium" : "low";
 
@@ -144,5 +146,31 @@ public class ListingRiskScoreService : IListingRiskScoreService
             return 100m;
         }
         return 0m;
+    }
+
+    private async Task<decimal?> ComputeSellerHistoryScoreAsync(Listing listing, List<string> reasons, CancellationToken ct)
+    {
+        var seller = await _users.GetByIdAsync(listing.SellerId);
+        var trustScore = seller?.StudentProfile?.SellerTrustScore ?? 0m;
+
+        decimal? ratingRisk = trustScore == 0m
+            ? null : Math.Min(100m, Math.Max(0m, (5m - trustScore) / 4m * 100m));
+
+        if (ratingRisk is > LowRiskUpperBound)
+        {
+            reasons.Add("low_seller_rating");
+        }
+        var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
+        decimal strikeRisk = Math.Min(100m, strikeCount * StrikeRiskPerStrike);
+
+        if (strikeCount > 0)
+        {
+            reasons.Add("seller_strikes");
+        }
+
+        return CombineSignals(
+            (ratingRisk, RatingSubWeight),
+            (strikeRisk, StrikeSubWeight)
+        );
     }
 }
