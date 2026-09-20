@@ -20,6 +20,7 @@ public class AdminListingRiskService : IAdminListingRiskService
     private readonly IUserRepository _users;
     private readonly IStrikeRepository _strikes;
     private readonly IAuditRepository _audits;
+    private readonly IListingNotifier _notifier;
 
     public AdminListingRiskService(
         IListingRepository listings,
@@ -28,7 +29,8 @@ public class AdminListingRiskService : IAdminListingRiskService
         IListingPublishedListener listener,
         IUserRepository users,
         IStrikeRepository strikes,
-        IAuditRepository audits
+        IAuditRepository audits,
+        IListingNotifier notifier
     )
     {
         _listings = listings;
@@ -38,6 +40,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         _users = users;
         _strikes = strikes;
         _audits = audits;
+        _notifier = notifier;
     }
 
     public async Task<IReadOnlyList<FlaggedListingDto>> GetFlaggedAsync(
@@ -120,6 +123,13 @@ public class AdminListingRiskService : IAdminListingRiskService
                 },
                 ct
             );
+            await _notifier.ListingStatusChangedAsync(
+                listing.SellerId,
+                listingId,
+                "removed",
+                listing.AiRiskLevel ?? "low",
+                ct
+            );
             await _notifications.NotifyAsync(
                 listing.SellerId,
                 NotificationTypes.ListingStatus,
@@ -146,6 +156,13 @@ public class AdminListingRiskService : IAdminListingRiskService
                 NewValue = "live",
                 Reason = reason,
             },
+            ct
+        );
+        await _notifier.ListingStatusChangedAsync(
+            listing.SellerId,
+            listingId,
+            "live",
+            listing.AiRiskLevel ?? "low",
             ct
         );
         await _notifications.NotifyAsync(

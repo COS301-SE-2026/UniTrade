@@ -5,8 +5,8 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
-using Modules.SharedKernel;
 using Modules.Listings.Risk;
+using Modules.SharedKernel;
 
 namespace Modules.Listings;
 
@@ -19,6 +19,7 @@ public class ListingService : IListingService
     private readonly IListingPublishedListener _listener;
     private readonly IListingQuestionRepository _questions;
     private readonly IListingRiskScoreService _risk;
+    private readonly IListingNotifier _notifier;
 
     private readonly ILogger<ListingService> _logger;
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
@@ -35,7 +36,8 @@ public class ListingService : IListingService
         IListingPublishedListener listener,
         ILogger<ListingService> logger,
         IListingQuestionRepository questions,
-        IListingRiskScoreService risk
+        IListingRiskScoreService risk,
+        IListingNotifier notifier
     )
     {
         _listings = listings;
@@ -45,6 +47,7 @@ public class ListingService : IListingService
         _logger = logger;
         _questions = questions;
         _risk = risk;
+        _notifier = notifier;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -219,6 +222,19 @@ public class ListingService : IListingService
         }
         await _listings.AddRangeAsync(created);
 
+        foreach (var newListing in created)
+        {
+            if (newListing.ListingStatus == "under_review")
+            {
+                await _notifier.ListingStatusChangedAsync(
+                    newListing.SellerId,
+                    newListing.ListingId,
+                    "under_review",
+                    newListing.AiRiskLevel ?? "low",
+                    ct
+                );
+            }
+        }
         foreach (var newListing in created.Where(l => l.ListingStatus == "live"))
         {
             try
@@ -389,7 +405,14 @@ public class ListingService : IListingService
         {
             throw new UnauthorizedAccessException("forbidden");
         }
-        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected" or "under_review")
+        if (
+            listing.ListingStatus
+            is "reserved"
+                or "sold"
+                or "pending"
+                or "rejected"
+                or "under_review"
+        )
         {
             throw new InvalidOperationException("status_locked");
         }
@@ -423,6 +446,13 @@ public class ListingService : IListingService
 
         listing.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
+        await _notifier.ListingStatusChangedAsync(
+            listing.SellerId,
+            listing.ListingId,
+            listing.ListingStatus,
+            listing.AiRiskLevel ?? "low",
+            ct
+        );
         if (listing.ListingStatus == "live")
         {
             try
@@ -466,7 +496,12 @@ public class ListingService : IListingService
         }
 
         var (status, message) = MapStatusAndMessage(listing);
-        return new SellerListingStatusDto(listing.ListingId, status, listing.AiRiskLevel ?? "low", message);
+        return new SellerListingStatusDto(
+            listing.ListingId,
+            status,
+            listing.AiRiskLevel ?? "low",
+            message
+        );
     }
 
     private static (string Status, string Message) MapStatusAndMessage(Listing listing)
@@ -475,7 +510,10 @@ public class ListingService : IListingService
         {
             "live" => ("live", "Your listing is live."),
             "under_review" => ("under_review", "Your listing is being reviewed by an admin."),
-            "removed" => ("removed", $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified"}."),
+            "removed" => (
+                "removed",
+                $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified"}."
+            ),
             "low_visibility" => ("live", "Your listing is live."),
             _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
         };
