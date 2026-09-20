@@ -32,6 +32,9 @@ class ConnectionManager {
   private readonly listingListeners = new Set<
     (listingId: string, event: "reserved" | "released" | "created") => void
   >();
+  private readonly listingStatusChangedListeners = new Set<
+  (e: {listingId: string; status: string; riskLevel: string}) => void
+  >();
   private readonly pinGeneratedListeners = new Set<
     (e: { reservationId: string; pin: string }) => void
   >();
@@ -102,6 +105,12 @@ class ConnectionManager {
       conn.on("ListingCreated", (p: { listingId: string }) => {
         this.listingListeners.forEach((cb) => cb(p.listingId, "created"));
       });
+
+      conn.on(
+        "listing_status_changed",
+        (e: {listingId: string; status: string; riskLevel: string}) => 
+          this.listingStatusChangedListeners.forEach((cb) => cb(e)),
+      );
       conn.on("pin_generated", (e: { reservationId: string; pin: string }) =>
         this.pinGeneratedListeners.forEach((cb) => cb(e)),
       );
@@ -242,6 +251,14 @@ class ConnectionManager {
   ): Unsubscribe {
     this.listingListeners.add(cb);
     return () => this.listingListeners.delete(cb);
+  }
+
+  onListingStatusChanged(
+    cb : (e: {listingId: string; status: string; riskLevel: string}) => void,
+
+  ): Unsubscribe {
+    this.listingStatusChangedListeners.add(cb);
+    return () => this.listingStatusChangedListeners.delete(cb);
   }
   onPinConfirmed(
     callback: (e: { reservationId: string }) => void,

@@ -13,6 +13,7 @@ import { LoadingState } from "../../components/layout/Spinner";
 import ListingQnA from "../../components/ListingQnA";
 import type { ListingStatusResponse } from "../../types/riskTemp";
 import { mockStatusFromListing } from "../../types/riskTemp";
+import {connectionManager} from "../../services/realtime/connectionManager"
 
 
 function DetailRow({
@@ -62,6 +63,22 @@ export default function SellerListingDetail() {
       })
       .catch(() => setError("Failed to load listing"))
       .finally(() => setLoading(false));
+  }, [id]);
+
+    useEffect(() => {
+    if (!id) return;
+
+    const off = connectionManager.onListingStatusChanged((e) => {
+    if (e.listingId !== id) return;
+
+      listingsService
+        .getListingStatus(id)
+        .then(setStatusData)
+        .catch(() => {
+        });
+    });
+
+    return off;
   }, [id]);
 
   const handleDelete = async () => {
