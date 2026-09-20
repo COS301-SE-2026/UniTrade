@@ -6,11 +6,11 @@ namespace Modules.Listings.Risk;
 public class ListingRiskScoreService : IListingRiskScoreService
 {
     private readonly IListingRepository _listings;
-    private const int MinComparableSampleSize = 3;
-    private const decimal LowRiskUpperBound = 39m;
-    private const decimal MediumRiskUpperBound = 69m;
-    private const int FullVisibilityScore = 100;
-    private const int MinMediumVisibilityScore = 20;
+    private const int _minComparableSampleSize = 3;
+    private const decimal _lowRiskUpperBound = 39m;
+    private const decimal _mediumRiskUpperBound = 69m;
+    private const int _fullVisibilityScore = 100;
+    private const int _minMediumVisibilityScore = 20;
 
     public ListingRiskScoreService(IListingRepository listings)
     {
@@ -22,12 +22,12 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var reasons = new List<string>();
         var priceDeviationScore = await ComputePriceDeviationScoreAsync(listing, reasons, ct);
         var combinedScore = priceDeviationScore ?? 0m;
-        var level = combinedScore > MediumRiskUpperBound ? "high" : combinedScore > LowRiskUpperBound ? "medium" : "low";
+        var level = combinedScore > _mediumRiskUpperBound ? "high" : combinedScore > _lowRiskUpperBound ? "medium" : "low";
 
         int? visibilityScore = level switch
         {
-            "low" => FullVisibilityScore,
-            "medium" => (int)Math.Max(MinMediumVisibilityScore, FullVisibilityScore - combinedScore),
+            "low" => _fullVisibilityScore,
+            "medium" => (int)Math.Max(_minMediumVisibilityScore, _fullVisibilityScore - combinedScore),
             _ => null,
         };
         return new RiskScoreResult(combinedScore, level, visibilityScore, reasons);
@@ -44,7 +44,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
             ct
         );
 
-        if (comparablePrices.Count < MinComparableSampleSize)
+        if (comparablePrices.Count < _minComparableSampleSize)
         {
             return null;
         }
@@ -66,7 +66,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var zScore = Math.Abs((listing.Price - mean) / stdDev);
         var score = Math.Min(100m, zScore * (100m / 3m));
 
-        if (score > LowRiskUpperBound)
+        if (score > _lowRiskUpperBound)
         {
             reasons.Add("price_anomaly");
         }
