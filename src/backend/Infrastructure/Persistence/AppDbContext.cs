@@ -17,6 +17,7 @@ using Modules.SharedKernel;
 using Modules.Timetable.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
+using System.Text.Json;
 
 namespace Infrastructure.Persistence;
 
@@ -383,7 +384,12 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
             entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
             entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
-            entity.Property(x => x.AiRiskReasons).HasColumnType("text[]");
+            entity.Property(x => x.AiRiskReasons)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<RiskReason>>(v, (JsonSerializerOptions?)null)
+                );
 
             entity.Property(x => x.RejectionReason);
 

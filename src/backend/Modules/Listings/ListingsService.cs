@@ -5,8 +5,8 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
-using Modules.Listings.Risk;
 using Modules.SharedKernel;
+using Modules.Listings.Risk;
 
 namespace Modules.Listings;
 
@@ -190,36 +190,24 @@ public class ListingService : IListingService
                 UpdatedAt = DateTime.UtcNow,
             };
 
-            newListing.BookDetails = newBook;
-        }
-
-        if (newListing.ListingStatus == "live")
-        {
-            var risk = await _risk.ScoreAsync(newListing, ct);
-            newListing.AiRiskScore = risk.Score;
-            newListing.AiRiskLevel = risk.Level;
-            newListing.VisibilityScore = risk.VisibilityScore;
-            newListing.AiRiskReasons = risk.Reasons.ToArray();
-
-
-            if (risk.Level == "high")
+            if (isBook && dto.BookDetails is not null)
             {
-                var newBook = new BookDetails
+                newListing.BookDetails = new BookDetails
                 {
                     ListingId = newListing.ListingId,
                     Author = dto.BookDetails.Author,
                     Isbn = dto.BookDetails.Isbn,
                     Edition = dto.BookDetails.Edition?.Trim(),
                 };
-
-                newListing.BookDetails = newBook;
             }
+
             if (newListing.ListingStatus == "live")
             {
                 var risk = await _risk.ScoreAsync(newListing, ct);
                 newListing.AiRiskScore = risk.Score;
                 newListing.AiRiskLevel = risk.Level;
                 newListing.VisibilityScore = risk.VisibilityScore;
+                newListing.AiRiskReasons = risk.Reasons.ToList();
 
                 if (risk.Level == "high")
                 {
@@ -426,7 +414,7 @@ public class ListingService : IListingService
             listing.AiRiskLevel = risk.Level;
             listing.VisibilityScore = risk.VisibilityScore;
             listing.ListingStatus = risk.Level == "high" ? "under_review" : newStatus;
-            listing.AiRiskReasons = risk.Reasons.ToArray();
+            listing.AiRiskReasons = risk.Reasons.ToList();
         }
         else
         {
@@ -492,4 +480,7 @@ public class ListingService : IListingService
             _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
         };
     }
+
+    public Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default) =>
+        _listings.DuplicateImagesToGroupAsync(sourceListingId, ct);
 }

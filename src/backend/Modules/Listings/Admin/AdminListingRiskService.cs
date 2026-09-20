@@ -10,8 +10,8 @@ namespace Modules.Listings.Admin;
 public class AdminListingRiskService : IAdminListingRiskService
 {
     private readonly IListingRepository _listings;
-    private IModerationService _moderation;
-    private INotificationDispatcher _notifications;
+    private readonly IModerationService _moderation;
+    private readonly INotificationDispatcher _notifications;
     private readonly IListingPublishedListener _listener;
 
     public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener)
@@ -36,7 +36,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 SellerInitials(l.Seller),
                 l.AiRiskScore ?? 0m,
                 l.AiRiskLevel ?? "low",
-                l.AiRiskReasons?.ToList() ?? new List<string>(),
+                l.AiRiskReasons?.Select(r => string.IsNullOrEmpty(r.Detail) ? r.Code : r.Detail).ToList() ?? new List<string>(),
                 null,
                 l.CreatedAt
             )).ToList();

@@ -46,7 +46,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
     public async Task<RiskScoreResult> ScoreAsync(Listing listing, CancellationToken ct = default)
     {
-        var reasons = new List<string>();
+        var reasons = new List<RiskReason>();
         var priceScore = await ComputePriceDeviationScoreAsync(listing, reasons, ct);
         var duplicateSore = await ComputeDuplicateImageScoreAsync(listing, reasons, ct);
         var sellerHistoryScore = await ComputeSellerHistoryScoreAsync(listing, reasons, ct);
@@ -85,7 +85,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
     }
 
 
-    private async Task<decimal?> ComputePriceDeviationScoreAsync(Listing listing, List<string> reasons, CancellationToken ct)
+    private async Task<decimal?> ComputePriceDeviationScoreAsync(Listing listing, List<RiskReason> reasons, CancellationToken ct)
     {
         var isBook = listing.CourseId.HasValue;
         var comparablePrices = await _listings.GetComparablePricesAsync(
@@ -110,7 +110,11 @@ public class ListingRiskScoreService : IListingRiskScoreService
             {
                 return 0m;
             }
-            reasons.Add("price_anomaly");
+            reasons.Add(new RiskReason
+            {
+                Code = "price_anomaly",
+                Detail = $"R{listing.Price:F2} vs uniform price R{mean:F2} among comparable listings",
+            });
             return 100m;
         }
 
@@ -119,12 +123,16 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
         if (score > _lowRiskUpperBound)
         {
-            reasons.Add("price_anomaly");
+            reasons.Add(new RiskReason
+            {
+                Code = "price_anomaly",
+                Detail = $"R{listing.Price:F2} vs average R{mean:F2} (+R{stdDev:F2}) across {comparablePrices.Count} comparable listings",
+            });
         }
         return score;
     }
 
-    private async Task<decimal?> ComputeDuplicateImageScoreAsync(Listing listing, List<string> reasons, CancellationToken ct)
+    private async Task<decimal?> ComputeDuplicateImageScoreAsync(Listing listing, List<RiskReason> reasons, CancellationToken ct)
     {
         var ownHashes = listing
             .Images.Where(img => img.PerceptualHash != null)
@@ -147,13 +155,17 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
         if (hasCrossSellerMatch)
         {
-            reasons.Add("duplicate_image");
+            reasons.Add(new RiskReason
+            {
+                Code = "duplicate_image",
+                Detail = "Matches an image already used in another seller's live listing",
+            });
             return 100m;
         }
         return 0m;
     }
 
-    private async Task<decimal?> ComputeSellerHistoryScoreAsync(Listing listing, List<string> reasons, CancellationToken ct)
+    private async Task<decimal?> ComputeSellerHistoryScoreAsync(Listing listing, List<RiskReason> reasons, CancellationToken ct)
     {
         var seller = await _users.GetByIdAsync(listing.SellerId);
         var trustScore = seller?.StudentProfile?.SellerTrustScore ?? 0m;
@@ -163,14 +175,22 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
         if (ratingRisk is > LowRiskUpperBound)
         {
-            reasons.Add("low_seller_rating");
+            reasons.Add(new RiskReason
+            {
+                Code = "low_seller_rating",
+                Detail = $"Seller rating {trustScore:F1}/5",
+            });
         }
         var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
         decimal strikeRisk = Math.Min(100m, strikeCount * StrikeRiskPerStrike);
 
         if (strikeCount > 0)
         {
-            reasons.Add("seller_strikes");
+            reasons.Add(new RiskReason
+            {
+                Code = "seller_strikes",
+                Detail = $"{strikeCount} prior strike(s) on record",
+            });
         }
 
         return CombineSignals(
