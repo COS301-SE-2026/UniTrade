@@ -139,7 +139,7 @@ public class AdminListingRiskService : IAdminListingRiskService
             new AuditLog
             {
                 ActorId = adminId,
-                Action = "listing.live",
+                Action = "listing.approved",
                 EntityType = "Listing",
                 EntityId = listingId.ToString(),
                 OldValue = statusBeforeDecision,
