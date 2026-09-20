@@ -389,7 +389,7 @@ public class ListingService : IListingService
         {
             throw new UnauthorizedAccessException("forbidden");
         }
-        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected")
+        if (listing.ListingStatus is "reserved" or "sold" or "pending" or "rejected" or "under_review")
         {
             throw new InvalidOperationException("status_locked");
         }
@@ -474,8 +474,8 @@ public class ListingService : IListingService
         return listing.ListingStatus switch
         {
             "live" => ("live", "Your listing is live."),
-            "under_review" => ("under_review", "Your listing is being by an admin."),
-            "removed" => ("removed", $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified}"}"),
+            "under_review" => ("under_review", "Your listing is being reviewed by an admin."),
+            "removed" => ("removed", $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified"}."),
             "low_visibility" => ("live", "Your listing is live."),
             _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
         };

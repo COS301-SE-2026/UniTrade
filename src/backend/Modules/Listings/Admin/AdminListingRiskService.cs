@@ -18,14 +18,13 @@ public class AdminListingRiskService : IAdminListingRiskService
     private readonly IUserRepository _users;
     private readonly IStrikeRepository _strikes;
 
-    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener, IUserRepository users, IStrikeRepository strikes)
+    public AdminListingRiskService(IListingRepository listings, IModerationService moderation, INotificationDispatcher notifications, IListingPublishedListener listener, IUserRepository users)
     {
         _listings = listings;
         _moderation = moderation;
         _notifications = notifications;
         _listener = listener;
         _users = users;
-        _strikes = strikes;
     }
 
     public async Task<IReadOnlyList<FlaggedListingDto>> GetFlaggedAsync(string status, CancellationToken ct = default)
@@ -42,7 +41,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 SellerInitials(l.Seller),
                 l.AiRiskScore ?? 0m,
                 l.AiRiskLevel ?? "low",
-                l.AiRiskReasons?.Select(r => string.IsNullOrEmpty(r.Detail) ? r.Code : r.Detail).ToList() ?? new List<string>(),
+                l.AiRiskReasons?.Select(r => r.Code).ToList() ?? new List<string>(),
                 null,
                 l.CreatedAt
             )).ToList();
@@ -79,7 +78,11 @@ public class AdminListingRiskService : IAdminListingRiskService
             {
                 return null;
             }
+            listing.ListingStatus = "removed";
+            listing.RejectionReason = reason;
+            listing.UpdatedAt = DateTime.UtcNow;
             await _notifications.NotifyAsync(listing.SellerId, NotificationTypes.ListingStatus, $"Your listing '{listing.Title}' was removed. Reason: {reason}", ct);
+            return ListingService.MapToSummary(listing);
         }
 
         listing.ListingStatus = "live";
