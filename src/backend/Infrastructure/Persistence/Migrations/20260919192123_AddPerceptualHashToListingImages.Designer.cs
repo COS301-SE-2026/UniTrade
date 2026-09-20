@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919192123_AddPerceptualHashToListingImages")]
+    partial class AddPerceptualHashToListingImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -719,10 +722,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("ai_risk_level");
 
-                    b.Property<string>("AiRiskReasons")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("ai_risk_reasons");
-
                     b.Property<decimal?>("AiRiskScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)")
@@ -762,10 +761,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_bundle");
-
-                    b.Property<Guid?>("ListingGroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("listing_group_id");
 
                     b.Property<string>("ListingStatus")
                         .IsRequired()
@@ -825,10 +820,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CourseId1")
                         .HasDatabaseName("ix_listings_course_id1");
-
-                    b.HasIndex("ListingGroupId")
-                        .HasDatabaseName("ix_listings_group")
-                        .HasFilter("listing_group_id IS NOT NULL");
 
                     b.HasIndex("SellerId")
                         .HasDatabaseName("ix_listings_seller");

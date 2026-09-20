@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Text.Json;
 using Modules.Identity.Models;
 using Modules.ReferenceData.Course;
+using Modules.Listings.Models;
 
 namespace Modules.Listings.Models;
 
@@ -33,6 +34,7 @@ public class Listing
     public decimal? AiRiskScore { get; set; }
     public string? AiRiskLevel { get; set; }
     public int? VisibilityScore { get; set; }
+    public List<RiskReason>? AiRiskReasons { get; set; }
     public bool? IsBundle { get; set; }
     public string? RejectionReason { get; set; }
     public int? ViewCount { get; set; }

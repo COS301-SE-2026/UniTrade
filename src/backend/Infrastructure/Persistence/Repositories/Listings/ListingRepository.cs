@@ -424,4 +424,18 @@ public class ListingRepository : IListingRepository
         return await query.Select(l => l.Price).ToListAsync(ct);
     }
 
+    public async Task<Listing?> GetByIdAnyStatusAsync(Guid listingId)
+    {
+        return await _db.Listings
+            .AsNoTracking()
+            .Include(l => l.Category)
+            .FirstOrDefaultAsync(l => l.ListingId == listingId);
+    }
+
+    public async Task<int> CountHighRiskListingsForSellerAsync(Guid sellerId, Guid excludeListingId, CancellationToken ct = default)
+    {
+        return await _db.Listings
+            .AsNoTracking()
+            .CountAsync(l => l.SellerId == sellerId && l.ListingId != excludeListingId && l.AiRiskLevel == "high", ct);
+    }
 }

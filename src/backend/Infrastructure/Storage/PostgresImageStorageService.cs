@@ -8,8 +8,13 @@ namespace Infrastructure.Storage;
 public class PostgresImageStorageService : IImageStorageService
 {
     private readonly IListingImageRepository _images;
+    private readonly IPerceptualHashService _hashing;
 
-    public PostgresImageStorageService(IListingImageRepository images) => _images = images;
+    public PostgresImageStorageService(IListingImageRepository images, IPerceptualHashService hashing)
+    {
+        _images = images;
+        _hashing = hashing;
+    }
 
     public Task<int> UploadAsync(
         Guid listingId,
@@ -26,6 +31,7 @@ public class PostgresImageStorageService : IImageStorageService
             ContentType = contentType,
             FileSize = data.Length,
             IsPrimary = isPrimary,
+            PerceptualHash = _hashing.ComputeHash(data),
         };
 
         return _images.AddAsync(image, ct);
