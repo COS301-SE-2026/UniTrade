@@ -10,9 +10,9 @@ import { useToast } from '../../components/layout/useToast';
 import { LoadingState } from '../../components/layout/Spinner';
 import RiskBadge from '../../components/risk/RiskBadge';
 import RiskReasons from '../../components/risk/RiskReasons';
+import ImageMatchScore from '../../components/risk/ImageMatchScore';
 
-
-const LOW_MATCH_THRESHOLD = 0.5;
+//const LOW_MATCH_THRESHOLD = 0.5;
 
 const zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 
@@ -157,8 +157,8 @@ export default function AdminListingRiskReview() {
 
     const images = listing.images ?? [];
     const activeImage = images[Math.min(selectedImage, Math.max(images.length - 1, 0))];
-    const lowMatch =
-        listing.imageMatchScore !== null && listing.imageMatchScore < LOW_MATCH_THRESHOLD;
+    //const lowMatch =
+        //listing.imageMatchScore !== null && listing.imageMatchScore < LOW_MATCH_THRESHOLD;
     const isActionDisabled = decision.isPending;
 
     return (
@@ -221,17 +221,7 @@ export default function AdminListingRiskReview() {
                             <RiskBadge level={listing.riskLevel} />
                             <span className="text-xs text-gray-600">Score {listing.riskScore}/100</span>
                             <span className="text-xs text-gray-600">Visibility {listing.visibilityScore}</span>
-                            {listing.imageMatchScore === null ? (
-                                <span className="text-xs text-gray-500">Image check not run</span>
-                            ) : (
-                                <span
-                                    className={`inline-flex items-center gap-1 text-xs font-semibold ${lowMatch ? 'text-rose-700' : 'text-emerald-700'
-                                        }`}
-                                >
-                                    <IconPhoto className="w-3.5 h-3.5" />
-                                    Image match {Math.round(listing.imageMatchScore * 100)}%
-                                </span>
-                            )}
+                            <ImageMatchScore score={listing.imageMatchScore} />
                         </div>
                         <RiskReasons reasons={listing.reasons} />
                     </Panel>
