@@ -1,7 +1,7 @@
-//import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useState, type FormEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload } from "lucide-react";
 import { LoadingState } from "../../components/layout/Spinner";
 import { useToast } from "../../components/layout/useToast";
 import {
@@ -39,7 +39,7 @@ function validateEntry(
 }
 
 export default function Timetable() {
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
 
@@ -89,6 +89,13 @@ export default function Timetable() {
       );
       return { previous };
     },
+
+    onSuccess: (result, _entryId, context) => {
+      if (!result.success) {
+                if (context?.previous) queryClient.setQueryData(['timetable'], context.previous);
+        showToast('error', timetableErrorMessage(result.error.code));
+      }},
+
     onError: (_err, _entryId, context) => {
       if (context?.previous)
         queryClient.setQueryData(["timetable"], context.previous);
@@ -128,6 +135,14 @@ export default function Timetable() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-6">
+        <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="text-gray-400 hover:text-navy-700 transition-colors mb-2 w-fit"
+        aria-label="Back">
+<ArrowLeft size={22} />
+</button>
+
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="font-['Fraunces'] font-normal text-[32px] leading-[1.2] text-black">
@@ -144,7 +159,7 @@ export default function Timetable() {
             className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
             <Upload className="w-4 h-4" />
-            Import .ics
+            Import
           </button>
         </div>
       </div>
@@ -200,7 +215,7 @@ export default function Timetable() {
                     return (
                       <div
                         key={entry.entryId}
-                        className="group absolute left-0.5 right-0.5 bg-primary-700 text-white rounded-sm px-1.5 py-1 text-[10px] leading-tight overflow-hidden"
+                        className="group absolute left-0.5 right-0.5 bg-primary-700 text-white rounded-lg px-1.5 py-1 text-[10px] leading-tight overflow-hidden"
                         style={{ top: `${top}%`, height: `${height}%` }}
                         title={`${DAY_LABEL[d]} ${formatRange(entry.startTime, entry.endTime)}`}
                       >
@@ -241,7 +256,7 @@ export default function Timetable() {
                   onChange={(e) =>
                     setFormDay(Number(e.target.value) as DayOfWeek)
                   }
-                  className="w-full border border-gray-400 rounded-sm px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
+                  className="w-full border border-gray-400 rounded-lg px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
                 >
                   {DAY_ORDER.map((d) => (
                     <option key={d} value={d}>
@@ -265,7 +280,7 @@ export default function Timetable() {
                     min="08:00"
                     max="20:00"
                     onChange={(e) => setFormStart(e.target.value)}
-                    className="w-full border border-gray-400 rounded-sm px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
+                    className="w-full border border-gray-400 rounded-lg px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
                   />
                 </div>
                 <div>
@@ -282,14 +297,14 @@ export default function Timetable() {
                     min="08:00"
                     max="20:00"
                     onChange={(e) => setFormEnd(e.target.value)}
-                    className="w-full border border-gray-400 rounded-sm px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
+                    className="w-full border border-gray-400 rounded-lg px-3.5 py-2.5 text-sm text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={addMutation.isPending}
-                className="w-full bg-primary-700 hover:bg-primary-500 disabled:bg-gray-300 text-white font-medium tracking-wide py-2.5 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
+                className="w-full bg-navy-700 hover:bg-navy-600 disabled:opacity-50 disabled cursor-not-allowed text-white font-semibold text-sm py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
                 <Plus className="w-4 h-4" /> Add block
               </button>

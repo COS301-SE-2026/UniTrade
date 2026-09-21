@@ -13,10 +13,11 @@ using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Repositories;
+using Modules.Listings.Risk;
+using Modules.Listings.Scoring;
 using Modules.SharedKernel;
 using Moq;
 using Xunit;
-using Modules.Listings.Risk;
 
 namespace Modules.Listings.Tests;
 
@@ -32,6 +33,8 @@ public class ListingServiceTests
     private readonly Mock<IListingQuestionRepository> _questionRepoMock;
     private readonly Mock<IListingPublishedListener> _listingPublishedListener;
     private readonly Mock<IListingRiskScoreService> _riskMock;
+    private readonly Mock<IListingNotifier> _notifierMock;
+    private readonly Mock<IClipVisionClient> _clipMock;
 
     public ListingServiceTests()
     {
@@ -43,6 +46,8 @@ public class ListingServiceTests
         _questionRepoMock = new Mock<IListingQuestionRepository>();
         _listingPublishedListener = new Mock<IListingPublishedListener>();
         _riskMock = new Mock<IListingRiskScoreService>();
+        _notifierMock = new Mock<IListingNotifier>();
+        _clipMock = new Mock<IClipVisionClient>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -63,7 +68,9 @@ public class ListingServiceTests
             _listingPublishedListener.Object,
             _loggerMock.Object,
             _questionRepo.Object,
-            _riskMock.Object
+            _riskMock.Object,
+            _notifierMock.Object,
+            _clipMock.Object
         );
     }
 
@@ -179,7 +186,7 @@ public class ListingServiceTests
         var result = await _sut.UpdateListings(dto, id, Guid.NewGuid(), CancellationToken.None);
 
         Assert.False(result);
-        _repo.Verify(r => r.UpdateAsync(It.IsAny<Listing>(), It.IsAny<Guid>()), Times.Never);
+        _repo.Verify(r => r.SaveAsync(), Times.Never);
     }
 
     [Fact]

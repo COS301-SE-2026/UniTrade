@@ -23,6 +23,7 @@ public class ListingController : ControllerBase
     private readonly string _invalidMetaDataString = "invalid_metadata";
 
     private readonly string _invalidCategory = "invalid_category";
+
     public ListingController(IListingService listings, IImageStorageService images)
     {
         _listings = listings;
@@ -31,7 +32,10 @@ public class ListingController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateListingDto request, CancellationToken ct)
+    public async Task<IActionResult> Create(
+        [FromBody] CreateListingDto request,
+        CancellationToken ct
+    )
     {
         if (string.IsNullOrEmpty(request.Title))
             return BadRequest(new { error = "Field(s) missing." });
@@ -111,7 +115,6 @@ public class ListingController : ControllerBase
         {
             return BadRequest(new { error = _invalidMetaDataString });
         }
-
     }
 
     [Authorize]
@@ -182,7 +185,15 @@ public class ListingController : ControllerBase
         }
 
         const long maxBytes = 10 * 1024 * 1024;
+        const int maxImagesPerListing = 4;
         string[] allowed = new string[] { "image/jpeg", "image/png", "image/webp" };
+
+        var existing = await _listings.GetByIdAsync(listingId);
+        var existingCount = existing?.Images.Count ?? 0;
+        if (existingCount + files.Count > maxImagesPerListing)
+            return BadRequest("too_many_images");
+
+        var makePrimary = existingCount == 0;
 
         var imageIds = new List<int>();
         foreach (var file in files)
@@ -199,13 +210,16 @@ public class ListingController : ControllerBase
                 listingId,
                 stream.ToArray(),
                 file.ContentType,
-                false,
+                makePrimary,
                 ct
             );
+            makePrimary = false;
             imageIds.Add(id);
         }
 
         await _listings.DuplicateImagesToGroupAsync(listingId, ct);
+
+        await _listings.RescoreGroupAfterImagesAsync(listingId, ct);
 
         return Ok(new { imageIds });
     }
@@ -284,7 +298,10 @@ public class ListingController : ControllerBase
         }
         catch (InvalidOperationException ex) when (ex.Message == "seller_not_verified")
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { error = "seller_not_verified" });
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new { error = "seller_not_verified" }
+            );
         }
         catch (ArgumentException ex) when (ex.Message == "invalid_status")
         {
@@ -298,7 +315,8 @@ public class ListingController : ControllerBase
     [HttpGet("{id:guid}/status")]
     public async Task<IActionResult> GetStatus(Guid id)
     {
-        var callerIdClaim = User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (!Guid.TryParse(callerIdClaim, out var callerId))
         {
             return Unauthorized(new { error = _unauthenticatedString });

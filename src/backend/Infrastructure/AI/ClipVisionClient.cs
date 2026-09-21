@@ -16,7 +16,7 @@ public sealed class ClipVisionClient : IClipVisionClient
         _logger = logger;
     }
 
-    public async Task<double?> ScoreAsync(
+    public async Task<ClipScoreResult?> ScoreAsync(
         byte[] imageBytes,
         string claimedLabel,
         CancellationToken ct = default
@@ -48,7 +48,16 @@ public sealed class ClipVisionClient : IClipVisionClient
             }
 
             var body = await res.Content.ReadFromJsonAsync<ClipScoreResponse>(ct);
-            return body?.MatchScore;
+            if (body is null || body.MatchScore is not double score)
+            {
+                _logger.LogWarning(
+                    "CLIP gave no score for label {Label}: {Error}",
+                    claimedLabel,
+                    body?.Error
+                );
+                return null;
+            }
+            return new ClipScoreResult(score, body.TopLabel, body.TopLabelScore);
         }
         catch (Exception ex)
         {
@@ -70,5 +79,14 @@ public sealed class ClipVisionClient : IClipVisionClient
     {
         [JsonPropertyName("matchScore")]
         public double? MatchScore { get; init; }
+
+        [JsonPropertyName("topLabel")]
+        public string? TopLabel { get; init; }
+
+        [JsonPropertyName("topLabelScore")]
+        public double? TopLabelScore { get; init; }
+
+        [JsonPropertyName("error")]
+        public string? Error { get; init; }
     }
 }

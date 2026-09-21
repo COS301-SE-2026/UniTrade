@@ -16,23 +16,40 @@ public sealed class AdminListingsController : AdminControllerBase
     }
 
     [HttpGet("flagged")]
-    public async Task<IActionResult> GetFlagged([FromQuery] string status = "under_review", CancellationToken ct = default)
+    public async Task<IActionResult> GetFlagged(
+        [FromQuery] string status = "under_review",
+        CancellationToken ct = default
+    )
     {
         var flagged = await _risk.GetFlaggedAsync(status, ct);
         return Ok(flagged);
     }
 
     [HttpPost("{id:guid}/decision")]
-    public async Task<IActionResult> Decide(Guid id, [FromBody] AdminListingDecisionRequestDto request, CancellationToken ct)
+    public async Task<IActionResult> Decide(
+        Guid id,
+        [FromBody] AdminListingDecisionRequestDto request,
+        CancellationToken ct
+    )
     {
         try
         {
-            var result = await _risk.DecideAsync(id, request.Action, request.Reason, GetAdminId(), ct);
+            var result = await _risk.DecideAsync(
+                id,
+                request.Action,
+                request.Reason,
+                GetAdminId(),
+                ct
+            );
             return result is null ? NotFound(new { error = "listing_not_found" }) : Ok(result);
         }
         catch (ArgumentException ex) when (ex.Message == "invalid_action")
         {
             return BadRequest(new { error = "invalid_action" });
+        }
+        catch (ArgumentException ex) when (ex.Message == "reason_required")
+        {
+            return BadRequest(new { error = "reason_required" });
         }
     }
 

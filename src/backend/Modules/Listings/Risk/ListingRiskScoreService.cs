@@ -1,8 +1,8 @@
+using Modules.Identity.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Repositories;
-using Modules.SharedKernel;
-using Modules.Identity.Repositories;
 using Modules.Reputation.Repositories;
+using Modules.SharedKernel;
 
 namespace Modules.Listings.Risk;
 
@@ -35,7 +35,16 @@ public class ListingRiskScoreService : IListingRiskScoreService
     private const decimal StrikeSubWeight = 0.5m;
     private const int StrikeRiskPerStrike = 34;
 
-    public ListingRiskScoreService(IListingRepository listings, IListingImageRepository images, IPerceptualHashService hashing, IUserRepository users, IStrikeRepository strikes)
+    private const decimal HardPriceCeiling = 25_000m;
+    private const decimal HighRiskScoreFloor = 70m;
+
+    public ListingRiskScoreService(
+        IListingRepository listings,
+        IListingImageRepository images,
+        IPerceptualHashService hashing,
+        IUserRepository users,
+        IStrikeRepository strikes
+    )
     {
         _listings = listings;
         _images = images;
@@ -51,17 +60,38 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var duplicateSore = await ComputeDuplicateImageScoreAsync(listing, reasons, ct);
         var sellerHistoryScore = await ComputeSellerHistoryScoreAsync(listing, reasons, ct);
 
+        var extremePrice = listing.Price > HardPriceCeiling;
+        if (extremePrice && !reasons.Any(r => r.Code == "price_anomaly"))
+        {
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "price_anomaly",
+                    Detail =
+                        $"R{listing.Price:N0} is above the R{HardPriceCeiling:N0} maximum for a campus listing",
+                }
+            );
+        }
+
         var combinedScore = CombineSignals(
             (priceScore, PriceSignalWeight),
             (duplicateSore, DuplicateSignalWeight),
             (sellerHistoryScore, SellerHistorySignalWeight)
         );
-        var level = combinedScore > MediumRiskUpperBound ? "high" : combinedScore > LowRiskUpperBound ? "medium" : "low";
+        if (extremePrice)
+        {
+            combinedScore = Math.Max(combinedScore, HighRiskScoreFloor);
+        }
+        var level =
+            combinedScore > MediumRiskUpperBound ? "high"
+            : combinedScore > LowRiskUpperBound ? "medium"
+            : "low";
 
         int? visibilityScore = level switch
         {
             "low" => _fullVisibilityScore,
-            "medium" => (int)Math.Max(_minMediumVisibilityScore, _fullVisibilityScore - combinedScore),
+            "medium" => (int)
+                Math.Max(_minMediumVisibilityScore, _fullVisibilityScore - combinedScore),
             _ => null,
         };
         return new RiskScoreResult(combinedScore, level, visibilityScore, reasons);
@@ -84,14 +114,18 @@ public class ListingRiskScoreService : IListingRiskScoreService
         return totalWeight == 0m ? 0m : weightedSum / totalWeight;
     }
 
-
-    private async Task<decimal?> ComputePriceDeviationScoreAsync(Listing listing, List<RiskReason> reasons, CancellationToken ct)
+    private async Task<decimal?> ComputePriceDeviationScoreAsync(
+        Listing listing,
+        List<RiskReason> reasons,
+        CancellationToken ct
+    )
     {
         var isBook = listing.CourseId.HasValue;
         var comparablePrices = await _listings.GetComparablePricesAsync(
             listing.CategoryId,
             isBook ? listing.CourseId : null,
             listing.ListingId,
+            listing.SellerId,
             ct
         );
 
@@ -110,11 +144,14 @@ public class ListingRiskScoreService : IListingRiskScoreService
             {
                 return 0m;
             }
-            reasons.Add(new RiskReason
-            {
-                Code = "price_anomaly",
-                Detail = $"R{listing.Price:F2} vs uniform price R{mean:F2} among comparable listings",
-            });
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "price_anomaly",
+                    Detail =
+                        $"R{listing.Price:F2} vs uniform price R{mean:F2} among comparable listings",
+                }
+            );
             return 100m;
         }
 
@@ -123,16 +160,23 @@ public class ListingRiskScoreService : IListingRiskScoreService
 
         if (score > _lowRiskUpperBound)
         {
-            reasons.Add(new RiskReason
-            {
-                Code = "price_anomaly",
-                Detail = $"R{listing.Price:F2} vs average R{mean:F2} (+R{stdDev:F2}) across {comparablePrices.Count} comparable listings",
-            });
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "price_anomaly",
+                    Detail =
+                        $"R{listing.Price:F2} vs average R{mean:F2} (+R{stdDev:F2}) across {comparablePrices.Count} comparable listings",
+                }
+            );
         }
         return score;
     }
 
-    private async Task<decimal?> ComputeDuplicateImageScoreAsync(Listing listing, List<RiskReason> reasons, CancellationToken ct)
+    private async Task<decimal?> ComputeDuplicateImageScoreAsync(
+        Listing listing,
+        List<RiskReason> reasons,
+        CancellationToken ct
+    )
     {
         var ownHashes = listing
             .Images.Where(img => img.PerceptualHash != null)
@@ -151,51 +195,60 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var hasCrossSellerMatch = ownHashes.Any(ownHash =>
             comparablePool.Any(candidate =>
                 candidate.SellerId != listing.SellerId
-                && _hashing.HammingDistance(ownHash, candidate.Hash) <= DuplicateHashThreshold));
+                && _hashing.HammingDistance(ownHash, candidate.Hash) <= DuplicateHashThreshold
+            )
+        );
 
         if (hasCrossSellerMatch)
         {
-            reasons.Add(new RiskReason
-            {
-                Code = "duplicate_image",
-                Detail = "Matches an image already used in another seller's live listing",
-            });
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "duplicate_image",
+                    Detail = "Matches an image already used in another seller's live listing",
+                }
+            );
             return 100m;
         }
         return 0m;
     }
 
-    private async Task<decimal?> ComputeSellerHistoryScoreAsync(Listing listing, List<RiskReason> reasons, CancellationToken ct)
+    private async Task<decimal?> ComputeSellerHistoryScoreAsync(
+        Listing listing,
+        List<RiskReason> reasons,
+        CancellationToken ct
+    )
     {
         var seller = await _users.GetByIdAsync(listing.SellerId);
         var trustScore = seller?.StudentProfile?.SellerTrustScore ?? 0m;
 
-        decimal? ratingRisk = trustScore == 0m
-            ? null : Math.Min(100m, Math.Max(0m, (5m - trustScore) / 4m * 100m));
+        decimal? ratingRisk =
+            trustScore == 0m ? null : Math.Min(100m, Math.Max(0m, (5m - trustScore) / 4m * 100m));
 
         if (ratingRisk is > LowRiskUpperBound)
         {
-            reasons.Add(new RiskReason
-            {
-                Code = "low_seller_rating",
-                Detail = $"Seller rating {trustScore:F1}/5",
-            });
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "low_seller_rating",
+                    Detail = $"Seller rating {trustScore:F1}/5",
+                }
+            );
         }
         var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
         decimal strikeRisk = Math.Min(100m, strikeCount * StrikeRiskPerStrike);
 
         if (strikeCount > 0)
         {
-            reasons.Add(new RiskReason
-            {
-                Code = "seller_strikes",
-                Detail = $"{strikeCount} prior strike(s) on record",
-            });
+            reasons.Add(
+                new RiskReason
+                {
+                    Code = "seller_strikes",
+                    Detail = $"{strikeCount} prior strike(s) on record",
+                }
+            );
         }
 
-        return CombineSignals(
-            (ratingRisk, RatingSubWeight),
-            (strikeRisk, StrikeSubWeight)
-        );
+        return CombineSignals((ratingRisk, RatingSubWeight), (strikeRisk, StrikeSubWeight));
     }
 }

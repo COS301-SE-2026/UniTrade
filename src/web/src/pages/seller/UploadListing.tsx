@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
+import { IconUpload, IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
 import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
 import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
@@ -33,8 +33,10 @@ const UploadListing: React.FC = () => {
   const [courseLoading, setCourseLoading] = useState(false);
   const [brand, setBrand] = useState("");
   const [dimensions, setDimensions] = useState("");
-  const [quantity, setQuantity] = useState(1);
   const { showToast } = useToast();
+  const [heldListing, setHeldListingId] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  //const { showToast } = useToast();
 
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
@@ -151,6 +153,7 @@ const UploadListing: React.FC = () => {
         : category === "furniture"
           ? { dimensions: dimensions }
           : null;
+      let createdId: string | null = null;
     try {
       const { listingId, listingStatus } = await listingsService.createListing({
         title,
@@ -163,15 +166,33 @@ const UploadListing: React.FC = () => {
         metadata,
         quantity,
       });
+      createdId = listingId;
       await listingsService.uploadImages(listingId, files);
+      let finalStatus: string = listingStatus;
+      try {
+        await listingsService.updateListingStatus(listingId, "live");
+        finalStatus = (await listingsService.getListingStatus(listingId)).status;
+      }
+      catch (err) {
+        if (!(err instanceof Error && err.message === "seller_not_verified")) throw err;
+      }
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
-      if (listingStatus === "live") {
-        showToast('success', 'Listing uploaded successfully');
-      } else {
+
+
+      if (finalStatus === "under_review") {
+        setHeldListingId(listingId);
+        return;
+      }
+      if (finalStatus === "draft") {
         showToast('info', 'Saved as a draft - you\u2019ll be able to publish once your verification is approved.');
+      } else {
+        showToast('success', 'Listing uploaded successfully' );
       }
       navigate("/seller/listings");
     } catch (err: unknown) {
+      if (createdId) {
+        await listingsService.updateListingStatus(createdId, "draft").catch(() => {})
+      }
       const error = err as ApiError;
       setError(error.message ?? "Something went wrong");
     } finally {
@@ -223,6 +244,43 @@ const UploadListing: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  if (heldListing) {
+    return (
+      <div className="max-w-2xl w-full mx-auto p-6">
+        <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <IconClock size={14} stroke={2} />
+          </div>
+          <h2 className="font-['Fraunces'] text-2xl text-gray-800 mb-2">
+            Your listing is being reviewed
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed mb-6">
+            "{title}" was uploaded successfully, but our automated checks
+            flagged it for a closer look. An admin will review it before it
+            goes live. Do not worry you will  be notified as soon as that happens, you
+            don't need to do anything.
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(`/seller/listings/${heldListing}`)}
+              className="px-5 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold hover:bg-sky-900 transition-all shadow-md"
+            >
+              View listing
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/seller/listings")}
+              className="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              Back to my listings
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">

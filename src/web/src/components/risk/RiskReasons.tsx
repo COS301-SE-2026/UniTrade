@@ -1,0 +1,60 @@
+export type RiskReason = string | { code: string; detail?: string; imageId?: number | null }
+
+const LABELS: Record<string, string> = {
+    price_anomaly: 'Price anomaly',
+    duplicate_image: 'Duplicate image',
+    low_seller_rating: 'Low seller rating',
+    seller_strikes: 'Seller strikes',
+    image_mismatch: "Image doesn't match category"
+}
+
+function labelFor(code: string) {
+    if (LABELS[code]) return LABELS[code]
+    const spaced = code.replace(/_/g, ' ').trim()
+    return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : 'Other signal'
+}
+
+export default function RiskReasons({
+    reasons,
+    images = [],
+
+}: {
+    reasons: RiskReason[]
+    images?: string[]
+}) {
+    if (!reasons || reasons.length === 0) {
+        return <span className="text-[10px] text-gray-500">No reasons recorded</span>
+    }
+
+    return (
+        <ul className="space-y-1">
+            {reasons.map((reason, i) => {
+                const code = typeof reason === 'string' ? reason : reason.code
+                const detail = typeof reason === 'string' ? undefined : reason.detail
+                const imageId = typeof reason === 'string' ? undefined : reason.imageId
+                const photo =
+                    imageId == null
+                        ? undefined
+                        : images.find((u) => u.endsWith(`/images/${imageId}`))
+
+                return (
+                    <li key={`${code}-${i}`} className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-sky-100 text-sky-700">
+                            {labelFor(code)}
+                        </span>
+                        {detail && <span className="text-[10px] text-gray-600">{detail}</span>}
+                        {photo && (
+                            <div className="basis-full">
+                                <img
+                                    src={photo}
+                                    alt="Flagged photo"
+                                    className="mt-1 h-24 w-24 rounded border border-gray-200 object-cover"
+                                />
+                            </div>
+                        )}
+                    </li>
+                )
+            })}
+        </ul>
+    )
+}

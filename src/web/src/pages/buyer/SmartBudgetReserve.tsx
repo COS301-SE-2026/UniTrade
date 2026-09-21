@@ -1,11 +1,13 @@
 import {useMemo, useState} from "react";
+import { useQuery } from "@tanstack/react-query";
 import {formatPrice} from "../../utils/formatters";
+import { useNavigate } from "react-router";
 import type { WishlistListing, BrowseCondition } from "../../types/listing";
 import { useWishlist } from "../../hooks/useWishlist";
+import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
+import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
-import { useNavigate } from "react-router";
-import { createSmartBudgetReservation } from "../../services/reservationService";
 
 
 const conditionColours: Record<
@@ -28,17 +30,22 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
     );
 }
 
+type FitState = "fits" | "over_budget" | "unknown"; 
+
 
 function SelectableItemRow({
     listing,
     selected,
+    fitState,
     onToggle,
 }: Readonly<{
     listing: WishlistListing;
+    fitState: FitState;
     selected: boolean;
     onToggle: (id: string) => void;
 }>) {
     const unavailable = listing.status !== "live";
+    const overBudget = selected && fitState === "over_budget";
 
     return (
         <button 
@@ -48,6 +55,8 @@ function SelectableItemRow({
         className = {`w-full text-left bg-white rounded-xl border p-4 flex items-center gap-4 transition-colors ${
             unavailable
             ? "border-gray-200 opacity-50 cursor-not-allowed"
+            :overBudget
+            ? "border-amber-300 ring-1 ring-amber-300"
             : selected
             ? "border-navy-700 ring-1 ring-navy-700"
             : "border-gray-200 hover:border-navy-300"
@@ -71,6 +80,11 @@ function SelectableItemRow({
                     <span className = "text-sm font-bold text-gray-800 truncate">
                         {listing.title}
                         <ConditionBadge condition = {listing.condition} />
+                        {overBudget && (
+                            <span className = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700">
+                                Over budget
+                            </ span>
+                        )}
                     </span>
                     <span className = "block text-xs text-gray-400 mt-0.5">
                         Listed by{" "}
@@ -93,39 +107,14 @@ function SelectableItemRow({
 }
 
 export default function SmartBudgetReserve() {
+    const navigate = useNavigate();
     const {data, isLoading, error} = useWishlist();
     const listings = useMemo(() => data?.listings ?? [], [data]);
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [maxBudget, setMaxBudget] = useState<string>("");
-    const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
-    const [, setSubmitError] = useState<string | null>(null);
-
-    const handleContinue = async () => {
-          setSubmitting(true);
-          setSubmitError(null);
-
-        const result = await createSmartBudgetReservation({
-            listingIds: Array.from(selectedIds),
-            maxBudget: budgetValue,
-        });
-
-        if (result.success) {
-            const sellerNamesById = Object.fromEntries(
-                selectedListings
-                  .filter((l) => l.sellerName)
-                  .map((l) => [l.sellerId, l.sellerName as string])
-            );
-            navigate("/buyer/reservations/smart-budget-result", {
-                state: { result: result.data, sellerNamesById },
-            });
-
-        } else {
-            setSubmitError(result.error.message ?? "Could not complete the reservation.");
-        }
-        setSubmitting(false);
-    };
+    const [submitError, setSubmitError] = useState<string | null>(null); 
 
     const toggleSelected = (id: string) => {
         setSelectedIds((prev) => {
@@ -136,14 +125,78 @@ export default function SmartBudgetReserve() {
         });
     };
 
-
-    const selectedListings = listings.filter((l) => selectedIds.has(l.id))
-
-
-    const selectedTotal = selectedListings.reduce((sum, l) => sum + l.price, 0);
-
     const budgetValue = Number(maxBudget);
     const budgetIsValid = maxBudget.trim() !== "" && !Number.isNaN(budgetValue) && budgetValue > 0;
+
+    const debouncedSelectedIds = useDebounce(selectedIds, 400);
+    const debouncedBudget = useDebounce(maxBudget, 400);
+
+    const debouncedIds = useMemo(() => Array.from(debouncedSelectedIds).sort(), [debouncedSelectedIds]);
+    const debouncedBudgetValue = Number(debouncedBudget);
+    const debouncedBudgetIsValid = debouncedBudget.trim() != "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0;
+    const canPreview = debouncedIds.length > 0 && debouncedBudgetIsValid;
+
+
+    const {
+        data: previewData,
+        isFetching: previewLoading,
+        error: previewErrorRaw,
+    } = useQuery({
+        queryKey: ["smart-budget-preview", debouncedIds, debouncedBudgetValue],
+        queryFn: async () => {
+            const result = await getSmartBudgetPreview({
+                listingIds: debouncedIds,
+                maxBudget: debouncedBudgetValue,
+
+            });
+            if(!result.success) {
+                throw new Error(result.error.message ?? "Could not check what fits your budget");
+
+            }
+            return result.data;
+        },
+        enabled: canPreview,
+    });
+
+    const wouldReserve = useMemo(() => new Set(previewData?.wouldReserve ?? []), [previewData]);
+    const excluded = useMemo(() => new Set(previewData?.excluded ?? []), [previewData]);
+
+    const previewTotal = previewData?.totalCount ?? 0;
+    const previewError = previewErrorRaw instanceof Error ? previewErrorRaw.message : null;
+
+
+  const getFitState = (id: string): FitState => {
+    if (!budgetIsValid || selectedIds.size === 0) return "unknown";
+    if (wouldReserve.has(id)) return "fits";
+    if (excluded.has(id)) return "over_budget";
+    return "unknown";
+  };
+
+  const handleContinue = async () => {
+    if (!budgetIsValid || selectedIds.size === 0 || submitting) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const result = await createSmartBudgetReservation({
+        listingIds: Array.from(selectedIds),
+        maxBudget: budgetValue,
+    });
+
+    if(result.success) {
+        const sellerNamesById : Record<string, string> = {};
+        for (const listing of listings) {
+            if(listing.sellerName) sellerNamesById[listing.sellerId] = listing.sellerName;
+        }
+
+        navigate("/buyer/reservations/smart-budget-result", {
+            state: { result: result.data, sellerNamesById},
+        });
+    } else {
+        setSubmitError(result.error.message ?? "Could not complete the reservation. Please Try again.");
+        setSubmitting(false);
+    }
+  };
 
     return (
         <div className = "flex flex-col gap-6">
@@ -176,19 +229,42 @@ export default function SmartBudgetReserve() {
                  />
                 </div>
 
-                <div className = "ml-auto text-sm text-gray-500">
-                    <span className = "font-semibold text-gray-800">
+                <div className="ml-auto text-sm text-gray-500 text-right">
+                    {selectedIds.size === 0 ? (
+                        <span className = "text-gray-400">
+                            Select items below to get started
+                        </span>
+                    ) : !budgetIsValid ? (
+                        <span className = "text-gray-400">
+                            Enter a budget to see what fits
+                        </span>
+                    ) : previewLoading ? (
+                      <span className="text-gray-400">
+                        Checking what fits ... 
+                      </span>
+                ) : (
+                  <>
+                    <span className="font-semibold text-gray-800">
+                        {wouldReserve.size}
+                    </span> of{" "}
+                    <span className="font-semibold text-gray-800">
                         {selectedIds.size}
-                    </span>
-                    {" "}
-                    {selectedIds.size === 1 ? "item" : "items"} selected {" "}
-                    <span className = "font-semibold text-gray-800">
-                        {formatPrice(selectedTotal)}
-                    </span>
-                    {" "}
-                    total 
-                </div>
-                </div>
+                    </span>{" "}
+                    {selectedIds.size === 1 ? "item" : "items"} would fit {" "}
+                    <span className="font-semibold text-gray-800">
+                        {formatPrice(previewTotal)}
+                    </span> 
+                    total
+                  </>
+                )}
+            </div>
+        </div>
+
+      {previewError && (
+        <p className="text-xs text-rose-600 -mt-2">
+            {previewError}
+        </p>
+      )}
 
                 {isLoading && <LoadingState message = "Loading wishlist ..." />}
 
@@ -207,7 +283,7 @@ export default function SmartBudgetReserve() {
                             Your wishlist is empty
                         </p>
                         <p className = "text-xs text-gray-400 mt-1">
-                            Add items to your wishlist first, then come back to reserve within your budget
+                            Add items to your wishlist first , then come back to reserve within your budget
                         </p>
                     </div>
                 )}
@@ -218,21 +294,28 @@ export default function SmartBudgetReserve() {
                         key = {listing.id}
                         listing = {listing}
                         selected = {selectedIds.has(listing.id)}
+                        fitState={getFitState(listing.id)}
                         onToggle= {toggleSelected}
                         />
                     ))}
                 </div>
 
-                <div className = "sticky bottom-4 flex justify-end">
-                    <button
-                    type = "button"
-                    disabled = {!budgetIsValid || selectedIds.size === 0 || submitting}
-                    onClick={handleContinue}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                    >
-                        Continue
-                    </button>
+                     <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-gradient-to-t from-white via-white to-transparent">
+                        {submitError && (
+                          <p className="text-xs text-rose-600 text-right mb-2">{submitError}</p>
+                        )}
+                        <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleContinue}
+                          disabled={!budgetIsValid || selectedIds.size === 0 || submitting}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                        >
+                          {submitting ? "Reserving..." : "Continue"}
+                        </button>
+                       </div>
+                    </div>
                 </div>
-            </div>
+
             );
         }

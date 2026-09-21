@@ -139,6 +139,35 @@ function ActionButtons({
       </div>
     );
   }
+
+    if (listing.status === "under_review") {
+    return (
+      <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+        <button
+          type="button"
+          onClick={() => navigate(`/seller/listings/${listing.id}`)}
+          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+        >
+          View
+        </button>
+        <button
+          type="button"
+          disabled
+          className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full cursor-not-allowed whitespace-nowrap"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          disabled
+          aria-label="Delete listing"
+          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-2 rounded-full cursor-not-allowed flex-shrink-0"
+        >
+          <IconTrash size={16} />
+        </button>
+      </div>
+    );
+  }
   if (listing.status === "sold") {
     return (
       <div className="flex items-center gap-2 fle-wrap md:flex-nowrap">
@@ -371,11 +400,11 @@ export default function MyListings() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "all", label: "All" },
-    { key: "live", label: `Live (${count("live")})` },
-    { key: "pending", label: `Pending (${count("pending")})` },
-    { key: "draft", label: `Drafts (${count("draft")})` },
-    { key: "rejected", label: `Rejected (${count("rejected")})` },
-    { key: "sold", label: `Sold (${count("sold")})` },
+    { key: "live", label: `Live` },
+    { key: "pending", label: `Pending` },
+    { key: "draft", label: `Drafts` },
+    { key: "rejected", label: `Rejected` },
+    { key: "sold", label: `Sold` },
   ];
 
   if (isLoading) {
@@ -458,7 +487,7 @@ export default function MyListings() {
               setActiveTab(tab.key);
               setCurrentPage(1);
             }}
-            className={`px-4 md:px-5 py-2 rounded-full text-xs md:text-sm font-semibold border transition-colors ${activeTab === tab.key
+            className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors ${activeTab === tab.key
                 ? "bg-navy-700 text-white border-navy-700"
                 : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}

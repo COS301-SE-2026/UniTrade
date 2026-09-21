@@ -43,6 +43,7 @@ public sealed class AdminApiFactory : WebApplicationFactory<Program>, IAsyncLife
                         ["Jwt:Secret"] =
                             "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5",
                         ["Firebase:CredentialsJson"] = "",
+                        ["Clip:BaseUrl"] = "http://clip.test"
                     }
                 );
             }
