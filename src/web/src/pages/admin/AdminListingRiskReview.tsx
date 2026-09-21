@@ -11,6 +11,7 @@ import { LoadingState } from '../../components/layout/Spinner';
 import RiskBadge from '../../components/risk/RiskBadge';
 import RiskReasons from '../../components/risk/RiskReasons';
 import ImageMatchScore from '../../components/risk/ImageMatchScore';
+import { imageUrl } from '../../services/listingsService';
 
 //const LOW_MATCH_THRESHOLD = 0.5;
 
@@ -155,10 +156,10 @@ export default function AdminListingRiskReview() {
         );
     }
 
-    const images = listing.images ?? [];
+    const images = (listing.images ?? []).map(imageUrl);
     const activeImage = images[Math.min(selectedImage, Math.max(images.length - 1, 0))];
     //const lowMatch =
-        //listing.imageMatchScore !== null && listing.imageMatchScore < LOW_MATCH_THRESHOLD;
+    //listing.imageMatchScore !== null && listing.imageMatchScore < LOW_MATCH_THRESHOLD;
     const isActionDisabled = decision.isPending;
 
     return (
@@ -223,7 +224,7 @@ export default function AdminListingRiskReview() {
                             <span className="text-xs text-gray-600">Visibility {listing.visibilityScore}</span>
                             <ImageMatchScore score={listing.imageMatchScore} />
                         </div>
-                        <RiskReasons reasons={listing.reasons} />
+                        <RiskReasons reasons={listing.reasons} images={images} />
                     </Panel>
                     <Panel title="Actions">
                         <div className="flex flex-col sm:flex-row gap-3">
@@ -250,6 +251,11 @@ export default function AdminListingRiskReview() {
                             Approving makes the listing live and restores its visibility. Removing needs a reason,
                             which the seller will see.
                         </p>
+                        {listing.copyCount > 1 && (
+                            <p className="text-xs text-amber-700 mt-2">
+                                This listing has {listing.copyCount} copies. Your decision applies to all of them.
+                            </p>
+                        )}
                     </Panel>
                 </div>
                 <div className="space-y-4">

@@ -52,18 +52,24 @@ public class AdminListingRiskService : IAdminListingRiskService
         var (items, _) = await _listings.ListAsync(filter);
 
         return items
-            .Select(l => new FlaggedListingDto(
-                l.ListingId,
-                l.Title,
-                l.Price,
-                l.SellerId,
-                SellerInitials(l.Seller),
-                l.AiRiskScore ?? 0m,
-                l.AiRiskLevel ?? "low",
-                l.AiRiskReasons?.Select(r => r.Code).ToList() ?? new List<string>(),
-                l.ImageMatchScore,
-                l.CreatedAt
-            ))
+            .GroupBy(l => l.ListingGroupId ?? l.ListingId)
+            .Select(g =>
+            {
+                var l = g.OrderBy(x => x.CreatedAt).ThenBy(x => x.ListingId).First();
+                return new FlaggedListingDto(
+                    l.ListingId,
+                    l.Title,
+                    l.Price,
+                    l.SellerId,
+                    SellerInitials(l.Seller),
+                    l.AiRiskScore ?? 0m,
+                    l.AiRiskLevel ?? "low",
+                    l.AiRiskReasons?.Select(r => r.Code).ToList() ?? new List<string>(),
+                    l.ImageMatchScore,
+                    l.CreatedAt,
+                    g.Count()
+                );
+            })
             .ToList();
     }
 
@@ -99,12 +105,52 @@ public class AdminListingRiskService : IAdminListingRiskService
 
         var statusBeforeDecision = listing.ListingStatus;
 
+        if (action == "remove" && string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("reason_required");
+        }
+
+        var siblingIds = new List<Guid>();
+        if (listing.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId, ct);
+            siblingIds = siblings
+                .Where(s => s.ListingId != listingId && s.ListingStatus == "under_review")
+                .Select(s => s.ListingId)
+                .ToList();
+        }
+        var copies = siblingIds.Count + 1;
+        var result = await DecideOneAsync(listingId, action, reason, adminId, copies, true, ct);
+
+        foreach (var siblingId in siblingIds)
+        {
+            await DecideOneAsync(siblingId, action, reason, adminId, copies, false, ct);
+        }
+
+        return result;
+    }
+
+    private async Task<ListingSummaryDto?> DecideOneAsync(
+        Guid listingId,
+        string action,
+        string reason,
+        Guid adminId,
+        int copies,
+        bool notifyText,
+        CancellationToken ct
+    )
+    {
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+        {
+            return null;
+        }
+
+        var statusBeforeDecision = listing.ListingStatus;
+        var label = copies > 1 ? $"'{listing.Title}' ({copies} copies)" : $"'{listing.Title}'";
+
         if (action == "remove")
         {
-            if (string.IsNullOrWhiteSpace(reason))
-            {
-                throw new ArgumentException("reason_required");
-            }
             var removed = await _moderation.RemoveListingAsync(listingId, reason, ct);
             if (!removed)
             {
@@ -134,12 +180,15 @@ public class AdminListingRiskService : IAdminListingRiskService
                 listing.AiRiskLevel ?? "low",
                 ct
             );
-            await _notifications.NotifyAsync(
-                listing.SellerId,
-                NotificationTypes.ListingStatus,
-                $"Your listing '{listing.Title}' was removed. Reason: {reason}",
-                ct
-            );
+            if (notifyText)
+            {
+                await _notifications.NotifyAsync(
+                    listing.SellerId,
+                    NotificationTypes.ListingStatus,
+                    $"Your listing {label} was removed. Reason: {reason}",
+                    ct
+                );
+            }
             return ListingService.MapToSummary(listing);
         }
 
@@ -169,13 +218,16 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.AiRiskLevel ?? "low",
             ct
         );
-        await _notifications.NotifyAsync(
-            listing.SellerId,
-            NotificationTypes.ListingStatus,
-            $"Your listing '{listing.Title}' has been approved and is now live.",
-            ct
-        );
 
+        if (notifyText)
+        {
+            await _notifications.NotifyAsync(
+                listing.SellerId,
+                NotificationTypes.ListingStatus,
+                $"Your listing {label} has been approved and is now live.",
+                ct
+            );
+        }
         try
         {
             var evnt = new ListingPublishedEvent
@@ -205,6 +257,12 @@ public class AdminListingRiskService : IAdminListingRiskService
             return null;
         }
 
+        var copyCount = 1;
+        if (listing.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId, ct);
+            copyCount = Math.Max(1, siblings.Count(s => s.ListingStatus == "under_review"));
+        }
         var seller = await _users.GetByIdAsync(listing.SellerId);
         var verificationStatus = seller?.StudentProfile?.VerificationStatus ?? "unknown";
         var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
@@ -239,10 +297,13 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.AiRiskScore ?? 0m,
             listing.AiRiskLevel ?? "low",
             listing.VisibilityScore,
-            listing.AiRiskReasons?.Select(r => new ReasonDetailDto(r.Code, r.Detail)).ToList()
+            listing
+                .AiRiskReasons?.Select(r => new ReasonDetailDto(r.Code, r.Detail, r.ImageId))
+                .ToList()
                 ?? new List<ReasonDetailDto>(),
             listing.ImageMatchScore,
-            listing.CreatedAt
+            listing.CreatedAt,
+            copyCount
         );
     }
 }

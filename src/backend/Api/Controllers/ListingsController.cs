@@ -185,7 +185,15 @@ public class ListingController : ControllerBase
         }
 
         const long maxBytes = 10 * 1024 * 1024;
+        const int maxImagesPerListing = 4;
         string[] allowed = new string[] { "image/jpeg", "image/png", "image/webp" };
+
+        var existing = await _listings.GetByIdAsync(listingId);
+        var existingCount = existing?.Images.Count ?? 0;
+        if (existingCount + files.Count > maxImagesPerListing)
+            return BadRequest("too_many_images");
+
+        var makePrimary = existingCount == 0;
 
         var imageIds = new List<int>();
         foreach (var file in files)
@@ -202,9 +210,10 @@ public class ListingController : ControllerBase
                 listingId,
                 stream.ToArray(),
                 file.ContentType,
-                false,
+                makePrimary,
                 ct
             );
+            makePrimary = false;
             imageIds.Add(id);
         }
 

@@ -15,6 +15,8 @@ vi.mock('../../services/listingsService', () => ({
     createListing: vi.fn(),
     getListingsCategories: vi.fn().mockResolvedValue(mockCategories),
     searchCourses: vi.fn().mockResolvedValue(mockCourses),
+    updateListingStatus: vi.fn(),
+    getListingStatus: vi.fn(),
   },
 }))
 
@@ -30,20 +32,21 @@ vi.mock('../../components/layout/useToast', () => ({
   }),
 }))
 import UploadListing from '../../pages/seller/UploadListing';
+//import { getListingStatus } from '../../services/adminService';
 
 const renderUpload = () => {
-         const queryClient = new QueryClient({
-            defaultOptions: {
-                queries: {
-                    retry: false,
-                },
-            },
-        })
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
   render(
     <QueryClientProvider client={queryClient}>
-    <MemoryRouter>
-      <UploadListing />
-    </MemoryRouter>
+      <MemoryRouter>
+        <UploadListing />
+      </MemoryRouter>
     </QueryClientProvider>
   )
 }
@@ -76,6 +79,10 @@ describe('UploadListing', () => {
     vi.clearAllMocks()
     vi.mocked(listingsService.getListingsCategories).mockResolvedValue(mockCategories)
     vi.mocked(listingsService.searchCourses).mockResolvedValue(mockCourses)
+    vi.mocked(listingsService.updateListingStatus).mockResolvedValue(undefined)
+    vi.mocked(listingsService.getListingStatus).mockResolvedValue({
+      listingId: '42', status: 'live', riskLevel: 'low', message: '',
+    })
   })
 
 
@@ -312,7 +319,7 @@ describe('UploadListing', () => {
   })
 
   it('submits successfully and navigates to seller listings', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId:'42', listingStatus: 'live'})
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '42', listingStatus: 'live' })
     vi.mocked(listingsService.uploadImages).mockResolvedValueOnce([])
     const user = userEvent.setup()
     renderUpload()
@@ -340,6 +347,7 @@ describe('UploadListing', () => {
     })
 
     expect(listingsService.uploadImages).toHaveBeenCalledWith('42', [expect.any(File)])
+    expect(listingsService.updateListingStatus).toHaveBeenCalledWith('42', 'live')
     expect(mockNavigate).toHaveBeenCalledWith('/seller/listings')
   })
 
@@ -379,7 +387,7 @@ describe('UploadListing', () => {
 
 
   it('saves a draft successfully without images and skips uploadImages', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '7', listingStatus: 'draft'})
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '7', listingStatus: 'draft' })
     const user = userEvent.setup()
     renderUpload()
 
@@ -402,7 +410,7 @@ describe('UploadListing', () => {
   })
 
   it('saves a draft with images and calls uploadImages', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce({listingId: '8', listingStatus: 'draft'})
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '8', listingStatus: 'draft' })
     vi.mocked(listingsService.uploadImages).mockResolvedValueOnce([])
     const user = userEvent.setup()
     renderUpload()

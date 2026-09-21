@@ -31,7 +31,11 @@ public class ListingService : IListingService
     }; // as in removed form the platform because you sold it outside it
 
     private const double _imageMismatchThreshold = 0.15;
-    private const int _minMediumVisibilityScore = 20;
+    private const double _imageStrongMismatchThreshold = 0.05;
+    private const int _maxImagesToScore = 4;
+    private const decimal _mismatchVisibilityCap = 50;
+    private const decimal _mediumRiskScoreFloor = 40m;
+    private const decimal _highRiskScoreFloor = 70m;
 
     public ListingService(
         IListingRepository listings,
@@ -173,7 +177,11 @@ public class ListingService : IListingService
 
         var requestedStatus = dto.ListingStatus;
         var isVerified = await _verification.IsVerifiedAsync(callerId, ct);
-        var effectiveStatus = isVerified ? requestedStatus : "draft";
+        var effectiveStatus =
+            !isVerified ? "draft"
+            : requestedStatus == "live" ? "screening"
+            : requestedStatus;
+
         var groupId = quantity > 1 ? Guid.NewGuid() : (Guid?)null;
 
         var created = new List<Listing>(quantity);
@@ -282,6 +290,15 @@ public class ListingService : IListingService
         if (listingLookUp == null)
             return false;
 
+        var priceChanged = listingLookUp.Price != listings.Price;
+        var categoryChanged =
+            !string.IsNullOrWhiteSpace(listings.CategoryName)
+            && !string.Equals(
+                listingLookUp.Category?.Name,
+                listings.CategoryName.Trim(),
+                StringComparison.OrdinalIgnoreCase
+            );
+
         if (listingLookUp.SellerId != callerId)
         {
             throw new UnauthorizedAccessException("forbidden");
@@ -343,7 +360,25 @@ public class ListingService : IListingService
             }
         }
 
+        var flagged = false;
+        if (
+            (priceChanged || categoryChanged)
+            && listingLookUp.ListingStatus is "live" or "low_visibility"
+        )
+        {
+            flagged = await ScoreListingAsync(listingLookUp, ct);
+        }
         await _listings.SaveAsync();
+
+        if (flagged)
+        {
+            await NotifyFlaggedAsync(listingLookUp, ct);
+        }
+
+        if (listings.RemovedImageIds is { Count: > 0 })
+        {
+            await _listings.DuplicateImagesToGroupAsync(id, ct);
+        }
         return true;
     }
 
@@ -368,6 +403,7 @@ public class ListingService : IListingService
 
         listingLookUp.CourseId = isBook ? listings.CourseId : null;
         listingLookUp.CategoryId = category.CategoryId;
+        listingLookUp.Category = category;
     }
 
     public async Task<bool> DeleteListings(Guid id, Guid callerId)
@@ -391,6 +427,46 @@ public class ListingService : IListingService
     }
 
     public async Task<bool> UpdateStatusAsync(
+        Guid listingId,
+        Guid callerId,
+        string newStatus,
+        CancellationToken ct = default
+    )
+    {
+        var ok = await UpdateOneStatusAsync(listingId, callerId, newStatus, ct);
+        if (!ok || newStatus is not ("live" or "draft"))
+            return ok;
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing?.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId, ct);
+            var pending = siblings
+                .Where(s =>
+                    s.ListingId != listingId
+                    && (
+                        newStatus == "live"
+                            ? s.ListingStatus is "draft" or "screening"
+                            : s.ListingStatus == "screening"
+                    )
+                )
+                .ToList();
+
+            foreach (var s in pending)
+            {
+                try
+                {
+                    await UpdateOneStatusAsync(s.ListingId, callerId, newStatus, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not update copy {ListingId}", s.ListingId);
+                }
+            }
+        }
+        return true;
+    }
+
+    private async Task<bool> UpdateOneStatusAsync(
         Guid listingId,
         Guid callerId,
         string newStatus,
@@ -423,7 +499,6 @@ public class ListingService : IListingService
         {
             throw new InvalidOperationException("status_locked");
         }
-
         if (newStatus == "live" && listing.Images.Count == 0)
         {
             throw new InvalidOperationException("images_required");
@@ -454,7 +529,6 @@ public class ListingService : IListingService
         {
             listing.ListingStatus = newStatus;
         }
-
         listing.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
         await _notifier.ListingStatusChangedAsync(
@@ -515,7 +589,8 @@ public class ListingService : IListingService
             listing.ListingId,
             status,
             listing.AiRiskLevel ?? "low",
-            message
+            message,
+            listing.VisibilityScore
         );
     }
 
@@ -524,6 +599,7 @@ public class ListingService : IListingService
         return listing.ListingStatus switch
         {
             "live" => ("live", "Your listing is live."),
+            "screening" => ("screening", "Your listing is being checked."),
             "under_review" => ("under_review", "Your listing is being reviewed by an admin."),
             "removed" => (
                 "removed",
@@ -537,14 +613,8 @@ public class ListingService : IListingService
     public Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default) =>
         _listings.DuplicateImagesToGroupAsync(sourceListingId, ct);
 
-    public async Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default)
+    private async Task<bool> ScoreListingAsync(Listing listing, CancellationToken ct)
     {
-        var listing = await _listings.GetByIdTrackedAsync(listingId);
-        if (listing is null)
-            return;
-
-        if (listing.ListingStatus is not ("live" or "low_visibility"))
-            return;
 
         var risk = await _risk.ScoreAsync(listing, ct);
         listing.AiRiskScore = risk.Score;
@@ -559,19 +629,36 @@ public class ListingService : IListingService
         {
             listing.ListingStatus = "under_review";
         }
+        return listing.ListingStatus == "under_review";
+    }
+
+    private async Task NotifyFlaggedAsync(Listing listing, CancellationToken ct)
+    {
+        await _notifier.ListingStatusChangedAsync(
+        listing.SellerId,
+        listing.ListingId,
+        "under_review",
+        listing.AiRiskLevel ?? "low",
+        ct
+    );
+        await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
+    }
+    public async Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+            return;
+
+        if (listing.ListingStatus is not ("live" or "low_visibility"))
+            return;
+
+        var flagged = await ScoreListingAsync(listing, ct);
         listing.UpdatedAt = DateTime.UtcNow;
         await _listings.SaveAsync();
 
-        if (listing.ListingStatus == "under_review")
+        if (flagged)
         {
-            await _notifier.ListingStatusChangedAsync(
-                listing.SellerId,
-                listing.ListingId,
-                "under_review",
-                listing.AiRiskLevel ?? "low",
-                ct
-            );
-            await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
+            await NotifyFlaggedAsync(listing, ct);
         }
     }
 
@@ -601,40 +688,100 @@ public class ListingService : IListingService
         CancellationToken ct
     )
     {
-        var primary =
-            listing.Images.FirstOrDefault(i => i.IsPrimary) ?? listing.Images.FirstOrDefault();
-        if (primary is null || primary.ImageData is null || primary.ImageData.Length == 0)
+        var category = listing.Category?.Name;
+        if (category is null)
+        {
+            _logger.LogWarning(
+                "Category not loaded for listing {ListingId}; image check skipped",
+                listing.ListingId
+            );
+            return;
+        }
+
+        if (string.Equals(category, "other", StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
-        var category = listing.Category?.Name;
-        var label = category ?? "item";
-        listing.ImageMatchScore = await _clip.ScoreAsync(primary.ImageData, label, ct);
 
-        var isScorable = !string.Equals(category, "other", StringComparison.OrdinalIgnoreCase);
-        if (listing.ImageMatchScore is double s && isScorable && s < _imageMismatchThreshold)
+        var candidates = listing
+            .Images.Where(i => i.ImageData is { Length: > 0 })
+            .OrderByDescending(i => i.IsPrimary)
+            .ThenBy(i => i.ImageId)
+            .Take(_maxImagesToScore)
+            .ToList();
+
+        if (candidates.Count == 0)
+            return;
+
+        ListingImage? worstImage = null;
+        ClipScoreResult? worst = null;
+
+        foreach (var image in candidates)
         {
-            reasons.Add(
-                new RiskReason
-                {
-                    Code = "image_mismatch",
-                    Detail =
-                        $"Photo doesn't match the claimed category '{category}' (match {s:P0})",
-                }
-            );
+            var result = await _clip.ScoreAsync(image.ImageData!, category, ct);
+            if (result is null)
+                continue;
 
-            if (listing.AiRiskLevel == "low")
+            if (worst is null || result.MatchScore < worst.MatchScore)
             {
-                listing.AiRiskLevel = "medium";
-                listing.VisibilityScore = Math.Max(
-                    _minMediumVisibilityScore,
-                    listing.VisibilityScore ?? _minMediumVisibilityScore
-                );
-            }
-            else if (listing.AiRiskLevel == "medium")
-            {
-                listing.AiRiskLevel = "high";
+                worst = result;
+                worstImage = image;
             }
         }
+
+        if (worst is null || worstImage is null)
+        {
+            _logger.LogWarning(
+                "No CLIP score for listing {ListingId}; image check skipped",
+                listing.ListingId
+            );
+            return;
+        }
+
+        var s = worst.MatchScore;
+        listing.ImageMatchScore = s;
+
+        if (s >= _imageMismatchThreshold)
+            return;
+
+        var detail = worst.TopLabel is null
+            ? $"Photo doesn't match the claimed category '{category}' (match {s:P0})"
+            : $"Photo looks like {worst.TopLabel} ({worst.TopLabelScore:P0}), "
+                + $"not the claimed category '{category}' (match {s:P0})";
+
+        reasons.Add(
+            new RiskReason
+            {
+                Code = "image_mismatch",
+                Detail = detail,
+                ImageId = worstImage.ImageId,
+            }
+        );
+
+        if (s < _imageStrongMismatchThreshold)
+        {
+            EscalateToHigh(listing, s);
+        }
+        else if (listing.AiRiskLevel == "low")
+        {
+            listing.AiRiskLevel = "medium";
+            listing.AiRiskScore = Math.Max(listing.AiRiskScore ?? 0m, _mediumRiskScoreFloor);
+            listing.VisibilityScore = (int)
+                Math.Min(listing.VisibilityScore ?? 100, _mismatchVisibilityCap);
+        }
+        else if (listing.AiRiskLevel == "medium")
+        {
+            EscalateToHigh(listing, s);
+        }
+    }
+
+    private static void EscalateToHigh(Listing listing, double matchScore)
+    {
+        var severity = (decimal)Math.Clamp(1 - matchScore / _imageStrongMismatchThreshold, 0, 1);
+        var baseScore = Math.Max(listing.AiRiskScore ?? 0m, _highRiskScoreFloor);
+
+        listing.AiRiskLevel = "high";
+        listing.AiRiskScore = Math.Min(100m, baseScore + 30m * severity);
+        listing.VisibilityScore = null;
     }
 }

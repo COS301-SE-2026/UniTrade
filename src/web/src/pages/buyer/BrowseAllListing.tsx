@@ -198,7 +198,7 @@ function ListingCard({
 }
 
 type ConditionFilter = "All conditions" | BrowseCondition;
-type SortOption = "Newest" | "Oldest" | "Price Low" | "Price High";
+type SortOption = "Recommended" | "Newest" | "Oldest" | "Price Low" | "Price High";
 const PAGE_SIZE = 8;
 
 export default function BrowseAllListing() {
@@ -210,7 +210,7 @@ export default function BrowseAllListing() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [conditionFilter, setConditionFilter] =
     useState<ConditionFilter>("All conditions");
-  const [sortOption, setSortOption] = useState<SortOption>("Newest");
+  const [sortOption, setSortOption] = useState<SortOption>("Recommended");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMoreCategories, setShowMoreCategories] = useState(false);
 
@@ -245,9 +245,12 @@ export default function BrowseAllListing() {
       ? afterCategory
       : afterCategory.filter((l) => l.condition === conditionFilter);
 
+  const time = (iso?: string) => Date.parse(iso ?? "") || 0;
   const filtered = [...afterCondition].sort((a, b) => {
     if (sortOption === "Price Low") return a.price - b.price;
     if (sortOption === "Price High") return b.price - a.price;
+    if (sortOption === "Newest") return time(b.listedAt) - time(a.listedAt);
+    if (sortOption === "Oldest") return time(a.listedAt) - time(b.listedAt);
     return 0;
   });
 
@@ -365,6 +368,7 @@ export default function BrowseAllListing() {
             onChange={(e) => setSortOption(e.target.value as SortOption)}
             className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
           >
+            <option>Recommended</option>
             <option>Newest</option>
             <option>Oldest</option>
             <option>Price Low</option>

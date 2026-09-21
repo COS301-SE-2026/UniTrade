@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { IconCheck, IconX, } from "@tabler/icons-react"
+//import { IconCheck, IconX, } from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getFlaggedListings, decideListing } from "../../services/adminService"
@@ -7,12 +7,13 @@ import { queryKeys } from "../../lib/queryKeys"
 import { LoadingState } from "../../components/layout/Spinner"
 import type { FlaggedListing } from "../../types/admin_disputes"
 import { formatDate } from "../../utils/formatters"
-
+import { IconAnalyze, IconTrendingUp,IconCopyCheck,IconVersionsOff } from "@tabler/icons-react"
 import RiskBadge from "../../components/risk/RiskBadge"
 import RiskReasons from '../../components/risk/RiskReasons'
 import ImageMatchScore from "../../components/risk/ImageMatchScore"
 import { isLowImageMatch } from "../../utils/riskUtils"
 import { connectionManager } from "../../services/realtime/connectionManager"
+
 
 type Filter = 'All' | 'Price anomaly' | 'Duplicate image' | 'Low image match'
 type SortBy = 'Oldest First' | 'Newest First'
@@ -65,7 +66,7 @@ export default function AdminListingQueue() {
     },
   })
 
-  const busyId = decision.isPending ? decision.variables?.id : undefined
+  //const busyId = decision.isPending ? decision.variables?.id : undefined
 
   const filteredRows = listings.filter((l) => {
     const q = searchQuery.toLowerCase()
@@ -110,25 +111,26 @@ export default function AdminListingQueue() {
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Flagged Listings
         </h1>
-        <p className="text-xs text-gray-600 mt-1">
+        <p className="text-sm text-gray-400 mt-1">
           Review listings held by the automated risk check and approve or remove them
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Awaiting Review', value: numTotal },
-          { label: 'Price Anomalies', value: numPriceAnomaly },
-          { label: 'Duplicate Images', value: numDuplicate },
-          { label: 'Low Image Match', value: numLowMatch },
+          { label: 'Awaiting Review', value: numTotal, icon: <IconAnalyze size={20} /> },
+          { label: 'Price Anomalies', value: numPriceAnomaly, icon: <IconTrendingUp size={20} /> },
+          { label: 'Duplicate Images', value: numDuplicate, icon: <IconCopyCheck size={20} /> },
+          { label: 'Low Image Match', value: numLowMatch, icon: <IconVersionsOff size={20} />},
         ].map((stat) => (
           <div
             key={stat.label}
             className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3"
           >
+            <span className="text-navy-700 dark:text-white">{stat.icon}</span>
             <div>
               <div className="text-2xl font-bold text-navy-700 dark:text-white">{stat.value}</div>
-              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -141,10 +143,10 @@ export default function AdminListingQueue() {
               key={label}
               type="button"
               onClick={() => setFilter(label)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-colors 
+              className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors 
                 ${filter === label
-                  ? 'bg-navy-700 text-white'
-                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  ? "bg-navy-700 text-white border-navy-700"
+                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
                 }`}
             >
               {label}
@@ -174,12 +176,12 @@ export default function AdminListingQueue() {
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-xs text-gray-600 font-normal">
-              <th className="py-3 px-4">Listing</th>
-              <th className="py-3 px-4 text-center">Risk</th>
-              <th className="py-3 px-4">Why it was flagged</th>
-              <th className="py-3 px-4 text-center">Image match</th>
-              <th className="py-3 px-4 text-center">Actions</th>
+            <tr className="text-xs text-gray-400 font-semibold border-b border-gray-100 bg-gray-50">
+              <th className="py-3 px-4 uppercase">Listing</th>
+              <th className="py-3 px-4 text-center uppercase">Risk</th>
+              <th className="py-3 px-4 uppercase">Why it was flagged</th>
+              <th className="py-3 px-4 text-center uppercase">Image match</th>
+              <th className="py-3 px-4 text-center uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-xs">
@@ -202,9 +204,14 @@ export default function AdminListingQueue() {
                       >
                         {l.sellerInitials}
                       </div>
-                      <div className="font-bold text-gray-900">
+                      <div className="text-sm font-semibold text-navy-700">
                         {l.title}
-                        <div className="text-[10px] font-normal text-gray-600 mt-0.5">
+                        {l.copyCount > 1 && (
+                          <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">
+                            ×{l.copyCount} copies
+                          </span>
+                        )}
+                        <div className="text-[10px] font-normal text-gray-400 mt-0.5">
                           {zar.format(l.price)} · Flagged {formatDate(l.createdAt)} ({timeInQueue(l.createdAt)} ago)
                         </div>
                       </div>
@@ -254,24 +261,6 @@ export default function AdminListingQueue() {
                         className="bg-white text-[#0a1931] border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors cursor-pointer text-[10px] leading-tight px-4 py-1.5"
                       >
                         Review
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === l.listingId}
-                        onClick={() => decision.mutate({ id: l.listingId, action: 'approve' })}
-                        className="bg-navy-700 text-white px-4 py-1.5 rounded-full font-semibold hover:bg-navy-500 transition-colors cursor-pointer text-[10px] leading-tight inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <IconCheck className="w-3.5 h-3.5" />
-                        <span>Approve</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === l.listingId}
-                        onClick={() => setRemoveTarget(l)}
-                        className="bg-white text-rose-700 border border-rose-300 rounded-full font-semibold hover:bg-rose-50 transition-colors cursor-pointer text-[10px] leading-tight px-4 py-1.5 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <IconX className="w-3.5 h-3.5" />
-                        <span>Remove</span>
                       </button>
                     </div>
                   </td>

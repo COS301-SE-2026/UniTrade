@@ -1,6 +1,6 @@
 namespace Modules.Listings.Models.Dto;
 
-public sealed record ReasonDetailDto(string Code, string Detail);
+public sealed record ReasonDetailDto(string Code, string Detail, int? ImageId = null);
 
 public sealed record FlaggedListingSellerDto(
     Guid SellerId,
@@ -25,5 +25,6 @@ public sealed record FlaggedListingDetailDto(
     int? VisibilityScore,
     List<ReasonDetailDto> Reasons,
     double? ImageMatchScore,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    int CopyCount = 1
 );

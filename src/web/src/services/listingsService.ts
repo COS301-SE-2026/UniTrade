@@ -118,7 +118,7 @@ const mockMyListings: ListingSummary[] = [
     title: "Molecular Biology - 6th Ed",
     meta: "BIO226 · Listed 3 May 2026",
     price: 350,
-    status: "rejected",
+    status: "live",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=MB",
     categoryName: "",
@@ -409,6 +409,7 @@ export const listingsService = {
         images: { imageId: number; isPrimary: boolean; path: string }[];
         seller?: { sellerId: string };
         answeredQuestionCount?: number;
+        createdAt: string;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -423,6 +424,7 @@ export const listingsService = {
         metadata: l.metadata ?? null,
         sellerId: l.seller?.sellerId ?? "",
         answeredQuestionCount: l.answeredQuestionCount ?? 0,
+        listedAt: l.createdAt,
       };
     });
 
@@ -506,7 +508,12 @@ export const listingsService = {
         metadata: payload.metadata ?? null,
       }),
     });
-    if (!res.ok) throw new Error("Failed to update listing");
+    if (!res.ok) 
+      {
+       const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to update listing");
+
+      }
   },
 
   deleteListing: async (id: string): Promise<void> => {

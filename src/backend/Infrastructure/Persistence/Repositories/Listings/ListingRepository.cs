@@ -88,9 +88,14 @@ public class ListingRepository : IListingRepository
 
         var take = Math.Clamp(listingFilterDto.Take, 1, 100);
 
+        IOrderedQueryable<Listing> ordered =
+            listingFilterDto.ListingStatus == "live"
+                ? query
+                    .OrderByDescending(l => l.VisibilityScore ?? 100)
+                    .ThenByDescending(l => l.CreatedAt)
+                : query.OrderByDescending(l => l.CreatedAt);
         // Map to entity
-        var items = await query
-            .OrderByDescending(l => l.CreatedAt)
+        var items = await ordered
             .ThenByDescending(l => l.ListingId)
             .Skip(listingFilterDto.Skip)
             .Take(take)
@@ -410,11 +415,19 @@ public class ListingRepository : IListingRepository
         _db.Listings.AddRange(listings);
         await _db.SaveChangesAsync();
     }
-    public async Task<IReadOnlyList<decimal>> GetComparablePricesAsync(int categoryId, int? courseId, Guid excludeListingId, CancellationToken ct = default)
+
+    public async Task<IReadOnlyList<decimal>> GetComparablePricesAsync(
+        int categoryId,
+        int? courseId,
+        Guid excludeListingId,
+        Guid excludeSellerId,
+        CancellationToken ct = default
+    )
     {
         IQueryable<Listing> query = _db
             .Listings.AsNoTracking()
             .Where(l => l.ListingId != excludeListingId)
+            .Where(l => l.SellerId != excludeSellerId)
             .Where(l => l.ListingStatus == "live" || l.ListingStatus == "low_visibility");
 
         query = courseId.HasValue
@@ -426,16 +439,26 @@ public class ListingRepository : IListingRepository
 
     public async Task<Listing?> GetByIdAnyStatusAsync(Guid listingId)
     {
-        return await _db.Listings
-            .AsNoTracking()
+        return await _db
+            .Listings.AsNoTracking()
             .Include(l => l.Category)
             .FirstOrDefaultAsync(l => l.ListingId == listingId);
     }
 
-    public async Task<int> CountHighRiskListingsForSellerAsync(Guid sellerId, Guid excludeListingId, CancellationToken ct = default)
+    public async Task<int> CountHighRiskListingsForSellerAsync(
+        Guid sellerId,
+        Guid excludeListingId,
+        CancellationToken ct = default
+    )
     {
-        return await _db.Listings
-            .AsNoTracking()
-            .CountAsync(l => l.SellerId == sellerId && l.ListingId != excludeListingId && l.AiRiskLevel == "high", ct);
+        return await _db
+            .Listings.AsNoTracking()
+            .CountAsync(
+                l =>
+                    l.SellerId == sellerId
+                    && l.ListingId != excludeListingId
+                    && l.AiRiskLevel == "high",
+                ct
+            );
     }
 }

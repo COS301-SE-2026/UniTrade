@@ -33,6 +33,11 @@ function DetailRow({
   );
 }
 
+function visibilityInfo(score: number) {
+  if (score >= 90) return { label: "Full visibilty", bar: "bg-green-500", text: "text-green-700"};
+  if (score >= 45) return { label: "Reduced visibility", bar: "bg-amber-500", text: "text-amber-700"};
+  return {label: "Limited visibility", bar: "bg-orange-500", text: "text-orange-700"};
+}
 export default function SellerListingDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -104,6 +109,10 @@ export default function SellerListingDetail() {
       </div>
     );
 
+  const visibility =
+    statusData?.status === "live" && statusData.visibilityScore != null
+      ? { score: statusData.visibilityScore, ...visibilityInfo(statusData.visibilityScore)}
+      : null;
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
@@ -120,7 +129,7 @@ export default function SellerListingDetail() {
         </span>
       </div>
 
-      {statusData && statusData.status !== "live" && (
+      {statusData && (statusData.status === "under_review" || statusData.status === "removed") && (
       <div
         className={`rounded-xl border p-4 flex items-start gap-3 ${
         statusData.status === "under_review"
@@ -266,6 +275,28 @@ export default function SellerListingDetail() {
 
         <div className="lg:col-span-1 space-y-4">
 
+          {visibility && (
+            <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Visibility</h3>
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className={`font-semibold ${visibility.text}`}>{visibility.label}</span>
+                <span className="text-gray-500">{visibility.score}</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${visibility.bar}`}
+                  style={{ width: `${visibility.score}%` }}
+                />
+                <p className="mt-3 text-[11px] leading-relaxed text-gray-500 dark:text-white/50">
+                {visibility.score >= 90
+                 ? "Your listing appears normally in browse results."
+                 : "Your listing appears lower in browse results. Check that your photos clearly show the item and match the category, and that the price and description are accurate."
+                }
+                </p>
+                </div>
+              </div>
+          )}
+
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
               Actions
@@ -273,7 +304,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={() => navigate(`/seller/editListing/${id}`)}
-              disabled={listing.isReserved || listing.status === "sold"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Edit Listing
@@ -282,7 +313,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={handleDelete}
-              disabled={listing.isReserved || listing.status === "sold"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
               className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Delete Listing

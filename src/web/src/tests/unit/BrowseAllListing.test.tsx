@@ -223,7 +223,7 @@ describe('BrowseAllListing', () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
       expect(screen.getByDisplayValue('All conditions')).toBeInTheDocument()
-      expect(screen.getByDisplayValue('Newest')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Recommended')).toBeInTheDocument()
     })
   })
 

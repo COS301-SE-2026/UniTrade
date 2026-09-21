@@ -310,6 +310,7 @@ export interface FlaggedListing {
   reasons: string[];
   imageMatchScore: number | null;
   createdAt: string;
+  copyCount: number;
 }
 
 export interface FlaggedListingDetail {
@@ -331,9 +332,10 @@ export interface FlaggedListingDetail {
   riskScore: number;
   riskLevel: "low" | "medium" | "high";
   visibilityScore: number;
-  reasons: {code: string; detail?: string}[];
+  reasons: {code: string; detail?: string; imageId?: number | null}[];
   imageMatchScore: number | null;
   createdAt: string;
+  copyCount: number;
 }
 export interface ListingDecisionResponse {
   listingId: string;

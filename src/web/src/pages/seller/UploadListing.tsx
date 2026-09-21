@@ -153,6 +153,7 @@ const UploadListing: React.FC = () => {
         : category === "furniture"
           ? { dimensions: dimensions }
           : null;
+      let createdId: string | null = null;
     try {
       const { listingId, listingStatus } = await listingsService.createListing({
         title,
@@ -165,28 +166,33 @@ const UploadListing: React.FC = () => {
         metadata,
         quantity,
       });
+      createdId = listingId;
       await listingsService.uploadImages(listingId, files);
+      let finalStatus: string = listingStatus;
+      try {
+        await listingsService.updateListingStatus(listingId, "live");
+        finalStatus = (await listingsService.getListingStatus(listingId)).status;
+      }
+      catch (err) {
+        if (!(err instanceof Error && err.message === "seller_not_verified")) throw err;
+      }
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
 
-      let finalStatus = listingStatus;
-      try {
-        const status = await listingsService.getListingStatus(listingId);
-        finalStatus = status.status;
-      }
-      catch {
-        // left on purpose
-      }
+
       if (finalStatus === "under_review") {
         setHeldListingId(listingId);
         return;
       }
-      if (listingStatus === "live") {
-        showToast('success', 'Listing uploaded successfully');
-      } else {
+      if (finalStatus === "draft") {
         showToast('info', 'Saved as a draft - you\u2019ll be able to publish once your verification is approved.');
+      } else {
+        showToast('success', 'Listing uploaded successfully' );
       }
       navigate("/seller/listings");
     } catch (err: unknown) {
+      if (createdId) {
+        await listingsService.updateListingStatus(createdId, "draft").catch(() => {})
+      }
       const error = err as ApiError;
       setError(error.message ?? "Something went wrong");
     } finally {

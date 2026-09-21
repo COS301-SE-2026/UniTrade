@@ -8,13 +8,14 @@ export interface ListingStatusResponse
   status: SellerListingStatus
   riskLevel: RiskLevel
   message: string
+  visibilityScore?: number | null
 }
 
 export function mockStatusFromListing(
   listing: SellerListingDetail,
 ): ListingStatusResponse {
   const status: SellerListingStatus =
-    listing.status === "rejected" ? "removed"
+    listing.status === "live" ? "removed"
     : listing.status === "pending" ? "under_review"
     : "live";
 

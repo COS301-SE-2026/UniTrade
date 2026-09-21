@@ -15,39 +15,66 @@ logger = logging.getLogger("clip-service")
 MODEL_NAME = "openai/clip-vit-base-patch32"
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
-COMPETITOR_LABELS = [
-    # book
-    "a textbook",
-    "a book",
-    # electronics
-    "a laptop",
-    "a phone",
-    "a tablet",
-    "a pair of headphones",
-    "a charger or cable",
-    # stationery
-    "a pen or pencil",
-    "a notebook",
-    "a calculator",
-    # furniture
-    "a chair",
-    "a desk or table",
-    "a lamp",
-    # clothing
-    "an item of clothing",
-    "a pair of shoes",
-    "a backpack or bag",
-]
-
-CATEGORY_PROMPTS = {
-    "book": "a book or textbook",
-    "electronics": "a laptop, phone, or electronic device",
-    "stationery": "stationery such as a pen, notebook, or calculator",
-    "furniture": "a piece of furniture such as a chair, desk, or lamp",
-    "clothing": "an item of clothing, shoes, or a bag",
-    "other": "an item",
+CATEGORY_LABELS = {
+    "book": ["a textbook", "a book", "a study guide", "a novel"],
+    "electronics": [
+        "a laptop",
+        "a phone",
+        "a tablet",
+        "a pair of headphones",
+        "a charger or cable",
+        "a computer monitor",
+        "a keyboard or mouse",
+        "a USB drive or hard drive",
+        "a smartwatch",
+        "a speaker",
+        "an electronic device",
+    ],
+    "stationery": [
+        "a pen or pencil",
+        "a notebook",
+        "a calculator",
+        "a ruler",
+        "an eraser",
+        "a stapler",
+        "a highlighter or marker",
+        "a geometry set",
+        "school or office supplies",
+    ],
+    "furniture": [
+        "a chair",
+        "a desk or table",
+        "a lamp",
+        "a bookshelf",
+        "a bed or mattress",
+        "a piece of furniture",
+    ],
+    "clothing": [
+        "an item of clothing",
+        "a pair of shoes",
+        "a backpack or bag",
+        "a jacket or hoodie",
+        "a lab coat",
+    ],
 }
 
+NEGATIVE_LABELS = [
+    "a person",
+    "an animal",
+    "a car",
+    "food",
+    "a landscape",
+    "a screenshot",
+    "a meme",
+]
+
+_PROMPT_ITEMS = [
+    (cat, item) for cat, items in CATEGORY_LABELS.items() for item in items
+] + [("_neg", item) for item in NEGATIVE_LABELS]
+
+PROMPTS = [f"a photo of {item}" for _, item in _PROMPT_ITEMS]
+OWNERS = [owner for owner, _ in _PROMPT_ITEMS]
+ITEMS = [item for _, item in _PROMPT_ITEMS]
 
 logger.info(f"Loading {MODEL_NAME}...")
 model = CLIPModel.from_pretrained(MODEL_NAME)
@@ -77,12 +104,28 @@ def score(req: ScoreRequest):
         return {"matchScore": None, "error": "image_unreadable"}
 
     try:
-        match_score = _score_image(image, req.claimedLabel)
+        result = _score_image(image, req.claimedLabel)
     except Exception:
         logger.exception("Inference failed")
         return {"matchScore": None, "error": "inference_failed"}
 
-    return {"matchScore": round(match_score, 4)}
+    if result is None:
+        return {"matchScore": None, "error": "category_not_scorable"}
+
+    return result
+
+
+def _probabilities(image: Image.Image) -> list[float]:
+    inputs = processor(
+        text=PROMPTS,
+        images=image,
+        return_tensors="pt",
+        padding=True,
+    )
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+        return outputs.logits_per_image.softmax(dim=1)[0].tolist()
 
 
 def _decode_base64(payload: str) -> Image.Image | None:
@@ -109,14 +152,29 @@ def _decode_base64(payload: str) -> Image.Image | None:
         return None
 
 
-def _score_image(image: Image.Image, label: str) -> float:
-    claimed = CATEGORY_PROMPTS.get(label.strip().lower(), label)
-    prompts = [f"a photo of {claimed}"] + [f"a photo of {c}" for c in COMPETITOR_LABELS]
+def _score_image(image: Image.Image, label: str) -> dict | None:
+    key = label.strip().lower()
 
-    inputs = processor(text=prompts, images=image, return_tensors="pt", padding=True)
+    if key not in CATEGORY_LABELS:
+        return None
 
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = outputs.logits_per_image.softmax(dim=1)
+    probs = _probabilities(image)
 
-    return float(probs[0, 0].item())
+    match_score = sum(p for p, owner in zip(probs, OWNERS) if owner == key)
+
+    top = max(range(len(probs)), key=probs.__getitem__)
+
+    return {
+        "matchScore": round(match_score, 4),
+        "topLabel": ITEMS[top],
+        "topLabelScore": round(probs[top], 4),
+    }
+
+
+def debug_scores(image: Image.Image, top_k: int = 5) -> None:
+    probs = _probabilities(image)
+
+    ranked = sorted(zip(probs, OWNERS, PROMPTS), reverse=True)[:top_k]
+
+    for p, owner, prompt in ranked:
+        print(f"{p:.3f} [{owner}] {prompt}")

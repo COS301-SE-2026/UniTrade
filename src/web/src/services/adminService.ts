@@ -357,17 +357,4 @@ export async function getFlaggedListing(id: string): Promise<FlaggedListingDetai
   });
   return handleResponse<FlaggedListingDetail>(res)
 }
-//TEMP:
-// this is just so builds dont fail, the real types will come from FE3
-/*interface FlaggedListing{
-  listingId: string;
-}
-/*
-interface ListingDecisionBody{
-  action: "approve"|"remove";
-  reason?:string;
-}
-  */
-/*interface ListingDecisionResponse{
-  randomWordSoLintingPassesInTHeMeanWHile: string
-}*/
+

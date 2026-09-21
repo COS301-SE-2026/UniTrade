@@ -10,7 +10,8 @@ public record FlaggedListingDto(
     string RiskLevel,
     List<string> Reasons,//ireadonlylist?
     double? ImageMatchScore,//for clip
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    int CopyCount = 1
 );
 
 // public record FlaggedListingRow(
