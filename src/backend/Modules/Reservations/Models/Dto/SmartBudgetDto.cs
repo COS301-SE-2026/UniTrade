@@ -1,12 +1,26 @@
 namespace Modules.Reservations.Models.Dto;
 
-public record KnapsackItem(Guid ListingId, decimal Price);//
+public record KnapsackItem(Guid ListingId, decimal Price); //
 
-public record KnapsackResult(IReadOnlyList<Guid> Selected, IReadOnlyList<Guid> Excluded, decimal TotalCost);
+public record KnapsackResult(
+    IReadOnlyList<Guid> Selected,
+    IReadOnlyList<Guid> Excluded,
+    decimal TotalCost
+);
 
-public record SmartBudgetPreviewDto(IReadOnlyList<Guid> WouldReserve, decimal TotalCost, IReadOnlyList<Guid> Excluded);
+public record SmartBudgetPreviewDto(
+    IReadOnlyList<Guid> WouldReserve,
+    decimal TotalCost,
+    IReadOnlyList<Guid> Excluded
+);
 
-public record SellerGroupedItem(Guid ListingId, Guid SellerId, decimal Price, string Title, string SellerInitials);
+public record SellerGroupedItem(
+    Guid ListingId,
+    Guid SellerId,
+    decimal Price,
+    string Title,
+    string SellerInitials
+);
 
 public static class SmartBudgetReasons
 {
@@ -40,4 +54,14 @@ public record SmartBudgetBatchResultDto(
     IReadOnlyList<SellerReservationDto> Reservations,
     IReadOnlyList<ReservedItemDto> Reserved,
     IReadOnlyList<NotReservedItemDto> NotReserved
+);
+
+public record SmartBudgetCandidate(
+    Guid ListingId,
+    Guid SellerId,
+    decimal Price,
+    string Title,
+    string Status,
+    bool SellerActive,
+    string SellerInitials
 );
