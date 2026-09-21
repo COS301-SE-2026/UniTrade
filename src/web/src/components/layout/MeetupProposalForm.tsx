@@ -7,6 +7,7 @@ import {
     IconMapPin,
     IconX,
     IconAlertCircle,
+    IconCheck
 } from "@tabler/icons-react";
 import type { MeetupFormValues } from "../../types/meetup";
 import type { AvailabilitySlot } from "../../types/timetable";
@@ -189,10 +190,12 @@ export default function MeetupProposalForm({
                         <IconX size={20} />
                     </button>
                 </div>
+                <div className="overflow-y-auto px-5 pt-4 pb-6">
 
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                     When
                 </label>
+
 
                 {mode === "suggested" ? (
                     <div className="mb-4">
@@ -219,7 +222,7 @@ export default function MeetupProposalForm({
                                 <button
                                     type="button"
                                     onClick={() => setMode("manual")}
-                                    className="text-sm font-semibold text-[#003366] underline"
+                                    className="text-sm font-semibold text-navy-700 underline"
                                 >
                                     Enter a time manually
                                 </button>
@@ -240,8 +243,8 @@ export default function MeetupProposalForm({
                                                 setSelectedSlot(slot);
                                                 setSlotTime(slot.start);
                                             }}
-                                            className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left border transition ${isSelected
-                                                ? "border-[#003366] bg-[#003366]/5"
+                                            className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left border-l-4 transition ${isSelected
+                                                ? "border-navy-700 border-l-na"
                                                 : "border-transparent bg-gray-100 hover:bg-gray-200"
                                                 }`}
                                         >

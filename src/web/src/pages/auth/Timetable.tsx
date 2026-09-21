@@ -138,8 +138,8 @@ export default function Timetable() {
         <button
         type="button"
         onClick={() => navigate(-1)}
-        className="text-gray-400 hover: text-navy-700 transition-colors mb-2 w-fit"
-        aria-label="Black">
+        className="text-gray-400 hover:text-navy-700 transition-colors mb-2 w-fit"
+        aria-label="Back">
 <ArrowLeft size={22} />
 </button>
 
@@ -304,7 +304,7 @@ export default function Timetable() {
               <button
                 type="submit"
                 disabled={addMutation.isPending}
-                className="w-full bg-navy-700 hover:bg-navy-600 disabled:opacity-50-disabled text-white font-semibold text-sm py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className="w-full bg-navy-700 hover:bg-navy-600 disabled:opacity-50 disabled cursor-not-allowed text-white font-semibold text-sm py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
                 <Plus className="w-4 h-4" /> Add block
               </button>
