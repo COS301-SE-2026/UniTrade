@@ -13,7 +13,6 @@ import RiskReasons from '../../components/risk/RiskReasons';
 import ImageMatchScore from '../../components/risk/ImageMatchScore';
 import { imageUrl } from '../../services/listingsService';
 
-//const LOW_MATCH_THRESHOLD = 0.5;
 
 const zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 
