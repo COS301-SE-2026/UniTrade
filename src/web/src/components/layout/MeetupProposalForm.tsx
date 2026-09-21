@@ -177,9 +177,9 @@ export default function MeetupProposalForm({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
-            <div className="w-full max-w-md bg-white rounded-t-3xl p-5 pb-6 shadow-xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-full max-w-md max-h-[90vh] bg-white rounded-3xl shadow-xl flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
                     <h2 className="text-lg font-bold text-gray-900">Propose a Meetup</h2>
                     <button
                         type="button"
@@ -244,24 +244,28 @@ export default function MeetupProposalForm({
                                                 setSlotTime(slot.start);
                                             }}
                                             className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left border-l-4 transition ${isSelected
-                                                ? "border-navy-700 border-l-na"
-                                                : "border-transparent bg-gray-100 hover:bg-gray-200"
+                                                ? "border-navy-700 border-l-navy-700 bg-navy-100"
+                                                : "border-gray-200 border-l-navy-700 bg-white hover:-translate-y-0.5 hover:shadow-md"
                                                 }`}
                                         >
                                             <IconClock size={18} className="text-gray-400 shrink-0" />
-                                            <div>
-                                                <p className="text-sm font-semibold text-gray-900">
+                                            <div className="flex-1">
+
+                                                <p className="text-sm font-semibold text-navy-700">
                                                     {formatSlotDate(slot.date)}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
                                                     Free {slot.start}-{slot.end}
                                                 </p>
                                             </div>
+                                            {isSelected && (
+                                                <IconCheck size={18} className="text-navy-700 shrink-0" />
+                                            )}
                                         </button>
                                     );
                                 })}
                                 {activeSlot && (
-                                    <div className="rounded-2xl border border-[#003366]/20 bg-[#003366]/5 p-3 mt-1">
+                                    <div className="rounded-2xl border border-navy-700/20 bg-navy-50 p-3 mt-1">
                                         <label
                                             htmlFor="slot-time"
                                             className="block text-xs font-semibold text-gray-600 mb-1.5"
@@ -280,7 +284,7 @@ export default function MeetupProposalForm({
                                                 min={activeSlot.start}
                                                 max={activeSlot.end}
                                                 onChange={(e) => setSlotTime(e.target.value)}
-                                                className="w-full bg-white rounded-xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
+                                                className="w-full bg-white rounded-xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                                             />
                                         </div>
                                         <p className="text-[11px] text-gray-400 mt-1">
@@ -291,7 +295,7 @@ export default function MeetupProposalForm({
                                 <button
                                     type="button"
                                     onClick={() => setMode("manual")}
-                                    className="w-full text-center text-xs text-gray-400 hover:text-gray-600 py-1"
+                                    className="w-full text-center text-sm font-semibold text-navy-700 underline py-1"
                                 >
                                     None of these work — enter a time manually
                                 </button>
@@ -310,7 +314,7 @@ export default function MeetupProposalForm({
                                     <button
                                         type="button"
                                         onClick={() => navigate("/auth/timetable")}
-                                        className="block mx-auto text-sm font-semibold text-[#003366] underline"
+                                        className="block mx-auto text-sm font-semibold text-navy-700 underline"
                                     >
                                         Set up your timetable
                                     </button>
@@ -334,7 +338,7 @@ export default function MeetupProposalForm({
                                 <button
                                     type="button"
                                     onClick={() => setMode("manual")}
-                                    className="text-sm font-semibold text-[#003366] underline"
+                                    className="text-sm font-semibold text-navy-700 underline"
                                 >
                                     Enter a time manually
                                 </button>
@@ -354,7 +358,7 @@ export default function MeetupProposalForm({
                                 value={date}
                                 min={todayISODate()}
                                 onChange={(e) => setDate(e.target.value)}
-                                className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
+                                className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                             />
                         </div>
                         <div className="relative">
@@ -367,7 +371,7 @@ export default function MeetupProposalForm({
                                 type="time"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
-                                className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
+                                className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                             />
                         </div>
                         {availability?.status === "ok" && (
@@ -402,7 +406,7 @@ export default function MeetupProposalForm({
                             setNameEdited(true);
                         }}
                         placeholder="e.g. Merensky Library - Main Entrance"
-                        className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]/20"
+                        className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700/20"
                     />
                 </div>
                 <p className="text-xs text-gray-400 mb-3 px-1">
@@ -422,10 +426,11 @@ export default function MeetupProposalForm({
                     type="button"
                     disabled={!canSubmit || isSubmitting}
                     onClick={handleSubmit}
-                    className="w-full py-3 bg-[#003366] text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-[#002244] transition-colors disabled:opacity-50"
+                    className="w-full py-3 bg-navy-700 text-white font-bold text-sm tracking-widest rounded-2xl hover:bg-navy-600 transition-colors disabled:opacity-50"
                 >
                     {isSubmitting ? "SENDING..." : "SEND PROPOSAL"}
                 </button>
+                </div>
             </div>
         </div>
     );
