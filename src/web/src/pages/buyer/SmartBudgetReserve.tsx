@@ -7,7 +7,7 @@ import { useWishlist } from "../../hooks/useWishlist";
 import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
 import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
-import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
+import {IconWallet, IconCheck, IconHeart, IconTag} from "@tabler/icons-react";
 import type {SellerBundlePreview} from "../../types/Reservations";
 
 const MAX_BUDGET = 1_000_000;
@@ -213,7 +213,7 @@ export default function SmartBudgetReserve() {
 
             });
             if(!result.success) {
-                throw new Error(result.error.message ?? "Could not check what fits your budget");
+                throw new Error(describeError(result.error.code,"Could not check what fits your budget"));
 
             }
             return result.data;
@@ -343,6 +343,18 @@ export default function SmartBudgetReserve() {
                     <p className="text-xs text-rose-600 -mt-2">
                 {previewError}
                 </p>
+                )}
+
+                {bundleNotes.length > 0 && (
+                    <div className = "bg-navy-50 rounded-xl border border-navy-100 p-4 flex flex-col gap-2 mt-2">
+                        {bundleNotes.map((n) => (
+                            <p key = {n.text}
+                            className = {`text-xs flex items-start gap-1.5 ${n.applied ? "text-emerald-700 font-semibold" : "text-gray-600"}`}
+                            >
+                                <IconTag size = {14} className = "shrink-0 mt-0.5" />
+                             </p>
+                        ))}
+                        </div>
                 )}
 
                 {isLoading && <LoadingState message = "Loading wishlist ..." />}
