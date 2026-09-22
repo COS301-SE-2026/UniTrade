@@ -173,7 +173,7 @@ public class ReservationsController : ControllerBase
             return BadRequest(new { error = "invalid_max_budget" });
         }
 
-        var preview = await _smartBudget.PreviewAsync(ids, maxBudget, ct);
+        var preview = await _smartBudget.PreviewAsync(CallerId, ids, maxBudget, ct);
         return Ok(preview);
     }
 

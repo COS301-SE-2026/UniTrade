@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 using Modules.Reservations;
+using System.Security.Claims;
 
 namespace Api.Controllers;
 
@@ -11,6 +11,7 @@ namespace Api.Controllers;
 public class BundleDiscountController : ControllerBase
 {
     private readonly ISmartBudgetService _bundleDiscounts;
+    public record BundleDiscountRequest(int? MinItems, int? Percent);
 
     public BundleDiscountController(ISmartBudgetService bundleDiscounts) =>
         _bundleDiscounts = bundleDiscounts;
@@ -31,7 +32,7 @@ public class BundleDiscountController : ControllerBase
         }
     }
 
-    private static object Response(BundleRule? rule) =>
+    private static object ToResponse(BundleRule? rule) =>
         new
         {
             minItem = rule?.MinItems,
@@ -51,7 +52,7 @@ public class BundleDiscountController : ControllerBase
         var settings = await _bundleDiscounts.GetBundleDiscountAsync(CallerId, ct);
         return settings is null
             ? NotFound(new { error = "not_found" })
-            : Ok(Response(settings.Rule));
+            : Ok(ToResponse(settings.Rule));
     }
 
     [HttpPut]
@@ -71,6 +72,6 @@ public class BundleDiscountController : ControllerBase
 
         return settings is null
             ? NotFound(new { error = "not_found" })
-            : Ok(Response(settings.Rule));
+            : Ok(ToResponse(settings.Rule));
     }
 }

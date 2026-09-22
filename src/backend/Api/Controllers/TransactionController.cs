@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 using Modules.Transactions;
 using Modules.Transactions.Repositories;
+using Modules.Reservations;
 
 namespace Api.Controllers;
 
@@ -45,7 +47,11 @@ public class TransactionController : ControllerBase
 
         try
         {
-            var result = await _transactionsService.CreatesTransactionReq(reservationId, buyerId, ct);
+            var result = await _transactionsService.CreatesTransactionReq(
+                reservationId,
+                buyerId,
+                ct
+            );
             return Ok(new { sandbox_url = result.ProcessUrl, fields = result.Fields });
         }
         catch (TransactionException ex)
@@ -113,6 +119,14 @@ public class TransactionController : ControllerBase
 
         if (fields.GetValueOrDefault("payment_status") == "COMPLETE")
         {
+            if (fields.TryGetValue("amount_gross", out var grossRaw))
+            {
+                if (!decimal.TryParse(grossRaw, NumberStyles.Number, CultureInfo.InvariantCulture, out var gross)
+                || BundlePricing.ToCents(gross) != BundlePricing.ToCents(reservation.TotalAmount))
+                {
+                    return BadRequest("amount_mismatch");
+                }
+            }
             var pfTransactionId = fields.GetValueOrDefault("pf_payment_id") ?? "";
             await _transactionsService.ConfirmTransactionAsync(reservationId, pfTransactionId, ct);
         }

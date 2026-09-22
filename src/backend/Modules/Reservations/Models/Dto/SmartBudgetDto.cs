@@ -91,3 +91,6 @@ public record SmartBudgetBatchResultDto(
     IReadOnlyList<ReservedItemDto> Reserved,
     IReadOnlyList<NotReservedItemDto> NotReserved
 );
+
+public sealed record PlannedGroup(Guid SellerId, string SellerInitials, IReadOnlyList<Guid> ListingIds, decimal SubTotal, int? DiscountPercent, decimal Total, BundleRule? Rule);
+public sealed record Plan(IReadOnlyList<PlannedGroup> Groups, IReadOnlyList<NotReservedItemDto> NotReserved, IReadOnlyList<SellerBundlePreviewDto> Sellers, IReadOnlyDictionary<Guid, SmartBudgetCandidate> Candidates, decimal SubTotal, decimal TotalCost);

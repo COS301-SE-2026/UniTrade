@@ -186,6 +186,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.UniversityId).HasDatabaseName("ix_student_university");
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_student_course");
             entity.HasIndex(x => x.VerificationStatus).HasDatabaseName("ix_student_status");
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         //ADMIN
@@ -650,6 +652,10 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.ExpiresAt)
                 .HasDatabaseName("ix_res_expires")
                 .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
+
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>
