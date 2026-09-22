@@ -165,7 +165,11 @@ export interface SmartBudgetReservationGroup {
     sellerInitials: string;
     items: SmartBudgetItem[];
     subTotal: number;
+<<<<<<< HEAD
     discount : number;
+=======
+    discount: number;
+>>>>>>> a2170bf6f9822c4e87d312b8c4f9acb5180136af
     discountPercent: number | null;
     total: number;
 }
@@ -185,12 +189,24 @@ export interface SmartBudgetResponse {
     notReserved: SmartBudgetNotReservedItem[];
 }
 
+export interface SellerBundlePreview {
+    sellerId: string;
+    selectedCount: number;
+    chosenCount: number;
+    subTotal: number;
+    discountPercent: number | null;
+    discount: number;
+    total: number;
+    ruleMinItems: number | null;
+    rulePercent: number | null;
+}
+
 export interface SmartBudgetPreviewResponse {
     wouldReserve: string[];
-    totalCount: number;
     excluded: string[];
     unavailable: string[];
     totalCost: number;
+<<<<<<< HEAD
     subtotal: number;
     totalDiscount: number;
     sellers: SellerBundlePreview[];
@@ -213,4 +229,15 @@ export interface BundleDiscountSettings {
     minItems : number | null;
     percent: number | null;
     limits: {minItemsFloor: number; minItemsCeiling: number; minPercent: number; maxPercent: number};
+=======
+    subTotal: number;
+    totalDiscount: number;
+    sellers: SellerBundlePreview[];
+>>>>>>> a2170bf6f9822c4e87d312b8c4f9acb5180136af
+}
+
+export interface BundleDiscountSettings{
+    minItems: number | null;
+    percent: number | null;
+    limits:{minItemsFloor: number ; minItemsCeiling: number ; minPercent: number ; maxPercent: number } | null;
 }
