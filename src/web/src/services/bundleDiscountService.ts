@@ -18,8 +18,8 @@ export async function getBundleDiscount(): Promise<BundleDiscountSettings>
 }
 
 export async function saveBundleDiscount(rule: {
-    minItems:number| null;
-    percent: number| null;
+    minItems: number | null;
+    percent:  number | null;
 }): Promise<BundleDiscountSettings>
 {
     const res = await fetch (`${getApiUrl()}/bundle-discount`,{
