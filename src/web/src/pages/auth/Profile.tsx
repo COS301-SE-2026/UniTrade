@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import {
   IconChevronRight, IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
-  IconCalendarStats,IconCalendarEvent, IconCircleCheck, IconClock,
+  IconCalendarStats, IconCalendarEvent, IconCircleCheck, IconClock,
 } from "@tabler/icons-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { authService } from "../../services/authService";
@@ -30,9 +30,10 @@ interface ProfileRowProps {
   label: string;
   onClick: () => void;
   danger?: boolean;
+  highlight?: boolean;
 }
 
-function ProfileRow({ icon, label, onClick, danger }: Readonly<ProfileRowProps>) {
+function ProfileRow({ icon, label, onClick, danger, highlight }: Readonly<ProfileRowProps>) {
   return (
     <button
       type='button'
@@ -40,9 +41,15 @@ function ProfileRow({ icon, label, onClick, danger }: Readonly<ProfileRowProps>)
       className="w-full flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors text-left">
 
       <span className={`flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}`}>
-        <span className={danger ? "text-red-400" : "text-gray-400"}>
-          {icon}
-        </span>
+        {highlight ? (
+          <span className="w-8 h-8 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+            {icon}
+          </span>
+        ) : (
+          <span className={danger ? "text-red-400" : "text-gray-400"}>
+            {icon}
+          </span>
+        )}
         {label}
       </span>
       <IconChevronRight size={16} className="text-gray-300" />
@@ -294,17 +301,31 @@ export default function Profile() {
         {!loadingReviews && !reviewsError && <ReviewList reviews={reviews} />}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50"> 
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden">
+        <div className="px-5 py-4 flex items-start gap-3">
+          <span className="w-10 h-10 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+            <IconCalendarEvent size={20} />
 
-<div className = "bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
-<ProfileRow
-          icon={<IconCalendarEvent size={19} />}
-          label="Create/Edit Timetable"
-          onClick={() => navigate("/auth/timetable")}
-      
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-navy-900">Your Timetable</p>
+            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+              Add your class times so buyers and sellers can see when you're both free to meet.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/auth/timetable")}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-navy-700 text-white text-sm font-semibold px-4 py-2 hover:bg-navy-500 transition-colors">
+              <IconCalendarEvent size={16} />
+              Manage Timetable
+            </button>
+          </div>
+        </div>
+      </div>
 
-/>
-</div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+
         <ProfileRow
           icon={<IconTrash size={19} />}
           label="Delete Account"

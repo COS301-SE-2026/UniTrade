@@ -5,7 +5,7 @@ const LABELS: Record<string, string> = {
     duplicate_image: 'Duplicate image',
     low_seller_rating: 'Low seller rating',
     seller_strikes: 'Seller strikes',
-    image_mismatch: "Image doesn't match category"
+    image_mismatch: "Category mismatch"
 }
 
 function labelFor(code: string) {
@@ -27,7 +27,7 @@ export default function RiskReasons({
     }
 
     return (
-        <ul className="space-y-1">
+        <ul className="flex flex-wrap gap-1">
             {reasons.map((reason, i) => {
                 const code = typeof reason === 'string' ? reason : reason.code
                 const detail = typeof reason === 'string' ? undefined : reason.detail
@@ -39,7 +39,7 @@ export default function RiskReasons({
 
                 return (
                     <li key={`${code}-${i}`} className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-sky-100 text-sky-700">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-sky-100 text-sky-700 whitespace-nowrap">
                             {labelFor(code)}
                         </span>
                         {detail && <span className="text-[10px] text-gray-600">{detail}</span>}
