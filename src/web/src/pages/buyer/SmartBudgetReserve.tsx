@@ -171,6 +171,13 @@ export default function SmartBudgetReserve() {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null); 
 
+    const activeIds = useMemo(
+        () => Array.from(selectedIds).filter((id) => liveIds.has(id)).sort(),
+        [selectedIds, liveIds],
+    );
+    const activeSet = useMemo(() => new Set(activeIds), [activeIds]);
+    const tooMany = activeIds.length > MAX_ITEMS;
+
     const toggleSelected = (id: string) => {
         setSelectedIds((prev) => {
             const next = new Set(prev);
