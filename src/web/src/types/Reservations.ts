@@ -190,3 +190,16 @@ export interface SmartBudgetPreviewResponse {
     totalCount: number;
     excluded: string[];
 }
+
+export interface SellerBundlePreview {
+    sellerId: string;
+    selectedCount: number;
+    chosenCount: number;
+    subtotal: number;
+    discountPercent: number | null;
+    discount: number;
+    total: number;
+    ruleMinItems: number | null;
+    rulePercent: number | null;
+
+}
