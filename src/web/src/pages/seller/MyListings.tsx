@@ -14,7 +14,7 @@ import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
 import type { ListingSummary, ListingStatus } from "../../types/listing";
 import StatusPill from "../../components/layout/ui/StatusPill";
-import { BundleDiscountCard } from "../..components/layout/BundleDiscount";
+import { BundleDiscountCard } from "../../components/layout/BundleDiscount";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 import type { ApiError } from "../../types/Reservations";
 import { useToast } from "../../components/layout/useToast";

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IconChevronRight, IconTrash,
   IconLogout, IconAlertTriangle, IconX, IconSchool, IconArrowLeft, IconMail, IconBook2,
