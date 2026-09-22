@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from PIL import Image, UnidentifiedImageError
 from transformers import CLIPModel, CLIPProcessor
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("clip-service")
 
@@ -114,6 +115,38 @@ def score(req: ScoreRequest):
 
     return result
 
+class EmbedRequest(BaseModel):
+    imageBase64: str = Field(..., min_length=1, max_length=MAX_64_LEN)
+
+@app.post("/embed")
+def embed(req: EmbedRequest):
+    image = _decode_base64(req.imageBase64)
+    if image is None:
+        return {"embedding": None, "error": "image_unreadable"}
+
+    try:
+        vec = _embed_image(image)
+    except Exception:
+        logger.exception("Embed inference failed")
+        return {"embedding": None, "error": "inference_failed"}
+
+    return {"embedding": vec}
+
+
+def _embed_image(image: Image.Image) -> list[float]:
+    inputs = processor(images=image, return_tensors="pt")
+    with torch.no_grad():
+        feats = model.get_image_features(**inputs)
+
+    if not torch.is_tensor(feats):
+        for name in ("image_embeds", "pooler_output"):
+            value = getattr(feats, name, None)
+            if value is not None:
+                feats = value
+                break
+
+    feats = feats / feats.norm(dim=-1, keepdim=True)
+    return feats[0].cpu().tolist()
 
 def _probabilities(image: Image.Image) -> list[float]:
     inputs = processor(
