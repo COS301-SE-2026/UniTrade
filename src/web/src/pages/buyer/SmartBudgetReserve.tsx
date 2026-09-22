@@ -260,7 +260,7 @@ export default function SmartBudgetReserve() {
             state: { result: result.data, sellerNamesById},
         });
     } else {
-        setSubmitError(result.error.message ?? "Could not complete the reservation. Please Try again.");
+        setSubmitError(describeError(result.error.code, "Could not complete the reservation. Please Try again."));
         setSubmitting(false);
     }
   };
