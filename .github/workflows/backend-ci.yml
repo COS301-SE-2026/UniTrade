@@ -3,7 +3,7 @@ name: Backend CI
 on:
   workflow_call:
   push:
-    branches-ignore: ["dev", "main"]
+    branches-ignore: ["dev", "main", "feature/FrontEnd"]
     paths:
       - "src/backend/**"
       - ".github/workflows/backend-ci.yml"
