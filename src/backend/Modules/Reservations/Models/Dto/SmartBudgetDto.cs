@@ -11,7 +11,10 @@ public record KnapsackResult(
 public record SmartBudgetPreviewDto(
     IReadOnlyList<Guid> WouldReserve,
     decimal TotalCost,
-    IReadOnlyList<Guid> Excluded
+    IReadOnlyList<Guid> Excluded,
+    decimal Subtotal,
+    IReadOnlyList<Guid> Unavailable,
+    IReadOnlyList<SellerBundlePreviewDto> Sellers
 );
 
 public record SellerGroupedItem(
@@ -32,7 +35,11 @@ public record ReserveMultipleResultDto(
     Guid? ReservationId,
     Guid SellerId,
     IReadOnlyList<ReservedItemDto> Reserved,
-    IReadOnlyList<Guid> FailedListingIds
+    IReadOnlyList<Guid> FailedListingIds,
+    decimal Subtotal=0m,
+    decimal Total=0m,
+    int? DiscountPercent=null,
+    bool BundleBroken=false
 );
 
 public record ReservationItemDto(Guid ListingId, string Title, decimal Price);
@@ -65,3 +72,6 @@ public record SmartBudgetCandidate(
     bool SellerActive,
     string SellerInitials
 );
+public record SellerBundlePreviewDto(Guid SellerId, int SelectedCount, int ChosenCOunt, decimal Subtotal,int? DiscountPercent, decimal Discount, decimal Total, int? RuleMinItems,int? RulePercent);
+public sealed record PlannedGroup(Guid SellerId, string SellerInitials,IReadOnlyList<Guid> ListingId,decimal SubTotal, int? DiscountPercent, decimal Total, BundleRule? Rule);
+public sealed record Plan(IReadOnlyList<PlannedGroup> Groups, IReadOnlyList<NotReservedItemDto> NotReserved, IReadOnlyList<SellerBundlePreviewDto> Sellers, IReadOnlyDictionary<Guid,SmartBudgetCandidate> Candidates, decimal SubTotal, decimal TotalCost);

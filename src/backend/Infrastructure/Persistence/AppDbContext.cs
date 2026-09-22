@@ -158,6 +158,7 @@ public class AppDbContext : DbContext
                     "chk_student_verification",
                     "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
                 );
+                t.HasCheckConstraint("chk_student_bundle_rule", "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)");
             });
 
             entity
@@ -181,6 +182,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.UniversityId).HasDatabaseName("ix_student_university");
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_student_course");
             entity.HasIndex(x => x.VerificationStatus).HasDatabaseName("ix_student_status");
+            entity.Property(x=>x,BundleMinItems);
+            entity.Property(x=>x.BundleDiscountPercent);
         });
 
         //ADMIN
@@ -604,6 +607,9 @@ public class AppDbContext : DbContext
                     "chk_res_status",
                     "reservation_status IN ('active', 'expired', 'cancelled', 'completed')"
                 );
+                t.HasCheckConstraint("chk_res_amounts", "subtotal_amount>0 AND total_amount <=subtotal_amount");
+
+                t,HasCheckConstraint("chk_res_discount_percent","bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30");
             });
 
             entity
@@ -626,6 +632,10 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.ExpiresAt)
                 .HasDatabaseName("ix_res_expires")
                 .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
+
+            entity.Property(x=>x.SubtotalAmount).HasPrecision(10,2);
+            entity.Property(x=>x.TotalAmount).HasPrecision(10,2);
+            entity.Property(x=>x.BundleDiscountPercent);
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>

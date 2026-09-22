@@ -1,208 +1,121 @@
-using Modules.Listings.Repositories;
 using Modules.Reservations.Models.Dto;
+using Modules.Reservations.Repositories;
+
 namespace Modules.Reservations;
-
-public class SmartBudgetService(IListingRepository listings, IReservationService reservationService) : ISmartBudgetService
+public class SmartBudgetService(ISmartBudgetRepository repo,IReservationService reservationService) : ISmartBudgetService
 {
-    private readonly IListingRepository _listings = listings;
-    private readonly IReservationService _reservationService = reservationService;
+    private readonly ISmartBudgetRepository _repo=repo;
+    private readonly IReservationService _reservationService=reservationService;
 
-    public async Task<SmartBudgetPreviewDto> PreviewAsync(IReadOnlyList<Guid> listingId, decimal maxbudget, CancellationToken ct = default)
+    public const int MaxListingsPerRequest=50;
+    public const decimal MaxBudget=1_000_000m;
+
+    public async Task<SmartBudgetPreviewDto> PreviewAsync(Guid buyerId,IReadOnlyList<Guid> listingIds, decimal maxBudget, CancellationToken ct = default)
     {
-        if (listingId.Count == 0)
-        {
-            return new SmartBudgetPreviewDto(
-                WouldReserve: Array.Empty<Guid>(),
-                TotalCost: 0m,
-                Excluded: Array.Empty<Guid>()
-            );
-        }
-        var candidates = new List<KnapsackItem>();
-        var unresolved = new List<Guid>();
-
-        foreach (var id in listingId)
-        {
-            var listing = await _listings.GetByIdAsync(id);
-            if (listing is null)
-            {
-                unresolved.Add(id);
-            }
-            else
-            {
-                candidates.Add(new KnapsackItem(listing.ListingId, listing.Price));
-            }
-        }
-
-        var result = Solve(candidates, maxbudget);
-        var excluded = result.Excluded.Concat(unresolved).ToList();
-
+        var plan=await BuildPlanAsync(buyerId,listingIds,maxBudget,ct);
         return new SmartBudgetPreviewDto(
-            WouldReserve: result.Selected,
-            TotalCost: result.TotalCost,
-            Excluded: excluded
-        );
-
-    }
-
-    public static KnapsackResult Solve(IReadOnlyList<KnapsackItem> items, decimal maxBudget)
-    {
-        ArgumentNullException.ThrowIfNull(items);
-
-        var n = items.Count;
-        if (n == 0 || maxBudget < 0)
-        {
-            return new KnapsackResult(
-                Selected: Array.Empty<Guid>(),
-                Excluded: items.Select(i => i.ListingId).ToList(),
-                TotalCost: 0m
-            );
-        }
-
-        var priceCents = items.Select(i => (int)Math.Round(i.Price * 100m, 0, MidpointRounding.AwayFromZero)).ToArray();
-        var totalCents = priceCents.Sum();
-        var budgetCents = (long)Math.Floor(maxBudget * 100m);
-        var capacity = (int)Math.Min(budgetCents, (long)totalCents);
-
-        var dpCount = new int[n + 1, capacity + 1];
-        var dpCost = new int[n + 1, capacity + 1];
-
-        for (var i = 1; i <= n; i++)
-        {
-            var price = priceCents[i - 1];
-
-            for (var k = 0; k <= capacity; k++)
-            {
-                var bestCount = dpCount[i - 1, k];
-                var bestCost = dpCost[i - 1, k];
-
-                if (k >= price)
-                {
-                    var candCount = dpCount[i - 1, k - price] + 1;
-                    var candCost = dpCost[i - 1, k - price] + price;
-
-                    if (candCount > bestCount || (candCount == bestCount && candCost > bestCost))
-                    {
-                        bestCount = candCount;
-                        bestCost = candCost;
-                    }
-                }
-                dpCount[i, k] = bestCount;
-                dpCost[i, k] = bestCost;
-            }
-        }
-
-        var totalCostCents = dpCost[n, capacity];
-        var totalCost = totalCostCents / 100m;
-
-        var selectedIndexes = new List<int>();
-        var ci = n;
-        var ck = capacity;
-
-        while (ci > 0)
-        {
-            if (dpCount[ci, ck] != dpCount[ci - 1, ck] || dpCost[ci, ck] != dpCost[ci - 1, ck])
-            {
-                selectedIndexes.Add(ci - 1);
-                ck -= priceCents[ci - 1];
-            }
-            ci--;
-        }
-
-        var selectedSet = selectedIndexes.ToHashSet();
-        var selected = selectedIndexes.Select(idx => items[idx].ListingId).ToList();
-
-        var excluded = items.Where((_, idx) => !selectedSet.Contains(idx)).Select(i => i.ListingId).ToList();
-
-        return new KnapsackResult(
-            Selected: selected,
-            Excluded: excluded,
-            TotalCost: totalCost
+            WouldReserve: plan.Groups.SelectMany(g=>g.ListingIds).ToList(),
+            TotalCost: plan.TotalCost,
+            Excluded: plan.NotReserved.Where(n=>n.Reason==SmartBudgetReasons.OverBudget).Select(n=>n.ListingId).ToList(),
+            Subtotal: plan.Subtotal,
+            TotalDiscount: plan.Subtotal - plan.TotalCost,
+            Unavailable: plan.NotReserved.Where(n=>n.Reason!=SmartBudgetReasons.OverBudget).Select(n=>n.ListingId).ToList(),
+            Sellers: plan.Sellers
         );
     }
 
-    public static IReadOnlyDictionary<Guid, List<SellerGroupedItem>> GroupBySeller(IEnumerable<SellerGroupedItem> items) =>
-    items.GroupBy(i => i.SellerId).ToDictionary(g => g.Key, g => g.ToList());
-
-    public async Task<SmartBudgetBatchResultDto> ReserveAsync(Guid buyerId, IReadOnlyList<Guid> listingIds, decimal maxbudget, CancellationToken ct = default)
+    public static KnapsackResult Solve(IReadOnlyList<KnapsackItem> items,decimal maxBudget)
     {
-        if (listingIds.Count == 0)
-        {
-            return new SmartBudgetBatchResultDto(
-                TotalSpent: 0m,
-                Reservations: Array.Empty<SellerReservationDto>(),
-                Reserved: Array.Empty<ReservedItemDto>(),
-                NotReserved: Array.Empty<NotReservedItemDto>()
-            );
-        }
-        var resolved = new List<SellerGroupedItem>();
-        var notFound = new List<Guid>();
+        ArgumentNullException.ThrownIfNull(items);
+        var candidates=items.Select(i=>new BundleCandidate(i.ListingId, i.Price)).ToList();
+        var s=BundleKnapsack.Solve(candidates,new Dictionary<Guid, BundlerRule>(), maxBudget);
+        return new KnapsackResult(s.Selected,s.Excluded, s.TotalCost);
+    }
 
-        foreach (var id in listingIds)
+    public static IReadOnlyDictionary<Guid,List<SellerGroupedItem>> GroupBySeller(IEnumerable<SellerGroupedItem> items)=>
+        items.GroupBy(i=>i.SellerId).ToDictionary(g=>g.Key,g=>g.ToList());
+
+    public async Task<SmartBudgetBatchResultDto> ReserveAsync(Guid buyerId, IReadOnlyList<Guid> listingIds, decimal maxBudget, CancellationToken ct = default)
+    {
+        var plan=await BuildPlanAsync(buyerId,listingIds,maxBudget,ct);
+        var reservations=new List<SellerReservationDto>();
+        var notReserved=new List<NotReservedItemDto>(plan.NotReserved);
+        var totalSpent=0m;
+
+        foreach(var group in plan.Groups)
         {
-            var listing = await _listings.GetByIdAsync(id);
-            if (listing is null)
+            var result =await _reservationService.ReservedMultipleAsync(buyerId,group.SellerId,group.ListingIds,group.Rule,group.Total,ct);
+
+            if(result.ReservationId is Guid reservationId && result.Reserved.Count>0)
             {
-                notFound.Add(id);
-                continue;
-            }
-            var initials = listing.Seller is { } seller ? $"{FirstOrEmpty(seller.FirstName)}{FirstOrEmpty(seller.LastName)}" : string.Empty;
-            resolved.Add(new SellerGroupedItem(listing.ListingId, listing.SellerId, listing.Price, listing.Title, initials));
-        }
-        var byId = resolved.ToDictionary(x => x.ListingId);
-
-        var knapsackItems = resolved.Select(x => new KnapsackItem(x.ListingId, x.Price)).ToList();
-        var knapsck = Solve(knapsackItems, maxbudget);
-        var overBudget = knapsck.Excluded.ToHashSet();
-
-        var toReserve = resolved.Where(x => !overBudget.Contains(x.ListingId));
-        var byseller = GroupBySeller(toReserve);
-
-        var reservations = new List<SellerReservationDto>();
-        var reserved = new List<ReservedItemDto>();
-        var notReserved = new List<NotReservedItemDto>();
-        var totalSpen = 0m;
-
-        foreach (var (sellerId, items) in byseller)
-        {
-            var listingIdsForSeller = items.Select(i => i.ListingId).ToList();
-            var result = await _reservationService.ReserveMultipleAsync(buyerId, sellerId, listingIdsForSeller, ct);
-
-            if (result.ReservationId is Guid reservationId && result.Reserved.Count > 0)
-            {
-                var subTotal = result.Reserved.Sum(i => i.Price);
-                totalSpen += subTotal;
-
+                totalSpent+=result.Total;
                 reservations.Add(new SellerReservationDto(
-                    ReservationId: reservationId,
-                    SellerId: sellerId,
-                    SellerInitials: items[0].SellerInitials,
-                    Items: result.Reserved.Select(i => new ReservationItemDto(
-                        i.ListingId, i.Title, i.Price
-                    )).ToList(),
-                    SubTotal: subTotal
+                    reservationId, group.SellerId, group.SellerInitials,
+                    result.Reserved.Select(i=>new ReservationItemDto(i.ListingId,i.Title,i.Price)).ToList(),
+                    SubTotal: result.SubTotal,
+                    Discount: result.SubTotal-result.Total,
+                    DiscountPercent: result.DiscountPercent,
+                    Total: result.Total
                 ));
                 reserved.AddRange(result.Reserved);
             }
 
-            foreach (var failedId in result.FailedListingIds)
-            {
-                var item = byId[failedId];
-                notReserved.Add(new NotReservedItemDto(
-                    failedId, item.Title, item.Price, SmartBudgetReasons.Taken
-                ));
-            }
-        }
-        foreach (var excludedId in overBudget)
-        {
-            var item = byId[excludedId];
-            notReserved.Add(new NotReservedItemDto(
-                excludedId, item.Title, item.Price, SmartBudgetReasons.OverBudget
-            ));
-        }
+            var failed=result.FailedListingIds.ToHashSet();
+            foreach(var id in failed)
+                notReserved.Add(ToNotReserved(plan.Candidates[id], SmartBudgetReasons.Taken));
 
-        return new SmartBudgetBatchResultDto(totalSpen, reservations, reserved, notReserved);
+            if(result.BundleBroken)
+                foreach (var id in group.ListingIds.Where(i=>!failed.Contains(i)))
+                    notReserved.Add(ToNotReserved(plan.Candidates[id],SmartBudgetReasons.BundleBroken));
+        }
+        return new SmartBudgetBatchResultDto(totalSpent,reservations, reserved, notReserved);
     }
 
-    private static string FirstOrEmpty(string? s) => string.IsNullOrEmpty(s) ? "" : s[0].ToString();
+    private async Task<Plan> BuildPlanAsync(Guid buyerId, IReadOnlyList<Guid> requestIds, decimal maxBudget, CancellationToken ct)
+    {
+        var ids=requestIds.Distinct().ToList();
+        var found=await _repo.GetCandidatesAsync(ids,ct);
+        var byId=found.ToDictionary(c=>c.ListingId);
 
+        var notReserved=new List<NotReservedItemDto>();
+        var eligible=new List<SmartBudgetCandidate>();
+
+        foreach(var id in ids)
+        {
+            if(!byId.TryGetValue(id,out var c))
+                notReserved.Add(new NotReservedItemDto(id, "Listing unavailable", 0m, SmartBudgetReasons.Unavailable));
+            else if(c.SellerId==buyerId)
+                notReserved.Add(ToNotReserved(c,SmartBudgetReasons.OwnListing));
+            else if(!c.SellerActive || c.Status=="removed")
+                notReserved.Add(ToNotReserved(c,SmartBudgetReasons.Unavailable));
+            else if(c.Status is "reserved" or "sold")
+                notReserved.Add(ToNotReserved(c,SmartBudgetReasons.Taken));
+            else if(c.Status!="live")
+                notReserved.Add(ToNotReserved(c,SmartBudgetReasons.Unavailable));
+            else
+                eligible.Add(c);   
+        }
+        var rules =await _repo.GetBundleRulesAsync(eligible.Select(e=>e.SellerId).Distinct().ToList(),ct);
+        var solution= BundleKnapsack.Solve(eligible.Select(e=>new BundleCandidate(e.ListingId,e.SellerId,e.Price)).ToList(),rules,maxBudget);
+        var groups=solution.Sellers.Select(s=>new PlannedGroup(s.SellerId,eligible.First(e=>e.SellerId==s.SellerId).SellerInitials,s.ListingIds, s.SubTotal,s.DiscountPercent,s.Total,rules.GetValueOrDefault(s.SellerId))).ToList();
+
+        foreach(var id in solution.Excluded)
+            notReserved.Add(ToNotReserved(byId[id],SmartBudgetReasons.OverBudget));
+
+        var sellers=eligible.groupBy(e=>e.SellerId).Select(g=>
+        {
+            var rule=rules.GetValueOrDefault(g.Key);
+            var chose=groups.FirstOrDefaultAsync(x=>x.SellerId==g.Key);
+            return new SellerBundlePreviewDto(
+                g.Key,g.Count(), chose?.ListingIds.Count ?? 0,
+                chosen?.SubTotal ?? 0m, chosen?.DiscountPercent,
+                chosen is null ? 0m : chosen.SubTotal- chosen.Total,
+                chosen?.Total ?? 0m,rule?.MinItems, rule?.Percent
+            );
+        }).ToList();
+        return new Plan(groups,notReserved,sellers,byId, solution.SubTotal,solution.TotalCost);
+    }
+
+    private static NotReservedItemDto ToNotReserved(SmartBudgetCandidate c, string reason)=>
+        new (c.ListingId,c.Title,c.Price,reason);
 }
