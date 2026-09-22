@@ -161,7 +161,7 @@ export default function SmartBudgetReserve() {
     const wouldReserve = useMemo(() => new Set(previewData?.wouldReserve ?? []), [previewData]);
     const excluded = useMemo(() => new Set(previewData?.excluded ?? []), [previewData]);
 
-    const previewTotal = previewData?.totalCount ?? 0;
+    const previewTotal = previewData?.totalCost ?? 0;
     const previewError = previewErrorRaw instanceof Error ? previewErrorRaw.message : null;
 
 
