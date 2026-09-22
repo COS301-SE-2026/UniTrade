@@ -195,8 +195,9 @@ export default function SmartBudgetReserve() {
 
     const debouncedIds = useMemo(() => Array.from(debouncedSelectedIds).sort(), [debouncedSelectedIds]);
     const debouncedBudgetValue = Number(debouncedBudget);
-    const debouncedBudgetIsValid = debouncedBudget.trim() != "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0;
-    const canPreview = debouncedIds.length > 0 && debouncedBudgetIsValid;
+    const debouncedBudgetIsValid = debouncedBudget.trim() != "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0 && debouncedBudgetValue <= MAX_BUDGET;
+    const canPreview = debouncedIds.length > 0 && debouncedIds.length <= MAX_ITEMS && debouncedBudgetIsValid;
+    const inputsSettled = debouncedBudget === maxBudget && debouncedIds.length === activeIds.length && debouncedIds.every((id, i ) => id === activeIds[i])
 
 
     const {
@@ -220,10 +221,13 @@ export default function SmartBudgetReserve() {
         enabled: canPreview,
     });
 
-    const wouldReserve = useMemo(() => new Set(previewData?.wouldReserve ?? []), [previewData]);
-    const excluded = useMemo(() => new Set(previewData?.excluded ?? []), [previewData]);
 
-    const previewTotal = previewData?.totalCount ?? 0;
+    const preview = canPreview && inputsSettled ? previewData: undefined;
+    const wouldReserve = useMemo(() => new Set(preview?.wouldReserve ?? []), [preview]);
+    const excluded = useMemo(() => new Set(preview?.excluded ?? []), [preview]);
+    const unavailableIds = useMemo(() => new Set(preview?.unavailable ?? []), [preview])
+
+    //const previewTotal = previewData?.totalCount ?? 0;
     const previewError = previewErrorRaw instanceof Error ? previewErrorRaw.message : null;
 
 
@@ -231,6 +235,7 @@ export default function SmartBudgetReserve() {
     if (!budgetIsValid || selectedIds.size === 0) return "unknown";
     if (wouldReserve.has(id)) return "fits";
     if (excluded.has(id)) return "over_budget";
+    if(unavailableIds.has(id)) return "unavailable";
     return "unknown";
   };
 
@@ -260,6 +265,10 @@ export default function SmartBudgetReserve() {
     }
   };
 
+  const bundleNotes = (preview?.sellers ?? [])
+  .map((s) => bundleMessage(s, sellerNamesById[s.sellerId] ?? "This seller"))
+  .filter((n): n is {applied:  boolean; text:string} => n !== null)
+
     return (
         <div className = "flex flex-col gap-6">
             <div>
@@ -267,7 +276,7 @@ export default function SmartBudgetReserve() {
                     Reserve within your desired budget
                 </h1>
                 <p className = "text-sm text-gray-400 mt-1">
-                    Pick the items you are interested in and set a budget. We will work out the best combination that fits.
+                    Pick the items you are interested in and set a budget. We will work out the best combination that fits, including any bundle discounts sellers offer
                 </p>
             </div>
 
@@ -292,41 +301,49 @@ export default function SmartBudgetReserve() {
                 </div>
 
                 <div className="ml-auto text-sm text-gray-500 text-right">
-                    {selectedIds.size === 0 ? (
-                        <span className = "text-gray-400">
+                    {activeIds.length === 0 ? (
+                        <span className="text-gray-400">
                             Select items below to get started
                         </span>
+                    ) : tooMany ? (
+                        <span className="text-rose-600">
+                            Select at most {MAX_ITEMS} items
+                        </span>
                     ) : !budgetIsValid ? (
-                        <span className = "text-gray-400">
+                        <span className="text-gray-400">
                             Enter a budget to see what fits
                         </span>
-                    ) : previewLoading ? (
-                      <span className="text-gray-400">
-                        Checking what fits ... 
-                      </span>
-                ) : (
-                  <>
-                    <span className="font-semibold text-gray-800">
-                        {wouldReserve.size}
-                    </span> of{" "}
-                    <span className="font-semibold text-gray-800">
-                        {selectedIds.size}
-                    </span>{" "}
-                    {selectedIds.size === 1 ? "item" : "items"} would fit {" "}
-                    <span className="font-semibold text-gray-800">
-                        {formatPrice(previewTotal)}
-                    </span> 
-                    total
-                  </>
-                )}
+                    ) : previewLoading || !inputsSettled ? (
+                        <span className="text-gray-400">
+                            Checking what fits ...
+                        </span>
+                    ) : preview ? (
+                      <>
+                        <span className="font-semibold text-gray-800">
+                            {wouldReserve.size}
+                        </span> of{" "}
+                        <span className="font-semibold text-gray-800">
+                            {activeIds.length}
+                        </span>{" "}
+                        {activeIds.length === 1 ? "item" : "items"} would fit for{" "}
+                        <span className="font-semibold text-gray-800">
+                            {formatPrice(preview.totalCost)}
+                        </span>
+                        {preview.totalDiscount > 0 && (
+                            <span className="text-emerald-600"> 
+                            (you save {formatPrice(preview.totalDiscount)})
+                        </span>
+                        )}
+                        </>
+                    ) : null}
+                </div>
             </div>
-        </div>
 
-      {previewError && (
-        <p className="text-xs text-rose-600 -mt-2">
-            {previewError}
-        </p>
-      )}
+                {previewError && (
+                    <p className="text-xs text-rose-600 -mt-2">
+                {previewError}
+                </p>
+                )}
 
                 {isLoading && <LoadingState message = "Loading wishlist ..." />}
 
