@@ -165,6 +165,9 @@ export interface SmartBudgetReservationGroup {
     sellerInitials: string;
     items: SmartBudgetItem[];
     subTotal: number;
+    discount : number;
+    discountPercent: number | null;
+    total: number;
 }
 
 export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
