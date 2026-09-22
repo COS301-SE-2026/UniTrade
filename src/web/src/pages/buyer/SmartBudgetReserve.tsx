@@ -8,10 +8,10 @@ import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
 import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
-import type {SellerBundlePreview} from "../../types/Reservations";
+//import type {SellerBundlePreview} from "../../types/Reservations";
 
-const MAX_BUDGET = 1_000_000;
-const MAX_ITEMS = 50;
+//const MAX_BUDGET = 1_000_000;
+//const MAX_ITEMS = 50;
 
 
 const conditionColours: Record<
@@ -36,7 +36,7 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
 
 type FitState = "fits" | "over_budget" | "unknown"; 
 
-function describeError(code: string, fallback: string): string {
+/*function describeError(code: string, fallback: string): string {
     switch(code) {
         case "not_verified":
             return " You need a verified account to reserve items.";
@@ -53,6 +53,7 @@ function describeError(code: string, fallback: string): string {
 function bundleMessage(s:SellerBundlePreview, name: string) {
     if(s.rulePercent === null || s.ruleMinItems === null) return null;
 }
+    */
 
 
 function SelectableItemRow({
