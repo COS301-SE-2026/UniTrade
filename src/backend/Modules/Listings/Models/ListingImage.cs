@@ -14,4 +14,5 @@ public class ListingImage
     public DateTime UploadedAt { get; set; }
     public Listing? Listing { get; set; } = default!;
     public string? PerceptualHash { get; set; }
+    public float[]? Embedding { get; set; }
 }

@@ -230,6 +230,7 @@ export interface CreateListingPayload {
   listingStatus: string;
   metadata?: ListingMetadata;
   quantity?: number;
+  isbn?: string | null;
 }
 
 function mapWishListItem(item: unknown): WishlistListing {
@@ -370,8 +371,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -470,6 +471,7 @@ export const listingsService = {
         isBundle: false,
         metadata: payload.metadata ?? null,
         quantity: payload.quantity ?? 1,
+       
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
@@ -508,12 +510,11 @@ export const listingsService = {
         metadata: payload.metadata ?? null,
       }),
     });
-    if (!res.ok) 
-      {
-       const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Failed to update listing");
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to update listing");
 
-      }
+    }
   },
 
   deleteListing: async (id: string): Promise<void> => {

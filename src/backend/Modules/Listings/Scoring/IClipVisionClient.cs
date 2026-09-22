@@ -9,4 +9,6 @@ public interface IClipVisionClient
         string claimedLabel,
         CancellationToken ct = default
     );
+
+    Task<float[]?> EmbedAsync(byte[] imageBytes, CancellationToken ct = default);
 }

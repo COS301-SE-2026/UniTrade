@@ -615,7 +615,6 @@ public class ListingService : IListingService
 
     private async Task<bool> ScoreListingAsync(Listing listing, CancellationToken ct)
     {
-
         var risk = await _risk.ScoreAsync(listing, ct);
         listing.AiRiskScore = risk.Score;
         listing.AiRiskLevel = risk.Level;
@@ -635,14 +634,15 @@ public class ListingService : IListingService
     private async Task NotifyFlaggedAsync(Listing listing, CancellationToken ct)
     {
         await _notifier.ListingStatusChangedAsync(
-        listing.SellerId,
-        listing.ListingId,
-        "under_review",
-        listing.AiRiskLevel ?? "low",
-        ct
-    );
+            listing.SellerId,
+            listing.ListingId,
+            "under_review",
+            listing.AiRiskLevel ?? "low",
+            ct
+        );
         await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
     }
+
     public async Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default)
     {
         var listing = await _listings.GetByIdTrackedAsync(listingId);
