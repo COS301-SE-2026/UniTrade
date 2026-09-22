@@ -35,6 +35,20 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
 
 type FitState = "fits" | "over_budget" | "unknown"; 
 
+function describeError(code: string, fallback: string): string {
+    switch(code) {
+        case "not_verified":
+            return " You need a verified account to reserve items.";
+        case "too_many_listings":
+            return `Select at most ${MAX_ITEMS} items and try again.`
+        case "invalid_max_budget" :
+            return "Enter a budget between R0.01 and R1,000,000."
+        default:
+            return fallback;
+
+    }
+}
+
 
 function SelectableItemRow({
     listing,
