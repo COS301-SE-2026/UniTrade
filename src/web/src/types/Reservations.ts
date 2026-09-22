@@ -208,3 +208,9 @@ export interface SellerBundlePreview {
     rulePercent: number | null;
 
 }
+
+export interface BundleDiscountSettings {
+    minItems : number | null;
+    percent: number | null;
+    limits: {minItemsFloor: number; minItemsCeiling: number; minPercent: number; maxPercent: number};
+}
