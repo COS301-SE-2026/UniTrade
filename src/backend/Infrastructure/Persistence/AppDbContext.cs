@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Modules.Audit.Models;
@@ -17,7 +18,6 @@ using Modules.SharedKernel;
 using Modules.Timetable.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
-using System.Text.Json;
 
 namespace Infrastructure.Persistence;
 
@@ -150,7 +150,8 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SellerTrustScore).HasPrecision(4, 2).HasDefaultValue(0);
             entity.Property(x => x.BuyerReliabilityScore).HasPrecision(4, 2).HasDefaultValue(0);
-
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
@@ -158,7 +159,10 @@ public class AppDbContext : DbContext
                     "chk_student_verification",
                     "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
                 );
-                t.HasCheckConstraint("chk_student_bundle_rule", "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)");
+                t.HasCheckConstraint(
+                    "chk_student_bundle_rule",
+                    "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)"
+                );
             });
 
             entity
@@ -182,8 +186,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.UniversityId).HasDatabaseName("ix_student_university");
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_student_course");
             entity.HasIndex(x => x.VerificationStatus).HasDatabaseName("ix_student_status");
-            entity.Property(x=>x,BundleMinItems);
-            entity.Property(x=>x.BundleDiscountPercent);
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         //ADMIN
@@ -387,11 +391,16 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
             entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
             entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
-            entity.Property(x => x.AiRiskReasons)
+            entity
+                .Property(x => x.AiRiskReasons)
                 .HasColumnType("jsonb")
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<RiskReason>>(v, (JsonSerializerOptions?)null)
+                    v =>
+                        JsonSerializer.Deserialize<List<RiskReason>>(
+                            v,
+                            (JsonSerializerOptions?)null
+                        )
                 );
 
             entity.Property(x => x.RejectionReason);
@@ -578,7 +587,9 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
             entity.Property(x => x.PerceptualHash).HasMaxLength(16);
-            entity.HasIndex(x => x.PerceptualHash).HasDatabaseName("ix_listing_images_perceptual_hash");
+            entity
+                .HasIndex(x => x.PerceptualHash)
+                .HasDatabaseName("ix_listing_images_perceptual_hash");
         });
 
         // Reservations
@@ -600,6 +611,9 @@ public class AppDbContext : DbContext
             entity.Property(x => x.ExpiresAt).IsRequired();
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
             entity.Property(x => x.TwoHourWarningSentAt);
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
 
             entity.ToTable(t =>
             {
@@ -607,9 +621,15 @@ public class AppDbContext : DbContext
                     "chk_res_status",
                     "reservation_status IN ('active', 'expired', 'cancelled', 'completed')"
                 );
-                t.HasCheckConstraint("chk_res_amounts", "subtotal_amount>0 AND total_amount <=subtotal_amount");
 
-                t,HasCheckConstraint("chk_res_discount_percent","bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30");
+                t.HasCheckConstraint(
+                    "chk_res_amount",
+                    "subtotal_amount >= 0 AND total_amount >=0 AND total_amount <= subtotal_amount"
+                );
+                t.HasCheckConstraint(
+                    "chk_res_discount_percent",
+                    "bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30"
+                );
             });
 
             entity
@@ -633,9 +653,9 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_res_expires")
                 .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
 
-            entity.Property(x=>x.SubtotalAmount).HasPrecision(10,2);
-            entity.Property(x=>x.TotalAmount).HasPrecision(10,2);
-            entity.Property(x=>x.BundleDiscountPercent);
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>

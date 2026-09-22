@@ -72,8 +72,8 @@ public class ReservationService(
             ExpiresAt = now + ReservationStateMachine.ResponseWindow,
             CreatedAt = now,
             ReservationListings = { new ReservationListing { ListingId = listingId } },
-            SubtotalAmount=listing.Price,
-            TotalAmount=listing.Price
+            SubtotalAmount = listing.Price,
+            TotalAmount = listing.Price
         };
 
         await _reservations.AddAsync(reservation, ct);
@@ -245,7 +245,7 @@ public class ReservationService(
                     LastMessagePreview: lastMsg.Content,
                     LastMessageAt: lastMsg.SentAt == default ? (DateTime?)null : lastMsg.SentAt,
                     SubTotal: r.SubtotalAmount,
-                    DiscountAmount: r.SubtotalAmount-r.TotalAmount,
+                    DiscountAmount: r.SubtotalAmount - r.TotalAmount,
                     BundleDiscountPercent: r.BundleDiscountPercent
                 );
             })
@@ -315,9 +315,9 @@ public class ReservationService(
             CounterParty: counterParty,
             Listings: listings,
             TotalPrice: r.TotalAmount,
-            IsBundle: listings.Count >1,
+            IsBundle: listings.Count > 1,
             SubTotal: r.SubtotalAmount,
-            DiscountAmount: r.SubtotalAmount-r.TotalAmount,
+            DiscountAmount: r.SubtotalAmount - r.TotalAmount,
             BundleDiscountPercent: r.BundleDiscountPercent
         );
     }
@@ -427,82 +427,83 @@ public class ReservationService(
         Guid buyerId,
         Guid sellerId,
         IReadOnlyList<Guid> listingIds,
-        BundleRule? bundleRule=null,
-        decimal? maxTotal=null,
+        BundleRule? bundleRule = null,
+        decimal? maxTotal = null,
         CancellationToken ct = default
     )
     {
-        if(buyerId==sellerId)
+        if (buyerId == sellerId)
         {
             throw new ReservationException(ReservationErrors.SelfReserve);
         }
 
-        var requested=listingIds.Distinct().ToList();
-        if(requested.Count==0)
+        var requested = listingIds.Distinct().ToList();
+        if (requested.Count == 0)
         {
-            return new ReserveMultipleResultDto(null,sellerId,Array.Empty<ReservedItemDto>(),Array.Empty<Guid>());
+            return new ReserveMultipleResultDto(null, sellerId, Array.Empty<ReservedItemDto>(), Array.Empty<Guid>());
         }
-        var acquired=new List<Listing>();
-        var failedListingIds=new List<Guid>();
+        var acquired = new List<Listing>();
+        var failedListingIds = new List<Guid>();
         Reservation reservation;
         decimal subtotal;
         decimal total;
         int? discountPercent;
 
-        try{
-            foreach(var listingId in requested)
+        try
+        {
+            foreach (var listingId in requested)
             {
-                if(!await _listings.TryReserveAsync(listingId, ct))
+                if (!await _listings.TryReserveAsync(listingId, ct))
                 {
                     failedListingIds.Add(listingId);
                     continue;
                 }
-                var listing=await _listings.GetByIdAsync(listingId);
-                if(listing is null|| listing.SellerId !=sellerId)
+                var listing = await _listings.GetByIdAsync(listingId);
+                if (listing is null || listing.SellerId != sellerId)
                 {
-                    await _listings.ReleaseAsync(listingId,ct);
+                    await _listings.ReleaseAsync(listingId, ct);
                     failedListingIds.Add(listingId);
                     continue;
                 }
                 acquired.Add(listing);
             }
-            if(acquired.Count==0)
+            if (acquired.Count == 0)
             {
-                return new ReserveMultipleResultDto(null,sellerId,Array.Empty<ReservedItemDto>(),failedListingIds);
+                return new ReserveMultipleResultDto(null, sellerId, Array.Empty<ReservedItemDto>(), failedListingIds);
             }
-            var subtotalCents=acquired.Sum(l=>BundlePricing.ToCents(l.Price));
-            var totalCents=BundlePricing.TotalCents(subtotalCents,acquired.Count, bundleRule);
-            subtotal=BundlePricing.FromCents(subtotalCents);
-            total=BundlePricing.FromCents(totalCents);
-            discountPercent=BundlePricing.AppliedPercent(acquired.Count, bundleRule);
+            var subtotalCents = acquired.Sum(l => BundlePricing.ToCents(l.Price));
+            var totalCents = BundlePricing.TotalCents(subtotalCents, acquired.Count, bundleRule);
+            subtotal = BundlePricing.FromCents(subtotalCents);
+            total = BundlePricing.FromCents(totalCents);
+            discountPercent = BundlePricing.AppliedPercent(acquired.Count, bundleRule);
 
-            if(maxTotal is not null && total> maxTotal.Value)
+            if (maxTotal is not null && total > maxTotal.Value)
             {
                 await ReleaseAllAsync(acquired);
-                return new ReserveMultipleResultDto(null, sellerId,Array.Empty<ReservedItemDto>(),failedListingIds,subtotal, total, discountPercent, BundleBroken: true);
+                return new ReserveMultipleResultDto(null, sellerId, Array.Empty<ReservedItemDto>(), failedListingIds, subtotal, total, discountPercent, BundleBroken: true);
             }
-            var now=_clock.GetUtcNow().UtcDateTime;
-            reservation=new Reservation
+            var now = _clock.GetUtcNow().UtcDateTime;
+            reservation = new Reservation
             {
-                ReservationId=Guid.NewGuid(),
-                BuyerId=buyerId,
-                SellerId=sellerId,
-                ReservationStatus=ReservationState.Active,
-                ExpiresAt=now+ReservationStateMachine.ResponseWindow,
-                CreatedAt=now,
-                IsBundle=acquired.Count>1,
-                SubtotalAmount=subtotal,
-                TotalAmount=total,
-                BundleDiscountPercent=discountPercent,
+                ReservationId = Guid.NewGuid(),
+                BuyerId = buyerId,
+                SellerId = sellerId,
+                ReservationStatus = ReservationState.Active,
+                ExpiresAt = now + ReservationStateMachine.ResponseWindow,
+                CreatedAt = now,
+                IsBundle = acquired.Count > 1,
+                SubtotalAmount = subtotal,
+                TotalAmount = total,
+                BundleDiscountPercent = discountPercent,
             };
-            foreach(var l in acquired)
+            foreach (var l in acquired)
             {
-                reservation.ReservationListings.Add(new ReservationListing{ ListingId=l.ListingId});
+                reservation.ReservationListings.Add(new ReservationListing { ListingId = l.ListingId });
             }
-            await _reservations.AddAsync(reservation,ct);
-            foreach(var l in acquired)
+            await _reservations.AddAsync(reservation, ct);
+            foreach (var l in acquired)
             {
-                await _snapshots.CreateSnapshotAsync(reservation.ReservationId, l,ct);
+                await _snapshots.CreateSnapshotAsync(reservation.ReservationId, l, ct);
             }
             await _reservations.SaveAsync(ct);
         }
@@ -512,46 +513,48 @@ public class ReservationService(
             throw;
         }
 
-        var reservedItems=acquired.Select(l=>new ReservedItemDto(l.ListingId,l.Title,l.Price,sellerId)).ToList();
+        var reservedItems = acquired.Select(l => new ReservedItemDto(l.ListingId, l.Title, l.Price, sellerId)).ToList();
 
-        try{
-            var itemTitles=string.Join(", ", reservedItems.Select(i=>$"\"{i.Title}\""));
-            var message=reservedItems.Count==1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}";
-            if(discountPercent is int pct)
-            {
-                message+=$"A {pct}% bundle discount applied, agreed total R{total.ToString("0.00",CultureInfo.InvariantCulture)}.";
-            }
-            await _chat.SendSystemAsync(reservation.ReservationId, message,ct);
-
-            foreach(var item in reservedItems)
-            {
-                await _listingNotifier.ListingReservedAsync(item.ListingId,ct);
-                await _wishlist.SuppressForListingAsync(item.ListingId, reservation.ReservationId,ct);
-
-            }
-             await GuardedPushAsync(sellerId, NotificationTypes.ReservationStatus,reservedItems.Count==1 ? $"A buyer is interested in {itemTitles}." : $" A buyer is interested in {reservedItems.Count} of your items.",
-        ct );
-        }   
-
-        catch(Exception ex) when (ex is not OperationCanceledException)
+        try
         {
-            _logger.LogError(ex, "Post-reservation side effects failed for {ReservationId}",reservation.ReservationId);
+            var itemTitles = string.Join(", ", reservedItems.Select(i => $"\"{i.Title}\""));
+            var message = reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}";
+            if (discountPercent is int pct)
+            {
+                message += $"A {pct}% bundle discount applied, agreed total R{total.ToString("0.00", CultureInfo.InvariantCulture)}.";
+            }
+            await _chat.SendSystemAsync(reservation.ReservationId, message, ct);
+
+            foreach (var item in reservedItems)
+            {
+                await _listingNotifier.ListingReservedAsync(item.ListingId, ct);
+                await _wishlist.SuppressForListingAsync(item.ListingId, reservation.ReservationId, ct);
+
+            }
+            await GuardedPushAsync(sellerId, NotificationTypes.ReservationStatus, reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $" A buyer is interested in {reservedItems.Count} of your items.",
+       ct);
         }
 
-        return new ReserveMultipleResultDto(reservation.ReservationId,sellerId, reservedItems,failedListingIds,subtotal,total,discountPercent);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Post-reservation side effects failed for {ReservationId}", reservation.ReservationId);
+        }
+
+        return new ReserveMultipleResultDto(reservation.ReservationId, sellerId, reservedItems, failedListingIds, subtotal, total, discountPercent);
 
     }
 
     private async Task ReleaseAllAsync(IEnumerable<Listing> listings)
     {
-        foreach(var l in listings)
+        foreach (var l in listings)
         {
-            try{
+            try
+            {
                 await _listings.ReleaseAsync(l.ListingId, CancellationToken.None);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to release listing {ListingId} during rollback",l.ListingId);
+                _logger.LogError(ex, "Failed to release listing {ListingId} during rollback", l.ListingId);
             }
         }
     }

@@ -89,4 +89,45 @@ public sealed class ClipVisionClient : IClipVisionClient
         [JsonPropertyName("error")]
         public string? Error { get; init; }
     }
+
+    public async Task<float[]?> EmbedAsync(byte[] imageBytes, CancellationToken ct = default)
+    {
+        if (imageBytes.Length == 0)
+            return null;
+
+        try
+        {
+            var payload = new { imageBase64 = Convert.ToBase64String(imageBytes) };
+            using var res = await _http.PostAsJsonAsync("/embed", payload, ct);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("CLIP /embed returned {Status}", (int)res.StatusCode);
+                return null;
+            }
+
+            var body = await res.Content.ReadFromJsonAsync<EmbedResponse>(ct);
+            if (body?.Embedding is null || body.Embedding.Length == 0)
+            {
+                _logger.LogWarning("CLIP /embed gave no vector: {Error}", body?.Error);
+                return null;
+            }
+
+            return body.Embedding;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CLIP /embed call failed");
+            return null;
+        }
+    }
+
+    private sealed class EmbedResponse
+    {
+        [JsonPropertyName("embedding")]
+        public float[]? Embedding { get; init; }
+
+        [JsonPropertyName("error")]
+        public string? Error { get; init; }
+    }
 }

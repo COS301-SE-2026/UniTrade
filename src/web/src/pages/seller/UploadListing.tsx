@@ -153,7 +153,7 @@ const UploadListing: React.FC = () => {
         : category === "furniture"
           ? { dimensions: dimensions }
           : null;
-      let createdId: string | null = null;
+    let createdId: string | null = null;
     try {
       const { listingId, listingStatus } = await listingsService.createListing({
         title,
@@ -186,12 +186,12 @@ const UploadListing: React.FC = () => {
       if (finalStatus === "draft") {
         showToast('info', 'Saved as a draft - you\u2019ll be able to publish once your verification is approved.');
       } else {
-        showToast('success', 'Listing uploaded successfully' );
+        showToast('success', 'Listing uploaded successfully');
       }
       navigate("/seller/listings");
     } catch (err: unknown) {
       if (createdId) {
-        await listingsService.updateListingStatus(createdId, "draft").catch(() => {})
+        await listingsService.updateListingStatus(createdId, "draft").catch(() => { })
       }
       const error = err as ApiError;
       setError(error.message ?? "Something went wrong");
@@ -382,6 +382,7 @@ const UploadListing: React.FC = () => {
                     )}
                   </div>
                 )}
+
                 {category === "electronics" && (
                   <div>
                     <input

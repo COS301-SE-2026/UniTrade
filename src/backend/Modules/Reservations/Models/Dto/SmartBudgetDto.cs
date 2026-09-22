@@ -1,6 +1,6 @@
 namespace Modules.Reservations.Models.Dto;
 
-public record KnapsackItem(Guid ListingId, decimal Price); //
+public record KnapsackItem(Guid ListingId, decimal Price);
 
 public record KnapsackResult(
     IReadOnlyList<Guid> Selected,
@@ -8,11 +8,34 @@ public record KnapsackResult(
     decimal TotalCost
 );
 
+public record SmartBudgetCandidate(
+    Guid ListingId,
+    Guid SellerId,
+    decimal Price,
+    string Title,
+    string Status,
+    bool SellerActive,
+    string SellerInitials
+);
+
+public record SellerBundlePreviewDto(
+    Guid SellerId,
+    int SelectedCount,
+    int ChosenCount,
+    decimal SubTotal,
+    int? DiscountPercent,
+    decimal Discount,
+    decimal Total,
+    int? RuleMinItems,
+    int? RulePercent
+);
+
 public record SmartBudgetPreviewDto(
     IReadOnlyList<Guid> WouldReserve,
     decimal TotalCost,
     IReadOnlyList<Guid> Excluded,
-    decimal Subtotal,
+    decimal SubTotal,
+    decimal TotalDiscount,
     IReadOnlyList<Guid> Unavailable,
     IReadOnlyList<SellerBundlePreviewDto> Sellers
 );
@@ -29,6 +52,9 @@ public static class SmartBudgetReasons
 {
     public const string OverBudget = "over_budget";
     public const string Taken = "taken";
+    public const string Unavailable = "unavailable";
+    public const string OwnListing = "own_listing";
+    public const string BundleBroken = "bundle_broken";
 }
 
 public record ReserveMultipleResultDto(
@@ -36,10 +62,10 @@ public record ReserveMultipleResultDto(
     Guid SellerId,
     IReadOnlyList<ReservedItemDto> Reserved,
     IReadOnlyList<Guid> FailedListingIds,
-    decimal Subtotal=0m,
-    decimal Total=0m,
-    int? DiscountPercent=null,
-    bool BundleBroken=false
+    decimal SubTotal = 0m,
+    decimal Total = 0m,
+    int? DiscountPercent = null,
+    bool BundleBroken = false
 );
 
 public record ReservationItemDto(Guid ListingId, string Title, decimal Price);
@@ -49,7 +75,10 @@ public record SellerReservationDto(
     Guid SellerId,
     string SellerInitials,
     IReadOnlyList<ReservationItemDto> Items,
-    decimal SubTotal
+    decimal SubTotal,
+    decimal Discount = 0m,
+    int? DiscountPercent = null,
+    decimal Total = 0m
 );
 
 public record ReservedItemDto(Guid ListingId, string Title, decimal Price, Guid SellerId);
@@ -63,15 +92,5 @@ public record SmartBudgetBatchResultDto(
     IReadOnlyList<NotReservedItemDto> NotReserved
 );
 
-public record SmartBudgetCandidate(
-    Guid ListingId,
-    Guid SellerId,
-    decimal Price,
-    string Title,
-    string Status,
-    bool SellerActive,
-    string SellerInitials
-);
-public record SellerBundlePreviewDto(Guid SellerId, int SelectedCount, int ChosenCOunt, decimal Subtotal,int? DiscountPercent, decimal Discount, decimal Total, int? RuleMinItems,int? RulePercent);
-public sealed record PlannedGroup(Guid SellerId, string SellerInitials,IReadOnlyList<Guid> ListingId,decimal SubTotal, int? DiscountPercent, decimal Total, BundleRule? Rule);
-public sealed record Plan(IReadOnlyList<PlannedGroup> Groups, IReadOnlyList<NotReservedItemDto> NotReserved, IReadOnlyList<SellerBundlePreviewDto> Sellers, IReadOnlyDictionary<Guid,SmartBudgetCandidate> Candidates, decimal SubTotal, decimal TotalCost);
+public sealed record PlannedGroup(Guid SellerId, string SellerInitials, IReadOnlyList<Guid> ListingIds, decimal SubTotal, int? DiscountPercent, decimal Total, BundleRule? Rule);
+public sealed record Plan(IReadOnlyList<PlannedGroup> Groups, IReadOnlyList<NotReservedItemDto> NotReserved, IReadOnlyList<SellerBundlePreviewDto> Sellers, IReadOnlyDictionary<Guid, SmartBudgetCandidate> Candidates, decimal SubTotal, decimal TotalCost);

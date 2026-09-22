@@ -30,8 +30,9 @@ public class Reservation
 
     public DateTime? HandoverConfirmedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
-    public ICollection<ListingSnapshot> ListingSnapshots { get; set; } = new List<ListingSnapshot>();
-    public decimal SubtotalAmount {get;set;}
-    public decimal TotalAmount{get;set;}
-    public int? BundleDiscountPercent {get;set;}
+    public ICollection<ListingSnapshot> ListingSnapshots { get; set; } =
+        new List<ListingSnapshot>();
+    public decimal SubtotalAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public int? BundleDiscountPercent { get; set; }
 }

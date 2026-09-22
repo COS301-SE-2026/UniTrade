@@ -61,8 +61,8 @@ public interface IReservationService
         Guid buyerId,
         Guid sellerId,
         IReadOnlyList<Guid> listingIds,
-        BundleRule? bundleRule=null,
-        decimal? maxTotal=null,
+        BundleRule? bundleRule = null,
+        decimal? maxTotal = null,
         CancellationToken ct = default
     );
 }

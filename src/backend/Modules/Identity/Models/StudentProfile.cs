@@ -15,6 +15,6 @@ public class StudentProfile
     public string? DegreeProgram { get; set; }
     public University University { get; set; } = null!;
     public User User { get; set; } = null!;
-    public int? BundleMinItems {get;set;}
-    public int? BundleDiscountPercent{get;set;}
+    public int? BundleMinItems { get; set; }
+    public int? BundleDiscountPercent { get; set; }
 }

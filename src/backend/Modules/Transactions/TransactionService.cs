@@ -47,18 +47,18 @@ public class TransactionService : ITransactionsService
             throw new TransactionException(TransactionErrors.InvalidStatus);
         }
 
-        if(reservation.TotalAmount<=0m)
+        if (reservation.TotalAmount <= 0m)
         {
             throw new TransactionException("invalid_amount");
         }
-        var buyer=reservation.Buyer ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+        var buyer = reservation.Buyer ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
-        var listings=reservation.ReservationListings.Select(rl=>rl.Listing).ToList();
-        var itemName=listings.Count switch
+        var listings = reservation.ReservationListings.Select(rl => rl.Listing).ToList();
+        var itemName = listings.Count switch
         {
-            0=> "UniTrade reservation",
-            1=> listings[0].Title,
-            _=> reservation.BundleDiscountPercent is int pct ? "${listings.Count} items ({pct}% bundle discount)" : $"{listings.Count} items",
+            0 => "UniTrade reservation",
+            1 => listings[0].Title,
+            _ => reservation.BundleDiscountPercent is int pct ? "${listings.Count} items ({pct}% bundle discount)" : $"{listings.Count} items",
         };
 
         return _paymentGateway.CreatePaymentRequest(
@@ -91,7 +91,7 @@ public class TransactionService : ITransactionsService
         }
 
         var pin = GeneratePin();
-        
+
         if (existing is null)
         {
             existing = new Transaction
@@ -192,9 +192,9 @@ public class TransactionService : ITransactionsService
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
         reservation.ReservationStatus = ReservationState.Completed;
 
-        foreach(var r1 in reservation.ReservationListings)
+        foreach (var r1 in reservation.ReservationListings)
         {
-            r1.Listing.ListingStatus="sold";
+            r1.Listing.ListingStatus = "sold";
         }
 
         await _transactions.SaveAsync(ct);

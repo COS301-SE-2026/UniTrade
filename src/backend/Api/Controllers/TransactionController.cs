@@ -119,16 +119,16 @@ public class TransactionController : ControllerBase
 
         if (fields.GetValueOrDefault("payment_status") == "COMPLETE")
         {
-            if(fields.TryGetValue("amount_gross", out var grossRaw))
+            if (fields.TryGetValue("amount_gross", out var grossRaw))
             {
-                if(!decimal.TryParse(grossRaw,NumberStyles.Number,CultureInfo.InvariantCulture, out var gross) 
-                || BundlePricing.ToCents(gross)!=BundlePricing.ToCents(reservation.TotalAmount))
+                if (!decimal.TryParse(grossRaw, NumberStyles.Number, CultureInfo.InvariantCulture, out var gross)
+                || BundlePricing.ToCents(gross) != BundlePricing.ToCents(reservation.TotalAmount))
                 {
                     return BadRequest("amount_mismatch");
                 }
             }
-            var pfTransactionId=fields.GetValueOrDefault("pf_payment_id") ?? "";
-            await _transactionsService.ConfirmTransactionAsync(reservationId,pfTransactionId,ct);
+            var pfTransactionId = fields.GetValueOrDefault("pf_payment_id") ?? "";
+            await _transactionsService.ConfirmTransactionAsync(reservationId, pfTransactionId, ct);
         }
 
         return Ok();

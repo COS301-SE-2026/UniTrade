@@ -1,6 +1,7 @@
 using Modules.Identity.Repositories;
 using Modules.Listings.Models;
 using Modules.Listings.Repositories;
+using Modules.Listings.Scoring;
 using Modules.Reputation.Repositories;
 using Modules.SharedKernel;
 
@@ -11,18 +12,16 @@ public class ListingRiskScoreService : IListingRiskScoreService
     private readonly IListingRepository _listings;
     private readonly IListingImageRepository _images;
     private readonly IPerceptualHashService _hashing;
+    private readonly IClipVisionClient _clip;
     private readonly IStrikeRepository _strikes;
     private readonly IUserRepository _users;
 
-    private const int MinComparableSampleSize = 3;
     private const decimal LowRiskUpperBound = 39m;
     private const decimal MediumRiskUpperBound = 69m;
-    private const int FullVisibilityScore = 100;
-    private const int MinMediumVisibilityScore = 20;
     private const int DuplicateHashThreshold = 8;
+    private const double DuplicateEmbeddingThreshold = 0.85;
     private const int _minComparableSampleSize = 3;
     private const decimal _lowRiskUpperBound = 39m;
-    private const decimal _mediumRiskUpperBound = 69m;
     private const int _fullVisibilityScore = 100;
     private const int _minMediumVisibilityScore = 20;
 
@@ -30,7 +29,6 @@ public class ListingRiskScoreService : IListingRiskScoreService
     private const decimal SellerHistorySignalWeight = 0.3m;
     private const decimal DuplicateSignalWeight = 0.3m;
 
-    //seller hsitory sub signals
     private const decimal RatingSubWeight = 0.5m;
     private const decimal StrikeSubWeight = 0.5m;
     private const int StrikeRiskPerStrike = 34;
@@ -42,6 +40,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
         IListingRepository listings,
         IListingImageRepository images,
         IPerceptualHashService hashing,
+        IClipVisionClient clip,
         IUserRepository users,
         IStrikeRepository strikes
     )
@@ -49,6 +48,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
         _listings = listings;
         _images = images;
         _hashing = hashing;
+        _clip = clip;
         _users = users;
         _strikes = strikes;
     }
@@ -178,39 +178,80 @@ public class ListingRiskScoreService : IListingRiskScoreService
         CancellationToken ct
     )
     {
-        var ownHashes = listing
-            .Images.Where(img => img.PerceptualHash != null)
-            .Select(img => img.PerceptualHash!)
+        var ownImages = listing
+            .Images.Where(img => img.PerceptualHash != null || img.Embedding != null)
             .ToList();
-        if (ownHashes.Count == 0)
+
+        if (ownImages.Count == 0)
         {
             return null;
         }
-        var comparablePool = await _images.GetComparableImageHashesAsync(listing.ListingId, ct);
 
-        if (comparablePool.Count == 0)
+        var comparablePool = await _images.GetComparableImageHashesAsync(listing.ListingId, ct);
+        var candidates = comparablePool.Where(c => c.SellerId != listing.SellerId).ToList();
+
+        if (candidates.Count == 0)
         {
             return 0m;
         }
-        var hasCrossSellerMatch = ownHashes.Any(ownHash =>
-            comparablePool.Any(candidate =>
-                candidate.SellerId != listing.SellerId
-                && _hashing.HammingDistance(ownHash, candidate.Hash) <= DuplicateHashThreshold
-            )
-        );
 
-        if (hasCrossSellerMatch)
+        foreach (var own in ownImages)
         {
-            reasons.Add(
-                new RiskReason
+            if (own.PerceptualHash is { } ownHash)
+            {
+                var hashMatch = candidates.FirstOrDefault(c =>
+                    c.Hash != null
+                    && _hashing.HammingDistance(ownHash, c.Hash) <= DuplicateHashThreshold
+                );
+                if (hashMatch is not null)
                 {
-                    Code = "duplicate_image",
-                    Detail = "Matches an image already used in another seller's live listing",
+                    reasons.Add(
+                        new RiskReason
+                        {
+                            Code = "duplicate_image",
+                            Detail =
+                                "Matches an image already used in another seller's live listing",
+                            ImageId = hashMatch.ImageId,
+                        }
+                    );
+                    return 100m;
                 }
-            );
-            return 100m;
+            }
+
+            if (own.Embedding is { Length: > 0 } ownEmbedding)
+            {
+                var embeddingMatch = candidates.FirstOrDefault(c =>
+                    c.Embedding is { Length: > 0 } candidateEmbedding
+                    && CosineSimilarity(ownEmbedding, candidateEmbedding)
+                        >= DuplicateEmbeddingThreshold
+                );
+                if (embeddingMatch is not null)
+                {
+                    reasons.Add(
+                        new RiskReason
+                        {
+                            Code = "duplicate_image",
+                            Detail =
+                                "Visually matches an image already used in another seller's live listing",
+                            ImageId = embeddingMatch.ImageId,
+                        }
+                    );
+                    return 100m;
+                }
+            }
         }
+
         return 0m;
+    }
+
+    private static double CosineSimilarity(float[] a, float[] b)
+    {
+        double dot = 0;
+        for (int i = 0; i < a.Length && i < b.Length; i++)
+        {
+            dot += a[i] * b[i];
+        }
+        return dot;
     }
 
     private async Task<decimal?> ComputeSellerHistoryScoreAsync(
