@@ -384,7 +384,7 @@ export default function SmartBudgetReserve() {
                         <SelectableItemRow
                         key = {listing.id}
                         listing = {listing}
-                        selected = {selectedIds.has(listing.id)}
+                        selected = {activeSet.has(listing.id)}
                         fitState={getFitState(listing.id)}
                         onToggle= {toggleSelected}
                         />
