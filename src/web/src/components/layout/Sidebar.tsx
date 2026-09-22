@@ -5,7 +5,7 @@ import {
   IconSwitchHorizontal,
   //IconSettings,
   IconShieldCheck,
-  //IconListCheck,
+  IconListCheck,
   IconFlag,
   IconUsers,
 
@@ -15,6 +15,7 @@ import {
   IconX,
   IconShoppingBag, IconHeart, IconBookmark, IconMessage, IconUser,
   IconSearch,
+  IconCalendarEvent,
 } from '@tabler/icons-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
@@ -52,8 +53,8 @@ const buyerNav: NavSection[] = [
     heading: 'Account',
     items: [
       { label: 'Messages', to: '/buyer/messages', icon: <IconMessage size={18} />, badge: 5 },
+      { label: 'Timetable', to: '/auth/timetable', icon: <IconCalendarEvent size={18} /> },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
-      ///{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
   },
 ]
@@ -73,8 +74,8 @@ const sellerNav: NavSection[] = [
     heading: 'Account',
     items: [
       { label: 'Messages', to: '/seller/messages', icon: <IconMessage size={18} />, badge: 5 },
+      { label: 'Timetable', to: '/auth/timetable', icon: <IconCalendarEvent size={18} /> },
       { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
-      ////{ label: 'Settings', to: '/settings', icon: <IconSettings size={18} /> },
     ],
   },
 ]
@@ -86,7 +87,7 @@ const adminNav: NavSection[] = [
       { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
       { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} /> },
       { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} /> },
-      //{ label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} />},
+      { label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} /> },
       { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
     ],
   },
@@ -174,10 +175,6 @@ function UserPopover({
     </div>
   )
 }
-/*function getUserRoleDisplay(role?: string, viewMode?: string) {
-  if (role === 'admin') return 'Admin';
-  return viewMode === 'buyer' ? 'Buyer' : 'Seller';
-}*/
 export default function Sidebar() {
   const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
   const navigate = useNavigate()

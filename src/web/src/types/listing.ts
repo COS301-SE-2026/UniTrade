@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'screening' | 'reserved' | 'sold' | 'rejected' | 'low_visibility' | 'under_review'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -102,6 +102,7 @@ export interface BrowseListing {
   metadata: ListingMetadata
   sellerId: string
   answeredQuestionCount?: number
+  listedAt?: string
 }
 
 export interface BrowseListingsResponse {

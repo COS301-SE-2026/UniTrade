@@ -370,6 +370,14 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("student_id");
 
+                    b.Property<int?>("BundleDiscountPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("bundle_discount_percent");
+
+                    b.Property<int?>("BundleMinItems")
+                        .HasColumnType("integer")
+                        .HasColumnName("bundle_min_items");
+
                     b.Property<decimal>("BuyerReliabilityScore")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(4, 2)
@@ -429,6 +437,8 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("student_profiles", "unitrade", t =>
                         {
+                            t.HasCheckConstraint("chk_student_bundle_rule", "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)");
+
                             t.HasCheckConstraint("chk_student_verification", "verification_status IN ('pending', 'partial', 'verified', 'rejected')");
 
                             t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
@@ -757,6 +767,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<double?>("ImageMatchScore")
+                        .HasColumnType("double precision")
+                        .HasColumnName("image_match_score");
+
                     b.Property<bool?>("IsBundle")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -862,7 +876,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening')");
                         });
                 });
 
@@ -949,6 +963,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("content_type");
+
+                    b.PrimitiveCollection<float[]>("Embedding")
+                        .HasColumnType("real[]")
+                        .HasColumnName("embedding");
 
                     b.Property<int>("FileSize")
                         .HasColumnType("integer")
@@ -1437,6 +1455,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("reservation_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<int?>("BundleDiscountPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("bundle_discount_percent");
+
                     b.Property<Guid>("BuyerId")
                         .HasColumnType("uuid")
                         .HasColumnName("buyer_id");
@@ -1487,6 +1509,16 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("seller_id");
 
+                    b.Property<decimal>("SubtotalAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("subtotal_amount");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("total_amount");
+
                     b.Property<DateTime?>("TwoHourWarningSentAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("two_hour_warning_sent_at");
@@ -1509,6 +1541,10 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("reservations", "unitrade", t =>
                         {
+                            t.HasCheckConstraint("chk_res_amount", "subtotal_amount >= 0 AND total_amount >=0 AND total_amount <= subtotal_amount");
+
+                            t.HasCheckConstraint("chk_res_discount_percent", "bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30");
+
                             t.HasCheckConstraint("chk_res_status", "reservation_status IN ('active', 'expired', 'cancelled', 'completed')");
                         });
                 });

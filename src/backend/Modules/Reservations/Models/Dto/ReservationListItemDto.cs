@@ -21,5 +21,8 @@ public record ReservationListItemDto(
     bool IsBundle,
     int UnreadCount,
     string? LastMessagePreview,
-    DateTime? LastMessageAt
+    DateTime? LastMessageAt,
+    decimal SubTotal = 0m,
+    decimal DiscountAmount = 0m,
+    int? BundleDiscountPercent = null
 );

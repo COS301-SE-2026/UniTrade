@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import type React from "react";
 import { listingsService } from "../../services/listingsService";
 import {
@@ -11,6 +11,10 @@ import {
 import type { SellerListingDetail as SellerListingDetailType } from "../../types/listing";
 import { LoadingState } from "../../components/layout/Spinner";
 import ListingQnA from "../../components/ListingQnA";
+import type { ListingStatusResponse } from "../../types/riskTemp";
+import { mockStatusFromListing } from "../../types/riskTemp";
+import {connectionManager} from "../../services/realtime/connectionManager"
+
 
 function DetailRow({
   label,
@@ -29,6 +33,11 @@ function DetailRow({
   );
 }
 
+function visibilityInfo(score: number) {
+  if (score >= 90) return { label: "Full visibilty", bar: "bg-green-500", text: "text-green-700"};
+  if (score >= 45) return { label: "Reduced visibility", bar: "bg-amber-500", text: "text-amber-700"};
+  return {label: "Limited visibility", bar: "bg-orange-500", text: "text-orange-700"};
+}
 export default function SellerListingDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -38,6 +47,7 @@ export default function SellerListingDetail() {
   const [selectedImg, setSelectedImg] = useState(0);
   const [courseCode, setCourseCode] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [statusData, setStatusData] = useState<ListingStatusResponse | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -51,9 +61,29 @@ export default function SellerListingDetail() {
             .then((course) => setCourseCode(course.courseCode))
             .catch(() => setCourseCode(null));
         }
+        Promise.resolve()
+        .then(() => listingsService.getListingStatus(id))
+        .then(setStatusData)
+        .catch(() => setStatusData(mockStatusFromListing(data)));
       })
       .catch(() => setError("Failed to load listing"))
       .finally(() => setLoading(false));
+  }, [id]);
+
+    useEffect(() => {
+    if (!id) return;
+
+    const off = connectionManager.onListingStatusChanged((e) => {
+    if (e.listingId !== id) return;
+
+      listingsService
+        .getListingStatus(id)
+        .then(setStatusData)
+        .catch(() => {
+        });
+    });
+
+    return off;
   }, [id]);
 
   const handleDelete = async () => {
@@ -79,6 +109,10 @@ export default function SellerListingDetail() {
       </div>
     );
 
+  const visibility =
+    statusData?.status === "live" && statusData.visibilityScore != null
+      ? { score: statusData.visibilityScore, ...visibilityInfo(statusData.visibilityScore)}
+      : null;
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
@@ -89,11 +123,43 @@ export default function SellerListingDetail() {
         >
           My Listings
         </button>
-        <span>›</span>
+        <span></span>
         <span className="text-navy-700 dark:text-white truncate">
           {listing.title}
         </span>
       </div>
+
+      {statusData && (statusData.status === "under_review" || statusData.status === "removed") && (
+      <div
+        className={`rounded-xl border p-4 flex items-start gap-3 ${
+        statusData.status === "under_review"
+        ? "bg-amber-50 border-amber-200"
+        : "bg-red-50 border-red-200"
+      }`}
+      >
+      <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+        statusData.status === "under_review"
+          ? "bg-amber-100 text-amber-600"
+          : "bg-red-100 text-red-600"
+      }`}
+      >
+        {statusData.status === "under_review" ? (
+          <IconClock size={16} />
+          ) : (
+          <IconX size={16} />
+        )}
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-navy-700 dark:text-white">
+          {statusData.status === "under_review" ? "Under review" : "Removed"}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">
+          {statusData.message}
+        </p>
+      </div>
+    </div>
+  )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         <div className="lg:col-span-2 space-y-4">
@@ -209,6 +275,28 @@ export default function SellerListingDetail() {
 
         <div className="lg:col-span-1 space-y-4">
 
+          {visibility && (
+            <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Visibility</h3>
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className={`font-semibold ${visibility.text}`}>{visibility.label}</span>
+                <span className="text-gray-500">{visibility.score}</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${visibility.bar}`}
+                  style={{ width: `${visibility.score}%` }}
+                />
+                <p className="mt-3 text-[11px] leading-relaxed text-gray-500 dark:text-white/50">
+                {visibility.score >= 90
+                 ? "Your listing appears normally in browse results."
+                 : "Your listing appears lower in browse results. Check that your photos clearly show the item and match the category, and that the price and description are accurate."
+                }
+                </p>
+                </div>
+              </div>
+          )}
+
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
               Actions
@@ -216,7 +304,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={() => navigate(`/seller/editListing/${id}`)}
-              disabled={listing.isReserved || listing.status === "sold"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Edit Listing
@@ -225,7 +313,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={handleDelete}
-              disabled={listing.isReserved || listing.status === "sold"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
               className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Delete Listing

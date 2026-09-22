@@ -21,6 +21,7 @@ import type {
   OrderItem,
   SaleItem,
 } from "../types/listing";
+import type { ListingStatusResponse } from "../types/riskTemp";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
@@ -117,7 +118,7 @@ const mockMyListings: ListingSummary[] = [
     title: "Molecular Biology - 6th Ed",
     meta: "BIO226 · Listed 3 May 2026",
     price: 350,
-    status: "rejected",
+    status: "live",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=MB",
     categoryName: "",
@@ -229,6 +230,7 @@ export interface CreateListingPayload {
   listingStatus: string;
   metadata?: ListingMetadata;
   quantity?: number;
+  isbn?: string | null;
 }
 
 function mapWishListItem(item: unknown): WishlistListing {
@@ -369,8 +371,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -408,6 +410,7 @@ export const listingsService = {
         images: { imageId: number; isPrimary: boolean; path: string }[];
         seller?: { sellerId: string };
         answeredQuestionCount?: number;
+        createdAt: string;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -422,6 +425,7 @@ export const listingsService = {
         metadata: l.metadata ?? null,
         sellerId: l.seller?.sellerId ?? "",
         answeredQuestionCount: l.answeredQuestionCount ?? 0,
+        listedAt: l.createdAt,
       };
     });
 
@@ -467,6 +471,7 @@ export const listingsService = {
         isBundle: false,
         metadata: payload.metadata ?? null,
         quantity: payload.quantity ?? 1,
+       
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
@@ -505,7 +510,11 @@ export const listingsService = {
         metadata: payload.metadata ?? null,
       }),
     });
-    if (!res.ok) throw new Error("Failed to update listing");
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to update listing");
+
+    }
   },
 
   deleteListing: async (id: string): Promise<void> => {
@@ -901,6 +910,7 @@ export const listingsService = {
 };
 //TEMP:
 // this is just so builds dont fail, the real types will come from FE3
-interface ListingStatusResponse {
+/*interface ListingStatusResponse {
   listingId: string;
 }
+  */

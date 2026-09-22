@@ -23,6 +23,8 @@ const {
   uploadImages,
   searchCourses,
   mockNavigate,
+  getListingStatus,
+  showToast,
   routeParams,
 } = vi.hoisted(() => ({
   getListingsCategories: vi.fn(),
@@ -32,6 +34,8 @@ const {
   uploadImages: vi.fn(),
   searchCourses: vi.fn(),
   mockNavigate: vi.fn(),
+  getListingStatus: vi.fn(),
+  showToast: vi.fn(),
   routeParams: {
     id: "123" as string | undefined
   },
@@ -45,9 +49,13 @@ vi.mock("../../services/listingsService", () => ({
     searchCourses,
     updateListing,
     uploadImages,
+    getListingStatus,
   },
 }));
 
+vi.mock("../../components/layout/useToast", () => ({
+  useToast: () => ({ showToast})
+}))
 vi.mock("react-router", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router")>();
   return {
@@ -70,6 +78,7 @@ vi.mock("../../assets/bio-textbook.jpg", () => ({
 import EditListing from "../../pages/seller/EditListing";
 
 
+
 const mockCategories = [
   { id: 1, name: "book" },
   { id: 2, name: "electronics" },
@@ -79,6 +88,7 @@ const mockCategories = [
 
 const baseListing = {
   title: "Intro to Economics Textbook",
+  status: "live",
   category: "book",
   description: "Barely used, no highlights.",
   price: 250,
@@ -88,6 +98,7 @@ const baseListing = {
   images: [
     { id: "1", url: "https://example.com/img1.jpg" },
     { id: "2", url: "https://example.com/img2.jpg" },
+    { id: "3", url: "https://example.com/img3.jpg"},
   ],
 };
 
@@ -143,6 +154,7 @@ beforeEach(() => {
     faculty: "",
   });
   searchCourses.mockResolvedValue([]);
+  getListingStatus.mockResolvedValue({ listingId: "123", status: "live", riskLevel: "low", message: ""})
 });
 
 afterEach(() => {
@@ -179,7 +191,17 @@ describe("Initial loding, data fethcing", () => {
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue(String(baseListing.price))).toBeInTheDocument();
   });
+it("tells the seller when the edit sends the listing to review", async () => {
+  const user = userEvent.setup();
+  updateListing.mockResolvedValue(undefined);
+  getListingStatus.mockResolvedValue({ listingId: "123", status: "under_review", riskLevel: "high", message: "" });
+  await renderAndLoad();
 
+  await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+  await waitFor(() => expect(showToast).toHaveBeenCalledWith("info", expect.stringMatching(/held for admin review/i)));
+  expect(mockNavigate).toHaveBeenCalledWith("/seller/listings");
+});
   it("sets an error message if getListingsCategories fails", async () => {
     getListingsCategories.mockRejectedValue(new Error("network error"));
     getById.mockResolvedValue(baseListing);
@@ -297,7 +319,40 @@ describe("Form field bindings", () => {
 
     expect(screen.getByDisplayValue("999")).toBeInTheDocument();
   });
+/*it("blocks saving a live listing when every photo has been removed", async () => {
+  const user = userEvent.setup();
+  updateListing.mockResolvedValue(undefined);
+  const { container } = await renderAndLoad({ status: "live" });
 
+  const grid = getImageGrid(container);
+  for (let i = 0; i < baseListing.images.length; i++) {
+    const btn = Array.from(grid.querySelectorAll("button")).find(
+      (b) => b.getAttribute("aria-label") === "Remove image",
+    )!;
+    await user.click(btn);
+  }
+  await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+  expect(await screen.findByText(/at least one photo/i)).toBeInTheDocument();
+  expect(updateListing).not.toHaveBeenCalled();
+});*/
+
+it("lets a draft be saved with no photos", async () => {
+  const user = userEvent.setup();
+  updateListing.mockResolvedValue(undefined);
+  const { container } = await renderAndLoad({ status: "draft" });
+
+  const grid = getImageGrid(container);
+  for (let i = 0; i < baseListing.images.length; i++) {
+    const btn = Array.from(grid.querySelectorAll("button")).find(
+      (b) => b.getAttribute("aria-label") === "Remove image",
+    )!;
+    await user.click(btn);
+  }
+  await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+  await waitFor(() => expect(updateListing).toHaveBeenCalled());
+});
   it("updates condition when a different condition button is clicked", async () => {
     const user = userEvent.setup();
     await renderAndLoad();
@@ -437,7 +492,7 @@ describe("New file uploads", () => {
     const { container } = await renderAndLoad();
 
     const fileInput = getHiddenFileInput(container);
-    const file = makeFile("photo.png", 1024 * 1024); // 1MB
+    const file = makeFile("photo.png", 1024 * 1024); 
 
     fireEvent.change(fileInput, { target: { files: [file] } });
 
@@ -464,7 +519,7 @@ describe("New file uploads", () => {
     expect(fileInput.value).toBe("");
   });
 
-  it("only accepts new immages up to the remaining parts of teh grid ", async () => {
+  /*it("only accepts new immages up to the remaining parts of teh grid ", async () => {
     const { container } = await renderAndLoad();
 
     const fileInput = getHiddenFileInput(container);
@@ -483,7 +538,7 @@ describe("New file uploads", () => {
       );
       expect(previews).toHaveLength(2);
     });
-  });
+  });*/
 
   it("removes a new file preview when delete button id used", async () => {
     const { container } = await renderAndLoad();

@@ -20,7 +20,12 @@ import type {
   CaseType,
   UserListing,
   CaseSummary,
+  FlaggedListing,
+  ListingDecisionResponse,
+  ListingStatusResponse,
+  FlaggedListingDetail,
 } from "../types/admin_disputes";
+
 
 export type ButtonAction =
   | "approve"
@@ -336,17 +341,20 @@ export async function decideListing(
   return handleResponse<ListingDecisionResponse>(res);
 }
 
-//TEMP:
-// this is just so builds dont fail, the real types will come from FE3
-interface FlaggedListing{
-  listingId: string;
+export async function getListingStatus(id: string): Promise<ListingStatusResponse> {
+  const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  return handleResponse<ListingStatusResponse>(res);
 }
-/*
-interface ListingDecisionBody{
-  action: "approve"|"remove";
-  reason?:string;
+
+export async function getFlaggedListing(id: string): Promise<FlaggedListingDetail> {
+  const res = await fetch(`${getApiUrl()}/admin/listings/${id}/flagged`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<FlaggedListingDetail>(res)
 }
-  */
-interface ListingDecisionResponse{
-  randomWordSoLintingPassesInTHeMeanWHile: string
-}
+

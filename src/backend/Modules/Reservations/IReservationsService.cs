@@ -1,4 +1,7 @@
 using Modules.Reservations.Models.Dto;
+using Modules.Reservations.Models;
+
+
 
 namespace Modules.Reservations;
 
@@ -58,6 +61,8 @@ public interface IReservationService
         Guid buyerId,
         Guid sellerId,
         IReadOnlyList<Guid> listingIds,
+        BundleRule? bundleRule = null,
+        decimal? maxTotal = null,
         CancellationToken ct = default
     );
 }
