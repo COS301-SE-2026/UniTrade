@@ -9,6 +9,9 @@ import { LoadingState } from "../../components/layout/Spinner";
 import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
 
+const MAX_BUDGET = 1_000_000;
+const MAX_ITEMS = 50;
+
 
 const conditionColours: Record<
   BrowseCondition,
