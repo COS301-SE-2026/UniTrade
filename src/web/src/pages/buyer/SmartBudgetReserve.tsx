@@ -34,7 +34,7 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
     );
 }
 
-type FitState = "fits" | "over_budget" | "unknown"; 
+type FitState = "fits" | "over_budget" | "unknown"  | "unavailable"
 
 function describeError(code: string, fallback: string): string {
     switch(code) {
@@ -84,6 +84,8 @@ function SelectableItemRow({
 }>) {
     const unavailable = listing.status !== "live";
     const overBudget = selected && fitState === "over_budget";
+    const notAvailableNow = selected && fitState === "unavailable";
+    
 
     return (
         <button 
@@ -123,6 +125,11 @@ function SelectableItemRow({
                                 Over budget
                             </ span>
                         )}
+                        {notAvailableNow && (
+                            <span className = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700">
+                                Unavailable
+                                </span>
+                        )}
                     </span>
                     <span className = "block text-xs text-gray-400 mt-0.5">
                         Listed by{" "}
@@ -148,6 +155,16 @@ export default function SmartBudgetReserve() {
     const navigate = useNavigate();
     const {data, isLoading, error} = useWishlist();
     const listings = useMemo(() => data?.listings ?? [], [data]);
+
+    const liveIds = useMemo(
+        () => new Set(listings.filter((l) => l.status === "live").map((l) => l.id )),
+        [listings],
+    );
+    const sellerNamesById = useMemo(() => {
+        const map: Record<string, string> = {};
+        for (const l of listings) if (l.sellerName) map[l.sellerId] = l.sellerName;
+        return map;
+    }, [listings]);
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [maxBudget, setMaxBudget] = useState<string>("");
