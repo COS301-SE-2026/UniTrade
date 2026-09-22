@@ -2,11 +2,11 @@ using Modules.Listings.Repositories;
 using Modules.Reservations.Models.Dto;
 namespace Modules.Reservations;
 
-public class SmartBudgetService(IListingRepository listings, IReservationService reservationService) : ISmartBudgetService
+public class SmartBudgetService(IListingRepository listings, ISmartBudgetRepository _smartBudget,IReservationService reservationService) : ISmartBudgetService
 {
     private readonly IListingRepository _listings = listings;
     private readonly IReservationService _reservationService = reservationService;
-
+    private record ISmartBudgetRepository _smartBudget = smartBudget;
     public async Task<SmartBudgetPreviewDto> PreviewAsync(IReadOnlyList<Guid> listingId, decimal maxbudget, CancellationToken ct = default)
     {
         if (listingId.Count == 0)
@@ -202,6 +202,27 @@ public class SmartBudgetService(IListingRepository listings, IReservationService
 
         return new SmartBudgetBatchResultDto(totalSpen, reservations, reserved, notReserved);
     }
+    Task<SellerBundleSetting?> GetBundleDiscountAsync(
+        Guid sellerId,
+        CancellationToken ct = default
+    )=>
+    _smartBudget.GetSettingsAsync(sellerId, ct);
+
+    async Task<SellerBundleSetting?> SetBundleDiscountAsync(
+        Guid sellerId,
+        BundleRule? rule,
+        CancellationToken ct = default
+    )
+    {
+        if(!BundleDiscountRules.IsValid(rule?.MinItems, rule?.Percent))
+        {
+            throw new ArgumentException("Invalid bundle rule.", nameof(rule));
+
+        }
+        var ok = await _smartBudget.SetRuleAsync(sellerId, rule, ct);
+        return ok? new SellerBundleSetting(rule): null;
+    }
+
 
     private static string FirstOrEmpty(string? s) => string.IsNullOrEmpty(s) ? "" : s[0].ToString();
 

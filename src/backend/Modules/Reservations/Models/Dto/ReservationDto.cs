@@ -13,5 +13,8 @@ public record ReservationDto(
     CounterPartyDto? CounterParty,
     IReadOnlyList<ReservationListingSummaryDto> Listings,
     decimal TotalPrice,
-    bool IsBundle
+    bool IsBundle,
+    decimal SubTotal = 0m,
+    decimal DiscountAmount = 0m,
+    int? BundleDiscountPercent = null
 );
