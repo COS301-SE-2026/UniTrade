@@ -189,6 +189,11 @@ export interface SmartBudgetPreviewResponse {
     wouldReserve: string[];
     totalCount: number;
     excluded: string[];
+    unavailable: string[];
+    totalCost: number;
+    subtotal: number;
+    totalDiscount: number;
+    sellers: SellerBundlePreview[];
 }
 
 export interface SellerBundlePreview {
