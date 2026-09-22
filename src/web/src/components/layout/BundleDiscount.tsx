@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {IconTag } from "@tabler/icons-react";
 import { bundleDiscountKey, useBundleDiscount } from "../../hooks/useBundleDiscount";
@@ -23,14 +23,16 @@ export function BundleDiscountCard({
     const [minItems, setMinItems] = useState(3);
     const [percent, setPercent] = useState("10");
     const [saving, setSaving] = useState(false);
+    const [prevData, setPrevData] = useState(data);
 
-    useEffect(() => {
-        if(!data) return;
+ if(data!== prevData) {
+    setPrevData(data);
+        if(data) {
         setEnabled(data.minItems !== null && data.percent !==null);
         setMinItems(data.minItems ?? limits.minItemsFloor);
         setPercent(String(data.percent ?? 10));
-    } , [data]);
-
+    } 
+}
     const pct = Number(percent);
     const  percentValid = Number.isInteger(pct) && pct >= limits.minPercent && pct <=limits.maxPercent;
     const active = data?.minItems !=null && data?.percent !=null;
