@@ -168,7 +168,7 @@ export interface SmartBudgetReservationGroup {
 }
 
 export interface SmartBudgetNotReservedItem extends SmartBudgetItem {
-    reason: "over_budget" | "taken";
+    reason: "over_budget" | "taken" | "unavailable" | "own_listing" | "bundle_broken";
 }
 
 export interface SmartBudgetReservedItem extends SmartBudgetItem {

@@ -8,6 +8,7 @@ import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
 import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
 import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
+import type {SellerBundlePreview} from "../../types/Reservations";
 
 const MAX_BUDGET = 1_000_000;
 const MAX_ITEMS = 50;
@@ -47,6 +48,10 @@ function describeError(code: string, fallback: string): string {
             return fallback;
 
     }
+}
+
+function bundleMessage(s:SellerBundlePreview, name: string) {
+    if(s.rulePercent === null || s.ruleMinItems === null) return null;
 }
 
 
