@@ -14,7 +14,7 @@ import { StarRating } from "../../components/layout/ReviewForm";
 import { ReviewList } from "./Review";
 import { useLogout } from "../../hooks/useLogout";
 import { connectionManager } from "../../services/realtime/connectionManager";
-
+import { BundleDiscountCard } from "../../components/layout/BundleDiscount";
 
 
 interface ProfileDetails {
@@ -321,7 +321,13 @@ export default function Profile() {
             </button>
           </div>
         </div>
+          
       </div>
+  {user.role !=="admin" && (
+      <div className="mt-5 mx-4">
+        <BundleDiscountCard />
+        </div>
+    )}
 
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">

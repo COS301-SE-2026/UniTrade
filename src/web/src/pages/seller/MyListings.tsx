@@ -14,6 +14,7 @@ import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
 import type { ListingSummary, ListingStatus } from "../../types/listing";
 import StatusPill from "../../components/layout/ui/StatusPill";
+import { BundleDiscountCard } from "../../components/layout/BundleDiscount";
 import biologyTextbook from "../../assets/bio-textbook.jpg";
 import type { ApiError } from "../../types/Reservations";
 import { useToast } from "../../components/layout/useToast";
@@ -439,6 +440,8 @@ export default function MyListings() {
           <IconPlus size={16} /> New Listing
         </button>
       </div>
+
+      <BundleDiscountCard compact liveCount={count("live")} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
