@@ -23,9 +23,18 @@ interface SmartBudgetResultLocationState {
 }
 
 function notReservedReasonLabel(reason: SmartBudgetNotReservedItem["reason"]): string {
-    return reason === "over_budget"
-        ? "Didn't fit your budget"
-        : "Reserved by someone else";
+    switch (reason) {
+        case "over_budget":
+            return "Didn't fit your budget";
+        case "bundle_broken":
+            return "Price changed before checkout — not reserved";
+        case "unavailable":
+            return "No longer available";
+        case "own_listing":
+            return "This is your own listing";
+        default:
+            return "Reserved by someone else"
+    }
 }
 
 function SellerAvatar({ initials }: Readonly<{ initials: string }>) {
@@ -144,7 +153,7 @@ function NotReservedRow({ item }: Readonly<{ item: SmartBudgetNotReservedItem }>
 }
 function stageLine(status: string, stage: TimerStage) {
     const s = status.toLowerCase();
-    if (s === "cancelled") return { icon: <IconCircleX size={14} />, text: "Seller declined this reservation", cls: "text-rose-600" };
+    if (s === "cancelled") return { icon: <IconCircleX size={14} />, text: "Reservation cancelled", cls: "text-rose-600" };
     if (s === "expired") return { icon: <IconCircleX size={14} />, text: "Reservation expired", cls: "text-gray-500" };
     if (stage === "awaiting_seller") return { icon: <IconCircleX size={14} />, text: "Waiting for seller to accept or reject", cls: "text-navy-700" };
     return { icon: <IconCircleCheck size={14} />, text: "Seller accepted — you can chat now", cls: "text-emerald-600" }

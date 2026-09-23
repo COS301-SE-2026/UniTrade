@@ -78,6 +78,10 @@ class ConnectionManager {
     (e: { listingId: string }) => void
   >();
 
+  private readonly bundleRuleChangedListeners = new Set<
+    (e: { sellerId: string }) => void
+  >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -164,6 +168,9 @@ class ConnectionManager {
       conn.on("listing_flagged", (e: { listingId: string }) =>
         this.listingFlaggedListeners.forEach((cb) => cb(e)),
       );
+      conn.on("bundle_rule_changed", (e: { sellerId: string }) =>
+        this.bundleRuleChangedListeners.forEach((cb) => cb(e)),
+      );
 
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
@@ -230,6 +237,19 @@ class ConnectionManager {
     await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
   }
 
+  async joinSellerGroup(sellerId: string): Promise<void> {
+    await this.connect();
+    await this.connection!.invoke("JoinSellerGroup", sellerId);
+  }
+
+  async leaveSellerGroup(sellerId: string): Promise<void> {
+    if (this.getState() == "Connected") {
+      await this.connection
+        ?.invoke("LeaveSellerGroup", sellerId)
+        .catch(() => {});
+    }
+  }
+
   getState(): ConnectionState {
     return this.connection?.state ?? "Disconnected";
   }
@@ -275,6 +295,11 @@ class ConnectionManager {
     this.pinConfirmedListeners.add(callback);
     return () => this.pinConfirmedListeners.delete(callback);
   }
+  onBundleRuleChanged(cb: (e: { sellerId: string }) => void): Unsubscribe {
+    this.bundleRuleChangedListeners.add(cb);
+    return () => this.bundleRuleChangedListeners.delete(cb);
+  }
+  
   async sendMessage(
     reservationId: string,
     content: string,

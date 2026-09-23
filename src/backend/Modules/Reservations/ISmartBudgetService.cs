@@ -16,6 +16,7 @@ public interface ISmartBudgetService
         Guid buyerId,
         IReadOnlyList<Guid> listingIds,
         decimal maxBudget,
+        IReadOnlyDictionary<Guid, decimal>? expectedSellerTotals = null,
         CancellationToken ct = default
     );
     Task<SellerBundleSettings?> GetBundleDiscountAsync(

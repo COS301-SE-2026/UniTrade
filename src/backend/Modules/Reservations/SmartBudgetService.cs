@@ -6,11 +6,13 @@ namespace Modules.Reservations;
 
 public class SmartBudgetService(
     ISmartBudgetRepository smartBudget,
-    IReservationService reservationService
+    IReservationService reservationService,
+    IBroadCastService broadcast
 ) : ISmartBudgetService
 {
     private readonly ISmartBudgetRepository _smartBudget = smartBudget;
     private readonly IReservationService _reservationService = reservationService;
+    private readonly IBroadCastService _broadcast = broadcast;
 
     public const int MaxListingsPerRequest = 50;
     public const decimal MaxBudget = 1_000_000m;
@@ -56,6 +58,7 @@ public class SmartBudgetService(
         Guid buyerId,
         IReadOnlyList<Guid> listingIds,
         decimal maxBudget,
+        IReadOnlyDictionary<Guid, decimal>? expectedSellerTotals,
         CancellationToken ct = default
     )
     {
@@ -67,12 +70,18 @@ public class SmartBudgetService(
 
         foreach (var group in plan.Groups)
         {
+            var expected =
+                expectedSellerTotals is not null
+                && expectedSellerTotals.TryGetValue(group.SellerId, out var e)
+                    ? e
+                    : group.Total;
+
             var result = await _reservationService.ReserveMultipleAsync(
                 buyerId,
                 group.SellerId,
                 group.ListingIds,
                 group.Rule,
-                group.Total,
+                expected,
                 ct
             );
 
@@ -129,6 +138,11 @@ public class SmartBudgetService(
             throw new ArgumentException("Invalid bundle rule.", nameof(rule));
         }
         var ok = await _smartBudget.SetRuleAsync(sellerId, rule, ct);
+
+        if (ok)
+        {
+            await _broadcast.NotifyBundleRuleChangedAsync(sellerId);
+        }
         return ok ? new SellerBundleSettings(rule) : null;
     }
 
@@ -221,8 +235,6 @@ public class SmartBudgetService(
                         );
                         if (discountedCents <= budgetCents)
                             affordableCount = k;
-                        else
-                            break;
                     }
                 }
                 return new SellerBundlePreviewDto(
