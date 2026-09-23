@@ -35,7 +35,7 @@ public class BundleDiscountController : ControllerBase
     private static object ToResponse(BundleRule? rule) =>
         new
         {
-            minItem = rule?.MinItems,
+            minItems = rule?.MinItems,
             percent = rule?.Percent,
             limits = new
             {

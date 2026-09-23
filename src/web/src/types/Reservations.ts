@@ -195,6 +195,7 @@ export interface SellerBundlePreview {
     total: number;
     ruleMinItems: number | null;
     rulePercent: number | null;
+    affordableCount: number;
 }
 
 export interface SmartBudgetPreviewResponse {

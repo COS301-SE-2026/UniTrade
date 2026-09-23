@@ -1,5 +1,4 @@
 import { useNavigate, useLocation } from "react-router";
-//import { useState } from "react";
 import { formatPrice } from "../../utils/formatters";
 import type {
     SmartBudgetResponse,
@@ -13,6 +12,7 @@ import {
     IconCircleX,
     IconMessageCircle,
     IconArrowLeft,
+    IconTag,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { connectionManager } from "../../services/realtime/connectionManager";
@@ -72,9 +72,31 @@ function ReservedGroupCard({
                     </div>
                 ))}
             </div>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-sm">
-                <span className="text-gray-500">Subtotal</span>
-                <span className="font-bold text-gray-800">{formatPrice(group.subTotal)}</span>
+            <div className="mt-3 pt-3 border-t border-gray-100 text-sm space-y-1.5">
+                {group.discountPercent != null && group.discount > 0 ? (
+                    <>
+                        <div className="flex items-center justify-between text-gray-500">
+                            <span>Subtotal</span>
+                            <span>{formatPrice(group.subTotal)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-emerald-600 font-semibold">
+                            <span className="inline-flex items-center gap-1">
+                                <IconTag size={13} />
+                                Bundle discount ({group.discountPercent}% off)
+                            </span>
+                            <span>−{formatPrice(group.discount)}</span>
+                        </div>
+                        <div className="flex items-center justify-between pt-1.5 border-t border-gray-100">
+                            <span className="text-gray-500">Total</span>
+                            <span className="font-bold text-gray-800">{formatPrice(group.total)}</span>
+                        </div>
+                    </>) : (
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Subtotal</span>
+                        <span className="font-bold text-gray-800">{formatPrice(group.subTotal)}</span>
+                    </div>
+                )}
+
             </div>
 
             <div className="mt-3 rounded-lg px-3 py-2 bg-navy-50">

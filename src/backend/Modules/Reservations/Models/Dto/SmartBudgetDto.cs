@@ -27,7 +27,8 @@ public record SellerBundlePreviewDto(
     decimal Discount,
     decimal Total,
     int? RuleMinItems,
-    int? RulePercent
+    int? RulePercent,
+    int AffordableCount = 0
 );
 
 public record SmartBudgetPreviewDto(
@@ -92,5 +93,21 @@ public record SmartBudgetBatchResultDto(
     IReadOnlyList<NotReservedItemDto> NotReserved
 );
 
-public sealed record PlannedGroup(Guid SellerId, string SellerInitials, IReadOnlyList<Guid> ListingIds, decimal SubTotal, int? DiscountPercent, decimal Total, BundleRule? Rule);
-public sealed record Plan(IReadOnlyList<PlannedGroup> Groups, IReadOnlyList<NotReservedItemDto> NotReserved, IReadOnlyList<SellerBundlePreviewDto> Sellers, IReadOnlyDictionary<Guid, SmartBudgetCandidate> Candidates, decimal SubTotal, decimal TotalCost);
+public sealed record PlannedGroup(
+    Guid SellerId,
+    string SellerInitials,
+    IReadOnlyList<Guid> ListingIds,
+    decimal SubTotal,
+    int? DiscountPercent,
+    decimal Total,
+    BundleRule? Rule
+);
+
+public sealed record Plan(
+    IReadOnlyList<PlannedGroup> Groups,
+    IReadOnlyList<NotReservedItemDto> NotReserved,
+    IReadOnlyList<SellerBundlePreviewDto> Sellers,
+    IReadOnlyDictionary<Guid, SmartBudgetCandidate> Candidates,
+    decimal SubTotal,
+    decimal TotalCost
+);
