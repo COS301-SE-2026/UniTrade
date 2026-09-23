@@ -596,7 +596,6 @@ const UploadListing: React.FC = () => {
           </div>
         </div>
 
-        {/* Step 4: Confirmation */}
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-sm font-bold">
             4
