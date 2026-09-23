@@ -7,7 +7,11 @@ import { useWishlist } from "../../hooks/useWishlist";
 import { useDebounce } from "../../hooks/useDebounce";
 import { LoadingState } from "../../components/layout/Spinner";
 import { getSmartBudgetPreview, createSmartBudgetReservation } from "../../services/reservationService";
-import {IconWallet, IconCheck, IconHeart} from "@tabler/icons-react";
+import {IconWallet, IconCheck, IconHeart, IconTag} from "@tabler/icons-react";
+import type {SellerBundlePreview} from "../../types/Reservations";
+
+const MAX_BUDGET = 1_000_000;
+const MAX_ITEMS = 50;
 
 
 const conditionColours: Record<
@@ -30,7 +34,41 @@ function ConditionBadge({condition}: Readonly<{condition: BrowseCondition}>) {
     );
 }
 
-type FitState = "fits" | "over_budget" | "unknown"; 
+type FitState = "fits" | "over_budget" | "unknown"  | "unavailable"
+
+function describeError(code: string, fallback: string): string {
+    switch(code) {
+        case "not_verified":
+            return " You need a verified account to reserve items.";
+        case "too_many_listings":
+            return `Select at most ${MAX_ITEMS} items and try again.`
+        case "invalid_max_budget" :
+            return "Enter a budget between R0.01 and R1,000,000."
+        default:
+            return fallback;
+
+    }
+}
+
+function bundleMessage(s:SellerBundlePreview, name: string) {
+    if(s.rulePercent === null || s.ruleMinItems === null) return null;
+    if(s.discountPercent !== null) {
+        return { applied: true, text: `${name}: ${s.discountPercent}% bundle discount applied. You save ${formatPrice(s.discount)}.`};
+
+    }
+    if(s.selectedCount < s.ruleMinItems) {
+        const need = s.ruleMinItems - s.selectedCount;
+        return {
+            applied: false,
+            text: `${name} offers ${s.rulePercent}% off when you reserve ${s.ruleMinItems} + of their items. Add ${need} more to unlock it.`,
+        };
+    }
+    return {
+        applied: false,
+        text: `${name} offers ${s.rulePercent}% off at ${s.ruleMinItems} + items, but your budget does not stretch to ${s.ruleMinItems} of them.`,
+    };
+}
+    
 
 
 function SelectableItemRow({
@@ -46,6 +84,8 @@ function SelectableItemRow({
 }>) {
     const unavailable = listing.status !== "live";
     const overBudget = selected && fitState === "over_budget";
+    const notAvailableNow = selected && fitState === "unavailable";
+    
 
     return (
         <button 
@@ -85,6 +125,11 @@ function SelectableItemRow({
                                 Over budget
                             </ span>
                         )}
+                        {notAvailableNow && (
+                            <span className = "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700">
+                                Unavailable
+                                </span>
+                        )}
                     </span>
                     <span className = "block text-xs text-gray-400 mt-0.5">
                         Listed by{" "}
@@ -111,10 +156,27 @@ export default function SmartBudgetReserve() {
     const {data, isLoading, error} = useWishlist();
     const listings = useMemo(() => data?.listings ?? [], [data]);
 
+    const liveIds = useMemo(
+        () => new Set(listings.filter((l) => l.status === "live").map((l) => l.id )),
+        [listings],
+    );
+    const sellerNamesById = useMemo(() => {
+        const map: Record<string, string> = {};
+        for (const l of listings) if (l.sellerName) map[l.sellerId] = l.sellerName;
+        return map;
+    }, [listings]);
+
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [maxBudget, setMaxBudget] = useState<string>("");
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null); 
+
+    const activeIds = useMemo(
+        () => Array.from(selectedIds).filter((id) => liveIds.has(id)).sort(),
+        [selectedIds, liveIds],
+    );
+    const activeSet = useMemo(() => new Set(activeIds), [activeIds]);
+    const tooMany = activeIds.length > MAX_ITEMS;
 
     const toggleSelected = (id: string) => {
         setSelectedIds((prev) => {
@@ -133,8 +195,9 @@ export default function SmartBudgetReserve() {
 
     const debouncedIds = useMemo(() => Array.from(debouncedSelectedIds).sort(), [debouncedSelectedIds]);
     const debouncedBudgetValue = Number(debouncedBudget);
-    const debouncedBudgetIsValid = debouncedBudget.trim() != "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0;
-    const canPreview = debouncedIds.length > 0 && debouncedBudgetIsValid;
+    const debouncedBudgetIsValid = debouncedBudget.trim() != "" && !Number.isNaN(debouncedBudgetValue) && debouncedBudgetValue > 0 && debouncedBudgetValue <= MAX_BUDGET;
+    const canPreview = debouncedIds.length > 0 && debouncedIds.length <= MAX_ITEMS && debouncedBudgetIsValid;
+    const inputsSettled = debouncedBudget === maxBudget && debouncedIds.length === activeIds.length && debouncedIds.every((id, i ) => id === activeIds[i])
 
 
     const {
@@ -150,7 +213,7 @@ export default function SmartBudgetReserve() {
 
             });
             if(!result.success) {
-                throw new Error(result.error.message ?? "Could not check what fits your budget");
+                throw new Error(describeError(result.error.code,"Could not check what fits your budget"));
 
             }
             return result.data;
@@ -158,10 +221,13 @@ export default function SmartBudgetReserve() {
         enabled: canPreview,
     });
 
-    const wouldReserve = useMemo(() => new Set(previewData?.wouldReserve ?? []), [previewData]);
-    const excluded = useMemo(() => new Set(previewData?.excluded ?? []), [previewData]);
 
-    const previewTotal = previewData?.totalCount ?? 0;
+    const preview = canPreview && inputsSettled ? previewData: undefined;
+    const wouldReserve = useMemo(() => new Set(preview?.wouldReserve ?? []), [preview]);
+    const excluded = useMemo(() => new Set(preview?.excluded ?? []), [preview]);
+    const unavailableIds = useMemo(() => new Set(preview?.unavailable ?? []), [preview])
+
+    //const previewTotal = previewData?.totalCount ?? 0;
     const previewError = previewErrorRaw instanceof Error ? previewErrorRaw.message : null;
 
 
@@ -169,6 +235,7 @@ export default function SmartBudgetReserve() {
     if (!budgetIsValid || selectedIds.size === 0) return "unknown";
     if (wouldReserve.has(id)) return "fits";
     if (excluded.has(id)) return "over_budget";
+    if(unavailableIds.has(id)) return "unavailable";
     return "unknown";
   };
 
@@ -193,10 +260,14 @@ export default function SmartBudgetReserve() {
             state: { result: result.data, sellerNamesById},
         });
     } else {
-        setSubmitError(result.error.message ?? "Could not complete the reservation. Please Try again.");
+        setSubmitError(describeError(result.error.code, "Could not complete the reservation. Please Try again."));
         setSubmitting(false);
     }
   };
+
+  const bundleNotes = (preview?.sellers ?? [])
+  .map((s) => bundleMessage(s, sellerNamesById[s.sellerId] ?? "This seller"))
+  .filter((n): n is {applied:  boolean; text:string} => n !== null)
 
     return (
         <div className = "flex flex-col gap-6">
@@ -205,7 +276,7 @@ export default function SmartBudgetReserve() {
                     Reserve within your desired budget
                 </h1>
                 <p className = "text-sm text-gray-400 mt-1">
-                    Pick the items you are interested in and set a budget. We will work out the best combination that fits.
+                    Pick the items you are interested in and set a budget. We will work out the best combination that fits, including any bundle discounts sellers offer
                 </p>
             </div>
 
@@ -230,41 +301,61 @@ export default function SmartBudgetReserve() {
                 </div>
 
                 <div className="ml-auto text-sm text-gray-500 text-right">
-                    {selectedIds.size === 0 ? (
-                        <span className = "text-gray-400">
+                    {activeIds.length === 0 ? (
+                        <span className="text-gray-400">
                             Select items below to get started
                         </span>
+                    ) : tooMany ? (
+                        <span className="text-rose-600">
+                            Select at most {MAX_ITEMS} items
+                        </span>
                     ) : !budgetIsValid ? (
-                        <span className = "text-gray-400">
+                        <span className="text-gray-400">
                             Enter a budget to see what fits
                         </span>
-                    ) : previewLoading ? (
-                      <span className="text-gray-400">
-                        Checking what fits ... 
-                      </span>
-                ) : (
-                  <>
-                    <span className="font-semibold text-gray-800">
-                        {wouldReserve.size}
-                    </span> of{" "}
-                    <span className="font-semibold text-gray-800">
-                        {selectedIds.size}
-                    </span>{" "}
-                    {selectedIds.size === 1 ? "item" : "items"} would fit {" "}
-                    <span className="font-semibold text-gray-800">
-                        {formatPrice(previewTotal)}
-                    </span> 
-                    total
-                  </>
-                )}
+                    ) : previewLoading || !inputsSettled ? (
+                        <span className="text-gray-400">
+                            Checking what fits ...
+                        </span>
+                    ) : preview ? (
+                      <>
+                        <span className="font-semibold text-gray-800">
+                            {wouldReserve.size}
+                        </span> of{" "}
+                        <span className="font-semibold text-gray-800">
+                            {activeIds.length}
+                        </span>{" "}
+                        {activeIds.length === 1 ? "item" : "items"} would fit for{" "}
+                        <span className="font-semibold text-gray-800">
+                            {formatPrice(preview.totalCost)}
+                        </span>
+                        {preview.totalDiscount > 0 && (
+                            <span className="text-emerald-600"> 
+                            (you save {formatPrice(preview.totalDiscount)})
+                        </span>
+                        )}
+                        </>
+                    ) : null}
+                </div>
             </div>
-        </div>
 
-      {previewError && (
-        <p className="text-xs text-rose-600 -mt-2">
-            {previewError}
-        </p>
-      )}
+                {previewError && (
+                    <p className="text-xs text-rose-600 -mt-2">
+                {previewError}
+                </p>
+                )}
+
+                {bundleNotes.length > 0 && (
+                    <div className = "bg-navy-50 rounded-xl border border-navy-100 p-4 flex flex-col gap-2 mt-2">
+                        {bundleNotes.map((n) => (
+                            <p key = {n.text}
+                            className = {`text-xs flex items-start gap-1.5 ${n.applied ? "text-emerald-700 font-semibold" : "text-gray-600"}`}
+                            >
+                                <IconTag size = {14} className = "shrink-0 mt-0.5" />
+                             </p>
+                        ))}
+                        </div>
+                )}
 
                 {isLoading && <LoadingState message = "Loading wishlist ..." />}
 
@@ -293,7 +384,7 @@ export default function SmartBudgetReserve() {
                         <SelectableItemRow
                         key = {listing.id}
                         listing = {listing}
-                        selected = {selectedIds.has(listing.id)}
+                        selected = {activeSet.has(listing.id)}
                         fitState={getFitState(listing.id)}
                         onToggle= {toggleSelected}
                         />

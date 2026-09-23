@@ -589,14 +589,13 @@ const UploadListing: React.FC = () => {
                   }
                   className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Listing multiple identical copies? Set how many.
+                  Listing multiple identical copies? Set how many. Copies count toward your bundle discount (manage it under My Listings)
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Step 4: Confirmation */}
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-sm font-bold">
             4
