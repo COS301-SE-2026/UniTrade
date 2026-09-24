@@ -36,6 +36,7 @@ public class ListingService : IListingService
     private const decimal _mismatchVisibilityCap = 50;
     private const decimal _mediumRiskScoreFloor = 40m;
     private const decimal _highRiskScoreFloor = 70m;
+    private const int _maxResubmissions = 5;
 
     public ListingService(
         IListingRepository listings,
@@ -93,8 +94,12 @@ public class ListingService : IListingService
         return new PagedResult<ListingSummaryDto>(summaries, total);
     }
 
-    public static ListingSummaryDto MapToSummary(Listing l) =>
-        new(
+    public static ListingSummaryDto MapToSummary(Listing l)
+    {
+        var isAdminRemoved =
+            l.ListingStatus == "removed" && !string.IsNullOrEmpty(l.RejectionReason);
+
+        return new(
             ListingId: l.ListingId,
             SellerId: l.SellerId,
             Title: l.Title,
@@ -137,8 +142,11 @@ public class ListingService : IListingService
                     l.Seller.University,
                     l.Seller.ActiveListingCount
                 ),
-            ListingGroupId: l.ListingGroupId
+            ListingGroupId: l.ListingGroupId,
+            ResubmissionCount: l.ResubmissionCount,
+            MaxResubmissions: isAdminRemoved ? _maxResubmissions : 0
         );
+    }
 
     public async Task<ListingSummaryDto> CreateListings(
         CreateListingDto dto,
@@ -279,6 +287,143 @@ public class ListingService : IListingService
         return MapToSummary(created[0]);
     }
 
+    public async Task<ResubmitListingResultDto> ResubmitListingAsync(
+        Guid listingId,
+        Guid callerId,
+        CancellationToken ct = default
+    )
+    {
+        await _listings.DuplicateImagesToGroupAsync(listingId, ct);
+        
+        var result = await ResubmitOneAsync(listingId, callerId, ct);
+
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+
+        if (listing?.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId,includeRemoved: true, ct);
+            var pending = siblings.Where(s =>
+                s.ListingId != listingId
+                && s.ListingStatus == "removed"
+                && !string.IsNullOrEmpty(s.RejectionReason)
+            );
+
+            foreach (var s in pending)
+            {
+                try
+                {
+                    await ResubmitOneAsync(s.ListingId, callerId, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not resubmit copy {ListingId}", s.ListingId);
+                }
+            }
+        }
+        return result;
+    }
+
+    private async Task<ResubmitListingResultDto> ResubmitOneAsync(
+        Guid listingId,
+        Guid callerId,
+        CancellationToken ct = default
+    )
+    {
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+        {
+            throw new KeyNotFoundException("listing_not_found");
+        }
+
+        if (listing.SellerId != callerId)
+        {
+            throw new UnauthorizedAccessException("forbidden");
+        }
+
+        var isAdminRemoved =
+            listing.ListingStatus == "removed" && !string.IsNullOrEmpty(listing.RejectionReason);
+        if (!isAdminRemoved)
+        {
+            throw new InvalidOperationException("listing_not_removed");
+        }
+
+        if (listing.ResubmissionCount >= _maxResubmissions)
+        {
+            throw new InvalidOperationException("resubmission_limit_exceeded");
+        }
+
+        if (listing.Images.Count == 0)
+        {
+            throw new InvalidOperationException("images_required");
+        }
+        if (string.IsNullOrWhiteSpace(listing.Description))
+        {
+            throw new InvalidOperationException("description_required");
+        }
+        if (!await _verification.IsVerifiedAsync(listing.SellerId, ct))
+        {
+            throw new InvalidOperationException("seller_not_verified");
+        }
+
+        listing.ResubmissionCount += 1;
+        listing.RejectionReason = null;
+
+        var risk = await _risk.ScoreAsync(listing, ct);
+        listing.AiRiskScore = risk.Score;
+        listing.AiRiskLevel = risk.Level;
+        listing.VisibilityScore = risk.VisibilityScore;
+
+        var reasons = risk.Reasons.ToList();
+        await ApplyImageMatchAsync(listing, reasons, ct);
+        listing.AiRiskReasons = reasons;
+
+        listing.ListingStatus = listing.AiRiskLevel == "high" ? "under_review" : "live";
+        listing.UpdatedAt = DateTime.UtcNow;
+
+        await _listings.SaveAsync();
+
+        await _notifier.ListingStatusChangedAsync(
+            listing.SellerId,
+            listing.ListingId,
+            listing.ListingStatus,
+            listing.AiRiskLevel ?? "low",
+            ct
+        );
+
+        if (listing.ListingStatus == "under_review")
+        {
+            await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
+        }
+
+        if (listing.ListingStatus == "live")
+        {
+            try
+            {
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = listing.ListingId,
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    CategoryId = listing.CategoryId,
+                    CourseId = listing.CourseId,
+                    SellerId = listing.SellerId,
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to fire listing published event for listing {ListingId}",
+                    listing.ListingId
+                );
+            }
+        }
+
+        return new ResubmitListingResultDto(listing.ListingStatus, listing.ResubmissionCount);
+    }
+
     public async Task<bool> UpdateListings(
         UpdateListingDto listings,
         Guid id,
@@ -304,7 +449,7 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("forbidden");
         }
         //edits forbideen if the listing is reserved,sold,pending or rejected
-        var allowedEditStatuses = new[] { "draft", "live", "low_visibility" };
+        var allowedEditStatuses = new[] { "draft", "live", "low_visibility", "removed", "under_review" };
         if (
             !allowedEditStatuses.Contains(
                 listingLookUp.ListingStatus,
@@ -360,6 +505,47 @@ public class ListingService : IListingService
             }
         }
 
+        if (listingLookUp.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: true, ct);
+            var syncable = siblings.Where(s =>
+            s.ListingId != listingLookUp.ListingId
+            && s.ListingStatus is not ("reserved" or "sold")
+            );
+
+            foreach (var sibling in syncable)
+            {
+                var trackedSibling = await _listings.GetByIdTrackedAsync(sibling.ListingId);
+                if (trackedSibling is null)
+                    continue;
+
+               ApplyCoreFields(trackedSibling, listings);
+               if (
+                isBook
+                && listings.BookDetails is not null
+                && trackedSibling.BookDetails is not null
+            )
+            {
+                trackedSibling.BookDetails.Isbn = listings.BookDetails.Isbn;
+                trackedSibling.BookDetails.Author = listings.BookDetails.Author;
+                trackedSibling.BookDetails.Edition = listings.BookDetails.Edition;
+            }
+
+            if (
+                listings.Metadata.HasValue
+                && listings.Metadata.Value.ValueKind != JsonValueKind.Null
+            )
+            {
+                trackedSibling.Metadata = listingLookUp.Metadata;
+            }
+
+            if (categoryChanged)
+            {
+                trackedSibling.CategoryId = listingLookUp.CategoryId;
+                trackedSibling.CourseId = listingLookUp.CourseId;
+            }
+            }
+        }
         var flagged = false;
         if (
             (priceChanged || categoryChanged)
@@ -382,6 +568,14 @@ public class ListingService : IListingService
         return true;
     }
 
+    private static void ApplyCoreFields(Listing target, UpdateListingDto dto)
+    {
+        target.Title = dto.Title;
+        target.Description = dto.Description;
+        target.Price = dto.Price;
+        target.Condition = dto.Condition;
+        target.UpdatedAt = DateTime.UtcNow;
+    }
     private async Task ApplyCategoryChangeAsync(UpdateListingDto listings, Listing listingLookUp)
     {
         if (string.IsNullOrWhiteSpace(listings.CategoryName))
@@ -403,7 +597,7 @@ public class ListingService : IListingService
 
         listingLookUp.CourseId = isBook ? listings.CourseId : null;
         listingLookUp.CategoryId = category.CategoryId;
-        listingLookUp.Category = category;
+        //listingLookUp.Category = category;
     }
 
     public async Task<bool> DeleteListings(Guid id, Guid callerId)
@@ -439,7 +633,7 @@ public class ListingService : IListingService
         var listing = await _listings.GetByIdTrackedAsync(listingId);
         if (listing?.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
             var pending = siblings
                 .Where(s =>
                     s.ListingId != listingId
@@ -585,12 +779,25 @@ public class ListingService : IListingService
         }
 
         var (status, message) = MapStatusAndMessage(listing);
+        var isAdminRemoved =
+            listing.ListingStatus == "removed" && !string.IsNullOrEmpty(listing.RejectionReason);
+
+        IReadOnlyList<ListingReasonDto>? reasons = null;
+        if (listing.ListingStatus == "under_review" || isAdminRemoved)
+        {
+            reasons = listing
+                .AiRiskReasons?.Select(r => new ListingReasonDto(r.Code, r.Detail, r.ImageId))
+                .ToList();
+        }
         return new SellerListingStatusDto(
             listing.ListingId,
             status,
             listing.AiRiskLevel ?? "low",
             message,
-            listing.VisibilityScore
+            listing.VisibilityScore,
+            listing.ResubmissionCount,
+            isAdminRemoved ? _maxResubmissions : 0,
+            reasons
         );
     }
 
@@ -670,7 +877,7 @@ public class ListingService : IListingService
 
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
             foreach (var sibling in siblings)
             {
                 await RescoreAfterImagesAsync(sibling.ListingId, ct);

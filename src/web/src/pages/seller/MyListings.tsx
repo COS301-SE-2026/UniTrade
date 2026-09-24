@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { ConfirmModal } from "../admin/AdminReviewShared";
 import {
   IconPackage,
   IconNotes,
@@ -26,11 +27,13 @@ function ActionButtons({
   listing,
   onDelete,
   onSubmit,
+  onResubmit,
   submitting,
 }: Readonly<{
   listing: ListingSummary;
   onDelete: (id: string) => void;
   onSubmit: (id: string) => void;
+  onResubmit: (id: string, remaining: number) => void;
   submitting: boolean;
 }>) {
   const navigate = useNavigate();
@@ -40,26 +43,31 @@ function ActionButtons({
       type="button"
       onClick={() => onDelete(listing.id)}
       aria-label="Delete listing"
-      className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+      className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
     >
       <IconTrash size={16} />
     </button>
   );
 
+  const btnClass =
+    "px-3 py-1.5 text-xs md:text-sm font-semibold rounded-full transition-colors whitespace-nowrap flex-shrink-0";
+
+  const wrapper = "flex items-center justify-start md:justify-end gap-2 flex-nowrap";
+
   if (listing.status === "live" || listing.status === "pending") {
     return (
-      <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+      <div className={wrapper}>
         <button
           type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
         >
           View
         </button>
         <button
           type="button"
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
-          className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
+          className={`border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 ${btnClass}`}
         >
           Edit
         </button>
@@ -70,19 +78,19 @@ function ActionButtons({
 
   if (listing.status === "draft") {
     return (
-      <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+      <div className={wrapper}>
         <button
           type="button"
           onClick={() => onSubmit(listing.id)}
           disabled={submitting}
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
         >
-          {submitting ? "Submitting...." : "Submit"}
+          {submitting ? "Submitting..." : "Submit"}
         </button>
         <button
           type="button"
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
-          className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
+          className={`border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 ${btnClass}`}
         >
           Edit
         </button>
@@ -93,17 +101,17 @@ function ActionButtons({
 
   if (listing.status === "rejected") {
     return (
-      <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+      <div className={wrapper}>
         <button
           type="button"
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
         >
           Resubmit
         </button>
         <button
           type="button"
           onClick={() => navigate(`/seller/editListing/${listing.id}`)}
-          className="border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap"
+          className={`border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 ${btnClass}`}
         >
           Edit
         </button>
@@ -114,18 +122,18 @@ function ActionButtons({
 
   if (listing.status === "reserved") {
     return (
-      <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+      <div className={wrapper}>
         <button
           type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
         >
           View
         </button>
         <button
           type="button"
           disabled
-          className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full cursor-not-allowed whitespace-nowrap"
+          className={`border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 cursor-not-allowed ${btnClass}`}
         >
           Edit
         </button>
@@ -133,7 +141,7 @@ function ActionButtons({
           type="button"
           disabled
           aria-label="Delete listing"
-          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-2 rounded-full cursor-not-allowed flex-shrink-0"
+          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-1.5 rounded-full cursor-not-allowed flex-shrink-0"
         >
           <IconTrash size={16} />
         </button>
@@ -141,20 +149,53 @@ function ActionButtons({
     );
   }
 
+  if (listing.status === "removed") {
+    const max = listing.maxResubmissions ?? 5;
+    const used = listing.resubmissionCount ?? 0;
+    const remaining = max - used;
+    const canResubmit = remaining > 0;
+
+    return (
+      <div className={wrapper}>
+        <button
+          type="button"
+          onClick={() => navigate(`/seller/editListing/${listing.id}`)}
+          className={`border border-gray-300 dark:border-white/20 text-navy-700 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 ${btnClass}`}
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => onResubmit(listing.id, remaining)}
+          disabled={!canResubmit || submitting}
+          title={!canResubmit ? "Resubmission limit reached" : undefined}
+          className={`bg-navy-700 hover:bg-navy-500 disabled:opacity-40 disabled:cursor-not-allowed text-white ${btnClass}`}
+        >
+          {submitting
+            ? "Resubmitting..."
+            : canResubmit
+              ? "Resubmit"
+              : "Limit reached"}
+        </button>
+        {deleteBtn}
+      </div>
+    );
+  }
+
   if (listing.status === "under_review") {
     return (
-      <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+      <div className={wrapper}>
         <button
           type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
         >
           View
         </button>
         <button
           type="button"
           disabled
-          className="border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full cursor-not-allowed whitespace-nowrap"
+          className={`border border-gray-300 dark:border-white/20 text-gray-400 dark:text-white/30 cursor-not-allowed ${btnClass}`}
         >
           Edit
         </button>
@@ -162,20 +203,21 @@ function ActionButtons({
           type="button"
           disabled
           aria-label="Delete listing"
-          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-2 rounded-full cursor-not-allowed flex-shrink-0"
+          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-1.5 rounded-full cursor-not-allowed flex-shrink-0"
         >
           <IconTrash size={16} />
         </button>
       </div>
     );
   }
+
   if (listing.status === "sold") {
     return (
-      <div className="flex items-center gap-2 fle-wrap md:flex-nowrap">
+      <div className={wrapper}>
         <button
           type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
-          className="bg-navy-700 hover:bg-navy-500 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full transition-colors whitespace-nowrap"
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
         >
           View
         </button>
@@ -192,6 +234,7 @@ function GroupCard({
   onToggle,
   onDelete,
   onSubmit,
+  onResubmit,
   submittingId,
 }: Readonly<{
   group: { key: string; items: ListingSummary[] };
@@ -199,6 +242,7 @@ function GroupCard({
   onToggle: () => void;
   onDelete: (id: string) => void;
   onSubmit: (id: string) => void;
+  onResubmit: (id: string, remaining: number) => void;
   submittingId: string | null;
 }>) {
   const first = group.items[0];
@@ -209,40 +253,87 @@ function GroupCard({
       ? formatPrice(prices[0])
       : `${formatPrice(Math.min(...prices))}-${formatPrice(Math.max(...prices))}`;
 
+  const allSameStatus = group.items.every((l) => l.status === first.status);
+  const isGroupFlagged =
+    allSameStatus &&
+    (first.status === "removed" || first.status === "under_review");
+
+  const countLabel = isGroupFlagged
+    ? `${group.items.length} ${group.items.length === 1 ? "copy" : "copies"}`
+    : `${liveCount} of ${group.items.length} available`;
+
   return (
     <div className="border-b border-gray-100 dark:border-white/5">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center gap-3 md:gap-4 px-4 md:px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-      >
-        <img
-          src={first.imageUrl || biologyTextbook}
-          alt={first.title}
-          className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
-            {first.title}
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {liveCount} of {group.items.length} available
-          </p>
-        </div>
+      <div className="px-4 md:px-5 py-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+          <div
+            onClick={onToggle}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") onToggle();
+            }}
+            className="flex items-center gap-3 md:gap-4 md:flex-1 md:min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <img
+              src={first.imageUrl || biologyTextbook}
+              alt={first.title}
+              className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
+                {first.title}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
+                {countLabel}
+              </p>
+            </div>
+          </div>
 
-        <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
-          {priceLabel}
-        </p>
-        <div className="hidden md:block w-32 flex-shrink-0" aria-hidden />
-        <div className="w-full md:w-auto md:min-w-[200px] flex md:justify-end flex-shrink-0">
-          <IconChevronDown
-            size={18}
-            className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
-          />
+          <div className="flex items-center justify-between gap-3 md:hidden">
+            <p className="text-sm font-semibold text-navy-700 dark:text-white whitespace-nowrap">
+              {priceLabel}
+            </p>
+            {isGroupFlagged && <StatusPill status={first.status} />}
+          </div>
+
+          <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right flex-shrink-0 whitespace-nowrap">
+            {priceLabel}
+          </p>
+
+          <div className="hidden md:flex w-28 justify-center flex-shrink-0">
+            {isGroupFlagged ? <StatusPill status={first.status} /> : null}
+          </div>
+
+          <div className="flex justify-start md:justify-end md:w-64 flex-shrink-0">
+            {isGroupFlagged ? (
+              <ActionButtons
+                listing={first}
+                onDelete={() => group.items.forEach((l) => onDelete(l.id))}
+                onSubmit={onSubmit}
+                onResubmit={onResubmit}
+                submitting={group.items.some((l) => submittingId === l.id)}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={onToggle}
+                className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Toggle group details"
+              >
+                <IconChevronDown
+                  size={18}
+                  className={`transition-transform ${expanded ? "rotate-180" : ""
+                    }`}
+                />
+              </button>
+            )}
+          </div>
         </div>
-      </button>
-      {expanded && (
-        <div className="border-t border-gray-100 dark:border-white/5">
+      </div>
+
+      {expanded && !isGroupFlagged && (
+        <div className="border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-navy-900/20">
           {group.items.map((listing, idx) => (
             <div
               key={listing.id}
@@ -257,23 +348,32 @@ function GroupCard({
                     {idx + 1}
                   </span>
                 </div>
-                <p className="text-xs font-semibold text-gray-400">
+                <p className="text-xs font-semibold text-gray-400 whitespace-nowrap">
                   Copy {idx + 1}
                 </p>
               </div>
 
-              <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
+              <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right flex-shrink-0 whitespace-nowrap">
                 {formatPrice(listing.price)}
               </p>
 
-              <div className="w-full md:w-32 flex md:justify-center">
+              <div className="flex items-center justify-between gap-3 md:hidden">
+                <p className="text-sm font-semibold text-navy-700 dark:text-white whitespace-nowrap">
+                  {formatPrice(listing.price)}
+                </p>
                 <StatusPill status={listing.status} />
               </div>
-              <div className="w-full md:w-auto min-w-[200px] flex md:justify-end gap-2">
+
+              <div className="hidden md:flex w-28 justify-center flex-shrink-0">
+                <StatusPill status={listing.status} />
+              </div>
+
+              <div className="flex justify-start md:justify-end md:w-64 flex-shrink-0">
                 <ActionButtons
                   listing={listing}
                   onDelete={onDelete}
                   onSubmit={onSubmit}
+                  onResubmit={onResubmit}
                   submitting={submittingId === listing.id}
                 />
               </div>
@@ -303,6 +403,43 @@ export default function MyListings() {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const searchQuery = useSearchQuery();
+  const [resubmitTarget, setResubmitTarget] = useState<{
+    id: string;
+    remaining: number;
+  } | null>(null);
+  const [resubmitSubmitting, setResubmitSubmitting] = useState(false);
+
+  const handleResubmitConfirm = async () => {
+    if (!resubmitTarget) return;
+    setResubmitSubmitting(true);
+    try {
+      const result = await listingsService.resubmitListing(resubmitTarget.id);
+      queryClient.setQueryData<{ listings: ListingSummary[]; total: number }>(
+        ["listings", "my"],
+        (old) =>
+          old
+            ? {
+              ...old,
+              listings: old.listings.map((l) =>
+                l.id === resubmitTarget.id
+                  ? {
+                    ...l,
+                    status: result.status,
+                    resubmissionCount: result.resubmissionCount,
+                  }
+                  : l,
+              ),
+            }
+            : old,
+      );
+      showToast("success", "Listing resubmitted for review.");
+      setResubmitTarget(null);
+    } catch {
+      showToast("error", "Failed to resubmit listing");
+    } finally {
+      setResubmitSubmitting(false);
+    }
+  };
 
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
@@ -327,7 +464,7 @@ export default function MyListings() {
         error.message === "images_required" ||
           error.message === "description_required" ||
           error.message === "seller_not_verified"
-          ? "Please add at least one photo and Description before uploading this listing, and makesure you are fully verified, If you are not verified, your listing will only go live once you are verified."
+          ? "Please add at least one photo and Description before uploading this listing, and make sure you are fully verified. If you are not verified, your listing will only go live once you are verified."
           : "Failed to submit listing";
 
       showToast("error", theError);
@@ -363,9 +500,7 @@ export default function MyListings() {
         : listings.filter((l) => l.status === activeTab);
 
     if (searchQuery) {
-      result = result.filter((l) =>
-        l.title.toLowerCase().includes(searchQuery),
-      );
+      result = result.filter((l) => l.title.toLowerCase().includes(searchQuery));
     }
 
     return result;
@@ -493,8 +628,8 @@ export default function MyListings() {
               setCurrentPage(1);
             }}
             className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors ${activeTab === tab.key
-              ? "bg-navy-700 text-white border-navy-700"
-              : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                ? "bg-navy-700 text-white border-navy-700"
+                : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
           >
             {tab.label}
@@ -502,36 +637,35 @@ export default function MyListings() {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
-        <div className="min-w-[700px] md:min-w-0">
-          <div className="hidden md:flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
-            <div className="w-12 flex-shrink-0" />
-            <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              Listing
-            </div>
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-20 text-right">
-              Price
-            </div>
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-32 text-center">
-              Status
-            </div>
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide min-w-[200px] text-right">
-              Actions
-            </div>
+      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
+        <div className="hidden md:flex items-center gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-navy-900/40">
+          <div className="flex-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            Listing
           </div>
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-24 text-right">
+            Price
+          </div>
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-28 text-center">
+            Status
+          </div>
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide w-64 text-right">
+            Actions
+          </div>
+        </div>
 
-          {paginated.map((group, i) => {
-            if (group.items.length === 1) {
-              const listing = group.items[0];
-              return (
-                <div
-                  key={listing.id}
-                  className={`flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 px-4 md:px-5 py-4 ${i < paginated.length - 1
+        {paginated.map((group, i) => {
+          if (group.items.length === 1) {
+            const listing = group.items[0];
+            return (
+              <div
+                key={listing.id}
+                className={`px-4 md:px-5 py-4 ${i < paginated.length - 1
                     ? "border-b border-gray-100 dark:border-white/5"
                     : ""
-                    } md:border-b md:border-gray-100 md:dark:border-white/5 border border-gray-200 dark:border-white/10 rounded-xl md:rounded-none mb-3 md:mb-0 bg-white dark:bg-navy-800 md:bg-transparent`}
-                >
-                  <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 md:min-w-0">
+                  }`}
+              >
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                  <div className="flex items-center gap-3 md:flex-1 md:min-w-0">
                     <img
                       src={listing.imageUrl || biologyTextbook}
                       alt={listing.title}
@@ -541,65 +675,103 @@ export default function MyListings() {
                       <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
                         {listing.title}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
                         {listing.meta}
                       </p>
+                      {(listing.status === "under_review" ||
+                        (listing.status === "removed" &&
+                          (listing.maxResubmissions ?? 0) > 0)) && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(`/seller/listings/${listing.id}`)
+                            }
+                            className="text-[11px] text-[#00aaff] hover:underline mt-0.5 block whitespace-nowrap"
+                          >
+                            View details for reasons
+                          </button>
+                        )}
                     </div>
-                    <p className="text-sm font-semibold text-navy-700 dark:text-white md:hidden ml-auto">
-                      {formatPrice(listing.price)}
-                    </p>
                   </div>
 
-                  <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-20 text-right flex-shrink-0">
+                  <div className="flex items-center justify-between gap-3 md:hidden">
+                    <p className="text-sm font-semibold text-navy-700 dark:text-white whitespace-nowrap">
+                      {formatPrice(listing.price)}
+                    </p>
+                    <StatusPill status={listing.status} />
+                  </div>
+
+                  <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right flex-shrink-0 whitespace-nowrap">
                     {formatPrice(listing.price)}
                   </p>
 
-                  <div className="w-full md:w-32 flex justify-start md:justify-center mt-1 md:mt-0 flex-shrink-0">
+                  <div className="hidden md:flex w-28 justify-center flex-shrink-0">
                     <StatusPill status={listing.status} />
                   </div>
-                  <div className="w-full md:w-auto min-w-[200px] flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 flex-shrink-0">
+
+                  <div className="flex justify-start md:justify-end md:w-64 flex-shrink-0">
                     <ActionButtons
                       listing={listing}
                       onDelete={handleDelete}
                       onSubmit={handleSubmitListing}
                       submitting={submittingId === listing.id}
+                      onResubmit={(id, remaining) =>
+                        setResubmitTarget({ id, remaining })
+                      }
                     />
                   </div>
                 </div>
-              );
-            }
-            return (
-              <GroupCard
-                key={group.key}
-                group={group}
-                expanded={expandedGroups.has(group.key)}
-                onToggle={() =>
-                  setExpandedGroups((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(group.key)) next.delete(group.key);
-                    else next.add(group.key);
-                    return next;
-                  })
-                }
-                onDelete={handleDelete}
-                onSubmit={handleSubmitListing}
-                submittingId={submittingId}
-              />
+              </div>
             );
-          })}
+          }
+          return (
+            <GroupCard
+              key={group.key}
+              group={group}
+              expanded={expandedGroups.has(group.key)}
+              onToggle={() =>
+                setExpandedGroups((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(group.key)) next.delete(group.key);
+                  else next.add(group.key);
+                  return next;
+                })
+              }
+              onDelete={handleDelete}
+              onSubmit={handleSubmitListing}
+              submittingId={submittingId}
+              onResubmit={(id, remaining) =>
+                setResubmitTarget({ id, remaining })
+              }
+            />
+          );
+        })}
 
-          {paginated.length === 0 && (
-            <div className="flex items-center justify-center py-16">
-              <p className="text-sm text-gray-400">No listings found.</p>
-            </div>
-          )}
-        </div>
+        {paginated.length === 0 && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-gray-400">No listings found.</p>
+          </div>
+        )}
       </div>
 
+      {resubmitTarget && (
+        <ConfirmModal
+          title="Resubmit listing"
+          message={`You have ${resubmitTarget.remaining} resubmission${resubmitTarget.remaining === 1 ? "" : "s"
+            } left. Do you want to continue?`}
+          confirmLabel="Resubmit"
+          tone="neutral"
+          submitting={resubmitSubmitting}
+          showReasonField={false}
+          onCancel={() => setResubmitTarget(null)}
+          onConfirm={handleResubmitConfirm}
+        />
+      )}
+
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="text-sm text-gray-400">
-          Showing {grouped.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
-          –{Math.min(currentPage * PAGE_SIZE, grouped.length)} of{" "}
+        <p className="text-sm text-gray-400 whitespace-nowrap">
+          Showing {grouped.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
+          {Math.min(currentPage * PAGE_SIZE, grouped.length)} of{" "}
           {grouped.length} listings
         </p>
         <div className="flex flex-wrap justify-center gap-2">
@@ -610,8 +782,8 @@ export default function MyListings() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
-                  ? "bg-navy-700 text-white border-navy-700"
-                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
                   }`}
               >
                 {page}

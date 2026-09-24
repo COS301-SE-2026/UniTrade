@@ -29,6 +29,7 @@ public class Listing
     public BookDetails? BookDetails { get; set; }
 
     public string ListingStatus { get; set; } = "";
+    public int ResubmissionCount { get; set; } = 0;
 
     // not in MVP
     public decimal? AiRiskScore { get; set; }
