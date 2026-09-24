@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   submitting?: boolean;
   reason?: string;
   setReason?: (value: string) => void;
+  showReasonField?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -35,6 +36,7 @@ export function ConfirmModal({
   submitting = false,
   reason = "",
   setReason,
+  showReasonField = true,
   onCancel,
   onConfirm,
 }: Readonly<ConfirmModalProps>) {
@@ -77,7 +79,7 @@ export function ConfirmModal({
           <div className="flex items-center justify-between mb-4">
             <h2
               id="confirm-modal-title"
-              className="text-xl font-bol text-gray-900"
+              className="text-xl font-bold text-gray-900"
             >
               {title}
             </h2>
@@ -93,17 +95,19 @@ export function ConfirmModal({
           <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">
             {message}
           </p>
-          <div className="mb-4">
-            <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
-            <textarea
-              id="modal-reason"
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason?.(e.target.value)}
-              placeholder="Prove reasoning for this decision..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
-            ></textarea>
-          </div>
+          {showReasonField && (
+            <div className="mb-4">
+              <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
+              <textarea
+                id="modal-reason"
+                rows={3}
+                value={reason}
+                onChange={(e) => setReason?.(e.target.value)}
+                placeholder="Prove reasoning for this decision..."
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
+              ></textarea>
+            </div>
+          )}
           <div className="flex gap-3">
             <button
               type="button"
@@ -116,9 +120,8 @@ export function ConfirmModal({
             <button
               type="button"
               onClick={onConfirm}
-              disabled={submitting || !reason.trim()}
-              className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors
-              disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
+              disabled={submitting || (showReasonField && !reason.trim())}
+              className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
             >
               {submitting ? "Submitting..." : confirmLabel}
             </button>

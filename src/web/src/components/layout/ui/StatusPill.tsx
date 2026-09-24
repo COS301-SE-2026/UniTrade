@@ -11,6 +11,7 @@ const statusStyles: Record<ListingStatus, string> = {
   screening: 'bg-red-100 text-red-400',
   low_visibility: 'bg-red-100 text-red-400',
   under_review: 'bg-orange-100 text-700',
+  removed: 'bg-red-100 text-red-700',
   
 }
 
@@ -24,6 +25,7 @@ const statusLabel: Record<ListingStatus, string> = {
   screening: 'Screening',
   low_visibility: 'Low Visibility',
   under_review: 'Under Review',
+  removed: 'Removed',
  
 }
 

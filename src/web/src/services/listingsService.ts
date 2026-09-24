@@ -197,6 +197,8 @@ const mockSellerListingDetail: SellerListingDetail = {
   category: "book",
   courseId: 1,
   courseCode: "WTW114",
+  resubmissionCount: 4,
+  maxResubmissions: 5,
   listedAt: "2026-05-07T09:15:00Z",
   views: 42,
   description: "Good condition with minor highlighting on pages 3-5.",
@@ -331,6 +333,8 @@ export const listingsService = {
         viewCount: number;
         images: { imageId: number; isPrimary: boolean; path: string }[];
         listingGroupId?: string | null;
+        resubmissionCount?: number;
+        maxResubmissions?: number;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -342,6 +346,8 @@ export const listingsService = {
         views: l.viewCount,
         imageUrl: primary ? imageUrl(primary) : biologyTextbook,
         listingGroupId: l.listingGroupId ?? null,
+        resubmissionCount: l.resubmissionCount ?? 0,
+        maxResubmissions: l.maxResubmissions ?? 5,
       };
     });
     return { listings, total: data.total };
@@ -907,10 +913,19 @@ export const listingsService = {
     }
     return res.json();
   },
+
+resubmitListing: async ( id: string,
+  ): Promise<{status: ListingStatus; resubmissionCount: number}> => {
+    const res = await fetch(`${getApiUrl()}/listings/${id}/resubmit`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Falied to resubmit listing");
+    }
+    return res.json()
+  },
 };
-//TEMP:
-// this is just so builds dont fail, the real types will come from FE3
-/*interface ListingStatusResponse {
-  listingId: string;
-}
-  */
+
+

@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'screening' | 'reserved' | 'sold' | 'rejected' | 'low_visibility' | 'under_review'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'screening' | 'reserved' | 'sold' | 'rejected' | 'low_visibility' | 'under_review' | 'removed'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -53,6 +53,8 @@ export interface ListingSummary {
   imageUrl: string
   categoryName: string
   listingGroupId?: string | null;
+  resubmissionCount?: number;
+  maxResubmissions?: number;
 }
 
 export interface MyListingsResponse {
@@ -85,6 +87,8 @@ export interface SellerListingDetail {
   isReserved: boolean
   timeline: TimelineStep[]
   metadata: ListingMetadata
+  resubmissionCount: number
+  maxResubmissions: number
 }
 
 export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'

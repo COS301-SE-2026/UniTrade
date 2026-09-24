@@ -25,7 +25,6 @@ public class ListingRepository : IListingRepository
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Course)
-            .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         var listing = await query.FirstOrDefaultAsync(l => l.ListingId == listingId);
@@ -46,7 +45,6 @@ public class ListingRepository : IListingRepository
             .Listings.Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images)
-            .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted))
             .FirstOrDefaultAsync(l => l.ListingId == id);
 
@@ -58,8 +56,12 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails);
+        
+        if (!listingFilterDto.SellerId.HasValue)
+        {
+            query = query.Where(l => l.ListingStatus != _removedStatus);
+        }
 
-        query = query.Where(l => l.ListingStatus != _removedStatus);
         query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         if (listingFilterDto.CategoryId.HasValue)
@@ -210,7 +212,6 @@ public class ListingRepository : IListingRepository
             .AnyAsync(l =>
                 l.ListingId == listingId
                 && l.SellerId == sellerId
-                && l.ListingStatus != _removedStatus
             );
     }
 
@@ -343,11 +344,12 @@ public class ListingRepository : IListingRepository
 
     public async Task<IReadOnlyList<Listing>> GetByGroupIdAsync(
         Guid groupId,
+        bool includeRemoved = false,
         CancellationToken ct = default
     ) =>
         await _db
             .Listings.AsNoTracking()
-            .Where(l => l.ListingGroupId == groupId && l.ListingStatus != _removedStatus)
+            .Where(l => l.ListingGroupId == groupId && ( includeRemoved || l.ListingStatus != _removedStatus))
             .ToListAsync(ct);
 
     public async Task DuplicateImagesToGroupAsync(
@@ -373,7 +375,6 @@ public class ListingRepository : IListingRepository
             .Listings.Where(l =>
                 l.ListingGroupId == groupId
                 && l.ListingId != sourceListingId
-                && l.ListingStatus != _removedStatus
             )
             .Select(l => l.ListingId)
             .ToListAsync(ct);
