@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useState, type FormEvent } from "react";
+import React, { useRef, useState, type FormEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Trash2, Upload } from "lucide-react";
 import { LoadingState } from "../../components/layout/Spinner";
@@ -22,6 +22,18 @@ import {
 } from "../../types/timetable";
 import { timetableErrorMessage } from "../../utils/timetableErrors";
 import IcsImportModal from "../../components/layout/IcsImportModal";
+import {
+  clamp,
+  GRID_HEIGHT_PX,
+  minutesToHeightPercent,
+  minutesToHHMM,
+  minutesToTopPercent,
+  pixelToMinutes,
+  snapMinutes,
+  SnapMinutes,
+} from "../../utils/calendarGeometry";
+
+const MIN_DRAG_MINUTES = SnapMinutes;
 
 function validateEntry(
   day: DayOfWeek | null,
@@ -38,6 +50,12 @@ function validateEntry(
   return null;
 }
 
+interface DragState {
+  day: DayOfWeek;
+  anchorMinutes: number;
+  currentMinutes: number;
+}
+
 export default function Timetable() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -48,6 +66,9 @@ export default function Timetable() {
   const [formEnd, setFormEnd] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const columnRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["timetable"],
@@ -134,6 +155,101 @@ export default function Timetable() {
 
   const totalBlocks = entries.length;
 
+  const minutesFromPointer = (day: DayOfWeek, clientY: number): number => {
+    const el = columnRefs.current[day];
+    if (!el) return DAY_START_MINUTES;
+    const rect = el.getBoundingClientRect();
+    return pixelToMinutes(clientY - rect.top, rect.height || GRID_HEIGHT_PX);
+  };
+
+  const clampAgainstBlocks = (
+    day: DayOfWeek,
+    startM: number,
+    endM: number,
+  ): { start: number; end: number } => {
+    const blocks = entriesByDay[day].map((e) => ({
+      s: toMinutes(e.startTime),
+      e: toMinutes(e.endTime),
+    }));
+    let start = startM;
+    let end = endM;
+    for (const b of blocks) {
+      if (b.e <= startM) continue;
+      if (b.s >= endM) continue;
+      if (b.s <= startM) start = Math.max(start, b.e);
+      if (b.e >= endM) end = Math.min(end, b.s);
+      if (b.s > startM && b.e < endM) end = Math.min(end, b.s);
+    }
+    return { start, end };
+  };
+
+  const handlePointerDown = (
+    day: DayOfWeek,
+    e: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if ((e.target as HTMLElement).closest("[data-block]")) return;
+    const el = columnRefs.current[day];
+    if (el) el.setPointerCapture(e.pointerId);
+    const m = minutesFromPointer(day, e.clientY);
+    setDrag({ day, anchorMinutes: m, currentMinutes: m });
+  };
+
+  const handlePointerMove = (
+    day: DayOfWeek,
+    e: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!drag || drag.day !== day) return;
+    setDrag((d) =>
+      d ? { ...d, currentMinutes: minutesFromPointer(day, e.clientY) } : d,
+    );
+  };
+
+  const handlePointerUp = (
+    day: DayOfWeek,
+    e: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    const el = columnRefs.current[day];
+    if (el) el.releasePointerCapture?.(e.pointerId);
+    if (!drag || drag.day !== day) {
+      setDrag(null);
+      return;
+    }
+
+    const rawStart = Math.min(drag.anchorMinutes, drag.currentMinutes);
+    const rawEnd = Math.max(drag.anchorMinutes, drag.currentMinutes);
+    setDrag(null);
+
+    if (rawEnd - rawStart < MIN_DRAG_MINUTES) return;
+
+    const startM = clamp(
+      snapMinutes(rawStart),
+      DAY_START_MINUTES,
+      DAY_END_MINUTES,
+    );
+    const endM = clamp(snapMinutes(rawEnd), DAY_START_MINUTES, DAY_END_MINUTES);
+    const { start, end } = clampAgainstBlocks(day, startM, endM);
+
+    if (end - start < MIN_DRAG_MINUTES) {
+      showToast("error", "That overlaps an existing block.");
+      return;
+    }
+
+    addMutation.mutate({
+      dayOfWeek: day,
+      startTime: minutesToHHMM(start),
+      endTime: minutesToHHMM(end),
+    });
+  };
+
+  const preview =
+    drag && Math.abs(drag.currentMinutes - drag.anchorMinutes) >= 1
+      ? {
+        day: drag.day,
+        start: Math.min(drag.anchorMinutes, drag.currentMinutes),
+        end: Math.max(drag.anchorMinutes, drag.currentMinutes),
+      }
+      : null;
+
   if (isLoading) return <LoadingState message="Loading your timetable..." />;
 
   return (
@@ -153,8 +269,8 @@ export default function Timetable() {
             Your Timetable
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            Add your class times so buyers and sellers can see when you're free
-            to meet.
+            Drag on the calendar to block out a busy time, or use the form.
+            Buyers and sellers see when you're free to meet.
           </p>
         </div>
         <button
@@ -181,7 +297,7 @@ export default function Timetable() {
               ))}
             </div>
             <div className="grid grid-cols-[48px_repeat(7,1fr)]">
-              <div className="relative h-[600px]">
+              <div className="relative" style={{ height: GRID_HEIGHT_PX }}>
                 {Array.from({ length: 13 }, (_, i) => (
                   <span
                     key={i}
@@ -195,31 +311,39 @@ export default function Timetable() {
               {DAY_ORDER.map((d, dayIdx) => (
                 <div
                   key={d}
-                  className={`relative h-[600px] ${dayIdx === 0 ? "" : "border-l border-gray-100"}`}
+                  ref={(el) => {
+                    columnRefs.current[d] = el;
+                  }}
+                  onPointerDown={(e) => handlePointerDown(d, e)}
+                  onPointerMove={(e) => handlePointerMove(d, e)}
+                  onPointerUp={(e) => handlePointerUp(d, e)}
+                  onPointerCancel={() => setDrag(null)}
+                  className={`relative select-none ${dayIdx === 0 ? "" : "border-l border-gray-100"} ${entriesByDay[d].length === 0 ? "cursor-crosshair" : ""}`}
                   style={{
+                    height: GRID_HEIGHT_PX,
+                    touchAction: "none",
                     backgroundImage:
                       "repeating-linear-gradient(to bottom, transparent 0px, transparent 49px, #f1f5f9 50px)",
                   }}
                 >
                   {entries.length === 0 && d === DAY_ORDER[0] && (
-                    <p className="absolute inset-0 flex items-center justify-center text-center text-xs text-gray-400 px-6">
-                      No busy times yet
+                    <p className="absolute inset-0 flex items-center justify-center text-center text-xs text-gray-400 px-6 pointer-events-none">
+                      Drag to add a busy time
                     </p>
                   )}
+
                   {entriesByDay[d].map((entry) => {
                     const s = toMinutes(entry.startTime);
                     const e = toMinutes(entry.endTime);
-                    const top =
-                      ((s - DAY_START_MINUTES) /
-                        (DAY_END_MINUTES - DAY_START_MINUTES)) *
-                      100;
-                    const height =
-                      ((e - s) / (DAY_END_MINUTES - DAY_START_MINUTES)) * 100;
                     return (
                       <div
                         key={entry.entryId}
+                        data-block
                         className="group absolute left-1 right-1 bg-navy-700 text-white rounded-md px-1.5 py-1 text-[10px] leading-tight overflow-hidden shadow-sm ring-1 ring-navy-800/20 hover:bg-navy-600 transition-colors"
-                        style={{ top: `${top}%`, height: `${height}%` }}
+                        style={{
+                          top: `${minutesToTopPercent(s)}%`,
+                          height: `${minutesToHeightPercent(e - s)}%`,
+                        }}
                         title={`${DAY_LABEL[d]} ${formatRange(entry.startTime, entry.endTime)}`}
                       >
                         <span className="font-semibold tabular-nums">
@@ -228,6 +352,7 @@ export default function Timetable() {
                         <button
                           type="button"
                           aria-label={`Delete ${DAY_LABEL[d]} ${formatRange(entry.startTime, entry.endTime)}`}
+                          onPointerDown={(ev) => ev.stopPropagation()}
                           onClick={() => deleteMutation.mutate(entry.entryId)}
                           className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition text-white/70 hover:text-white"
                         >
@@ -236,6 +361,21 @@ export default function Timetable() {
                       </div>
                     );
                   })}
+
+                  {preview && preview.day === d && (
+                    <div
+                      className="absolute left-1 right-1 rounded-md bg-navy-500/40 border border-navy-500 pointer-events-none z-10 flex items-start justify-center"
+                      style={{
+                        top: `${minutesToTopPercent(preview.start)}%`,
+                        height: `${minutesToHeightPercent(preview.end - preview.start)}%`,
+                      }}
+                    >
+                      <span className="text-[9px] font-semibold text-navy-800 bg-white/80 rounded px-1 mt-0.5 tabular-nums">
+                        {minutesToHHMM(snapMinutes(preview.start))}&ndash;
+                        {minutesToHHMM(snapMinutes(preview.end))}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
