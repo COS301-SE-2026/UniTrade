@@ -18,6 +18,7 @@ export interface ListingStatusResponse
   resubmissionCount?: number
   maxResubmissions?: number
   reasons?: ListingReason[]
+  canRescore?: boolean
 }
 
 export function mockStatusFromListing(

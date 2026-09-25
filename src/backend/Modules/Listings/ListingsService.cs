@@ -30,6 +30,13 @@ public class ListingService : IListingService
         "removed",
     }; // as in removed form the platform because you sold it outside it
 
+    private static readonly HashSet<string> _listingFixableReasonCodes = new()
+    {
+        "price_anomaly",
+        "duplicate_image",
+        "image_mismatch",
+    };
+
     private const double _imageMismatchThreshold = 0.15;
     private const double _imageStrongMismatchThreshold = 0.05;
     private const int _maxImagesToScore = 4;
@@ -99,6 +106,12 @@ public class ListingService : IListingService
         var isAdminRemoved =
             l.ListingStatus == "removed" && !string.IsNullOrEmpty(l.RejectionReason);
 
+        var exposeRisk =
+        l.ListingStatus is "live" or "under_review" or "removed";
+
+        int? visibilityScore =
+        l.ListingStatus == "live" ? l.VisibilityScore : null;
+
         return new(
             ListingId: l.ListingId,
             SellerId: l.SellerId,
@@ -144,7 +157,10 @@ public class ListingService : IListingService
                 ),
             ListingGroupId: l.ListingGroupId,
             ResubmissionCount: l.ResubmissionCount,
-            MaxResubmissions: isAdminRemoved ? _maxResubmissions : 0
+            MaxResubmissions: isAdminRemoved ? _maxResubmissions : 0,
+            RiskLevel: exposeRisk ? l.AiRiskLevel : null,
+            VisibilityScore: visibilityScore
+
         );
     }
 
@@ -287,6 +303,15 @@ public class ListingService : IListingService
         return MapToSummary(created[0]);
     }
 
+    private static bool IsRescoreEligible(IEnumerable<RiskReason>? reasons)
+    {
+        if (reasons is null || !reasons.Any())
+        {
+            return false;
+        }
+        return reasons.All(r => _listingFixableReasonCodes.Contains(r.Code));
+    }
+
     public async Task<ResubmitListingResultDto> ResubmitListingAsync(
         Guid listingId,
         Guid callerId,
@@ -294,14 +319,14 @@ public class ListingService : IListingService
     )
     {
         await _listings.DuplicateImagesToGroupAsync(listingId, ct);
-        
+
         var result = await ResubmitOneAsync(listingId, callerId, ct);
 
         var listing = await _listings.GetByIdTrackedAsync(listingId);
 
         if (listing?.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId,includeRemoved: true, ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: true, ct);
             var pending = siblings.Where(s =>
                 s.ListingId != listingId
                 && s.ListingStatus == "removed"
@@ -449,7 +474,14 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("forbidden");
         }
         //edits forbideen if the listing is reserved,sold,pending or rejected
-        var allowedEditStatuses = new[] { "draft", "live", "low_visibility", "removed", "under_review" };
+        var allowedEditStatuses = new[]
+        {
+            "draft",
+            "live",
+            "low_visibility",
+            "removed",
+            "under_review",
+        };
         if (
             !allowedEditStatuses.Contains(
                 listingLookUp.ListingStatus,
@@ -509,8 +541,8 @@ public class ListingService : IListingService
         {
             var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: true, ct);
             var syncable = siblings.Where(s =>
-            s.ListingId != listingLookUp.ListingId
-            && s.ListingStatus is not ("reserved" or "sold")
+                s.ListingId != listingLookUp.ListingId
+                && s.ListingStatus is not ("reserved" or "sold")
             );
 
             foreach (var sibling in syncable)
@@ -519,31 +551,31 @@ public class ListingService : IListingService
                 if (trackedSibling is null)
                     continue;
 
-               ApplyCoreFields(trackedSibling, listings);
-               if (
-                isBook
-                && listings.BookDetails is not null
-                && trackedSibling.BookDetails is not null
-            )
-            {
-                trackedSibling.BookDetails.Isbn = listings.BookDetails.Isbn;
-                trackedSibling.BookDetails.Author = listings.BookDetails.Author;
-                trackedSibling.BookDetails.Edition = listings.BookDetails.Edition;
-            }
+                ApplyCoreFields(trackedSibling, listings);
+                if (
+                    isBook
+                    && listings.BookDetails is not null
+                    && trackedSibling.BookDetails is not null
+                )
+                {
+                    trackedSibling.BookDetails.Isbn = listings.BookDetails.Isbn;
+                    trackedSibling.BookDetails.Author = listings.BookDetails.Author;
+                    trackedSibling.BookDetails.Edition = listings.BookDetails.Edition;
+                }
 
-            if (
-                listings.Metadata.HasValue
-                && listings.Metadata.Value.ValueKind != JsonValueKind.Null
-            )
-            {
-                trackedSibling.Metadata = listingLookUp.Metadata;
-            }
+                if (
+                    listings.Metadata.HasValue
+                    && listings.Metadata.Value.ValueKind != JsonValueKind.Null
+                )
+                {
+                    trackedSibling.Metadata = listingLookUp.Metadata;
+                }
 
-            if (categoryChanged)
-            {
-                trackedSibling.CategoryId = listingLookUp.CategoryId;
-                trackedSibling.CourseId = listingLookUp.CourseId;
-            }
+                if (categoryChanged)
+                {
+                    trackedSibling.CategoryId = listingLookUp.CategoryId;
+                    trackedSibling.CourseId = listingLookUp.CourseId;
+                }
             }
         }
         var flagged = false;
@@ -576,6 +608,7 @@ public class ListingService : IListingService
         target.Condition = dto.Condition;
         target.UpdatedAt = DateTime.UtcNow;
     }
+
     private async Task ApplyCategoryChangeAsync(UpdateListingDto listings, Listing listingLookUp)
     {
         if (string.IsNullOrWhiteSpace(listings.CategoryName))
@@ -633,7 +666,7 @@ public class ListingService : IListingService
         var listing = await _listings.GetByIdTrackedAsync(listingId);
         if (listing?.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             var pending = siblings
                 .Where(s =>
                     s.ListingId != listingId
@@ -781,14 +814,18 @@ public class ListingService : IListingService
         var (status, message) = MapStatusAndMessage(listing);
         var isAdminRemoved =
             listing.ListingStatus == "removed" && !string.IsNullOrEmpty(listing.RejectionReason);
+        var isLiveButFlagged =
+            listing.ListingStatus == "live" && listing.AiRiskLevel == "medium";
 
         IReadOnlyList<ListingReasonDto>? reasons = null;
-        if (listing.ListingStatus == "under_review" || isAdminRemoved)
+        if (listing.ListingStatus == "under_review"  || isAdminRemoved || isLiveButFlagged)
         {
             reasons = listing
                 .AiRiskReasons?.Select(r => new ListingReasonDto(r.Code, r.Detail, r.ImageId))
                 .ToList();
         }
+        var canRescore =
+            isLiveButFlagged && IsRescoreEligible(listing.AiRiskReasons);
         return new SellerListingStatusDto(
             listing.ListingId,
             status,
@@ -797,12 +834,21 @@ public class ListingService : IListingService
             listing.VisibilityScore,
             listing.ResubmissionCount,
             isAdminRemoved ? _maxResubmissions : 0,
-            reasons
+            reasons,
+            canRescore
         );
     }
 
     private static (string Status, string Message) MapStatusAndMessage(Listing listing)
     {
+        if (listing.ListingStatus == "live" && listing.AiRiskLevel == "medium")
+        {
+            return (
+                "live",
+                "Your listing is live but showing lower in search results due to some flagged concerns.Please edit your listing to fix the problem or re-check if not satifsied."
+            );
+        }
+
         return listing.ListingStatus switch
         {
             "live" => ("live", "Your listing is live."),
@@ -812,9 +858,44 @@ public class ListingService : IListingService
                 "removed",
                 $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified"}."
             ),
-            "low_visibility" => ("live", "Your listing is live."),
             _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
         };
+    }
+
+    public async Task<bool> RequestRescoreAsync(
+        Guid listingId,
+        Guid callerId,
+        CancellationToken ct = default
+    )
+    {
+        var listing = await _listings.GetByIdTrackedAsync(listingId);
+        if (listing is null)
+        {
+            throw new KeyNotFoundException("listing_not_found");
+        }
+        if (listing.SellerId != callerId)
+        {
+            throw new UnauthorizedAccessException("forbidden");
+        }
+        if (listing.ListingStatus != "live" && listing.AiRiskLevel != "medium")
+        {
+            throw new InvalidOperationException("not_eligible_for_rescore");
+        }
+        if (!IsRescoreEligible(listing.AiRiskReasons))
+        {
+            throw new InvalidOperationException("rescore_not_eligible");
+        }
+
+        var wasFlagged = await ScoreListingAsync(listing, ct);
+        listing.UpdatedAt = DateTime.UtcNow;
+        await _listings.SaveAsync();
+
+        if (wasFlagged)
+        {
+            await NotifyFlaggedAsync(listing, ct);
+        }
+
+        return listing.AiRiskLevel == "low";
     }
 
     public Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default) =>
@@ -877,7 +958,7 @@ public class ListingService : IListingService
 
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             foreach (var sibling in siblings)
             {
                 await RescoreAfterImagesAsync(sibling.ListingId, ct);

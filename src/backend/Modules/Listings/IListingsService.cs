@@ -37,5 +37,6 @@ public interface IListingService
         Guid callerId,
         CancellationToken ct = default
     );
+    Task<bool> RequestRescoreAsync(Guid listingId, Guid callerId, CancellationToken ct = default);
 
 }
