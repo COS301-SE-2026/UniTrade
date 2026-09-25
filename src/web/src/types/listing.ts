@@ -55,6 +55,8 @@ export interface ListingSummary {
   listingGroupId?: string | null;
   resubmissionCount?: number;
   maxResubmissions?: number;
+  riskLevel?: 'low' | 'medium' | 'high' | null;
+  visibilityScore?: number | null;  
 }
 
 export interface MyListingsResponse {
