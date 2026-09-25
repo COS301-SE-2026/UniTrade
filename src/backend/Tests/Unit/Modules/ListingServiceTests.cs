@@ -35,6 +35,7 @@ public class ListingServiceTests
     private readonly Mock<IListingRiskScoreService> _riskMock;
     private readonly Mock<IListingNotifier> _notifierMock;
     private readonly Mock<IClipVisionClient> _clipMock;
+    private readonly Mock<IListingResubmissionListener> _resubmissionListenerMock;
 
     public ListingServiceTests()
     {
@@ -48,6 +49,7 @@ public class ListingServiceTests
         _riskMock = new Mock<IListingRiskScoreService>();
         _notifierMock = new Mock<IListingNotifier>();
         _clipMock = new Mock<IClipVisionClient>();
+        _resubmissionListenerMock = new Mock<IListingResubmissionListener>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -66,6 +68,7 @@ public class ListingServiceTests
             _imageRepo.Object,
             _verificationMock.Object,
             _listingPublishedListener.Object,
+            _resubmissionListenerMock.Object,
             _loggerMock.Object,
             _questionRepo.Object,
             _riskMock.Object,

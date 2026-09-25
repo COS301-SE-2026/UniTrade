@@ -23,6 +23,8 @@ public class ListingService : IListingService
     private readonly IListingNotifier _notifier;
     private readonly IClipVisionClient _clip;
     private readonly ILogger<ListingService> _logger;
+    private readonly IListingResubmissionListener _resubmissionListener;
+
     private static readonly HashSet<string> _sellerAllowedStatuses = new()
     {
         "live",
@@ -50,6 +52,7 @@ public class ListingService : IListingService
         IListingImageRepository images,
         ISellerVerificationQuery verification,
         IListingPublishedListener listener,
+        IListingResubmissionListener resubmissionListener,
         ILogger<ListingService> logger,
         IListingQuestionRepository questions,
         IListingRiskScoreService risk,
@@ -61,6 +64,7 @@ public class ListingService : IListingService
         _images = images;
         _verification = verification;
         _listener = listener;
+        _resubmissionListener = resubmissionListener;
         _logger = logger;
         _questions = questions;
         _risk = risk;
@@ -402,9 +406,16 @@ public class ListingService : IListingService
         await ApplyImageMatchAsync(listing, reasons, ct);
         listing.AiRiskReasons = reasons;
 
-        listing.ListingStatus = listing.AiRiskLevel == "high" ? "under_review" : "live";
+        listing.ListingStatus = listing.RequiresManualReviewOnResubmit ? "under_review"
+        : listing.AiRiskLevel == "high" ? "under_review" 
+        : "live";
         listing.UpdatedAt = DateTime.UtcNow;
 
+       if (listing.RequiresManualReviewOnResubmit)
+       {
+        await _resubmissionListener.OnListingResubmittedAsync(listing.ListingId, ct);
+       }
+       listing.RequiresManualReviewOnResubmit = false;
         await _listings.SaveAsync();
 
         await _notifier.ListingStatusChangedAsync(
@@ -811,6 +822,7 @@ public class ListingService : IListingService
             throw new UnauthorizedAccessException("forbidden");
         }
 
+        var isBanned = listing.ListingStatus == "banned";
         var (status, message) = MapStatusAndMessage(listing);
         var isAdminRemoved =
             listing.ListingStatus == "removed" && !string.IsNullOrEmpty(listing.RejectionReason);
@@ -818,11 +830,16 @@ public class ListingService : IListingService
             listing.ListingStatus == "live" && listing.AiRiskLevel == "medium";
 
         IReadOnlyList<ListingReasonDto>? reasons = null;
-        if (listing.ListingStatus == "under_review"  || isAdminRemoved || isLiveButFlagged)
+        if (listing.ListingStatus == "under_review"  || isAdminRemoved || isBanned || isLiveButFlagged || listing.ListingStatus == "banned")
         {
             reasons = listing
                 .AiRiskReasons?.Select(r => new ListingReasonDto(r.Code, r.Detail, r.ImageId))
                 .ToList();
+
+            if ((reasons is null || reasons.Count == 0) && !string.IsNullOrEmpty(listing.RejectionReason))
+            {
+                reasons = new List<ListingReasonDto> { new("reported", listing.RejectionReason, null)};
+            }
         }
         var canRescore =
             isLiveButFlagged && IsRescoreEligible(listing.AiRiskReasons);
@@ -853,11 +870,15 @@ public class ListingService : IListingService
         {
             "live" => ("live", "Your listing is live."),
             "screening" => ("screening", "Your listing is being checked."),
-            "under_review" => ("under_review", "Your listing is being reviewed by an admin."),
+            "under_review" => ("under_review", 
+              string.IsNullOrEmpty(listing.RejectionReason)
+            ? "Your listing is being reviewed by an admin."
+            : $"Your listing reported and is being reviewed."),
             "removed" => (
                 "removed",
-                $"Your listing was removed. Reason: {listing.RejectionReason ?? "Not specified"}."
+                $"Your listing was removed."
             ),
+            "banned" => ("banned", $"Your listing was permanently removed and cannot be resubmitted. Reason: {listing.RejectionReason ?? "Not specified"}."),
             _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
         };
     }

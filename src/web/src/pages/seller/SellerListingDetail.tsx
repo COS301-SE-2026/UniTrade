@@ -178,8 +178,7 @@ export default function SellerListingDetail() {
         </div>
 
 
-        {statusData && (statusData.status === "under_review" || statusData.status === "removed" || (statusData.status === "live" && statusData.riskLevel === "medium")) && (
-
+        {statusData && (statusData.status === "under_review" || statusData.status === "removed" || statusData.status === "banned" || (statusData.status === "live" && statusData.riskLevel === "medium")) && (
           <StatusPill status={statusData.status} />
         )}
       </div>
@@ -324,6 +323,8 @@ export default function SellerListingDetail() {
               <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
                 {statusData.status === "under_review"
                   ? "Why it was flagged"
+                  : statusData.status === "banned"
+                  ? "Why it was banned"
                   : statusData.status === "live" && statusData.riskLevel === "medium"
                     ? "Why visibility is reduced"
                     : "Why it was removed"}
@@ -354,7 +355,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={() => navigate(`/seller/editListing/${id}`)}
-              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review" || listing.status === "banned"}
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Edit Listing
@@ -363,7 +364,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={handleDelete}
-              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review" || listing.status === "banned"}
               className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Delete Listing

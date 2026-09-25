@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Modules.Identity.Repositories;
 using Modules.Listings.Moderation;
+using Modules.Listings.Repositories;
 using Modules.Notifications;
 using Modules.Reputation;
 using Modules.Reservations;
@@ -11,6 +12,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
 {
     private readonly IReputationService _reputation;
     private readonly IModerationService _moderation;
+    private readonly IListingRepository _listings;
     private readonly INotificationDispatcher _notifications;
     private readonly IEmailService _emails;
     private readonly IBroadCastService _broadCast;
@@ -20,6 +22,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
     public CaseOutcomeApplier(
         IReputationService reputation,
         IModerationService moderation,
+        IListingRepository listings,
         INotificationDispatcher notifications,
         IEmailService emails,
         IUserRepository users,
@@ -29,6 +32,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
     {
         _reputation = reputation;
         _moderation = moderation;
+        _listings = listings;
         _notifications = notifications;
         _emails = emails;
         _users = users;
@@ -66,17 +70,33 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                         ct
                     );
                     break;
+
                 case DisputeOutcome.RemoveListing:
-                    if (context.ListingId is null)
-                    {
-                        throw new DisputesException("remove_listing_requires_listing");
-                    }
-                    await _moderation.RemoveListingAsync(
-                        context.ListingId.Value,
-                        context.Reason ?? "removed by admin decision",
+                    await ApplyToGroupAsync(
+                        context.ListingId,
+                        l =>
+                            _moderation.RemoveListingAsync(
+                                l,
+                                context.Reason ?? "removed by an admin decision",
+                                ct
+                            ),
                         ct
                     );
                     break;
+                case DisputeOutcome.WarnSellerResubmit:
+                    await ApplyToGroupAsync(
+                        context.ListingId,
+                        l =>
+                            _moderation.WarnSellerAsync(
+                                l,
+                                context.Reason
+                                    ?? "Listing needs correction before it can be relisted",
+                                ct
+                            ),
+                        ct
+                    );
+                    break;
+            
             }
         }
         if (outcomes.Count > 0)
@@ -145,11 +165,36 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
         }
     }
 
+    private async Task ApplyToGroupAsync(
+        Guid? listingId,
+        Func<Guid, Task> action,
+        CancellationToken ct
+    )
+    {
+        if (listingId is null)
+            throw new DisputesException("outcome_requires_listing");
+        await action(listingId.Value);
+
+        var listing = await _listings.GetByIdAnyStatusAsync(listingId.Value);
+        if (listing?.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
+            foreach (var sibling in siblings.Where(s => s.ListingId != listingId.Value))
+            {
+                await action(sibling.ListingId);
+            }
+        }
+    }
+
     private static string BuildOutcomeSummary(IReadOnlyList<DisputeOutcome> outcomes)
     {
         var parts = new List<string>();
         if (outcomes.Contains(DisputeOutcome.RemoveListing))
             parts.Add("your listing was removed");
+        if (outcomes.Contains(DisputeOutcome.WarnSellerResubmit))
+            parts.Add(
+                "your listing needs corrections before it can be relisted - you can edit and resubmit it"
+            );
         if (outcomes.Contains(DisputeOutcome.Strike))
             parts.Add("a strike was applied to your account");
         if (outcomes.Contains(DisputeOutcome.RefusalFlag))

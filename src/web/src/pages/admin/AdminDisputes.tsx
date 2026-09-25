@@ -8,6 +8,7 @@ import laptopImg from '../../assets/hp-laptop.jpg'
 import { type CaseType } from '../../types/admin_disputes'
 import { getCases } from '../../services/adminService'
 import { LoadingState } from '../../components/layout/Spinner'
+import { imageUrl } from '../../services/listingsService'
 
 export interface DisputeRow {
   id: string
@@ -16,6 +17,7 @@ export interface DisputeRow {
   sellerInitials: string
   timeAgo: string
   type: 'No-show' | 'Listing-quality' | 'Report'
+  status: string
   image: string
 }
 
@@ -67,7 +69,8 @@ export default function AdminDisputes() {
         sellerInitials: summary.subjectInitials ?? '??',
         timeAgo: getTimeAgo(summary.ageHours),
         type: getDisplayType(summary.type as DisputeCaseType),
-        image: getPlaceholder(summary.type as CaseType),
+        status: summary.status,
+        image: summary.imageUrl ? imageUrl(summary.imageUrl): getPlaceholder(summary.type as CaseType),
 
       })) as DisputeRow[];
 
@@ -229,6 +232,11 @@ export default function AdminDisputes() {
                         }`}>
                       {dispute.type}
                     </span>
+                    {dispute.status === 'resubmission' && (
+                      <span className="inline-block px-3 py-1 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
+                        Resubmitted
+                      </span>
+                    )}
                   </td>
 
                   <td className="py-4 px-4 text-right">
