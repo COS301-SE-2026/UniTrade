@@ -96,7 +96,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                         ct
                     );
                     break;
-            
+
             }
         }
         if (outcomes.Count > 0)

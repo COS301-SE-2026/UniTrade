@@ -20,8 +20,8 @@ public class ModerationService : IModerationService
     public Task<bool> WarnSellerAsync(Guid listingId, string reason, CancellationToken ct = default) =>
         _listings.WarnSellerAsync(listingId, reason, ct);
 
-    public Task<bool> SetUnderReviewAsync(Guid listingId,string reason, CancellationToken ct = default) =>
-        _listings.SetUnderReviewAsync(listingId,reason, ct);
+    public Task<bool> SetUnderReviewAsync(Guid listingId, string reason, CancellationToken ct = default) =>
+        _listings.SetUnderReviewAsync(listingId, reason, ct);
 
     public Task<bool> RestoreToLiveAsync(Guid listingId, CancellationToken ct = default) =>
         _listings.RestoreToLiveAsync(listingId, ct);
