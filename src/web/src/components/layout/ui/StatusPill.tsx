@@ -12,6 +12,7 @@ const statusStyles: Record<ListingStatus, string> = {
   low_visibility: 'bg-red-100 text-red-400',
   under_review: 'bg-orange-100 text-700',
   removed: 'bg-red-100 text-red-700',
+  banned: 'bg-red-200 text-red-900',
   
 }
 
@@ -26,6 +27,7 @@ const statusLabel: Record<ListingStatus, string> = {
   low_visibility: 'Low Visibility',
   under_review: 'Under Review',
   removed: 'Removed',
+  banned: 'Banned',
  
 }
 

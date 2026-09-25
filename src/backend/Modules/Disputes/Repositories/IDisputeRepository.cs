@@ -16,4 +16,8 @@ public interface IDisputeRepository
     Task MarkResolvedAsync(Guid disputeId, Guid adminId, string resolution, CancellationToken ct = default);
     Task<bool> HasOpenDisputeAsync(Guid filedByUserId, Guid subjectUserId, CancellationToken ct = default);
 
+    Task<Dispute?> GetMostRecentReportDisputeForListingAsync(Guid listingId, CancellationToken ct = default);
+    Task ReopenAsResubmissionAsync(Guid disputeId, CancellationToken ct = default);
+    Task UpdateSnapshotAsync(Guid disputeId, Guid snapshot, CancellationToken ct = default);
+
 }

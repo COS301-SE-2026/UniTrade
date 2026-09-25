@@ -76,6 +76,19 @@ function ActionButtons({
     );
   }
 
+  if (listing.status === "banned") {
+    return (
+      <div className={wrapper}>
+        <button
+          type="button"
+          onClick={() => navigate(`/seller/listings/${listing.id}`)}
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
+          >
+            View
+          </button>
+      </div>
+    );
+  }
   if (listing.status === "draft") {
     return (
       <div className={wrapper}>
@@ -256,11 +269,14 @@ function GroupCard({
   const allSameStatus = group.items.every((l) => l.status === first.status);
   const isGroupFlagged =
     allSameStatus &&
-    (first.status === "removed" || first.status === "under_review");
+    (first.status === "removed" || first.status === "under_review" || first.status === "banned");
 
   const countLabel = isGroupFlagged
     ? `${group.items.length} ${group.items.length === 1 ? "copy" : "copies"}`
     : `${liveCount} of ${group.items.length} available`;
+  const hasMediumRisk = group.items.some(
+    (l) => l.status === "live" && l.riskLevel === "medium",
+  );
 
   return (
     <div className="border-b border-gray-100 dark:border-white/5">
@@ -287,6 +303,12 @@ function GroupCard({
               <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
                 {countLabel}
               </p>
+
+              {hasMediumRisk && !isGroupFlagged && (
+                <span className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 block">
+                  Reduced visibility on some copies · open to review
+                </span>
+              )}
             </div>
           </div>
 
@@ -389,6 +411,26 @@ type Tab = "all" | ListingStatus;
 
 const PAGE_SIZE = 6;
 
+function VisibilityHint({
+  listing,
+  onOpen,
+}: {
+  listing: ListingSummary;
+  onOpen: () => void;
+}) {
+  if (listing.status !== "live" || listing.riskLevel !== "medium") return null;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline mt-0.5 block whitespace-nowrap text-left"
+    >
+      Reduced visibility
+      {listing.visibilityScore != null ? ` (${listing.visibilityScore})` : ""}
+      {" · click to review"}
+    </button>
+  );
+}
 export default function MyListings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -628,8 +670,8 @@ export default function MyListings() {
               setCurrentPage(1);
             }}
             className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors ${activeTab === tab.key
-                ? "bg-navy-700 text-white border-navy-700"
-                : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+              ? "bg-navy-700 text-white border-navy-700"
+              : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
           >
             {tab.label}
@@ -660,8 +702,8 @@ export default function MyListings() {
               <div
                 key={listing.id}
                 className={`px-4 md:px-5 py-4 ${i < paginated.length - 1
-                    ? "border-b border-gray-100 dark:border-white/5"
-                    : ""
+                  ? "border-b border-gray-100 dark:border-white/5"
+                  : ""
                   }`}
               >
                 <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
@@ -679,7 +721,7 @@ export default function MyListings() {
                         {listing.meta}
                       </p>
                       {(listing.status === "under_review" ||
-                        (listing.status === "removed" &&
+                        (listing.status === "removed" ||
                           (listing.maxResubmissions ?? 0) > 0)) && (
                           <button
                             type="button"
@@ -691,6 +733,10 @@ export default function MyListings() {
                             View details for reasons
                           </button>
                         )}
+                      <VisibilityHint
+                        listing={listing}
+                        onOpen={() => navigate(`/seller/listings/${listing.id}`)}
+                      />
                     </div>
                   </div>
 
@@ -782,8 +828,8 @@ export default function MyListings() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
-                    ? "bg-navy-700 text-white border-navy-700"
-                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                  ? "bg-navy-700 text-white border-navy-700"
+                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
                   }`}
               >
                 {page}

@@ -7,6 +7,8 @@ using Modules.Identity.Models.Dto;
 using Modules.Identity.Verification;
 using Modules.Listings;
 using Modules.Listings.Models.Dto;
+using Modules.Listings.Moderation;
+using Modules.Listings.Repositories;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Reputation;
@@ -29,6 +31,9 @@ public class AdminCaseService : IAdminCaseService
     private readonly IReputationService _reputation;
     private readonly IListingService _listings;
     private readonly IBroadCastService _broadcast;
+    private readonly IModerationService _moderation;
+    private const string _resubmissionString = "resubmission";
+    private readonly IListingRepository _listingRepository;
 
     // Constants
     private const string _resolvedString = "resolved";
@@ -51,7 +56,9 @@ public class AdminCaseService : IAdminCaseService
         IPartyDirectory parties,
         IReputationService reputation,
         IListingService listings,
-        IBroadCastService broadcast
+        IBroadCastService broadcast,
+        IModerationService moderation,
+        IListingRepository listingRepository
     )
     {
         _verification = verification;
@@ -65,6 +72,8 @@ public class AdminCaseService : IAdminCaseService
         _reputation = reputation;
         _listings = listings;
         _broadcast = broadcast;
+        _moderation = moderation;
+        _listingRepository = listingRepository;
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
@@ -221,6 +230,8 @@ public class AdminCaseService : IAdminCaseService
                         SlaHours = slaHours,
                         SlaBreached = slaBreached,
                         Title = title ?? "Unknown listing",
+                        ImageUrl = item.ImageUrl,
+                        CopyCount = item.CopyCount,
                         SubjectInitials = subjectInitials,
                         CounterpartyInitials = counterpartyInitials,
                     };
@@ -297,7 +308,6 @@ public class AdminCaseService : IAdminCaseService
             return await ToDetailAsync(updatedVerificationRecord, ct);
         }
 
-
         var disputeData = await _disputes.GetCaseDataAsync(caseId, ct);
         if (disputeData is null)
         {
@@ -319,8 +329,11 @@ public class AdminCaseService : IAdminCaseService
         {
             var snapshot = disputeData.ReservationId is null
                 ? null
-                : (await _snapshots.GetByReservationIdAsync(disputeData.ReservationId.Value, ct))
-                   .FirstOrDefault(s => disputeData.ListingId == null || s.ListingId == disputeData.ListingId);
+                : (
+                    await _snapshots.GetByReservationIdAsync(disputeData.ReservationId.Value, ct)
+                ).FirstOrDefault(s =>
+                    disputeData.ListingId == null || s.ListingId == disputeData.ListingId
+                );
 
             var verdict = ListingQualityEvaluator.Evaluate(
                 snapshot,
@@ -340,6 +353,7 @@ public class AdminCaseService : IAdminCaseService
             disputeData.DisputeId,
             disputeData.SubjectUserId,
             disputeData.ListingId,
+            disputeData.Type,
             decision,
             finalOutcomes,
             request.Reason,
@@ -387,6 +401,7 @@ public class AdminCaseService : IAdminCaseService
         Guid caseId,
         Guid subjectUserId,
         Guid? listingId,
+        string disputeType,
         DisputeCaseDecision decision,
         IReadOnlyList<DisputeOutcome> outcomes,
         string? reason,
@@ -402,7 +417,32 @@ public class AdminCaseService : IAdminCaseService
                 ct
             );
         }
+        else if (
+            decision == DisputeCaseDecision.Dismiss
+            && disputeType == _reportListingString
+            && listingId.HasValue
+        )
+        {
+            await _moderation.RestoreToLiveAsync(listingId.Value, ct);
 
+            var listing = await _listingRepository.GetByIdAnyStatusAsync(listingId.Value);
+            if (listing?.ListingGroupId is Guid groupId)
+            {
+                var siblings = await _listingRepository.GetByGroupIdAsync(
+                    groupId,
+                    includeRemoved: false,
+                    ct
+                );
+                foreach (
+                    var sibling in siblings.Where(s =>
+                        s.ListingId != listingId.Value && s.ListingStatus == "under_review"
+                    )
+                )
+                {
+                    await _moderation.RestoreToLiveAsync(sibling.ListingId, ct);
+                }
+            }
+        }
         var applied =
             outcomes.Count == 0
                 ? decision.ToString().ToLowerInvariant()
@@ -522,7 +562,9 @@ public class AdminCaseService : IAdminCaseService
         else if (d.ReservationId.HasValue)
         {
             var snaps = await _snapshots.GetByReservationIdAsync(d.ReservationId.Value, ct);
-            snapshot = snaps.FirstOrDefault(s => d.ListingId == null || s.ListingId == d.ListingId) ?? snaps.FirstOrDefault();
+            snapshot =
+                snaps.FirstOrDefault(s => d.ListingId == null || s.ListingId == d.ListingId)
+                ?? snaps.FirstOrDefault();
         }
 
         var listingId = d.ListingId ?? snapshot?.ListingId;
@@ -631,10 +673,7 @@ public class AdminCaseService : IAdminCaseService
     private double Age(DateTime submittedAt) =>
         Math.Round((_clock.GetUtcNow().UtcDateTime - submittedAt).TotalHours, 1);
 
-    private async Task<PartySummaryDto?> BuildPartyAsync(
-        Guid userId,
-        CancellationToken ct
-    )
+    private async Task<PartySummaryDto?> BuildPartyAsync(Guid userId, CancellationToken ct)
     {
         var p = await _parties.GetAsync(userId, ct);
         if (p is null)
@@ -672,6 +711,7 @@ public class AdminCaseService : IAdminCaseService
             _underReviewString => _underReviewString,
             _resolvedString => _resolvedString,
             "closed" => _dismissedString,
+            _resubmissionString => _resubmissionString,
             _ => _pendingString,
         };
 }

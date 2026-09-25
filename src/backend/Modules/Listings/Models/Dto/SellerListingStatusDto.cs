@@ -10,5 +10,6 @@ public sealed record SellerListingStatusDto(
     int? VisibilityScore = null,
     int ResubmissionCount = 0,
     int MaxResubmissions = 0,
-    IReadOnlyList<ListingReasonDto>? Reasons = null
+    IReadOnlyList<ListingReasonDto>? Reasons = null,
+    bool canRescore = false
 );

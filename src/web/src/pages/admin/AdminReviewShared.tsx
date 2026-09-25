@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
-import { IconStar, IconStarFilled, IconNote, IconX } from "@tabler/icons-react";
-import type { PersonSummary, CaseNote } from "../../types/mockAdmin";
-import { getMockCaseNotes, addMockCaseNote } from "../../types/mockAdmin";
-import { LoadingState } from "../../components/layout/Spinner";
+
+import { IconStar, IconStarFilled, IconX } from "@tabler/icons-react";
+import type { PersonSummary} from "../../types/mockAdmin";
 
 interface ConfirmModalProps {
   title: string;
@@ -333,7 +331,7 @@ export function DecisionButton({
   );
 }
 
-export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
+/*export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
   const [notes, setNotes] = useState<CaseNote[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
@@ -352,7 +350,7 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
     };
   }, [caseId]);
 
-  async function handleAddNote() {
+  /*async function handleAddNote() {
     const content = draft.trim();
     if (!content) return;
     setSaving(true);
@@ -421,4 +419,4 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
       </div>
     </Panel>
   );
-}
+}*/
