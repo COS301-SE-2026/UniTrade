@@ -52,6 +52,8 @@ export default function SellerListingDetail() {
   const [statusData, setStatusData] = useState<ListingStatusResponse | null>(null);
   const [showResubmitModal, setShowResubmitModal] = useState(false);
   const [resubmitSubmitting, setResubmitSubmitting] = useState(false)
+  const [rescoreSubmitting, setRescoreSubmitting] = useState(false);
+  const [showRescoreModal, setShowRescoreModal] = useState(false);
 
   const maxResubmissions = statusData?.maxResubmissions ?? 0;
   const resubmissionUsed = statusData?.resubmissionCount ?? 0;
@@ -73,6 +75,22 @@ export default function SellerListingDetail() {
       setError("Failed to resubmit listing");
     } finally {
       setResubmitSubmitting(false);
+    }
+  };
+
+  const handleRescoreConfirm = async () => {
+    if (!id) return;
+    setRescoreSubmitting(true);
+    try {
+      await listingsService.requestRescore(id);
+      const freshStatus = await listingsService.getListingStatus(id);
+      setStatusData(freshStatus);
+      setListing((prev) => (prev ? { ...prev, status: freshStatus.status } : prev));
+      setShowRescoreModal(false);
+    } catch {
+      setError("Failed to re-check listing");
+    } finally {
+      setRescoreSubmitting(false);
     }
   };
 
@@ -160,8 +178,7 @@ export default function SellerListingDetail() {
         </div>
 
 
-        {statusData && (statusData.status === "under_review" || statusData.status === "removed") && (
-
+        {statusData && (statusData.status === "under_review" || statusData.status === "removed" || statusData.status === "banned" || (statusData.status === "live" && statusData.riskLevel === "medium")) && (
           <StatusPill status={statusData.status} />
         )}
       </div>
@@ -304,7 +321,13 @@ export default function SellerListingDetail() {
           {statusData && (statusData.status === "under_review" || (statusData.reasons && statusData.reasons.length > 0)) && (
             <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
               <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
-                {statusData.status === "under_review" ? "Why it was flagged" : "Why it was removed"}
+                {statusData.status === "under_review"
+                  ? "Why it was flagged"
+                  : statusData.status === "banned"
+                  ? "Why it was banned"
+                  : statusData.status === "live" && statusData.riskLevel === "medium"
+                    ? "Why visibility is reduced"
+                    : "Why it was removed"}
               </h3>
               <p className="text-xs text-gray-500 dark:text-white/60 mb-3">
                 {statusData.message}
@@ -332,7 +355,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={() => navigate(`/seller/editListing/${id}`)}
-              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review" || listing.status === "banned"}
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Edit Listing
@@ -341,7 +364,7 @@ export default function SellerListingDetail() {
             <button
               type='button'
               onClick={handleDelete}
-              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review"}
+              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review" || listing.status === "banned"}
               className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Delete Listing
@@ -357,8 +380,20 @@ export default function SellerListingDetail() {
                 {canResubmit ? `Resubmit (${remaining} left)` : "Resubmission limit reached"}
               </button>
             )}
+
+            {statusData?.status === "live" && statusData.riskLevel === "medium" && statusData.canRescore && (
+              <button
+                type="button"
+                onClick={() => setShowRescoreModal(true)}
+                className="w-full mt-4 py-2.5 bg-navy-700 text-white text-sm font-semibold rounded-xl hover:bg-navy-600 transition-colors"
+              >
+                Re-check my listing
+              </button>
+            )}
           </div>
         </div>
+
+
 
         {showResubmitModal && (
           <ConfirmModal
@@ -370,6 +405,19 @@ export default function SellerListingDetail() {
             showReasonField={false}
             onCancel={() => setShowResubmitModal(false)}
             onConfirm={handleResubmitConfirm}
+          />
+        )}
+
+        {showRescoreModal && (
+          <ConfirmModal
+            title="Re-check listing"
+            message="We will re-run our automated checks on this listing. If the concern that flagged it no longer applies, your listing will regain full visibilty."
+            confirmLabel="Re-check"
+            tone="neutral"
+            submitting={rescoreSubmitting}
+            showReasonField={false}
+            onCancel={() => setShowRescoreModal(false)}
+            onConfirm={handleRescoreConfirm}
           />
         )}
         {lightboxOpen && listing.images?.[selectedImg] && (

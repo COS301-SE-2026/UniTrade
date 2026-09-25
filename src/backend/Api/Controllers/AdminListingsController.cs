@@ -51,6 +51,10 @@ public sealed class AdminListingsController : AdminControllerBase
         {
             return BadRequest(new { error = "reason_required" });
         }
+        catch (ArgumentException ex) when (ex.Message == "not_ai_flagged")
+        {
+            return Conflict(new { error = "not_ai_flagged" });
+        }
     }
 
     private Guid GetAdminId()

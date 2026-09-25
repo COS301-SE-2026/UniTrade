@@ -381,4 +381,39 @@ public class ListingController : ControllerBase
             return NotFound(new { error = "listing_not_found" });
         }
     }
+
+    [Authorize]
+    [HttpPost("{id:guid}/rescore")]
+    public async Task<IActionResult> Rescore(Guid id, CancellationToken ct)
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = _unauthenticatedString });
+        }
+
+        try
+        {
+            var isLive = await _listings.RequestRescoreAsync(id, callerId, ct);
+            return Ok(new { status = isLive ? "live" : "low_visibility" });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "not_eligible_for_rescore")
+        {
+            return Conflict(new { error = "not_eligible_for_rescore" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "rescore_not_eligible")
+        {
+            return Conflict(new { error = "rescore_not_eligible" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "listing_not_found" });
+        }
+    }
 }

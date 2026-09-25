@@ -359,7 +359,7 @@ public class AppDbContext : DbContext
                 );
                 tb.HasCheckConstraint(
                     "chk_listing_status",
-                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening')"
+                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned')"
                 );
             });
 
@@ -1068,7 +1068,7 @@ public class AppDbContext : DbContext
                 );
                 t.HasCheckConstraint(
                     "chk_dispute_status",
-                    "status IN ('open','under_review','resolved','closed')"
+                    "status IN ('open','under_review','resolved','closed','resubmission')"
                 );
             });
 

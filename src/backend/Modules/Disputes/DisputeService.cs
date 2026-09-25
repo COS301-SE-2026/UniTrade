@@ -10,6 +10,7 @@ using Modules.Listings.Snapshot;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
+using Modules.Listings.Moderation;
 
 namespace Modules.Disputes;
 
@@ -21,6 +22,8 @@ public class DisputeService : IDisputeService
     private readonly IMeetupRepository _meetups;
     private readonly IListingRepository _listingRepository;
     private readonly IBroadCastService _broadcast;
+    private readonly IModerationService _moderation;
+    private readonly IReservationService _reservations;
 
     public DisputeService(
         IReservationMembership membership,
@@ -29,7 +32,8 @@ public class DisputeService : IDisputeService
         IDisputeRepository disputes,
         IMeetupRepository meetups,
         IListingRepository listingRepository,
-        IBroadCastService broadcast
+        IBroadCastService broadcast,
+        IModerationService moderation
     )
     {
         _membership = membership;
@@ -38,6 +42,7 @@ public class DisputeService : IDisputeService
         _meetups = meetups;
         _listingRepository = listingRepository;
         _broadcast = broadcast;
+        _moderation = moderation;
     }
 
     public async Task<FileDisputeResultDto> FileDisputeAsync(
@@ -263,7 +268,17 @@ public class DisputeService : IDisputeService
             },
             ct
         );
+        await _moderation.SetUnderReviewAsync(listing.ListingId, req.Description, ct);
 
+        if (listing.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listingRepository.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
+
+            foreach (var sibling in siblings.Where(s => s.ListingId != listing.ListingId && s.ListingStatus == "live"))
+            {
+                await _moderation.SetUnderReviewAsync(sibling.ListingId, req.Description, ct);
+            }
+        }
         await _broadcast.NotifyAdminAsync(
             "dispute_created",
             new { caseId, type = "report_listing" }

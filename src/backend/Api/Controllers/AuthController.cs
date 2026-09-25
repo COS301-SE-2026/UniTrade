@@ -27,6 +27,7 @@ public class AuthController : ControllerBase
 
     private const long _maxPorFileSizeBytes = 5 * 1024 * 1024;
     private const string _serverErrorString = "server_error";
+    private const string _accountBlockedString = "account_blocked";
 
     public AuthController(
         IIdentityService identityService,
@@ -67,6 +68,7 @@ public class AuthController : ControllerBase
                 "otp_already_sent" => StatusCode(429, new { error = "otp_already_sent" }),
                 "invalid_domain" => UnprocessableEntity(new { error = "invalid_domain" }),
                 "weak_password" => UnprocessableEntity(new { error = "weak_password" }),
+                _accountBlockedString => StatusCode(403, new { error = _accountBlockedString }),
                 _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }
@@ -145,6 +147,7 @@ public class AuthController : ControllerBase
             return e.Message switch
             {
                 "invalid_credentials" => Unauthorized(new { error = "invalid_credentials" }),
+                _accountBlockedString => StatusCode(403, new { error = _accountBlockedString }),
                 _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }

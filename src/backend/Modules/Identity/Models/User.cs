@@ -18,4 +18,6 @@ public class User
     public DateTime? TermsAcceptedAt { get; set; }
     public StudentProfile? StudentProfile { get; set; }
     public AdminProfile? AdminProfile { get; set; }
+    public bool IsBlocked { get; set; } = false;
+    public DateTime? BlockedUntil { get; set; }
 }

@@ -4,6 +4,7 @@ public enum DisputeOutcome
 {
     Strike,
     RemoveListing,
+    WarnSellerResubmit,
     RefusalFlag,
 }
 
@@ -38,6 +39,7 @@ internal static class DisputeDecisionMappings
                 {
                     "strike" => DisputeOutcome.Strike,
                     "remove_listing" => DisputeOutcome.RemoveListing,
+                    "warn_seller_resubmit" => DisputeOutcome.WarnSellerResubmit,
                     "refusal_flag" => DisputeOutcome.RefusalFlag,
                     _ => throw new DisputesException("invalid_outcome"),
                 }
