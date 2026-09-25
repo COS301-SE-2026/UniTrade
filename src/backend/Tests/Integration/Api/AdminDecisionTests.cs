@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Modules.Identity.Models;
 using Xunit;
+namespace Api.Tests.Integration.Api;
 
 [Trait("Category", "Integration")]
 public sealed class AdminDecisionTests : IClassFixture<AdminApiFactory>
@@ -96,7 +97,7 @@ public sealed class AdminDecisionTests : IClassFixture<AdminApiFactory>
         await using var db = _factory.NewContext();
         var userId = Guid.NewGuid();
         db.Users.Add(
-            new Modules.Identity.Models.User
+            new User
             {
                 UserId = userId,
                 FirstName = "Pending",

@@ -6,7 +6,11 @@ namespace Modules.Listings;
 
 public interface IListingService
 {
-    Task<ListingSummaryDto> CreateListings(CreateListingDto dto, Guid callerId, CancellationToken ct = default);
+    Task<ListingSummaryDto> CreateListings(
+        CreateListingDto dto,
+        Guid callerId,
+        CancellationToken ct = default
+    );
     Task<bool> UpdateListings(
         UpdateListingDto listings,
         Guid id,
@@ -23,4 +27,15 @@ public interface IListingService
         string newStatus,
         CancellationToken ct = default
     );
+    Task<SellerListingStatusDto?> GetStatusAsync(Guid listingId, Guid callerId);
+    Task DuplicateImagesToGroupAsync(Guid sourceListingId, CancellationToken ct = default);
+
+    Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default);
+    Task RescoreGroupAfterImagesAsync(Guid listingId, CancellationToken ct = default);
+    Task<ResubmitListingResultDto> ResubmitListingAsync(
+        Guid listigId,
+        Guid callerId,
+        CancellationToken ct = default
+    );
+
 }

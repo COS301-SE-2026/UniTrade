@@ -187,7 +187,7 @@ describe('reserving a listing', () => {
   it('navigates to reservation on a successful reserve', async () => {
     vi.mocked(createReservation).mockResolvedValueOnce({ success: true } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     await vi.waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith('/buyer/reservations');
     });
@@ -199,7 +199,7 @@ describe('reserving a listing', () => {
       error: { code: 'self_reserve' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(await screen.findByText('You cant reserve your own listing.')).toBeInTheDocument();
   });
 
@@ -209,7 +209,7 @@ describe('reserving a listing', () => {
       error: { code: 'already_reserved' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(
       await screen.findByText('Sorry, This Item has already been reserved by someone else'),
     ).toBeInTheDocument();
@@ -221,7 +221,7 @@ describe('reserving a listing', () => {
       error: { code: 'weird_error', message: 'Something unexpected happened' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(await screen.findByText('Something unexpected happened')).toBeInTheDocument();
   });
 
@@ -231,7 +231,7 @@ describe('reserving a listing', () => {
       error: { code: 'weird_error' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(await screen.findByText('Could not reserve this item.')).toBeInTheDocument();
   });
 });

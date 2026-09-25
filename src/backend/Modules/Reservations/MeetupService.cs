@@ -3,14 +3,14 @@ using Microsoft.Extensions.Logging;
 using Modules.Chat;
 using Modules.Chat.Models.Dto;
 using Modules.Chat.Repository;
+using Modules.Disputes;
+using Modules.Disputes.Models;
+using Modules.Disputes.Repositories;
 using Modules.Notifications;
 using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
-using Modules.Disputes;
-using Modules.Disputes.Models;
-using Modules.Disputes.Repositories;
 
 namespace Modules.Reservations;
 
@@ -30,6 +30,7 @@ public class MeetupService : IMeetupService
         TimeProvider clock,
         IMeetupRepository meetups,
         INotificationDispatcher pushNotifier,
+        IDisputeRepository disputes,
         ILogger<MeetupService> logger
     )
     {
@@ -39,6 +40,7 @@ public class MeetupService : IMeetupService
         _pushNotifier = pushNotifier;
         _logger = logger;
         _clock = clock;
+        _disputes = disputes;
     }
 
     public async Task<ChatMessageDto> ProposeAsync(
@@ -317,8 +319,20 @@ public class MeetupService : IMeetupService
         }
     }
 
-    private static ReservationDto MapToDto(Reservation r, Guid? listingId = null) =>
-        new(
+    private static ReservationDto MapToDto(Reservation r, Guid? listingId = null)
+    {
+        var listings = r
+            .ReservationListings.Select(rl => new ReservationListingSummaryDto(
+                rl.Listing.ListingId,
+                rl.Listing.Title,
+                rl.Listing.Price,
+                rl.Listing.Images.Count > 0
+                    ? $"/api/listings/{rl.Listing.ListingId}/images/{rl.Listing.Images.First().ImageId}"
+                    : null
+            ))
+            .ToList();
+
+        return new(
             ReservationId: r.ReservationId,
             ListingId: listingId ?? r.ReservationListings.First().ListingId,
             BuyerId: r.BuyerId,
@@ -328,10 +342,17 @@ public class MeetupService : IMeetupService
             ExpiresAt: r.ExpiresAt,
             CreatedAt: r.CreatedAt,
             CompletedAt: r.CompletedAt,
-            CounterParty: null
+            CounterParty: null,
+            Listings: listings,
+            TotalPrice: listings.Sum(x => x.Price),
+            IsBundle: listings.Count > 1
         );
+    }
 
-    public async Task<IReadOnlyList<Meetup>> DetectNoShowsAsync(DateTime asOf, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Meetup>> DetectNoShowsAsync(
+        DateTime asOf,
+        CancellationToken ct = default
+    )
     {
         var due = await _meetups.GetDueForNoShowDetectionAsync(asOf, batchSize: 100, ct);
         var resolved = new List<Meetup>();
@@ -385,7 +406,8 @@ public class MeetupService : IMeetupService
                 catch (Exception ex)
                 {
                     _logger.LogError(
-                        ex, "Failed to file system no-show dispute for meetup {MeetupId}",
+                        ex,
+                        "Failed to file system no-show dispute for meetup {MeetupId}",
                         meetup.MeetupId
                     );
                 }
@@ -398,9 +420,10 @@ public class MeetupService : IMeetupService
             {
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
-                    _logger.LogInformation("Meetup {MeetupId} resolved to {Status} at end of check-in window",
-                    meetup.MeetupId,
-                    meetup.Status
+                    _logger.LogInformation(
+                        "Meetup {MeetupId} resolved to {Status} at end of check-in window",
+                        meetup.MeetupId,
+                        meetup.Status
                     );
                 }
             }

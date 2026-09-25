@@ -24,5 +24,8 @@ public record ListingSummaryDto(
     DateTime UpdatedAt,
     IReadOnlyList<ListingImageDto> Images,
     SellerInfoDto? Seller,
-    int AnsweredQuestionCount = 0
+    Guid? ListingGroupId,
+    int AnsweredQuestionCount = 0,
+    int ResubmissionCount = 0,
+    int MaxResubmissions = 0
 );

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router'
-import { IconArrowLeft, IconStar } from "@tabler/icons-react"
+import { IconChevronRight, IconStar } from "@tabler/icons-react"
 import type { UserListing, UserReputation } from '../../types/admin_disputes'
 import { useEffect, useState } from 'react'
 import { getUserListings, getUserReputation } from '../../services/adminService'
@@ -127,21 +127,27 @@ export default function ViewUser() {
   }, [userId]);
 
   if (loading) {
-   
-    return <LoadingState message = "Loading User..." />;
+
+    return <LoadingState message="Loading User..." />;
   }
 
   if (error || !user) {
     return (
       <div className="p-8 space-y-4 max-w-6xl">
-        <button
-          type='button'
-          onClick={() => navigate('/admin/users')}
-          className="flex items-center space-x-1 text-sm text-gray-800 hover:text-black transition-colors cursor-pointer"
-        >
-          <IconArrowLeft size={16} />
-          <span>Back to Users</span>
-        </button>
+        <div className="flex items-center gap-1.5 text-sm text-gray-600">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/users")}
+            className="text-[#00aaff] hover:underline cursor-pointer"
+          >
+            Users
+          </button>
+          <IconChevronRight size={12} />
+          <span className="text-gray-400"></span>
+          <span className="text-gray-600">User Review</span>
+
+
+        </div>
         <div className="p-6 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">{error || `User with ID ${userId} not found.`}
         </div>
       </div>
@@ -152,14 +158,20 @@ export default function ViewUser() {
 
     <div className="max-w-6xl w-full mx-auto space-y-6">
 
-      <button
-        type="button"
-        onClick={() => navigate('/admin/users')}
-        className="flex items-center space-x-1 text-sm font-semibold text-gray-800 hover:text-black transition-colors cursor-pointer"
-      >
-        <IconArrowLeft className="w-4 h-4" />
-        <span>Back to users</span>
-      </button>
+      <div className="flex items-center gap-1.5 text-sm text-gray-600">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/users")}
+          className="text-[#00aaff] hover:underline cursor-pointer"
+        >
+          Users
+        </button>
+        <IconChevronRight size={12} />
+        <span className="text-gray-400"></span>
+        <span className="text-gray-600">User Review</span>
+
+
+      </div>
 
       <div className="flex items-center space-x-4">
         <div className="w-16 h-16 rounded-full bg-navy-700 text-white flex items-center justify-center font-bold text-xl">
@@ -222,16 +234,16 @@ export default function ViewUser() {
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Reputation</h2>
             <div className="flex items-center space-x-1 text-amber-700">
               {
-                [...Array(5)].map((_, index) => (
+                [...new Array(5)].map((_, index) => (
                   <IconStar key={index} className="w-5 h-5 fill-current " />
                 ))
               }
             </div>
             <div className="text-3xl font-bold text-gray-900">{user.reputation}%</div>
-        </div>
+          </div>
         </div>
 
-          
+
 
         <div className="col-span-5 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
@@ -261,9 +273,9 @@ export default function ViewUser() {
               ))}
             </div>
           </div>
-        
 
-    
+
+
 
 
 

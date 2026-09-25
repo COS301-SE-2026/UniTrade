@@ -10,5 +10,11 @@ public record ReservationDto(
     DateTime ExpiresAt,
     DateTime CreatedAt,
     DateTime? CompletedAt,
-    CounterPartyDto? CounterParty
+    CounterPartyDto? CounterParty,
+    IReadOnlyList<ReservationListingSummaryDto> Listings,
+    decimal TotalPrice,
+    bool IsBundle,
+    decimal SubTotal = 0m,
+    decimal DiscountAmount = 0m,
+    int? BundleDiscountPercent = null
 );

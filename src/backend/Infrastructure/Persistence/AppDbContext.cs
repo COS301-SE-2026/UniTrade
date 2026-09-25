@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Modules.Audit.Models;
@@ -14,6 +15,7 @@ using Modules.Reservations.Models;
 using Modules.Reviews.Models;
 using Modules.SavedSearches.Models;
 using Modules.SharedKernel;
+using Modules.Timetable.Models;
 using Modules.Transactions.Models;
 using Modules.Wishlist.Models;
 
@@ -84,6 +86,10 @@ public class AppDbContext : DbContext
     // Listing Questions
 
     public DbSet<ListingQuestion> ListingQuestions => Set<ListingQuestion>();
+
+    // Timetable
+    public DbSet<TimetableEntry> TimetableEntries => Set<TimetableEntry>();
+
     //constants - sonarqube
     private readonly string _nowString = "now()";
 
@@ -144,13 +150,18 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SellerTrustScore).HasPrecision(4, 2).HasDefaultValue(0);
             entity.Property(x => x.BuyerReliabilityScore).HasPrecision(4, 2).HasDefaultValue(0);
-
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
                 t.HasCheckConstraint(
                     "chk_student_verification",
                     "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
+                );
+                t.HasCheckConstraint(
+                    "chk_student_bundle_rule",
+                    "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)"
                 );
             });
 
@@ -175,6 +186,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.UniversityId).HasDatabaseName("ix_student_university");
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_student_course");
             entity.HasIndex(x => x.VerificationStatus).HasDatabaseName("ix_student_status");
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         //ADMIN
@@ -346,7 +359,7 @@ public class AppDbContext : DbContext
                 );
                 tb.HasCheckConstraint(
                     "chk_listing_status",
-                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')"
+                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening')"
                 );
             });
 
@@ -378,6 +391,17 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
             entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
             entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
+            entity
+                .Property(x => x.AiRiskReasons)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<RiskReason>>(
+                            v,
+                            (JsonSerializerOptions?)null
+                        )
+                );
 
             entity.Property(x => x.RejectionReason);
 
@@ -464,8 +488,14 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
+
+            entity
+                .HasIndex(x => x.ListingGroupId)
+                .HasDatabaseName("ix_listings_group")
+                .HasFilter("listing_group_id IS NOT NULL");
         });
 
+        // Listing Category
         modelBuilder.Entity<ListingCategory>(entity =>
         {
             entity.HasKey(x => x.CategoryId);
@@ -556,6 +586,10 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
+            entity.Property(x => x.PerceptualHash).HasMaxLength(16);
+            entity
+                .HasIndex(x => x.PerceptualHash)
+                .HasDatabaseName("ix_listing_images_perceptual_hash");
         });
 
         // Reservations
@@ -577,12 +611,24 @@ public class AppDbContext : DbContext
             entity.Property(x => x.ExpiresAt).IsRequired();
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
             entity.Property(x => x.TwoHourWarningSentAt);
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
 
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint(
                     "chk_res_status",
                     "reservation_status IN ('active', 'expired', 'cancelled', 'completed')"
+                );
+
+                t.HasCheckConstraint(
+                    "chk_res_amount",
+                    "subtotal_amount >= 0 AND total_amount >=0 AND total_amount <= subtotal_amount"
+                );
+                t.HasCheckConstraint(
+                    "chk_res_discount_percent",
+                    "bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30"
                 );
             });
 
@@ -606,6 +652,10 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.ExpiresAt)
                 .HasDatabaseName("ix_res_expires")
                 .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
+
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>
@@ -923,8 +973,8 @@ public class AppDbContext : DbContext
             });
             entity
                 .HasOne(x => x.Reservation)
-                .WithOne(r => r.ListingSnapshot)
-                .HasForeignKey<ListingSnapshot>(x => x.ReservationId)
+                .WithMany(r => r.ListingSnapshots)
+                .HasForeignKey(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
@@ -1098,6 +1148,49 @@ public class AppDbContext : DbContext
             entity.Property(x => x.QuestionText).HasMaxLength(1000).IsRequired();
             entity.Property(x => x.AnswerText).HasMaxLength(2000);
             entity.HasIndex(x => x.ListingId);
+        });
+
+        // Timetable entries
+        modelBuilder.Entity<TimetableEntry>(entity =>
+        {
+            entity.Property(x => x.EntryId).HasDefaultValueSql("gen_random_uuid()");
+            entity.HasKey(x => x.EntryId);
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.DayOfWeek).IsRequired();
+            entity.Property(x => x.StartTime).HasColumnType("time").IsRequired();
+            entity.Property(x => x.EndTime).HasColumnType("time").IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("chk_timetable_day", "day_of_week BETWEEN 0 AND 6");
+                t.HasCheckConstraint("chk_timetable_range", "start_time < end_time");
+                t.HasCheckConstraint(
+                    "chk_timetable_hours",
+                    "start_time >= TIME '08:00' AND end_time <= TIME '20:00'"
+                );
+            });
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_timetable_entries_user");
+            entity
+                .HasIndex(x => new { x.UserId, x.DayOfWeek })
+                .HasDatabaseName("ix_timetable_entries_user_day");
+            entity
+                .HasIndex(e => new
+                {
+                    e.UserId,
+                    e.DayOfWeek,
+                    e.StartTime,
+                    e.EndTime,
+                })
+                .IsUnique()
+                .HasDatabaseName("ix_timetable_entries_user_slot");
         });
     }
 }

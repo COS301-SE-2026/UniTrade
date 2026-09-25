@@ -25,7 +25,6 @@ public class ListingRepository : IListingRepository
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Course)
-            .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         var listing = await query.FirstOrDefaultAsync(l => l.ListingId == listingId);
@@ -46,7 +45,6 @@ public class ListingRepository : IListingRepository
             .Listings.Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images)
-            .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted))
             .FirstOrDefaultAsync(l => l.ListingId == id);
 
@@ -58,8 +56,12 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails);
+        
+        if (!listingFilterDto.SellerId.HasValue)
+        {
+            query = query.Where(l => l.ListingStatus != _removedStatus);
+        }
 
-        query = query.Where(l => l.ListingStatus != _removedStatus);
         query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         if (listingFilterDto.CategoryId.HasValue)
@@ -88,9 +90,14 @@ public class ListingRepository : IListingRepository
 
         var take = Math.Clamp(listingFilterDto.Take, 1, 100);
 
+        IOrderedQueryable<Listing> ordered =
+            listingFilterDto.ListingStatus == "live"
+                ? query
+                    .OrderByDescending(l => l.VisibilityScore ?? 100)
+                    .ThenByDescending(l => l.CreatedAt)
+                : query.OrderByDescending(l => l.CreatedAt);
         // Map to entity
-        var items = await query
-            .OrderByDescending(l => l.CreatedAt)
+        var items = await ordered
             .ThenByDescending(l => l.ListingId)
             .Skip(listingFilterDto.Skip)
             .Take(take)
@@ -133,7 +140,7 @@ public class ListingRepository : IListingRepository
     }
 
     // helper function to attach a seller (with their information) to a listing
-    private async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
+    public async Task AttachSellerInfoAsync(IReadOnlyCollection<Listing> listings)
     {
         if (listings.Count == 0)
         {
@@ -205,7 +212,6 @@ public class ListingRepository : IListingRepository
             .AnyAsync(l =>
                 l.ListingId == listingId
                 && l.SellerId == sellerId
-                && l.ListingStatus != _removedStatus
             );
     }
 
@@ -334,5 +340,126 @@ public class ListingRepository : IListingRepository
             );
 
         return rowsFetched == 1;
+    }
+
+    public async Task<IReadOnlyList<Listing>> GetByGroupIdAsync(
+        Guid groupId,
+        bool includeRemoved = false,
+        CancellationToken ct = default
+    ) =>
+        await _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingGroupId == groupId && ( includeRemoved || l.ListingStatus != _removedStatus))
+            .ToListAsync(ct);
+
+    public async Task DuplicateImagesToGroupAsync(
+        Guid sourceListingId,
+        CancellationToken ct = default
+    )
+    {
+        var groupId = await _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingId == sourceListingId)
+            .Select(l => l.ListingGroupId)
+            .FirstOrDefaultAsync(ct);
+
+        if (groupId is null)
+            return;
+
+        var sourceImages = await _db
+            .ListingImages.AsNoTracking()
+            .Where(img => img.ListingId == sourceListingId)
+            .ToListAsync(ct);
+
+        var siblingIds = await _db
+            .Listings.Where(l =>
+                l.ListingGroupId == groupId
+                && l.ListingId != sourceListingId
+            )
+            .Select(l => l.ListingId)
+            .ToListAsync(ct);
+
+        if (siblingIds.Count == 0)
+            return;
+
+        await using var txn = await _db.Database.BeginTransactionAsync(ct);
+        await _db
+            .ListingImages.Where(img => siblingIds.Contains(img.ListingId))
+            .ExecuteDeleteAsync(ct);
+
+        if (sourceImages.Count > 0)
+        {
+            foreach (var siblingId in siblingIds)
+            {
+                foreach (var img in sourceImages)
+                {
+                    _db.ListingImages.Add(
+                        new ListingImage
+                        {
+                            ListingId = siblingId,
+                            ImageData = img.ImageData,
+                            ContentType = img.ContentType,
+                            FileSize = img.FileSize,
+                            IsPrimary = img.IsPrimary,
+                            UploadedAt = DateTime.UtcNow,
+                        }
+                    );
+                }
+            }
+            await _db.SaveChangesAsync(ct);
+        }
+        await txn.CommitAsync(ct);
+    }
+
+    public async Task AddRangeAsync(IReadOnlyList<Listing> listings)
+    {
+        _db.Listings.AddRange(listings);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<decimal>> GetComparablePricesAsync(
+        int categoryId,
+        int? courseId,
+        Guid excludeListingId,
+        Guid excludeSellerId,
+        CancellationToken ct = default
+    )
+    {
+        IQueryable<Listing> query = _db
+            .Listings.AsNoTracking()
+            .Where(l => l.ListingId != excludeListingId)
+            .Where(l => l.SellerId != excludeSellerId)
+            .Where(l => l.ListingStatus == "live" || l.ListingStatus == "low_visibility");
+
+        query = courseId.HasValue
+            ? query.Where(l => l.CourseId == courseId)
+            : query.Where(l => l.CategoryId == categoryId);
+
+        return await query.Select(l => l.Price).ToListAsync(ct);
+    }
+
+    public async Task<Listing?> GetByIdAnyStatusAsync(Guid listingId)
+    {
+        return await _db
+            .Listings.AsNoTracking()
+            .Include(l => l.Category)
+            .FirstOrDefaultAsync(l => l.ListingId == listingId);
+    }
+
+    public async Task<int> CountHighRiskListingsForSellerAsync(
+        Guid sellerId,
+        Guid excludeListingId,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .Listings.AsNoTracking()
+            .CountAsync(
+                l =>
+                    l.SellerId == sellerId
+                    && l.ListingId != excludeListingId
+                    && l.AiRiskLevel == "high",
+                ct
+            );
     }
 }

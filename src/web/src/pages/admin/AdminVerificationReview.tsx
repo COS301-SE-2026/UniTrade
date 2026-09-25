@@ -99,10 +99,28 @@ function ReasonModal({
 
   return (
     <div
+      role='button'
+      tabIndex={0}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onCancel}
+      onKeyDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          if (e.key === 'Escape') {
+            onCancel();
+          }
+          return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onCancel();
+        }
+
+      }}
     >
       <div
+        role='presentation'
+        tabIndex={-1}
         className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -223,20 +241,20 @@ export default function AdminVerificationReview() {
 
   return (
     <div className="space-y-4">
-        
-      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+
+      <div className="flex items-center gap-1.5 text-sm text-gray-600">
         <button
           type="button"
-          className="text-[#00aaff] cursor-pointer hover:underline"
           onClick={() => navigate("/admin/verifications")}
+          className="text-[#00aaff] hover:underline cursor-pointer"
         >
           Verifications
         </button>
-                <IconChevronRight size={12} />
-        
-          Case Review
-        
-       
+        <IconChevronRight size={12} />
+        <span className="text-gray-400"></span>
+        <span className="text-gray-600">Case Review</span>
+
+
       </div>
 
 
@@ -267,7 +285,7 @@ export default function AdminVerificationReview() {
                   </p>
                 </div>
               </div>
-              {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-[#00aaff] hover:underline">
+              {record.document.url !== '#' ? (<a href={record.document.url} className="text-xs font-semibold text-sky-700 hover:underline">
                 View
               </a>) : (
                 <span className='text-xs text-gray-600'>Document not available</span>
@@ -281,14 +299,14 @@ export default function AdminVerificationReview() {
               <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
                 <IconAlertTriangle size={18} className="shrink-0 text-amber-600 dark:text-amber-400" />
                 <span>
-                The applicant has not yet uploaded their Proof of Registration. Actions are disabled until a document is submitted.
+                  The applicant has not yet uploaded their Proof of Registration. Actions are disabled until a document is submitted.
                 </span>
               </div>
             )}
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <DecisionButton tone="success" disabled={isActionDisabled} 
-              onClick={() => handleDecisionClick('approve')}>
+              <DecisionButton tone="success" disabled={isActionDisabled}
+                onClick={() => handleDecisionClick('approve')}>
                 {submitting === 'approve' ? 'Approving…' : 'Approve'}
               </DecisionButton>
               <DecisionButton tone="neutral" disabled={isActionDisabled} onClick={() => handleDecisionClick('resubmit')}>

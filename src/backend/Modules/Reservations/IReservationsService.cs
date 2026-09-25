@@ -1,4 +1,7 @@
 using Modules.Reservations.Models.Dto;
+using Modules.Reservations.Models;
+
+
 
 namespace Modules.Reservations;
 
@@ -52,5 +55,14 @@ public interface IReservationService
     Task<IReadOnlyList<ReservationDto>> SendTwoHourWarningsAsync(
         DateTime asOfTime,
         CancellationToken ct
+    );
+
+    Task<ReserveMultipleResultDto> ReserveMultipleAsync(
+        Guid buyerId,
+        Guid sellerId,
+        IReadOnlyList<Guid> listingIds,
+        BundleRule? bundleRule = null,
+        decimal? maxTotal = null,
+        CancellationToken ct = default
     );
 }

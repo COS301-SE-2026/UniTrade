@@ -370,6 +370,14 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("student_id");
 
+                    b.Property<int?>("BundleDiscountPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("bundle_discount_percent");
+
+                    b.Property<int?>("BundleMinItems")
+                        .HasColumnType("integer")
+                        .HasColumnName("bundle_min_items");
+
                     b.Property<decimal>("BuyerReliabilityScore")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(4, 2)
@@ -429,6 +437,8 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("student_profiles", "unitrade", t =>
                         {
+                            t.HasCheckConstraint("chk_student_bundle_rule", "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)");
+
                             t.HasCheckConstraint("chk_student_verification", "verification_status IN ('pending', 'partial', 'verified', 'rejected')");
 
                             t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
@@ -719,6 +729,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("ai_risk_level");
 
+                    b.Property<string>("AiRiskReasons")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("ai_risk_reasons");
+
                     b.Property<decimal?>("AiRiskScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)")
@@ -753,11 +767,19 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<double?>("ImageMatchScore")
+                        .HasColumnType("double precision")
+                        .HasColumnName("image_match_score");
+
                     b.Property<bool?>("IsBundle")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_bundle");
+
+                    b.Property<Guid?>("ListingGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("listing_group_id");
 
                     b.Property<string>("ListingStatus")
                         .IsRequired()
@@ -777,6 +799,10 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<string>("RejectionReason")
                         .HasColumnType("text")
                         .HasColumnName("rejection_reason");
+
+                    b.Property<int>("ResubmissionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("resubmission_count");
 
                     b.Property<Guid>("SellerId")
                         .HasColumnType("uuid")
@@ -818,6 +844,10 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("CourseId1")
                         .HasDatabaseName("ix_listings_course_id1");
 
+                    b.HasIndex("ListingGroupId")
+                        .HasDatabaseName("ix_listings_group")
+                        .HasFilter("listing_group_id IS NOT NULL");
+
                     b.HasIndex("SellerId")
                         .HasDatabaseName("ix_listings_seller");
 
@@ -850,7 +880,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening')");
                         });
                 });
 
@@ -938,6 +968,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("content_type");
 
+                    b.PrimitiveCollection<float[]>("Embedding")
+                        .HasColumnType("real[]")
+                        .HasColumnName("embedding");
+
                     b.Property<int>("FileSize")
                         .HasColumnType("integer")
                         .HasColumnName("file_size");
@@ -957,6 +991,11 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("listing_id");
 
+                    b.Property<string>("PerceptualHash")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("perceptual_hash");
+
                     b.Property<DateTime>("UploadedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -968,6 +1007,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ListingId")
                         .HasDatabaseName("ix_listing_images_listing");
+
+                    b.HasIndex("PerceptualHash")
+                        .HasDatabaseName("ix_listing_images_perceptual_hash");
 
                     b.ToTable("listing_images", "unitrade");
                 });
@@ -1033,7 +1075,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_listing_snapshots_listing_id");
 
                     b.HasIndex("ReservationId")
-                        .IsUnique()
                         .HasDatabaseName("ix_listing_snapshot_reservation_id");
 
                     b.ToTable("listing_snapshot", "unitrade", t =>
@@ -1418,6 +1459,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("reservation_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<int?>("BundleDiscountPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("bundle_discount_percent");
+
                     b.Property<Guid>("BuyerId")
                         .HasColumnType("uuid")
                         .HasColumnName("buyer_id");
@@ -1468,6 +1513,16 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("seller_id");
 
+                    b.Property<decimal>("SubtotalAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("subtotal_amount");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("total_amount");
+
                     b.Property<DateTime?>("TwoHourWarningSentAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("two_hour_warning_sent_at");
@@ -1490,6 +1545,10 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("reservations", "unitrade", t =>
                         {
+                            t.HasCheckConstraint("chk_res_amount", "subtotal_amount >= 0 AND total_amount >=0 AND total_amount <= subtotal_amount");
+
+                            t.HasCheckConstraint("chk_res_discount_percent", "bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30");
+
                             t.HasCheckConstraint("chk_res_status", "reservation_status IN ('active', 'expired', 'cancelled', 'completed')");
                         });
                 });
@@ -1661,6 +1720,59 @@ namespace Infrastructure.Persistence.Migrations
                         .HasName("pk_images");
 
                     b.ToTable("images", "unitrade");
+                });
+
+            modelBuilder.Entity("Modules.Timetable.Models.TimetableEntry", b =>
+                {
+                    b.Property<Guid>("EntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("entry_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer")
+                        .HasColumnName("day_of_week");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time")
+                        .HasColumnName("end_time");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time")
+                        .HasColumnName("start_time");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("EntryId")
+                        .HasName("pk_timetable_entries");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_timetable_entries_user");
+
+                    b.HasIndex("UserId", "DayOfWeek")
+                        .HasDatabaseName("ix_timetable_entries_user_day");
+
+                    b.HasIndex("UserId", "DayOfWeek", "StartTime", "EndTime")
+                        .IsUnique()
+                        .HasDatabaseName("ix_timetable_entries_user_slot");
+
+                    b.ToTable("timetable_entries", "unitrade", t =>
+                        {
+                            t.HasCheckConstraint("chk_timetable_day", "day_of_week BETWEEN 0 AND 6");
+
+                            t.HasCheckConstraint("chk_timetable_hours", "start_time >= TIME '08:00' AND end_time <= TIME '20:00'");
+
+                            t.HasCheckConstraint("chk_timetable_range", "start_time < end_time");
+                        });
                 });
 
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
@@ -1992,8 +2104,8 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_listing_snapshot_listings_listing_id");
 
                     b.HasOne("Modules.Reservations.Models.Reservation", "Reservation")
-                        .WithOne("ListingSnapshot")
-                        .HasForeignKey("Modules.Listings.Models.ListingSnapshot", "ReservationId")
+                        .WithMany("ListingSnapshots")
+                        .HasForeignKey("ReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("fk_listing_snapshot_reservations_reservation_id");
 
@@ -2129,6 +2241,16 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Transaction");
                 });
 
+            modelBuilder.Entity("Modules.Timetable.Models.TimetableEntry", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_timetable_entries_users_user_id");
+                });
+
             modelBuilder.Entity("Modules.Transactions.Models.Transaction", b =>
                 {
                     b.HasOne("Modules.Reservations.Models.Reservation", null)
@@ -2186,7 +2308,7 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.Reservations.Models.Reservation", b =>
                 {
-                    b.Navigation("ListingSnapshot");
+                    b.Navigation("ListingSnapshots");
 
                     b.Navigation("Meetups");
 

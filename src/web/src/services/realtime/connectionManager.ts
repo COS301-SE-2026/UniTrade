@@ -23,14 +23,17 @@ class ConnectionManager {
   private readonly messageListeners = new Set<(m: ChatMessage) => void>();
   private readonly readListeners = new Set<(e: MessagesReadEvent) => void>();
   private readonly reservationListeners = new Set<(r: Reservation) => void>();
-  private readonly listingQuestionAskedListeners = new Set<(e: {
-    listingId: string; questionId: string
-  }) => void>();
-  private readonly listingQuestionAnsweredListeners = new Set<(e: {
-    listingId: string; questionId: string
-  }) => void>();
+  private readonly listingQuestionAskedListeners = new Set<
+    (e: { listingId: string; questionId: string }) => void
+  >();
+  private readonly listingQuestionAnsweredListeners = new Set<
+    (e: { listingId: string; questionId: string }) => void
+  >();
   private readonly listingListeners = new Set<
     (listingId: string, event: "reserved" | "released" | "created") => void
+  >();
+  private readonly listingStatusChangedListeners = new Set<
+    (e: { listingId: string; status: string; riskLevel: string }) => void
   >();
   private readonly pinGeneratedListeners = new Set<
     (e: { reservationId: string; pin: string }) => void
@@ -49,15 +52,35 @@ class ConnectionManager {
   >();
 
   private readonly savedSearchMatchListeners = new Set<
-    (e: { listingId: string; title: string; price: number; message: string }) => void
+    (e: {
+      listingId: string;
+      title: string;
+      price: number;
+      message: string;
+    }) => void
   >();
 
   private readonly verificationCreatedListeners = new Set<
     (e: { caseId: string }) => void
   >();
 
-  private readonly forceLogoutListeners = new Set<(e: { reason: string}) => void>();
-  private readonly verificationResubmissionListeners = new Set<(e: {reason: string | null}) => void>()
+  private readonly forceLogoutListeners = new Set<
+    (e: { reason: string }) => void
+  >();
+  private readonly verificationResubmissionListeners = new Set<
+    (e: { reason: string | null }) => void
+  >();
+  private readonly timetableUpdatedListeners = new Set<
+    (p: { userId: string }) => void
+  >();
+
+  private readonly listingFlaggedListeners = new Set<
+    (e: { listingId: string }) => void
+  >();
+
+  private readonly bundleRuleChangedListeners = new Set<
+    (e: { sellerId: string }) => void
+  >();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -76,9 +99,6 @@ class ConnectionManager {
         this.reservationListeners.forEach((cb) => cb(r)),
       );
 
-      conn.on("ListingReserved", (p: { listingId: string }) => {
-        this.listingListeners.forEach((cb) => cb(p.listingId, "reserved"));
-      });
       conn.on("pin_confirmed", (e: { reservationId: string }) =>
         this.pinConfirmedListeners.forEach((cb) => cb(e)),
       );
@@ -91,6 +111,12 @@ class ConnectionManager {
       conn.on("ListingCreated", (p: { listingId: string }) => {
         this.listingListeners.forEach((cb) => cb(p.listingId, "created"));
       });
+
+      conn.on(
+        "listing_status_changed",
+        (e: { listingId: string; status: string; riskLevel: string }) =>
+          this.listingStatusChangedListeners.forEach((cb) => cb(e)),
+      );
       conn.on("pin_generated", (e: { reservationId: string; pin: string }) =>
         this.pinGeneratedListeners.forEach((cb) => cb(e)),
       );
@@ -99,28 +125,53 @@ class ConnectionManager {
         this.paymentCompletedListeners.forEach((cb) => cb(e)),
       );
 
-      conn.on("saved_search_match", (e: { listingId: string; title: string; price: number; message: string }) =>
-        this.savedSearchMatchListeners.forEach((cb) => cb(e)),
+      conn.on(
+        "saved_search_match",
+        (e: {
+          listingId: string;
+          title: string;
+          price: number;
+          message: string;
+        }) => this.savedSearchMatchListeners.forEach((cb) => cb(e)),
       );
 
-      conn.on("listing_question_asked", (e: { listingId: string; questionId: string }) =>
-        this.listingQuestionAskedListeners.forEach((cb) => cb(e)),);
-      conn.on("listing_question_answered", (e: { listingId: string; questionId: string }) =>
-        this.listingQuestionAnsweredListeners.forEach((cb) => cb(e)))
+      conn.on(
+        "listing_question_asked",
+        (e: { listingId: string; questionId: string }) =>
+          this.listingQuestionAskedListeners.forEach((cb) => cb(e)),
+      );
+      conn.on(
+        "listing_question_answered",
+        (e: { listingId: string; questionId: string }) =>
+          this.listingQuestionAnsweredListeners.forEach((cb) => cb(e)),
+      );
       conn.on("dispute_created", (data: { caseId: string; type: string }) =>
         this.disputeCreatedListeners.forEach((cb) => cb(data)),
       );
       conn.on("verification_created", (e: { caseId: string }) =>
-        this.verificationCreatedListeners.forEach((cb) => cb(e)),);
-      conn.on(
-        "dispute_resolved",
-        (data: { caseId: string; status: string }) =>
-          this.disputeResolvedListeners.forEach((cb) => cb(data)),
+        this.verificationCreatedListeners.forEach((cb) => cb(e)),
       );
-      conn.on("force_logout", (e: {reason: string}) => 
-      this.forceLogoutListeners.forEach((cb) => cb(e)),);
-      conn.on("verification_resubmission_required", (e: {reason: string | null}) =>
-      this.verificationResubmissionListeners.forEach((cb) => cb(e)))
+      conn.on("dispute_resolved", (data: { caseId: string; status: string }) =>
+        this.disputeResolvedListeners.forEach((cb) => cb(data)),
+      );
+      conn.on("force_logout", (e: { reason: string }) =>
+        this.forceLogoutListeners.forEach((cb) => cb(e)),
+      );
+      conn.on(
+        "verification_resubmission_required",
+        (e: { reason: string | null }) =>
+          this.verificationResubmissionListeners.forEach((cb) => cb(e)),
+      );
+      conn.on("timetable_updated", (p: { userId: string }) =>
+        this.timetableUpdatedListeners.forEach((cb) => cb(p)),
+      );
+      conn.on("listing_flagged", (e: { listingId: string }) =>
+        this.listingFlaggedListeners.forEach((cb) => cb(e)),
+      );
+      conn.on("bundle_rule_changed", (e: { sellerId: string }) =>
+        this.bundleRuleChangedListeners.forEach((cb) => cb(e)),
+      );
+
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
@@ -130,7 +181,7 @@ class ConnectionManager {
           [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
         if (this.isAdminGroupJoined) {
-          await conn.invoke("JoinAdminGroup").catch(() => { })
+          await conn.invoke("JoinAdminGroup").catch(() => {});
         }
 
         this.notifyState("Connected");
@@ -167,7 +218,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
     }
   }
   async disconnect(): Promise<void> {
@@ -183,7 +234,20 @@ class ConnectionManager {
 
   async leaveAdminGroup(): Promise<void> {
     this.isAdminGroupJoined = false;
-    await this.connection?.invoke("LeaveAdminGroup").catch(() => { });
+    await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
+  }
+
+  async joinSellerGroup(sellerId: string): Promise<void> {
+    await this.connect();
+    await this.connection!.invoke("JoinSellerGroup", sellerId);
+  }
+
+  async leaveSellerGroup(sellerId: string): Promise<void> {
+    if (this.getState() == "Connected") {
+      await this.connection
+        ?.invoke("LeaveSellerGroup", sellerId)
+        .catch(() => {});
+    }
   }
 
   getState(): ConnectionState {
@@ -204,11 +268,26 @@ class ConnectionManager {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);
   }
+  onTimetableUpdated(callback: (p: { userId: string }) => void): Unsubscribe {
+    this.timetableUpdatedListeners.add(callback);
+    return () => this.timetableUpdatedListeners.delete(callback);
+  }
   onListingChanged(
     cb: (listingId: string, event: "reserved" | "released" | "created") => void,
   ): Unsubscribe {
     this.listingListeners.add(cb);
     return () => this.listingListeners.delete(cb);
+  }
+
+  onListingStatusChanged(
+    cb: (e: { listingId: string; status: string; riskLevel: string }) => void,
+  ): Unsubscribe {
+    this.listingStatusChangedListeners.add(cb);
+    return () => this.listingStatusChangedListeners.delete(cb);
+  }
+  onListingFlagged(cb: (e: { listingId: string }) => void): Unsubscribe {
+    this.listingFlaggedListeners.add(cb);
+    return () => this.listingFlaggedListeners.delete(cb);
   }
   onPinConfirmed(
     callback: (e: { reservationId: string }) => void,
@@ -216,6 +295,11 @@ class ConnectionManager {
     this.pinConfirmedListeners.add(callback);
     return () => this.pinConfirmedListeners.delete(callback);
   }
+  onBundleRuleChanged(cb: (e: { sellerId: string }) => void): Unsubscribe {
+    this.bundleRuleChangedListeners.add(cb);
+    return () => this.bundleRuleChangedListeners.delete(cb);
+  }
+  
   async sendMessage(
     reservationId: string,
     content: string,
@@ -254,20 +338,28 @@ class ConnectionManager {
     return () => this.paymentCompletedListeners.delete(callback);
   }
 
-  onListingQuestionAsked(cb: (e: { listingId: string; questionId: string })
-    => void): Unsubscribe {
+  onListingQuestionAsked(
+    cb: (e: { listingId: string; questionId: string }) => void,
+  ): Unsubscribe {
     this.listingQuestionAskedListeners.add(cb);
     return () => this.listingQuestionAskedListeners.delete(cb);
   }
-  onListingQuestionAnswered(cb: (e: { listingId: string; questionId: string }) => void): Unsubscribe {
+  onListingQuestionAnswered(
+    cb: (e: { listingId: string; questionId: string }) => void,
+  ): Unsubscribe {
     this.listingQuestionAnsweredListeners.add(cb);
     return () => this.listingQuestionAnsweredListeners.delete(cb);
   }
   onSavedSearchMatch(
-    callback: (e: { listingId: string; title: string; price: number; message: string }) => void,
+    callback: (e: {
+      listingId: string;
+      title: string;
+      price: number;
+      message: string;
+    }) => void,
   ): Unsubscribe {
     this.savedSearchMatchListeners.add(callback);
-    return () => this.savedSearchMatchListeners.delete(callback)
+    return () => this.savedSearchMatchListeners.delete(callback);
   }
   onReconnected(callback: () => void): Unsubscribe {
     this.reconnectedListeners.add(callback);
@@ -276,7 +368,6 @@ class ConnectionManager {
 
   onDisputeCreated(
     callback: (data: { caseId: string; type: string }) => void,
-
   ): Unsubscribe {
     this.disputeCreatedListeners.add(callback);
     return () => this.disputeCreatedListeners.delete(callback);
@@ -289,7 +380,6 @@ class ConnectionManager {
     return () => this.verificationCreatedListeners.delete(callback);
   }
 
-
   onDisputeResolved(
     callback: (data: { caseId: string; status: string }) => void,
   ): Unsubscribe {
@@ -297,15 +387,13 @@ class ConnectionManager {
     return () => this.disputeResolvedListeners.delete(callback);
   }
 
-  onForceLogout(
-    callback: (e: {reason: string}) => void,
-  ): Unsubscribe {
+  onForceLogout(callback: (e: { reason: string }) => void): Unsubscribe {
     this.forceLogoutListeners.add(callback);
     return () => this.forceLogoutListeners.delete(callback);
   }
 
   onVerificationResubmissionRequired(
-    callback: (e: { reason: string | null}) => void,
+    callback: (e: { reason: string | null }) => void,
   ): Unsubscribe {
     this.verificationResubmissionListeners.add(callback);
     return () => this.verificationResubmissionListeners.delete(callback);

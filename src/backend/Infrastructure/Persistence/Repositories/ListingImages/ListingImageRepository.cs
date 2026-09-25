@@ -35,4 +35,28 @@ public class ListingImageRepository : IListingImageRepository
     {
         await _db.ListingImages.Where(i => i.ImageId == imageId).ExecuteDeleteAsync(ct);
     }
+
+    public async Task<IReadOnlyList<ComparableImage>> GetComparableImageHashesAsync(
+        Guid excludeListingId,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .ListingImages.AsNoTracking()
+            .Where(img => img.PerceptualHash != null || img.Embedding != null)
+            .Where(img =>
+                img.ListingId != excludeListingId
+                && (
+                    img.Listing!.ListingStatus == "live"
+                    || img.Listing!.ListingStatus == "low_visibility"
+                )
+            )
+            .Select(img => new ComparableImage(
+                img.ImageId,
+                img.Listing!.SellerId,
+                img.PerceptualHash,
+                img.Embedding
+            ))
+            .ToListAsync(ct);
+    }
 }

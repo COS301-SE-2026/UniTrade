@@ -35,6 +35,7 @@ public class IdentityService : IIdentityService
 
     private const string _studentRole = "student";
     private const string _pendingStatus = "pending";
+    private const string _notFoundString = "not_found";
 
     public IdentityService(
         IUserRepository users,
@@ -400,7 +401,7 @@ public class IdentityService : IIdentityService
 
         if (getUser == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
 
         if (getUser.Role == _studentRole)
@@ -450,7 +451,7 @@ public class IdentityService : IIdentityService
 
         if (user == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
         if (dto.YearOfStudy < 1 || dto.YearOfStudy > 8)
         {
@@ -495,7 +496,7 @@ public class IdentityService : IIdentityService
         var user = await _users.GetByIdAsync(Guid.Parse(userId));
         if (user == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
 
         user.IsDeleted = true;
@@ -531,7 +532,7 @@ public class IdentityService : IIdentityService
         var user = await _users.GetByIdAsync(userId);
         if (user == null)
         {
-            throw new IdentityException("not_found");
+            throw new IdentityException(_notFoundString);
         }
 
         string verificationStatus;

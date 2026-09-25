@@ -17,4 +17,27 @@ public class ListingNotifier : IListingNotifier
 
     public Task ListingReleasedAsync(Guid listingId, CancellationToken ct = default) =>
         _hub.Clients.All.SendAsync("ListingReleased", new { listingId }, ct);
+
+    public Task ListingStatusChangedAsync(
+        Guid sellerId,
+        Guid listingId,
+        string status,
+        string riskLevel,
+        CancellationToken ct = default
+    ) =>
+        _hub
+            .Clients.User(sellerId.ToString())
+            .SendAsync(
+                "listing_status_changed",
+                new
+                {
+                    listingId,
+                    status,
+                    riskLevel,
+                },
+                ct
+            );
+
+    public Task ListingFlaggedForAdminAsync(Guid listingId, CancellationToken ct = default) =>
+        _hub.Clients.Group("Admins").SendAsync("listing_flagged", new { listingId }, ct);
 }

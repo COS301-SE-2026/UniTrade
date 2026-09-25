@@ -52,6 +52,12 @@ jobs:
         run: |
           docker build -t "$ACR_REGISTRY/unitrade-frontend:${{ github.sha }}" src/web
           docker push "$ACR_REGISTRY/unitrade-frontend:${{ github.sha }}"
+      - name: Build and push CLIP image
+        env: 
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }} 
+        run: |
+          docker build -t "$ACR_REGISTRY/unitrade-clip:${{ github.sha }}" -f src/clip-service/Dockerfile src/clip-service
+          docker push "$ACR_REGISTRY/unitrade-clip:${{ github.sha }}"
 
   deploy-staging:
     permissions:
@@ -67,6 +73,9 @@ jobs:
       FRONTEND_RG: rg-devnexus-staging
       BACKEND_APP: ca-backend-staging
       FRONTEND_APP: ca-frontend-staging
+      CLIP_RG: rg-devnexus-staging
+      CLIP_APP: ca-clip-staging
+
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -88,6 +97,58 @@ jobs:
       
       - name: restore dependencies
         run: dotnet restore UniTrade.sln
+      ##capture first for testing
+      - name: Capture last migration
+        id: last_migration
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+        run:  |
+          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs)
+          echo "last_migration=$LAST" >> "$GITHUB_OUTPUT"
+          echo "Last applied migration: $LAST"
+      
+      - name: Backup db before migration(staging)
+        id: db_backup
+        working-directory: src/backend/Api
+        env:
+          PGCONN: ${{ secrets.DB_CONNECTION_STRING_STAGING}}
+        run:  |
+          trap 'rm -f ~/.pgpass' EXIT
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+          HOST=$(echo "$PGCONN" | grep -oP '(?i)(?<=Host=)[^;]+')
+          PORT=$(echo "$PGCONN" | grep -oP '(?i)(?<=Port=)[^;]+' || echo 5432)
+          DBNAME=$(echo "$PGCONN" | grep -oP '(?i)(?<=Database=)[^;]+')
+          PGUSER=$(echo "$PGCONN" | grep -oP '(?i)(?<=Username=)[^;]+')
+          PGPASS=$(echo "$PGCONN" | grep -oP '(?i)(?<=Password=)[^;]+')
+
+          if [ -z "$HOST" ] || [ -z "$DBNAME" ] || [ -z "$PGUSER" ] || [ -z "$PGPASS" ]; then
+            echo "::error:: Failed to parse on or more fields from the connection string.Aborting backup."
+            exit 1
+          fi
+
+          echo "${HOST}:${PORT}:${DBNAME}:${PGUSER}:${PGPASS}" > ~/.pgpass 
+          chmod 600 ~/.pgpass
+
+          pg_dump -h "$HOST" -p "$PORT" -U "$PGUSER" -d "$DBNAME" -Fc -f pre_migration_backup.pg_dump
+          DUMP_STATUS=$?
+
+          rm -f ~/.pgpass
+
+          if [ "$DUMP_STATUS" -ne 0 ]; then
+            echo "::error::pg_dump failed with exit code $DUMP_STATUS"
+            exit 1
+          fi
+
+          echo "Backup created successfully."
+
+      - name: Upload db to backup artifact(staging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-staging-${{ github.sha }}-${{ github.run_attempt }}
+          path: src/backend/Api/pre_migration_backup.pg_dump
+          retention-days: 30
 
       - name: Run migrations (staging)
         working-directory: src/backend/Api
@@ -96,6 +157,7 @@ jobs:
           #do it the longer way after deploying!
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
+
       
       - name: Capture current live revisions 
         id: live_revs
@@ -113,6 +175,22 @@ jobs:
 
               echo "Backend live: ${BACK_LIVE:-<none>}"
               echo "Frontend live: ${FRONT_LIVE:-<none>}"
+
+      - name: Deploy CLIP 
+        env: 
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+        run: |
+          az containerapp update \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --image "$ACR_REGISTRY/unitrade-clip:${IMAGE_TAG}"
+      
+      - name: Get CLIP internal FQDN
+        id: clip_fqdn
+        run: |
+          FQDN=$(az containerapp show \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "fqdn=$FQDN" >> "$GITHUB_OUTPUT"
 
       - name: Deploy backend green revision
         id: backend_rev
@@ -133,6 +211,7 @@ jobs:
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
           PAYFAST__MERCHANTKEY: ${{ secrets.PAYFAST__MERCHANTKEY }}  
           SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_STAGING }}
+          CLIP_BASE_URL: https://${{ steps.clip_fqdn.outputs.fqdn }}
 
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
@@ -173,7 +252,8 @@ jobs:
                 "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
                 "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
                 "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
-                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn" \
+                "Clip__BaseUrl=$CLIP_BASE_URL"
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -286,6 +366,21 @@ jobs:
             echo "No previous frontend revision found."
           fi
 
+      - name: Rollback migrations
+        if: failure()
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
+          Acs__ConnectionString: ${{secrets.Acs__ConnectionString}}
+        run:  |
+          TARGET="${{ steps.last_migration.outputs.last_migration}}"
+          if [ -n "$TARGET" ]; then
+            echo "rolling back db to migration: $TARGET"
+            dotnet ef database update "$TARGET" --project ../Infrastructure --startup-project .
+          else
+            echo "no prior migration captured(this is skipping rb)"
+          fi
+
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
@@ -322,15 +417,17 @@ jobs:
       FRONTEND_RG: rg-devnexus-prod
       BACKEND_APP: ca-backend-prod
       FRONTEND_APP: ca-frontend-prod
+      CLIP_RG: rg-devnexus-prod
+      CLIP_APP: ca-clip-prod
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Login to Azure
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID_PROD }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_PROD }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
@@ -342,6 +439,58 @@ jobs:
 
       - name: restore dependencies
         run: dotnet restore UniTrade.sln
+
+      - name: Capture last migration
+        id: last_migration
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_PROD}}
+        run:  |
+          LAST=$(dotnet ef migrations list --project ../Infrastructure --startup-project . --no-build 2>/dev/null | grep -v '(Pending)' | tail -n 1 | xargs)
+          echo "last_migration=$LAST" >> "$GITHUB_OUTPUT"
+          echo "Last applied migration: $LAST"
+
+      - name: Backup db before migration(prod)
+        id: db_backup
+        working-directory: src/backend/Api
+        env:
+          PGCONN: ${{ secrets.DB_CONNECTION_STRING_PROD}}
+        run:  |
+          trap 'rm -f ~/.pgpass' EXIT
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+          HOST=$(echo "$PGCONN" | grep -oP '(?i)(?<=Host=)[^;]+')
+          PORT=$(echo "$PGCONN" | grep -oP '(?i)(?<=Port=)[^;]+' || echo 5432)
+          DBNAME=$(echo "$PGCONN" | grep -oP '(?i)(?<=Database=)[^;]+')
+          PGUSER=$(echo "$PGCONN" | grep -oP '(?i)(?<=Username=)[^;]+')
+          PGPASS=$(echo "$PGCONN" | grep -oP '(?i)(?<=Password=)[^;]+')
+
+          if [ -z "$HOST" ] || [ -z "$DBNAME" ] || [ -z "$PGUSER" ] || [ -z "$PGPASS" ]; then
+            echo "::error:: Failed to parse on or more fields from the connection string.Aborting backup."
+            exit 1
+          fi
+
+          echo "${HOST}:${PORT}:${DBNAME}:${PGUSER}:${PGPASS}" > ~/.pgpass 
+          chmod 600 ~/.pgpass
+
+          pg_dump -h "$HOST" -p "$PORT" -U "$PGUSER" -d "$DBNAME" -Fc -f pre_migration_backup.pg_dump
+          DUMP_STATUS=$?
+
+          rm -f ~/.pgpass
+
+          if [ "$DUMP_STATUS" -ne 0 ]; then
+            echo "::error::pg_dump failed with exit code $DUMP_STATUS"
+            exit 1
+          fi
+
+          echo "Backup created successfully."
+
+      - name: Upload db to backup artifact(prod)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-prod-${{ github.sha }}-${{ github.run_attempt }}
+          path: src/backend/Api/pre_migration_backup.pg_dump
+          retention-days: 30
 
       - name: Run migrations (prod)
         working-directory: src/backend/Api
@@ -366,6 +515,23 @@ jobs:
 
               echo "Backend live: ${BACK_LIVE:-<none>}"
               echo "Frontend live: ${FRONT_LIVE:-<none>}"
+
+      - name: Deploy CLIP 
+        env: 
+          ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+        run: |
+          az containerapp update \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --image "$ACR_REGISTRY/unitrade-clip:${IMAGE_TAG}"
+      
+      - name: Get CLIP internal FQDN
+        id: clip_fqdn
+        run: |
+          FQDN=$(az containerapp show \
+            --name "$CLIP_APP" --resource-group "$CLIP_RG" \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "fqdn=$FQDN" >> "$GITHUB_OUTPUT"
+
       - name: Deploy backend green revision
         id: backend_rev
         env:
@@ -385,6 +551,7 @@ jobs:
           PAYFAST__SANDBOXURL: ${{ secrets.PAYFAST__SANDBOXURL }}
           PAYFAST__RETURNURL: ${{ secrets.PAYFAST__RETURNURL }}
           SIGNALR_CONN: ${{ secrets.SIGNALR_CONN_STRING_PROD}}
+          CLIP_BASE_URL: https://${{ steps.clip_fqdn.outputs.fqdn }}
         run: |
           SUFFIX="g${IMAGE_TAG:0:7}-${{github.run_attempt}}"
 
@@ -425,7 +592,9 @@ jobs:
                 "PayFast__NotifyUrl=secretref:payfast-notifyurl" \
                 "PayFast__SandboxUrl=secretref:payfast-sandboxurl" \
                 "PayFast__ReturnUrl=secretref:payfast-returnurl"  \
-                "Azure__SignalR__ConnectionString=secretref:signalr-conn"
+                "Azure__SignalR__ConnectionString=secretref:signalr-conn" \
+                "Clip__BaseUrl=$CLIP_BASE_URL"
+                
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
 
       - name: Deploy frontend green revision
@@ -532,6 +701,22 @@ jobs:
           else
             echo "No previous frontend revision found."
           fi
+
+      - name: Rollback migrations
+        if: failure()
+        working-directory: src/backend/Api
+        env:
+          ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_PROD}}
+          Acs__ConnectionString: ${{secrets.Acs__ConnectionString}}
+        run:  |
+          TARGET="${{ steps.last_migration.outputs.last_migration}}"
+          if [ -n "$TARGET" ]; then
+            echo "rolling back db to migration: $TARGET"
+            dotnet ef database update "$TARGET" --project ../Infrastructure --startup-project .
+          else
+            echo "no prior migration captured(this is skipping rb)"
+          fi
+
       - name: Deactivate old backend revisions
         run: |
           az containerapp revision list --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \

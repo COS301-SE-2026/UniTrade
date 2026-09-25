@@ -21,6 +21,7 @@ import type {
   OrderItem,
   SaleItem,
 } from "../types/listing";
+import type { ListingStatusResponse } from "../types/riskTemp";
 
 import biologyTextbook from "../assets/bio-textbook.jpg";
 import { useAuthStore } from "../store/useAuthStore";
@@ -80,7 +81,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 42,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CH",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "2",
@@ -90,7 +91,7 @@ const mockMyListings: ListingSummary[] = [
     status: "live",
     views: 25,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=LP",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "3",
@@ -100,7 +101,7 @@ const mockMyListings: ListingSummary[] = [
     status: "pending",
     views: 68,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=GS",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "4",
@@ -110,17 +111,17 @@ const mockMyListings: ListingSummary[] = [
     status: "draft",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=CA",
-    categoryName: ''
+    categoryName: "",
   },
   {
     id: "5",
     title: "Molecular Biology - 6th Ed",
     meta: "BIO226 · Listed 3 May 2026",
     price: 350,
-    status: "rejected",
+    status: "live",
     views: 89,
     imageUrl: "https://placehold.co/48x48/1a3a7a/ffffff?text=MB",
-    categoryName: ''
+    categoryName: "",
   },
 ];
 
@@ -196,6 +197,8 @@ const mockSellerListingDetail: SellerListingDetail = {
   category: "book",
   courseId: 1,
   courseCode: "WTW114",
+  resubmissionCount: 4,
+  maxResubmissions: 5,
   listedAt: "2026-05-07T09:15:00Z",
   views: 42,
   description: "Good condition with minor highlighting on pages 3-5.",
@@ -228,6 +231,8 @@ export interface CreateListingPayload {
   courseId: number | null;
   listingStatus: string;
   metadata?: ListingMetadata;
+  quantity?: number;
+  isbn?: string | null;
 }
 
 function mapWishListItem(item: unknown): WishlistListing {
@@ -327,6 +332,9 @@ export const listingsService = {
         listingStatus: string;
         viewCount: number;
         images: { imageId: number; isPrimary: boolean; path: string }[];
+        listingGroupId?: string | null;
+        resubmissionCount?: number;
+        maxResubmissions?: number;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -337,6 +345,9 @@ export const listingsService = {
         status: l.listingStatus,
         views: l.viewCount,
         imageUrl: primary ? imageUrl(primary) : biologyTextbook,
+        listingGroupId: l.listingGroupId ?? null,
+        resubmissionCount: l.resubmissionCount ?? 0,
+        maxResubmissions: l.maxResubmissions ?? 5,
       };
     });
     return { listings, total: data.total };
@@ -366,8 +377,8 @@ export const listingsService = {
       images:
         item.images.length > 0
           ? item.images.map((i: unknown) =>
-              imageUrl((i as { path: string }).path),
-            )
+            imageUrl((i as { path: string }).path),
+          )
           : mockSellerListingDetail.images,
     };
   },
@@ -405,6 +416,7 @@ export const listingsService = {
         images: { imageId: number; isPrimary: boolean; path: string }[];
         seller?: { sellerId: string };
         answeredQuestionCount?: number;
+        createdAt: string;
       };
       const primary = getFirstUploadedImagePath(l.images);
       return {
@@ -419,6 +431,7 @@ export const listingsService = {
         metadata: l.metadata ?? null,
         sellerId: l.seller?.sellerId ?? "",
         answeredQuestionCount: l.answeredQuestionCount ?? 0,
+        listedAt: l.createdAt,
       };
     });
 
@@ -446,7 +459,9 @@ export const listingsService = {
     return imageIds;
   },
 
-  createListing: async (payload: CreateListingPayload): Promise<CreateListingResult> => {
+  createListing: async (
+    payload: CreateListingPayload,
+  ): Promise<CreateListingResult> => {
     const res = await fetch(`${getApiUrl()}/listings`, {
       method: "POST",
       credentials: "include",
@@ -461,11 +476,16 @@ export const listingsService = {
         courseId: payload.courseId,
         isBundle: false,
         metadata: payload.metadata ?? null,
+        quantity: payload.quantity ?? 1,
+       
       }),
     });
     if (!res.ok) throw new Error("Failed to create listing");
     const createdListing = await res.json();
-    return { listingId: createdListing.listingId, listingStatus: createdListing.listingStatus};
+    return {
+      listingId: createdListing.listingId,
+      listingStatus: createdListing.listingStatus,
+    };
   },
 
   updateListing: async (
@@ -496,7 +516,11 @@ export const listingsService = {
         metadata: payload.metadata ?? null,
       }),
     });
-    if (!res.ok) throw new Error("Failed to update listing");
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to update listing");
+
+    }
   },
 
   deleteListing: async (id: string): Promise<void> => {
@@ -523,7 +547,7 @@ export const listingsService = {
     if (search.trim()) {
       params.set("search", search);
     }
-    params.set("universityId", "2"); // this has the UP courses only
+    params.set("universityId", "2");
     params.set("limit", "50");
     const res = await fetch(`${getApiUrl()}/courses?${params}`, {
       method: "GET",
@@ -583,7 +607,7 @@ export const listingsService = {
     }
     return mapWishListItem(await res.json());
   },
-//heyy
+
   removeFromWishlist: async (listingId: string): Promise<void> => {
     const res = await fetch(`${getApiUrl()}/wishlist/${listingId}`, {
       method: "DELETE",
@@ -689,7 +713,7 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch meetup status");
     return res.json();
   },
-//just triggering pipeline
+
   getReviewsForUser: async (userId: string): Promise<UserReviewsResponse> => {
     const res = await fetch(`${getApiUrl()}/reviews/users/${userId}`, {
       credentials: "include",
@@ -727,7 +751,9 @@ export const listingsService = {
 
     if (completed.length === 0) return [];
 
-    const listingIds = [...new Set(completed.map((r) => r.listingId))];
+    const listingIds = [
+      ...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId))),
+    ];
     const conditionMap = new Map<string, string>();
 
     await Promise.all(
@@ -769,20 +795,28 @@ export const listingsService = {
         ? sellerReviews.find((rev) => rev.transactionId === transactionId)
         : undefined;
 
+      const primaryItem = r.listings[0];
+      const title = r.isBundle
+        ? `${r.listings.length} items from ${r.counterParty.name}`
+        : primaryItem.title;
+      const condition = r.isBundle
+        ? "Mixed"
+        : (conditionMap.get(primaryItem.listingId) ?? "Unknown");
+
       return {
         id: r.reservationId,
         transactionId: transactionId ?? null,
         refNum: toRefNum(r.reservationId),
-        title: r.listing.title,
-        condition: conditionMap.get(r.listingId) ?? "Unknown",
+        title,
+        condition,
         sellerName: r.counterParty.name,
         sellerInitials: r.counterParty.initials,
-        price: r.listing.price,
+        price: r.totalPrice,
         date: formatOrderDate(r.createdAt),
         status: "Completed" as const,
         rating: theReview?.rating ?? 0,
         _createdAtIso: r.createdAt,
-        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : "",
+        imageUrl: primaryItem.imagePath ? imageUrl(primaryItem.imagePath) : "",
       };
     });
   },
@@ -799,7 +833,9 @@ export const listingsService = {
 
     if (completed.length === 0) return [];
 
-    const listingIds = [...new Set(completed.map((r) => r.listingId))];
+    const listingIds = [
+      ...new Set(completed.flatMap((r) => r.listings.map((l) => l.listingId))),
+    ];
     const conditionMap = new Map<string, string>();
 
     await Promise.all(
@@ -841,21 +877,55 @@ export const listingsService = {
         ? buyerReviews.find((rev) => rev.transactionId === transactionId)
         : undefined;
 
+      const primaryItem = r.listings[0];
+      const title = r.isBundle
+        ? `${r.listings.length} items to ${r.counterParty.name}`
+        : primaryItem.title;
+      const condition = r.isBundle
+        ? "Mixed"
+        : (conditionMap.get(primaryItem.listingId) ?? "Unknown");
+
       return {
         id: r.reservationId,
         transactionId: transactionId ?? null,
         refNum: toRefNum(r.reservationId),
-        title: r.listing.title,
-        condition: conditionMap.get(r.listingId) ?? "Unknown",
+        title,
+        condition,
         buyerName: r.counterParty.name,
         buyerInitials: r.counterParty.initials,
-        price: r.listing.price,
+        price: r.totalPrice,
         date: formatOrderDate(r.createdAt),
         status: "Completed" as const,
         rating: theReview?.rating ?? 0,
         _createdAtIso: r.createdAt,
-        imageUrl: r.listing.imagePath ? imageUrl(r.listing.imagePath) : "",
+        imageUrl: primaryItem.imagePath ? imageUrl(primaryItem.imagePath) : "",
       };
     });
   },
+
+  getListingStatus: async (id: string): Promise<ListingStatusResponse> => {
+    const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Failed to fetch listing status");
+    }
+    return res.json();
+  },
+
+resubmitListing: async ( id: string,
+  ): Promise<{status: ListingStatus; resubmissionCount: number}> => {
+    const res = await fetch(`${getApiUrl()}/listings/${id}/resubmit`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error ?? "Falied to resubmit listing");
+    }
+    return res.json()
+  },
 };
+
+

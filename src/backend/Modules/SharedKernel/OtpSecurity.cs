@@ -26,7 +26,7 @@ public static class OtpSecurity
         var computedHash = HashOtp(otp, pepper);
         return CryptographicOperations.FixedTimeEquals(
             Convert.FromBase64String(computedHash),
-            Convert.FromBase64String(storedHash)
+            storedBytes
         );
     }
 }

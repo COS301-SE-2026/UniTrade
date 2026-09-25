@@ -5,7 +5,7 @@ public class SavedSearch
 {
     public Guid SearchId { get; set; }
     public Guid BuyerId { get; set; }
-    public string Query { get; set; }
+    public string Query { get; set; } = null!;
     public int? CategoryId { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }

@@ -29,4 +29,11 @@ public class BroadCastService : IBroadCastService
     {
         await _hubcontext.Clients.Group("Admins").SendAsync(eventName, payload);
     }
+
+    public async Task NotifyBundleRuleChangedAsync(Guid sellerId)
+    {
+        await _hubcontext
+            .Clients.Group($"seller-{sellerId}")
+            .SendAsync("bundle_rule_changed", new { sellerId });
+    }
 }

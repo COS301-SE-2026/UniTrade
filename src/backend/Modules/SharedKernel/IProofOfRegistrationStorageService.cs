@@ -3,7 +3,7 @@ namespace Modules.SharedKernel;
 public interface IProofOfRegistrationStorageService
 {
     Task<int> UploadAsync(
-        Guid vericationId,
+        Guid verificationId,
         byte[] data,
         string contentType,
         string fileName,
@@ -11,7 +11,7 @@ public interface IProofOfRegistrationStorageService
     );
 
     Task<(byte[] Data, string ContentType, string FileName)?> GetAsync(
-        Guid vericationId,
+        Guid verificationId,
         CancellationToken ct = default
     );
 

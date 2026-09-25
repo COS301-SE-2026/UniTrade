@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata;
-using Modules.ReferenceData.Course;
-using Modules.Identity.Models;
-using System.Collections.Generic;
 using System.Text.Json;
-
+using Modules.Identity.Models;
+using Modules.ReferenceData.Course;
+using Modules.Listings.Models;
 
 namespace Modules.Listings.Models;
 
@@ -29,16 +29,18 @@ public class Listing
     public BookDetails? BookDetails { get; set; }
 
     public string ListingStatus { get; set; } = "";
+    public int ResubmissionCount { get; set; } = 0;
 
     // not in MVP
     public decimal? AiRiskScore { get; set; }
     public string? AiRiskLevel { get; set; }
     public int? VisibilityScore { get; set; }
+    public List<RiskReason>? AiRiskReasons { get; set; }
     public bool? IsBundle { get; set; }
     public string? RejectionReason { get; set; }
     public int? ViewCount { get; set; }
 
-    //===========
+    // ===========
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -46,4 +48,6 @@ public class Listing
     [NotMapped]
     public SellerInfo? Seller { get; set; }
     public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
+    public Guid? ListingGroupId { get; set; }
+    public double? ImageMatchScore { get; set; }
 }

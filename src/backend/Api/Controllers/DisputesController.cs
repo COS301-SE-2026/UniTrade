@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Disputes;
 using Modules.Disputes.Models.Dto;
+namespace Api.Controllers;
 
 [ApiController]
 [Route("api/disputes")]
@@ -17,8 +18,18 @@ public class DisputesController : ControllerBase
         _disputes = disputes;
     }
 
-    private Guid CallerId => Guid.Parse(User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
+    private Guid CallerId
+    {
+        get
+        {
+            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (value is null || !Guid.TryParse(value, out var id))
+            {
+                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+            }
+            return id;
+        }
+    }
     //POST /api/disputes
     //file any dispute type -> no show , report listing,and listing quality
     [HttpPost]
@@ -37,6 +48,7 @@ public class DisputesController : ControllerBase
             when (ex.Message
                 is "reservation_id_required"
                     or "listing_id_required"
+                    or "listing_id_required_for_bundle"
                     or "meetup_id_required"
                     or "report_reason_required"
                     or "photos_required"
@@ -46,7 +58,7 @@ public class DisputesController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
         catch (DisputesException ex)
-            when (ex.Message is "snapshot_not_found" or "meetup_not_found" or "listing_not_found")
+            when (ex.Message is "snapshot_not_found" or "meetup_not_found" or "listing_not_found" or "listing_not_in_reservation")
         {
             return NotFound(new { error = ex.Message });
         }

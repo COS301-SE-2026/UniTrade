@@ -17,6 +17,7 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
             .Reservations.AsNoTracking()
             .Include(r => r.ReservationListings)
                 .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
             .Include(r => r.Buyer)
             .Include(r => r.Seller)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
@@ -27,7 +28,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     ) =>
         _db
             .Reservations.Include(r => r.ReservationListings)
-                .ThenInclude(r1 => r1.Listing) //added this so pin verf. will not null ref . PSSSSSS->>>(remove if we get errs during integration on working reservation feature)
+                .ThenInclude(r1 => r1.Listing)
+                    .ThenInclude(l => l.Images)
             .FirstOrDefaultAsync(r => r.ReservationId == reservationId, ct);
 
     public async Task<IReadOnlyList<Reservation>> ListForBuyerAsync(
@@ -113,6 +115,8 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     ) =>
         await _db
             .Reservations.Include(r => r.ReservationListings)
+                .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
             .Where(r =>
                 r.ReservationStatus == ReservationState.Active
                 && r.ExpiresAt <= asOf
@@ -145,7 +149,10 @@ public class ReservationRepository : IReservationRepository, IReservationMembers
     )
     {
         return _db
-            .Reservations.Where(r =>
+            .Reservations.Include(r => r.ReservationListings)
+                .ThenInclude(rl => rl.Listing)
+                    .ThenInclude(l => l.Images)
+            .Where(r =>
                 r.ReservationStatus == ReservationState.Active
                 && r.TwoHourWarningSentAt == null
                 && r.ExpiresAt <= asOfTime.AddHours(2)

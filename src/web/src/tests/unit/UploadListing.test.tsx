@@ -15,6 +15,8 @@ vi.mock('../../services/listingsService', () => ({
     createListing: vi.fn(),
     getListingsCategories: vi.fn().mockResolvedValue(mockCategories),
     searchCourses: vi.fn().mockResolvedValue(mockCourses),
+    updateListingStatus: vi.fn(),
+    getListingStatus: vi.fn(),
   },
 }))
 
@@ -30,20 +32,21 @@ vi.mock('../../components/layout/useToast', () => ({
   }),
 }))
 import UploadListing from '../../pages/seller/UploadListing';
+//import { getListingStatus } from '../../services/adminService';
 
 const renderUpload = () => {
-         const queryClient = new QueryClient({
-            defaultOptions: {
-                queries: {
-                    retry: false,
-                },
-            },
-        })
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
   render(
     <QueryClientProvider client={queryClient}>
-    <MemoryRouter>
-      <UploadListing />
-    </MemoryRouter>
+      <MemoryRouter>
+        <UploadListing />
+      </MemoryRouter>
     </QueryClientProvider>
   )
 }
@@ -76,6 +79,10 @@ describe('UploadListing', () => {
     vi.clearAllMocks()
     vi.mocked(listingsService.getListingsCategories).mockResolvedValue(mockCategories)
     vi.mocked(listingsService.searchCourses).mockResolvedValue(mockCourses)
+    vi.mocked(listingsService.updateListingStatus).mockResolvedValue(undefined)
+    vi.mocked(listingsService.getListingStatus).mockResolvedValue({
+      listingId: '42', status: 'live', riskLevel: 'low', message: '',
+    })
   })
 
 
@@ -265,7 +272,7 @@ describe('UploadListing', () => {
   it('updates price, condition, and title, reflected in the summary', async () => {
     const user = userEvent.setup()
     renderUpload()
-    const priceInput = screen.getByRole('spinbutton')
+    const priceInput = screen.getByLabelText(/price/i)
     await user.type(priceInput, '250')
     await user.click(screen.getByRole('button', { name: /^fair$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Calculus Textbook')
@@ -295,7 +302,7 @@ describe('UploadListing', () => {
     renderUpload()
     await user.type(screen.getByPlaceholderText('Title'), 'Textbook')
     await user.type(screen.getByPlaceholderText('Description'), 'A good book')
-    await user.type(screen.getByRole('spinbutton'), '100')
+    await user.type(screen.getByLabelText(/price/i), '100')
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
@@ -312,7 +319,7 @@ describe('UploadListing', () => {
   })
 
   it('submits successfully and navigates to seller listings', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId:'42', listingStatus: 'live'})
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '42', listingStatus: 'live' })
     vi.mocked(listingsService.uploadImages).mockResolvedValueOnce([])
     const user = userEvent.setup()
     renderUpload()
@@ -320,7 +327,7 @@ describe('UploadListing', () => {
     await user.click(await screen.findByRole('button', { name: /^stationery$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Pens')
     await user.type(screen.getByPlaceholderText('Description'), 'Box of pens')
-    await user.type(screen.getByRole('spinbutton'), '50')
+    await user.type(screen.getByLabelText(/price/i), '50')
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
@@ -340,6 +347,7 @@ describe('UploadListing', () => {
     })
 
     expect(listingsService.uploadImages).toHaveBeenCalledWith('42', [expect.any(File)])
+    expect(listingsService.updateListingStatus).toHaveBeenCalledWith('42', 'live')
     expect(mockNavigate).toHaveBeenCalledWith('/seller/listings')
   })
 
@@ -351,7 +359,7 @@ describe('UploadListing', () => {
     await user.click(await screen.findByRole('button', { name: /^stationery$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Pens')
     await user.type(screen.getByPlaceholderText('Description'), 'Box of pens')
-    await user.type(screen.getByRole('spinbutton'), '50')
+    await user.type(screen.getByLabelText(/price/i), '50')
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
 
@@ -368,7 +376,7 @@ describe('UploadListing', () => {
     await user.click(await screen.findByRole('button', { name: /^stationery$/i }))
     await user.type(screen.getByPlaceholderText('Title'), 'Pens')
     await user.type(screen.getByPlaceholderText('Description'), 'Box of pens')
-    await user.type(screen.getByRole('spinbutton'), '50')
+    await user.type(screen.getByLabelText(/price/i), '50')
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     await user.upload(fileInput, makeFile('a.png', 1))
 
@@ -379,7 +387,7 @@ describe('UploadListing', () => {
 
 
   it('saves a draft successfully without images and skips uploadImages', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '7', listingStatus: 'draft'})
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '7', listingStatus: 'draft' })
     const user = userEvent.setup()
     renderUpload()
 
@@ -402,7 +410,7 @@ describe('UploadListing', () => {
   })
 
   it('saves a draft with images and calls uploadImages', async () => {
-    vi.mocked(listingsService.createListing).mockResolvedValueOnce({listingId: '8', listingStatus: 'draft'})
+    vi.mocked(listingsService.createListing).mockResolvedValueOnce({ listingId: '8', listingStatus: 'draft' })
     vi.mocked(listingsService.uploadImages).mockResolvedValueOnce([])
     const user = userEvent.setup()
     renderUpload()

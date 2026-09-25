@@ -7,20 +7,27 @@ using Api.Middleware;
 using Api.Notifiers;
 using Azure.Communication.Email;
 using dotenv.net;
+using Infrastructure.AI;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repositories.Audit;
 using Infrastructure.Persistence.Repositories.Chat;
 using Infrastructure.Persistence.Repositories.Courses;
+using Infrastructure.Persistence.Repositories.Disputes;
 using Infrastructure.Persistence.Repositories.Identity;
+using Infrastructure.Persistence.Repositories.Images;
 using Infrastructure.Persistence.Repositories.ListingImages;
+using Infrastructure.Persistence.Repositories.ListingQuestions;
 using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
+using Infrastructure.Persistence.Repositories.Timetable;
 using Infrastructure.Persistence.Repositories.Transactions;
+using Infrastructure.Persistence.SavedSearches;
 using Infrastructure.Realtime;
+using Infrastructure.Services;
 using Infrastructure.Storage;
 using Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -34,12 +41,16 @@ using Modules.Audit.Repositories;
 using Modules.Chat;
 using Modules.Chat.Repository;
 using Modules.Disputes;
+using Modules.Disputes.Repositories;
 using Modules.Identity;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
+using Modules.ListingQuestions;
+using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Scoring;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
@@ -51,26 +62,24 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reputation;
 using Modules.Reputation.Repositories;
 using Modules.Reservations;
+using Modules.Reservations.Availability;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
 using Modules.Reviews.Repositories;
+using Modules.SavedSearches;
+using Modules.SavedSearches.Models;
+using Modules.SavedSearches.Repositories;
 using Modules.SharedKernel;
+using Modules.SharedKernel.Repositories;
+using Modules.Timetable;
+using Modules.Timetable.Repositories;
 using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
-using Modules.Disputes.Repositories;
-using Infrastructure.Persistence.Repositories.Disputes;
-using Modules.SharedKernel.Repositories;
-using Infrastructure.Persistence.Repositories.Images;
-using Infrastructure.Services;
-using Modules.SavedSearches.Models;
-using Modules.SavedSearches;
-using Modules.SavedSearches.Repositories;
-using Infrastructure.Persistence.SavedSearches;
-using Modules.ListingQuestions.Repositories;
-using Infrastructure.Persistence.Repositories.ListingQuestions;
-using Modules.ListingQuestions;
+using Modules.Listings.Risk;
+using Infrastructure.Imaging;
+using Modules.Listings.Admin;
 
 
 DotEnv.Load(
@@ -109,7 +118,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5000,
+                    PermitLimit = 5,
                     Window = TimeSpan.FromHours(1),
                     QueueLimit = 0,
                 }
@@ -124,7 +133,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 1000,
+                    PermitLimit = 10,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
@@ -139,7 +148,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5000,
+                    PermitLimit = 5,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0,
                 }
@@ -154,7 +163,7 @@ builder.Services.AddRateLimiter(options =>
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownKey,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 5000,
+                    PermitLimit = 5,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 }
@@ -165,21 +174,22 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    if (string.IsNullOrWhiteSpace(connectionString))
-    {
-        connectionString = "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
-    }
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString =
+        "Host=localhost;Database=placeholder;Username=placeholder;Password=placeholder";
+}
 
-    var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
-    dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
-    var dataSource = dataSourceBuilder.Build();
+var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.ConnectionStringBuilder.MaxPoolSize = 35;
+var dataSource = dataSourceBuilder.Build();
 
-    builder.Services.AddDbContext<AppDbContext>(options =>
-    {
-        options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
-    });
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(dataSource).UseSnakeCaseNamingConvention();
+});
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -192,7 +202,7 @@ var allowedOrigins =
     builder
         .Configuration["Cors:AllowedOrigins"]
         ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:3000", "http://localhost:8080" ,"http://localhost:4173"};
+    ?? new[] { "http://localhost:3000", "http://localhost:8080", "http://localhost:4173" };
 
 builder.Services.AddCors(options =>
 {
@@ -239,6 +249,8 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<ISmartBudgetService, SmartBudgetService>();
+builder.Services.AddScoped<ISmartBudgetRepository, SmartBudgetRepository>();
 builder.Services.AddScoped<IReservationMembership, ReservationRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHostedService<ReservationExpiryWorker>();
@@ -257,6 +269,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
 builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
+builder.Services.AddScoped<ITimetableNotifier, TimetableNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
@@ -281,8 +294,14 @@ builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
 builder.Services.AddScoped<SavedSearchService>();
 builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<SavedSearchService>());
-builder.Services.AddScoped<IListingPublishedListener>(sp => sp.GetRequiredService<SavedSearchService>());
-builder.Services.AddScoped<IProofOfRegistrationStorageService, PostgresProofOfRegistrationStorageService>();
+builder.Services.AddScoped<IListingRiskScoreService, ListingRiskScoreService>();
+builder.Services.AddScoped<IListingPublishedListener>(sp =>
+    sp.GetRequiredService<SavedSearchService>()
+);
+builder.Services.AddScoped<
+    IProofOfRegistrationStorageService,
+    PostgresProofOfRegistrationStorageService
+>();
 builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
 builder.Services.AddScoped<IListingQuestionRepository, ListingQuestionRepository>();
 builder.Services.AddScoped<IListingQuestionService, ListingQuestionService>();
@@ -291,6 +310,14 @@ builder.Services.AddScoped<
     IProofOfRegistrationStorageService,
     PostgresProofOfRegistrationStorageService
 >();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<ITimetableQueryForAvailability, TimetableQueryForAvailability>();
+builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IIcsImportService, IcsImportService>();
+builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
+builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
+
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
@@ -303,14 +330,11 @@ if (!builder.Environment.IsDevelopment())
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 
-if (string.IsNullOrEmpty(jwtSecret) && builder.Environment.IsDevelopment())
-{
-    jwtSecret = "86719f9defbc2ca08a533903de693a3e5895e0958c2533ff674115c64088edb5"; // i needed this for the QR testing, it's only ever in dev @Sabira
-    builder.Configuration["Firebase:CredentialsJson"] = "";
-}
 if (string.IsNullOrEmpty(jwtSecret))
 {
-    throw new InvalidOperationException("JWT_SECRET is not configured");
+    throw new InvalidOperationException(
+        "JWT_SECRET is not configured, use user-secrets (dotnet) locally, or the ci-secret"
+    );
 }
 
 var key = Encoding.UTF8.GetBytes(jwtSecret);
@@ -343,8 +367,19 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
-var app = builder.Build();
 
+builder.Services.AddHttpClient<IClipVisionClient, ClipVisionClient>(
+    (sp, client) =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var baseUrl =
+            config["Clip:BaseUrl"]
+            ?? throw new InvalidOperationException("Clip:BaseUrl is not configured.");
+        client.BaseAddress = new Uri(baseUrl);
+        client.Timeout = TimeSpan.FromSeconds(5);
+    }
+);
+var app = builder.Build();
 
 app.UseForwardedHeaders();
 

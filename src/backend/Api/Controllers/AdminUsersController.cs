@@ -14,14 +14,12 @@ namespace Api.Controllers;
 public sealed class AdminUsersController : AdminControllerBase
 {
     private readonly IListingService _listings;
-    private readonly IReviewRepository _reviews;
     private readonly IStrikeRepository _strikes;
     private readonly IUserRepository _users;
     private readonly IReputationService _reputation;
 
     public AdminUsersController(
         IListingService listings,
-        IReviewRepository reviews,
         IStrikeRepository strikes,
         IUserRepository users,
         IReputationService reputation
@@ -29,7 +27,6 @@ public sealed class AdminUsersController : AdminControllerBase
     {
         _listings = listings;
         _users = users;
-        _reviews = reviews;
         _strikes = strikes;
         _reputation = reputation;
     }
@@ -58,9 +55,10 @@ public sealed class AdminUsersController : AdminControllerBase
                 Status = l.ListingStatus,
                 Price = l.Price,
                 CreatedAt = l.CreatedAt,
-                ImageUrl = l.Images.FirstOrDefault() is { } img
-                    ? $"/api/listings/{l.ListingId}/images/{img.ImageId}"
-                    : null,
+                ImageUrl =
+                    l.Images.Count > 0
+                        ? $"/api/listings/{l.ListingId}/images/{l.Images[0].ImageId}"
+                        : null,
             })
         );
     }

@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'screening' | 'reserved' | 'sold' | 'rejected' | 'low_visibility' | 'under_review' | 'removed'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -35,22 +35,10 @@ export interface ListingDetail {
   status: ListingStatus
   courseCode: string
   courseId: number
-  //university: string
-  //tags: string[]
   images: ListingImage[]
   views: number
   listedAt: string
   sellerId: string
-  //sellerName: string
-  //sellerInitials: string
-  //sellerRating: number
-  //sellerResponseRate: number
-  //sellerTotalListings: number
-  //isReserved: boolean
-  //aiScore: number | null
-  //aiLabel: 'low_risk' | 'medium_risk' | 'high_risk' | null
-  //reviews: SellerReview[]
-  //similarListings: SimilarListing[]
   metadata: ListingMetadata
   seller: ListingSellerInfo | null
 }
@@ -64,6 +52,9 @@ export interface ListingSummary {
   views: number
   imageUrl: string
   categoryName: string
+  listingGroupId?: string | null;
+  resubmissionCount?: number;
+  maxResubmissions?: number;
 }
 
 export interface MyListingsResponse {
@@ -96,6 +87,8 @@ export interface SellerListingDetail {
   isReserved: boolean
   timeline: TimelineStep[]
   metadata: ListingMetadata
+  resubmissionCount: number
+  maxResubmissions: number
 }
 
 export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
@@ -113,6 +106,7 @@ export interface BrowseListing {
   metadata: ListingMetadata
   sellerId: string
   answeredQuestionCount?: number
+  listedAt?: string
 }
 
 export interface BrowseListingsResponse {

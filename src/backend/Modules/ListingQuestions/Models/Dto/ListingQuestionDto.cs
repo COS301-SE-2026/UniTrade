@@ -10,6 +10,6 @@ public class ListingQuestionDto
     public string? AnswerText { get; set; }
     public DateTime AskedAt { get; set; }
     public DateTime? AnsweredAt { get; set; }
-    public string AskerInitials { get; set; } = null;
+    public string AskerInitials { get; set; } = null!;
     public bool IsAnswered => AnswerText != null;
 }
