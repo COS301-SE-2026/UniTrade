@@ -231,6 +231,8 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
+builder.Services.AddScoped<IListingResubmissionListener, DisputeResubmissionListener>();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<IEmailService, TestEmailService>();

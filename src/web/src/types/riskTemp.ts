@@ -1,6 +1,12 @@
 export type RiskLevel = 'low' | 'medium' | 'high'
-export type SellerListingStatus = 'live' | 'under_review' | 'removed'
+export type SellerListingStatus = 'live' | 'under_review' | 'removed' | 'banned'
 import type { SellerListingDetail } from "./listing"
+
+export interface ListingReason {
+  code: string
+  detail?: string | null
+  imageId?: number | null
+}
 
 export interface ListingStatusResponse 
 {
@@ -9,6 +15,10 @@ export interface ListingStatusResponse
   riskLevel: RiskLevel
   message: string
   visibilityScore?: number | null
+  resubmissionCount?: number
+  maxResubmissions?: number
+  reasons?: ListingReason[]
+  canRescore?: boolean
 }
 
 export function mockStatusFromListing(

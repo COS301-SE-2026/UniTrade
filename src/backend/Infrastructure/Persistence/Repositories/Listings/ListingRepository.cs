@@ -25,7 +25,6 @@ public class ListingRepository : IListingRepository
             .Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Course)
-            .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         var listing = await query.FirstOrDefaultAsync(l => l.ListingId == listingId);
@@ -46,7 +45,6 @@ public class ListingRepository : IListingRepository
             .Listings.Include(l => l.Category)
             .Include(l => l.BookDetails)
             .Include(l => l.Images)
-            .Where(l => l.ListingStatus != _removedStatus)
             .Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted))
             .FirstOrDefaultAsync(l => l.ListingId == id);
 
@@ -59,7 +57,13 @@ public class ListingRepository : IListingRepository
             .Include(l => l.Category)
             .Include(l => l.BookDetails);
 
-        query = query.Where(l => l.ListingStatus != _removedStatus);
+        if (!listingFilterDto.SellerId.HasValue)
+        {
+            query = query.Where(l =>
+                l.ListingStatus != _removedStatus && l.ListingStatus != "banned"
+            );
+        }
+
         query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
 
         if (listingFilterDto.CategoryId.HasValue)
@@ -207,11 +211,7 @@ public class ListingRepository : IListingRepository
     {
         return await _db
             .Listings.AsNoTracking()
-            .AnyAsync(l =>
-                l.ListingId == listingId
-                && l.SellerId == sellerId
-                && l.ListingStatus != _removedStatus
-            );
+            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId);
     }
 
     public async Task<List<ListingCategory>> GetActiveCategories()
@@ -310,13 +310,13 @@ public class ListingRepository : IListingRepository
         {
             listing.Images = byListing.TryGetValue(listing.ListingId, out var imgs)
                 ? imgs.Select(i => new ListingImage
-                {
-                    ImageId = i.ImageId,
-                    ListingId = i.ListingId,
-                    IsPrimary = i.IsPrimary,
-                    ImageData = Array.Empty<byte>(),
-                    ContentType = string.Empty,
-                })
+                    {
+                        ImageId = i.ImageId,
+                        ListingId = i.ListingId,
+                        IsPrimary = i.IsPrimary,
+                        ImageData = Array.Empty<byte>(),
+                        ContentType = string.Empty,
+                    })
                     .ToList()
                 : new List<ListingImage>();
         }
@@ -328,26 +328,88 @@ public class ListingRepository : IListingRepository
         CancellationToken ct = default
     )
     {
-        var rowsFetched = await _db
-            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus != _removedStatus)
+        var rows = await _db
+            .Listings.Where(l =>
+                l.ListingId == listingId
+                && l.ListingStatus != _removedStatus
+                && l.ListingStatus != "banned"
+            )
             .ExecuteUpdateAsync(
                 s =>
-                    s.SetProperty(l => l.ListingStatus, "removed")
+                    s.SetProperty(l => l.ListingStatus, "banned")
                         .SetProperty(l => l.RejectionReason, reason)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
 
-        return rowsFetched == 1;
+        return rows == 1;
+    }
+
+    public async Task<bool> WarnSellerAsync(
+        Guid listingId,
+        string reason,
+        CancellationToken ct = default
+    )
+    {
+        var rows = await _db
+            .Listings.Where(l =>
+                l.ListingId == listingId
+                && l.ListingStatus != _removedStatus
+                && l.ListingStatus != "banned"
+            )
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, _removedStatus)
+                        .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.RequiresManualReviewOnResubmit, true)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+        return rows == 1;
+    }
+
+    public async Task<bool> RestoreToLiveAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "under_review")
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, "live")
+                        .SetProperty(l => l.RejectionReason, (string?)null)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+        return rows == 1;
+    }
+
+    public async Task<bool> SetUnderReviewAsync(
+        Guid listingId,
+        string reason,
+        CancellationToken ct = default
+    )
+    {
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live")
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, "under_review")
+                        .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+        return rows == 1;
     }
 
     public async Task<IReadOnlyList<Listing>> GetByGroupIdAsync(
         Guid groupId,
+        bool includeRemoved = false,
         CancellationToken ct = default
     ) =>
         await _db
             .Listings.AsNoTracking()
-            .Where(l => l.ListingGroupId == groupId && l.ListingStatus != _removedStatus)
+            .Where(l =>
+                l.ListingGroupId == groupId && (includeRemoved || l.ListingStatus != _removedStatus)
+            )
             .ToListAsync(ct);
 
     public async Task DuplicateImagesToGroupAsync(
@@ -370,11 +432,7 @@ public class ListingRepository : IListingRepository
             .ToListAsync(ct);
 
         var siblingIds = await _db
-            .Listings.Where(l =>
-                l.ListingGroupId == groupId
-                && l.ListingId != sourceListingId
-                && l.ListingStatus != _removedStatus
-            )
+            .Listings.Where(l => l.ListingGroupId == groupId && l.ListingId != sourceListingId)
             .Select(l => l.ListingId)
             .ToListAsync(ct);
 

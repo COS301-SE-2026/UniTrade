@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923211351_AddListingResubmissionCount")]
+    partial class AddListingResubmissionCount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,7 +283,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("disputes", "unitrade", t =>
                         {
-                            t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed','resubmission')");
+                            t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed')");
 
                             t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
                         });
@@ -800,10 +803,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("rejection_reason");
 
-                    b.Property<bool>("RequiresManualReviewOnResubmit")
-                        .HasColumnType("boolean")
-                        .HasColumnName("requires_manual_review_on_resubmit");
-
                     b.Property<int>("ResubmissionCount")
                         .HasColumnType("integer")
                         .HasColumnName("resubmission_count");
@@ -884,7 +883,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening')");
                         });
                 });
 

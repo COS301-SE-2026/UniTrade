@@ -332,4 +332,88 @@ public class ListingController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
         }
     }
+
+    [Authorize]
+    [HttpPost("{id:guid}/resubmit")]
+    public async Task<IActionResult> Resubmit(Guid id, CancellationToken ct)
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = _unauthenticatedString });
+        }
+
+        try
+        {
+            var result = await _listings.ResubmitListingAsync(id, callerId, ct);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "resubmission_limit_exceeded")
+        {
+            return Conflict(new { error = "resubmission_limit_exceeded" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "listing_not_removed")
+        {
+            return Conflict(new { error = "listing_not_removed" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "images_required")
+        {
+            return Conflict(new { error = "images_required" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "description_required")
+        {
+            return Conflict(new { error = "description_required" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "seller_not_verified")
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new { error = "seller_not_verified" }
+            );
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "listing_not_found" });
+        }
+    }
+
+    [Authorize]
+    [HttpPost("{id:guid}/rescore")]
+    public async Task<IActionResult> Rescore(Guid id, CancellationToken ct)
+    {
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (!Guid.TryParse(callerIdClaim, out var callerId))
+        {
+            return Unauthorized(new { error = _unauthenticatedString });
+        }
+
+        try
+        {
+            var isLive = await _listings.RequestRescoreAsync(id, callerId, ct);
+            return Ok(new { status = isLive ? "live" : "low_visibility" });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _forbiddenString });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "not_eligible_for_rescore")
+        {
+            return Conflict(new { error = "not_eligible_for_rescore" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "rescore_not_eligible")
+        {
+            return Conflict(new { error = "rescore_not_eligible" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "listing_not_found" });
+        }
+    }
 }

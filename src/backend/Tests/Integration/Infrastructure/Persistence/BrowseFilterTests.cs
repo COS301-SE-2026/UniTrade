@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Api.Tests.Integration;
 using Docker.DotNet.Models;
@@ -18,7 +19,7 @@ public sealed class BrowseFilterTests
     private static ListingRepository Repo(AppDbContext context) => new(context);
 
     [Fact]
-    public async Task ListAsync_ExcludesRemovedListings_EvenWithoutTheStatusFilter()
+    public async Task ListAsync_IncludesRemovedListings_WhenQueryingBySellerId()
     {
         var seller = await _fixture.CreateUserAsync();
         var liveListing = await _fixture.AListingAsync(sellerId: seller, status: "live");
@@ -26,13 +27,27 @@ public sealed class BrowseFilterTests
 
         await using var context = _fixture.CreateContext();
         var (items, total) = await Repo(context)
-            .ListAsync(new Modules.Listings.Models.Dto.ListFilterDto { SellerId = seller });
+            .ListAsync(new Modules.Listings.Models.Dto.ListFilterDto {SellerId = seller });
 
-        Assert.Equal(1, total);
+        Assert.Equal(2, total);
+        Assert.Contains(items, l => l.ListingId == liveListing);
+        Assert.Contains(items, l => l.ListingId == removedListing);
+    }
+
+    [Fact]
+    public async Task ListAsync_ExcludesRemovedListings_WhenNotQueryingBySellerId()
+    {
+        var seller = await _fixture.CreateUserAsync();
+        var liveListing = await _fixture.AListingAsync(sellerId: seller, status: "live");
+        var removedListing = await _fixture.AListingAsync(sellerId: seller, status: "removed");
+
+        await using var context = _fixture.CreateContext();
+        var (items, total) = await Repo(context)
+             .ListAsync(new Modules.Listings.Models.Dto.ListFilterDto { ExcludeSellerId = Guid.NewGuid() });
+
         Assert.Contains(items, l => l.ListingId == liveListing);
         Assert.DoesNotContain(items, l => l.ListingId == removedListing);
     }
-
     [Fact]
     public async Task ListAsync_ExcludesListings_FromDeletedSellers()
     {

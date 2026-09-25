@@ -38,7 +38,7 @@ public class DisputesController : ControllerBase
         try
         {
             var result = await _disputes.FileDisputeAsync(req, CallerId, ct);
-            return CreatedAtAction(nameof(File), new { caseId = result.CaseId }, result);
+            return Created($"/api/disputes/{result.CaseId}", result);
         }
         catch (DisputesException ex) when (ex.Message == "forbidden")
         {

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-//import { IconCheck, IconX, } from "@tabler/icons-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getFlaggedListings, decideListing } from "../../services/adminService";
@@ -22,8 +21,6 @@ import { connectionManager } from "../../services/realtime/connectionManager";
 type Filter = "All" | "Price anomaly" | "Duplicate image" | "Low image match";
 type SortBy = "Oldest First" | "Newest First";
 
-//const LOW_MATCH_THRESHOLD = 0.5
-
 const zar = new Intl.NumberFormat("en-ZA", {
   style: "currency",
   currency: "ZAR",
@@ -35,10 +32,6 @@ function timeInQueue(iso: string) {
   if (hours < 24) return `${hours}h`;
   return `${Math.floor(hours / 24)}d`;
 }
-
-/*function isLowMatch(l: FlaggedListing) {
-  return l.imageMatchScore !== null && l.imageMatchScore < LOW_MATCH_THRESHOLD
-}*/
 
 export default function AdminListingQueue() {
   const [searchParams] = useSearchParams();
@@ -78,8 +71,6 @@ export default function AdminListingQueue() {
       setRemoveReason("");
     },
   });
-
-  //const busyId = decision.isPending ? decision.variables?.id : undefined
 
   const filteredRows = listings.filter((l) => {
     const q = searchQuery.toLowerCase();
@@ -216,18 +207,17 @@ export default function AdminListingQueue() {
       )}
 
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
-        <div className="hidden lg:flex items-center gap-4 px-4 py-3 border-b border-gray-100 bg-gray-50 text-xs font-semibold text-gray-400 uppercase">
-          <div className="flex-1 min-w-0">Listing</div>
-          <div className="w-32 text-center shrink-0">Risk</div>
-          <div className="flex-1 min-w-0">Why it was flagged</div>
-          <div className="w-24 text-center shrink-0">Image match</div>
-          <div className="w-24 text-center shrink-0">Actions</div>
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,2.4fr)_8.5rem_minmax(0,1.8fr)_9rem_7rem] lg:gap-x-8 px-4 py-3 border-b border-gray-100 bg-gray-50 text-xs font-semibold text-gray-400 uppercase">
+          <div>Listing</div>
+          <div>Risk</div>
+          <div>Why it was flagged</div>
+          <div>Image match</div>
+          <div className="text-center">Actions</div>
         </div>
 
         <div className="space-y-3">
           {sortedRows.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-xl py-10 text-center text-sm text-gray-500">
-
               {numTotal === 0
                 ? "Nothing is waiting for review"
                 : "No flagged listings match your filters"}
@@ -237,9 +227,9 @@ export default function AdminListingQueue() {
               {sortedRows.map((l) => (
                 <div
                   key={l.listingId}
-                  className="p-4 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-gray-50/50 transition-colors"
+                  className="p-4 grid gap-4 lg:gap-x-8 lg:items-center lg:grid-cols-[minmax(0,2.4fr)_8.5rem_minmax(0,1.8fr)_9rem_7rem] hover:bg-gray-50/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3 lg:flex-1 lg:min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
                       className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-xs font-bold shrink-0"
                       title="Seller"
@@ -249,9 +239,10 @@ export default function AdminListingQueue() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold text-navy-700">
-                          {l.title}</p>
+                          {l.title}
+                        </p>
                         {l.copyCount > 1 && (
-                          <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">
+                          <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">
                             ×{l.copyCount} copies
                           </span>
                         )}
@@ -263,22 +254,20 @@ export default function AdminListingQueue() {
                     </div>
                   </div>
 
-
-                  <div className="lg:w-32 shrink-0">
-                    <div className="flex items-center gap-2 lg:flex-col lg:items-start">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 lg:flex-col lg:items-start lg:gap-1">
                       <RiskBadge level={l.riskLevel} />
-                      <span className="text-[10px] text-gray-500">
+                      <span className="text-[10px] text-gray-500 whitespace-nowrap">
                         Score {l.riskScore}/100
                       </span>
                     </div>
-
-                    <div className="w-full max-w-[120px] mx-auto mt-1 bg-gray-200 rounded-full h-1.5">
+                    <div className="w-full max-w-[120px] mx-auto lg:mx-0 lg:max-w-none mt-1.5 bg-gray-200 rounded-full h-1.5">
                       <div
                         className={`h-full rounded-full ${l.riskLevel === "high"
-                          ? "bg-red-600"
-                          : l.riskLevel === "medium"
-                            ? "bg-amber-500"
-                            : "bg-emerald-500"
+                            ? "bg-red-600"
+                            : l.riskLevel === "medium"
+                              ? "bg-amber-500"
+                              : "bg-emerald-500"
                           }`}
                         style={{
                           width: `${Math.min(100, Math.max(0, l.riskScore))}%`,
@@ -287,27 +276,29 @@ export default function AdminListingQueue() {
                     </div>
                   </div>
 
-                  <div className="lg:flex-1 lg:min-w-0">
+                  <div className="min-w-0">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
                       Why flagged
                     </p>
-                    <RiskReasons reasons={l.reasons} />
+                    <div className="lg:[&>div]:grid lg:[&>div]:grid-cols-2 lg:[&>div]:gap-x-2 lg:[&>div]:gap-y-1.5 lg:[&>div]:justify-items-start">
+                      <RiskReasons reasons={l.reasons} />
+                    </div>
                   </div>
 
-                  <div className="lg:w-24 shrink-0">
+                  <div className="min-w-0 lg:[&_*]:whitespace-nowrap">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
                       Image match
                     </p>
                     <ImageMatchScore score={l.imageMatchScore} />
                   </div>
 
-                  <div className="shrink-0">
+                  <div>
                     <button
                       type="button"
                       onClick={() =>
                         navigate(`/admin/listings/flagged/${l.listingId}`)
                       }
-                      className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-5 py-2 w-full lg:w-auto"
+                      className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-5 py-2 w-full"
                     >
                       Review
                     </button>
@@ -317,7 +308,6 @@ export default function AdminListingQueue() {
             </div>
           )}
         </div>
-
 
         {removeTarget && (
           <div
