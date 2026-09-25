@@ -15,4 +15,5 @@ public interface IIdentityService
     Task<string> GenerateAuthTokenAsync(Guid userId);
 
     string GenerateHubToken(string userId);
+    Task BlockAccountAsync(string userId);
 }

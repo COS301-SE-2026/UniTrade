@@ -37,6 +37,7 @@ public class IdentityService : IIdentityService
     private const string _pendingStatus = "pending";
     private const string _notFoundString = "not_found";
 
+    private static readonly int[] _intakeMonths = { 2, 7 };
     public IdentityService(
         IUserRepository users,
         IUniversityRepository universities,
@@ -105,14 +106,27 @@ public class IdentityService : IIdentityService
 
         if (existingUser != null)
         {
-            var currentStatus = existingUser.StudentProfile?.VerificationStatus;
-
-            throw currentStatus switch
+            if (existingUser.IsBlocked)
             {
-                "verified" => new IdentityException("email_taken"),
-                _pendingStatus => new IdentityException("otp_already_sent"),
-                _ => new IdentityException("email_taken"),
-            };
+                if (existingUser.BlockedUntil is DateTime until && until > DateTime.UtcNow)
+                {
+                    throw new IdentityException("account_blocked");
+                }
+
+                await FreeBlockedAccountAsync(existingUser);
+            }
+            else
+            {
+                var currentStatus = existingUser.StudentProfile?.VerificationStatus;
+
+                throw currentStatus switch
+                {
+                    "verified" => new IdentityException("email_taken"),
+                    _pendingStatus => new IdentityException("otp_already_sent"),
+                    _ => new IdentityException("email_taken"),
+                };
+            }
+
         }
 
         // hash password
@@ -333,7 +347,7 @@ public class IdentityService : IIdentityService
             NormaliseEmail(loginDto.Email.Trim().ToLowerInvariant())
         );
         //tasks: query db, verify password and get email, gen. token, then return a response
-        if (user == null || user.IsDeleted)
+        if (user == null)
         {
             throw new IdentityException("invalid_credentials");
         }
@@ -342,6 +356,12 @@ public class IdentityService : IIdentityService
         {
             throw new IdentityException("invalid_credentials");
         }
+        if (user.IsBlocked)
+            throw new IdentityException("account_blocked");
+
+        if (user.IsDeleted)
+            throw new IdentityException("invalid_credentials");
+
         string verificationStatus;
 
         if (user.Role == _studentRole)
@@ -546,5 +566,39 @@ public class IdentityService : IIdentityService
         }
 
         return TokenGenerator(user, verificationStatus);
+    }
+
+    public static DateTime NextIntakeDate(DateTime now)
+    {
+        var candidates = _intakeMonths
+        .Select(m => new DateTime(now.Year, m, 1, 0, 0, 0, DateTimeKind.Utc))
+        .Concat(_intakeMonths.Select(m => new DateTime(now.Year + 1, m, 1, 0, 0, 0, DateTimeKind.Utc)))
+        .OrderBy(d => d);
+
+        return candidates.First(d => d > now);
+    }
+
+    public async Task BlockAccountAsync(string userId)
+    {
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+        if (user == null) throw new IdentityException(_notFoundString);
+
+        user.IsBlocked = true;
+        user.BlockedUntil = NextIntakeDate(DateTime.UtcNow);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _users.UpdateAsync(user);
+
+        await _listings.MarkAllBySellerAsRemovedAsync(Guid.Parse(userId), "Account blocked by admin");
+
+    }
+
+
+    // for retiring the old rejected account so its email is available for a fresh registration
+    private async Task FreeBlockedAccountAsync(User blocked)
+    {
+        blocked.IsDeleted = true;
+        blocked.DeletedAt = DateTime.UtcNow;
+        blocked.Email = $"blocked_{blocked.UserId}@unitrade.com";
+        await _users.UpdateAsync(blocked);
     }
 }
