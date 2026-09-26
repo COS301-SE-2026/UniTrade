@@ -5,6 +5,7 @@ using Modules.Reservations.StateMachine;
 using Modules.Transactions.Models;
 using Modules.Transactions.Models.Dto;
 using Modules.Transactions.Repositories;
+using Modules.Wishlist;
 
 namespace Modules.Transactions;
 
@@ -14,18 +15,21 @@ public class TransactionService : ITransactionsService
     private readonly ITransactionRepository _transactions;
     private readonly IBroadCastService _broadcast;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IWishlistService _wishlist;
 
     public TransactionService(
         IReservationRepository reservations,
         IPaymentGateway paymentGateway,
         IBroadCastService broadcast,
-        ITransactionRepository transactions
+        ITransactionRepository transactions,
+        IWishlistService wishlist
     )
     {
         _reservations = reservations;
         _transactions = transactions;
         _broadcast = broadcast;
         _paymentGateway = paymentGateway;
+        _wishlist = wishlist;
     }
 
     public async Task<TransactionRequestDto> CreatesTransactionReq(
@@ -51,14 +55,18 @@ public class TransactionService : ITransactionsService
         {
             throw new TransactionException("invalid_amount");
         }
-        var buyer = reservation.Buyer ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+        var buyer =
+            reservation.Buyer
+            ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
         var listings = reservation.ReservationListings.Select(rl => rl.Listing).ToList();
         var itemName = listings.Count switch
         {
             0 => "UniTrade reservation",
             1 => listings[0].Title,
-            _ => reservation.BundleDiscountPercent is int pct ? "${listings.Count} items ({pct}% bundle discount)" : $"{listings.Count} items",
+            _ => reservation.BundleDiscountPercent is int pct
+                ? "${listings.Count} items ({pct}% bundle discount)"
+                : $"{listings.Count} items",
         };
 
         return _paymentGateway.CreatePaymentRequest(
@@ -200,6 +208,11 @@ public class TransactionService : ITransactionsService
         await _transactions.SaveAsync(ct);
         await _reservations.SaveAsync(ct);
 
+        foreach (var r1 in reservation.ReservationListings)
+        {
+            await _wishlist.CleanForListingAsync(r1.Listing.ListingId, ct);
+        }
+        await _broadcast.NotifyListingSoldAsync(reservation.ReservationListings.Select(rl=> rl.Listing.ListingId).ToList());
         await _broadcast.SendToUserAsync(tx.SellerId, "pin_confirmed", new { reservationId });
     }
 

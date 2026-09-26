@@ -85,6 +85,10 @@ class ConnectionManager {
     (e: { sellerId: string }) => void
   >();
 
+  private readonly listingSoldListeners = new Set<
+    (e: { listingIds: string[] }) => void
+  >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -176,6 +180,10 @@ class ConnectionManager {
       );
       conn.on("dispute_outcome", (e: { message: string; reason?: string }) =>
         this.disputeOutcomeListeners.forEach((cb) => cb(e)),
+      );
+
+      conn.on("listing_sold", (e: { listingIds: string[] }) =>
+        this.listingSoldListeners.forEach((cb) => cb(e)),
       );
 
       conn.onreconnecting(() => {
@@ -304,6 +312,10 @@ class ConnectionManager {
   onBundleRuleChanged(cb: (e: { sellerId: string }) => void): Unsubscribe {
     this.bundleRuleChangedListeners.add(cb);
     return () => this.bundleRuleChangedListeners.delete(cb);
+  }
+  onListingSold(cb: (e: { listingIds: string[] }) => void): Unsubscribe {
+    this.listingSoldListeners.add(cb);
+    return () => this.listingSoldListeners.delete(cb);
   }
 
   async sendMessage(

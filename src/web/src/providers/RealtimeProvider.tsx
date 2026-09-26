@@ -139,6 +139,10 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
+    const offListingSold = connectionManager.onListingSold(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.wishlist() });
+    });
+
     const offListingStatusChanged = connectionManager.onListingStatusChanged((e) => {
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
       queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
@@ -210,6 +214,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       offVerificationResubmission();
       offListingStatusChanged();
       offDisputeOutcome();
+      offListingSold();
       if (user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }
