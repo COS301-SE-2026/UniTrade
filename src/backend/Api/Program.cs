@@ -80,6 +80,7 @@ using Modules.Wishlist.Repositories;
 using Modules.Listings.Risk;
 using Infrastructure.Imaging;
 using Modules.Listings.Admin;
+using Modules.Identity.PasswordReset;
 
 
 DotEnv.Load(
