@@ -160,6 +160,15 @@ test('login -> profile -> logout', async () => {
           lastName: 'M',
           userRole: 'student',
         },
+        std: {
+        verificationStatus: 'verified',
+        verificationRequestStatus: null,
+        verificationAdminDecision: null,
+        verificationRejectionReason: null,
+        degreeProgram: 'BSc Computer Science',
+        yearOfStudy: 3,
+        university: 'University of Pretoria',
+      },
       });
     })
   );

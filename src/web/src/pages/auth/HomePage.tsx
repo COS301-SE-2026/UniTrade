@@ -537,16 +537,6 @@ export function Footer() {
                 Help Center
               </button>
             </li>
-            <li>
-              <button type='button' className="hover:text-white transition-colors cursor-pointer">
-                Safety Tips
-              </button>
-            </li>
-            <li>
-              <button type='button' className="hover:text-white transition-colors cursor-pointer">
-                Contact Us
-              </button>
-            </li>
           </ul>
         </div>
 
