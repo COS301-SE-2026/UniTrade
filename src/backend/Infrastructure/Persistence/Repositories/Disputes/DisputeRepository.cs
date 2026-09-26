@@ -274,7 +274,7 @@ public class DisputeRepository : IDisputeRepository
         };
     }
 
-    public async Task UpdateSnapshotAsync(Guid disputeId, Guid snapshotId, CancellationToken ct = default )
+    public async Task UpdateSnapshotAsync(Guid disputeId, Guid snapshotId, CancellationToken ct = default)
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
         if (d is null) return;

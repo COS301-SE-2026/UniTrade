@@ -268,16 +268,17 @@ public class DisputeService : IDisputeService
             },
             ct
         );
-        await _moderation.SetUnderReviewAsync(listing.ListingId,req.Description, ct);
-    
-     if (listing.ListingGroupId is Guid groupId)
-     {
-        var siblings = await _listingRepository.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
-        
-        foreach (var sibling in siblings.Where(s => s.ListingId != listing.ListingId && s.ListingStatus == "live")){
-            await _moderation.SetUnderReviewAsync(sibling.ListingId, req.Description, ct);
+        await _moderation.SetUnderReviewAsync(listing.ListingId, req.Description, ct);
+
+        if (listing.ListingGroupId is Guid groupId)
+        {
+            var siblings = await _listingRepository.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
+
+            foreach (var sibling in siblings.Where(s => s.ListingId != listing.ListingId && s.ListingStatus == "live"))
+            {
+                await _moderation.SetUnderReviewAsync(sibling.ListingId, req.Description, ct);
+            }
         }
-     }
         await _broadcast.NotifyAdminAsync(
             "dispute_created",
             new { caseId, type = "report_listing" }
