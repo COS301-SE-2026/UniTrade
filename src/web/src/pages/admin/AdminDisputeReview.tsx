@@ -315,6 +315,7 @@ export default function AdminDisputeReview() {
   const [striking, setStriking] = useState(false);
   const [strikeError, setStrikeError] = useState<string | null>(null);
   const [strikeSuccess, setStrikeSuccess] = useState<string | null>(null);
+  const [struckUserIds, setStruckUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
 
@@ -398,6 +399,7 @@ export default function AdminDisputeReview() {
         state.data.id);
 
       setStrikeSuccess(`Strike applied to ${pendingStrike.label}.`);
+      setStruckUserIds((prev) => new Set(prev).add(pendingStrike.userId));
       setPendingStrike(null);
       setStrikeReason("");
 
@@ -524,11 +526,10 @@ export default function AdminDisputeReview() {
                             dispute.seller.name || "seller",
                           )
                         }
-                        disabled={!dispute.seller.id}
+                        disabled={!dispute.seller.id || struckUserIds.has(dispute.seller.id) || striking}
                         className="text-center border-amber-600 text-amber-700"
                       >
-                        Strike {dispute.seller.name || "seller"}
-
+                        {struckUserIds.has(dispute.seller.id) ? "Struck ✓" : `Strike ${dispute.seller.name || "seller"}`}
                       </OutlineButton>
 
                       {dispute.buyer.id && (
@@ -539,9 +540,10 @@ export default function AdminDisputeReview() {
                               dispute.buyer.name,
                             )
                           }
+                          disabled={!dispute.buyer.id || struckUserIds.has(dispute.buyer.id) || striking}
                           className="text-center border-amber-600 text-amber-700"
                         >
-                          Strike {dispute.buyer.name}
+                          {struckUserIds.has(dispute.buyer.id) ? "Struck ✓" : `Strike ${dispute.buyer.name || "buyer"}`}
                         </OutlineButton>
 
                       )}
