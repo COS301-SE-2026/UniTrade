@@ -7,7 +7,7 @@ public class PasswordResetRequest
 
     public string OtpCodeHash { get; set;} = null!;
     public DateTime OtpSentAt {get; set;} = DateTime.UtcNow;
-    public DateTimes OtpExpiresAt {get; set;}
+    public DateTime OtpExpiresAt {get; set;}
     public DateTime? OtpVerifiedAt {get; set;}
 
     public int AttemptNumber {get; set;} = 0;
