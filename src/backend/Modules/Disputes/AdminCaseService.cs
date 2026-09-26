@@ -399,6 +399,11 @@ public class AdminCaseService : IAdminCaseService
         );
         await _audit.WriteAsync(auditRequest, ct);
 
+        await _broadcast.SendToUserAsync(
+            userId,
+            "dispute_outcome",
+            new { message = "A strike was applied to your account", reason }
+        );
         await _notifications.NotifyAsync(
             userId,
             "dispute_outcome",
