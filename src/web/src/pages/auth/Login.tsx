@@ -6,6 +6,7 @@ import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
 import type { UserRole } from '../../store/useAuthStore'
 import { IconEye, IconEyeOff } from '@tabler/icons-react'
+import ForgotPasswordModal from '../../components/layout/ForgotPasswordModal'
 //import { useToast } from '../../components/layout/useToast'
 
 interface ApiError {
@@ -104,6 +105,7 @@ const Login: React.FC = () => {
   const [verificationModal, setVerificationModal] = useState<VerificationModalStatus | null>(null)
   const [pendingRole, setPendingRole] = useState<UserRole | null>(null)
   const [modalRejectionReason, setModalRejectionReason] = useState<string | null>(null)
+  const [showForgotModal, setShowForgotModal] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -226,6 +228,16 @@ const Login: React.FC = () => {
               </div>
             </div>
 
+            <div className="text-right mt-1">
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(true)}
+                className="text-xs font-semibold text-sky-900 hover:underline"
+              >
+              Forgot password?
+              </button>
+            </div>
+
             <button type="submit" disabled={loading}
               className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50">
               {loading ? 'Logging in...' : 'LOGIN'}
@@ -252,8 +264,18 @@ const Login: React.FC = () => {
           onClose={handleModalClose}
         />
       )}
-    </div>
-  )
-}
+
+      {showForgotModal && (
+        <ForgotPasswordModal
+        onClose={() => setShowForgotModal(false)}
+        onSent={(sentEmail) => {
+        setShowForgotModal(false)
+        navigate('/reset-password', { state: { email: sentEmail } })
+      }}
+    />
+    )}
+      </div>
+    )
+  }
 
 export default Login
