@@ -170,4 +170,17 @@ getMe: async (): Promise<MeResponse> => {
     const json = await res.json();
     return json.data || [];
   },
+
+  forgotPassword: async (email: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/auth/forgot-password`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({email}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
+    }
+  }
 };
