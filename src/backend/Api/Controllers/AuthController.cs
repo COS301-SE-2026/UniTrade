@@ -34,7 +34,7 @@ public class AuthController : ControllerBase
     public AuthController(
         IIdentityService identityService,
         IVerificationService verificationService,
-        IWebHostEnvironment env
+        IWebHostEnvironment env,
         IPasswordResetService passwordReset
 
     )

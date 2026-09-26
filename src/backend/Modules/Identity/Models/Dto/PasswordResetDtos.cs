@@ -5,7 +5,7 @@ public class ForgotPasswordDto
     public string Email { get; set;} = null !;
 }
 
-public class VerifyResetDto 
+public class VerifyResetOtpDto 
 {
     public string Email {get; set;} = null!;
     public string Otp {get; set;} = null!;
