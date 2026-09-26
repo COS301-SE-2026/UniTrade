@@ -212,7 +212,7 @@ public class TransactionService : ITransactionsService
         {
             await _wishlist.CleanForListingAsync(r1.Listing.ListingId, ct);
         }
-        await _broadcast.NotifyListingSoldAsync(reservation.ReservationListings.Select(rl=> rl.Listing.ListingId).ToList());
+        await _broadcast.NotifyListingSoldAsync(reservation.ReservationListings.Select(rl => rl.Listing.ListingId).ToList());
         await _broadcast.SendToUserAsync(tx.SellerId, "pin_confirmed", new { reservationId });
     }
 
