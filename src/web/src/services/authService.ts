@@ -182,5 +182,18 @@ getMe: async (): Promise<MeResponse> => {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error ?? "server_error");
     }
+  },
+
+  verifyResetOtp: async (email: string, otp: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/auth/verify-reset-otp`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({email, otp}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
+    }
   }
 };
