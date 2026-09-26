@@ -378,6 +378,35 @@ public class AdminCaseService : IAdminCaseService
         return await GetCaseByIdAsync(caseId, ct);
     }
 
+    public async Task StrikeUserAsync(
+        Guid userId,
+        Guid? caseId,
+        string reason,
+        Guid adminId,
+        CancellationToken ct = default
+    )
+    {
+        await _reputation.AddStrikeAsync(userId, caseId, "manual", reason, adminId, ct);
+
+        var auditRequest = new AuditWriteRequest(
+            ActorId: adminId,
+            Action: "manual_strike",
+            EntityType: "user",
+            EntityId: userId.ToString(),
+            OldValue: null,
+            NewValue: $"manual strike (case: {caseId?.ToString() ?? "none"})",
+            Reason: reason
+        );
+        await _audit.WriteAsync(auditRequest, ct);
+
+        await _notifications.NotifyAsync(
+            userId,
+            "dispute_outcome",
+            $"A strike was applied to your account. Reason: {reason}",
+            ct
+        );
+    }
+
     internal enum PartyRole
     {
         Buyer,

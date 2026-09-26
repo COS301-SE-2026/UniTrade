@@ -16,4 +16,12 @@ public interface IAdminCaseService
         Guid adminId,
         CancellationToken ct = default
     );
+
+    Task StrikeUserAsync(
+        Guid userId,
+        Guid? caseId,
+        string reason,
+        Guid adminId,
+        CancellationToken ct = default
+    );
 }
