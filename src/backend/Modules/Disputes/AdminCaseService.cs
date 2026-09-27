@@ -34,6 +34,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IModerationService _moderation;
     private const string _resubmissionString = "resubmission";
     private readonly IListingRepository _listingRepository;
+    private readonly ICaseNoteRepository _caseNotes;
 
     // Constants
     private const string _resolvedString = "resolved";
@@ -58,7 +59,8 @@ public class AdminCaseService : IAdminCaseService
         IListingService listings,
         IBroadCastService broadcast,
         IModerationService moderation,
-        IListingRepository listingRepository
+        IListingRepository listingRepository,
+        ICaseNoteRepository caseNotes
     )
     {
         _verification = verification;
@@ -74,6 +76,7 @@ public class AdminCaseService : IAdminCaseService
         _broadcast = broadcast;
         _moderation = moderation;
         _listingRepository = listingRepository;
+        _caseNotes = caseNotes;
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
@@ -714,4 +717,39 @@ public class AdminCaseService : IAdminCaseService
             _resubmissionString => _resubmissionString,
             _ => _pendingString,
         };
+
+    public async Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(Guid caseId, CancellationToken ct = default)
+    {
+        var notes = await _caseNotes.ListByCaseIdAsync(caseId, ct);
+        var result = new List<CaseNoteDto>(notes.Count);
+
+        foreach (var n in notes)
+        {
+            result.Add(await ToNotesDtoAsync(n, ct));
+        }
+        return result;
+    }
+
+    public async Task<CaseNoteDto> AddNoteAsync(Guid caseId, Guid adminId, string content, CancellationToken ct = default)
+    {
+        var note = await _caseNotes.AddAsync(caseId, adminId, content, ct);
+        return await ToNotesDtoAsync(note, ct);
+    }
+
+    private async Task<CaseNoteDto> ToNotesDtoAsync(Models.CaseNote note, CancellationToken ct)
+    {
+        var author = await _parties.GetAsync(note.AuthorAdminId, ct);
+        var authorName = author is null ? "Admin" : $"{author.FirstName} {author.LastName}".Trim();
+
+        return new CaseNoteDto
+        {
+            Id = note.NoteId,
+            Author = authorName,
+            Content = note.Content,
+            CreatedAt = note.CreatedAt,
+        };
+    }
+
+
+
 }

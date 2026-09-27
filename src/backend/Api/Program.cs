@@ -319,6 +319,7 @@ builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IIcsImportService, IcsImportService>();
 builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
 builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
+builder.Services.AddScoped<ICaseNoteRepository, CaseNoteRepository>();
 
 if (!builder.Environment.IsDevelopment())
 {
