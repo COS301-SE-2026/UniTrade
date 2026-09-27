@@ -274,6 +274,28 @@ public class DisputeRepository : IDisputeRepository
         };
     }
 
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(
+        Guid userId,
+        string? type,
+        CancellationToken ct = default
+    )
+    {
+        var query = _db.Disputes.Where(d => d.RaisedBy == userId || d.SubjectUserId == userId);
+        if(!string.IsNullOrWhiteSpace(type))
+        {
+            query = query.Where(d => d.Type == type);
+        }
+
+        var disputes = await query.OrderByDescending(d=> d.SubmittedAt).ToListAsync(ct);
+        var results = new List<CaseSummaryDto>(disputes.Count);
+        foreach (var d  in disputes)
+        {
+            results.Add(await BuildSummaryAsync (d,ct));
+        }
+        return results;
+
+    }
+
     public async Task UpdateSnapshotAsync(Guid disputeId, Guid snapshotId, CancellationToken ct = default)
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);

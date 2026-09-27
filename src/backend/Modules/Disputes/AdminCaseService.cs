@@ -3,6 +3,7 @@ using Modules.Audit;
 using Modules.Disputes.Models.Dto;
 using Modules.Disputes.Repositories;
 using Modules.Identity;
+using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Verification;
 using Modules.Listings;
@@ -259,6 +260,32 @@ public class AdminCaseService : IAdminCaseService
         return dispute is null ? null : await ToDisputeDetailAsync(dispute, ct);
     }
 
+      public async Task<CaseDetailDto?> GetCaseByIdForUserAsync(
+        Guid caseId,
+       
+        Guid userId,
+        CancellationToken ct = default
+    )
+    {
+        var detail = await GetCaseByIdAsync(caseId,ct);
+        if(detail is null)
+        {
+            return null;
+        }
+        var isParty = detail.SubjectUserId == userId ||
+        detail.FiledByUserId == userId
+        || (detail.CounterParty?.UserId == userId);
+
+        if (!isParty)
+        {
+            throw new DisputesException("forbidden");
+        }
+
+        return detail;
+
+    }
+
+    
     public async Task<CaseDetailDto?> DecideCaseAsync(
         Guid caseId,
         DecisionRequestDto request,
