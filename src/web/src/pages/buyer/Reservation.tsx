@@ -24,6 +24,8 @@ import { useSearchQuery } from '../../hooks/useSearchQuery'
 import { getReservationSnapshot,fileDispute,fileDisputeBundle } from '../../services/adminService'
 import { useReservationsList } from '../../hooks/useReservationsList';
 import { queryKeys } from '../../lib/queryKeys';
+import { listingLifecycleHandlers } from '../../tests/mocks/handlers';
+import { resumeToPipeableStream } from 'react-dom/server';
 //import type { ListingSnapshot } from '../../types/admin_disputes'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
@@ -188,10 +190,24 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
       return;
     }
     setSubmitting(true);
-    setManualSelectedListingId(null);
-    setReportAll(false);
 
     try {
+      if(reportAll && items.length > 1) {
+        const result = await fileDisputeBundle({
+          
+          type: 'listing_quality',
+        reservationId,
+        description: description || undefined,
+        items: items.map((item) => ({
+          listingId: item.listingId,
+          photos,
+          sellerRefusedPhotos,
+        })),
+        });
+
+        const count = result.caseIds.length;
+        showToast('success', `Submitted ${count} report${count ===1 ? '' : 's'} for this bundle.`);
+      } else {
       await fileDispute({
         type: 'listing_quality',
         reservationId,
@@ -200,7 +216,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
         photos,
         description: description || undefined,
       });
-      showToast('success', 'Listing quality report submitted.');
+      showToast('success', 'Listing quality report submitted.');}
       onClose();
 
       setPhotos([]);
@@ -314,8 +330,8 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
                   setReportAll(e.target.checked);
                   if (e.target.checked) setManualSelectedListingId(null);
                 }}
-                className='w-4 h-4 rounded border-gray-300 text-navy-700 focus: ring-navy-700 cursor-pointer'/>
-                <label htmlFor= "report-all className='text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none">
+                className='w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer'/>
+                <label htmlFor= "report-all" className='text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none'>
                Report all {items.length} items in this bundle
                </label></div>
                {!reportAll && (
