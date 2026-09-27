@@ -6,7 +6,6 @@ import type {
   SellerListingDetail,
   BrowseListing,
   BrowseListingsResponse,
-  BrowseCondition,
   Course,
   ListingMetadata,
   SimilarListing,
@@ -20,6 +19,7 @@ import type {
   Review,
   OrderItem,
   SaleItem,
+  ListingCondition,
 } from "../types/listing";
 import type { ListingStatusResponse } from "../types/riskTemp";
 
@@ -50,16 +50,6 @@ function formatOrderDate(iso: string): string {
     month: "short",
     year: "numeric",
   });
-}
-
-function mapCondition(condition: string): BrowseCondition {
-  const map: Record<string, BrowseCondition> = {
-    new: "like_new",
-    good: "Good",
-    fair: "Fair",
-    poor: "Poor",
-  };
-  return map[condition] ?? "Fair";
 }
 
 function getFirstUploadedImagePath(
@@ -199,7 +189,7 @@ function mapWishListItem(item: unknown): WishlistListing {
     module: l.courseId?.toString() ?? "General",
     courseId: l.courseId ?? null,
     category: l.categoryName,
-    condition: mapCondition(l.condition),
+    condition: l.condition as ListingCondition,
     image: primary ? imageUrl(primary) : biologyTextbook,
     metadata: l.metadata ?? null,
     sellerId: l.sellerId ?? l.seller?.sellerId ?? "",
@@ -238,7 +228,7 @@ function mapBrowseListingItem(item: unknown): BrowseListing {
     module: l.courseId?.toString() ?? "General",
     courseId: l.courseId ?? null,
     category: l.categoryName,
-    condition: mapCondition(l.condition),
+    condition: l.condition as ListingCondition,
     image: primary ? imageUrl(primary) : biologyTextbook,
     metadata: l.metadata ?? null,
     sellerId: l.seller?.sellerId ?? "",

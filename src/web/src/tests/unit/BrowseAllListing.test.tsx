@@ -25,9 +25,17 @@ vi.mock('../../services/listingsService', () => ({
   },
 }))
 
-vi.mock('../../utils/formatters', () => ({
-  formatPrice: (price: number) => `R${price}`,
-}))
+vi.mock('../../utils/formatters', async () => {
+  const actual = await vi.importActual<typeof import('../../utils/formatters')>
+    (
+      '../../utils/formatters'
+    )
+  return {
+    ...actual,
+    formatPrice: (price: number) => `R${price}`,
+  }
+
+})
 
 const mockNavigate = vi.fn()
 vi.mock('react-router', async () => {
@@ -66,7 +74,7 @@ const makeListings = (): BrowseListing[] => [
     id: '1',
     title: 'Calculus Textbook',
     category: 'book',
-    condition: 'Good',
+    condition: 'good',
     price: 200,
     module: 'WTW 158',
     image: 'calc.jpg',
@@ -79,7 +87,7 @@ const makeListings = (): BrowseListing[] => [
     id: '2',
     title: 'Arduino Kit',
     category: 'electronics',
-    condition: 'Fair',
+    condition: 'fair',
     price: 450,
     module: 'EIR 271',
     image: 'arduino.jpg',
@@ -92,7 +100,7 @@ const makeListings = (): BrowseListing[] => [
     id: '3',
     title: 'Lab Goggles',
     category: 'other',
-    condition: 'Poor',
+    condition: 'poor',
     price: 80,
     module: 'CMY 117',
     image: 'goggles.jpg',
@@ -105,7 +113,7 @@ const makeListings = (): BrowseListing[] => [
     id: '4',
     title: 'Staedtler Pens',
     category: 'stationery',
-    condition: 'Good',
+    condition: 'good',
     price: 50,
     module: 'General',
     image: 'pens.jpg',

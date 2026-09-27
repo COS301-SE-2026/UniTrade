@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { listingsService } from "../../services/listingsService";
-import { formatPrice } from "../../utils/formatters";
+import { formatCondition, formatPrice } from "../../utils/formatters";
 import type {
   BrowseListing,
   BrowseCondition,
@@ -61,10 +61,10 @@ function ListingCard({
   const queryClient = useQueryClient();
 
   const conditionColours: Record<BrowseCondition, string> = {
-    like_new: "bg-green-100 text-green-700",
-    Good: "bg-green-100 text-green-700",
-    Fair: "bg-yellow-100 text-yellow-700",
-    Poor: "bg-red-100 text-red-700",
+    new: "bg-green-100 text-green-700",
+    good: "bg-green-100 text-green-700",
+    fair: "bg-yellow-100 text-yellow-700",
+    poor: "bg-red-100 text-red-700",
   };
 
   const handleAddToWishlist = async (e: React.MouseEvent) => {
@@ -145,7 +145,7 @@ function ListingCard({
           <span
             className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${conditionColours[listing.condition]}`}
           >
-            {listing.condition}
+            {formatCondition(listing.condition)}
           </span>
         </div>
 
@@ -248,8 +248,7 @@ export default function BrowseAllListing() {
         pageSize: PAGE_SIZE,
         search: searchQuery || undefined,
         categoryId: activeCategory ?? undefined,
-        condition:
-          conditionFilter === "All conditions" ? undefined : conditionFilter,
+        condition: conditionFilter === "All conditions"? undefined : conditionFilter,
         sortBy: mapSortToServer(sortOption),
         listingStatus: "live",
       }),
@@ -372,10 +371,10 @@ export default function BrowseAllListing() {
             className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
           >
             <option value="All conditions">All conditions</option>
-            <option value="like_new">Like New</option>
-            <option value="Good">Good</option>
-            <option value="Fair">Fair</option>
-            <option value="Poor">Poor</option>
+            <option value="new">Like New</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
           </select>
           <select
             value={sortOption}
