@@ -10,7 +10,7 @@ import type {
   DecideCaseResponse,
   DisputeFiling,
   FileCaseResponse,
-  FileDisputeBundleRequest,FileDisputeResponse
+  FileDisputeBundleRequest,FileDisputeBundleResponse,
   ListAuditParams,
   ListAuditResponse,
   GetListingSnapshotResponse,
