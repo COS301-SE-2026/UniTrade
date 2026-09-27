@@ -10,6 +10,7 @@ import type {
   DecideCaseResponse,
   DisputeFiling,
   FileCaseResponse,
+  FileDisputeBundleRequest,FileDisputeResponse
   ListAuditParams,
   ListAuditResponse,
   GetListingSnapshotResponse,
@@ -177,6 +178,17 @@ export async function fileDispute(
 
   return handleResponse<FileCaseResponse>(res);
 }
+
+export async function fileDisputeBundle(
+  body: FileDisputeBundleRequest,
+): Promise<FileDisputeBundleResponse> {
+  const res = await fetch(`${getApiUrl()}/disputes/bundle`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+});
+return handleResponse<FileDisputeBundleResponse>(res);}
 
 export async function getAuditEntries(
   params: ListAuditParams = {},
