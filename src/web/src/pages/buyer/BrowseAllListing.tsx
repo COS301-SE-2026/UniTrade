@@ -13,7 +13,7 @@ import {
   sortTheCategories,
 } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery, keepPreviousData } from "@tanstack/react-query";
 import { LoadingState } from "../../components/layout/Spinner";
 import { IconMessageCircle2 } from "@tabler/icons-react";
 
@@ -199,7 +199,20 @@ function ListingCard({
 
 type ConditionFilter = "All conditions" | BrowseCondition;
 type SortOption = "Recommended" | "Newest" | "Oldest" | "Price Low" | "Price High";
-const PAGE_SIZE = 8;
+
+const PAGE_SIZE = 12;
+
+function mapSortToServer(s: SortOption): string {
+  switch (s) {
+    case "Recommended": return "recommended";
+    case "Newest": return "newest";
+    case "Oldest": return "oldest";
+    case "Price High": return "price_desc";
+    case "Price Low": return "price_asc";
+    default: return "recommended"
+
+  }
+}
 
 export default function BrowseAllListing() {
   const navigate = useNavigate();
@@ -207,11 +220,14 @@ export default function BrowseAllListing() {
   const searchQuery = searchParams.get('q') || '';
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [conditionFilter, setConditionFilter] =
     useState<ConditionFilter>("All conditions");
   const [sortOption, setSortOption] = useState<SortOption>("Recommended");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const resetPage = () => setCurrentPage(1);
+
   const [showMoreCategories, setShowMoreCategories] = useState(false);
 
   useEffect(() => {
@@ -224,47 +240,41 @@ export default function BrowseAllListing() {
   }, []);
 
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["browseListings", searchQuery],
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: ["browseListings", searchQuery, activeCategory, conditionFilter, sortOption, currentPage],
     queryFn: () =>
-      listingsService.getBrowseListings({
+      listingsService.getBrowseListingsPaginated({
+        page: currentPage,
+        pageSize: PAGE_SIZE,
         search: searchQuery || undefined,
+        categoryId: activeCategory ?? undefined,
+        condition:
+          conditionFilter === "All conditions" ? undefined : conditionFilter,
+        sortBy: mapSortToServer(sortOption),
+        listingStatus: "live",
       }),
+    placeholderData: keepPreviousData,
   });
 
-  const allListings = data?.listings ?? [];
+  const listings: BrowseListing[] = data?.listings ?? [];
   const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const afterCategory =
-    activeCategory === "All"
-      ? allListings
-      : allListings.filter((l) => l.category === activeCategory);
-
-  const afterCondition =
-    conditionFilter === "All conditions"
-      ? afterCategory
-      : afterCategory.filter((l) => l.condition === conditionFilter);
-
-  const time = (iso?: string) => Date.parse(iso ?? "") || 0;
-  const filtered = [...afterCondition].sort((a, b) => {
-    if (sortOption === "Price Low") return a.price - b.price;
-    if (sortOption === "Price High") return b.price - a.price;
-    if (sortOption === "Newest") return time(b.listedAt) - time(a.listedAt);
-    if (sortOption === "Oldest") return time(a.listedAt) - time(b.listedAt);
-    return 0;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  const handleCategoryClick = (category: string) => {
-    setActiveCategory(category);
-    setCurrentPage(1);
+  const handleCategoryClick = (categoryId: number | null) => {
+    setActiveCategory(categoryId);
+    resetPage();
     setShowMoreCategories(false);
   };
+
+  const handleConditionChange = (value: ConditionFilter) => {
+    setConditionFilter(value);
+    resetPage();
+  }
+
+  const handleSortChange = (value: SortOption) => {
+    setSortOption(value);
+    resetPage();
+  }
 
   if (isLoading) {
     return <LoadingState message="Loading listings..." />;
@@ -278,6 +288,9 @@ export default function BrowseAllListing() {
         </p>
       </div>
     );
+
+  const firstOnPage = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const lastOnPage = Math.min(currentPage * PAGE_SIZE, total);
 
   return (
     <div className="flex flex-col gap-6">
@@ -297,17 +310,18 @@ export default function BrowseAllListing() {
           <CategoryCard
             key="All"
             title="All"
-            active={activeCategory === "All"}
-            onClick={() => handleCategoryClick("All")}
+            active={activeCategory === null}
+            onClick={() => handleCategoryClick(null)}
           />
           {categories.slice(0, 3).map((cat) => (
             <CategoryCard
               key={cat.id}
               title={getDisplayCategory(cat.name)}
-              active={activeCategory === cat.name}
-              onClick={() => handleCategoryClick(cat.name)}
+              active={activeCategory === cat.id}
+              onClick={() => handleCategoryClick(cat.id)}
             />
           ))}
+
 
           {categories.length > 3 && (
             <div className="relative md:hidden">
@@ -324,8 +338,8 @@ export default function BrowseAllListing() {
                     <button
                       type='button'
                       key={cat.id}
-                      onClick={() => handleCategoryClick(cat.name)}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${activeCategory === cat.name
+                      onClick={() => handleCategoryClick(cat.id)}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${activeCategory === cat.id
                         ? "text-navy-700 font-medium"
                         : ""
                         }`}
@@ -342,8 +356,8 @@ export default function BrowseAllListing() {
             <CategoryCard
               key={cat.id}
               title={getDisplayCategory(cat.name)}
-              active={activeCategory === cat.name}
-              onClick={() => handleCategoryClick(cat.name)}
+              active={activeCategory === cat.id}
+              onClick={() => handleCategoryClick(cat.id)}
               className="hidden md:inline-flex"
             />
           ))}
@@ -353,7 +367,7 @@ export default function BrowseAllListing() {
           <select
             value={conditionFilter}
             onChange={(e) =>
-              setConditionFilter(e.target.value as ConditionFilter)
+              handleConditionChange(e.target.value as ConditionFilter)
             }
             className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
           >
@@ -365,7 +379,7 @@ export default function BrowseAllListing() {
           </select>
           <select
             value={sortOption}
-            onChange={(e) => setSortOption(e.target.value as SortOption)}
+            onChange={(e) => handleSortChange(e.target.value as SortOption)}
             className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
           >
             <option>Recommended</option>
@@ -377,9 +391,20 @@ export default function BrowseAllListing() {
         </div>
       </div>
 
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {paginated.map((listing) => (
+      {!isFetching && listings.length === 0 && (
+        <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700 dark:text-white">
+            No listings match your filters
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Try clearing the condition or category filter.
+          </p>
+        </div>
+      )}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity ${isFetching ? "opacity-60" : "opacity-100"
+        }`}
+      >
+        {listings.map((listing) => (
           <ListingCard
             key={listing.id}
             listing={listing}
@@ -390,37 +415,30 @@ export default function BrowseAllListing() {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <p className="text-sm text-gray-400">
-          Showing {filtered.length} of {total} listings
+          Showing {firstOnPage}-{lastOnPage} of {total} listings
         </p>
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-400 whitespace-nowrap">
-            Showing{" "}
-            {paginated.length === 0
-              ? 0
-              : (currentPage - 1) * PAGE_SIZE + 1}
-            -
-            {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
-            {filtered.length} listings
-          </p>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
-              (page) => (
-                <button
-                  type='button'
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page
-                    ? "bg-navy-700 text-white"
-                    : "bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700"
-                    }`}
-                >
-                  {page}
-                </button>
-              )
-            )}
-          </div>
+        <div className="flex gap-1">
+          {buildPageWindow(currentPage, totalPages).map((p) => (
+            <button
+              type='button'
+              key={p}
+              onClick={() => setCurrentPage(p)}
+              className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === p
+                ? "bg-navy-700 text-white"
+                : "bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700"
+                }`}
+            >
+              {p}
+            </button>
+          ))}
         </div>
       </div>
     </div>
   );
+}
+
+function buildPageWindow(current: number, total: number): number[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.max(1, Math.min(current - 3, total - 6));
+  return Array.from({ length: 7 }, (_, i) => start + i);
 }

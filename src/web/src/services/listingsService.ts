@@ -124,71 +124,6 @@ const mockMyListings: ListingSummary[] = [
     categoryName: "",
   },
 ];
-
-/*const mockListingDetail: ListingDetail = {
-  id: "1",
-  title: "Calculus - Early Transcendentals",
-  description:
-    "Good condition with minor highlighting on pages 3-5. All pages intact, spine undamaged. Ideal for first year Calculus students at UP.",
-  price: 280,
-  condition: "new",
-  category: "book",
-  status: "live",
-  courseCode: "WTW114",
-  courseId: 1076,
-  university: "University of Pretoria",
-  tags: ["WTW114", "First Year", "University of Pretoria"],
-  metadata: null,
-  images: [
-    { id: "1", url: biologyTextbook, isPrimary: true },
-    { id: "2", url: biologyTextbook, isPrimary: false },
-    { id: "3", url: biologyTextbook, isPrimary: false },
-  ],
-  views: 42,
-  listedAt: "2026-05-07T09:14:00Z",
-  sellerId: "seller-1",
-  sellerName: "Langa Vakalisa",
-  sellerInitials: "LV",
-  sellerRating: 4.9,
-  sellerResponseRate: 98,
-  sellerTotalListings: 12,
-  isReserved: false,
-  aiScore: 78,
-  aiLabel: "low_risk",
-  reviews: [
-    {
-      id: "r1",
-      initials: "ZS",
-      name: "Zelamene S.",
-      stars: 5,
-      text: "Item was exactly as described.",
-      date: "2026-05-03T00:00:00Z",
-    },
-    {
-      id: "r2",
-      initials: "SK",
-      name: "Sabira K.",
-      stars: 4,
-      text: "Book was in good condition.",
-      date: "2026-04-28T00:00:00Z",
-    },
-  ],
-  similarListings: [
-    {
-      id: "2",
-      title: "Calculus - Early Transcendentals 3rd Ed",
-      meta: "UP · R120",
-      condition: "good",
-    },
-    {
-      id: "3",
-      title: "Linear Algebra - 6th Ed",
-      meta: "UP · R120",
-      condition: "fair",
-    },
-  ],
-};*/
-
 const mockSellerListingDetail: SellerListingDetail = {
   id: "4",
   title: "Calculus - Early Transcendentals",
@@ -274,7 +209,43 @@ function mapWishListItem(item: unknown): WishlistListing {
     answeredQuestionCount: l.answeredQuestionCount ?? 0,
   };
 }
-
+function mapBrowseListingItem(item: unknown): BrowseListing {
+  const l = item as {
+    listingId: string;
+    title: string;
+    categoryName: string;
+    createdAt: string;
+    price: number;
+    listingStatus: string;
+    viewCount: number;
+    condition: string;
+    courseId?: number | null;
+    metadata?: ListingMetadata;
+    answeredQuestionCount?: number;
+    images: { imageId: number; isPrimary: boolean; path: string }[];
+    seller?: { sellerId: string } | null;
+    listingGroupId?: string | null;
+    resubmissionCount?: number;
+    maxResubmissions?: number;
+    riskLevel?: 'low' | 'medium' | 'high' | null;
+    visibilityScore?: number | null;
+  };
+  const primary = getFirstUploadedImagePath(l.images);
+  return {
+    id: l.listingId,
+    title: l.title,
+    price: l.price,
+    module: l.courseId?.toString() ?? "General",
+    courseId: l.courseId ?? null,
+    category: l.categoryName,
+    condition: mapCondition(l.condition),
+    image: primary ? imageUrl(primary) : biologyTextbook,
+    metadata: l.metadata ?? null,
+    sellerId: l.seller?.sellerId ?? "",
+    answeredQuestionCount: l.answeredQuestionCount ?? 0,
+    listedAt: l.createdAt,
+  };
+}
 export const listingsService = {
   getById: async (id: string): Promise<ListingDetail> => {
     const res = await fetch(`${getApiUrl()}/listings/${id}`, {
@@ -408,40 +379,47 @@ export const listingsService = {
     if (!res.ok) throw new Error("Failed to fetch listings");
     const data = await res.json();
 
-    const listings: BrowseListing[] = data.items.map((item: unknown) => {
-      const l = item as {
-        listingId: string;
-        title: string;
-        price: number;
-        courseId?: number;
-        categoryName: string;
-        condition: string;
-        metadata?: ListingMetadata;
-        images: { imageId: number; isPrimary: boolean; path: string }[];
-        seller?: { sellerId: string };
-        answeredQuestionCount?: number;
-        createdAt: string;
-      };
-      const primary = getFirstUploadedImagePath(l.images);
-      return {
-        id: l.listingId,
-        title: l.title,
-        price: l.price,
-        module: l.courseId?.toString() ?? "General",
-        courseId: l.courseId ?? null,
-        category: l.categoryName,
-        condition: mapCondition(l.condition),
-        image: primary ? imageUrl(primary) : biologyTextbook,
-        metadata: l.metadata ?? null,
-        sellerId: l.seller?.sellerId ?? "",
-        answeredQuestionCount: l.answeredQuestionCount ?? 0,
-        listedAt: l.createdAt,
-      };
-    });
 
-    return { listings, total: data.total };
+
+    return { listings: data.items.map(mapBrowseListingItem), total: data.total };
   },
 
+  getBrowseListingsPaginated: async (options: {
+    page: number;
+    pageSize: number;
+    search?: string;
+    categoryId?: number;
+    condition?: string;
+    sortBy?: string;
+    listingStatus?: string;
+  }): Promise<BrowseListingsResponse> => {
+    const params = new URLSearchParams();
+    params.set("skip", String((options.page - 1) * options.pageSize));
+    params.set("take", String(options.pageSize));
+
+    if (options.listingStatus) params.set("listingStatus", options.listingStatus);
+
+    const user = useAuthStore.getState().user;
+    if (user) {
+      params.set("excludeSellerId", user.id);
+    }
+
+    if (options.search) params.set("search", options.search);
+    if (options.categoryId != null) params.set("categoryId", String(options.categoryId));
+    if (options.condition) params.set("condition", options.condition);
+    if (options.sortBy) params.set("sortBy", options.sortBy);
+
+    const res = await fetch(`${getApiUrl()}/listings?${params.toString()}`, {
+      credentials: "include",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch listings");
+    const data = await res.json();
+
+
+
+    return { listings: data.items.map(mapBrowseListingItem), total: data.total };
+  },
   getSimilarListings: async (
     listing: ListingDetail,
     limit = 2,
