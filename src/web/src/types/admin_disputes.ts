@@ -349,3 +349,21 @@ export interface ListingStatusResponse {
   riskLevel: "low" | "medium" | "high";
   message: string;
 }
+
+export interface BundleDisputeItemFiling{
+  listingId: string;
+  photos?: string[];
+  sellerRefusedPhotos?: boolean
+}
+
+export interface FileDisputeRequest{
+  type: "listing_quality";
+  reservationId: string;
+  description?: string;
+  items: BundleDisputeItemFiling[];
+
+}
+
+export interface FileDisputeBundleResponse{
+  caseIds: string[];
+}
