@@ -38,6 +38,25 @@ public class DevController : ControllerBase
         return Ok(new { otp });
     }
 
+    [HttpGet("reset-otp")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public IActionResult GetResetOtp([FromQuery] string email)
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var otp = TestEmailService.GetLastPasswordResetOtp(email);
+        if (otp == null)
+        {
+            return NotFound(new { error = "no_otp_found" });
+        }
+
+        return Ok(new { otp });
+    }
+
+
     [HttpGet("decision")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult GetDecision([FromQuery] string email)
@@ -82,4 +101,6 @@ public class DevController : ControllerBase
 
         return Ok(new { email, password });
     }
+
+
 }
