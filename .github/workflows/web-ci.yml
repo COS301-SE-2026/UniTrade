@@ -152,7 +152,7 @@ jobs:
           
           - name: Upload CVE Report
             if: always()
-            uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
             with:
               name: npm-audit-report
               path: "tests/nfr/evidence/Dependency Audits/npm-audit-report.txt"
@@ -180,7 +180,7 @@ jobs:
       
           - name: Upload Trivy frontend report
             if: always()
-            uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
             with:
                 name: trivy-frontend-report
                 path: "tests/nfr/evidence/Container Image Scans/trivy-frontend.txt"
