@@ -20,4 +20,6 @@ public interface IDisputeRepository
     Task ReopenAsResubmissionAsync(Guid disputeId, CancellationToken ct = default);
     Task UpdateSnapshotAsync(Guid disputeId, Guid snapshot, CancellationToken ct = default);
 
+    Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(Guid userId, string? type, CancellationToken ct = default);
+
 }
