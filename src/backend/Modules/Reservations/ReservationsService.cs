@@ -559,33 +559,33 @@ public class ReservationService(
         }
     }
 
-    public async Task<ReservationDto> CancelBySystemAsync(Guid reservationId, string reason, CancellationToken ct=default)
+    public async Task<ReservationDto> CancelBySystemAsync(Guid reservationId, string reason, CancellationToken ct = default)
     {
-        var r=await _reservations.GetByIdTrackedAsync(reservationId,ct) ?? throw new ReservationException(ReservationErrors.NotFound);
+        var r = await _reservations.GetByIdTrackedAsync(reservationId, ct) ?? throw new ReservationException(ReservationErrors.NotFound);
 
         ReservationStateMachine.CancelBySystem(r, _clock.GetUtcNow().UtcDateTime);
 
         foreach (var r1 in r.ReservationListings)
         {
-            await _listings.ReleaseAsync(r1.ListingId,ct);
+            await _listings.ReleaseAsync(r1.ListingId, ct);
         }
 
-        await _wishlist.RestoreForReservationAsync(reservationId,ct);
-        await _chat.SendSystemAsync(reservationId,reason,ct);
+        await _wishlist.RestoreForReservationAsync(reservationId, ct);
+        await _chat.SendSystemAsync(reservationId, reason, ct);
 
         await _reservations.SaveAsync(ct);
 
-        foreach(var r1 in r.ReservationListings)
+        foreach (var r1 in r.ReservationListings)
         {
-            await _listingNotifier.ListingReleasedAsync(r1.ListingId,ct);
+            await _listingNotifier.ListingReleasedAsync(r1.ListingId, ct);
         }
-        var dto=MapToDto(r);
-        await _realtime.ReservationUpdatedAsync(dto,ct);
-        await _broadcast.BroadCastStatusChange(reservationId,r.ReservationStatus);
+        var dto = MapToDto(r);
+        await _realtime.ReservationUpdatedAsync(dto, ct);
+        await _broadcast.BroadCastStatusChange(reservationId, r.ReservationStatus);
 
-        await GuardedPushAsync(r.BuyerId, NotificationTypes.ReservationStatus,reason, ct);
+        await GuardedPushAsync(r.BuyerId, NotificationTypes.ReservationStatus, reason, ct);
 
-        await GuardedPushAsync(r.SellerId, NotificationTypes.ReservationStatus,reason,ct);
+        await GuardedPushAsync(r.SellerId, NotificationTypes.ReservationStatus, reason, ct);
 
         return dto;
     }

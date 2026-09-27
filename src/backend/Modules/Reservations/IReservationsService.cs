@@ -66,6 +66,6 @@ public interface IReservationService
         CancellationToken ct = default
     );
 
-    Task<ReservationDto> CancelBySystemAsync(Guid reservationId, string reason, CancellationToken ct=default);
+    Task<ReservationDto> CancelBySystemAsync(Guid reservationId, string reason, CancellationToken ct = default);
 
 }
