@@ -170,4 +170,43 @@ getMe: async (): Promise<MeResponse> => {
     const json = await res.json();
     return json.data || [];
   },
+
+  forgotPassword: async (email: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/auth/forgot-password`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({email}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
+    }
+  },
+
+  verifyResetOtp: async (email: string, otp: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/auth/verify-reset-otp`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({email, otp}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
+    }
+  },
+
+  resetPassword: async (email: string, otp: string, newPassword: string): Promise<void> => {
+    const res = await fetch(`${getApiUrl()}/auth/reset-password`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: "include",
+      body: JSON.stringify({email, otp, newPassword}),
+    });
+    if(!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "server_error");
+    }
+  },
 };

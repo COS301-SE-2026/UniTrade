@@ -31,9 +31,11 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<PasswordResetRequest> PasswordResetRequests => Set<PasswordResetRequest>();
     public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
         Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
+    
 
     ///add listing model after resolving conflicts
     // Listings
@@ -776,6 +778,33 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_notif_user_unread")
                 .HasFilter("is_read = false");
         });
+
+        //Passwod reset requets
+        modelBuilder.Entity<PasswordResetRequest>(entity => 
+        {
+            entity.HasKey(x => x.PasswordResetRequestId);
+
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.OtpCodeHash).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.AttemptNumber).HasDefaultValue(0);
+
+            entity
+             .HasOne<User>()
+             .WithMany()
+             .HasForeignKey(x => x.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_prr_user");
+
+            entity
+             .HasIndex(x => x.UserId)
+             .HasDatabaseName("uix_prr_current")
+             .IsUnique()
+             .HasFilter("is_current = true");
+
+            });
+
+        
 
         // Wishlist items
         modelBuilder.Entity<WishlistItem>(entity =>

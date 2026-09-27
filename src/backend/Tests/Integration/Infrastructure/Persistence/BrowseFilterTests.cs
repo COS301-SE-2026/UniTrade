@@ -27,7 +27,7 @@ public sealed class BrowseFilterTests
 
         await using var context = _fixture.CreateContext();
         var (items, total) = await Repo(context)
-            .ListAsync(new Modules.Listings.Models.Dto.ListFilterDto {SellerId = seller });
+            .ListAsync(new Modules.Listings.Models.Dto.ListFilterDto { SellerId = seller });
 
         Assert.Equal(2, total);
         Assert.Contains(items, l => l.ListingId == liveListing);

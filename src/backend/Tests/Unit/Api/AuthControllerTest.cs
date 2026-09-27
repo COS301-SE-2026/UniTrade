@@ -13,6 +13,7 @@ using Modules.Identity.Models.DTO;
 using Modules.Identity.Verification;
 using Moq;
 using Xunit;
+using Modules.Identity.PasswordReset;
 
 namespace Api.Tests.Controllers;
 
@@ -20,6 +21,7 @@ public class AuthControllerTests
 {
     private readonly Mock<IIdentityService> _identityServiceMock;
     private readonly Mock<IVerificationService> _verificationServiceMock;
+    private readonly Mock<IPasswordResetService> _passwordResetServiceMock;
     private readonly AuthController _controller;
     private readonly Mock<HttpContext> _httpContextMock;
     private readonly Mock<HttpResponse> _httpResponseMock;
@@ -30,6 +32,7 @@ public class AuthControllerTests
     {
         _identityServiceMock = new Mock<IIdentityService>();
         _verificationServiceMock = new Mock<IVerificationService>();
+        _passwordResetServiceMock = new Mock<IPasswordResetService>();
         _envMock = new Mock<IWebHostEnvironment>();
         _envMock.Setup(e => e.EnvironmentName).Returns("Production");
 
@@ -37,7 +40,8 @@ public class AuthControllerTests
         _controller = new AuthController(
             _identityServiceMock.Object,
             _verificationServiceMock.Object,
-            _envMock.Object
+            _envMock.Object,
+            _passwordResetServiceMock.Object
         );
 
         // Setup common HTTP Context structures for Cookie/User access

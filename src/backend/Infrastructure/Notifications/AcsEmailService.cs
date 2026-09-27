@@ -45,6 +45,24 @@ public class AcsEmailService : IEmailService
         await SendAsync(email, subject, html);
     }
 
+        public async Task SendPasswordResetOtpEmailAsync(string email, string otp)
+    {
+        var subject = "Your UniTrade Password Reset Code";
+        var html = $"""
+                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                    <h2 style="color: rgb(26, 26, 26);">Reset your UniTrade password</h2>
+                    <p style="color: #444;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
+                    
+                    <div style="background: #f4f4f4; border-radius: 8px; padding: 24px; text-align: center; margin: 24px 0;">
+                        <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: rgb(69, 47, 235);">{otp}</span>
+                    </div>
+                    
+                    <p style="color: #888; font-size: 13px;">If you didn't request a password reset, you can safely ignore this email — your password will not be changed.</p>
+                </div>
+            """;
+        await SendAsync(email, subject, html);
+    }
+
     public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
     {
         var html = WelcomeHtml(firstName);

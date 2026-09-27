@@ -104,7 +104,7 @@ public class AdminListingRiskService : IAdminListingRiskService
             return null;
         }
 
-        if (listing.AiRiskReasons is not { Count: > 0})
+        if (listing.AiRiskReasons is not { Count: > 0 })
         {
             throw new ArgumentException("not_ai_flagged");
         }
@@ -118,7 +118,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         var siblingIds = new List<Guid>();
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             siblingIds = siblings
                 .Where(s => s.ListingId != listingId && s.ListingStatus == "under_review")
                 .Select(s => s.ListingId)
@@ -265,7 +265,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         var copyCount = 1;
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             copyCount = Math.Max(1, siblings.Count(s => s.ListingStatus == "under_review"));
         }
         var seller = await _users.GetByIdAsync(listing.SellerId);

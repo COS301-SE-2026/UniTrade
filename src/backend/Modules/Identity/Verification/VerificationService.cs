@@ -273,7 +273,7 @@ public class VerificationService : IVerificationService
                     "force_logout",
                     new { reason = "verification_rejected" }
                 );
-                await _identity.DeleteAccountAsync(vr.UserId.ToString());
+                await _identity.BlockAccountAsync(vr.UserId.ToString());
                 break;
 
             case VerificationDecision.Resubmit:

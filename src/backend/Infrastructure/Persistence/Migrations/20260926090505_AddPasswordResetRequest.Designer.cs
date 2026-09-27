@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926090505_AddPasswordResetRequest")]
+    partial class AddPasswordResetRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,10 +193,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("meetup_id");
 
-                    b.Property<Guid?>("OriginalSnapshotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("original_snapshot_id");
-
                     b.PrimitiveCollection<List<string>>("Photos")
                         .HasColumnType("text[]")
                         .HasColumnName("photos");
@@ -259,9 +258,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MeetupId")
                         .HasDatabaseName("ix_disputes_meetup_id");
-
-                    b.HasIndex("OriginalSnapshotId")
-                        .HasDatabaseName("ix_disputes_original_snapshot_id");
 
                     b.HasIndex("RaisedBy")
                         .HasDatabaseName("ix_disputes_raised_by");
@@ -2013,12 +2009,6 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_disputes_meetups_meetup_id");
 
-                    b.HasOne("Modules.Listings.Models.ListingSnapshot", "OriginalSnapshot")
-                        .WithMany()
-                        .HasForeignKey("OriginalSnapshotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_disputes_listing_snapshot_original_snapshot_id");
-
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
                         .HasForeignKey("RaisedBy")
@@ -2043,8 +2033,6 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_disputes_users_subject_user_id");
-
-                    b.Navigation("OriginalSnapshot");
 
                     b.Navigation("Snapshot");
                 });

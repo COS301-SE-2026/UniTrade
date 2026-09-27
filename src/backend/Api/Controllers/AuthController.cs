@@ -7,6 +7,7 @@ using Modules.Identity.Models.DTO;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
+using Modules.Identity.PasswordReset;
 
 namespace Api.Controllers;
 
@@ -17,6 +18,7 @@ public class AuthController : ControllerBase
     private readonly IIdentityService _identityService;
     private readonly IVerificationService _verificationService;
     private readonly IWebHostEnvironment _env;
+    private readonly IPasswordResetService _passwordReset;
 
     private static readonly string[] _allowedPorContentTypes =
     {
@@ -27,16 +29,20 @@ public class AuthController : ControllerBase
 
     private const long _maxPorFileSizeBytes = 5 * 1024 * 1024;
     private const string _serverErrorString = "server_error";
+    private const string _accountBlockedString = "account_blocked";
 
     public AuthController(
         IIdentityService identityService,
         IVerificationService verificationService,
-        IWebHostEnvironment env
+        IWebHostEnvironment env,
+        IPasswordResetService passwordReset
+
     )
     {
         _identityService = identityService;
         _verificationService = verificationService;
         _env = env;
+        _passwordReset = passwordReset;
     }
 
     [HttpPost("register")]
@@ -67,6 +73,7 @@ public class AuthController : ControllerBase
                 "otp_already_sent" => StatusCode(429, new { error = "otp_already_sent" }),
                 "invalid_domain" => UnprocessableEntity(new { error = "invalid_domain" }),
                 "weak_password" => UnprocessableEntity(new { error = "weak_password" }),
+                _accountBlockedString => StatusCode(403, new { error = _accountBlockedString }),
                 _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }
@@ -128,6 +135,58 @@ public class AuthController : ControllerBase
         );
     }
 
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("resend-otp")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _passwordReset.InitiateAsync(dto.Email);
+        return Ok(new { message = "If this email is registered, a reset code has been sent." });
+    }
+
+    [HttpPost("verify-reset-otp")]
+    [EnableRateLimiting("verify-otp")]
+    public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyResetOtpDto dto)
+    {
+        try
+        {
+            await _passwordReset.VerifyOtpAsync(dto.Email, dto.Otp);
+            return Ok(new { message = "OTP verified." });
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+                "invalid_otp" => Unauthorized(new { error = "invalid_otp" }),
+                "otp_expired" => UnprocessableEntity(new { error = "otp_expired" }),
+                "otp_invalidated_resend_required" => UnprocessableEntity(new { error = "otp_invalidated_resend_required" }),
+                _ => StatusCode(500, new { error = _serverErrorString }),
+            };
+        }
+    }
+
+    [HttpPost("reset-password")]
+    [EnableRateLimiting("login")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        try
+        {
+            await _passwordReset.ResetPasswordAsync(dto.Email, dto.Otp, dto.NewPassword);
+            return Ok(new { message = "Password reset successfully." });
+        }
+        catch (Exception ex)
+        {
+            return ex.Message switch
+            {
+                "weak_password" => UnprocessableEntity(new { error = "weak_password" }),
+                "invalid_otp" => Unauthorized(new { error = "invalid_otp" }),
+                "otp_expired" => UnprocessableEntity(new { error = "otp_expired" }),
+                "otp_not_verified" => UnprocessableEntity(new { error = "otp_not_verified" }),
+                _ => StatusCode(500, new { error = _serverErrorString }),
+            };
+        }
+    }
+
+
     [HttpPost("login")]
     [EnableRateLimiting("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto request)
@@ -145,6 +204,7 @@ public class AuthController : ControllerBase
             return e.Message switch
             {
                 "invalid_credentials" => Unauthorized(new { error = "invalid_credentials" }),
+                _accountBlockedString => StatusCode(403, new { error = _accountBlockedString }),
                 _ => StatusCode(500, new { error = _serverErrorString }),
             };
         }

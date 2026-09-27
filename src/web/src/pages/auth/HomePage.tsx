@@ -509,8 +509,6 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col items-center justify-center text-center gap-6">
 
         <p className="flex items-center gap-3 text-xs sm:text-sm text-gray-300 font-medium">
-          <span>+27 123 456 789</span>
-          <span className="text-gray-500">|</span>
           <a
             href="mailto:devenexus28@gmail.com"
             className="hover:text-white transition-colors underline-offset-2 hover:underline"
@@ -537,16 +535,6 @@ export function Footer() {
                 className="hover:text-white transition-colors cursor-pointer"
               >
                 Help Center
-              </button>
-            </li>
-            <li>
-              <button type='button' className="hover:text-white transition-colors cursor-pointer">
-                Safety Tips
-              </button>
-            </li>
-            <li>
-              <button type='button' className="hover:text-white transition-colors cursor-pointer">
-                Contact Us
               </button>
             </li>
           </ul>

@@ -407,15 +407,15 @@ public class ListingService : IListingService
         listing.AiRiskReasons = reasons;
 
         listing.ListingStatus = listing.RequiresManualReviewOnResubmit ? "under_review"
-        : listing.AiRiskLevel == "high" ? "under_review" 
+        : listing.AiRiskLevel == "high" ? "under_review"
         : "live";
         listing.UpdatedAt = DateTime.UtcNow;
 
-       if (listing.RequiresManualReviewOnResubmit)
-       {
-        await _resubmissionListener.OnListingResubmittedAsync(listing.ListingId, ct);
-       }
-       listing.RequiresManualReviewOnResubmit = false;
+        if (listing.RequiresManualReviewOnResubmit)
+        {
+            await _resubmissionListener.OnListingResubmittedAsync(listing.ListingId, ct);
+        }
+        listing.RequiresManualReviewOnResubmit = false;
         await _listings.SaveAsync();
 
         await _notifier.ListingStatusChangedAsync(
@@ -830,7 +830,7 @@ public class ListingService : IListingService
             listing.ListingStatus == "live" && listing.AiRiskLevel == "medium";
 
         IReadOnlyList<ListingReasonDto>? reasons = null;
-        if (listing.ListingStatus == "under_review"  || isAdminRemoved || isBanned || isLiveButFlagged || listing.ListingStatus == "banned")
+        if (listing.ListingStatus == "under_review" || isAdminRemoved || isBanned || isLiveButFlagged || listing.ListingStatus == "banned")
         {
             reasons = listing
                 .AiRiskReasons?.Select(r => new ListingReasonDto(r.Code, r.Detail, r.ImageId))
@@ -838,7 +838,7 @@ public class ListingService : IListingService
 
             if ((reasons is null || reasons.Count == 0) && !string.IsNullOrEmpty(listing.RejectionReason))
             {
-                reasons = new List<ListingReasonDto> { new("reported", listing.RejectionReason, null)};
+                reasons = new List<ListingReasonDto> { new("reported", listing.RejectionReason, null) };
             }
         }
         var canRescore =
@@ -870,7 +870,7 @@ public class ListingService : IListingService
         {
             "live" => ("live", "Your listing is live."),
             "screening" => ("screening", "Your listing is being checked."),
-            "under_review" => ("under_review", 
+            "under_review" => ("under_review",
               string.IsNullOrEmpty(listing.RejectionReason)
             ? "Your listing is being reviewed by an admin."
             : $"Your listing reported and is being reviewed."),
