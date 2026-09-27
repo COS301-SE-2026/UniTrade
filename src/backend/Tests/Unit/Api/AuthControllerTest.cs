@@ -13,7 +13,7 @@ using Modules.Identity.Models.DTO;
 using Modules.Identity.Verification;
 using Moq;
 using Xunit;
-using MOdules.Identity.PasswordReset;
+using Modules.Identity.PasswordReset;
 
 namespace Api.Tests.Controllers;
 
