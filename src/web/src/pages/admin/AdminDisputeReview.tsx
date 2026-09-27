@@ -485,11 +485,18 @@ export default function AdminDisputeReview() {
           ) : (
             <PersonCard title="Buyer" person={dispute.buyer} />
           )}
+          {dispute.type === "report_listing" && dispute.report ? (
+            <Panel title="Dispute Info">
+            <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
+            <InfoRow label="Date Placed" value={dispute.datePlaced} />
+            </Panel>
+          ) : (
           <Panel title="Dispute Info">
             <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
             <InfoRow label="Date Placed" value={dispute.datePlaced} />
             <InfoRow label="Filed by" value={dispute.filedBy} />
           </Panel>
+          )}
         </div>
       </div>
 
