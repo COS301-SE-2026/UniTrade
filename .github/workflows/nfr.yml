@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install k6
-        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065
+        uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1
       - name: Run performance test
         env:
           STAGING_URL: ${{ secrets.VITE_API_URL_STAGING }}
@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install k6
-        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065
+        uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1
       - name: Run baseline vs 2x
         env:
           STAGING_URL: ${{ secrets.VITE_API_URL_STAGING }}
