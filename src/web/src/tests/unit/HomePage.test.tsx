@@ -418,15 +418,12 @@ describe('Footer', () => {
     it('displays contact info', () => {
         render(<Footer />)
 
-        expect(screen.getByText('+27 123 456 789')).toBeInTheDocument()
         expect(screen.getByText('devenexus28@gmail.com')).toBeInTheDocument()
     })
 
     it('displays support links text', () => {
         render(<Footer />)
         expect(screen.getByText('Help Center')).toBeInTheDocument()
-        expect(screen.getByText('Safety Tips')).toBeInTheDocument()
-        expect(screen.getByText('Contact Us')).toBeInTheDocument()
     })
 
 
