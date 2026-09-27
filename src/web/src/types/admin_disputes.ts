@@ -88,6 +88,7 @@ export interface CaseEvidence {
   proofDocument?:string;
   // listing_quality
   snapshot?: ListingSnapshot;
+  originalSnapshot?: ListingSnapshot;
   buyerPhotos?: string[];
   sellerRefusedPhotos?: boolean;
   currentListingStatus?: string | null;

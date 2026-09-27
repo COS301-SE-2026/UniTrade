@@ -30,6 +30,7 @@ public interface IDisputeRepository
         Guid listingId,
         CancellationToken ct = default
     );
+    Task SetOriginalSnapshotAsync(Guid disputeId, Guid snapshotId, CancellationToken ct = default);
     Task ReopenAsResubmissionAsync(Guid disputeId, CancellationToken ct = default);
     Task UpdateSnapshotAsync(Guid disputeId, Guid snapshot, CancellationToken ct = default);
 }

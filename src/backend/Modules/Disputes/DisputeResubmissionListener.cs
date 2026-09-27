@@ -31,6 +31,11 @@ public class DisputeResubmissionListener : IListingResubmissionListener
 
         if (dispute is null) return;
 
+        if (dispute.OriginalSnapshotId is null && dispute.SnapshotId.HasValue)
+        {
+            await _disputes.SetOriginalSnapshotAsync(dispute.DisputeId, dispute.SnapshotId.Value, ct);
+        }
+
         var listing = await _listings.GetByIdAsync(listingId);
         if (listing is not null)
         {

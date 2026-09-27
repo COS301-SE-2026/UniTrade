@@ -98,6 +98,7 @@ public class ListingSnapshotService : IListingSnapshotService
             Title = s.Title,
             Price = s.Price,
             Condition = s.Condition,
+            Description = s.Description,
             CourseTags = s.CourseTags,
             PhotoRefs = s.PhotoRefs,
             CapturedAt = s.CapturedAt,

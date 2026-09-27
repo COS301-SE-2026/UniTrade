@@ -63,6 +63,7 @@ public class DisputeRepository : IDisputeRepository
             Description = d.Description,
             SubmittedAt = d.SubmittedAt,
             SnapshotId = d.SnapshotId,
+            OriginalSnapshotId = d.OriginalSnapshotId,
             RaisedBy = d.RaisedBy ?? Guid.Empty,
             BuyerId = parties.BuyerId,
             SellerId = parties.SellerId,
@@ -290,6 +291,18 @@ public class DisputeRepository : IDisputeRepository
         };
     }
 
+    public async Task SetOriginalSnapshotAsync(
+        Guid disputeId,
+        Guid snapshotId,
+        CancellationToken ct = default
+    )
+    {
+        var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
+        if (d is null)
+           return;
+        d.OriginalSnapshotId = snapshotId;
+        await _db.SaveChangesAsync(ct);
+    }
     public async Task UpdateSnapshotAsync(
         Guid disputeId,
         Guid snapshotId,
