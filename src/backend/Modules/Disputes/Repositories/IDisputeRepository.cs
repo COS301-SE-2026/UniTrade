@@ -1,6 +1,6 @@
-using Modules.Disputes.Models.Dto;
 using Modules.Disputes;
 using Modules.Disputes.Models;
+using Modules.Disputes.Models.Dto;
 
 namespace Modules.Disputes.Repositories;
 
@@ -13,11 +13,23 @@ public interface IDisputeRepository
     Task<DisputeCaseData?> GetCaseDataAsync(Guid disputeId, CancellationToken ct = default);
     Task<Guid> CreateDisputeAsync(Dispute dispute, CancellationToken ct = default);
 
-    Task MarkResolvedAsync(Guid disputeId, Guid adminId, string resolution, CancellationToken ct = default);
-    Task<bool> HasOpenDisputeAsync(Guid filedByUserId, Guid subjectUserId, CancellationToken ct = default);
+    Task MarkResolvedAsync(
+        Guid disputeId,
+        Guid adminId,
+        string resolution,
+        CancellationToken ct = default
+    );
+    Task<bool> HasOpenDisputeAsync(
+        Guid filedByUserId,
+        Guid subjectUserId,
+        Guid? listingId = null,
+        CancellationToken ct = default
+    );
 
-    Task<Dispute?> GetMostRecentReportDisputeForListingAsync(Guid listingId, CancellationToken ct = default);
+    Task<Dispute?> GetMostRecentReportDisputeForListingAsync(
+        Guid listingId,
+        CancellationToken ct = default
+    );
     Task ReopenAsResubmissionAsync(Guid disputeId, CancellationToken ct = default);
     Task UpdateSnapshotAsync(Guid disputeId, Guid snapshot, CancellationToken ct = default);
-
 }

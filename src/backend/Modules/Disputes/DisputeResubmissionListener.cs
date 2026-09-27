@@ -2,6 +2,7 @@ using Modules.Disputes.Repositories;
 using Modules.Listings.Repositories;
 using Modules.Listings;
 using Modules.Listings.Snapshot;
+using Modules.Reservations;
 
 namespace Modules.Disputes;
 
@@ -10,15 +11,18 @@ public class DisputeResubmissionListener : IListingResubmissionListener
     private readonly IDisputeRepository _disputes;
     private readonly IListingRepository _listings;
     private readonly IListingSnapshotService _snapshots;
+    private readonly IBroadCastService _broadcast;
 
     public DisputeResubmissionListener(
         IDisputeRepository disputes,
         IListingRepository listings,
-        IListingSnapshotService snapshots
+        IListingSnapshotService snapshots,
+        IBroadCastService broadcast
     ) {
         _disputes = disputes;
         _listings = listings;
         _snapshots = snapshots;
+        _broadcast = broadcast;
     }
 
     public async Task OnListingResubmittedAsync(Guid listingId, CancellationToken ct = default)
@@ -38,6 +42,11 @@ public class DisputeResubmissionListener : IListingResubmissionListener
         }
        
             await _disputes.ReopenAsResubmissionAsync(dispute.DisputeId, ct);
+
+            await _broadcast.NotifyAdminAsync(
+                "dispute_resubmitted",
+                new { caseId = dispute.DisputeId }
+            );
         
     }
 }

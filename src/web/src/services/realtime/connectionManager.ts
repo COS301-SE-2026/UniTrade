@@ -50,7 +50,9 @@ class ConnectionManager {
   private readonly disputeResolvedListeners = new Set<
     (data: { caseId: string; status: string }) => void
   >();
-
+  private readonly disputeResubmittedListeners = new Set<
+    (data: { caseId: string }) => void
+  >();
   private readonly savedSearchMatchListeners = new Set<
     (e: {
       listingId: string;
@@ -181,13 +183,16 @@ class ConnectionManager {
           [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
         if (this.isAdminGroupJoined) {
-          await conn.invoke("JoinAdminGroup").catch(() => {});
+          await conn.invoke("JoinAdminGroup").catch(() => { });
         }
 
         this.notifyState("Connected");
         this.reconnectedListeners.forEach((cb) => cb());
       });
 
+      conn.on("dispute_resubmitted", (data: { caseId: string }) =>
+        this.disputeResubmittedListeners.forEach((cb) => cb(data)),
+      );
       conn.onclose(() => {
         this.connection = null;
         this.connectPromise = null;
@@ -218,7 +223,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
     }
   }
   async disconnect(): Promise<void> {
@@ -234,7 +239,7 @@ class ConnectionManager {
 
   async leaveAdminGroup(): Promise<void> {
     this.isAdminGroupJoined = false;
-    await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
+    await this.connection?.invoke("LeaveAdminGroup").catch(() => { });
   }
 
   async joinSellerGroup(sellerId: string): Promise<void> {
@@ -246,7 +251,7 @@ class ConnectionManager {
     if (this.getState() == "Connected") {
       await this.connection
         ?.invoke("LeaveSellerGroup", sellerId)
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
@@ -264,6 +269,12 @@ class ConnectionManager {
     return () => this.readListeners.delete(callback);
   }
 
+  onDisputeResubmitted(
+    callback: (data: { caseId: string }) => void,
+  ): Unsubscribe {
+    this.disputeResubmittedListeners.add(callback);
+    return () => this.disputeResubmittedListeners.delete(callback);
+  }
   onReservationUpdated(callback: (r: Reservation) => void): Unsubscribe {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);
@@ -299,7 +310,7 @@ class ConnectionManager {
     this.bundleRuleChangedListeners.add(cb);
     return () => this.bundleRuleChangedListeners.delete(cb);
   }
-  
+
   async sendMessage(
     reservationId: string,
     content: string,

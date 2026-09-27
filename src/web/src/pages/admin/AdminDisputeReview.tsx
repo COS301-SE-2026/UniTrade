@@ -74,8 +74,8 @@ const decisionLabel: Record<DisputeDecision, string> = {
   "side-buyer": "Side with buyer",
   "side-seller": "Side with seller",
 
-  "remove-listing": "Remove Listing",
-  "warn-seller": "Warn Seller",
+  "remove-listing": "Ban Listing",
+  "warn-seller": "Remove Listing",
 };
 
 const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {

@@ -338,6 +338,9 @@ public class ListingRepository : IListingRepository
                 s =>
                     s.SetProperty(l => l.ListingStatus, "banned")
                         .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
@@ -362,6 +365,9 @@ public class ListingRepository : IListingRepository
                     s.SetProperty(l => l.ListingStatus, _removedStatus)
                         .SetProperty(l => l.RejectionReason, reason)
                         .SetProperty(l => l.RequiresManualReviewOnResubmit, true)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
@@ -394,6 +400,9 @@ public class ListingRepository : IListingRepository
                 s =>
                     s.SetProperty(l => l.ListingStatus, "under_review")
                         .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
