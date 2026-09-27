@@ -76,6 +76,19 @@ function ActionButtons({
     );
   }
 
+  if (listing.status === "banned") {
+    return (
+      <div className={wrapper}>
+        <button
+          type="button"
+          onClick={() => navigate(`/seller/listings/${listing.id}`)}
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
+          >
+            View
+          </button>
+      </div>
+    );
+  }
   if (listing.status === "draft") {
     return (
       <div className={wrapper}>
@@ -256,7 +269,7 @@ function GroupCard({
   const allSameStatus = group.items.every((l) => l.status === first.status);
   const isGroupFlagged =
     allSameStatus &&
-    (first.status === "removed" || first.status === "under_review");
+    (first.status === "removed" || first.status === "under_review" || first.status === "banned");
 
   const countLabel = isGroupFlagged
     ? `${group.items.length} ${group.items.length === 1 ? "copy" : "copies"}`

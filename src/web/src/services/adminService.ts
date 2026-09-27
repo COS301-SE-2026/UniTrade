@@ -81,9 +81,9 @@ function toDecisionRequest(
 
     case "report_listing":
       if (action === "remove-listing")
-        return { decision: "uphold", outcomes: ["remove_listing"], reason: r };
+        return { decision: "uphold", outcomes: ["remove_listing", "strike"], reason: r };
       if (action === "warn-seller")
-        return { decision: "uphold", outcomes: ["strike"], reason: r };
+        return { decision: "uphold", outcomes: ["warn_seller_resubmit"], reason: r };
       if (action === "dismiss") return { decision: "dismiss", reason: r };
       break;
   }

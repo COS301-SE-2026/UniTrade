@@ -55,4 +55,8 @@ public interface IListingRepository
         Guid excludeListingId,
         CancellationToken ct = default
     );
+
+    Task<bool> WarnSellerAsync(Guid listingId, string reason, CancellationToken ct = default);
+    Task<bool> RestoreToLiveAsync(Guid listingId, CancellationToken ct = default);
+    Task<bool> SetUnderReviewAsync(Guid listigId, string reason, CancellationToken ct = default);
 }

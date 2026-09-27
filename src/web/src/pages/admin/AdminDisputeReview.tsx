@@ -15,7 +15,6 @@ import {
   StatusBadge,
   DecisionButton,
   OutlineButton,
-  NotesPanel,
   ConfirmModal,
 } from "./AdminReviewShared";
 import {
@@ -80,8 +79,8 @@ const decisionLabel: Record<DisputeDecision, string> = {
 };
 
 const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
-  "remove-listing": "Are you sure you want to remove this listing?",
-  "warn-seller": "Are you sure you want to warn this seller?",
+  "remove-listing": "Are you sure you want to permanently ban this listing?",
+  "warn-seller": "Are you sure you want to remove this listing",
   dismiss: "Are you sure you want to dismiss this dispute?",
 
   uphold: "Are you sure you want to uphold this dispute?",
@@ -92,9 +91,9 @@ const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
 
 const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
   "remove-listing":
-    "This will remove the listing from the platform and notify the seller.This cannot be undone",
+    "This will permanently ban the listing from the platform and notify the seller.This cannot be undone",
   "warn-seller":
-    "You are about to issue a formal warning to this seller. The seller will be notified.",
+    "This will remove the listing and notify the seller, but they will be able to correct the isuue and resubmit it for review.",
   dismiss: "This will dismiss the dispute without taking any action.",
 
   uphold: "This will uphold the dispute and apply the recommended outcome",
@@ -305,7 +304,7 @@ export default function AdminDisputeReview() {
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const [pendingConfirmDecision, setPendingConfirmDecision] =
     useState<DisputeDecision | null>(null);
-  const [similar, setSimilar] = useState<SimilarListing[]>([]);
+  const [, setSimilar] = useState<SimilarListing[]>([]);
 
 
   useEffect(() => {
@@ -422,38 +421,7 @@ export default function AdminDisputeReview() {
           {dispute.type === "report_listing" && dispute.report && (
             <ReportReasonPanel reason={dispute.report.reason} />
           )}
-          {
-            similar.length > 0 && (
-              <Panel title="Similar listings">
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {similar.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => navigate(`/buyer/listings/${item.id}`)}
-                      className="text-left rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden hover:shadow-sm transition-shadow">
-
-
-                      <img
-                        src={item.image || "placeholder.png"}
-                        alt={item.title}
-                        className="w-full h-24 object-cover bg-gray-100"
-                      />
-                      <div className="p-2"
-                      >
-                        <p className="text-xs font-medium text-gray-800 dark:text-white truncate" >{item.title}</p>
-                        <p className="text-xs text-navy-700 dark:text-white/80 font-semibold">
-                          R{item.price}
-                        </p>
-                      </div>
-
-                    </button>
-                  ))}
-                </div>
-              </Panel>
-            )
-          }
+          
 
           <Panel title="Actions">
             <div className="flex flex-col gap-4">
@@ -505,8 +473,6 @@ export default function AdminDisputeReview() {
               )}
             </div>
           </Panel>
-
-          <NotesPanel caseId={dispute.id} />
         </div>
 
         <div className="space-y-4">
@@ -853,14 +819,14 @@ function DecisionActions({
         disabled={!!submitting}
         onClick={() => onDecide("remove-listing")}
       >
-        {submitting === "remove-listing" ? "Removing…" : "Remove Listing"}
+        {submitting === "remove-listing" ? "Banning..." : "Ban Listing"}
       </DecisionButton>
       <DecisionButton
         tone="neutral"
         disabled={!!submitting}
         onClick={() => onDecide("warn-seller")}
       >
-        {submitting === "warn-seller" ? "Warning…" : "Warn Seller"}
+        {submitting === "warn-seller" ? "Removing..." : "Remove Listing"}
       </DecisionButton>
       <DecisionButton
         tone="neutral"

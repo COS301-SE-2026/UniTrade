@@ -51,7 +51,8 @@ public class AdminListingRiskService : IAdminListingRiskService
         var filter = new ListFilterDto { ListingStatus = status, Take = 100 };
         var (items, _) = await _listings.ListAsync(filter);
 
-        return items
+        var aiFlagged = items.Where(l => l.AiRiskReasons is { Count: > 0 });
+        return aiFlagged
             .GroupBy(l => l.ListingGroupId ?? l.ListingId)
             .Select(g =>
             {
@@ -103,6 +104,10 @@ public class AdminListingRiskService : IAdminListingRiskService
             return null;
         }
 
+        if (listing.AiRiskReasons is not { Count: > 0 })
+        {
+            throw new ArgumentException("not_ai_flagged");
+        }
         var statusBeforeDecision = listing.ListingStatus;
 
         if (action == "remove" && string.IsNullOrWhiteSpace(reason))
@@ -113,7 +118,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         var siblingIds = new List<Guid>();
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             siblingIds = siblings
                 .Where(s => s.ListingId != listingId && s.ListingStatus == "under_review")
                 .Select(s => s.ListingId)
@@ -260,7 +265,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         var copyCount = 1;
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             copyCount = Math.Max(1, siblings.Count(s => s.ListingStatus == "under_review"));
         }
         var seller = await _users.GetByIdAsync(listing.SellerId);

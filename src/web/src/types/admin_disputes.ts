@@ -4,7 +4,7 @@ export type CaseType =
   | "report_listing"
   | "no_show";
 
-export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed";
+export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed" | "resubmission";
 export type SnapshotStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 
 export type Decision =
@@ -15,7 +15,7 @@ export type Decision =
   | "dismiss"
   | "request_info";
 
-export type Outcome = "strike" | "remove_listing" | "refusal_flag";
+export type Outcome = "strike" | "remove_listing" | "refusal_flag" | "warn_seller_resubmit";
 
 export type PinStatus =
   | "not_entered"
@@ -115,6 +115,7 @@ export interface CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   title?: string;
+  imageUrl?: string;
   subjectInitials?: string;
   counterpartyInitials?: string;
   subjectName?: string;
