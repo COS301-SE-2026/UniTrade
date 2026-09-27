@@ -866,7 +866,7 @@ public class AppDbContext : DbContext
             {
                 t.HasCheckConstraint(
                     "chk_meetup_status",
-                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')"
+                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')"
                 );
             });
 
