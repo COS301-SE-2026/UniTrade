@@ -102,6 +102,5 @@ public class DevController : ControllerBase
         return Ok(new { email, password });
     }
 
-    
 
 }

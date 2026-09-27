@@ -186,7 +186,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    
 
     [HttpPost("login")]
     [EnableRateLimiting("login")]
