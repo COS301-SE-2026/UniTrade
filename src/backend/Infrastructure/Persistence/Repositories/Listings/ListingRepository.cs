@@ -96,11 +96,11 @@ public class ListingRepository : IListingRepository
 
         IOrderedQueryable<Listing> ordered = listingFilterDto.SortBy switch
         {
-            "price_asc"=> query.OrderBy(l=> l.Price),
-            "price_desc"=> query.OrderByDescending(l=> l.Price),
-            "newest"=> query.OrderByDescending(l=>l.CreatedAt),
-            "oldest"=> query.OrderBy(l=> l.CreatedAt),
-        
+            "price_asc" => query.OrderBy(l => l.Price),
+            "price_desc" => query.OrderByDescending(l => l.Price),
+            "newest" => query.OrderByDescending(l => l.CreatedAt),
+            "oldest" => query.OrderBy(l => l.CreatedAt),
+
             _ => listingFilterDto.ListingStatus == "live"
                 ? query
                     .OrderByDescending(l => l.VisibilityScore ?? 100)
@@ -319,13 +319,13 @@ public class ListingRepository : IListingRepository
         {
             listing.Images = byListing.TryGetValue(listing.ListingId, out var imgs)
                 ? imgs.Select(i => new ListingImage
-                    {
-                        ImageId = i.ImageId,
-                        ListingId = i.ListingId,
-                        IsPrimary = i.IsPrimary,
-                        ImageData = Array.Empty<byte>(),
-                        ContentType = string.Empty,
-                    })
+                {
+                    ImageId = i.ImageId,
+                    ListingId = i.ListingId,
+                    IsPrimary = i.IsPrimary,
+                    ImageData = Array.Empty<byte>(),
+                    ContentType = string.Empty,
+                })
                     .ToList()
                 : new List<ListingImage>();
         }
