@@ -614,7 +614,8 @@ public class AdminCaseService : IAdminCaseService
         }
 
         var filedByRole =
-            d.Type == _reportListingString ? "reporter"
+            d.RaisedBy == Guid.Empty ? "system"
+            : d.Type == _reportListingString ? "reporter"
             : d.RaisedBy == d.SellerId ? "seller"
             : d.RaisedBy == d.BuyerId ? "buyer"
             : "unknown";
