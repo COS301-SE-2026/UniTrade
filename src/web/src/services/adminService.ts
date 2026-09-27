@@ -24,6 +24,7 @@ import type {
   ListingDecisionResponse,
   ListingStatusResponse,
   FlaggedListingDetail,
+  CaseNote
 } from "../types/admin_disputes";
 
 
@@ -356,5 +357,23 @@ export async function getFlaggedListing(id: string): Promise<FlaggedListingDetai
     credentials: "include",
   });
   return handleResponse<FlaggedListingDetail>(res)
+}
+
+export async function getCaseNotes(caseId: string): Promise<CaseNote[]>{
+  const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<CaseNote[]>(res);
+}
+
+export async function addCaseNote(caseId: string, content: string): Promise<CaseNote>{
+  const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
+    method: "POST",
+    credentials: "include",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({content}),
+  });
+  return handleResponse<CaseNote>(res);
 }
 
