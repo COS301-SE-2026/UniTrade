@@ -20,6 +20,7 @@ const { mockCategories } = vi.hoisted(() => ({
 vi.mock('../../services/listingsService', () => ({
   listingsService: {
     getBrowseListings: vi.fn(),
+    getBrowseListingsPaginated: vi.fn(),
     getListingsCategories: vi.fn(),
   },
 }))
@@ -38,7 +39,7 @@ vi.mock('../../components/layout/useToast', () => ({
   useToast: () => ({
     showToast: mockShowToast,
   }),
-}));  
+}));
 
 import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
 import { QueryClient } from '@tanstack/react-query'
@@ -126,7 +127,7 @@ describe('BrowseAllListing', () => {
 
   describe('Loading state', () => {
     it('shows a loading indicator while fetching', () => {
-      vi.mocked(listingsService.getBrowseListings).mockImplementation(
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockImplementation(
         () => new Promise(() => { }) // never resolves
       )
       renderComponent()
@@ -134,7 +135,7 @@ describe('BrowseAllListing', () => {
     })
 
     it('hides the listing grid while loading', () => {
-      vi.mocked(listingsService.getBrowseListings).mockImplementation(
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockImplementation(
         () => new Promise(() => { })
       )
       renderComponent()
@@ -144,13 +145,13 @@ describe('BrowseAllListing', () => {
 
   describe('Error state', () => {
     it('shows an error message when the request fails', async () => {
-      vi.mocked(listingsService.getBrowseListings).mockRejectedValueOnce(new Error('Network error'))
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockRejectedValueOnce(new Error('Network error'))
       renderComponent()
       expect(await screen.findByText('Network error')).toBeInTheDocument()
     })
 
     it('does not render listings on error', async () => {
-      vi.mocked(listingsService.getBrowseListings).mockRejectedValueOnce(new Error('fail'))
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockRejectedValueOnce(new Error('fail'))
       renderComponent()
       await screen.findByText('fail')
       expect(screen.queryByText('Calculus Textbook')).not.toBeInTheDocument()
@@ -159,7 +160,7 @@ describe('BrowseAllListing', () => {
 
   describe('Successful render', () => {
     beforeEach(() => {
-      vi.mocked(listingsService.getBrowseListings).mockResolvedValue({
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockResolvedValue({
         listings: makeListings(),
         total: 4,
       })
@@ -212,9 +213,9 @@ describe('BrowseAllListing', () => {
     it('renders all category filter buttons', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-      
+
       await screen.findByRole('button', { name: 'Textbooks' })
-      for (const cat of ['All', 'Textbooks', 'Clothing', 'Electronics', 'Furniture','Stationery', 'Other']) {
+      for (const cat of ['All', 'Textbooks', 'Clothing', 'Electronics', 'Furniture', 'Stationery', 'Other']) {
         expect(screen.getByRole('button', { name: cat })).toBeInTheDocument()
       }
     })
@@ -229,16 +230,22 @@ describe('BrowseAllListing', () => {
 
   describe('Category filtering', () => {
     beforeEach(() => {
-      vi.mocked(listingsService.getBrowseListings).mockResolvedValue({
-        listings: makeListings(),
-        total: 4,
-      })
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockImplementation(
+        async (opts) => {
+          let items = makeListings()
+          if (opts.categoryId != null) {
+            const cat = mockCategories.find(c => c.id === opts.categoryId)?.name
+            items = items.filter(l => l.category === cat)
+          }
+          return { listings: items, total: items.length }
+        }
+      )
     })
 
     it('"All" is active by default', async () => {
       renderComponent()
       await screen.findByText('Calculus Textbook')
-    
+
       expect(screen.getAllByRole('button', { name: /reserve/i })).toHaveLength(4)
     })
 
@@ -269,7 +276,7 @@ describe('BrowseAllListing', () => {
 
   describe('Navigation', () => {
     beforeEach(() => {
-      vi.mocked(listingsService.getBrowseListings).mockResolvedValue({
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockResolvedValue({
         listings: makeListings(),
         total: 4,
       })
