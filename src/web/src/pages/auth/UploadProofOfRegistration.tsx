@@ -154,7 +154,7 @@ export default function ProofOfRegistrationUpload() {
                     </button>
                     {isInfoOpen && (
                         <div className="px-4 pb-4 pt-1 text-sm text-gray-700 dark:text-navy-100 leading-relaxed border-t border-blue-100/60 dark:border-navy-600/60">
-                            We require your official proof of registration to confirm the currrent degree you are studying, this
+                            We require your official proof of registration to confirm the current degree you are studying, this
                             is needed for the system to be able to recommend listings based on your degree. If you don't upload your proof of registration
                             you will not have access to the system as this is needed as part of the verification process. Once you upload your proof of registration
                             your account will be under-review and you will be allowed partial access to the system.
