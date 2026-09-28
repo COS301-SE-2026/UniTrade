@@ -1,22 +1,22 @@
-FROM python:3.11-slim
+FROM node:20-alpine AS build
 
-
-RUN groupadd --gid 1001 clipuser \
-    && useradd --uid 1001 --gid clipuser --shell /bin/bash --create-home clipuser
 WORKDIR /app
 
-COPY --chown=root:root requirements.txt .
-RUN pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt
+COPY package*.json ./
 
-ENV HF_HOME=/home/clipuser/.cache/huggingface
-RUN mkdir -p ${HF_HOME} && chown -R clipuser:clipuser ${HF_HOME}
-USER clipuser
+RUN npm ci --ignore-scripts
+ 
+COPY  . .
+RUN npm run build
 
-COPY --chown=root:root download_model.py .
-RUN python download_model.py 
-
-COPY  --chown=root:root main.py .
-
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+FROM nginxinc/nginx-unprivileged:alpine
+USER root
+RUN apk upgrade --no-cache libexpat
+COPY --from=build /app/dist /usr/share/nginx/html
+RUN chown -R nginx:nginx /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+USER nginx
+EXPOSE 8080
+ENTRYPOINT [ "/entrypoint.sh" ]
