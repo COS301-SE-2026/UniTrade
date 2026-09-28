@@ -302,7 +302,7 @@ export default function HelpCenter() {
       title: 'PIN-based handover confirmation',
       description: 'How the PIN-based confirmation works.',
       details: [
-        "Upon payment completion, the buyer receives a PIN they have to give to the seller, the PIN is used to confirm that the handover actually hapenned.",
+        "Upon payment completion, the buyer receives a PIN they have to give to the seller, the PIN is used to confirm that the handover actually happened.",
         "If the PIN is not entered the transaction is never labelled complete, the listing status is always going to stay as reserved.",
 
       ]
