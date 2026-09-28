@@ -362,7 +362,7 @@ public class AppDbContext : DbContext
                 );
                 tb.HasCheckConstraint(
                     "chk_listing_status",
-                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned')"
+                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned', 'suspended')"
                 );
             });
 
