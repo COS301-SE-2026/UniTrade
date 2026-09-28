@@ -84,6 +84,10 @@ class ConnectionManager {
     (e: { sellerId: string }) => void
   >();
 
+  private readonly listingSoldListeners = new Set<
+    (e: { listingIds: string[] }) => void
+  >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -172,6 +176,13 @@ class ConnectionManager {
       );
       conn.on("bundle_rule_changed", (e: { sellerId: string }) =>
         this.bundleRuleChangedListeners.forEach((cb) => cb(e)),
+      );
+      conn.on("dispute_outcome", (e: { message: string; reason?: string }) =>
+        this.disputeOutcomeListeners.forEach((cb) => cb(e)),
+      );
+
+      conn.on("listing_sold", (e: { listingIds: string[] }) =>
+        this.listingSoldListeners.forEach((cb) => cb(e)),
       );
 
       conn.onreconnecting(() => {
@@ -310,6 +321,10 @@ class ConnectionManager {
     this.bundleRuleChangedListeners.add(cb);
     return () => this.bundleRuleChangedListeners.delete(cb);
   }
+  onListingSold(cb: (e: { listingIds: string[] }) => void): Unsubscribe {
+    this.listingSoldListeners.add(cb);
+    return () => this.listingSoldListeners.delete(cb);
+  }
 
   async sendMessage(
     reservationId: string,
@@ -396,6 +411,13 @@ class ConnectionManager {
   ): Unsubscribe {
     this.disputeResolvedListeners.add(callback);
     return () => this.disputeResolvedListeners.delete(callback);
+  }
+
+  onDisputeOutcome(
+    callback: (e: { message: string; reason?: string }) => void,
+  ): Unsubscribe {
+    this.disputeOutcomeListeners.add(callback);
+    return () => this.disputeOutcomeListeners.delete(callback);
   }
 
   onForceLogout(callback: (e: { reason: string }) => void): Unsubscribe {

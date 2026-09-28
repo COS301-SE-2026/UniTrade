@@ -116,7 +116,7 @@ export async function handleResponse<T>(res: Response): Promise<T> {
 
   const error: ApiError = {
     status: res.status,
-    code: errorBody.code ?? errorBody.error?? "UNKNOWN_ERROR",
+    code: errorBody.code ?? errorBody.error ?? "UNKNOWN_ERROR",
     message: errorBody.message ?? res.statusText,
   };
 
@@ -320,16 +320,16 @@ export async function getSlaBreachCount(): Promise<number> {
 }
 
 export async function getFlaggedListings(): Promise<FlaggedListing[]> {
-    const res = await fetch(
-      `${getApiUrl()}/admin/listings/flagged?status=under_review`,
-      { method: "GET", credentials: "include" },
-    );
-    return handleResponse<FlaggedListing[]>(res);
-  }
+  const res = await fetch(
+    `${getApiUrl()}/admin/listings/flagged?status=under_review`,
+    { method: "GET", credentials: "include" },
+  );
+  return handleResponse<FlaggedListing[]>(res);
+}
 
 export async function decideListing(
   id: string,
-  body: {action:"approve" | "remove"; reason?:string},
+  body: { action: "approve" | "remove"; reason?: string },
 ): Promise<ListingDecisionResponse> {
   const res = await fetch(`${getApiUrl()}/admin/listings/${id}/decision`, {
     method: "POST",
@@ -356,5 +356,20 @@ export async function getFlaggedListing(id: string): Promise<FlaggedListingDetai
     credentials: "include",
   });
   return handleResponse<FlaggedListingDetail>(res)
+}
+
+export async function strikeUser(
+  userId: string,
+  reason: string,
+  caseId?: string,
+): Promise<void> {
+  const res = await fetch(`${getApiUrl()}/admin/users/${userId}/strike`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason, caseId }),
+  });
+
+  await handleResponse<void>(res);
 }
 
