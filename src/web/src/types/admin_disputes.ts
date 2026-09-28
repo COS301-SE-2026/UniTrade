@@ -350,3 +350,10 @@ export interface ListingStatusResponse {
   riskLevel: "low" | "medium" | "high";
   message: string;
 }
+
+export interface CaseNote{
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
+}

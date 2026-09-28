@@ -16,6 +16,7 @@ import {
   DecisionButton,
   OutlineButton,
   ConfirmModal,
+  NotesPanel,
 } from "./AdminReviewShared";
 import {
   type CheckInEvidence,
@@ -600,11 +601,14 @@ export default function AdminDisputeReview() {
               <InfoRow label="Date Placed" value={dispute.datePlaced} />
             </Panel>
           ) : (
+            <>
             <Panel title="Dispute Info">
               <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
               <InfoRow label="Date Placed" value={dispute.datePlaced} />
               <InfoRow label="Filed by" value={dispute.filedBy} />
             </Panel>
+            <NotesPanel caseId={dispute.id} />
+            </>
           )}
         </div>
       </div>

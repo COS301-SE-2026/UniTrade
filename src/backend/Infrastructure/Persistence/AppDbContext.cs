@@ -78,6 +78,7 @@ public class AppDbContext : DbContext
 
     // Disputes
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<CaseNote> CaseNotes => Set<CaseNote>();
 
     // Images
     public DbSet<Image> Images => Set<Image>();
@@ -894,7 +895,7 @@ public class AppDbContext : DbContext
             {
                 t.HasCheckConstraint(
                     "chk_meetup_status",
-                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')"
+                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')"
                 );
             });
 
@@ -1149,6 +1150,21 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.SubmittedAt)
                 .HasDatabaseName("ix_disputes_submitted")
                 .IsDescending();
+        });
+
+        //casenotes
+        modelBuilder.Entity<CaseNote>(entity =>
+        {
+            entity.HasKey(x => x.NoteId);
+            entity.Property(x => x.NoteId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.CaseId).IsRequired();
+            entity.Property(x => x.AuthorAdminId).IsRequired();
+            entity.Property(x => x.Content).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.CaseId).HasDatabaseName("ix_case_notes_case");
+            entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_case_notes_created").IsDescending();
         });
         // IMages
 
