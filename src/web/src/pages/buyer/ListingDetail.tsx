@@ -266,7 +266,7 @@ export default function ListingDetail() {
     sellerReviews?.reviews.filter((r) => r.reviewType === "buyer_to_seller") ??
     [];
   const sellerReputationScore = computeReputationScore(sellerReceivedReviews);
-  {loading && <LoadingState message="Loading..." />}
+  if (loading) return <LoadingState message = "Loading..." />;
 
   if (error || !listing)
     return (
