@@ -94,7 +94,7 @@ export default function OrderDetails() {
     const backPath = isBuyer ? "/buyer/orders" : "/seller/sales";
     const backLabel = isBuyer ? "My Orders" : "My Sales";
 
-    {loading && <LoadingState message="Loading orders details..." />}
+    if (loading) return <LoadingState message="Loading orders details..." />;
 
     if (error || !reservation || !listing) {
         return (
