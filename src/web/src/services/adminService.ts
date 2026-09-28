@@ -25,7 +25,7 @@ import type {
   ListingStatusResponse,
   FlaggedListingDetail,
   Outcome,
-  CaseNote
+  CaseNote,
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -74,7 +74,13 @@ function toDecisionRequest(
       break;
     case "listing_quality":
       if (action === "side-buyer") {
-        if (!outcomes?.length) throw new Error("outcome_required");
+        if (!outcomes?.length) {
+          throw {
+            status: 0,
+            code: "outcome_required",
+            message: "Pick at least one outcome before siding with the buyer.",
+          } as ApiError;
+        }
         return { decision: "uphold", outcomes, reason: r };
       }
       if (action === "side-seller") return { decision: "dismiss", reason: r };
@@ -102,17 +108,6 @@ function toDecisionRequest(
   throw new Error(`Invalid action "${action}" for case type 
     "${type}"`);
 }
-/*function getToken(): string {
-  return localStorage.getItem("token") ?? "";
-}
-
-/*function authHeaders(): HeadersInit {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-  };
-}*/
-
 export async function handleResponse<T>(res: Response): Promise<T> {
   if (res.ok) {
     if (res.status === 204) return {} as T;
@@ -375,7 +370,7 @@ export async function getFlaggedListing(
   return handleResponse<FlaggedListingDetail>(res);
 }
 
-export async function getCaseNotes(caseId: string): Promise<CaseNote[]>{
+export async function getCaseNotes(caseId: string): Promise<CaseNote[]> {
   const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
     method: "GET",
     credentials: "include",
@@ -383,12 +378,15 @@ export async function getCaseNotes(caseId: string): Promise<CaseNote[]>{
   return handleResponse<CaseNote[]>(res);
 }
 
-export async function addCaseNote(caseId: string, content: string): Promise<CaseNote>{
+export async function addCaseNote(
+  caseId: string,
+  content: string,
+): Promise<CaseNote> {
   const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
     method: "POST",
     credentials: "include",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({content}),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
   });
   return handleResponse<CaseNote>(res);
 }

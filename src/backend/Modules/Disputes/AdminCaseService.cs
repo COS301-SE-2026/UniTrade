@@ -626,10 +626,13 @@ public class AdminCaseService : IAdminCaseService
                 d.Photos,
                 d.SellerRefusedPhotos
             );
-            suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
-            suggestedOutcomes = verdict
-                .Outcomes.Select(DisputeDecisionMappings.ToWire)
-                .ToList();
+            if (verdict.Decision is DisputeCaseDecision.Uphold or DisputeCaseDecision.Dismiss)
+            {
+                suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
+                suggestedOutcomes = verdict
+                    .Outcomes.Select(DisputeDecisionMappings.ToWire)
+                    .ToList();
+            }
         }
 
         var filedByRole =
