@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-
+import { listingsService } from '../../services/listingsService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cancelReservation } from '../../services/reservationService'
 import type { ReservationListItem, TimerStage } from '../../types/Reservations'
@@ -381,6 +381,12 @@ function ReservationCard({
   const msRemaining = getMsRemaining(reservation.expiresAt)
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
+  const {data: meetup} = useQuery({
+    queryKey: ['meetup-status', reservation.reservationId],
+    queryFn: () => listingsService.getMeetupStatus(reservation.reservationId),
+    enabled: isActive && reservation.timerStage === 'meetup_confirmed',
+  })
+  const bothCheckedIn = !!meetup?.buyerCheckedIn && !!meetup?.sellerCheckedIn
   const apiOrigin = getApiUrl().split('/api')[0]
   const primaryItem = reservation.listings[0]
   const displayTitle = reservation.isBundle
@@ -485,17 +491,20 @@ function ReservationCard({
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setReportModalOpen(true)}
-                className="inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
-              >
-                <IconFlag size={13} /> Report listing quality
-              </button>
-            </div>
+              {bothCheckedIn && (
+                <button
+                type = "button"
+                onClick = {() => setReportModalOpen(true)}
+                className = "inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
+                >
+                  <IconFlag size = {13} /> Report listing quality 
+                </button>
+
+              )}
+              </div>
           )}
-        </div>
-      </div>
+          </div>
+          </div>
 
       <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} reservationId={reservation.reservationId} />
     </>
