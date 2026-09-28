@@ -50,10 +50,9 @@ class ConnectionManager {
   private readonly disputeResolvedListeners = new Set<
     (data: { caseId: string; status: string }) => void
   >();
-  private readonly disputeOutcomeListeners = new Set<
-    (e: { message: string; reason?: string }) => void
+  private readonly disputeResubmittedListeners = new Set<
+    (data: { caseId: string }) => void
   >();
-
   private readonly savedSearchMatchListeners = new Set<
     (e: {
       listingId: string;
@@ -202,6 +201,9 @@ class ConnectionManager {
         this.reconnectedListeners.forEach((cb) => cb());
       });
 
+      conn.on("dispute_resubmitted", (data: { caseId: string }) =>
+        this.disputeResubmittedListeners.forEach((cb) => cb(data)),
+      );
       conn.onclose(() => {
         this.connection = null;
         this.connectPromise = null;
@@ -278,6 +280,12 @@ class ConnectionManager {
     return () => this.readListeners.delete(callback);
   }
 
+  onDisputeResubmitted(
+    callback: (data: { caseId: string }) => void,
+  ): Unsubscribe {
+    this.disputeResubmittedListeners.add(callback);
+    return () => this.disputeResubmittedListeners.delete(callback);
+  }
   onReservationUpdated(callback: (r: Reservation) => void): Unsubscribe {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);

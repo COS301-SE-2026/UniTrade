@@ -54,6 +54,7 @@ export interface DisputeCase {
   checkIn?: CheckInEvidence;
   photos?: ListingPhotos;
   report?: ReportInfo;
+  listingDiff?: { original: ListingSnapshot; current: ListingSnapshot };
   decision?: DisputeDecision;
   listingId?: string;
   suggestedDecision?: DisputeDecision;
@@ -75,8 +76,8 @@ const decisionLabel: Record<DisputeDecision, string> = {
   "side-buyer": "Side with buyer",
   "side-seller": "Side with seller",
 
-  "remove-listing": "Remove Listing",
-  "warn-seller": "Warn Seller",
+  "remove-listing": "Ban Listing",
+  "warn-seller": "Remove Listing",
 };
 
 const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
@@ -214,6 +215,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
   let photos: ListingPhotos | undefined = undefined;
   let report: ReportInfo | undefined = undefined;
   let listingId: string | undefined = undefined;
+  let listingDiff: { original: ListingSnapshot; current: ListingSnapshot } | undefined = undefined;
   const ev = detail.evidence;
 
   if (detail.type === "no_show") {
@@ -255,8 +257,16 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
           reputationScore: 0,
           reviewAverage: 0,
           reviewCount: 0,
-        },
+        }
+
     };
+    if (ev.originalSnapshot && ev.snapshot) {
+      photos = {
+        snapshotPhotos: ev.originalSnapshot.photoRefs ?? [],
+        buyerPhotos: ev.snapshot.photoRefs ?? [],
+      };
+      listingDiff = { original: ev.originalSnapshot, current: ev.snapshot };
+    }
   }
   let suggestedDecision: DisputeDecision | undefined;
   if (detail.type === "listing_quality" && detail.suggestedDecision) {
@@ -286,6 +296,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     report,
     decision: undefined,
     listingId,
+    listingDiff,
     suggestedDecision,
   };
 }
@@ -459,6 +470,17 @@ export default function AdminDisputeReview() {
           {dispute.type === "listing_quality" && dispute.photos && (
             <PhotoComparisonPanel photos={dispute.photos} />
           )}
+
+          {dispute.type === "report_listing" && dispute.photos && (
+            <PhotoComparisonPanel
+              photos={dispute.photos}
+              title="Photos: at time of report vs now"
+              labels={{ left: "At time of report", right: "After seller's changes" }}
+            />
+          )}
+          {dispute.type === "report_listing" && dispute.listingDiff && (
+            <ListingDiffPanel diff={dispute.listingDiff} />
+          )}
           {dispute.type === "report_listing" && dispute.report && (
             <ReportReasonPanel reason={dispute.report.reason} />
           )}
@@ -572,11 +594,18 @@ export default function AdminDisputeReview() {
           ) : (
             <PersonCard title="Buyer" person={dispute.buyer} />
           )}
-          <Panel title="Dispute Info">
-            <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
-            <InfoRow label="Date Placed" value={dispute.datePlaced} />
-            <InfoRow label="Filed by" value={dispute.filedBy} />
-          </Panel>
+          {dispute.type === "report_listing" && dispute.report ? (
+            <Panel title="Dispute Info">
+              <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
+              <InfoRow label="Date Placed" value={dispute.datePlaced} />
+            </Panel>
+          ) : (
+            <Panel title="Dispute Info">
+              <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
+              <InfoRow label="Date Placed" value={dispute.datePlaced} />
+              <InfoRow label="Filed by" value={dispute.filedBy} />
+            </Panel>
+          )}
         </div>
       </div>
 
@@ -727,38 +756,45 @@ function StatusLine({
 
 function PhotoComparisonPanel({
   photos,
-}: Readonly<{ photos: NonNullable<DisputeCase["photos"]> }>) {
+  title = "Listing snapshot vs buyer photos",
+  labels,
+}: Readonly<{
+  photos: NonNullable<DisputeCase["photos"]>,
+  title?: string;
+  labels?: { left: string; right: string };
+}>) {
   const apiBase = getApiUrl();
+  const leftLabel = labels?.left ?? "Snapshot at Reservation";
+  const rightLabel = labels?.right ?? "Buyer's Photos";
+  const resolveUrl = (url: string) =>
+    url.startsWith("/api") ? `${apiBase}${url.replace(/^\/api/, "")}` : url;
   return (
-    <Panel title="Listing snapshot vs buyer photos">
+    <Panel title={title}>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">
-            Snapshot at Reservation
+            {leftLabel}
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {photos.snapshotPhotos.map((url, i) => {
-              const imageSrc = url.startsWith("/api")
-                ? `${apiBase}${url.replace(/^\/api/, "")}`
-                : url;
-              return (
-                <div
-                  key={`snapshot-${i}`}
-                  className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
-                >
-                  <img
-                    src={imageSrc}
-                    alt={`Snapshot ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              );
-            })}
+            {photos.snapshotPhotos.map((url, i) => (
+              <div
+                key={`snapshot-${i}`}
+                className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
+              >
+
+                <img
+                  src={resolveUrl(url)}
+                  alt={`Snapshot ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+            ))}
           </div>
         </div>
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">
-            Buyer's Photos
+            {rightLabel}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {photos.buyerPhotos.map((url, i) => (
@@ -768,7 +804,7 @@ function PhotoComparisonPanel({
               >
                 {url && (
                   <img
-                    src={url}
+                    src={resolveUrl(url)}
                     alt={`Snapshot ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -782,6 +818,7 @@ function PhotoComparisonPanel({
   );
 }
 
+
 function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
   return (
     <Panel title="Report reason">
@@ -793,6 +830,47 @@ function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
         <p className="text-sm text-gray-700 dark:text-white/80 leading-relaxed">
           {reason}
         </p>
+      </div>
+    </Panel>
+  );
+}
+
+function ListingDiffPanel({
+  diff,
+}: Readonly<{ diff: { original: ListingSnapshot; current: ListingSnapshot } }>) {
+  const { original, current } = diff;
+  const rows = [
+    { label: "Title", before: original.title, after: current.title },
+    {
+      label: "Price",
+      before: `R${original.price.toFixed(2)}`,
+      after: `R${current.price.toFixed(2)}`,
+    },
+    { label: "Condition", before: original.condition, after: current.condition },
+    { label: "Description", before: original.description, after: current.description },
+  ].map((r) => ({ ...r, changed: r.before !== r.after }));
+
+  return (
+    <Panel title="Listing details: at time of report vs now">
+      <div className="grid grid-cols-[100px_1fr_1fr] gap-x-4 gap-y-3">
+        <div />
+        <p className="text-xs font-bold text-gray-600">At time of report</p>
+        <p className="text-xs font-bold text-gray-600">Now</p>
+      
+      
+        {rows.map((row) => (
+          <div key={row.label} className="contents">
+    
+              <p className="text-xs font-medium text-gray-500 self-start pt-0.5">{row.label}</p>
+              <p className={`text-sm ${row.changed ? "text-red-600 dark:text-red-400" : "text-gray-700 dark:text-white/80"}`}>
+                {row.before}
+              </p>
+            
+              <p className={`text-sm ${row.changed ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-700 dark:text-white/80"}`}>
+                {row.after}
+              </p>
+            </div>
+        ))}
       </div>
     </Panel>
   );

@@ -878,7 +878,7 @@ public class ListingService : IListingService
                 "removed",
                 $"Your listing was removed."
             ),
-            "banned" => ("banned", $"Your listing was permanently removed and cannot be resubmitted. Reason: {listing.RejectionReason ?? "Not specified"}."),
+            "banned" => ("banned", $"Your listing was permanently removed and cannot be resubmitted."),
             _ => (listing.ListingStatus, $"Your listing is currently '{listing.ListingStatus}'."),
         };
     }

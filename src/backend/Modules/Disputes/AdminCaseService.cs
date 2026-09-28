@@ -569,9 +569,13 @@ public class AdminCaseService : IAdminCaseService
     private async Task<CaseDetailDto> ToDisputeDetailAsync(DisputeCaseData d, CancellationToken ct)
     {
         ListingSnapshotDto? snapshot = null;
+        ListingSnapshotDto originalSnapshot = null;
         if (d.Type == _reportListingString && d.SnapshotId.HasValue)
         {
             snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
+            if (d.OriginalSnapshotId.HasValue) {
+                originalSnapshot = await _snapshots.GetByIdAsync(d.OriginalSnapshotId.Value, ct);
+            }
         }
         else if (d.ReservationId.HasValue)
         {
@@ -644,7 +648,7 @@ public class AdminCaseService : IAdminCaseService
             CounterParty = counterparty,
             FiledByUserId = d.RaisedBy,
             FiledByRole = filedByRole,
-            Evidence = BuildDisputeEvidence(d, snapshot, currentListingStatus),
+            Evidence = BuildDisputeEvidence(d, snapshot, originalSnapshot,currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
         };
@@ -653,6 +657,7 @@ public class AdminCaseService : IAdminCaseService
     private static CaseEvidenceDto BuildDisputeEvidence(
         DisputeCaseData d,
         ListingSnapshotDto? snapshot,
+        ListingSnapshotDto? originalSnapshot,
         string? currentListingStatus
     ) =>
         d.Type switch
@@ -667,6 +672,7 @@ public class AdminCaseService : IAdminCaseService
             _reportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
+                OriginalSnapshot = originalSnapshot,
                 ListingId = d.ListingId,
                 ReportReason = d.Description,
                 CurrentListingStatus = currentListingStatus,

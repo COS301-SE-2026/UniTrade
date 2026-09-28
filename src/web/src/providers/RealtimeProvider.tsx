@@ -148,7 +148,11 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
       queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
 
-      showToast("info", e.status === "under_review" ? "A listing was held for review." : e.status === "removed" ? "A listing was removed by an admin." : "A listing is now live.");
+      showToast("info", 
+        e.status === "under_review" ? "A listing was held for review." 
+        : e.status === "removed" ? "A listing was removed by an admin."
+        : e.status === "banned" ? "A listing was permanenlty banned." 
+        : "A listing is now live.");
 
     })
 
@@ -163,6 +167,10 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     })
 
+    const offDisputeResubmitted = connectionManager.onDisputeResubmitted(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() })
+    })
     const offVerificationCreated = connectionManager.onVerificationCreated(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.verifications() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
@@ -207,6 +215,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       offReservationUpdated();
       offListing();
       offDisputeCreated();
+      offDisputeResubmitted();
       offDisputeResolved();
       offSavedSearchMatch();
       offVerificationCreated();

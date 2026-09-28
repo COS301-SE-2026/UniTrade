@@ -1136,6 +1136,11 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.SnapshotId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(x => x.OriginalSnapshot)
+                .WithMany()
+                .HasForeignKey(x => x.OriginalSnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
             entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");

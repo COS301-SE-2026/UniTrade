@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260927033902_AddDisputeOriginalSnapshot")]
+    partial class AddDisputeOriginalSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -321,56 +324,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("admin_profiles", "unitrade");
                 });
 
-            modelBuilder.Entity("Modules.Identity.Models.PasswordResetRequest", b =>
-                {
-                    b.Property<Guid>("PasswordResetRequestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("password_reset_request_id");
-
-                    b.Property<int>("AttemptNumber")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("attempt_number");
-
-                    b.Property<bool>("IsCurrent")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_current");
-
-                    b.Property<string>("OtpCodeHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("otp_code_hash");
-
-                    b.Property<DateTime>("OtpExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("otp_expires_at");
-
-                    b.Property<DateTime>("OtpSentAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("otp_sent_at");
-
-                    b.Property<DateTime?>("OtpVerifiedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("otp_verified_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("PasswordResetRequestId")
-                        .HasName("pk_password_reset_requests");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("uix_prr_current")
-                        .HasFilter("is_current = true");
-
-                    b.ToTable("password_reset_requests", "unitrade");
-                });
-
             modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
                 {
                     b.Property<int>("DocumentId")
@@ -509,10 +462,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<DateTime?>("BlockedUntil")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("blocked_until");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -532,10 +481,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("first_name");
-
-                    b.Property<bool>("IsBlocked")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_blocked");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -2066,16 +2011,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_admin_profiles_users_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.PasswordResetRequest", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_password_reset_requests_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
