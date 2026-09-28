@@ -36,6 +36,9 @@ public class WishlistController : ControllerBase
         CancellationToken ct
     )
     {
+
+        if(User.IsAdmin())
+            return StatusCode(403, new {error = "admin_not_allowed"});
         if (!TryGetCallerId(out var callerId))
         {
             return Unauthorized(new { error = "unauthenticated" });
