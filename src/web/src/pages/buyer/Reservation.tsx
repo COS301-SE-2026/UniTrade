@@ -381,6 +381,12 @@ function ReservationCard({
   const msRemaining = getMsRemaining(reservation.expiresAt)
   const urgency = getUrgency(msRemaining)
   const isActive = reservation.reservationStatus === 'active'
+  const {data: meetup} = useQuery({
+    queryKey: ['meetup-status', reservation.reservationId],
+    queryFn: () => listingsService.getMeetupStatus(reservation.reservationId),
+    enabled: isActive && reservation.timerStage === 'meetup_confirmed',
+  })
+  const bothCheckedIn = !!meetup?.buyerCheckedIn && !!meetup?.sellerCheckedIn
   const apiOrigin = getApiUrl().split('/api')[0]
   const primaryItem = reservation.listings[0]
   const displayTitle = reservation.isBundle
