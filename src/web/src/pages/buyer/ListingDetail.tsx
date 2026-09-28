@@ -31,6 +31,7 @@ import { fileDispute } from "../../services/adminService";
 import ListingQnA from "../../components/ListingQnA";
 import { useToast } from "../../components/layout/useToast";
 import { queryClient } from "../../lib/queryClient";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function DetailRow({
   label,
@@ -265,12 +266,7 @@ export default function ListingDetail() {
     sellerReviews?.reviews.filter((r) => r.reviewType === "buyer_to_seller") ??
     [];
   const sellerReputationScore = computeReputationScore(sellerReceivedReviews);
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+  {loading && <LoadingState message="Loading..." />}
 
   if (error || !listing)
     return (
