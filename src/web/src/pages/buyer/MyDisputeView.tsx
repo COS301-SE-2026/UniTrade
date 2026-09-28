@@ -414,7 +414,8 @@ function PhotoComparisonPanel({ photos,viewerRole, }: Readonly<{ photos: NonNull
           </div>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-2">Your Photos</p>
+          <p className="text-xs font-medium text-gray-500 mb-2">{
+            viewerRole === "filed_by_me" ? "Your Photos" : "Buyer's Photos"}</p>
           <div className="grid grid-cols-2 gap-2">
             {photos.buyerPhotos.map((url, i) => (
               <div key={`buyer-${i}`} className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center overflow-hidden">
