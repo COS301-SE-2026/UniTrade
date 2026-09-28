@@ -135,11 +135,11 @@ export default function App() {
       .finally(() => setAuthChecked(true));
   }, [setUser]);
   if (!authChecked) {
-    return <div>Loading...</div>;
+    return <FullPageLoading />;
   }
   return (
     <RealtimeProvider>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<FullPageLoading />}>
       <Routes>
         {/*<Route element={<AppLayout />}>*/}
 
