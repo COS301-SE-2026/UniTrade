@@ -912,7 +912,7 @@ const decidedAt = outcome?.timestamp ?? resolvedAt;
 const dismissed = status === "dismissed";
 
 return (
-  <div className={`rounded-lg border p-4 ${dismissed ? "bg-gray5-0 border-gray-100" : "bg-green-50 border-green-100"}`}>
+  <div className={`rounded-lg border p-4 ${dismissed ? "bg-gray-50 border-gray-100" : "bg-green-50 border-green-100"}`}>
     <div className="flex items-start gap-3">
       <IconCircleCheck size={18} className={`${dismissed ? "text-gray-500" : "text-green-600"} flex-shrink-0 mt-0.5`} />
       <div>
@@ -922,7 +922,7 @@ return (
         </p>))}
       </div>
     </div>
-  <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/50">
+  <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/5">
   <InfoRow label="Decided on" value={decidedAt ? new Date(decidedAt). toLocaleString("en-ZA") : "Unknown"} />
   <InfoRow label ="Admin reason" value={outcome?.reason || "No reason recorded"} />
   </div>
