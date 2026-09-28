@@ -620,7 +620,7 @@ public class AdminCaseService : IAdminCaseService
             );
             suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
             suggestedOutcomes = verdict
-                .Outcomes.Select(o => o.ToString().ToLowerInvariant())
+                .Outcomes.Select(DisputeDecisionMappings.ToWire)
                 .ToList();
         }
 

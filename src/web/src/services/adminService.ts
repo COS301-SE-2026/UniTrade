@@ -24,8 +24,8 @@ import type {
   ListingDecisionResponse,
   ListingStatusResponse,
   FlaggedListingDetail,
+  Outcome,
 } from "../types/admin_disputes";
-
 
 export type ButtonAction =
   | "approve"
@@ -54,6 +54,7 @@ function toDecisionRequest(
   type: CaseType,
   action: ButtonAction,
   reason?: string,
+  outcomes?: Outcome[],
 ): DecisionRequest {
   const r = reason?.trim() || undefined;
 
@@ -71,8 +72,10 @@ function toDecisionRequest(
         return { decision: "request_info", reason: r };
       break;
     case "listing_quality":
-      // the backend evaluator computes action from the snapshot vs photos evidence,, so no need to send outcomes
-      if (action === "side-buyer") return { decision: "uphold", reason: r };
+      if (action === "side-buyer") {
+        if (!outcomes?.length) throw new Error("outcome_required");
+        return { decision: "uphold", outcomes, reason: r };
+      }
       if (action === "side-seller") return { decision: "dismiss", reason: r };
       if (action === "dismiss") return { decision: "dismiss", reason: r };
       if (action === "more-info")
@@ -81,9 +84,17 @@ function toDecisionRequest(
 
     case "report_listing":
       if (action === "remove-listing")
-        return { decision: "uphold", outcomes: ["remove_listing", "strike"], reason: r };
+        return {
+          decision: "uphold",
+          outcomes: ["remove_listing", "strike"],
+          reason: r,
+        };
       if (action === "warn-seller")
-        return { decision: "uphold", outcomes: ["warn_seller_resubmit"], reason: r };
+        return {
+          decision: "uphold",
+          outcomes: ["warn_seller_resubmit"],
+          reason: r,
+        };
       if (action === "dismiss") return { decision: "dismiss", reason: r };
       break;
   }
@@ -263,8 +274,9 @@ export async function decideCaseWithAction(
   type: CaseType,
   action: ButtonAction,
   reason?: string,
+  outcomes?: Outcome[],
 ): Promise<DecideCaseResponse> {
-  const body = toDecisionRequest(type, action, reason);
+  const body = toDecisionRequest(type, action, reason, outcomes);
   return decideCase(caseId, body);
 }
 
@@ -341,7 +353,9 @@ export async function decideListing(
   return handleResponse<ListingDecisionResponse>(res);
 }
 
-export async function getListingStatus(id: string): Promise<ListingStatusResponse> {
+export async function getListingStatus(
+  id: string,
+): Promise<ListingStatusResponse> {
   const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
     method: "GET",
     credentials: "include",
@@ -350,12 +364,14 @@ export async function getListingStatus(id: string): Promise<ListingStatusRespons
   return handleResponse<ListingStatusResponse>(res);
 }
 
-export async function getFlaggedListing(id: string): Promise<FlaggedListingDetail> {
+export async function getFlaggedListing(
+  id: string,
+): Promise<FlaggedListingDetail> {
   const res = await fetch(`${getApiUrl()}/admin/listings/${id}/flagged`, {
     method: "GET",
     credentials: "include",
   });
-  return handleResponse<FlaggedListingDetail>(res)
+  return handleResponse<FlaggedListingDetail>(res);
 }
 
 export async function strikeUser(
@@ -372,4 +388,3 @@ export async function strikeUser(
 
   await handleResponse<void>(res);
 }
-
