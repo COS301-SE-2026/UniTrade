@@ -312,4 +312,16 @@ public class DisputeService : IDisputeService
             throw new DisputesException("dispute_already_open");
         }
     }
+
+    public Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(
+        Guid userId, string? type, CancellationToken ct = default)
+    {
+        return _disputes.ListForUserAsync(userId,type,ct);
+    }
+
+    public  Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default)
+    {
+        return _disputes.ListClosedAsync(type, ct);
+    }
+    
 }
