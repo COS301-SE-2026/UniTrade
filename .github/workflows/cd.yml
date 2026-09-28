@@ -32,7 +32,8 @@ jobs:
       - name: Login to ACR
         env:
           ACR: ${{ secrets.ACR_REGISTRY }}
-        run: az acr login --name "${ACR%%.*}"
+          ACR_SUB: ${{ secrets.ACR_SUBSCRIPTION_ID }}
+        run: az acr login --name "${ACR%%.*}" --subscription "$ACR_SUB"
 
       - name: Set image tag
         id: set_tag
