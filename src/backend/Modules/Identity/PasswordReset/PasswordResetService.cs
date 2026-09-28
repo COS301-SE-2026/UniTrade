@@ -154,5 +154,5 @@ public class PasswordResetService : IPasswordResetService
             && password.Any(ch => !char.IsLetterOrDigit(ch));
     }
 
-    
+
 }

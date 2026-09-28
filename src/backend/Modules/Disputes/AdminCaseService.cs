@@ -576,7 +576,8 @@ public class AdminCaseService : IAdminCaseService
         if (d.Type == _reportListingString && d.SnapshotId.HasValue)
         {
             snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
-            if (d.OriginalSnapshotId.HasValue) {
+            if (d.OriginalSnapshotId.HasValue)
+            {
                 originalSnapshot = await _snapshots.GetByIdAsync(d.OriginalSnapshotId.Value, ct);
             }
         }
@@ -652,7 +653,7 @@ public class AdminCaseService : IAdminCaseService
             CounterParty = counterparty,
             FiledByUserId = d.RaisedBy,
             FiledByRole = filedByRole,
-            Evidence = BuildDisputeEvidence(d, snapshot, originalSnapshot,currentListingStatus),
+            Evidence = BuildDisputeEvidence(d, snapshot, originalSnapshot, currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
         };

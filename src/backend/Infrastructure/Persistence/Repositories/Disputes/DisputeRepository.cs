@@ -299,7 +299,7 @@ public class DisputeRepository : IDisputeRepository
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
         if (d is null)
-           return;
+            return;
         d.OriginalSnapshotId = snapshotId;
         await _db.SaveChangesAsync(ct);
     }
