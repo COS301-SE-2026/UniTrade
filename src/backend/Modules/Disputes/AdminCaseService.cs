@@ -324,29 +324,9 @@ public class AdminCaseService : IAdminCaseService
             throw new DisputesException("decision_not_allowed");
         }
 
-        var finalOutcomes = outcomes;
-        if (disputeData.Type == _listingQualityString)
+        if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
         {
-            var snapshot = disputeData.ReservationId is null
-                ? null
-                : (
-                    await _snapshots.GetByReservationIdAsync(disputeData.ReservationId.Value, ct)
-                ).FirstOrDefault(s =>
-                    disputeData.ListingId == null || s.ListingId == disputeData.ListingId
-                );
-
-            var verdict = ListingQualityEvaluator.Evaluate(
-                snapshot,
-                disputeData.Photos,
-                disputeData.SellerRefusedPhotos
-            );
-
-            finalOutcomes = verdict.Outcomes;
-        }
-
-        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
-        {
-            finalOutcomes = new List<DisputeOutcome> { DisputeOutcome.Strike };
+            throw new DisputesException("outcome_required");
         }
 
         await ApplyDisputeDecisionAsync(
@@ -355,7 +335,7 @@ public class AdminCaseService : IAdminCaseService
             disputeData.ListingId,
             disputeData.Type,
             decision,
-            finalOutcomes,
+            outcomes,
             request.Reason,
             adminId,
             ct
