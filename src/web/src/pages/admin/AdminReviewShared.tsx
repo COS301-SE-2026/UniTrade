@@ -1,6 +1,10 @@
-import { IconStar, IconStarFilled, IconX } from "@tabler/icons-react";
-import type { PersonSummary } from "../../types/mockAdmin";
 import type React from "react";
+import { IconStar, IconStarFilled, IconX, IconNote } from "@tabler/icons-react";
+import type { PersonSummary} from "../../types/mockAdmin";
+import {useEffect, useState, useReducer} from "react";
+import{getCaseNotes,addCaseNote} from "../../services/adminService";
+import type{CaseNote} from "../../types/admin_disputes";
+import {LoadingState} from "../../components/layout/Spinner";
 
 interface ConfirmModalProps {
   title: string;
@@ -343,40 +347,84 @@ export function DecisionButton({
   );
 }
 
-/*export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
-  const [notes, setNotes] = useState<CaseNote[]>([]);
+type NotesState={
+  notes: CaseNote[];
+  loading: boolean;
+  error: boolean;
+};
+
+type NotesAction=
+  |{type: "FETCH_START"}
+  |{type: "FETCH_SUCCESS"; payload: CaseNote[]}
+  | {type: "FETCH_ERROR"}
+  | {type: "ADD_NOTE"; payload: CaseNote};
+
+function notesReducer(state: NotesState, action: NotesAction):NotesState{
+  switch(action.type){
+    case "FETCH_START":
+      return {...state,loading: true, error: false};
+    case "FETCH_SUCCESS":
+      return {notes: action.payload,loading: false, error: false};
+    case "FETCH_ERROR":
+      return {...state,loading: false, error: true};
+    case "ADD_NOTE":
+      return {...state,notes: [...state.notes,action.payload]};
+    default:
+      return state;
+    
+  }
+}
+
+export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
+  const [state, dispatch]=useReducer(notesReducer,{
+    notes: [],
+    loading: true,
+    error: false,
+  });
   const [draft, setDraft] = useState("");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
-    getMockCaseNotes(caseId).then((data) => {
-      if (active) {
-        setNotes(data);
-        setLoading(false);
-      }
-    });
+    dispatch({type: "FETCH_START"});
+    getCaseNotes(caseId)
+      .then((data)=>{
+        if(active){
+          dispatch({type: "FETCH_SUCCESS", payload: data});
+        }
+      })
+      .catch(() =>{
+        if(active){
+          dispatch({type: "FETCH_ERROR"});
+        } 
+      });
     return () => {
       active = false;
     };
   }, [caseId]);
 
-  /*async function handleAddNote() {
+  async function handleAddNote() {
     const content = draft.trim();
     if (!content) return;
     setSaving(true);
-    const note = await addMockCaseNote(caseId, content);
-    setNotes((prev) => [...prev, note]);
+    try{
+    const note = await addCaseNote(caseId, content);
+    dispatch({type: "ADD_NOTE",payload: note});
     setDraft("");
-    setSaving(false);
-  }
+    } catch{
+      dispatch({type: "FETCH_ERROR"});
+     } finally{
+        setSaving(false);
+      }
+    }
 
   return (
     <Panel title="Case Notes">
-      {loading && <LoadingState message="Loading notes ..." />}
+      {state.loading && <LoadingState message="Loading notes ..." />}
 
-      {!loading && notes.length === 0 && (
+      {state.error && <p className="text-xs text-red-600 mb-2">Something went wrong with notes.</p>}
+
+      {!state.loading && state.notes.length === 0 && (
         <div className="flex flex-col items-center justify-center text-center py-6 mb-3">
           <IconNote size={28} className="text-gray-300 mb-2" />
           <p className="text-sm font-medium text-gray-500">No notes yet</p>
@@ -386,9 +434,9 @@ export function DecisionButton({
         </div>
       )}
 
-      {!loading && notes.length > 0 && (
+      {!state.loading && state.notes.length > 0 && (
         <div className="space-y-2 mb-3">
-          {notes.map((note) => (
+          {state.notes.map((note) => (
             <div
               key={note.id}
               className="flex items-start gap-2 p-3 rounded-lg bg-gray-50 dark:bg-navy-700 border border-gray-100 dark:border-white/5"
@@ -402,7 +450,7 @@ export function DecisionButton({
                   {note.content}
                 </p>
                 <p className="text-xs text-gray-600 mt-0.5">
-                  {note.author} · {note.createdAt}
+                  {note.author} · {new Date(note.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -431,4 +479,4 @@ export function DecisionButton({
       </div>
     </Panel>
   );
-}*/
+}

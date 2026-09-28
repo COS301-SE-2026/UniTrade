@@ -88,6 +88,7 @@ export interface CaseEvidence {
   proofDocument?:string;
   // listing_quality
   snapshot?: ListingSnapshot;
+  originalSnapshot?: ListingSnapshot;
   buyerPhotos?: string[];
   sellerRefusedPhotos?: boolean;
   currentListingStatus?: string | null;
@@ -348,4 +349,11 @@ export interface ListingStatusResponse {
   status: "live" | "under_review" | "removed";
   riskLevel: "low" | "medium" | "high";
   message: string;
+}
+
+export interface CaseNote{
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }

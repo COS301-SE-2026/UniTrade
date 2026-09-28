@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260927085034_AddNotes")]
+    partial class AddNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,10 +237,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("meetup_id");
 
-                    b.Property<Guid?>("OriginalSnapshotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("original_snapshot_id");
-
                     b.PrimitiveCollection<List<string>>("Photos")
                         .HasColumnType("text[]")
                         .HasColumnName("photos");
@@ -304,9 +303,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("MeetupId")
                         .HasDatabaseName("ix_disputes_meetup_id");
 
-                    b.HasIndex("OriginalSnapshotId")
-                        .HasDatabaseName("ix_disputes_original_snapshot_id");
-
                     b.HasIndex("RaisedBy")
                         .HasDatabaseName("ix_disputes_raised_by");
 
@@ -363,56 +359,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_admin_profiles_user_id");
 
                     b.ToTable("admin_profiles", "unitrade");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.PasswordResetRequest", b =>
-                {
-                    b.Property<Guid>("PasswordResetRequestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("password_reset_request_id");
-
-                    b.Property<int>("AttemptNumber")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("attempt_number");
-
-                    b.Property<bool>("IsCurrent")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_current");
-
-                    b.Property<string>("OtpCodeHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("otp_code_hash");
-
-                    b.Property<DateTime>("OtpExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("otp_expires_at");
-
-                    b.Property<DateTime>("OtpSentAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("otp_sent_at");
-
-                    b.Property<DateTime?>("OtpVerifiedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("otp_verified_at");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("PasswordResetRequestId")
-                        .HasName("pk_password_reset_requests");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("uix_prr_current")
-                        .HasFilter("is_current = true");
-
-                    b.ToTable("password_reset_requests", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
@@ -1560,7 +1506,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("meetups", "unitrade", t =>
                         {
-                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')");
+                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')");
                         });
                 });
 
@@ -2067,12 +2013,6 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_disputes_meetups_meetup_id");
 
-                    b.HasOne("Modules.Listings.Models.ListingSnapshot", "OriginalSnapshot")
-                        .WithMany()
-                        .HasForeignKey("OriginalSnapshotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_disputes_listing_snapshot_original_snapshot_id");
-
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
                         .HasForeignKey("RaisedBy")
@@ -2098,8 +2038,6 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_disputes_users_subject_user_id");
 
-                    b.Navigation("OriginalSnapshot");
-
                     b.Navigation("Snapshot");
                 });
 
@@ -2120,16 +2058,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_admin_profiles_users_user_id");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Modules.Identity.Models.PasswordResetRequest", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_password_reset_requests_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>

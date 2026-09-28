@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926090505_AddPasswordResetRequest")]
+    partial class AddPasswordResetRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,50 +169,6 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Modules.Disputes.Models.CaseNote", b =>
-                {
-                    b.Property<Guid>("NoteId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("note_id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("AuthorAdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("author_admin_id");
-
-                    b.Property<Guid>("CaseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("case_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("NoteId")
-                        .HasName("pk_case_notes");
-
-                    b.HasIndex("AuthorAdminId")
-                        .HasDatabaseName("ix_case_notes_author_admin_id");
-
-                    b.HasIndex("CaseId")
-                        .HasDatabaseName("ix_case_notes_case");
-
-                    b.HasIndex("CreatedAt")
-                        .IsDescending()
-                        .HasDatabaseName("ix_case_notes_created");
-
-                    b.ToTable("case_notes", "unitrade");
-                });
-
             modelBuilder.Entity("Modules.Disputes.Models.Dispute", b =>
                 {
                     b.Property<Guid>("DisputeId")
@@ -233,10 +192,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<int?>("MeetupId")
                         .HasColumnType("integer")
                         .HasColumnName("meetup_id");
-
-                    b.Property<Guid?>("OriginalSnapshotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("original_snapshot_id");
 
                     b.PrimitiveCollection<List<string>>("Photos")
                         .HasColumnType("text[]")
@@ -303,9 +258,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MeetupId")
                         .HasDatabaseName("ix_disputes_meetup_id");
-
-                    b.HasIndex("OriginalSnapshotId")
-                        .HasDatabaseName("ix_disputes_original_snapshot_id");
 
                     b.HasIndex("RaisedBy")
                         .HasDatabaseName("ix_disputes_raised_by");
@@ -1560,7 +1512,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("meetups", "unitrade", t =>
                         {
-                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')");
+                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')");
                         });
                 });
 
@@ -2037,16 +1989,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Sender");
                 });
 
-            modelBuilder.Entity("Modules.Disputes.Models.CaseNote", b =>
-                {
-                    b.HasOne("Modules.Identity.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("AuthorAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_case_notes_users_author_admin_id");
-                });
-
             modelBuilder.Entity("Modules.Disputes.Models.Dispute", b =>
                 {
                     b.HasOne("Modules.Identity.Models.User", null)
@@ -2066,12 +2008,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasForeignKey("MeetupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_disputes_meetups_meetup_id");
-
-                    b.HasOne("Modules.Listings.Models.ListingSnapshot", "OriginalSnapshot")
-                        .WithMany()
-                        .HasForeignKey("OriginalSnapshotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_disputes_listing_snapshot_original_snapshot_id");
 
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
@@ -2097,8 +2033,6 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_disputes_users_subject_user_id");
-
-                    b.Navigation("OriginalSnapshot");
 
                     b.Navigation("Snapshot");
                 });

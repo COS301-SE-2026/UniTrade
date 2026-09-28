@@ -25,6 +25,7 @@ import type {
   ListingStatusResponse,
   FlaggedListingDetail,
   Outcome,
+  CaseNote
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -374,6 +375,23 @@ export async function getFlaggedListing(
   return handleResponse<FlaggedListingDetail>(res);
 }
 
+export async function getCaseNotes(caseId: string): Promise<CaseNote[]>{
+  const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<CaseNote[]>(res);
+}
+
+export async function addCaseNote(caseId: string, content: string): Promise<CaseNote>{
+  const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
+    method: "POST",
+    credentials: "include",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({content}),
+  });
+  return handleResponse<CaseNote>(res);
+}
 export async function strikeUser(
   userId: string,
   reason: string,

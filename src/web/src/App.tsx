@@ -91,6 +91,7 @@ const SavedSearches = lazy(() => import("./pages/buyer/SavedSearches"));
 const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResult"));
 const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
 const AdminListingRiskReview = lazy(() => import("./pages/admin/AdminListingRiskReview"))
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
 
 
@@ -143,6 +144,7 @@ export default function App() {
         <Route path="/auth/timetable" element={<TimetableScreen />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
         <Route path="/auth/ProofUpload" element={<ProofOfRegistrationUpload />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
 
         <Route element={<AppLayout />}>

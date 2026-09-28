@@ -31,9 +31,11 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<PasswordResetRequest> PasswordResetRequests => Set<PasswordResetRequest>();
     public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
         Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
+    
 
     ///add listing model after resolving conflicts
     // Listings
@@ -76,6 +78,7 @@ public class AppDbContext : DbContext
 
     // Disputes
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<CaseNote> CaseNotes => Set<CaseNote>();
 
     // Images
     public DbSet<Image> Images => Set<Image>();
@@ -777,6 +780,33 @@ public class AppDbContext : DbContext
                 .HasFilter("is_read = false");
         });
 
+        //Passwod reset requets
+        modelBuilder.Entity<PasswordResetRequest>(entity => 
+        {
+            entity.HasKey(x => x.PasswordResetRequestId);
+
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.OtpCodeHash).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.AttemptNumber).HasDefaultValue(0);
+
+            entity
+             .HasOne<User>()
+             .WithMany()
+             .HasForeignKey(x => x.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_prr_user");
+
+            entity
+             .HasIndex(x => x.UserId)
+             .HasDatabaseName("uix_prr_current")
+             .IsUnique()
+             .HasFilter("is_current = true");
+
+            });
+
+        
+
         // Wishlist items
         modelBuilder.Entity<WishlistItem>(entity =>
         {
@@ -865,7 +895,7 @@ public class AppDbContext : DbContext
             {
                 t.HasCheckConstraint(
                     "chk_meetup_status",
-                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')"
+                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')"
                 );
             });
 
@@ -1107,6 +1137,11 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.SnapshotId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(x => x.OriginalSnapshot)
+                .WithMany()
+                .HasForeignKey(x => x.OriginalSnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
             entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");
@@ -1115,6 +1150,21 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.SubmittedAt)
                 .HasDatabaseName("ix_disputes_submitted")
                 .IsDescending();
+        });
+
+        //casenotes
+        modelBuilder.Entity<CaseNote>(entity =>
+        {
+            entity.HasKey(x => x.NoteId);
+            entity.Property(x => x.NoteId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.CaseId).IsRequired();
+            entity.Property(x => x.AuthorAdminId).IsRequired();
+            entity.Property(x => x.Content).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.CaseId).HasDatabaseName("ix_case_notes_case");
+            entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_case_notes_created").IsDescending();
         });
         // IMages
 

@@ -34,6 +34,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IModerationService _moderation;
     private const string _resubmissionString = "resubmission";
     private readonly IListingRepository _listingRepository;
+    private readonly ICaseNoteRepository _caseNotes;
 
     // Constants
     private const string _resolvedString = "resolved";
@@ -58,7 +59,8 @@ public class AdminCaseService : IAdminCaseService
         IListingService listings,
         IBroadCastService broadcast,
         IModerationService moderation,
-        IListingRepository listingRepository
+        IListingRepository listingRepository,
+        ICaseNoteRepository caseNotes
     )
     {
         _verification = verification;
@@ -74,6 +76,7 @@ public class AdminCaseService : IAdminCaseService
         _broadcast = broadcast;
         _moderation = moderation;
         _listingRepository = listingRepository;
+        _caseNotes = caseNotes;
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
@@ -569,9 +572,13 @@ public class AdminCaseService : IAdminCaseService
     private async Task<CaseDetailDto> ToDisputeDetailAsync(DisputeCaseData d, CancellationToken ct)
     {
         ListingSnapshotDto? snapshot = null;
+        ListingSnapshotDto originalSnapshot = null;
         if (d.Type == _reportListingString && d.SnapshotId.HasValue)
         {
             snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
+            if (d.OriginalSnapshotId.HasValue) {
+                originalSnapshot = await _snapshots.GetByIdAsync(d.OriginalSnapshotId.Value, ct);
+            }
         }
         else if (d.ReservationId.HasValue)
         {
@@ -625,7 +632,8 @@ public class AdminCaseService : IAdminCaseService
         }
 
         var filedByRole =
-            d.Type == _reportListingString ? "reporter"
+            d.RaisedBy == Guid.Empty ? "system"
+            : d.Type == _reportListingString ? "reporter"
             : d.RaisedBy == d.SellerId ? "seller"
             : d.RaisedBy == d.BuyerId ? "buyer"
             : "unknown";
@@ -644,7 +652,7 @@ public class AdminCaseService : IAdminCaseService
             CounterParty = counterparty,
             FiledByUserId = d.RaisedBy,
             FiledByRole = filedByRole,
-            Evidence = BuildDisputeEvidence(d, snapshot, currentListingStatus),
+            Evidence = BuildDisputeEvidence(d, snapshot, originalSnapshot,currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
         };
@@ -653,6 +661,7 @@ public class AdminCaseService : IAdminCaseService
     private static CaseEvidenceDto BuildDisputeEvidence(
         DisputeCaseData d,
         ListingSnapshotDto? snapshot,
+        ListingSnapshotDto? originalSnapshot,
         string? currentListingStatus
     ) =>
         d.Type switch
@@ -667,6 +676,7 @@ public class AdminCaseService : IAdminCaseService
             _reportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
+                OriginalSnapshot = originalSnapshot,
                 ListingId = d.ListingId,
                 ReportReason = d.Description,
                 CurrentListingStatus = currentListingStatus,
@@ -728,4 +738,39 @@ public class AdminCaseService : IAdminCaseService
             _resubmissionString => _resubmissionString,
             _ => _pendingString,
         };
+
+    public async Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(Guid caseId, CancellationToken ct = default)
+    {
+        var notes = await _caseNotes.ListByCaseIdAsync(caseId, ct);
+        var result = new List<CaseNoteDto>(notes.Count);
+
+        foreach (var n in notes)
+        {
+            result.Add(await ToNotesDtoAsync(n, ct));
+        }
+        return result;
+    }
+
+    public async Task<CaseNoteDto> AddNoteAsync(Guid caseId, Guid adminId, string content, CancellationToken ct = default)
+    {
+        var note = await _caseNotes.AddAsync(caseId, adminId, content, ct);
+        return await ToNotesDtoAsync(note, ct);
+    }
+
+    private async Task<CaseNoteDto> ToNotesDtoAsync(Models.CaseNote note, CancellationToken ct)
+    {
+        var author = await _parties.GetAsync(note.AuthorAdminId, ct);
+        var authorName = author is null ? "Admin" : $"{author.FirstName} {author.LastName}".Trim();
+
+        return new CaseNoteDto
+        {
+            Id = note.NoteId,
+            Author = authorName,
+            Content = note.Content,
+            CreatedAt = note.CreatedAt,
+        };
+    }
+
+
+
 }

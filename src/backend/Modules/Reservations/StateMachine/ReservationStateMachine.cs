@@ -100,6 +100,15 @@ public static class ReservationStateMachine
         throw new ReservationException(ReservationErrors.Forbidden);
     }
 
+    public static void CancelBySystem(Reservation r, DateTime now)
+    {
+        if (ReservationState.IsTerminal(r.ReservationStatus))
+        {
+            throw new ReservationException(ReservationErrors.AlreadyTerminal);
+        }
+        r.ReservationStatus = ReservationState.Cancelled;
+    }
+
     public static bool CanSellerRelease(Reservation r, DateTime now)
     {
         if (r.SellerAcknowledgedAt is null)
