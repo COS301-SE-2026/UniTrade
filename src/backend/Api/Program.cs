@@ -80,6 +80,7 @@ using Modules.Wishlist.Repositories;
 using Modules.Listings.Risk;
 using Infrastructure.Imaging;
 using Modules.Listings.Admin;
+using Modules.Identity.PasswordReset;
 
 
 DotEnv.Load(
@@ -232,6 +233,8 @@ builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IListingResubmissionListener, DisputeResubmissionListener>();
+builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 if (builder.Environment.IsDevelopment())
 {

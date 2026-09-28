@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ConfirmModal } from "../admin/AdminReviewShared";
@@ -22,6 +22,7 @@ import { useToast } from "../../components/layout/useToast";
 import { useMyListings } from "../../hooks/useMyListings";
 import { LoadingState } from "../../components/layout/Spinner";
 import { useSearchQuery } from "../../hooks/useSearchQuery";
+import { connectionManager } from "../../services/realtime/connectionManager";
 
 function ActionButtons({
   listing,
@@ -83,9 +84,9 @@ function ActionButtons({
           type="button"
           onClick={() => navigate(`/seller/listings/${listing.id}`)}
           className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
-          >
-            View
-          </button>
+        >
+          View
+        </button>
       </div>
     );
   }
@@ -483,6 +484,24 @@ export default function MyListings() {
     }
   };
 
+  useEffect(() => {
+    const off = connectionManager.onListingStatusChanged((e) => {
+      queryClient.setQueryData<{ listings: ListingSummary[]; total: number }>(
+        ["listings", "my"],
+        (old) =>
+          old
+            ? {
+              ...old,
+              listings: old.listings.map((l) =>
+                l.id === e.listingId ? { ...l, status: e.status as ListingStatus } : l,
+              ),
+            }
+            : old,
+      );
+    });
+    return off;
+  }, [queryClient]);
+
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
     try {
@@ -720,9 +739,8 @@ export default function MyListings() {
                       <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
                         {listing.meta}
                       </p>
-                      {(listing.status === "under_review" ||
-                        (listing.status === "removed" ||
-                          (listing.maxResubmissions ?? 0) > 0)) && (
+                      {(listing.status === "under_review")
+                         && (
                           <button
                             type="button"
                             onClick={() =>
@@ -733,6 +751,29 @@ export default function MyListings() {
                             View details for reasons
                           </button>
                         )}
+
+                        {(listing.status === "removed" ||
+                          (listing.maxResubmissions ?? 0) > 0) && (
+                            <button 
+                            type="button"
+                            onClick={() =>
+                              navigate(`/seller/listings/${listing.id}`)
+                            }
+                            className="text-[11px] text-red-400 hover:underline mt-0.5 block whitespace-nowrap"
+                            > View details for reasons</button>
+                          )
+
+                          }
+                        {(listing.status === "banned") && (
+                          <button 
+                            type="button"
+                            onClick={() =>
+                              navigate(`/seller/listings/${listing.id}`)
+                            }
+                            className="text-[11px] text-red-600 hover:underline mt-0.5 block whitespace-nowrap"
+                            > View details for reasons</button>
+                        )}
+                        
                       <VisibilityHint
                         listing={listing}
                         onOpen={() => navigate(`/seller/listings/${listing.id}`)}

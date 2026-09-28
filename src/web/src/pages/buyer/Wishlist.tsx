@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { listingsService } from "../../services/listingsService";
-import { formatPrice } from "../../utils/formatters";
+import { formatCondition, formatPrice } from "../../utils/formatters";
 import type { WishlistListing, BrowseCondition, WishlistResponse } from "../../types/listing";
 import { createReservation } from "../../services/reservationService";
 import { SummaryCard } from "./Reservation";
@@ -25,28 +25,28 @@ const conditionColours: Record<
   BrowseCondition,
   { bg: string; text: string; dot: string }
 > = {
-  like_new: {
+  new: {
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
-  Good: {
+  good: {
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
-  Fair: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
-  Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
+  fair: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
+  poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
 function ConditionBadge({ condition }: Readonly<{ condition: BrowseCondition }>) {
-  const s = conditionColours[condition] ?? conditionColours.Fair;
+  const s = conditionColours[condition] ?? conditionColours.fair;
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${s.text}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-      {condition}
+      {formatCondition(condition)}
     </span>
   );
 }
@@ -282,7 +282,7 @@ export default function Wishlist() {
             </button>
             {filterOpen && (
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
-                {(["All", "like_new", "Good", "Fair", "Poor"] as const).map(
+                {(["All", "new", "good", "fair", "poor"] as const).map(
                   (opt) => (
                     <button
                       type='button'
@@ -293,7 +293,7 @@ export default function Wishlist() {
                       }}
                       className={`w-full text-left px-4 py-2 text-sm capitalize hover:bg-gray-50  ${conditionFilter === opt ? "text-navy-700 font-semibold" : "text-gray-600"}`}
                     >
-                      {opt === "like_new" ? "Like New" : opt}
+                      {opt === "new" ? "Like New" : opt}
                     </button>
                   ),
                 )}

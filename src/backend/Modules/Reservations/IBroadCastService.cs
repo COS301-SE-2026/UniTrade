@@ -6,4 +6,5 @@ public interface IBroadCastService
     Task SendToUserAsync(Guid userId, string eventName, object payload);
     Task NotifyAdminAsync(string eventName, object payload);
     Task NotifyBundleRuleChangedAsync(Guid sellerId);
+    Task NotifyListingSoldAsync(IReadOnlyList<Guid> listingIds);
 }

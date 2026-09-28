@@ -31,9 +31,11 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<PasswordResetRequest> PasswordResetRequests => Set<PasswordResetRequest>();
     public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
         Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
+    
 
     ///add listing model after resolving conflicts
     // Listings
@@ -778,6 +780,33 @@ public class AppDbContext : DbContext
                 .HasFilter("is_read = false");
         });
 
+        //Passwod reset requets
+        modelBuilder.Entity<PasswordResetRequest>(entity => 
+        {
+            entity.HasKey(x => x.PasswordResetRequestId);
+
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.OtpCodeHash).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.AttemptNumber).HasDefaultValue(0);
+
+            entity
+             .HasOne<User>()
+             .WithMany()
+             .HasForeignKey(x => x.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_prr_user");
+
+            entity
+             .HasIndex(x => x.UserId)
+             .HasDatabaseName("uix_prr_current")
+             .IsUnique()
+             .HasFilter("is_current = true");
+
+            });
+
+        
+
         // Wishlist items
         modelBuilder.Entity<WishlistItem>(entity =>
         {
@@ -1107,6 +1136,11 @@ public class AppDbContext : DbContext
                 .HasOne(x => x.Snapshot)
                 .WithMany()
                 .HasForeignKey(x => x.SnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(x => x.OriginalSnapshot)
+                .WithMany()
+                .HasForeignKey(x => x.OriginalSnapshotId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");

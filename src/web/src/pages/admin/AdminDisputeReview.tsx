@@ -31,6 +31,7 @@ import {
   getCaseById,
   decideCaseWithAction,
   type ButtonAction,
+  strikeUser,
 } from "../../services/adminService";
 import type {
   CaseDetail,
@@ -54,6 +55,7 @@ export interface DisputeCase {
   checkIn?: CheckInEvidence;
   photos?: ListingPhotos;
   report?: ReportInfo;
+  listingDiff?: { original: ListingSnapshot; current: ListingSnapshot };
   decision?: DisputeDecision;
   listingId?: string;
   suggestedDecision?: DisputeDecision;
@@ -75,8 +77,8 @@ const decisionLabel: Record<DisputeDecision, string> = {
   "side-buyer": "Side with buyer",
   "side-seller": "Side with seller",
 
-  "remove-listing": "Remove Listing",
-  "warn-seller": "Warn Seller",
+  "remove-listing": "Ban Listing",
+  "warn-seller": "Remove Listing",
 };
 
 const disputeConfirmTitles: Partial<Record<DisputeDecision, string>> = {
@@ -94,7 +96,7 @@ const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
   "remove-listing":
     "This will permanently ban the listing from the platform and notify the seller.This cannot be undone",
   "warn-seller":
-    "This will remove the listing and notify the seller, but they will be able to correct the isuue and resubmit it for review.",
+    "This will remove the listing and notify the seller, but they will be able to correct the issue and resubmit it for review.",
   dismiss: "This will dismiss the dispute without taking any action.",
 
   uphold: "This will uphold the dispute and apply the recommended outcome",
@@ -174,7 +176,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
         category: "N/A",
         moduleCode: "N/A",
         price: "N/A",
-        status: currentStatus ?? "Unkonwn",
+        status: currentStatus ?? "Unknown",
       };
     }
     return {
@@ -214,6 +216,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
   let photos: ListingPhotos | undefined = undefined;
   let report: ReportInfo | undefined = undefined;
   let listingId: string | undefined = undefined;
+  let listingDiff: { original: ListingSnapshot; current: ListingSnapshot } | undefined = undefined;
   const ev = detail.evidence;
 
   if (detail.type === "no_show") {
@@ -228,7 +231,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
         : "No window set",
     };
   }
-  if (detail.type == "listing_quality") {
+  if (detail.type === "listing_quality") {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
       listingId = ev.snapshot.listingId;
@@ -238,7 +241,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
       buyerPhotos: ev.buyerPhotos ?? [],
     };
   }
-  if (detail.type == "report_listing") {
+  if (detail.type === "report_listing") {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
     }
@@ -255,8 +258,16 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
           reputationScore: 0,
           reviewAverage: 0,
           reviewCount: 0,
-        },
+        }
+
     };
+    if (ev.originalSnapshot && ev.snapshot) {
+      photos = {
+        snapshotPhotos: ev.originalSnapshot.photoRefs ?? [],
+        buyerPhotos: ev.snapshot.photoRefs ?? [],
+      };
+      listingDiff = { original: ev.originalSnapshot, current: ev.snapshot };
+    }
   }
   let suggestedDecision: DisputeDecision | undefined;
   if (detail.type === "listing_quality" && detail.suggestedDecision) {
@@ -286,6 +297,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     report,
     decision: undefined,
     listingId,
+    listingDiff,
     suggestedDecision,
   };
 }
@@ -307,6 +319,15 @@ export default function AdminDisputeReview() {
     useState<DisputeDecision | null>(null);
   const [, setSimilar] = useState<SimilarListing[]>([]);
 
+  const [pendingStrike, setPendingStrike] = useState<{
+    userId: string;
+    label: string;
+  } | null>(null);
+  const [strikeReason, setStrikeReason] = useState("");
+  const [striking, setStriking] = useState(false);
+  const [strikeError, setStrikeError] = useState<string | null>(null);
+  const [strikeSuccess, setStrikeSuccess] = useState<string | null>(null);
+  const [struckUserIds, setStruckUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
 
@@ -373,6 +394,37 @@ export default function AdminDisputeReview() {
     }
   }
 
+  function openStrikeModal(userId: string, label: string) {
+    setStrikeSuccess(null);
+    setStrikeError(null);
+    setStrikeReason("");
+    setPendingStrike({ userId, label });
+  }
+  async function handleStrikeSubmit() {
+    if (!pendingStrike || !state.data) return;
+    setStriking(true);
+    setStrikeError(null);
+    try {
+      await strikeUser(
+        pendingStrike.userId,
+        strikeReason.trim(),
+        state.data.id);
+
+      setStrikeSuccess(`Strike applied to ${pendingStrike.label}.`);
+      setStruckUserIds((prev) => new Set(prev).add(pendingStrike.userId));
+      setPendingStrike(null);
+      setStrikeReason("");
+
+      const fresh = await getCaseById(state.data.id);
+      dispatch({ type: "FETCH_SUCCESS", payload: transformCaseDetail(fresh) });
+    } catch (error) {
+      const apiError = error as ApiError;
+      setStrikeError(apiError.message || "Failed to apply strike.");
+    } finally {
+      setStriking(false);
+    }
+  }
+
   function handleDecisionClick(decision: DisputeDecision) {
     setPendingConfirmDecision(decision);
     setModalReason("");
@@ -419,10 +471,21 @@ export default function AdminDisputeReview() {
           {dispute.type === "listing_quality" && dispute.photos && (
             <PhotoComparisonPanel photos={dispute.photos} />
           )}
+
+          {dispute.type === "report_listing" && dispute.photos && (
+            <PhotoComparisonPanel
+              photos={dispute.photos}
+              title="Photos: at time of report vs now"
+              labels={{ left: "At time of report", right: "After seller's changes" }}
+            />
+          )}
+          {dispute.type === "report_listing" && dispute.listingDiff && (
+            <ListingDiffPanel diff={dispute.listingDiff} />
+          )}
           {dispute.type === "report_listing" && dispute.report && (
             <ReportReasonPanel reason={dispute.report.reason} />
           )}
-          
+
 
           <Panel title="Actions">
             <div className="flex flex-col gap-4">
@@ -451,6 +514,7 @@ export default function AdminDisputeReview() {
                       {decisionError}
                     </div>
                   )}
+
                   {dispute.suggestedDecision && (
                     <div className="flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3">
                       <IconBulb
@@ -470,6 +534,51 @@ export default function AdminDisputeReview() {
                     onDecide={handleDecisionClick}
                     suggestedDecision={dispute.suggestedDecision}
                   />
+
+
+                  <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-white/5">
+                    <p className="text-xs font-medium text-gray-500">Manual strike (conduct)</p>
+                    <p className="text-xs text-gray-500">
+                      Penalise whichever party the evidence shows misbehaved — including a false or vindictive reporter. Separate from the decision above.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <OutlineButton
+                        onClick={() =>
+                          openStrikeModal(
+                            dispute.seller.id,
+                            dispute.seller.name || "seller",
+                          )
+                        }
+                        disabled={!dispute.seller.id || struckUserIds.has(dispute.seller.id) || striking}
+                        className="text-center border-amber-600 text-amber-700"
+                      >
+                        {struckUserIds.has(dispute.seller.id) ? "Struck ✓" : `Strike ${dispute.seller.name || "seller"}`}
+                      </OutlineButton>
+
+                      {dispute.buyer.id && (
+                        <OutlineButton
+                          onClick={() =>
+                            openStrikeModal(
+                              dispute.buyer.id,
+                              dispute.buyer.name,
+                            )
+                          }
+                          disabled={!dispute.buyer.id || struckUserIds.has(dispute.buyer.id) || striking}
+                          className="text-center border-amber-600 text-amber-700"
+                        >
+                          {struckUserIds.has(dispute.buyer.id) ? "Struck ✓" : `Strike ${dispute.buyer.name || "buyer"}`}
+                        </OutlineButton>
+
+                      )}
+                    </div>
+
+                    {strikeError && (
+                      <p className="text-xs text-red-600">{strikeError}</p>
+                    )}
+                    {strikeSuccess && (
+                      <p className="text-xs text-green-600">{strikeSuccess}</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -486,12 +595,21 @@ export default function AdminDisputeReview() {
           ) : (
             <PersonCard title="Buyer" person={dispute.buyer} />
           )}
-          <Panel title="Dispute Info">
-            <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
-            <InfoRow label="Date Placed" value={dispute.datePlaced} />
-            <InfoRow label="Filed by" value={dispute.filedBy} />
-          </Panel>
-          <NotesPanel caseId={dispute.id} />
+          {dispute.type === "report_listing" && dispute.report ? (
+            <Panel title="Dispute Info">
+              <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
+              <InfoRow label="Date Placed" value={dispute.datePlaced} />
+            </Panel>
+          ) : (
+            <>
+            <Panel title="Dispute Info">
+              <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
+              <InfoRow label="Date Placed" value={dispute.datePlaced} />
+              <InfoRow label="Filed by" value={dispute.filedBy} />
+            </Panel>
+            <NotesPanel caseId={dispute.id} />
+            </>
+          )}
         </div>
       </div>
 
@@ -516,6 +634,25 @@ export default function AdminDisputeReview() {
             handleDecision(pendingConfirmDecision, modalReason);
             setPendingConfirmDecision(null);
           }}
+        />
+      )}
+
+      {pendingStrike && (
+        <ConfirmModal
+          title={
+            `Strike ${pendingStrike.label}?`
+          }
+          message="This applies a manual conduct strike to this user's account. They will be notified. This is separate from the dispute decision."
+          confirmLabel="Apply strike"
+          tone="danger"
+          submitting={striking}
+          reason={strikeReason}
+          setReason={setStrikeReason}
+          onCancel={() => {
+            setPendingStrike(null);
+            setStrikeReason("");
+          }}
+          onConfirm={handleStrikeSubmit}
         />
       )}
     </div>
@@ -623,38 +760,45 @@ function StatusLine({
 
 function PhotoComparisonPanel({
   photos,
-}: Readonly<{ photos: NonNullable<DisputeCase["photos"]> }>) {
+  title = "Listing snapshot vs buyer photos",
+  labels,
+}: Readonly<{
+  photos: NonNullable<DisputeCase["photos"]>,
+  title?: string;
+  labels?: { left: string; right: string };
+}>) {
   const apiBase = getApiUrl();
+  const leftLabel = labels?.left ?? "Snapshot at Reservation";
+  const rightLabel = labels?.right ?? "Buyer's Photos";
+  const resolveUrl = (url: string) =>
+    url.startsWith("/api") ? `${apiBase}${url.replace(/^\/api/, "")}` : url;
   return (
-    <Panel title="Listing snapshot vs buyer photos">
+    <Panel title={title}>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">
-            Snapshot at Reservation
+            {leftLabel}
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {photos.snapshotPhotos.map((url, i) => {
-              const imageSrc = url.startsWith("/api")
-                ? `${apiBase}${url.replace(/^\/api/, "")}`
-                : url;
-              return (
-                <div
-                  key={`snapshot-${i}`}
-                  className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
-                >
-                  <img
-                    src={imageSrc}
-                    alt={`Snapshot ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              );
-            })}
+            {photos.snapshotPhotos.map((url, i) => (
+              <div
+                key={`snapshot-${i}`}
+                className="aspect-square rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center text-2xl"
+              >
+
+                <img
+                  src={resolveUrl(url)}
+                  alt={`Snapshot ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+            ))}
           </div>
         </div>
         <div>
           <p className="text-xs font-medium text-gray-500 mb-2">
-            Buyer's Photos
+            {rightLabel}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {photos.buyerPhotos.map((url, i) => (
@@ -664,7 +808,7 @@ function PhotoComparisonPanel({
               >
                 {url && (
                   <img
-                    src={url}
+                    src={resolveUrl(url)}
                     alt={`Snapshot ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -678,6 +822,7 @@ function PhotoComparisonPanel({
   );
 }
 
+
 function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
   return (
     <Panel title="Report reason">
@@ -689,6 +834,47 @@ function ReportReasonPanel({ reason }: Readonly<{ reason: string }>) {
         <p className="text-sm text-gray-700 dark:text-white/80 leading-relaxed">
           {reason}
         </p>
+      </div>
+    </Panel>
+  );
+}
+
+function ListingDiffPanel({
+  diff,
+}: Readonly<{ diff: { original: ListingSnapshot; current: ListingSnapshot } }>) {
+  const { original, current } = diff;
+  const rows = [
+    { label: "Title", before: original.title, after: current.title },
+    {
+      label: "Price",
+      before: `R${original.price.toFixed(2)}`,
+      after: `R${current.price.toFixed(2)}`,
+    },
+    { label: "Condition", before: original.condition, after: current.condition },
+    { label: "Description", before: original.description, after: current.description },
+  ].map((r) => ({ ...r, changed: r.before !== r.after }));
+
+  return (
+    <Panel title="Listing details: at time of report vs now">
+      <div className="grid grid-cols-[100px_1fr_1fr] gap-x-4 gap-y-3">
+        <div />
+        <p className="text-xs font-bold text-gray-600">At time of report</p>
+        <p className="text-xs font-bold text-gray-600">Now</p>
+      
+      
+        {rows.map((row) => (
+          <div key={row.label} className="contents">
+    
+              <p className="text-xs font-medium text-gray-500 self-start pt-0.5">{row.label}</p>
+              <p className={`text-sm ${row.changed ? "text-red-600 dark:text-red-400" : "text-gray-700 dark:text-white/80"}`}>
+                {row.before}
+              </p>
+            
+              <p className={`text-sm ${row.changed ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-700 dark:text-white/80"}`}>
+                {row.after}
+              </p>
+            </div>
+        ))}
       </div>
     </Panel>
   );

@@ -9,6 +9,8 @@ public class ListFilterDto
     public Guid? SellerId { get; set; }
     public Guid? ExcludeSellerId { get; set; }
     public string? Search { get; set; }
+    public string? Condition { get; set; }
+    public string? SortBy { get; set; }
     public int Skip { get; set; } = 0;
     public int Take { get; set; } = 50;
 }

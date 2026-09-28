@@ -36,4 +36,9 @@ public class BroadCastService : IBroadCastService
             .Clients.Group($"seller-{sellerId}")
             .SendAsync("bundle_rule_changed", new { sellerId });
     }
+
+    public async Task NotifyListingSoldAsync(IReadOnlyList<Guid> listingIds)
+    {
+        await _hubcontext.Clients.All.SendAsync("listing_sold", new { listingIds });
+    }
 }

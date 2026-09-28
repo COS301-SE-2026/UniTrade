@@ -327,29 +327,9 @@ public class AdminCaseService : IAdminCaseService
             throw new DisputesException("decision_not_allowed");
         }
 
-        var finalOutcomes = outcomes;
-        if (disputeData.Type == _listingQualityString)
+        if (decision == DisputeCaseDecision.Uphold && outcomes.Count == 0)
         {
-            var snapshot = disputeData.ReservationId is null
-                ? null
-                : (
-                    await _snapshots.GetByReservationIdAsync(disputeData.ReservationId.Value, ct)
-                ).FirstOrDefault(s =>
-                    disputeData.ListingId == null || s.ListingId == disputeData.ListingId
-                );
-
-            var verdict = ListingQualityEvaluator.Evaluate(
-                snapshot,
-                disputeData.Photos,
-                disputeData.SellerRefusedPhotos
-            );
-
-            finalOutcomes = verdict.Outcomes;
-        }
-
-        if (decision == DisputeCaseDecision.Uphold && finalOutcomes.Count == 0)
-        {
-            finalOutcomes = new List<DisputeOutcome> { DisputeOutcome.Strike };
+            throw new DisputesException("outcome_required");
         }
 
         await ApplyDisputeDecisionAsync(
@@ -358,7 +338,7 @@ public class AdminCaseService : IAdminCaseService
             disputeData.ListingId,
             disputeData.Type,
             decision,
-            finalOutcomes,
+            outcomes,
             request.Reason,
             adminId,
             ct
@@ -379,6 +359,40 @@ public class AdminCaseService : IAdminCaseService
         );
 
         return await GetCaseByIdAsync(caseId, ct);
+    }
+
+    public async Task StrikeUserAsync(
+        Guid userId,
+        Guid? caseId,
+        string reason,
+        Guid adminId,
+        CancellationToken ct = default
+    )
+    {
+        await _reputation.AddStrikeAsync(userId, caseId, "manual", reason, adminId, ct);
+
+        var auditRequest = new AuditWriteRequest(
+            ActorId: adminId,
+            Action: "manual_strike",
+            EntityType: "user",
+            EntityId: userId.ToString(),
+            OldValue: null,
+            NewValue: $"manual strike (case: {caseId?.ToString() ?? "none"})",
+            Reason: reason
+        );
+        await _audit.WriteAsync(auditRequest, ct);
+
+        await _broadcast.SendToUserAsync(
+            userId,
+            "dispute_outcome",
+            new { message = "A strike was applied to your account", reason }
+        );
+        await _notifications.NotifyAsync(
+            userId,
+            "dispute_outcome",
+            $"A strike was applied to your account. Reason: {reason}",
+            ct
+        );
     }
 
     internal enum PartyRole
@@ -558,9 +572,13 @@ public class AdminCaseService : IAdminCaseService
     private async Task<CaseDetailDto> ToDisputeDetailAsync(DisputeCaseData d, CancellationToken ct)
     {
         ListingSnapshotDto? snapshot = null;
+        ListingSnapshotDto originalSnapshot = null;
         if (d.Type == _reportListingString && d.SnapshotId.HasValue)
         {
             snapshot = await _snapshots.GetByIdAsync(d.SnapshotId.Value, ct);
+            if (d.OriginalSnapshotId.HasValue) {
+                originalSnapshot = await _snapshots.GetByIdAsync(d.OriginalSnapshotId.Value, ct);
+            }
         }
         else if (d.ReservationId.HasValue)
         {
@@ -634,7 +652,7 @@ public class AdminCaseService : IAdminCaseService
             CounterParty = counterparty,
             FiledByUserId = d.RaisedBy,
             FiledByRole = filedByRole,
-            Evidence = BuildDisputeEvidence(d, snapshot, currentListingStatus),
+            Evidence = BuildDisputeEvidence(d, snapshot, originalSnapshot,currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
         };
@@ -643,6 +661,7 @@ public class AdminCaseService : IAdminCaseService
     private static CaseEvidenceDto BuildDisputeEvidence(
         DisputeCaseData d,
         ListingSnapshotDto? snapshot,
+        ListingSnapshotDto? originalSnapshot,
         string? currentListingStatus
     ) =>
         d.Type switch
@@ -657,6 +676,7 @@ public class AdminCaseService : IAdminCaseService
             _reportListingString => new CaseEvidenceDto
             {
                 Snapshot = snapshot,
+                OriginalSnapshot = originalSnapshot,
                 ListingId = d.ListingId,
                 ReportReason = d.Description,
                 CurrentListingStatus = currentListingStatus,
