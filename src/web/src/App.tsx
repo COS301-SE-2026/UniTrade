@@ -165,9 +165,9 @@ export default function App() {
           <Route path = "/buyer/saved-searches" element={<SavedSearches />} />
           <Route path = "/buyer/reservations/smart-budget-result" element={<SmartBudgetReservation />} />
           <Route path="/buyer/disputes" element={<MyDisputes />} />
-          <Route path="/buyer/disputes/:id" element={<MyDisputesView />} />
+          <Route path="/buyer/disputes/:id" element={<MyDisputeView />} />
           <Route path="/seller/disputes" element={<MyDisputes />} />
-          <Route path="/seller/disputes/:id" element={<MyDisputesView />} />
+          <Route path="/seller/disputes/:id" element={<MyDisputeView />} />
           <Route path="/seller/reservations" element={<SellerReservations />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/upload" element={<UploadListing />} />

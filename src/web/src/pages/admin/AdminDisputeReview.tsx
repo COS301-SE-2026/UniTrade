@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import {
   IconAlertTriangle,
   IconBulb,
-  IconCheck,
+  //IconCheck,
   IconChevronRight,
   IconCircleCheck,
   IconCircleX,
