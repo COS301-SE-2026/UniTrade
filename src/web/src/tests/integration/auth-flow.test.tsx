@@ -160,7 +160,7 @@ test('login -> profile -> logout', async () => {
           lastName: 'M',
           userRole: 'student',
         },
-        std: {
+        student: {
         verificationStatus: 'verified',
         verificationRequestStatus: null,
         verificationAdminDecision: null,

@@ -88,6 +88,10 @@ class ConnectionManager {
     (e: { listingIds: string[] }) => void
   >();
 
+  private readonly disputeOutcomeListeners=new Set<
+    (e: {message: string; reason?: string})=>void
+    >();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
