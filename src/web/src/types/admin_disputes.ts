@@ -25,7 +25,20 @@ export type PinStatus =
   | "confirmed";
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
+export type ViewerRole = "filed_by_me" | "against_me"
 
+export interface MyCaseSummary extends CaseSummary{
+viewerRole: ViewerRole;
+}
+
+export interface ListMyCasesResponse {
+  cases: MyCaseSummary[];
+}
+
+export interface GetMyCaseResponse {
+  detail: CaseDetail;
+  viewerRole: ViewerRole;
+}
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
@@ -356,7 +369,7 @@ export interface BundleDisputeItemFiling{
   sellerRefusedPhotos?: boolean
 }
 
-export interface FileDisputeRequest{
+export interface FileDisputeBundleRequest{
   type: "listing_quality";
   reservationId: string;
   description?: string;

@@ -6,6 +6,7 @@ import type {
   DecisionRequest,
   ApiError,
   ListCasesResponse,
+  ListMyCasesResponse,
   GetCaseResponse,
   DecideCaseResponse,
   DisputeFiling,
@@ -25,6 +26,7 @@ import type {
   ListingDecisionResponse,
   ListingStatusResponse,
   FlaggedListingDetail,
+  GetMyCaseResponse,
 } from "../types/admin_disputes";
 
 
@@ -150,6 +152,25 @@ export async function getCaseById(id: string): Promise<GetCaseResponse> {
   });
 
   return handleResponse<GetCaseResponse>(res);
+}
+
+export async function getMyCases(type?: CaseType): Promise<ListMyCasesResponse> {
+  const query = new URLSearchParams();
+  if (type) query.set("type", type);
+  const res = await fetch(`${getApiUrl()}/disputes/mines?${query.toString()}`,{
+method: "GET",
+credentials:"include",
+});
+
+return handleResponse<ListMyCasesResponse>(res);
+}
+
+export async function getMyCaseById(id: string): Promise<GetMyCaseResponse> {
+  const res= await fetch(`${getApiUrl()}/disputes/mine/${id}`, {
+    method:"GET",
+    credentials: "include"
+  })
+  return handleResponse<GetMyCaseResponse>(res);
 }
 
 export async function decideCase(
