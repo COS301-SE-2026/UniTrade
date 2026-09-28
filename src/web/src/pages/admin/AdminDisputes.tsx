@@ -300,7 +300,7 @@ export default function AdminDisputes() {
                         onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
                         className="bg-navy-700 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-navy-500 
                 transition-colors cursor-pointer">
-                        Review
+                        {view === 'closed' ? 'View': 'Review'}
                       </button>
                     </div>
                   </td>

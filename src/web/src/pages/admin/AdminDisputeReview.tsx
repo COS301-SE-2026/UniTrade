@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import {
   IconAlertTriangle,
   IconBulb,
+  IconCheck,
   IconChevronRight,
   IconCircleCheck,
   IconCircleX,
@@ -63,6 +64,7 @@ export interface DisputeCase {
 
 }
 import type { SimilarListing } from "../../types/listing";
+//import type { Audit } from "lighthouse";
 const typeBadge: Record<
   DisputeType,
   { label: string; tone: "red" | "amber" | "blue" }
@@ -118,24 +120,6 @@ const finalDecisions: DisputeDecision[] = [
   "warn-seller",
 ];
 
-const [outcome, setOutcome] = useState<AuditEntry | null>(null);
-const isClosed = state.data?.status === "resolved" || state.data?.status === "dismissed";
-const caseId = state.data?.id;
-
-useEffect(() => {
-  if (!isClosed || !caseId) return;
-  let active = true;
-  getAuditEntries({ entityId: caseId })
-    .then((res) => {
-      if (!active) return;
-      const decisions = res.entries
-        .filter((e) => e.action === "dispute_decision")
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setOutcome(decisions[0] ?? null);
-    })
-    .catch(() => { if (active) setOutcome(null); });
-  return () => { active = false; };
-}, [isClosed, caseId]);
 
 type State = {
   data: DisputeCase | null;
@@ -332,6 +316,24 @@ export default function AdminDisputeReview() {
   const [pendingConfirmDecision, setPendingConfirmDecision] =
     useState<DisputeDecision | null>(null);
   const [, setSimilar] = useState<SimilarListing[]>([]);
+ const [outcome, setOutcome] = useState<AuditEntry | null> (null);
+ const isClosed = state.data?.status === 'resolved' || state.data?.status === 'dismissed';
+ const caseId = state.data?.id;
+
+  useEffect(() => {
+    if (!isClosed || !caseId) return;
+    let active = true;
+    getAuditEntries ({ entityId: caseId }).then((res) =>{
+if (!active) return;
+const decisions = res.entries
+.filter((e) => e.action === "dispute_decision")
+.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+setOutcome(decisions[0] ?? null);
+    })
+    .catch(() => { if (active) setOutcome(null); }); 
+
+    return() => { active = false;};
+  } ,[isClosed, caseId]);
 
 
   useEffect(() => {
@@ -421,10 +423,10 @@ export default function AdminDisputeReview() {
         <div className="flex items-center gap-1.5 text-sm text-gray-600">
           <button
             type="button"
-            onClick={() => navigate("/admin/disputes")}
+            onClick={() => navigate(isClosed ? "/admin/disputes?view=closed" : "/admin/disputes")}
             className="text-[#00aaff] hover:underline cursor-pointer"
           >
-            Active Disputes
+            {isClosed ? "Closed Disputes" :"Active Disputes"}
           </button>
           <IconChevronRight size={12} />
           <span className="text-gray-400"></span>
@@ -864,4 +866,56 @@ function DecisionActions({
       </DecisionButton>
     </div>
   );
+}
+
+function describeAuditDecision(newValue?: string | null): { headline: string; details: string[] }{
+    const raw= (newValue ?? "").toLowerCase();
+    const [decisionPart, outcomesPart =""] = raw.split(":");
+    const decision = decisionPart.replace(/[_\s]/g, "");
+  const outcomeKeys = outcomesPart.split(",").map((s)=> s.replace(/[_\s]/g, "")).filter(Boolean);
+
+  const outcomeLabels: Record<string, string> = {
+    strike: "A strike was issued to the seller",
+    removelisting: "The listing was removed",
+    warnsellerresubmit:"The listing was removed; the seller may correct and resubmit",
+    refusalflag: "The seller was flagged for refusing photos",
+  };
+
+  const headline = decision.startsWith("uphold")
+  ? "Dispute upheld" : decision.startsWith("dismiss")
+    ? "Dispute dismissed" : decision.startsWith("requestinfo")
+    ? "More information requested" : "Dispute resolved";
+
+return {headline,details: outcomeKeys.map((k) => outcomeLabels[k]).filter(Boolean)};
+}
+
+function ClosedOutcome({
+  status,
+  resolvedAt,
+  outcome,
+} : Readonly<{ status: string; resolvedAt?: string; outcome: AuditEntry | null }>) {
+const fallback = status === "dismissed" ? "Dispute dismissed" : "Dispute resolved";
+const { headline, details } = outcome 
+? describeAuditDecision(outcome.newValue)
+: { headline: fallback, details: [] as string[] };
+const decidedAt = outcome?.timestamp ?? resolvedAt;
+const dismissed = status === "dismissed";
+
+return (
+  <div className={`rounded-lg border p-4 ${dismissed ? "bg-gray-0 border-gray-100" : "bg-green-50 border-green-100"}`}>
+    <div className="flex items-start gap-3">
+      <IconCircleCheck size={18} className={`${dismissed ? "text-gray-500" : "text-green-600"} flex-shrink-0 mt-0.5`} />
+      <div>
+        <p className="text-sm font-semibold text-navy-700 dark:text-white">{headline}</p>
+        {details.map((d) => (<p key={d} className="text-xs text-gray-500 dark:text-white/60 mt-1">
+          {d}
+        </p>))}
+      </div>
+    </div>
+  <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/5">
+  <InfoRow label="Decision on" value={decidedAt ? new Date(decidedAt). toLocaleString("en-ZA") : "Unknown"} />
+  <InfoRow label ="Admin reason" value={outcome?.reason || "No reason recorded"} />
+  </div>
+  </div>
+);
 }
