@@ -44,6 +44,9 @@ public class ReservationService(
     private readonly IListingSnapshotService _snapshots = snapshots;
     private readonly IAuditService _audit = audit;
 
+
+    // const strings
+    private const string _reservationString = "reservation";
     public async Task<ReservationDto> CreateAsync(
         Guid listingId,
         Guid buyerId,
@@ -359,7 +362,7 @@ public class ReservationService(
                 new AuditWriteRequest(
                     ActorId: Guid.Empty,
                     Action: "reservation_expired",
-                    EntityType: "reservation",
+                    EntityType: _reservationString,
                     EntityId: reservation.ReservationId.ToString(),
                     OldValue: null,
                     NewValue: "expired",
@@ -367,6 +370,17 @@ public class ReservationService(
                 ),
                 ct
             );
+
+            await _broadcast.NotifyAdminAsync(
+            "audit_event",
+            new
+            {
+                action = "reservation_expired",
+                entityType = _reservationString,
+                entityId = reservation.ReservationId.ToString(),
+            }
+        );
+
             await _realtime.ReservationUpdatedAsync(MapToDto(reservation), ct);
             foreach (var rl in reservation.ReservationListings)
             {
@@ -647,17 +661,27 @@ public class ReservationService(
         await _reservations.SaveAsync(ct);
 
         await _audit.WriteAsync(
-               new AuditWriteRequest(
-                   ActorId: Guid.Empty,
-                   Action: "reservation_system_cancelled",
-                   EntityType: "reservation",
-                   EntityId: reservationId.ToString(),
-                   OldValue: null,
-                   NewValue: r.ReservationStatus,
-                   Reason: reason
-               ),
-               ct
-           );
+            new AuditWriteRequest(
+                ActorId: Guid.Empty,
+                Action: "reservation_system_cancelled",
+                EntityType: _reservationString,
+                EntityId: reservationId.ToString(),
+                OldValue: null,
+                NewValue: r.ReservationStatus,
+                Reason: reason
+            ),
+            ct
+        );
+
+        await _broadcast.NotifyAdminAsync(
+            "audit_event",
+            new
+            {
+                action = "reservation_system_cancelled",
+                entityType = _reservationString,
+                entityId = reservationId.ToString(),
+            }
+        );
 
         foreach (var r1 in r.ReservationListings)
         {
