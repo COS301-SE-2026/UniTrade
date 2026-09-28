@@ -366,7 +366,7 @@ export default function ReservationDetails() {
     if (reservation.isBundle) {
       setItemsExpanded((prev) => !prev);
     } else {
-      navigate(`/buyer/listings/${reservation.listings[0].listingId}`);
+      navigate(`/${isSeller ? "seller" : "buyer"}/listings/${reservation.listings[0].listingId}`);
     }
   };
 

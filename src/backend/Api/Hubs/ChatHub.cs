@@ -192,6 +192,11 @@ public class ChatHub : Hub
             throw new HubException("Unauthorized");
         }
 
+        if (Context.User?.FindFirst("role")?.Value != "admin")
+        {
+            throw new HubException("Forbidden");
+        }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
         await Clients.Caller.SendAsync("JoinedAdminGroup");
     }

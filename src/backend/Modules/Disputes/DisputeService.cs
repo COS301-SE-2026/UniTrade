@@ -5,12 +5,12 @@ using Modules.Disputes.Models.Dto;
 using Modules.Disputes.Repositories;
 using Modules.Listings;
 using Modules.Listings.Models.Dto;
+using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
 using Modules.Listings.Snapshot;
 using Modules.Reservations;
 using Modules.Reservations.Repositories;
 using Modules.SharedKernel;
-using Modules.Listings.Moderation;
 
 namespace Modules.Disputes;
 
@@ -119,7 +119,7 @@ public class DisputeService : IDisputeService
                 ?? throw new DisputesException("listing_not_in_reservation");
         }
 
-        await GuardOneOpenDisputeAsync(filedByUserId, parties.SellerId, ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, parties.SellerId, null, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
@@ -183,7 +183,7 @@ public class DisputeService : IDisputeService
         {
             throw new DisputesException("other_party_checked_in");
         }
-        await GuardOneOpenDisputeAsync(filedByUserId, subjectUserId, ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, subjectUserId, null, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
@@ -254,7 +254,7 @@ public class DisputeService : IDisputeService
         {
             throw new DisputesException("snapshot_not_found");
         }
-        await GuardOneOpenDisputeAsync(filedByUserId, listing.SellerId, ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, listing.SellerId, listing.ListingId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
@@ -272,9 +272,17 @@ public class DisputeService : IDisputeService
 
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listingRepository.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
+            var siblings = await _listingRepository.GetByGroupIdAsync(
+                groupId,
+                includeRemoved: false,
+                ct
+            );
 
-            foreach (var sibling in siblings.Where(s => s.ListingId != listing.ListingId && s.ListingStatus == "live"))
+            foreach (
+                var sibling in siblings.Where(s =>
+                    s.ListingId != listing.ListingId && s.ListingStatus == "live"
+                )
+            )
             {
                 await _moderation.SetUnderReviewAsync(sibling.ListingId, req.Description, ct);
             }
@@ -289,10 +297,16 @@ public class DisputeService : IDisputeService
     private async Task GuardOneOpenDisputeAsync(
         Guid filedByUserId,
         Guid subjectUserId,
+        Guid? listingId,
         CancellationToken ct
     )
     {
-        var hasOpen = await _disputes.HasOpenDisputeAsync(filedByUserId, subjectUserId, ct);
+        var hasOpen = await _disputes.HasOpenDisputeAsync(
+            filedByUserId,
+            subjectUserId,
+            listingId,
+            ct
+        );
         if (hasOpen)
         {
             throw new DisputesException("dispute_already_open");

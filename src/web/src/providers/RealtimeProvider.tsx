@@ -3,21 +3,20 @@ import { connectionManager } from "../services/realtime/connectionManager";
 import { queryKeys } from "../lib/queryKeys";
 import { useAuthStore } from "../store/useAuthStore";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Reservation, ReservationListItem, ChatMessage } from "../types/Reservations";
+import type {
+  Reservation,
+  ReservationListItem,
+  ChatMessage,
+} from "../types/Reservations";
 import type { ClientChatMessage } from "../types/chat";
 import { registerForPushN, onForegroundMessage } from "../services/fcmService";
 import { useToast } from "../components/layout/useToast";
 import { authService } from "../services/authService";
 import { useNavigate } from "react-router";
 
-
-export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  /*if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
-    return <>
-    {children}
-    </>;
-  }*/
-
+export function RealtimeProvider({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const queryClient = useQueryClient();
   const { user, clearUser } = useAuthStore();
   const { showToast } = useToast();
@@ -30,7 +29,7 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       .connect()
       .catch((e) => console.error("hub connect failed", e));
 
-    const onOnline = () => void connectionManager.connect().catch(() => { });
+    const onOnline = () => void connectionManager.connect().catch(() => {});
     window.addEventListener("online", onOnline);
 
     return () => {
@@ -40,25 +39,20 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-    //if (import.meta.env.DEV || !user) return;
-
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
       registerForPushN()
         .then(() => {
           sessionStorage.setItem("pushRegistered", "true");
-
         })
         .catch((err) => {
           console.error("Push token failed", err);
           sessionStorage.setItem("pushAttempted", "true");
-        })
+        });
     }
   }, [user]);
 
   useEffect(() => {
-    //if (import.meta.env.DEV || !user) return;
-
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
       // note to FE: play some sound.
@@ -67,8 +61,6 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user, showToast]);
 
   useEffect(() => {
-    //  if (import.meta.env.DEV || !user) return;
-
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
         const key = queryKeys.reservationMessages(msg.reservationId);
@@ -100,9 +92,9 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
         (old = []) =>
           old.map((m) =>
             m.senderId !== e.readBy &&
-              m.messageId != null &&
-              m.messageId <= e.upToMessageId &&
-              m.readAt == null
+            m.messageId != null &&
+            m.messageId <= e.upToMessageId &&
+            m.readAt == null
               ? { ...m, readAt: new Date().toISOString() }
               : m,
           ),
@@ -118,12 +110,12 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
               old?.map((item) =>
                 item.reservationId === updated.reservationId
                   ? {
-                    ...item,
-                    reservationStatus: updated.reservationStatus,
-                    timerStage: updated.timerStage,
-                    expiresAt: updated.expiresAt,
-                    sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
-                  }
+                      ...item,
+                      reservationStatus: updated.reservationStatus,
+                      timerStage: updated.timerStage,
+                      expiresAt: updated.expiresAt,
+                      sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
+                    }
                   : item,
               ),
           );
@@ -148,45 +140,73 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
-    const offListingStatusChanged = connectionManager.onListingStatusChanged((e) => {
-      queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
-      queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
-      queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
+    const offListingSold = connectionManager.onListingSold(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.wishlist() });
+    });
 
-      showToast("info", e.status === "under_review" ? "A listing was held for review." : e.status === "removed" ? "A listing was removed by an admin." : "A listing is now live.");
+    const offListingStatusChanged = connectionManager.onListingStatusChanged(
+      (e) => {
+        queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+        queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
+        queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
 
-    })
+        showToast(
+          "info",
+          e.status === "under_review"
+            ? "A listing was held for review."
+            : e.status === "removed"
+              ? "A listing was removed by an admin."
+              : e.status === "banned"
+                ? "A listing was permanenlty banned."
+                : "A listing is now live.",
+        );
+      },
+    );
 
     if (user?.role === "admin") {
-      connectionManager.joinAdminGroup().catch((e) =>
-        console.error("joinAdminGroup failed", e),
-      );
+      connectionManager
+        .joinAdminGroup()
+        .catch((e) => console.error("joinAdminGroup failed", e));
     }
 
     const offDisputeCreated = connectionManager.onDisputeCreated(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.disputes() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
-    })
+    });
 
-    const offVerificationCreated = connectionManager.onVerificationCreated(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.verifications() });
+    const offDisputeResubmitted = connectionManager.onDisputeResubmitted(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     });
+    const offVerificationCreated = connectionManager.onVerificationCreated(
+      () => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.verifications() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
+      },
+    );
 
     const offDisputeResolved = connectionManager.onDisputeResolved(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.disputes() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
-    })
+    });
 
     const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
-      showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
-    })
+      showToast(
+        "info",
+        `New match for your search; ${e.title} - R${e.price.toFixed(2)}`,
+      );
+    });
+    const offDisputeOutcome = connectionManager.onDisputeOutcome((e) => {
+      showToast("error", e.message + (e.reason ? ` Reason: ${e.reason}` : ""));
+    });
 
     const offForceLogout = connectionManager.onForceLogout(async () => {
-      showToast("info", "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.");
+      showToast(
+        "info",
+        "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.",
+      );
       try {
         await authService.logout(() => connectionManager.disconnect());
-
       } catch (err) {
         console.error("logout request failed", err);
       } finally {
@@ -195,12 +215,20 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       }
     });
 
-    const offVerificationResubmission = connectionManager.onVerificationResubmissionRequired((e) => {
-      showToast("info", e.reason
-        ? `More info needed for your verification: ${e.reason}`
-        : "Please resubmit your proof of registration."
-      );
-      navigate("/auth/ProofUpload");
+    const offVerificationResubmission =
+      connectionManager.onVerificationResubmissionRequired((e) => {
+        showToast(
+          "info",
+          e.reason
+            ? `More info needed for your verification: ${e.reason}`
+            : "Please resubmit your proof of registration.",
+        );
+        navigate("/auth/ProofUpload");
+      });
+
+    const offAuditEvent = connectionManager.onAuditEvent(() => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "audit"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     });
     return () => {
       offMessage();
@@ -209,12 +237,16 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       offReservationUpdated();
       offListing();
       offDisputeCreated();
+      offDisputeResubmitted();
       offDisputeResolved();
       offSavedSearchMatch();
       offVerificationCreated();
       offForceLogout();
       offVerificationResubmission();
       offListingStatusChanged();
+      offDisputeOutcome();
+      offListingSold();
+      offAuditEvent();
       if (user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }

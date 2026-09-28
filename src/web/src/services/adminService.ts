@@ -27,8 +27,9 @@ import type {
   ListingStatusResponse,
   FlaggedListingDetail,
   GetMyCaseResponse,
+  Outcome,
+  CaseNote,
 } from "../types/admin_disputes";
-
 
 export type ButtonAction =
   | "approve"
@@ -57,6 +58,7 @@ function toDecisionRequest(
   type: CaseType,
   action: ButtonAction,
   reason?: string,
+  outcomes?: Outcome[],
 ): DecisionRequest {
   const r = reason?.trim() || undefined;
 
@@ -74,8 +76,16 @@ function toDecisionRequest(
         return { decision: "request_info", reason: r };
       break;
     case "listing_quality":
-      // the backend evaluator computes action from the snapshot vs photos evidence,, so no need to send outcomes
-      if (action === "side-buyer") return { decision: "uphold", reason: r };
+      if (action === "side-buyer") {
+        if (!outcomes?.length) {
+          throw {
+            status: 0,
+            code: "outcome_required",
+            message: "Pick at least one outcome before siding with the buyer.",
+          } as ApiError;
+        }
+        return { decision: "uphold", outcomes, reason: r };
+      }
       if (action === "side-seller") return { decision: "dismiss", reason: r };
       if (action === "dismiss") return { decision: "dismiss", reason: r };
       if (action === "more-info")
@@ -84,26 +94,23 @@ function toDecisionRequest(
 
     case "report_listing":
       if (action === "remove-listing")
-        return { decision: "uphold", outcomes: ["remove_listing", "strike"], reason: r };
+        return {
+          decision: "uphold",
+          outcomes: ["remove_listing", "strike"],
+          reason: r,
+        };
       if (action === "warn-seller")
-        return { decision: "uphold", outcomes: ["warn_seller_resubmit"], reason: r };
+        return {
+          decision: "uphold",
+          outcomes: ["warn_seller_resubmit"],
+          reason: r,
+        };
       if (action === "dismiss") return { decision: "dismiss", reason: r };
       break;
   }
   throw new Error(`Invalid action "${action}" for case type 
     "${type}"`);
 }
-/*function getToken(): string {
-  return localStorage.getItem("token") ?? "";
-}
-
-/*function authHeaders(): HeadersInit {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-  };
-}*/
-
 export async function handleResponse<T>(res: Response): Promise<T> {
   if (res.ok) {
     if (res.status === 204) return {} as T;
@@ -119,7 +126,7 @@ export async function handleResponse<T>(res: Response): Promise<T> {
 
   const error: ApiError = {
     status: res.status,
-    code: errorBody.code ?? errorBody.error?? "UNKNOWN_ERROR",
+    code: errorBody.code ?? errorBody.error ?? "UNKNOWN_ERROR",
     message: errorBody.message ?? res.statusText,
   };
 
@@ -296,8 +303,9 @@ export async function decideCaseWithAction(
   type: CaseType,
   action: ButtonAction,
   reason?: string,
+  outcomes?: Outcome[],
 ): Promise<DecideCaseResponse> {
-  const body = toDecisionRequest(type, action, reason);
+  const body = toDecisionRequest(type, action, reason, outcomes);
   return decideCase(caseId, body);
 }
 
@@ -353,16 +361,16 @@ export async function getSlaBreachCount(): Promise<number> {
 }
 
 export async function getFlaggedListings(): Promise<FlaggedListing[]> {
-    const res = await fetch(
-      `${getApiUrl()}/admin/listings/flagged?status=under_review`,
-      { method: "GET", credentials: "include" },
-    );
-    return handleResponse<FlaggedListing[]>(res);
-  }
+  const res = await fetch(
+    `${getApiUrl()}/admin/listings/flagged?status=under_review`,
+    { method: "GET", credentials: "include" },
+  );
+  return handleResponse<FlaggedListing[]>(res);
+}
 
 export async function decideListing(
   id: string,
-  body: {action:"approve" | "remove"; reason?:string},
+  body: { action: "approve" | "remove"; reason?: string },
 ): Promise<ListingDecisionResponse> {
   const res = await fetch(`${getApiUrl()}/admin/listings/${id}/decision`, {
     method: "POST",
@@ -374,7 +382,9 @@ export async function decideListing(
   return handleResponse<ListingDecisionResponse>(res);
 }
 
-export async function getListingStatus(id: string): Promise<ListingStatusResponse> {
+export async function getListingStatus(
+  id: string,
+): Promise<ListingStatusResponse> {
   const res = await fetch(`${getApiUrl()}/listings/${id}/status`, {
     method: "GET",
     credentials: "include",
@@ -383,11 +393,47 @@ export async function getListingStatus(id: string): Promise<ListingStatusRespons
   return handleResponse<ListingStatusResponse>(res);
 }
 
-export async function getFlaggedListing(id: string): Promise<FlaggedListingDetail> {
+export async function getFlaggedListing(
+  id: string,
+): Promise<FlaggedListingDetail> {
   const res = await fetch(`${getApiUrl()}/admin/listings/${id}/flagged`, {
     method: "GET",
     credentials: "include",
   });
-  return handleResponse<FlaggedListingDetail>(res)
+  return handleResponse<FlaggedListingDetail>(res);
 }
 
+export async function getCaseNotes(caseId: string): Promise<CaseNote[]> {
+  const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
+    method: "GET",
+    credentials: "include",
+  });
+  return handleResponse<CaseNote[]>(res);
+}
+
+export async function addCaseNote(
+  caseId: string,
+  content: string,
+): Promise<CaseNote> {
+  const res = await fetch(`${getApiUrl()}/admin/cases/${caseId}/notes`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  return handleResponse<CaseNote>(res);
+}
+export async function strikeUser(
+  userId: string,
+  reason: string,
+  caseId?: string,
+): Promise<void> {
+  const res = await fetch(`${getApiUrl()}/admin/users/${userId}/strike`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason, caseId }),
+  });
+
+  await handleResponse<void>(res);
+}

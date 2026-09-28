@@ -83,6 +83,7 @@ return results;
             Description = d.Description,
             SubmittedAt = d.SubmittedAt,
             SnapshotId = d.SnapshotId,
+            OriginalSnapshotId = d.OriginalSnapshotId,
             RaisedBy = d.RaisedBy ?? Guid.Empty,
             BuyerId = parties.BuyerId,
             SellerId = parties.SellerId,
@@ -151,9 +152,25 @@ return results;
     public async Task<bool> HasOpenDisputeAsync(
         Guid filedByUserId,
         Guid subjectUserId,
+        Guid? listingId = null,
         CancellationToken ct = default
     )
     {
+        if (listingId.HasValue)
+        {
+            return await _db.Disputes.AnyAsync(
+                d =>
+                    d.RaisedBy == filedByUserId
+                    && d.ListingId == listingId.Value
+                    && d.Type == "report_listing"
+                    && (
+                        d.Status == "open"
+                        || d.Status == "under_review"
+                        || d.Status == "resubmission"
+                    ),
+                ct
+            );
+        }
         return await _db.Disputes.AnyAsync(
             d =>
                 d.RaisedBy == filedByUserId
@@ -318,10 +335,27 @@ return results;
 
     }
 
-    public async Task UpdateSnapshotAsync(Guid disputeId, Guid snapshotId, CancellationToken ct = default)
+    public async Task SetOriginalSnapshotAsync(
+        Guid disputeId,
+        Guid snapshotId,
+        CancellationToken ct = default
+    )
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
-        if (d is null) return;
+        if (d is null)
+            return;
+        d.OriginalSnapshotId = snapshotId;
+        await _db.SaveChangesAsync(ct);
+    }
+    public async Task UpdateSnapshotAsync(
+        Guid disputeId,
+        Guid snapshotId,
+        CancellationToken ct = default
+    )
+    {
+        var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
+        if (d is null)
+            return;
         d.SnapshotId = snapshotId;
         await _db.SaveChangesAsync(ct);
     }

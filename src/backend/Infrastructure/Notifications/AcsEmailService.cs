@@ -45,7 +45,7 @@ public class AcsEmailService : IEmailService
         await SendAsync(email, subject, html);
     }
 
-        public async Task SendPasswordResetOtpEmailAsync(string email, string otp)
+    public async Task SendPasswordResetOtpEmailAsync(string email, string otp)
     {
         var subject = "Your UniTrade Password Reset Code";
         var html = $"""

@@ -25,4 +25,6 @@ public class Dispute
     public DateTime? ResolvedAt { get; set; }
     public Guid? SnapshotId { get; set; }
     public ListingSnapshot? Snapshot { get; set; }
+    public Guid? OriginalSnapshotId { get; set; }
+    public ListingSnapshot? OriginalSnapshot { get; set; }
 }

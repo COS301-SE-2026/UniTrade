@@ -87,17 +87,26 @@ public class ListingRepository : IListingRepository
                 x.Title.Contains(searchInput) || x.Description.Contains(searchInput)
             );
         }
+        if (!string.IsNullOrWhiteSpace(listingFilterDto.Condition))
+            query = query.Where(x => x.Condition == listingFilterDto.Condition);
 
         var total = await query.CountAsync();
 
         var take = Math.Clamp(listingFilterDto.Take, 1, 100);
 
-        IOrderedQueryable<Listing> ordered =
-            listingFilterDto.ListingStatus == "live"
+        IOrderedQueryable<Listing> ordered = listingFilterDto.SortBy switch
+        {
+            "price_asc" => query.OrderBy(l => l.Price),
+            "price_desc" => query.OrderByDescending(l => l.Price),
+            "newest" => query.OrderByDescending(l => l.CreatedAt),
+            "oldest" => query.OrderBy(l => l.CreatedAt),
+
+            _ => listingFilterDto.ListingStatus == "live"
                 ? query
                     .OrderByDescending(l => l.VisibilityScore ?? 100)
                     .ThenByDescending(l => l.CreatedAt)
-                : query.OrderByDescending(l => l.CreatedAt);
+                : query.OrderByDescending(l => l.CreatedAt)
+        };
         // Map to entity
         var items = await ordered
             .ThenByDescending(l => l.ListingId)
@@ -338,6 +347,9 @@ public class ListingRepository : IListingRepository
                 s =>
                     s.SetProperty(l => l.ListingStatus, "banned")
                         .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
@@ -362,6 +374,9 @@ public class ListingRepository : IListingRepository
                     s.SetProperty(l => l.ListingStatus, _removedStatus)
                         .SetProperty(l => l.RejectionReason, reason)
                         .SetProperty(l => l.RequiresManualReviewOnResubmit, true)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
@@ -394,6 +409,9 @@ public class ListingRepository : IListingRepository
                 s =>
                     s.SetProperty(l => l.ListingStatus, "under_review")
                         .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );

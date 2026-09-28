@@ -83,6 +83,29 @@ public sealed class AdminCasesController : AdminControllerBase
         }
     }
 
+    [HttpGet("{id:guid}/notes")]
+    public async Task<ActionResult<IEnumerable<CaseNoteDto>>> GetNotes(Guid id, CancellationToken ct)
+    {
+        var notes = await _adminCaseService.GetNotesAsync(id, ct);
+        return Ok(notes);
+    }
+
+    [HttpPost("{id:guid}/notes")]
+    public async Task<ActionResult<CaseNoteDto>> AddNote(Guid id, [FromBody] AddCaseNoteDto dto, CancellationToken ct)
+    {
+        var adminId = GetAdminIdentifier();
+        if (adminId is null)
+        {
+            return Unauthorized();
+        }
+        if (string.IsNullOrWhiteSpace(dto.Content))
+        {
+            return BadRequest(new { error = "content_required" });
+        }
+
+        var note = await _adminCaseService.AddNoteAsync(id, adminId.Value, dto.Content.Trim(), ct);
+        return Created($"/api/admin/cases/{id}/notes/{note.Id}", note);
+    }
 
     private Guid? GetAdminIdentifier()
     {

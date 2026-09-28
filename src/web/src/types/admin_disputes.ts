@@ -101,6 +101,7 @@ export interface CaseEvidence {
   proofDocument?:string;
   // listing_quality
   snapshot?: ListingSnapshot;
+  originalSnapshot?: ListingSnapshot;
   buyerPhotos?: string[];
   sellerRefusedPhotos?: boolean;
   currentListingStatus?: string | null;
@@ -156,7 +157,7 @@ export interface CaseDetail extends CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   suggestedDecision?: 'uphold'|'dismiss';
-  suggestedOutcomes?: string[];
+  suggestedOutcomes?: Outcome[];
   resolution?: string | null;
   resolvedAt?: string | null;
 }
@@ -381,4 +382,12 @@ export interface FileDisputeBundleRequest{
 
 export interface FileDisputeBundleResponse{
   caseIds: string[];
+}
+
+
+export interface CaseNote{
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }

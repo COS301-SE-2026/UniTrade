@@ -10,18 +10,12 @@ export default function EnterPin() {
     const [pin, setPin] = useState<string[]>(['', '', '', '', '', '']);
     const [error, setError] = useState<string | null>(null);
     const [isVerifying, setIsVerifying] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(59);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
         inputRefs.current[0]?.focus();
     }, []);
 
-    useEffect(() => {
-        if (timeLeft === 0) return;
-        const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-        return () => clearTimeout(timer);
-    }, [timeLeft]);
 
     const handleChange = (index: number, value: string) => {
         if (!/^\d*$/.test(value)) {
@@ -121,9 +115,6 @@ export default function EnterPin() {
                                 } focus:border-[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`}
                         />
                     ))}
-                </div>
-                <div className="text-center text-sm font-semibold text-slate-700">
-                    Remaining Time: <span className="text-[#0d2a5c] font-extrabold">00:{String(timeLeft).padStart(2, '0')}s</span>
                 </div>
                 <button
                     type='button'

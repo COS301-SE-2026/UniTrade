@@ -17,6 +17,16 @@ public interface IAdminCaseService
         CancellationToken ct = default
     );
 
+    Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(Guid caseId, CancellationToken ct = default);
+    Task<CaseNoteDto> AddNoteAsync(Guid caseId, Guid adminId, string content, CancellationToken ct = default);
+    Task StrikeUserAsync(
+        Guid userId,
+        Guid? caseId,
+        string reason,
+        Guid adminId,
+        CancellationToken ct = default
+    );
+
      Task<CaseDetailDto?> GetCaseByIdForUserAsync(Guid caseId, Guid userID, CancellationToken ct = default);
 
 
