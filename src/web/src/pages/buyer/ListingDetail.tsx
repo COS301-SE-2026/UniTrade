@@ -31,7 +31,7 @@ import { fileDispute } from "../../services/adminService";
 import ListingQnA from "../../components/ListingQnA";
 import { useToast } from "../../components/layout/useToast";
 import { queryClient } from "../../lib/queryClient";
-import { LoadingState } from "../../components/layout/Spinner";
+import { LoadingState} from "../../components/layout/Spinner";
 
 function DetailRow({
   label,
@@ -276,7 +276,7 @@ export default function ListingDetail() {
     );
   const getReserveLabel = () => {
     if (reserved) return "Reserved!";
-    {reserving && <LoadingState message="Reserving..." />}
+    if (reserving ) return "Reserving...";
     return "Reserve this item";
   };
 
