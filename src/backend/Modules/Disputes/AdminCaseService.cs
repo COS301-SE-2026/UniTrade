@@ -102,7 +102,11 @@ public class AdminCaseService : IAdminCaseService
         // 2. Dispute Cases
         if (type is null or _listingQualityString or _noShowString or _reportListingString)
         {
-            var disputeItems = await _disputes.ListPendingAsync(type, ct);
+            var wantsClosed = string.Equals(status, _resolvedString, StringComparison.OrdinalIgnoreCase)||
+            string.Equals(status,_dismissedString,StringComparison.OrdinalIgnoreCase);
+
+            var disputeItems = wantsClosed
+            ? await _disputes.ListClosedAsync(type,ct) : await _disputes.ListPendingAsync(type,ct);
 
             var subjectUserIds = disputeItems.Select(i => i.SubjectUserId).Distinct().ToList();
             var counterpartyIds = disputeItems
@@ -340,6 +344,9 @@ public class AdminCaseService : IAdminCaseService
         {
             return null;
         }
+
+        if (disputeData.Status is "resolved" or "closed")
+         { throw new DisputesException("case_already_closed");}
 
         if (
             decision
@@ -660,6 +667,8 @@ public class AdminCaseService : IAdminCaseService
             Evidence = BuildDisputeEvidence(d, snapshot, currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
+            Resolution = d.Resolution,
+            ResolvedAt = d.ResolvedAt,
         };
     }
 

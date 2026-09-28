@@ -304,5 +304,10 @@ public class DisputeService : IDisputeService
     {
         return _disputes.ListForUserAsync(userId,type,ct);
     }
+
+    public  Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default)
+    {
+        return _disputes.ListClosedAsync(type, ct);
+    }
     
 }

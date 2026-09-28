@@ -38,6 +38,26 @@ public class DisputeRepository : IDisputeRepository
         return results;
     }
 
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(
+string? type,
+CancellationToken ct = default)
+
+{
+var query = _db.Disputes.Where(d => d.Status =="resolved" || d.Status == "closed");
+if (!string.IsNullOrWhiteSpace(type))
+{
+query = query.Where(d => d.Type == type);
+} var disputes = await query.OrderByDescending(d=> d.ResolvedAt).ToListAsync(ct);
+var results = new List<CaseSummaryDto>(disputes.Count);
+foreach (var d in disputes)
+{
+	results.Add(await BuildSummaryAsync(d, ct));
+}
+return results;
+}
+
+
+
     public async Task<DisputeCaseData?> GetCaseDataAsync(
         Guid disputeId,
         CancellationToken ct = default
@@ -66,6 +86,8 @@ public class DisputeRepository : IDisputeRepository
             RaisedBy = d.RaisedBy ?? Guid.Empty,
             BuyerId = parties.BuyerId,
             SellerId = parties.SellerId,
+            Resolution = d.Resolution,
+            ResolvedAt = d.ResolvedAt,
         };
 
         //no show dispute
