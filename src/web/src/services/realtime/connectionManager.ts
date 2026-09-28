@@ -41,6 +41,9 @@ class ConnectionManager {
   private readonly paymentCompletedListeners = new Set<
     (e: { reservationId: string }) => void
   >();
+    private readonly disputeOutcomeListeners = new Set<
+    (e: { message: string; reason?: string }) => void
+  >();
   private readonly pinConfirmedListeners = new Set<
     (e: { reservationId: string }) => void
   >();
