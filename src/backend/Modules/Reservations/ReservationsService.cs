@@ -1,5 +1,8 @@
+using System.Globalization;
 using Microsoft.Extensions.Logging;
+using Modules.Audit;
 using Modules.Chat;
+using Modules.Identity.Models;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Repositories;
@@ -10,9 +13,6 @@ using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
 using Modules.Wishlist;
-using Modules.Identity.Models;
-using System.Globalization;
-
 
 namespace Modules.Reservations;
 
@@ -27,7 +27,8 @@ public class ReservationService(
     ILogger<ReservationService> logger,
     IWishlistService wishlist,
     TimeProvider clock,
-    IListingSnapshotService snapshots
+    IListingSnapshotService snapshots,
+    IAuditService audit
 ) : IReservationService
 {
     private readonly IListingRepository _listings = listings;
@@ -41,6 +42,7 @@ public class ReservationService(
     private readonly ILogger<ReservationService> _logger = logger;
     private readonly TimeProvider _clock = clock;
     private readonly IListingSnapshotService _snapshots = snapshots;
+    private readonly IAuditService _audit = audit;
 
     public async Task<ReservationDto> CreateAsync(
         Guid listingId,
@@ -73,7 +75,7 @@ public class ReservationService(
             CreatedAt = now,
             ReservationListings = { new ReservationListing { ListingId = listingId } },
             SubtotalAmount = listing.Price,
-            TotalAmount = listing.Price
+            TotalAmount = listing.Price,
         };
 
         await _reservations.AddAsync(reservation, ct);
@@ -352,6 +354,19 @@ public class ReservationService(
         foreach (var reservation in reservationsThatShouldExpire)
         {
             await _chat.SendSystemAsync(reservation.ReservationId, "This reservation expired", ct);
+
+            await _audit.WriteAsync(
+                new AuditWriteRequest(
+                    ActorId: Guid.Empty,
+                    Action: "reservation_expired",
+                    EntityType: "reservation",
+                    EntityId: reservation.ReservationId.ToString(),
+                    OldValue: null,
+                    NewValue: "expired",
+                    Reason: "Reservation expired - no activity within the response window."
+                ),
+                ct
+            );
             await _realtime.ReservationUpdatedAsync(MapToDto(reservation), ct);
             foreach (var rl in reservation.ReservationListings)
             {
@@ -440,7 +455,12 @@ public class ReservationService(
         var requested = listingIds.Distinct().ToList();
         if (requested.Count == 0)
         {
-            return new ReserveMultipleResultDto(null, sellerId, Array.Empty<ReservedItemDto>(), Array.Empty<Guid>());
+            return new ReserveMultipleResultDto(
+                null,
+                sellerId,
+                Array.Empty<ReservedItemDto>(),
+                Array.Empty<Guid>()
+            );
         }
         var acquired = new List<Listing>();
         var failedListingIds = new List<Guid>();
@@ -469,7 +489,12 @@ public class ReservationService(
             }
             if (acquired.Count == 0)
             {
-                return new ReserveMultipleResultDto(null, sellerId, Array.Empty<ReservedItemDto>(), failedListingIds);
+                return new ReserveMultipleResultDto(
+                    null,
+                    sellerId,
+                    Array.Empty<ReservedItemDto>(),
+                    failedListingIds
+                );
             }
             var subtotalCents = acquired.Sum(l => BundlePricing.ToCents(l.Price));
             var totalCents = BundlePricing.TotalCents(subtotalCents, acquired.Count, bundleRule);
@@ -480,7 +505,16 @@ public class ReservationService(
             if (maxTotal is not null && total > maxTotal.Value)
             {
                 await ReleaseAllAsync(acquired);
-                return new ReserveMultipleResultDto(null, sellerId, Array.Empty<ReservedItemDto>(), failedListingIds, subtotal, total, discountPercent, BundleBroken: true);
+                return new ReserveMultipleResultDto(
+                    null,
+                    sellerId,
+                    Array.Empty<ReservedItemDto>(),
+                    failedListingIds,
+                    subtotal,
+                    total,
+                    discountPercent,
+                    BundleBroken: true
+                );
             }
             var now = _clock.GetUtcNow().UtcDateTime;
             reservation = new Reservation
@@ -498,7 +532,9 @@ public class ReservationService(
             };
             foreach (var l in acquired)
             {
-                reservation.ReservationListings.Add(new ReservationListing { ListingId = l.ListingId });
+                reservation.ReservationListings.Add(
+                    new ReservationListing { ListingId = l.ListingId }
+                );
             }
             await _reservations.AddAsync(reservation, ct);
             foreach (var l in acquired)
@@ -513,35 +549,60 @@ public class ReservationService(
             throw;
         }
 
-        var reservedItems = acquired.Select(l => new ReservedItemDto(l.ListingId, l.Title, l.Price, sellerId)).ToList();
+        var reservedItems = acquired
+            .Select(l => new ReservedItemDto(l.ListingId, l.Title, l.Price, sellerId))
+            .ToList();
 
         try
         {
             var itemTitles = string.Join(", ", reservedItems.Select(i => $"\"{i.Title}\""));
-            var message = reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}";
+            var message =
+                reservedItems.Count == 1
+                    ? $"A buyer is interested in {itemTitles}."
+                    : $"A buyer is interested in {reservedItems.Count} items: {itemTitles}";
             if (discountPercent is int pct)
             {
-                message += $"A {pct}% bundle discount applied, agreed total R{total.ToString("0.00", CultureInfo.InvariantCulture)}.";
+                message +=
+                    $"A {pct}% bundle discount applied, agreed total R{total.ToString("0.00", CultureInfo.InvariantCulture)}.";
             }
             await _chat.SendSystemAsync(reservation.ReservationId, message, ct);
 
             foreach (var item in reservedItems)
             {
                 await _listingNotifier.ListingReservedAsync(item.ListingId, ct);
-                await _wishlist.SuppressForListingAsync(item.ListingId, reservation.ReservationId, ct);
-
+                await _wishlist.SuppressForListingAsync(
+                    item.ListingId,
+                    reservation.ReservationId,
+                    ct
+                );
             }
-            await GuardedPushAsync(sellerId, NotificationTypes.ReservationStatus, reservedItems.Count == 1 ? $"A buyer is interested in {itemTitles}." : $" A buyer is interested in {reservedItems.Count} of your items.",
-       ct);
+            await GuardedPushAsync(
+                sellerId,
+                NotificationTypes.ReservationStatus,
+                reservedItems.Count == 1
+                    ? $"A buyer is interested in {itemTitles}."
+                    : $" A buyer is interested in {reservedItems.Count} of your items.",
+                ct
+            );
         }
-
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogError(ex, "Post-reservation side effects failed for {ReservationId}", reservation.ReservationId);
+            _logger.LogError(
+                ex,
+                "Post-reservation side effects failed for {ReservationId}",
+                reservation.ReservationId
+            );
         }
 
-        return new ReserveMultipleResultDto(reservation.ReservationId, sellerId, reservedItems, failedListingIds, subtotal, total, discountPercent);
-
+        return new ReserveMultipleResultDto(
+            reservation.ReservationId,
+            sellerId,
+            reservedItems,
+            failedListingIds,
+            subtotal,
+            total,
+            discountPercent
+        );
     }
 
     private async Task ReleaseAllAsync(IEnumerable<Listing> listings)
@@ -554,14 +615,24 @@ public class ReservationService(
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to release listing {ListingId} during rollback", l.ListingId);
+                _logger.LogError(
+                    ex,
+                    "Failed to release listing {ListingId} during rollback",
+                    l.ListingId
+                );
             }
         }
     }
 
-    public async Task<ReservationDto> CancelBySystemAsync(Guid reservationId, string reason, CancellationToken ct = default)
+    public async Task<ReservationDto> CancelBySystemAsync(
+        Guid reservationId,
+        string reason,
+        CancellationToken ct = default
+    )
     {
-        var r = await _reservations.GetByIdTrackedAsync(reservationId, ct) ?? throw new ReservationException(ReservationErrors.NotFound);
+        var r =
+            await _reservations.GetByIdTrackedAsync(reservationId, ct)
+            ?? throw new ReservationException(ReservationErrors.NotFound);
 
         ReservationStateMachine.CancelBySystem(r, _clock.GetUtcNow().UtcDateTime);
 
@@ -574,6 +645,19 @@ public class ReservationService(
         await _chat.SendSystemAsync(reservationId, reason, ct);
 
         await _reservations.SaveAsync(ct);
+
+        await _audit.WriteAsync(
+               new AuditWriteRequest(
+                   ActorId: Guid.Empty,
+                   Action: "reservation_system_cancelled",
+                   EntityType: "reservation",
+                   EntityId: reservationId.ToString(),
+                   OldValue: null,
+                   NewValue: r.ReservationStatus,
+                   Reason: reason
+               ),
+               ct
+           );
 
         foreach (var r1 in r.ReservationListings)
         {
