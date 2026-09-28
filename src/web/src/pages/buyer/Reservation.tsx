@@ -491,17 +491,20 @@ function ReservationCard({
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setReportModalOpen(true)}
-                className="inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
-              >
-                <IconFlag size={13} /> Report listing quality
-              </button>
-            </div>
+              {bothCheckedIn && (
+                <button
+                type = "button"
+                onClick = {() => setReportModalOpen(true)}
+                className = "inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
+                >
+                  <IconFlag size = {13} /> Report listing quality 
+                </button>
+
+              )}
+              </div>
           )}
-        </div>
-      </div>
+          </div>
+          </div>
 
       <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} reservationId={reservation.reservationId} />
     </>
