@@ -5,7 +5,8 @@ public sealed record CaseOutcomeContext(
     Guid SubjectUserId,
     Guid? ListingId,
     Guid AdminId,
-    string? Reason
+    string? Reason,
+    string Scope = "seller"
 );
 
 public interface ICaseOutcomeApplier

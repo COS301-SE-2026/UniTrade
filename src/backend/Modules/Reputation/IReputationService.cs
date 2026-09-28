@@ -10,8 +10,12 @@ public interface IReputationService
         string type,
         string reason,
         Guid adminId,
+        string scope  ="seller",
         CancellationToken ct = default
     );
+
+    Task<int> CountBannableStrikeAsync(Guid userId, string scope, CancellationToken ct = default);
     Task<IReadOnlyList<Strike>> GetStrikesAsync(Guid userId, CancellationToken ct = default);
     Task<ReputationSummary> GetReputationSummaryAsync(Guid userId, CancellationToken ct = default);
+
 }

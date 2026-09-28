@@ -29,6 +29,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IListingSnapshotService _snapshots;
     private readonly IPartyDirectory _parties;
     private readonly IReputationService _reputation;
+    private readonly IAccountSanctionService _sanctions;
     private readonly IListingService _listings;
     private readonly IBroadCastService _broadcast;
     private readonly IModerationService _moderation;
@@ -56,6 +57,7 @@ public class AdminCaseService : IAdminCaseService
         IListingSnapshotService snapshots,
         IPartyDirectory parties,
         IReputationService reputation,
+        IAccountSanctionService sanctions,
         IListingService listings,
         IBroadCastService broadcast,
         IModerationService moderation,
@@ -72,6 +74,7 @@ public class AdminCaseService : IAdminCaseService
         _snapshots = snapshots;
         _parties = parties;
         _reputation = reputation;
+        _sanctions = sanctions;
         _listings = listings;
         _broadcast = broadcast;
         _moderation = moderation;
@@ -332,6 +335,11 @@ public class AdminCaseService : IAdminCaseService
             throw new DisputesException("outcome_required");
         }
 
+        var strikeScope =
+            disputeData.Type == _noShowString
+                ? (disputeData.SubjectUserId == disputeData.SellerId ? "seller" : "buyer")
+                : "seller";
+
         await ApplyDisputeDecisionAsync(
             disputeData.DisputeId,
             disputeData.SubjectUserId,
@@ -341,6 +349,7 @@ public class AdminCaseService : IAdminCaseService
             outcomes,
             request.Reason,
             adminId,
+            strikeScope,
             ct
         );
 
@@ -369,7 +378,7 @@ public class AdminCaseService : IAdminCaseService
         CancellationToken ct = default
     )
     {
-        await _reputation.AddStrikeAsync(userId, caseId, "manual", reason, adminId, ct);
+        await _sanctions.ApplyStrikeAsync(userId, caseId, "manual", reason, adminId, "seller", ct);
 
         var auditRequest = new AuditWriteRequest(
             ActorId: adminId,
@@ -423,6 +432,7 @@ public class AdminCaseService : IAdminCaseService
         IReadOnlyList<DisputeOutcome> outcomes,
         string? reason,
         Guid adminId,
+        string scope,
         CancellationToken ct = default
     )
     {
@@ -430,7 +440,7 @@ public class AdminCaseService : IAdminCaseService
         {
             await _outcomes.ApplyAsync(
                 outcomes,
-                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason),
+                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason, scope),
                 ct
             );
         }
@@ -636,8 +646,8 @@ public class AdminCaseService : IAdminCaseService
         }
 
         var filedByRole =
-            d.RaisedBy == Guid.Empty ? "system"
-            : d.Type == _reportListingString ? "reporter"
+            d.Type == _reportListingString ? "reporter"
+            : d.RaisedBy == Guid.Empty ? "system"
             : d.RaisedBy == d.SellerId ? "seller"
             : d.RaisedBy == d.BuyerId ? "buyer"
             : "unknown";
@@ -743,7 +753,10 @@ public class AdminCaseService : IAdminCaseService
             _ => _pendingString,
         };
 
-    public async Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(Guid caseId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(
+        Guid caseId,
+        CancellationToken ct = default
+    )
     {
         var notes = await _caseNotes.ListByCaseIdAsync(caseId, ct);
         var result = new List<CaseNoteDto>(notes.Count);
@@ -755,7 +768,12 @@ public class AdminCaseService : IAdminCaseService
         return result;
     }
 
-    public async Task<CaseNoteDto> AddNoteAsync(Guid caseId, Guid adminId, string content, CancellationToken ct = default)
+    public async Task<CaseNoteDto> AddNoteAsync(
+        Guid caseId,
+        Guid adminId,
+        string content,
+        CancellationToken ct = default
+    )
     {
         var note = await _caseNotes.AddAsync(caseId, adminId, content, ct);
         return await ToNotesDtoAsync(note, ct);
@@ -774,7 +792,4 @@ public class AdminCaseService : IAdminCaseService
             CreatedAt = note.CreatedAt,
         };
     }
-
-
-
 }
