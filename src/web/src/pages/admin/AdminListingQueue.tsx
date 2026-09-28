@@ -21,6 +21,8 @@ import { connectionManager } from "../../services/realtime/connectionManager";
 type Filter = "All" | "Price anomaly" | "Duplicate image" | "Low image match";
 type SortBy = "Oldest First" | "Newest First";
 
+const PAGE_SIZE = 6;
+
 const zar = new Intl.NumberFormat("en-ZA", {
   style: "currency",
   currency: "ZAR",
@@ -37,7 +39,8 @@ export default function AdminListingQueue() {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
   const [filter, setFilter] = useState<Filter>("All");
-  const [sortBy, setSortBy] = useState<SortBy>("Oldest First");
+  const [sortBy, setSortBy] = useState<SortBy>("Newest First");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [removeTarget, setRemoveTarget] = useState<FlaggedListing | null>(null);
   const [removeReason, setRemoveReason] = useState("");
@@ -90,6 +93,21 @@ export default function AdminListingQueue() {
     const dateB = new Date(b.createdAt).getTime();
     return sortBy === "Oldest First" ? dateA - dateB : dateB - dateA;
   });
+
+  const listKey = `${filter}|${sortBy}|${searchQuery}`;
+  const [lastListKey, setLastListKey] = useState(listKey);
+  if (lastListKey !== listKey) {
+    setLastListKey(listKey);
+    setCurrentPage(1);
+  }
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedRows = sortedRows.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
   const numTotal = listings.length;
   const numPriceAnomaly = listings.filter((l) =>
@@ -194,8 +212,8 @@ export default function AdminListingQueue() {
             onChange={(e) => setSortBy(e.target.value as SortBy)}
             className="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-600 focus:outline-none cursor-pointer"
           >
-            <option value="Oldest First">Sort: Oldest First</option>
-            <option value="Newest First">Sort: Newest First</option>
+            <option value="Oldest First">Sort: Newest First</option>
+            <option value="Newest First">Sort: Oldest First</option>
           </select>
         </div>
       </div>
@@ -224,7 +242,7 @@ export default function AdminListingQueue() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {sortedRows.map((l) => (
+              {paginatedRows.map((l) => (
                 <div
                   key={l.listingId}
                   className="p-4 grid gap-4 lg:gap-x-8 lg:items-center lg:grid-cols-[minmax(0,2.4fr)_8.5rem_minmax(0,1.8fr)_9rem_7rem] hover:bg-gray-50/50 transition-colors"
@@ -264,10 +282,10 @@ export default function AdminListingQueue() {
                     <div className="w-full max-w-[120px] mx-auto lg:mx-0 lg:max-w-none mt-1.5 bg-gray-200 rounded-full h-1.5">
                       <div
                         className={`h-full rounded-full ${l.riskLevel === "high"
-                            ? "bg-red-600"
-                            : l.riskLevel === "medium"
-                              ? "bg-amber-500"
-                              : "bg-emerald-500"
+                          ? "bg-red-600"
+                          : l.riskLevel === "medium"
+                            ? "bg-amber-500"
+                            : "bg-emerald-500"
                           }`}
                         style={{
                           width: `${Math.min(100, Math.max(0, l.riskScore))}%`,
@@ -298,8 +316,8 @@ export default function AdminListingQueue() {
                       onClick={() =>
                         navigate(`/admin/listings/flagged/${l.listingId}`)
                       }
-                      className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-5 py-2 w-full"
-                    >
+                      className="bg-navy-700 px-4 py-1.5 rounded-full text-xs font-semibold text-white hover:bg-navy-500 transition-colors cursor-pointer">
+                    
                       Review
                     </button>
                   </div>
@@ -374,6 +392,33 @@ export default function AdminListingQueue() {
           </div>
         )}
       </div>
+
+      {sortedRows.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-400 whitespace-nowrap">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}-
+            {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
+            {sortedRows.length} listings
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+              (page) => (
+                <button
+                  type="button"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${safePage === page
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
