@@ -29,6 +29,7 @@ import {
 import {
   getCaseById,
   decideCaseWithAction,
+  getAuditEntries,
   type ButtonAction,
 } from "../../services/adminService";
 import type {
@@ -37,6 +38,7 @@ import type {
   ListingSnapshot,
   PartySummary,
   ApiError,
+  AuditEntry
 } from "../../types/admin_disputes";
 import { getApiUrl } from "../../config";
 import { LoadingState } from "../../components/layout/Spinner";
@@ -56,6 +58,9 @@ export interface DisputeCase {
   decision?: DisputeDecision;
   listingId?: string;
   suggestedDecision?: DisputeDecision;
+  status?: string;
+  resolvedAt?: string;
+
 }
 import type { SimilarListing } from "../../types/listing";
 const typeBadge: Record<
@@ -66,6 +71,7 @@ const typeBadge: Record<
   listing_quality: { label: "Listing quality", tone: "amber" },
   report_listing: { label: "Report listing", tone: "blue" },
 };
+
 
 const decisionLabel: Record<DisputeDecision, string> = {
   uphold: "Uphold Dispute",
@@ -111,6 +117,25 @@ const finalDecisions: DisputeDecision[] = [
   "remove-listing",
   "warn-seller",
 ];
+
+const [outcome, setOutcome] = useState<AuditEntry | null>(null);
+const isClosed = state.data?.status === "resolved" || state.data?.status === "dismissed";
+const caseId = state.data?.id;
+
+useEffect(() => {
+  if (!isClosed || !caseId) return;
+  let active = true;
+  getAuditEntries({ entityId: caseId })
+    .then((res) => {
+      if (!active) return;
+      const decisions = res.entries
+        .filter((e) => e.action === "dispute_decision")
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setOutcome(decisions[0] ?? null);
+    })
+    .catch(() => { if (active) setOutcome(null); });
+  return () => { active = false; };
+}, [isClosed, caseId]);
 
 type State = {
   data: DisputeCase | null;
@@ -158,6 +183,8 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
       reputationScore: p.reputationScore,
       strikeCount: p.strikeCount,
       reviewCount: 0,
+      status: detail.status,
+      resolvedAt: detail.resolvedAt ?? undefined
     };
   };
   const apiBase = getApiUrl();

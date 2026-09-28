@@ -157,6 +157,8 @@ export interface CaseDetail extends CaseSummary {
   slaBreached: boolean;
   suggestedDecision?: 'uphold'|'dismiss';
   suggestedOutcomes?: string[];
+  resolution?: string | null;
+  resolvedAt?: string | null;
 }
 
 export interface CaseHistoryEntry {
