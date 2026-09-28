@@ -39,6 +39,7 @@ import type {
   ListingSnapshot,
   PartySummary,
   ApiError,
+  Outcome,
 } from "../../types/admin_disputes";
 import { getApiUrl } from "../../config";
 import { LoadingState } from "../../components/layout/Spinner";
@@ -59,6 +60,7 @@ export interface DisputeCase {
   decision?: DisputeDecision;
   listingId?: string;
   suggestedDecision?: DisputeDecision;
+  suggestedOutcomes?: Outcome[];
 }
 import type { SimilarListing } from "../../types/listing";
 const typeBadge: Record<
@@ -99,9 +101,8 @@ const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
     "This will remove the listing and notify the seller, but they will be able to correct the issue and resubmit it for review.",
   dismiss: "This will dismiss the dispute without taking any action.",
 
-  uphold: "This will uphold the dispute and apply the recommended outcome",
-  "side-buyer":
-    "You are deciding in favor of the buyer. The dispute will be resolved.",
+  uphold: "This will uphold the dispute and apply a strike.",
+  "side-buyer": "The outcomes you selected will be applied to the seller.",
   "side-seller":
     " You are deciding in favor of the seller. The dispute will be resolved.",
 };
@@ -114,6 +115,21 @@ const finalDecisions: DisputeDecision[] = [
   "remove-listing",
   "warn-seller",
 ];
+
+const OUTCOME_OPTIONS: { value: Outcome; label: string }[] = [
+  {
+    value: "warn_seller_resubmit",
+    label: "Remove listing (seller may correct and resubmit)",
+  },
+  { value: "remove_listing", label: "Ban listing permanently" },
+  { value: "strike", label: "Strike seller" },
+  { value: "refusal_flag", label: "Refusal flag (seller refused photos)" },
+];
+
+const DECISION_ERRORS: Record<string, string> = {
+  outcome_required: "Pick at least one outcome before siding with the buyer.",
+  outcomes_not_allowed: "Outcomes can only be applied when upholding.",
+};
 
 type State = {
   data: DisputeCase | null;
@@ -281,14 +297,14 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     buyer: counterparty
       ? mapPerson(counterparty)
       : {
-        id: "",
-        initials: "?",
-        name: "Unknown",
-        faculty: "N/A",
-        reputationScore: 0,
-        reviewAverage: 0,
-        reviewCount: 0,
-      },
+          id: "",
+          initials: "?",
+          name: "Unknown",
+          faculty: "N/A",
+          reputationScore: 0,
+          reviewAverage: 0,
+          reviewCount: 0,
+        },
     seller: mapPerson(subject),
     datePlaced: new Date(detail.submittedAt).toLocaleDateString("en-ZA"),
     filedBy,
@@ -299,6 +315,8 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     listingId,
     listingDiff,
     suggestedDecision,
+    suggestedOutcomes:
+      detail.type === "listing_quality" ? detail.suggestedOutcomes : undefined,
   };
 }
 
@@ -329,8 +347,9 @@ export default function AdminDisputeReview() {
   const [strikeSuccess, setStrikeSuccess] = useState<string | null>(null);
   const [struckUserIds, setStruckUserIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
+  const [selectedOutcomes, setSelectedOutcomes] = useState<Outcome[]>([]);
 
+  useEffect(() => {
     let active = true;
 
     dispatch({ type: "FETCH_START" });
@@ -366,15 +385,17 @@ export default function AdminDisputeReview() {
           listingsService.getBrowseListings(),
         ]);
         setSimilar(getSimilarListings(detail, browse.listings, 4));
-      }
-      catch {
+      } catch {
         setSimilar([]);
-
       }
     })();
   }, [state.data?.listingId]);
 
-  async function handleDecision(decision: DisputeDecision, reason?: string) {
+  async function handleDecision(
+    decision: DisputeDecision,
+    reason?: string,
+    outcomes?: Outcome[],
+  ) {
     if (!state.data) return;
     setSubmitting(decision);
     setDecisionError(null);
@@ -384,11 +405,16 @@ export default function AdminDisputeReview() {
         state.data.type as CaseType,
         decision as ButtonAction,
         reason?.trim() || undefined,
+        outcomes,
       );
       setCompletedDecision(decision);
     } catch (error) {
       const apiError = error as ApiError;
-      setDecisionError(apiError.message || "Failed to submit decision.");
+      setDecisionError(
+        DECISION_ERRORS[apiError.code] ??
+          apiError.message ??
+          "Failed to submit decision.",
+      );
     } finally {
       setSubmitting(null);
     }
@@ -408,7 +434,8 @@ export default function AdminDisputeReview() {
       await strikeUser(
         pendingStrike.userId,
         strikeReason.trim(),
-        state.data.id);
+        state.data.id,
+      );
 
       setStrikeSuccess(`Strike applied to ${pendingStrike.label}.`);
       setStruckUserIds((prev) => new Set(prev).add(pendingStrike.userId));
@@ -428,6 +455,7 @@ export default function AdminDisputeReview() {
   function handleDecisionClick(decision: DisputeDecision) {
     setPendingConfirmDecision(decision);
     setModalReason("");
+    setSelectedOutcomes([]);
   }
 
   if (state.loading) {
@@ -486,7 +514,6 @@ export default function AdminDisputeReview() {
             <ReportReasonPanel reason={dispute.report.reason} />
           )}
 
-
           <Panel title="Actions">
             <div className="flex flex-col gap-4">
               <OutlineButton
@@ -500,7 +527,6 @@ export default function AdminDisputeReview() {
                 View Listing
               </OutlineButton>
 
-
               {completedDecision ? (
                 <DecisionConfirmation
                   dispute={dispute}
@@ -510,9 +536,7 @@ export default function AdminDisputeReview() {
               ) : (
                 <div className="flex flex-col gap-3">
                   {decisionError && (
-                    <div className="text-sm text-red-600">
-                      {decisionError}
-                    </div>
+                    <div className="text-sm text-red-600">{decisionError}</div>
                   )}
 
                   {dispute.suggestedDecision && (
@@ -522,9 +546,14 @@ export default function AdminDisputeReview() {
                         className="text-sky-600 shrink-0 mt-0.5"
                       />
                       <p className="text-xs text-sky-900">
-                        <span className="font-semibold">System suggestion:</span> based on the evidence, this looks like a case to <span className="font-semibold">
+                        <span className="font-semibold">
+                          System suggestion:
+                        </span>{" "}
+                        based on the evidence, this looks like a case to{" "}
+                        <span className="font-semibold">
                           {recommendationText(dispute.suggestedDecision)}
-                        </span>. This is a guide — your judgement decides.
+                        </span>
+                        . This is a guide — your judgement decides.
                       </p>
                     </div>
                   )}
@@ -535,11 +564,14 @@ export default function AdminDisputeReview() {
                     suggestedDecision={dispute.suggestedDecision}
                   />
 
-
                   <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-white/5">
-                    <p className="text-xs font-medium text-gray-500">Manual strike (conduct)</p>
+                    <p className="text-xs font-medium text-gray-500">
+                      Manual strike (conduct)
+                    </p>
                     <p className="text-xs text-gray-500">
-                      Penalise whichever party the evidence shows misbehaved — including a false or vindictive reporter. Separate from the decision above.
+                      Penalise whichever party the evidence shows misbehaved —
+                      including a false or vindictive reporter. Separate from
+                      the decision above.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <OutlineButton
@@ -549,10 +581,16 @@ export default function AdminDisputeReview() {
                             dispute.seller.name || "seller",
                           )
                         }
-                        disabled={!dispute.seller.id || struckUserIds.has(dispute.seller.id) || striking}
+                        disabled={
+                          !dispute.seller.id ||
+                          struckUserIds.has(dispute.seller.id) ||
+                          striking
+                        }
                         className="text-center border-amber-600 text-amber-700"
                       >
-                        {struckUserIds.has(dispute.seller.id) ? "Struck ✓" : `Strike ${dispute.seller.name || "seller"}`}
+                        {struckUserIds.has(dispute.seller.id)
+                          ? "Struck ✓"
+                          : `Strike ${dispute.seller.name || "seller"}`}
                       </OutlineButton>
 
                       {dispute.buyer.id && (
@@ -563,12 +601,17 @@ export default function AdminDisputeReview() {
                               dispute.buyer.name,
                             )
                           }
-                          disabled={!dispute.buyer.id || struckUserIds.has(dispute.buyer.id) || striking}
+                          disabled={
+                            !dispute.buyer.id ||
+                            struckUserIds.has(dispute.buyer.id) ||
+                            striking
+                          }
                           className="text-center border-amber-600 text-amber-700"
                         >
-                          {struckUserIds.has(dispute.buyer.id) ? "Struck ✓" : `Strike ${dispute.buyer.name || "buyer"}`}
+                          {struckUserIds.has(dispute.buyer.id)
+                            ? "Struck ✓"
+                            : `Strike ${dispute.buyer.name || "buyer"}`}
                         </OutlineButton>
-
                       )}
                     </div>
 
@@ -627,21 +670,64 @@ export default function AdminDisputeReview() {
             pendingConfirmDecision === "remove-listing" ? "danger" : "neutral"
           }
           submitting={!!submitting}
+          confirmDisabled={
+            pendingConfirmDecision === "side-buyer" &&
+            selectedOutcomes.length === 0
+          }
           reason={modalReason}
           setReason={setModalReason}
           onCancel={() => setPendingConfirmDecision(null)}
           onConfirm={() => {
-            handleDecision(pendingConfirmDecision, modalReason);
+            handleDecision(
+              pendingConfirmDecision,
+              modalReason,
+              pendingConfirmDecision === "side-buyer"
+                ? selectedOutcomes
+                : undefined,
+            );
             setPendingConfirmDecision(null);
           }}
-        />
+        >
+          {pendingConfirmDecision === "side-buyer" && (
+            <fieldset className="mb-4 space-y-2">
+              <legend className="text-xs font-medium text-gray-700 mb-1.5">
+                Outcomes to apply <span className="text-red-500">*</span>
+              </legend>
+              {OUTCOME_OPTIONS.map(({ value, label }) => (
+                <label
+                  key={value}
+                  className="flex items-start gap-2 text-sm text-gray-700"
+                >
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={selectedOutcomes.includes(value)}
+                    onChange={(e) =>
+                      setSelectedOutcomes((prev) =>
+                        e.target.checked
+                          ? [...prev, value]
+                          : prev.filter((o) => o !== value),
+                      )
+                    }
+                  />
+                  <span>
+                    {label}
+                    {dispute.suggestedOutcomes?.includes(value) && (
+                      <span className="ml-2 text-xs text-sky-600">
+                        Suggested
+                      </span>
+                    )}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+        </ConfirmModal>
       )}
 
       {pendingStrike && (
         <ConfirmModal
-          title={
-            `Strike ${pendingStrike.label}?`
-          }
+          title={`Strike ${pendingStrike.label}?`}
           message="This applies a manual conduct strike to this user's account. They will be notified. This is separate from the dispute decision."
           confirmLabel="Apply strike"
           tone="danger"
@@ -894,10 +980,11 @@ function DecisionConfirmation({
   return (
     <div>
       <div
-        className={`flex items-start gap-3 p-4 rounded-lg border ${isFinal
-          ? "bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20"
-          : "bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20"
-          }`}
+        className={`flex items-start gap-3 p-4 rounded-lg border ${
+          isFinal
+            ? "bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20"
+            : "bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20"
+        }`}
       >
         {isFinal ? (
           <IconMail size={18} className="text-green-600 flex-shrink-0 mt-0.5" />

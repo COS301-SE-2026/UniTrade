@@ -144,7 +144,7 @@ export interface CaseDetail extends CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   suggestedDecision?: 'uphold'|'dismiss';
-  suggestedOutcomes?: string[];
+  suggestedOutcomes?: Outcome[];
 }
 
 export interface CaseHistoryEntry {
