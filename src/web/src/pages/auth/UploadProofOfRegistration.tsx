@@ -143,7 +143,7 @@ export default function ProofOfRegistrationUpload() {
                         aria-expanded={isInfoOpen}
                     >
                         <div className="flex items-start gap-3">
-                            <IconInfoCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 shrick-0 mt-0.5" size={25} />
+                            <IconInfoCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" size={25} />
                             <span className="font-semibold text-gray-900 dark:text-white text-base">
                                 Why do we need this?
                             </span>
