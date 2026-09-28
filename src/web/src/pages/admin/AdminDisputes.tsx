@@ -26,9 +26,6 @@ function toCaseList(response: unknown): CaseSummary[] {
   return (response as { cases?: CaseSummary [] } | null)?.cases ?? []}
 
 
-
-
-
 function getTimeAgo(ageHours: number): string {
   if (ageHours < 1) return 'Just now'
   if (ageHours < 24) return `${Math.round(ageHours)}h ago`
@@ -282,6 +279,7 @@ export default function AdminDisputes() {
                       <span className="inline-block px-3 py-1 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
                         Resubmitted
                       </span>
+)}
 
                   {view === 'closed' && (
                         <span className={`inline-block ml-2 px-3 py-1 rounded-full text-[10px] font-medium ${

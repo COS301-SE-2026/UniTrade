@@ -322,7 +322,10 @@ export default function MyDisputeView() {
           <Panel title="Dispute Info">
             <InfoRow label="Dispute ID" value={`#${dispute.id}`} />
             <InfoRow label="Date Placed" value={dispute.datePlaced} />
-            <InfoRow label="Filed by" value={dispute.viewerRole === "filed_by_me" ? "You" : dispute.filedBy} />
+            <InfoRow label="Filed by" value={dispute.viewerRole === "filed_by_me" ? "You" : dispute.type === "report_listing" 
+              ? "Another user"
+              : dispute.filedBy
+             } />
           </Panel>
         </div>
       </div>
