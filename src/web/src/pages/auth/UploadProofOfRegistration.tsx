@@ -20,7 +20,7 @@ const error_messages: Record<string, string> = {
     file_too_large: 'File must be smaller than 5MB.',
     invalid_file_type: 'Only PDF, JPG, or PNG files are allowed.',
     unauthenticated: 'Your session has expired. Please log in again.',
-    no_pending_verfication: 'There\u2019s no verification request awaiting a document. Please verfiy your OTP first.',
+    no_pending_verification: 'There\u2019s no verification request awaiting a document. Please verify your OTP first.',
     invalid_verification_state: 'Your verification isn\u2019t at a stage that accepts a document right now.',
     server_error: 'Something went wrong on our end. Please try again shortly.',
 };
