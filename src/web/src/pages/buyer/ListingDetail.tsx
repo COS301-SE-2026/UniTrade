@@ -276,9 +276,10 @@ export default function ListingDetail() {
     );
   const getReserveLabel = () => {
     if (reserved) return "Reserved!";
-    if (reserving) return "Reserving...";
+    {reserving && <LoadingState message="Reserving..." />}
     return "Reserve this item";
   };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-1.5 text-xs text-gray-400">
