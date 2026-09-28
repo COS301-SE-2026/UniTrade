@@ -388,41 +388,7 @@ public class MeetupService : IMeetupService
                 meetup.Status = "no_show_both";
                 resolved.Add(meetup);
 
-                try
-                {
-                    await _disputes.CreateDisputeAsync(
-                        new Dispute
-                        {
-                            Type = "no_show",
-                            SubjectUserId = r.BuyerId,
-                            RaisedBy = null,
-                            ReservationId = meetup.ReservationId,
-                            MeetupId = meetup.MeetupId,
-                            Description = "Auto-detected mutual no-show at end of check-in window.",
-                        },
-                        ct
-                    );
-                    await _disputes.CreateDisputeAsync(
-                        new Dispute
-                        {
-                            Type = "no_show",
-                            SubjectUserId = r.SellerId,
-                            RaisedBy = null,
-                            ReservationId = meetup.ReservationId,
-                            MeetupId = meetup.MeetupId,
-                            Description = "Auto-detected mutual no-show at end of check-in window.",
-                        },
-                        ct
-                    );
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Failed to file system mutual no-show disputes for  meetup {MeetupId}",
-                        meetup.MeetupId
-                    );
-                }
+                // of both don't show up, no disputes, no strikes they cancel each other out 
                 try
                 {
                     await _reservationService.CancelBySystemAsync(
@@ -468,6 +434,20 @@ public class MeetupService : IMeetupService
                         meetup.MeetupId
                     );
                 }
+
+                try
+                {
+                    await _reservationService.CancelBySystemAsync(meetup.ReservationId, "Reservation cancelled - the other party did not check in for the meetup.", ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                       ex,
+                       "Failed to auto-cancel reservation {ReservationId} after one-sided no-show",
+                       meetup.ReservationId
+                   );
+                }
+
             }
         }
         if (resolved.Count > 0)
