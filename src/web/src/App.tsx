@@ -5,6 +5,9 @@ import { useAuthStore } from "./store/useAuthStore";
 import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
+import { LoadingState } from "./components/layout/Spinner";
+
+
 /*
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -93,7 +96,13 @@ const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve")
 const AdminListingRiskReview = lazy(() => import("./pages/admin/AdminListingRiskReview"))
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
-
+function FullPageLoading({message = "Loading..."}: Readonly<{message?: string}>) {
+  return (
+    <div className = "min-h-screen flex items-center justify-center">
+      <LoadingState message = {message} />
+    </div>
+  )
+}
 
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
