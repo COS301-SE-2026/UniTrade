@@ -22,8 +22,8 @@ describe('formatDate', () => {
 })
 
 describe('formatCondition', () => {
-    it('formats like_new correctly', () => {
-        expect(formatCondition('like_new')).toBe('Like New')
+    it('formats new correctly', () => {
+        expect(formatCondition('new')).toBe('Like New')
     })
 
     it('formats fair correctly', () => {
@@ -31,7 +31,7 @@ describe('formatCondition', () => {
     })
 
     it('fromats worn correctly', () => {
-        expect(formatCondition('worn')).toBe('Worn')
+        expect(formatCondition('worn')).toBe('Poor')
     })
 
     it('returns the original string for unknown conditions', () => {

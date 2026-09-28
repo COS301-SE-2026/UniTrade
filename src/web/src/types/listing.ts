@@ -93,7 +93,7 @@ export interface SellerListingDetail {
   maxResubmissions: number
 }
 
-export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
+export type BrowseCondition = ListingCondition
 
 
 export interface BrowseListing {

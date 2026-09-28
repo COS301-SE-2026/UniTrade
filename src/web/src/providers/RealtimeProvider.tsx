@@ -12,12 +12,6 @@ import { useNavigate } from "react-router";
 
 
 export function RealtimeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  /*if (import.meta.env.DEV) {//this needs to be removed once backedn  is set up , minor fix so that i can see the actual progress on the pages 
-    return <>
-    {children}
-    </>;
-  }*/
-
   const queryClient = useQueryClient();
   const { user, clearUser } = useAuthStore();
   const { showToast } = useToast();
@@ -40,7 +34,6 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-    //if (import.meta.env.DEV || !user) return;
 
     const alreadyRegistered = sessionStorage.getItem("pushRegistered");
     if (!alreadyRegistered) {
@@ -57,7 +50,6 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user]);
 
   useEffect(() => {
-    //if (import.meta.env.DEV || !user) return;
 
     const unsubscribe = onForegroundMessage((title, body) => {
       showToast("info", `${title}: ${body}`);
@@ -67,7 +59,6 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
   }, [user, showToast]);
 
   useEffect(() => {
-    //  if (import.meta.env.DEV || !user) return;
 
     const offMessage = connectionManager.onMessageReceived(
       (msg: ChatMessage) => {
@@ -148,6 +139,10 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
 
+    const offListingSold = connectionManager.onListingSold(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.wishlist() });
+    });
+
     const offListingStatusChanged = connectionManager.onListingStatusChanged((e) => {
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
       queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
@@ -179,7 +174,10 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
     })
 
     const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
-      showToast("info", `New match for yoour search; ${e.title} - R${e.price.toFixed(2)}`);
+      showToast("info", `New match for your search; ${e.title} - R${e.price.toFixed(2)}`);
+    })
+    const offDisputeOutcome = connectionManager.onDisputeOutcome((e) => {
+      showToast("error", e.message + (e.reason ? ` Reason: ${e.reason}` : ""));
     })
 
     const offForceLogout = connectionManager.onForceLogout(async () => {
@@ -215,6 +213,8 @@ export function RealtimeProvider({ children }: Readonly<{ children: React.ReactN
       offForceLogout();
       offVerificationResubmission();
       offListingStatusChanged();
+      offDisputeOutcome();
+      offListingSold();
       if (user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }

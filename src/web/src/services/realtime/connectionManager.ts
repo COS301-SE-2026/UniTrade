@@ -50,6 +50,9 @@ class ConnectionManager {
   private readonly disputeResolvedListeners = new Set<
     (data: { caseId: string; status: string }) => void
   >();
+  private readonly disputeOutcomeListeners = new Set<
+    (e: { message: string; reason?: string }) => void
+  >();
 
   private readonly savedSearchMatchListeners = new Set<
     (e: {
@@ -80,6 +83,10 @@ class ConnectionManager {
 
   private readonly bundleRuleChangedListeners = new Set<
     (e: { sellerId: string }) => void
+  >();
+
+  private readonly listingSoldListeners = new Set<
+    (e: { listingIds: string[] }) => void
   >();
 
   connect(): Promise<void> {
@@ -171,6 +178,13 @@ class ConnectionManager {
       conn.on("bundle_rule_changed", (e: { sellerId: string }) =>
         this.bundleRuleChangedListeners.forEach((cb) => cb(e)),
       );
+      conn.on("dispute_outcome", (e: { message: string; reason?: string }) =>
+        this.disputeOutcomeListeners.forEach((cb) => cb(e)),
+      );
+
+      conn.on("listing_sold", (e: { listingIds: string[] }) =>
+        this.listingSoldListeners.forEach((cb) => cb(e)),
+      );
 
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
@@ -181,7 +195,7 @@ class ConnectionManager {
           [...this.joinedRooms].map((id) => conn.invoke("JoinRoom", id)),
         );
         if (this.isAdminGroupJoined) {
-          await conn.invoke("JoinAdminGroup").catch(() => {});
+          await conn.invoke("JoinAdminGroup").catch(() => { });
         }
 
         this.notifyState("Connected");
@@ -218,7 +232,7 @@ class ConnectionManager {
   async leaveRoom(reservationId: string): Promise<void> {
     this.joinedRooms.delete(reservationId);
     if (this.getState() === "Connected") {
-      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => {});
+      await this.connection!.invoke("LeaveRoom", reservationId).catch(() => { });
     }
   }
   async disconnect(): Promise<void> {
@@ -234,7 +248,7 @@ class ConnectionManager {
 
   async leaveAdminGroup(): Promise<void> {
     this.isAdminGroupJoined = false;
-    await this.connection?.invoke("LeaveAdminGroup").catch(() => {});
+    await this.connection?.invoke("LeaveAdminGroup").catch(() => { });
   }
 
   async joinSellerGroup(sellerId: string): Promise<void> {
@@ -246,7 +260,7 @@ class ConnectionManager {
     if (this.getState() == "Connected") {
       await this.connection
         ?.invoke("LeaveSellerGroup", sellerId)
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
@@ -299,7 +313,11 @@ class ConnectionManager {
     this.bundleRuleChangedListeners.add(cb);
     return () => this.bundleRuleChangedListeners.delete(cb);
   }
-  
+  onListingSold(cb: (e: { listingIds: string[] }) => void): Unsubscribe {
+    this.listingSoldListeners.add(cb);
+    return () => this.listingSoldListeners.delete(cb);
+  }
+
   async sendMessage(
     reservationId: string,
     content: string,
@@ -385,6 +403,13 @@ class ConnectionManager {
   ): Unsubscribe {
     this.disputeResolvedListeners.add(callback);
     return () => this.disputeResolvedListeners.delete(callback);
+  }
+
+  onDisputeOutcome(
+    callback: (e: { message: string; reason?: string }) => void,
+  ): Unsubscribe {
+    this.disputeOutcomeListeners.add(callback);
+    return () => this.disputeOutcomeListeners.delete(callback);
   }
 
   onForceLogout(callback: (e: { reason: string }) => void): Unsubscribe {

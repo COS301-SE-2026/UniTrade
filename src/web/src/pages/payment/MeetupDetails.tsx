@@ -219,9 +219,6 @@ export default function MeetupDetails() {
             </div>
 
           </div>
-          <span className="inline-flex items-center bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-100">
-            Confirmed Meetup
-          </span>
         </div>
       </div>
 

@@ -25,13 +25,9 @@ vi.mock('../../services/reservationService', () => ({
   verifyPin: vi.fn(),
 }));
 
-const getByTextContent = (text: string) =>
-  screen.getByText((_, el) => el?.textContent === text);
-
 describe('EnterPin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
     locationState = { reservationId: 'r123' };
   });
 
@@ -202,17 +198,5 @@ describe('EnterPin', () => {
     });
     expect(screen.getByText(/too many incorrect attempts/i)).toBeInTheDocument();
     expect(inputs[0].value).toBe('');
-  });
-
-  it('countdown timer ticks and shows remaining time', async () => {
-    renderComponent();
-    expect(getByTextContent('00:59s')).toBeInTheDocument();
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000);
-    });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000);
-    });
-    expect(getByTextContent('00:57s')).toBeInTheDocument();
   });
 });

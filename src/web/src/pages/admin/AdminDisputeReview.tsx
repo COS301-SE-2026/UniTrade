@@ -30,6 +30,7 @@ import {
   getCaseById,
   decideCaseWithAction,
   type ButtonAction,
+  strikeUser,
 } from "../../services/adminService";
 import type {
   CaseDetail,
@@ -93,7 +94,7 @@ const disputeConfirmMessages: Partial<Record<DisputeDecision, string>> = {
   "remove-listing":
     "This will permanently ban the listing from the platform and notify the seller.This cannot be undone",
   "warn-seller":
-    "This will remove the listing and notify the seller, but they will be able to correct the isuue and resubmit it for review.",
+    "This will remove the listing and notify the seller, but they will be able to correct the issue and resubmit it for review.",
   dismiss: "This will dismiss the dispute without taking any action.",
 
   uphold: "This will uphold the dispute and apply the recommended outcome",
@@ -173,7 +174,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
         category: "N/A",
         moduleCode: "N/A",
         price: "N/A",
-        status: currentStatus ?? "Unkonwn",
+        status: currentStatus ?? "Unknown",
       };
     }
     return {
@@ -227,7 +228,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
         : "No window set",
     };
   }
-  if (detail.type == "listing_quality") {
+  if (detail.type === "listing_quality") {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
       listingId = ev.snapshot.listingId;
@@ -237,7 +238,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
       buyerPhotos: ev.buyerPhotos ?? [],
     };
   }
-  if (detail.type == "report_listing") {
+  if (detail.type === "report_listing") {
     if (ev.snapshot) {
       item = buildItemFromSnapshot(ev.snapshot, ev.currentListingStatus);
     }
@@ -306,6 +307,15 @@ export default function AdminDisputeReview() {
     useState<DisputeDecision | null>(null);
   const [, setSimilar] = useState<SimilarListing[]>([]);
 
+  const [pendingStrike, setPendingStrike] = useState<{
+    userId: string;
+    label: string;
+  } | null>(null);
+  const [strikeReason, setStrikeReason] = useState("");
+  const [striking, setStriking] = useState(false);
+  const [strikeError, setStrikeError] = useState<string | null>(null);
+  const [strikeSuccess, setStrikeSuccess] = useState<string | null>(null);
+  const [struckUserIds, setStruckUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
 
@@ -372,6 +382,37 @@ export default function AdminDisputeReview() {
     }
   }
 
+  function openStrikeModal(userId: string, label: string) {
+    setStrikeSuccess(null);
+    setStrikeError(null);
+    setStrikeReason("");
+    setPendingStrike({ userId, label });
+  }
+  async function handleStrikeSubmit() {
+    if (!pendingStrike || !state.data) return;
+    setStriking(true);
+    setStrikeError(null);
+    try {
+      await strikeUser(
+        pendingStrike.userId,
+        strikeReason.trim(),
+        state.data.id);
+
+      setStrikeSuccess(`Strike applied to ${pendingStrike.label}.`);
+      setStruckUserIds((prev) => new Set(prev).add(pendingStrike.userId));
+      setPendingStrike(null);
+      setStrikeReason("");
+
+      const fresh = await getCaseById(state.data.id);
+      dispatch({ type: "FETCH_SUCCESS", payload: transformCaseDetail(fresh) });
+    } catch (error) {
+      const apiError = error as ApiError;
+      setStrikeError(apiError.message || "Failed to apply strike.");
+    } finally {
+      setStriking(false);
+    }
+  }
+
   function handleDecisionClick(decision: DisputeDecision) {
     setPendingConfirmDecision(decision);
     setModalReason("");
@@ -421,7 +462,7 @@ export default function AdminDisputeReview() {
           {dispute.type === "report_listing" && dispute.report && (
             <ReportReasonPanel reason={dispute.report.reason} />
           )}
-          
+
 
           <Panel title="Actions">
             <div className="flex flex-col gap-4">
@@ -450,6 +491,7 @@ export default function AdminDisputeReview() {
                       {decisionError}
                     </div>
                   )}
+
                   {dispute.suggestedDecision && (
                     <div className="flex items-start gap-2 rounded-lg border border-sky-200 px-4 py-3">
                       <IconBulb
@@ -469,6 +511,51 @@ export default function AdminDisputeReview() {
                     onDecide={handleDecisionClick}
                     suggestedDecision={dispute.suggestedDecision}
                   />
+
+
+                  <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-white/5">
+                    <p className="text-xs font-medium text-gray-500">Manual strike (conduct)</p>
+                    <p className="text-xs text-gray-500">
+                      Penalise whichever party the evidence shows misbehaved — including a false or vindictive reporter. Separate from the decision above.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <OutlineButton
+                        onClick={() =>
+                          openStrikeModal(
+                            dispute.seller.id,
+                            dispute.seller.name || "seller",
+                          )
+                        }
+                        disabled={!dispute.seller.id || struckUserIds.has(dispute.seller.id) || striking}
+                        className="text-center border-amber-600 text-amber-700"
+                      >
+                        {struckUserIds.has(dispute.seller.id) ? "Struck ✓" : `Strike ${dispute.seller.name || "seller"}`}
+                      </OutlineButton>
+
+                      {dispute.buyer.id && (
+                        <OutlineButton
+                          onClick={() =>
+                            openStrikeModal(
+                              dispute.buyer.id,
+                              dispute.buyer.name,
+                            )
+                          }
+                          disabled={!dispute.buyer.id || struckUserIds.has(dispute.buyer.id) || striking}
+                          className="text-center border-amber-600 text-amber-700"
+                        >
+                          {struckUserIds.has(dispute.buyer.id) ? "Struck ✓" : `Strike ${dispute.buyer.name || "buyer"}`}
+                        </OutlineButton>
+
+                      )}
+                    </div>
+
+                    {strikeError && (
+                      <p className="text-xs text-red-600">{strikeError}</p>
+                    )}
+                    {strikeSuccess && (
+                      <p className="text-xs text-green-600">{strikeSuccess}</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -514,6 +601,25 @@ export default function AdminDisputeReview() {
             handleDecision(pendingConfirmDecision, modalReason);
             setPendingConfirmDecision(null);
           }}
+        />
+      )}
+
+      {pendingStrike && (
+        <ConfirmModal
+          title={
+            `Strike ${pendingStrike.label}?`
+          }
+          message="This applies a manual conduct strike to this user's account. They will be notified. This is separate from the dispute decision."
+          confirmLabel="Apply strike"
+          tone="danger"
+          submitting={striking}
+          reason={strikeReason}
+          setReason={setStrikeReason}
+          onCancel={() => {
+            setPendingStrike(null);
+            setStrikeReason("");
+          }}
+          onConfirm={handleStrikeSubmit}
         />
       )}
     </div>
