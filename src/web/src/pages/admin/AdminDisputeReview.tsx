@@ -156,6 +156,8 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
         reputationScore: 0,
         reviewAverage: 0,
         reviewCount: 0,
+        status: detail.status,
+      resolvedAt: detail.resolvedAt ?? undefined
       };
     }
     return {
@@ -167,8 +169,7 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
       reputationScore: p.reputationScore,
       strikeCount: p.strikeCount,
       reviewCount: 0,
-      status: detail.status,
-      resolvedAt: detail.resolvedAt ?? undefined
+      
     };
   };
   const apiBase = getApiUrl();
@@ -472,7 +473,16 @@ setOutcome(decisions[0] ?? null);
                   decision={completedDecision}
                   onBack={() => navigate("/admin/disputes")}
                 />
-              ) : (
+              ) : isClosed ? (
+                <ClosedOutcome 
+                status={dispute.status ?? "resolved" }
+                resolvedAt={dispute.resolvedAt}
+                outcome={outcome}
+                />
+              ) :
+                            
+              
+              (
                 <div className="flex flex-col gap-3">
                   {decisionError && (
                     <div className="text-sm text-red-600">
@@ -902,7 +912,7 @@ const decidedAt = outcome?.timestamp ?? resolvedAt;
 const dismissed = status === "dismissed";
 
 return (
-  <div className={`rounded-lg border p-4 ${dismissed ? "bg-gray-0 border-gray-100" : "bg-green-50 border-green-100"}`}>
+  <div className={`rounded-lg border p-4 ${dismissed ? "bg-gray5-0 border-gray-100" : "bg-green-50 border-green-100"}`}>
     <div className="flex items-start gap-3">
       <IconCircleCheck size={18} className={`${dismissed ? "text-gray-500" : "text-green-600"} flex-shrink-0 mt-0.5`} />
       <div>
@@ -912,8 +922,8 @@ return (
         </p>))}
       </div>
     </div>
-  <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/5">
-  <InfoRow label="Decision on" value={decidedAt ? new Date(decidedAt). toLocaleString("en-ZA") : "Unknown"} />
+  <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/50">
+  <InfoRow label="Decided on" value={decidedAt ? new Date(decidedAt). toLocaleString("en-ZA") : "Unknown"} />
   <InfoRow label ="Admin reason" value={outcome?.reason || "No reason recorded"} />
   </div>
   </div>
