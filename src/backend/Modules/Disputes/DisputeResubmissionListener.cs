@@ -18,7 +18,8 @@ public class DisputeResubmissionListener : IListingResubmissionListener
         IListingRepository listings,
         IListingSnapshotService snapshots,
         IBroadCastService broadcast
-    ) {
+    )
+    {
         _disputes = disputes;
         _listings = listings;
         _snapshots = snapshots;
@@ -45,13 +46,13 @@ public class DisputeResubmissionListener : IListingResubmissionListener
                 await _disputes.UpdateSnapshotAsync(dispute.DisputeId, snapshot.SnapshotId, ct);
             }
         }
-       
-            await _disputes.ReopenAsResubmissionAsync(dispute.DisputeId, ct);
 
-            await _broadcast.NotifyAdminAsync(
-                "dispute_resubmitted",
-                new { caseId = dispute.DisputeId }
-            );
-        
+        await _disputes.ReopenAsResubmissionAsync(dispute.DisputeId, ct);
+
+        await _broadcast.NotifyAdminAsync(
+            "dispute_resubmitted",
+            new { caseId = dispute.DisputeId }
+        );
+
     }
 }
