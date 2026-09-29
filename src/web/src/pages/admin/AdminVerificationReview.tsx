@@ -246,12 +246,12 @@ export default function AdminVerificationReview() {
         <button
           type="button"
           onClick={() => navigate("/admin/verifications")}
-          className="text-[#00aaff] hover:underline cursor-pointer"
+          className="text-sky-700 hover:underline cursor-pointer"
         >
           Verifications
         </button>
         <IconChevronRight size={12} />
-        <span className="text-gray-400"></span>
+        <span className="text-gray-600"></span>
         <span className="text-gray-600">Case Review</span>
 
 

@@ -210,7 +210,7 @@ export async function scheduleMeetupAndCheckIn(
     name: "Check In at Meetup",
   });
   await expect(buyerCheckInButton).toBeEnabled({ timeout: 90_000 });
-
+  
   await Promise.all([
     buyerPage.waitForResponse(
       (resp) =>
