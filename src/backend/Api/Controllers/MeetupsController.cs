@@ -148,6 +148,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
             ReservationErrors.MeetupNotScheduled => Conflict(new { error = ex.Message }),
             ReservationErrors.AlreadyCheckedIn => Conflict(new { error = ex.Message }),
             ReservationErrors.CheckInWindowClosed => Conflict(new { error = ex.Message }),
+            ReservationErrors.CheckInWindowNotOpen => Conflict(new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 

@@ -185,6 +185,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 listing.AiRiskLevel ?? "low",
                 ct
             );
+
             if (notifyText)
             {
                 await _notifications.NotifyAsync(
@@ -228,6 +229,8 @@ public class AdminListingRiskService : IAdminListingRiskService
             listing.AiRiskLevel ?? "low",
             ct
         );
+
+        await _notifier.BroadcastBrowseChangeAsync(listingId, true, ct);
 
         if (notifyText)
         {
