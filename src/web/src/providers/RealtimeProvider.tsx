@@ -200,11 +200,13 @@ export function RealtimeProvider({
       showToast("error", e.message + (e.reason ? ` Reason: ${e.reason}` : ""));
     });
 
-    const offForceLogout = connectionManager.onForceLogout(async () => {
-      showToast(
-        "info",
-        "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.",
-      );
+    const offForceLogout = connectionManager.onForceLogout(async (e) => {
+      const message =
+        e.reason == "account_banned"
+          ? "Your account has been permanently banned. You've been logged out."
+          : "Your verification was rejected - you have been logged out. Please signup from scratch to use the system again.";
+
+      showToast("info", message);
       try {
         await authService.logout(() => connectionManager.disconnect());
       } catch (err) {

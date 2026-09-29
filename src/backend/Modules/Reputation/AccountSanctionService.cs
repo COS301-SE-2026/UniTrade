@@ -161,6 +161,20 @@ public class AccountSanctionService : IAccountSanctionService
             "Your account has been permanently banned after repeated suspensions.",
             ct
         );
+        await ForceLogoutAsync(user.UserId, "account_banned");
+    }
+
+    private async Task ForceLogoutAsync(Guid userId, string reason)
+    {
+        try
+        {
+            await _broadCast.SendToUserAsync(userId, "force_logout", new { reason });
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to force-logout banned user {UserId}", userId);
+        }
     }
 
     private async Task CancelActiveReservationsAsync(Guid userId, CancellationToken ct)
