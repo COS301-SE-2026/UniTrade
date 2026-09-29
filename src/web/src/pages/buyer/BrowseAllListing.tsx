@@ -16,6 +16,7 @@ import { useToast } from "../../components/layout/useToast";
 import { useQueryClient, useQuery, keepPreviousData } from "@tanstack/react-query";
 import { LoadingState } from "../../components/layout/Spinner";
 import { IconMessageCircle2 } from "@tabler/icons-react";
+import { connectionManager } from "../../services/realtime/connectionManager";
 
 function CategoryCard({
   title,
@@ -275,6 +276,30 @@ export default function BrowseAllListing() {
     resetPage();
   }
 
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["browseListings"] });
+      }, 800);
+    };
+
+    connectionManager.connect().catch((e) => console.error("connect failed", e));
+
+    const offs = [
+      connectionManager.onListingChanged(refresh),
+      connectionManager.onListingSold(refresh),
+      connectionManager.onReconnected(refresh),
+    ];
+
+    return () => {
+      clearTimeout(timer);
+      offs.forEach((off) => off());
+    };
+  }, [queryClient]);
+  
   if (isLoading) {
     return <LoadingState message="Loading listings..." />;
   }

@@ -174,8 +174,7 @@ export default function AdminDisputes() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className='w-full pl-4 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-700'
           />
-        </div>*/}
-
+          </div>*/}
         <div className="flex items-center space-x-2 md:space-x-3 overflow-x-auto pb-1 sm:pb-0">
           {filters.map(({ label }) => (
             <button

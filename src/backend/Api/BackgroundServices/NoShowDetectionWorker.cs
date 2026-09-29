@@ -40,6 +40,16 @@ public class NoShowDetectionWorker : BackgroundService
         var meetups = scope.ServiceProvider.GetRequiredService<IMeetupService>();
 
         var now = DateTime.UtcNow;
+
+        try {
+            var reminded = await meetups.SendUpcomingReminderAsync(now, ct);
+            if (reminded > 0 && _logger.IsEnabled(LogLevel.Information))
+               _logger.LogInformation("Sent check-in reminders for {Count} meetup(s)", reminded);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Meetup reminders failed");
+        }
         var resolved = await meetups.DetectNoShowsAsync(now, ct);
 
         if (resolved.Count == 0)

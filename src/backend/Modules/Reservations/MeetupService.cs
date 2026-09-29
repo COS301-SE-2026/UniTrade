@@ -11,6 +11,7 @@ using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
+using Modules.Transactions;
 
 namespace Modules.Reservations;
 
@@ -65,7 +66,7 @@ public class MeetupService : IMeetupService
         await GuardedPushAsync(
             recipient,
             NotificationTypes.ReservationStatus,
-            $"TMeetup propose at {payload.LocationName}, {payload.ProposedTime:ddd d MMM HH:mm}",
+            $"Meetup propose at {payload.LocationName}, {payload.ProposedTime:ddd d MMM HH:mm}",
             ct
         );
 
@@ -171,6 +172,35 @@ public class MeetupService : IMeetupService
         );
     }
 
+    public async Task<int> SendUpcomingReminderAsync(DateTime asOf, CancellationToken ct = default)
+    {
+        var due = await _meetups.GetDueForReminderAsync(asOf, 100, ct);
+        if (due.Count == 0) return 0;
+
+        foreach (var m in due) m.ReminderSentAt = asOf;
+        await _meetups.SaveAsync(ct);
+
+        foreach (var m in due)
+        {
+            try 
+            {
+                var r = await _reservations.GetByIdAsync(m.ReservationId, ct);
+                if (r is null || r.ReservationStatus != ReservationState.Active) continue;
+
+                var text = $"Check-in for your meetup at {m.AgreedLocationName} is now open. " +
+                "Open Meetup Details when you arrive.";
+
+                await _chat.SendSystemAsync(m.ReservationId, text, ct);
+                await GuardedPushAsync(r.BuyerId, NotificationTypes.ReservationStatus, text, ct);
+                await GuardedPushAsync(r.SellerId, NotificationTypes.ReservationStatus, text, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Reminder failed for meetup {MeetupId}", m.MeetupId);
+            }
+        }
+        return due.Count;
+    }
     public async Task<CheckInResult> CheckInAsync(
         Guid reservationId,
         Guid callerId,
@@ -235,7 +265,7 @@ public class MeetupService : IMeetupService
         }
 
         var now = _clock.GetUtcNow().UtcDateTime;
-        var opensAt = meetup.AgreedTime - ReservationStateMachine.CheckinWindowAfterMeetup;
+        var opensAt = MeetupStateMachine.CheckInOpensAt(meetup);
         return new MeetupStatusDto(
             MeetupId: meetup.MeetupId,
             AgreedLocationName: meetup.AgreedLocationName,

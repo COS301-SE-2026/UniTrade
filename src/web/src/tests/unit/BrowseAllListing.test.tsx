@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
@@ -25,6 +25,14 @@ vi.mock('../../services/listingsService', () => ({
   },
 }))
 
+vi.mock('../../services/realtime/connectionManager', () => ({
+  connectionManager: {
+    connect: vi.fn().mockResolvedValue(undefined),
+    onListingChanged: vi.fn(() => () => {}),
+    onListingSold: vi.fn(() => () => {}),
+    onReconnected: vi.fn(() => () => {})
+  }
+}))
 vi.mock('../../utils/formatters', async () => {
   const actual = await vi.importActual<typeof import('../../utils/formatters')>
     (
@@ -51,6 +59,7 @@ vi.mock('../../components/layout/useToast', () => ({
 
 import BrowseAllListing from '../../pages/buyer/BrowseAllListing'
 import { QueryClient } from '@tanstack/react-query'
+import { connectionManager } from '../../services/realtime/connectionManager'
 
 const renderComponent = () => {
   const queryClient = new QueryClient({
@@ -151,6 +160,40 @@ describe('BrowseAllListing', () => {
     })
   })
 
+  describe('Real-time updates', () => {
+    beforeEach(() => {
+      vi.mocked(listingsService.getBrowseListingsPaginated).mockResolvedValue({
+        listings: makeListings(),
+        total: 4,
+      })
+    })
+
+    it('refetches the listings when a listing event arrives', async () => {
+      renderComponent()
+      await screen.findByText('Calculus Textbook')
+      const callsBefore = vi.mocked(listingsService.getBrowseListingsPaginated).mock.calls.length
+
+      const onChanged = vi.mocked(connectionManager.onListingChanged).mock.calls[0][0] as () => void
+      onChanged()
+
+      await waitFor(
+        () => 
+          expect(
+            vi.mocked(listingsService.getBrowseListingsPaginated).mock.calls.length
+          ).toBeGreaterThan(callsBefore),
+          { timeout: 2000 }
+      )
+    })
+
+    it ('unsubscribes on unmount', async () => {
+      const off = vi.fn()
+      vi.mocked(connectionManager.onListingChanged).mockReturnValueOnce(off)
+      const { unmount } = renderComponent()
+      await screen.findByText('Calculus Textbook')
+      unmount()
+      expect(off).toHaveBeenCalled()
+    })
+  })
   describe('Error state', () => {
     it('shows an error message when the request fails', async () => {
       vi.mocked(listingsService.getBrowseListingsPaginated).mockRejectedValueOnce(new Error('Network error'))

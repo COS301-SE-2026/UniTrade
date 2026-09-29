@@ -16,13 +16,15 @@ public class TransactionService : ITransactionsService
     private readonly IBroadCastService _broadcast;
     private readonly IPaymentGateway _paymentGateway;
     private readonly IWishlistService _wishlist;
+    private readonly IMeetupRepository _meetups;
 
     public TransactionService(
         IReservationRepository reservations,
         IPaymentGateway paymentGateway,
         IBroadCastService broadcast,
         ITransactionRepository transactions,
-        IWishlistService wishlist
+        IWishlistService wishlist,
+        IMeetupRepository meetups
     )
     {
         _reservations = reservations;
@@ -30,6 +32,7 @@ public class TransactionService : ITransactionsService
         _broadcast = broadcast;
         _paymentGateway = paymentGateway;
         _wishlist = wishlist;
+        _meetups = meetups;
     }
 
     public async Task<TransactionRequestDto> CreatesTransactionReq(
@@ -41,16 +44,24 @@ public class TransactionService : ITransactionsService
         var reservation =
             await _reservations.GetByIdAsync(reservationId, ct)
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+       
+
         if (reservation.BuyerId != buyerId)
         {
             throw new TransactionException(TransactionErrors.NotBuyer);
         }
+        
+       var meetup = await _meetups.GetActiveByReservationAsync(reservationId, ct);
 
         if (reservation.ReservationStatus != ReservationState.Active)
         {
             throw new TransactionException(TransactionErrors.InvalidStatus);
         }
 
+        if (meetup is null || !MeetupStateMachine.IsPaymentUnlocked(meetup))
+        {
+            throw new TransactionException("payment_not_unlocked");
+        }
         if (reservation.TotalAmount <= 0m)
         {
             throw new TransactionException("invalid_amount");
@@ -65,7 +76,7 @@ public class TransactionService : ITransactionsService
             0 => "UniTrade reservation",
             1 => listings[0].Title,
             _ => reservation.BundleDiscountPercent is int pct
-                ? "${listings.Count} items ({pct}% bundle discount)"
+                ? $"{listings.Count} items ({pct}% bundle discount)"
                 : $"{listings.Count} items",
         };
 

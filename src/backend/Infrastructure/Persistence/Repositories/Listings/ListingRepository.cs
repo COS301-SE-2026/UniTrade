@@ -232,7 +232,7 @@ public class ListingRepository : IListingRepository
             .ToListAsync();
     }
 
-    public async Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
+    public async Task<IReadOnlyList<Guid>> MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
     {
         var listings = await _db
             .Listings.Where(l =>
@@ -242,7 +242,7 @@ public class ListingRepository : IListingRepository
             .ToListAsync();
         if (listings.Count == 0)
         {
-            return;
+            return Array.Empty<Guid>();
         }
         foreach (var listing in listings)
         {
@@ -252,6 +252,7 @@ public class ListingRepository : IListingRepository
         }
 
         await _db.SaveChangesAsync();
+        return listings.Select(l => l.ListingId).ToList();
     }
 
     public async Task<bool> TryReserveAsync(Guid listingId, CancellationToken ct = default)

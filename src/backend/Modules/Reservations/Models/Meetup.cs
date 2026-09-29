@@ -30,4 +30,6 @@ public class Meetup
     public DateTime? SellerCheckedInAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public DateTime? ReminderSentAt { get; set; }
 }

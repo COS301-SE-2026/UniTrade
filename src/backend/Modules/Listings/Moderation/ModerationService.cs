@@ -24,6 +24,7 @@ public class ModerationService : IModerationService
         if (result && listing is not null)
         {
             await _notifier.ListingStatusChangedAsync(listing.SellerId, listingId, "banned", listing.AiRiskLevel ?? "low", ct);
+            await _notifier.BroadcastBrowseChangeAsync(listingId, false, ct);
 
         }
         return result;
@@ -37,6 +38,7 @@ public class ModerationService : IModerationService
         if (result && listing is not null)
         {
             await _notifier.ListingStatusChangedAsync(listing.SellerId, listingId, "removed", listing.AiRiskLevel ?? "low", ct);
+            await _notifier.BroadcastBrowseChangeAsync(listingId, false, ct);
 
         }
         return result;
@@ -49,6 +51,8 @@ public class ModerationService : IModerationService
         if (result && listing is not null)
         {
             await _notifier.ListingStatusChangedAsync(listing.SellerId, listingId, "under_review", listing.AiRiskLevel ?? "low", ct);
+            await _notifier.BroadcastBrowseChangeAsync(listingId, false, ct);
+
 
         }
         return result;
@@ -61,6 +65,7 @@ public class ModerationService : IModerationService
         if (result && listing is not null)
         {
             await _notifier.ListingStatusChangedAsync(listing.SellerId, listingId, "live", listing.AiRiskLevel ?? "low", ct);
+            await _notifier.BroadcastBrowseChangeAsync(listingId, true, ct);
 
         }
         return result;

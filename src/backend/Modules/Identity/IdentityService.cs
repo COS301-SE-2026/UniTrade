@@ -19,6 +19,7 @@ using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 using Modules.Identity.Verification;
+using Modules.Listings;
 
 namespace Modules.Identity;
 
@@ -32,6 +33,7 @@ public class IdentityService : IIdentityService
 
     private readonly IListingRepository _listings;
     private readonly IConfiguration _config;
+    private readonly IListingNotifier _listingNotifier;
 
     private const string _studentRole = "student";
     private const string _pendingStatus = "pending";
@@ -43,7 +45,8 @@ public class IdentityService : IIdentityService
         IUniversityRepository universities,
         IVerificationRepository verifications,
         IListingRepository listing,
-        IConfiguration config
+        IConfiguration config,
+        IListingNotifier listingNotifier
     )
     {
         _users = users;
@@ -51,6 +54,7 @@ public class IdentityService : IIdentityService
         _verifications = verifications;
         _listings = listing;
         _config = config;
+        _listingNotifier = listingNotifier;
     }
 
     public async Task<User> RegisterAsync(RegisterDto dto)
@@ -524,10 +528,14 @@ public class IdentityService : IIdentityService
         user.Email = $"deleted_{user.UserId}@unitrade.com";
         await _users.UpdateAsync(user);
 
-        await _listings.MarkAllBySellerAsRemovedAsync(
+        var removedIds = await _listings.MarkAllBySellerAsRemovedAsync(
             Guid.Parse(userId),
             "User deleted their account"
         );
+        foreach (var id in removedIds ?? Array.Empty<Guid>())
+        {
+            await _listingNotifier.BroadcastBrowseChangeAsync(id, false);
+        }
     }
 
     public string GenerateHubToken(string userId)
@@ -588,7 +596,11 @@ public class IdentityService : IIdentityService
         user.UpdatedAt = DateTime.UtcNow;
         await _users.UpdateAsync(user);
 
-        await _listings.MarkAllBySellerAsRemovedAsync(Guid.Parse(userId), "Account blocked by admin");
+        var removedIds = await _listings.MarkAllBySellerAsRemovedAsync(Guid.Parse(userId), "Account blocked by admin");
+        foreach (var id in removedIds ?? Array.Empty<Guid>())
+        {
+            await _listingNotifier.BroadcastBrowseChangeAsync(id, false);
+        }
 
     }
 

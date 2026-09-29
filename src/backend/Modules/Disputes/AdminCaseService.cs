@@ -34,6 +34,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IModerationService _moderation;
     private const string _resubmissionString = "resubmission";
     private readonly IListingRepository _listingRepository;
+   
 
     // Constants
     private const string _resolvedString = "resolved";
@@ -74,6 +75,7 @@ public class AdminCaseService : IAdminCaseService
         _broadcast = broadcast;
         _moderation = moderation;
         _listingRepository = listingRepository;
+
     }
 
     public async Task<IReadOnlyList<CaseSummaryDto>> ListCasesAsync(
@@ -438,6 +440,7 @@ public class AdminCaseService : IAdminCaseService
         )
         {
             await _moderation.RestoreToLiveAsync(listingId.Value, ct);
+        
 
             var listing = await _listingRepository.GetByIdAnyStatusAsync(listingId.Value);
             if (listing?.ListingGroupId is Guid groupId)
@@ -454,6 +457,7 @@ public class AdminCaseService : IAdminCaseService
                 )
                 {
                     await _moderation.RestoreToLiveAsync(sibling.ListingId, ct);
+                   
                 }
             }
         }

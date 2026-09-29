@@ -42,4 +42,5 @@ public interface IMeetupService
     );
 
     Task<IReadOnlyList<Meetup>> DetectNoShowsAsync(DateTime asOf, CancellationToken ct = default);
+    Task<int> SendUpcomingReminderAsync(DateTime asOf, CancellationToken ct = default);
 }

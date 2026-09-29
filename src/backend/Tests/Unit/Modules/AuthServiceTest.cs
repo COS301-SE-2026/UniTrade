@@ -16,6 +16,7 @@ using Modules.Notifications;
 using Modules.ReferenceData.University.Repositories;
 using Modules.Reservations;
 using Modules.SharedKernel;
+using Modules.Listings;
 using Moq;
 using Xunit;
 using UniversityEntity = Modules.ReferenceData.University.University;
@@ -40,6 +41,7 @@ public class IdentityServiceTests
     private readonly VerificationService _verificationService;
     private readonly Mock<IBroadCastService> _broadcastMock;
     private readonly Mock<ILogger<VerificationService>> _loggerMock;
+    private readonly Mock<IListingNotifier> _listingNotifierMock;
 
     public IdentityServiceTests()
     {
@@ -52,6 +54,7 @@ public class IdentityServiceTests
         _verificationRepositoryMock = new Mock<IVerificationRepository>();
         _broadcastMock = new Mock<IBroadCastService>();
         _loggerMock = new Mock<ILogger<VerificationService>>();
+        _listingNotifierMock = new Mock<IListingNotifier>();
 
         _configMock
             .Setup(c => c["Jwt:Secret"])
@@ -63,7 +66,8 @@ public class IdentityServiceTests
             _universityRepositoryMock.Object,
             _verificationRepositoryMock.Object,
             _listingRepositoryMock.Object,
-            _configMock.Object
+            _configMock.Object,
+            _listingNotifierMock.Object
         );
 
         _emailServiceMock = new Mock<IEmailService>();
@@ -344,7 +348,8 @@ public class IdentityServiceTests
             _universityRepositoryMock.Object,
             _verificationRepositoryMock.Object,
             _listingRepositoryMock.Object,
-            configMock.Object
+            configMock.Object,
+            _listingNotifierMock.Object
         );
 
         var request = new LoginDto { Email = "admin@uni.ac.za", Password = "CorrectPassword123!" };
