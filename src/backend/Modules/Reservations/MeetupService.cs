@@ -24,6 +24,7 @@ public class MeetupService : IMeetupService
     private readonly ILogger<MeetupService> _logger;
     private readonly TimeProvider _clock;
     private readonly IDisputeRepository _disputes;
+    private readonly IReservationService _reservationService;
 
     public MeetupService(
         IReservationRepository reservations,
@@ -32,7 +33,8 @@ public class MeetupService : IMeetupService
         IMeetupRepository meetups,
         INotificationDispatcher pushNotifier,
         IDisputeRepository disputes,
-        ILogger<MeetupService> logger
+        ILogger<MeetupService> logger,
+        IReservationService reservationService
     )
     {
         _reservations = reservations;
@@ -42,6 +44,7 @@ public class MeetupService : IMeetupService
         _logger = logger;
         _clock = clock;
         _disputes = disputes;
+        _reservationService = reservationService;
     }
 
     public async Task<ChatMessageDto> ProposeAsync(
@@ -410,8 +413,28 @@ public class MeetupService : IMeetupService
                 meetup.Status = "no_show_buyer";
                 noShowSubjectId = r.BuyerId;
             }
-            else
+            else if (!meetup.BuyerCheckedIn && !meetup.SellerCheckedIn)
             {
+                meetup.Status = "no_show_both";
+                resolved.Add(meetup);
+
+                // of both don't show up, no disputes, no strikes they cancel each other out 
+                try
+                {
+                    await _reservationService.CancelBySystemAsync(
+                        meetup.ReservationId,
+                        "Reservation cancelled-neither party checking in for the meetup.",
+                        ct
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                       ex,
+                       "Failed to auto-cancel reservation {ReservationId} after mutual no-show",
+                       meetup.ReservationId
+                   );
+                }
                 continue;
             }
             resolved.Add(meetup);
@@ -441,6 +464,20 @@ public class MeetupService : IMeetupService
                         meetup.MeetupId
                     );
                 }
+
+                try
+                {
+                    await _reservationService.CancelBySystemAsync(meetup.ReservationId, "Reservation cancelled - the other party did not check in for the meetup.", ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                       ex,
+                       "Failed to auto-cancel reservation {ReservationId} after one-sided no-show",
+                       meetup.ReservationId
+                   );
+                }
+
             }
         }
         if (resolved.Count > 0)

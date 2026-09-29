@@ -17,7 +17,8 @@ public class ModerationService : IModerationService
         Guid listingId,
         string reason,
         CancellationToken ct = default
-    ) {
+    )
+    {
         var listing = await _listings.GetByIdAnyStatusAsync(listingId);
 
         var result = await _listings.AdminRemoveAsync(listingId, reason, ct);
@@ -31,7 +32,8 @@ public class ModerationService : IModerationService
 
     }
 
-    public async Task<bool> WarnSellerAsync(Guid listingId, string reason, CancellationToken ct = default){
+    public async Task<bool> WarnSellerAsync(Guid listingId, string reason, CancellationToken ct = default)
+    {
         var listing = await _listings.GetByIdAnyStatusAsync(listingId);
 
         var result = await _listings.WarnSellerAsync(listingId, reason, ct);
@@ -44,7 +46,8 @@ public class ModerationService : IModerationService
         return result;
     }
 
-    public async Task<bool> SetUnderReviewAsync(Guid listingId,string reason, CancellationToken ct = default) {
+    public async Task<bool> SetUnderReviewAsync(Guid listingId, string reason, CancellationToken ct = default)
+    {
         var listing = await _listings.GetByIdAnyStatusAsync(listingId);
 
         var result = await _listings.SetUnderReviewAsync(listingId, reason, ct);
@@ -58,7 +61,8 @@ public class ModerationService : IModerationService
         return result;
     }
 
-    public async Task<bool> RestoreToLiveAsync(Guid listingId, CancellationToken ct = default) {
+    public async Task<bool> RestoreToLiveAsync(Guid listingId, CancellationToken ct = default)
+    {
         var listing = await _listings.GetByIdAnyStatusAsync(listingId);
 
         var result = await _listings.RestoreToLiveAsync(listingId, ct);
@@ -70,5 +74,5 @@ public class ModerationService : IModerationService
         }
         return result;
     }
-       
+
 }

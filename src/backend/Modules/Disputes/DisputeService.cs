@@ -120,7 +120,7 @@ public class DisputeService : IDisputeService
                 ?? throw new DisputesException("listing_not_in_reservation");
         }
 
-        await GuardOneOpenDisputeAsync(filedByUserId, parties.SellerId, null,ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, parties.SellerId, null, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
@@ -184,7 +184,7 @@ public class DisputeService : IDisputeService
         {
             throw new DisputesException("other_party_checked_in");
         }
-        await GuardOneOpenDisputeAsync(filedByUserId, subjectUserId, null,ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, subjectUserId, null, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
@@ -255,7 +255,7 @@ public class DisputeService : IDisputeService
         {
             throw new DisputesException("snapshot_not_found");
         }
-        await GuardOneOpenDisputeAsync(filedByUserId, listing.SellerId, listing.ListingId,ct);
+        await GuardOneOpenDisputeAsync(filedByUserId, listing.SellerId, listing.ListingId, ct);
 
         var caseId = await _disputes.CreateDisputeAsync(
             new Dispute
@@ -314,4 +314,16 @@ public class DisputeService : IDisputeService
             throw new DisputesException("dispute_already_open");
         }
     }
+
+    public Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(
+        Guid userId, string? type, CancellationToken ct = default)
+    {
+        return _disputes.ListForUserAsync(userId, type, ct);
+    }
+
+    public Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default)
+    {
+        return _disputes.ListClosedAsync(type, ct);
+    }
+
 }

@@ -13,10 +13,15 @@ import {
   sortTheCategories,
 } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
-import { useQueryClient, useQuery, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQueryClient,
+  useQuery,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { LoadingState } from "../../components/layout/Spinner";
 import { IconMessageCircle2 } from "@tabler/icons-react";
 import { connectionManager } from "../../services/realtime/connectionManager";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
 function CategoryCard({
   title,
@@ -31,12 +36,13 @@ function CategoryCard({
 }>) {
   return (
     <button
-      type='button'
+      type="button"
       onClick={onClick}
-      className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap ${active
-        ? "bg-navy-700 text-white border-navy-700"
-        : "bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
-        } ${className}`}
+      className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap ${
+        active
+          ? "bg-navy-700 text-white border-navy-700"
+          : "bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
+      } ${className}`}
     >
       {title}
     </button>
@@ -110,7 +116,12 @@ function ListingCard({
     } else if (result.error.code === "already_reserved") {
       showToast("error", "Item was already reserved!!");
     } else if (result.error.code === "not_verified") {
-      showToast("error", "You need to complete verification before reserving items.");
+      showToast(
+        "error",
+        "You need to complete verification before reserving items.",
+      );
+    } else if (result.error.code === "buyer_suspended") {
+      showToast("error", getAccountStateErrorMessage("buyer_suspended", ""));
     } else {
       const msg = result.error.message ?? "Could not reserve this item.";
       showToast("error", msg);
@@ -125,14 +136,14 @@ function ListingCard({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();
         }
       }}
       className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
-      data-testid="listing-card">
-
+      data-testid="listing-card"
+    >
       <img
         src={listing.image}
         alt={listing.title}
@@ -153,7 +164,8 @@ function ListingCard({
         {(listing.answeredQuestionCount ?? 0) > 0 && (
           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-600 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded-full w-fit">
             <IconMessageCircle2 size={11} />
-            {listing.answeredQuestionCount} question{listing.answeredQuestionCount === 1 ? '' : 's'} answered
+            {listing.answeredQuestionCount} question
+            {listing.answeredQuestionCount === 1 ? "" : "s"} answered
           </span>
         )}
 
@@ -164,32 +176,36 @@ function ListingCard({
           {formatPrice(listing.price)}
         </p>
 
-        {reserveError && <p className="text-xs text-rose-600">{reserveError}</p>}
-        {wishlistError && <p className="text-xs text-rose-600">{wishlistError}</p>}
+        {reserveError && (
+          <p className="text-xs text-rose-600">{reserveError}</p>
+        )}
+        {wishlistError && (
+          <p className="text-xs text-rose-600">{wishlistError}</p>
+        )}
 
         <div className="flex flex-col gap-2 mt-auto pt-2">
           <button
-            type='button'
+            type="button"
             onClick={handleReserve}
             disabled={reserving || reserved}
             className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {(() => {
-              if (reserved) return 'Reserved';
-              if (reserving) return 'Reserving...';
-              return 'Reserve';
+              if (reserved) return "Reserved";
+              if (reserving) return "Reserving...";
+              return "Reserve";
             })()}
           </button>
           <button
-            type='button'
+            type="button"
             onClick={handleAddToWishlist}
             disabled={wishlisting || wishlisted}
             className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
             {(() => {
-              if (wishlisted) return 'In Wishlist';
-              if (wishlisting) return 'Adding...';
-              return 'Add to Wishlist';
+              if (wishlisted) return "In Wishlist";
+              if (wishlisting) return "Adding...";
+              return "Add to Wishlist";
             })()}
           </button>
         </div>
@@ -199,26 +215,36 @@ function ListingCard({
 }
 
 type ConditionFilter = "All conditions" | BrowseCondition;
-type SortOption = "Recommended" | "Newest" | "Oldest" | "Price Low" | "Price High";
+type SortOption =
+  | "Recommended"
+  | "Newest"
+  | "Oldest"
+  | "Price Low"
+  | "Price High";
 
 const PAGE_SIZE = 12;
 
 function mapSortToServer(s: SortOption): string {
   switch (s) {
-    case "Recommended": return "recommended";
-    case "Newest": return "newest";
-    case "Oldest": return "oldest";
-    case "Price High": return "price_desc";
-    case "Price Low": return "price_asc";
-    default: return "recommended"
-
+    case "Recommended":
+      return "recommended";
+    case "Newest":
+      return "newest";
+    case "Oldest":
+      return "oldest";
+    case "Price High":
+      return "price_desc";
+    case "Price Low":
+      return "price_asc";
+    default:
+      return "recommended";
   }
 }
 
 export default function BrowseAllListing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get('q') || '';
+  const searchQuery = searchParams.get("q") || "";
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
@@ -237,19 +263,26 @@ export default function BrowseAllListing() {
       .then((data) => {
         setCategories(sortTheCategories(data));
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
-
   const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ["browseListings", searchQuery, activeCategory, conditionFilter, sortOption, currentPage],
+    queryKey: [
+      "browseListings",
+      searchQuery,
+      activeCategory,
+      conditionFilter,
+      sortOption,
+      currentPage,
+    ],
     queryFn: () =>
       listingsService.getBrowseListingsPaginated({
         page: currentPage,
         pageSize: PAGE_SIZE,
         search: searchQuery || undefined,
         categoryId: activeCategory ?? undefined,
-        condition: conditionFilter === "All conditions"? undefined : conditionFilter,
+        condition:
+          conditionFilter === "All conditions" ? undefined : conditionFilter,
         sortBy: mapSortToServer(sortOption),
         listingStatus: "live",
       }),
@@ -269,12 +302,12 @@ export default function BrowseAllListing() {
   const handleConditionChange = (value: ConditionFilter) => {
     setConditionFilter(value);
     resetPage();
-  }
+  };
 
   const handleSortChange = (value: SortOption) => {
     setSortOption(value);
     resetPage();
-  }
+  };
 
   const queryClient = useQueryClient();
   useEffect(() => {
@@ -318,7 +351,6 @@ export default function BrowseAllListing() {
 
   return (
     <div className="flex flex-col gap-6">
-
       <div>
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Browse All Listings
@@ -327,7 +359,6 @@ export default function BrowseAllListing() {
           {total} listings available at the University of Pretoria
         </p>
       </div>
-
 
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -346,11 +377,10 @@ export default function BrowseAllListing() {
             />
           ))}
 
-
           {categories.length > 3 && (
             <div className="relative md:hidden">
               <button
-                type='button'
+                type="button"
                 onClick={() => setShowMoreCategories(!showMoreCategories)}
                 className="px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
               >
@@ -360,13 +390,14 @@ export default function BrowseAllListing() {
                 <div className="absolute z-50 mt-2 w-48 bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl shadow-lg py-2">
                   {categories.slice(3).map((cat) => (
                     <button
-                      type='button'
+                      type="button"
                       key={cat.id}
                       onClick={() => handleCategoryClick(cat.id)}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${activeCategory === cat.id
-                        ? "text-navy-700 font-medium"
-                        : ""
-                        }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${
+                        activeCategory === cat.id
+                          ? "text-navy-700 font-medium"
+                          : ""
+                      }`}
                     >
                       {getDisplayCategory(cat.name)}
                     </button>
@@ -425,7 +456,9 @@ export default function BrowseAllListing() {
           </p>
         </div>
       )}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity ${isFetching ? "opacity-60" : "opacity-100"
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity ${
+          isFetching ? "opacity-60" : "opacity-100"
         }`}
       >
         {listings.map((listing) => (
@@ -444,13 +477,14 @@ export default function BrowseAllListing() {
         <div className="flex gap-1">
           {buildPageWindow(currentPage, totalPages).map((p) => (
             <button
-              type='button'
+              type="button"
               key={p}
               onClick={() => setCurrentPage(p)}
-              className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === p
-                ? "bg-navy-700 text-white"
-                : "bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700"
-                }`}
+              className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
+                currentPage === p
+                  ? "bg-navy-700 text-white"
+                  : "bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700"
+              }`}
             >
               {p}
             </button>

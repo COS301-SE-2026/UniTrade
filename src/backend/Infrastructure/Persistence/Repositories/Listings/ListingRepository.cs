@@ -538,4 +538,12 @@ public class ListingRepository : IListingRepository
                 ct
             );
     }
+
+    public async Task SuspendAllLiveBySellerAsync(Guid sellerId, CancellationToken ct = default) =>
+        await _db.Listings.Where(l => l.SellerId == sellerId && l.ListingStatus == "live")
+                .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "suspended"), ct);
+
+    public async Task RestoreSuspendedBySellerAsync(Guid sellerId, CancellationToken ct = default) =>
+        await _db.Listings.Where(l => l.SellerId == sellerId && l.ListingStatus == "suspended")
+                .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
 }

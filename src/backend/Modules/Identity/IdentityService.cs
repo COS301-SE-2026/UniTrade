@@ -14,6 +14,7 @@ using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
+using Modules.Identity.Verification;
 using Modules.Listings.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
@@ -40,6 +41,7 @@ public class IdentityService : IIdentityService
     private const string _notFoundString = "not_found";
 
     private static readonly int[] _intakeMonths = { 2, 7 };
+
     public IdentityService(
         IUserRepository users,
         IUniversityRepository universities,
@@ -130,7 +132,6 @@ public class IdentityService : IIdentityService
                     _ => new IdentityException("email_taken"),
                 };
             }
-
         }
 
         // hash password
@@ -538,8 +539,12 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public string GenerateHubToken(string userId)
+    public async Task<string> GenerateHubTokenAsync(string userId)
     {
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+        if (user is null)
+            throw new IdentityException(_notFoundString);
+
         var secret =
             _config["Jwt:Secret"]
             ?? throw new InvalidOperationException("Jwt__Secret is not configured");
@@ -548,7 +553,7 @@ public class IdentityService : IIdentityService
 
         var token = new JwtSecurityToken(
             audience: "chat-hub",
-            claims: new[] { new Claim("sub", userId) },
+            claims: new[] { new Claim("sub", userId), new Claim("role", user.Role) },
             expires: DateTime.UtcNow.AddSeconds(60),
             signingCredentials: creds
         );
@@ -579,9 +584,19 @@ public class IdentityService : IIdentityService
     public static DateTime NextIntakeDate(DateTime now)
     {
         var candidates = _intakeMonths
-        .Select(m => new DateTime(now.Year, m, 1, 0, 0, 0, DateTimeKind.Utc))
-        .Concat(_intakeMonths.Select(m => new DateTime(now.Year + 1, m, 1, 0, 0, 0, DateTimeKind.Utc)))
-        .OrderBy(d => d);
+            .Select(m => new DateTime(now.Year, m, 1, 0, 0, 0, DateTimeKind.Utc))
+            .Concat(
+                _intakeMonths.Select(m => new DateTime(
+                    now.Year + 1,
+                    m,
+                    1,
+                    0,
+                    0,
+                    0,
+                    DateTimeKind.Utc
+                ))
+            )
+            .OrderBy(d => d);
 
         return candidates.First(d => d > now);
     }
@@ -589,7 +604,8 @@ public class IdentityService : IIdentityService
     public async Task BlockAccountAsync(string userId)
     {
         var user = await _users.GetByIdAsync(Guid.Parse(userId));
-        if (user == null) throw new IdentityException(_notFoundString);
+        if (user == null)
+            throw new IdentityException(_notFoundString);
 
         user.IsBlocked = true;
         user.BlockedUntil = NextIntakeDate(DateTime.UtcNow);
@@ -603,7 +619,6 @@ public class IdentityService : IIdentityService
         }
 
     }
-
 
     // for retiring the old rejected account so its email is available for a fresh registration
     private async Task FreeBlockedAccountAsync(User blocked)

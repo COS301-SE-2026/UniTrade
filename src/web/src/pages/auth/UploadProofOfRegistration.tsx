@@ -20,7 +20,7 @@ const error_messages: Record<string, string> = {
     file_too_large: 'File must be smaller than 5MB.',
     invalid_file_type: 'Only PDF, JPG, or PNG files are allowed.',
     unauthenticated: 'Your session has expired. Please log in again.',
-    no_pending_verfication: 'There\u2019s no verification request awaiting a document. Please verfiy your OTP first.',
+    no_pending_verification: 'There\u2019s no verification request awaiting a document. Please verify your OTP first.',
     invalid_verification_state: 'Your verification isn\u2019t at a stage that accepts a document right now.',
     server_error: 'Something went wrong on our end. Please try again shortly.',
 };
@@ -143,7 +143,7 @@ export default function ProofOfRegistrationUpload() {
                         aria-expanded={isInfoOpen}
                     >
                         <div className="flex items-start gap-3">
-                            <IconInfoCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 shrick-0 mt-0.5" size={25} />
+                            <IconInfoCircle className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" size={25} />
                             <span className="font-semibold text-gray-900 dark:text-white text-base">
                                 Why do we need this?
                             </span>
@@ -154,7 +154,7 @@ export default function ProofOfRegistrationUpload() {
                     </button>
                     {isInfoOpen && (
                         <div className="px-4 pb-4 pt-1 text-sm text-gray-700 dark:text-navy-100 leading-relaxed border-t border-blue-100/60 dark:border-navy-600/60">
-                            We require your official proof of registration to confirm the currrent degree you are studying, this
+                            We require your official proof of registration to confirm the current degree you are studying, this
                             is needed for the system to be able to recommend listings based on your degree. If you don't upload your proof of registration
                             you will not have access to the system as this is needed as part of the verification process. Once you upload your proof of registration
                             your account will be under-review and you will be allowed partial access to the system.

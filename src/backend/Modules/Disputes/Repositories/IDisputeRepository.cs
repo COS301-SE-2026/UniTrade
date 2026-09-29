@@ -33,4 +33,8 @@ public interface IDisputeRepository
     Task SetOriginalSnapshotAsync(Guid disputeId, Guid snapshotId, CancellationToken ct = default);
     Task ReopenAsResubmissionAsync(Guid disputeId, CancellationToken ct = default);
     Task UpdateSnapshotAsync(Guid disputeId, Guid snapshot, CancellationToken ct = default);
+    Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(Guid userId, string? type, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default);
+
 }

@@ -198,7 +198,12 @@ public class AdminListingRiskService : IAdminListingRiskService
             return ListingService.MapToSummary(listing);
         }
 
-        listing.ListingStatus = "live";
+        var seller = await _users.GetByIdAsync(listing.SellerId);
+        var sellerSuspended =
+            seller?.SellerBannedUntil is DateTime until && until > DateTime.UtcNow;
+
+
+        listing.ListingStatus = sellerSuspended ? "suspended" : "live";
         listing.VisibilityScore = 100;
         listing.UpdatedAt = DateTime.UtcNow;
 
@@ -212,7 +217,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 EntityType = "Listing",
                 EntityId = listingId.ToString(),
                 OldValue = statusBeforeDecision,
-                NewValue = "live",
+                NewValue = listing.ListingStatus,
                 Reason = reason,
             },
             ct
@@ -220,7 +225,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         await _notifier.ListingStatusChangedAsync(
             listing.SellerId,
             listingId,
-            "live",
+            listing.ListingStatus,
             listing.AiRiskLevel ?? "low",
             ct
         );
@@ -232,25 +237,31 @@ public class AdminListingRiskService : IAdminListingRiskService
             await _notifications.NotifyAsync(
                 listing.SellerId,
                 NotificationTypes.ListingStatus,
-                $"Your listing {label} has been approved and is now live.",
+                sellerSuspended
+                ?
+                $"Your listing {label} was approved and will go live automatically once your selling suspension lifts." : $"Your listing {label} has been approved and is now live.",
                 ct
             );
         }
-        try
+        if (!sellerSuspended)
         {
-            var evnt = new ListingPublishedEvent
+            try
             {
-                ListingId = listing.ListingId,
-                Title = listing.Title,
-                Description = listing.Description,
-                Price = listing.Price,
-                CategoryId = listing.CategoryId,
-                CourseId = listing.CourseId,
-                SellerId = listing.SellerId,
-            };
-            await _listener.OnListingPublishedEventAsync(evnt, ct);
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = listing.ListingId,
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    CategoryId = listing.CategoryId,
+                    CourseId = listing.CourseId,
+                    SellerId = listing.SellerId,
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception) { }
         }
-        catch (Exception) { }
+
         return ListingService.MapToSummary(listing);
     }
 

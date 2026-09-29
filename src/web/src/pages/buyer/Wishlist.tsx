@@ -18,6 +18,7 @@ import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
 import { LoadingState } from '../../components/layout/Spinner';
 import { useSearchQuery } from "../../hooks/useSearchQuery";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
 type SortOption = "Date added" | "Price low" | "Price high";
 
@@ -80,14 +81,17 @@ function WishlistCard({
       setReserveError(
         "Sorry, This Item has already been reserved by someone else",
       );
-    } else {
+    }
+    else if(result.error.code === "buyer_suspended"){
+      setReserveError(getAccountStateErrorMessage("buyer_suspended", ""));
+    } 
+    else {
       setReserveError(result.error.message ?? "Could not reserve this item.");
     }
     setReserving(false);
   };
 
   const handleRemove = async () => {
-    //e.stopPropagation()
     if (removing) return;
     setRemoving(true);
     try {

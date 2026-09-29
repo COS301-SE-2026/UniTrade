@@ -257,7 +257,7 @@ public class AuthController : ControllerBase
     [HttpGet("hub-token")]
     [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public IActionResult HubToken()
+    public async Task<IActionResult> HubToken()
     {
         var userId =
             User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
@@ -267,7 +267,9 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(new { token = _identityService.GenerateHubToken(userId) });
+        var token = await _identityService.GenerateHubTokenAsync(userId);
+
+        return Ok(new { token });
     }
 
     [HttpPost("upload-por")]
