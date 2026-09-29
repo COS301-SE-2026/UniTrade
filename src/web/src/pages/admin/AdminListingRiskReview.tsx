@@ -167,7 +167,7 @@ export default function AdminListingRiskReview() {
                 <button
                     type="button"
                     onClick={() => navigate("/admin/listings")}
-                    className="text-[#00aaff] hover:underline cursor-pointer"
+                    className="text-sky-700 hover:underline cursor-pointer"
                 >
                     Flagged Listings
                 </button>

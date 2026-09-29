@@ -9,7 +9,7 @@ import {
 test.describe("meetup scheduling and check-in", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("seller and buyer can  schedule a meetup and both check in at the venue that they choose to meet up at ", async ({
+  test("seller and buyer can schedule a meetup and both check in at the venue that they choose to meet up at ", async ({
     browser,
     request,
   }) => {
@@ -36,7 +36,7 @@ test.describe("meetup scheduling and check-in", () => {
       sellerPage,
       buyerPage,
       request,
-      browser
+      browser,
     );
     await scheduleMeetupAndCheckIn(sellerPage, buyerPage, reservationId);
 
@@ -65,6 +65,13 @@ test.describe("meetup scheduling and check-in", () => {
     await expect(
       sellerPage.getByRole("heading", { name: "Propose a Meetup" }),
     ).toBeVisible();
+    const enterManual = sellerPage
+      .getByRole("button", { name: /enter a time manually/i })
+      .first();
+
+    if (await enterManual.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await enterManual.click();
+    }
     const scheduledTime = await sellerPage.evaluate(() => {
       const d = new Date(Date.now() + 300_000);
       return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -125,12 +132,20 @@ test.describe("meetup scheduling and check-in", () => {
         configurable: true,
       });
     });
+    const {reservationId}=
     await createListingAndReserve(sellerPage, buyerPage, request, browser);
 
     await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
     await expect(
       sellerPage.getByRole("heading", { name: "Propose a Meetup" }),
     ).toBeVisible();
+    const enterManual = sellerPage
+      .getByRole("button", { name: /enter a time manually/i })
+      .first();
+
+    if (await enterManual.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await enterManual.click();
+    }
     const scheduledTime = await sellerPage.evaluate(() => {
       const d = new Date(Date.now() + 300_000);
       return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -148,6 +163,7 @@ test.describe("meetup scheduling and check-in", () => {
     await buyerPage
       .getByRole("button", { name: "Accept", exact: true })
       .click();
+    await buyerPage.goto(`/payment/meetup/${reservationId}`);
     await expect(
       buyerPage.getByRole("heading", { name: "Meetup Details" }),
     ).toBeVisible({ timeout: 10000 });

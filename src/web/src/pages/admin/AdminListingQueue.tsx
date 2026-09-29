@@ -143,7 +143,7 @@ export default function AdminListingQueue() {
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Flagged Listings
         </h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-600 mt-1">
           Review listings held by the automated risk check and approve or remove
           them
         </p>
@@ -181,7 +181,7 @@ export default function AdminListingQueue() {
               <div className="text-2xl font-bold text-navy-700 dark:text-white">
                 {stat.value}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -225,7 +225,7 @@ export default function AdminListingQueue() {
       )}
 
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
-        <div className="hidden lg:grid lg:grid-cols-[minmax(0,2.4fr)_8.5rem_minmax(0,1.8fr)_9rem_7rem] lg:gap-x-8 px-4 py-3 border-b border-gray-100 bg-gray-50 text-xs font-semibold text-gray-400 uppercase">
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,2.4fr)_8.5rem_minmax(0,1.8fr)_9rem_7rem] lg:gap-x-8 px-4 py-3 border-b border-gray-100 bg-gray-50 text-xs font-semibold text-gray-600 uppercase">
           <div>Listing</div>
           <div>Risk</div>
           <div>Why it was flagged</div>
@@ -265,7 +265,7 @@ export default function AdminListingQueue() {
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] font-normal text-gray-400 mt-0.5">
+                      <p className="text-[10px] font-normal text-gray-600 mt-0.5">
                         {zar.format(l.price)} · Flagged {formatDate(l.createdAt)}{" "}
                         ({timeInQueue(l.createdAt)} ago)
                       </p>
@@ -295,7 +295,7 @@ export default function AdminListingQueue() {
                   </div>
 
                   <div className="min-w-0">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Why flagged
                     </p>
                     <div className="lg:[&>div]:grid lg:[&>div]:grid-cols-2 lg:[&>div]:gap-x-2 lg:[&>div]:gap-y-1.5 lg:[&>div]:justify-items-start">
@@ -304,7 +304,7 @@ export default function AdminListingQueue() {
                   </div>
 
                   <div className="min-w-0 lg:[&_*]:whitespace-nowrap">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Image match
                     </p>
                     <ImageMatchScore score={l.imageMatchScore} />
@@ -395,7 +395,7 @@ export default function AdminListingQueue() {
 
       {sortedRows.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400 whitespace-nowrap">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
             Showing {(safePage - 1) * PAGE_SIZE + 1}-
             {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
             {sortedRows.length} listings

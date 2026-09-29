@@ -132,7 +132,7 @@ export default function Users() {
     <div className='space-y-6'>
       <div>
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
-       <p className="text-sm text-gray-400 mt-1">
+       <p className="text-sm text-gray-600 mt-1">
           View all student users registered on the application. </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -168,7 +168,7 @@ export default function Users() {
               <div className="text-2xl font-bold text-navy-700 dark:text-white">
                 {stat.value}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -278,7 +278,7 @@ export default function Users() {
       </div>
       {sortedRows.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400 whitespace-nowrap">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
             Showing {(safePage - 1) * PAGE_SIZE + 1}-
             {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
             {sortedRows.length} users

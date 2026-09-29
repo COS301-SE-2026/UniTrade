@@ -151,7 +151,7 @@ const paginatedRows = sortedRows.slice(
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800 dark:text-white">
           Student Verifications
         </h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-600 mt-1">
           Review students proof of registration and approve or reject account
         </p>
       </div>
@@ -188,7 +188,7 @@ const paginatedRows = sortedRows.slice(
               <div className="text-2xl font-bold text-navy-700 dark:text-white">
                 {stat.value}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -233,7 +233,7 @@ const paginatedRows = sortedRows.slice(
 
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
 
-        <div className="hidden lg:flex items-center gap-4 px-4 py-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-navy-900/50 text-xs font-semibold text-gray-400 uppercase">
+        <div className="hidden lg:flex items-center gap-4 px-4 py-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-navy-900/50 text-xs font-semibold text-gray-600 uppercase">
           <div className="flex-1 min-w-0">Student</div>
           <div className="w-48 text-center shrink-0">Verification Status</div>
           <div className="flex-1 min-w-0">Document</div>
@@ -241,7 +241,7 @@ const paginatedRows = sortedRows.slice(
         </div>
         <div>
           {sortedRows.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-600">
               {numTotal === 0
                 ? "Nothing is waiting for review"
                 : "No verifications match your filters"}
@@ -261,14 +261,14 @@ const paginatedRows = sortedRows.slice(
                       <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
                         {ver.name}
                       </p>
-                      <p className="text-[10px] font-normal text-gray-400 mt-0.5">
+                      <p className="text-[10px] font-normal text-gray-600 mt-0.5">
                         {ver.degree}{ver.year ? `, Y${ver.year}` : ''}
                       </p>
                     </div>
                   </div>
 
                   <div className="lg:w-48 shrink-0 flex flex-col items-start lg:items-center">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Verification Status
                     </p>
                     <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-medium ${ver.slaState === 'Overdue'
@@ -279,7 +279,7 @@ const paginatedRows = sortedRows.slice(
                       }`}>
                       {ver.slaState}
                     </span>
-                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400">
+                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-600">
                       <span>{ver.slaStatus}</span>
                       <span>·</span>
                       <span>{ver.domain}</span>
@@ -297,7 +297,7 @@ const paginatedRows = sortedRows.slice(
                     </div>
                   </div>
                   <div className="lg:flex-1 lg:min-w-0">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Document
                     </p>
                     <div className="flex items-center space-x-2">
@@ -308,7 +308,7 @@ const paginatedRows = sortedRows.slice(
                         <div className="font-semibold text-gray-800 dark:text-white text-xs truncate">
                           {ver.docName}
                         </div>
-                        <div className="text-[10px] text-gray-400">
+                        <div className="text-[10px] text-gray-600">
                           Uploaded {ver.docDate}
                         </div>
                       </div>
@@ -336,7 +336,7 @@ const paginatedRows = sortedRows.slice(
                           <span>View Doc</span>
                         </a>
                       ) : (
-                        <span className="text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-white/10 rounded-full text-xs px-3 sm:px-5 py-2 inline-flex items-center justify-center gap-1 cursor-not-allowed flex-1 whitespace-nowrap">
+                        <span className="text-gray-600 dark:text-gray-500 border border-gray-200 dark:border-white/10 rounded-full text-xs px-3 sm:px-5 py-2 inline-flex items-center justify-center gap-1 cursor-not-allowed flex-1 whitespace-nowrap">
                           <IconEye className="w-3.5 h-3.5" />
                           <span>View Doc</span>
                         </span>
@@ -351,7 +351,7 @@ const paginatedRows = sortedRows.slice(
       </div>
       {sortedRows.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400 whitespace-nowrap">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
             Showing {(safePage - 1) * PAGE_SIZE + 1}-
             {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
             {sortedRows.length} verifications

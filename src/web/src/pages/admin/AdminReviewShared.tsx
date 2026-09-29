@@ -155,7 +155,7 @@ export function Breadcrumb({ trail }: Readonly<{ trail: string[] }>) {
               {step}
             </span>
           ) : (
-            <span className="text-[#00aaff]">{step}</span>
+            <span className="text-sky-700">{step}</span>
           )}
           {i < trail.length - 1 && (
             <span className="mx-1.5 text-gray-300"></span>
@@ -200,7 +200,7 @@ export function InfoRow({
 type StatusTone = "blue" | "red" | "green" | "amber" | "gray";
 
 const toneClasses: Record<StatusTone, string> = {
-  blue: "bg-[#00aaff]/10 text-[#00aaff]",
+  blue: "bg-[#00aaff]/10 text-sky-700",
   red: "bg-red-100 text-red-700",
   green: "bg-green-100 text-green-700",
   amber: "bg-amber-100 text-amber-700",

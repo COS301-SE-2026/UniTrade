@@ -41,7 +41,7 @@ test("chat is locked for both the seller and the buyer until the seller accepts 
   await sellerPage
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await sellerPage.locator('input[type="number"]').fill("250");
+  await sellerPage.locator('#price').fill("250");
 
   await sellerPage.setInputFiles(
     'input[type="file"]',

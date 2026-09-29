@@ -138,12 +138,12 @@ export default function ViewUser() {
           <button
             type="button"
             onClick={() => navigate("/admin/users")}
-            className="text-[#00aaff] hover:underline cursor-pointer"
+            className="text-sky-700 hover:underline cursor-pointer"
           >
             Users
           </button>
           <IconChevronRight size={12} />
-          <span className="text-gray-400"></span>
+          <span className="text-gray-600"></span>
           <span className="text-gray-600">User Review</span>
 
 
@@ -162,12 +162,12 @@ export default function ViewUser() {
         <button
           type="button"
           onClick={() => navigate("/admin/users")}
-          className="text-[#00aaff] hover:underline cursor-pointer"
+          className="text-sky-700 hover:underline cursor-pointer"
         >
           Users
         </button>
         <IconChevronRight size={12} />
-        <span className="text-gray-400"></span>
+        <span className="text-gray-600"></span>
         <span className="text-gray-600">User Review</span>
 
 

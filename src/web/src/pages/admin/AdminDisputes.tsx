@@ -235,7 +235,7 @@ export default function AdminDisputes() {
               <div className="text-2xl font-bold text-navy-700 dark:text-white">
                 {stat.value}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -351,7 +351,7 @@ export default function AdminDisputes() {
 
       {filteredRows.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400 whitespace-nowrap">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
             Showing {(safePage - 1) * PAGE_SIZE + 1}-
             {Math.min(safePage * PAGE_SIZE, filteredRows.length)} of{' '}
             {filteredRows.length} disputes

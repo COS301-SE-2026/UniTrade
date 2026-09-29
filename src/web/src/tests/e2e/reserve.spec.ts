@@ -39,7 +39,7 @@ test("buyer can view and reserve a seller's listing", async ({
   await sellerPage
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await sellerPage.locator('input[type="number"]').fill("250");
+  await sellerPage.locator('#price').fill("250");
 
   await sellerPage.setInputFiles(
     'input[type="file"]',
