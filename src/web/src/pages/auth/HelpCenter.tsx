@@ -262,7 +262,7 @@ export default function HelpCenter() {
       description: 'How the In-app chat work and when you start chatting.',
       details: [
         "Coordinate directly with the other party to arrange meetup time and location through a meetup scheduler.",
-        "You can only start chatting with the other party once the reservation has been accepted.",
+        "The chat thread opens immediately upon reservation creation, populated with an automated greeting. Both parties can immediately coordinate logistics.",
         "It is very important to schedule a meeting with the other party, because that is what will be used to stop the timer.",
         "If a meetup is not scheduled, then the buyer will not be allowed to pay (the pay button will be disabled), so to enable the pay button the buyer needs to checkin at the location, and checkin can only be done if a meetup was arranged.",
       ],
