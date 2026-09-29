@@ -64,7 +64,7 @@ export async function createSellerListing(
   if (!listingId) {
     throw new Error(
       "createSellerListing: could not find a listing id (checked listingId/id/listing.id) " +
-        "on the create-listing response. Update this function once you confirm the real shape.",
+      "on the create-listing response. Update this function once you confirm the real shape.",
     );
   }
 
@@ -170,27 +170,24 @@ export async function scheduleMeetupAndCheckIn(
     .getByRole("button", { name: /enter a time manually/i })
     .first();
 
-  if (await enterManual.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await enterManual.click();
-  }
-
-  await sellerPage
-    .locator('input[type="time"]')
-    .waitFor({ state: "visible", timeout: 5000 });
+  await enterManual.waitFor({ state: "visible", timeout: 20000 });
+  await enterManual.click();
 
   const scheduledTime = await sellerPage.evaluate(() => {
     const d = new Date(Date.now() + 300_000);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
+
   await sellerPage.locator('input[type="time"]').fill(scheduledTime);
 
   await sellerPage
     .getByPlaceholder("e.g. Merensky Library - Main Entrance")
     .fill("Hatfield Plaza, Pretoria");
-
+  
+    
   await dropMapPin(sellerPage);
 
-  const sendProposal = sellerPage.getByRole("button", {
+   const sendProposal = sellerPage.getByRole("button", {
     name: /send proposal/i,
   });
   await expect(sendProposal).toBeEnabled();
@@ -199,7 +196,17 @@ export async function scheduleMeetupAndCheckIn(
   await expect(
     buyerPage.getByText("Meetup Proposal", { exact: true }),
   ).toBeVisible({ timeout: 10000 });
+
+
+  const acceptResp = buyerPage.waitForResponse(
+    (resp) =>
+      resp.url().includes(`/reservations/${reservationId}/meetup/accept`) &&
+      resp.request().method() === "POST",
+    { timeout: 15000 },
+  );
+
   await buyerPage.getByRole("button", { name: "Accept", exact: true }).click();
+  await acceptResp;
 
   await buyerPage.goto(`/payment/meetup/${reservationId}`);
   await expect(
@@ -210,7 +217,7 @@ export async function scheduleMeetupAndCheckIn(
     name: "Check In at Meetup",
   });
   await expect(buyerCheckInButton).toBeEnabled({ timeout: 90_000 });
-  
+
   await Promise.all([
     buyerPage.waitForResponse(
       (resp) =>
