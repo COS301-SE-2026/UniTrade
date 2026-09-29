@@ -323,6 +323,7 @@ builder.Services.AddScoped<IIcsImportService, IcsImportService>();
 builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
 builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
 builder.Services.AddScoped<ICaseNoteRepository, CaseNoteRepository>();
+builder.Services.AddHostedService<ProofRetentionWorker>();
 
 if (!builder.Environment.IsDevelopment())
 {
