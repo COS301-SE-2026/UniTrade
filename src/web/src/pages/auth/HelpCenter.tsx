@@ -264,7 +264,7 @@ export default function HelpCenter() {
         "Coordinate directly with the other party to arrange meetup time and location through a meetup scheduler.",
         "The chat thread opens immediately upon reservation creation, populated with an automated greeting. Both parties can immediately coordinate logistics.",
         "It is very important to schedule a meeting with the other party, because that is what will be used to stop the timer.",
-        "If a meetup is not scheduled, then the buyer will not be allowed to pay (the pay button will be disabled), so to enable the pay button the buyer needs to checkin at the location, and checkin can only be done if a meetup was arranged.",
+        "If a meetup is not scheduled, then the buyer will not be allowed to pay (the pay button will be disabled), so to enable the pay button the buyer needs to check in at the location, and checkin can only be done if a meetup was arranged.",
       ],
     },
     {
@@ -272,7 +272,7 @@ export default function HelpCenter() {
       title: 'Payment and Payouts',
       description: 'How payments are processed and when you get paid.',
       details: [
-        "Payment is processed instantly via PayFast after inspecting the item in person.",
+        "UniTrade operates as a direct escrow-style gateway via PayFast. Payments complete immediately at the physical meetup upon entering the 6-digit confirmation PIN.",
         "Sellers receive payouts within 2-3 business days after a completed and confirmed handover.",
         "You can track payout status from your Seller Dashboard."
       ]
@@ -284,7 +284,7 @@ export default function HelpCenter() {
       details: [
         "After a transaction and you are not happy you should always report to the system as soon as possible, provide enough evidence for the admin to decide on a punishment.",
         "If you are reported you are always given a chance to state your case, ensure you have enough evidence to prove your innocence.",
-        "An admin must be able to come up with a decision within a week of reporting."
+        "Verifications operate on a 48-hour SLA; disputed operate on a 72-hour SLA, processed in strict FIFO chronological sequence."
       ]
     },
     {
