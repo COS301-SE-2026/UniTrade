@@ -29,4 +29,5 @@ public static class ReservationErrors
     public const string MeetupNotScheduled = "meetup_not_scheduled";
     public const string CheckInWindowClosed = "check_in_window_closed";
     public const string AlreadyCheckedIn = "already_checked_in";
+    public const string BuyerSuspended = "buyer_suspended";
 }

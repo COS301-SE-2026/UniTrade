@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Modules.Audit;
 using Modules.Chat;
 using Modules.Identity.Models;
+using Modules.Identity.Repositories;
 using Modules.Listings;
 using Modules.Listings.Models;
 using Modules.Listings.Repositories;
@@ -28,7 +29,8 @@ public class ReservationService(
     IWishlistService wishlist,
     TimeProvider clock,
     IListingSnapshotService snapshots,
-    IAuditService audit
+    IAuditService audit,
+    IUserRepository users
 ) : IReservationService
 {
     private readonly IListingRepository _listings = listings;
@@ -43,7 +45,7 @@ public class ReservationService(
     private readonly TimeProvider _clock = clock;
     private readonly IListingSnapshotService _snapshots = snapshots;
     private readonly IAuditService _audit = audit;
-
+     private readonly IUserRepository _users = users;
 
     // const strings
     private const string _reservationString = "reservation";
@@ -53,6 +55,8 @@ public class ReservationService(
         CancellationToken ct = default
     )
     {
+        await GuardBuyerNotSuspendedAsync(buyerId, ct);
+
         var listing =
             await _listings.GetByIdAsync(listingId)
             ?? throw new ReservationException(ReservationErrors.ListingNotFound);
@@ -413,6 +417,14 @@ public class ReservationService(
         }
     }
 
+    private async Task GuardBuyerNotSuspendedAsync(Guid buyerId, CancellationToken ct)
+    {
+        var buyer = await _users.GetByIdAsync(buyerId);
+        if(buyer?.BuyerBannedUntil is DateTime until && until > _clock.GetUtcNow().UtcDateTime)
+        {
+            throw new ReservationException(ReservationErrors.BuyerSuspended);
+        }
+    }
     public async Task<IReadOnlyList<ReservationDto>> SendTwoHourWarningsAsync(
         DateTime asOfTime,
         CancellationToken ct
@@ -461,6 +473,8 @@ public class ReservationService(
         CancellationToken ct = default
     )
     {
+        await GuardBuyerNotSuspendedAsync(buyerId, ct);
+
         if (buyerId == sellerId)
         {
             throw new ReservationException(ReservationErrors.SelfReserve);

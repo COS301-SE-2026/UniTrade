@@ -228,6 +228,7 @@ public class ReservationsController : ControllerBase
             ReservationErrors.AlreadyAcknowledged => Conflict(new { error = ex.Message }),
             ReservationErrors.AlreadyTerminal => Conflict(new { error = ex.Message }),
             ReservationErrors.ReleasedTooEarly => StatusCode(403, new { error = ex.Message }),
+            ReservationErrors.BuyerSuspended => StatusCode(403, new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
