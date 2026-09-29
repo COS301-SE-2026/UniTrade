@@ -29,7 +29,7 @@ export function RealtimeProvider({
       .connect()
       .catch((e) => console.error("hub connect failed", e));
 
-    const onOnline = () => void connectionManager.connect().catch(() => {});
+    const onOnline = () => void connectionManager.connect().catch(() => { });
     window.addEventListener("online", onOnline);
 
     return () => {
@@ -92,9 +92,9 @@ export function RealtimeProvider({
         (old = []) =>
           old.map((m) =>
             m.senderId !== e.readBy &&
-            m.messageId != null &&
-            m.messageId <= e.upToMessageId &&
-            m.readAt == null
+              m.messageId != null &&
+              m.messageId <= e.upToMessageId &&
+              m.readAt == null
               ? { ...m, readAt: new Date().toISOString() }
               : m,
           ),
@@ -110,12 +110,12 @@ export function RealtimeProvider({
               old?.map((item) =>
                 item.reservationId === updated.reservationId
                   ? {
-                      ...item,
-                      reservationStatus: updated.reservationStatus,
-                      timerStage: updated.timerStage,
-                      expiresAt: updated.expiresAt,
-                      sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
-                    }
+                    ...item,
+                    reservationStatus: updated.reservationStatus,
+                    timerStage: updated.timerStage,
+                    expiresAt: updated.expiresAt,
+                    sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
+                  }
                   : item,
               ),
           );
@@ -145,25 +145,25 @@ export function RealtimeProvider({
       queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
       queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
 
-      showToast("info", 
-        e.status === "under_review" ? "A listing was held for review." 
-        : e.status === "removed" ? "A listing was removed by an admin."
-        : e.status === "banned" ? "A listing was permanenlty banned." 
-        : "A listing is now live.");
+      showToast("info",
+        e.status === "under_review" ? "A listing was held for review."
+          : e.status === "removed" ? "A listing was removed by an admin."
+            : e.status === "banned" ? "A listing was permanenlty banned."
+              : "A listing is now live.");
 
-        showToast(
-          "info",
-          e.status === "under_review"
-            ? "A listing was held for review."
-            : e.status === "removed"
-              ? "A listing was removed by an admin."
-              : e.status === "suspended"
-                ? "A listing is on hold while your account is suspended."
-                : e.status === "banned"
-                  ? "A listing was permanently banned."
-                  : "A listing is now live.",
-        );
-      },
+      showToast(
+        "info",
+        e.status === "under_review"
+          ? "A listing was held for review."
+          : e.status === "removed"
+            ? "A listing was removed by an admin."
+            : e.status === "suspended"
+              ? "A listing is on hold while your account is suspended."
+              : e.status === "banned"
+                ? "A listing was permanently banned."
+                : "A listing is now live.",
+      );
+    },
     );
 
     if (user?.role === "admin") {
@@ -202,7 +202,9 @@ export function RealtimeProvider({
     const offDisputeOutcome = connectionManager.onDisputeOutcome((e) => {
       showToast("error", e.message + (e.reason ? ` Reason: ${e.reason}` : ""));
     });
-
+    const offListingSold = connectionManager.onListingSold(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.wishlist() });
+    });
     const offForceLogout = connectionManager.onForceLogout(async (e) => {
       const message =
         e.reason == "account_banned"

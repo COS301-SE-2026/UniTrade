@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '../../lib/queryKeys'
 import { useNavigate, useSearchParams } from 'react-router'
@@ -132,10 +132,12 @@ export default function AdminDisputes() {
   const numListingQuality = rows.filter((r) => r.type === 'Listing-quality').length
   const numReport = rows.filter((r) => r.type === 'Report').length
 
-  
-  useEffect(() => {
+  const listKey = `${filter}|${searchQuery}`
+  const [prevListKey, setPrevListKey] = useState(listKey)
+  if (prevListKey !== listKey) {
+    setPrevListKey(listKey)
     setCurrentPage(1)
-  }, [filter, searchQuery])
+  }
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
   const safePage = Math.min(currentPage, totalPages)
