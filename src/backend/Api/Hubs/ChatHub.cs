@@ -192,7 +192,13 @@ public class ChatHub : Hub
             throw new HubException("Unauthorized");
         }
 
-        if (Context.User?.FindFirst("role")?.Value != "admin")
+        var isAdmin =
+            Context.User?.IsInRole("admin") == true
+            || string.Equals(
+                Context.User?.FindFirst("role")?.Value,
+                "admin",
+                StringComparison.OrdinalIgnoreCase);
+        if (isAdmin)
         {
             throw new HubException("Forbidden");
         }

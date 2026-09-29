@@ -21,14 +21,16 @@ export function useReservationRealtime(reservationId: string) {
       .catch((e) => console.error("joinRoom failed", e));
 
     const offMessage = connectionManager.onMessageReceived((m) => {
-      if (m.reservationId !== reservationId) {
-        return;
-      }
+      if (m.reservationId !== reservationId) return;
 
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.reservationMessages(reservationId),
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.reservationMessages(reservationId) });
+
+      if (m.messageType === "meetup_response") {
+        queryClient.invalidateQueries({ queryKey: ["reservation", reservationId] });
+        queryClient.invalidateQueries({ queryKey: ["meetup", reservationId] });
+      }
     });
+
     const offRead = connectionManager.onMessagesRead((e) => {
       if (e.reservationId !== reservationId) {
         return;
@@ -38,6 +40,7 @@ export function useReservationRealtime(reservationId: string) {
         queryKey: queryKeys.reservationMessages(reservationId),
       });
     });
+
     const off = connectionManager.onReservationUpdated((r) => {
       if (r.reservationId === reservationId) {
         queryClient.invalidateQueries({

@@ -265,6 +265,7 @@ public class ListingService : IListingService
             }
 
             created.Add(newListing);
+            await BroadcastBrowseChangeAsync(newListing.ListingId,true, ct );
         }
         await _listings.AddRangeAsync(created);
 
@@ -431,6 +432,8 @@ public class ListingService : IListingService
             listing.AiRiskLevel ?? "low",
             ct
         );
+
+        await BroadcastBrowseChangeAsync(listing.ListingId, listing.ListingStatus == "live", ct);
 
         if (listing.ListingStatus == "under_review")
         {
@@ -662,6 +665,7 @@ public class ListingService : IListingService
         }
 
         await _listings.DeleteByIdAsync(id);
+        await BroadcastBrowseChangeAsync(id, false, CancellationToken.None);
         return true;
     }
 
@@ -710,6 +714,20 @@ public class ListingService : IListingService
         return true;
     }
 
+private async Task BroadcastBrowseChangeAsync(Guid listingId, bool nowVisible, CancellationToken ct)
+{
+    try 
+    {
+        if (nowVisible)
+            await _notifier.ListingLiveAsync(listingId, ct);
+        else 
+            await _notifier.ListingReleasedAsync(listingId, ct);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogWarning(ex, "Browse broadcast failed for listing {ListingId}", listingId);
+    }
+}
     private async Task<bool> UpdateOneStatusAsync(
         Guid listingId,
         Guid callerId,
@@ -787,6 +805,8 @@ public class ListingService : IListingService
             listing.AiRiskLevel ?? "low",
             ct
         );
+        await BroadcastBrowseChangeAsync(listing.ListingId, listing.ListingStatus == "live", ct);
+
         if (listing.ListingStatus == "under_review")
         {
             await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
@@ -961,6 +981,7 @@ public class ListingService : IListingService
             ct
         );
         await _notifier.ListingFlaggedForAdminAsync(listing.ListingId, ct);
+        await BroadcastBrowseChangeAsync(listing.ListingId, false, ct);
     }
 
     public async Task RescoreAfterImagesAsync(Guid listingId, CancellationToken ct = default)

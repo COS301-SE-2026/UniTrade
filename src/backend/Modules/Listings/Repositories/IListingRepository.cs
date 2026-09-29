@@ -20,7 +20,7 @@ public interface IListingRepository
 
     Task<List<ListingCategory>> GetActiveCategories();
 
-    Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason);
+    Task<IReadOnlyList<Guid>> MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason);
 
     Task<bool> TryReserveAsync(Guid listingId, CancellationToken ct = default);
 

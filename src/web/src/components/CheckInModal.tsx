@@ -32,6 +32,9 @@ export default function CheckInModal({ reservationId, meetupLocation, onClose }:
 
     const mapResponse = (err: unknown): string => {
         const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('check_in_window_not_open')) {
+            return 'Check-in opens 15 minutes before the meetup.';
+        }
         if (msg.includes('check_in_window_closed')) {
             return 'The check-in window has closed. You can no longer check in for this meetup.';
         }
