@@ -506,12 +506,12 @@ setOutcome(decisions[0] ?? null);
           <button
             type="button"
             onClick={() => navigate(isClosed ? "/admin/disputes?view=closed" : "/admin/disputes")}
-            className="text-[#00aaff] hover:underline cursor-pointer"
+            className="text-sky-700 hover:underline cursor-pointer"
           >
             {isClosed ? "Closed Disputes" :"Active Disputes"}
           </button>
           <IconChevronRight size={12} />
-          <span className="text-gray-400"></span>
+          <span className="text-gray-600"></span>
           <span className="text-gray-600">Case Review</span>
         </div>
         <StatusBadge label={badge.label} tone={badge.tone} />
@@ -811,7 +811,7 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#00aaff]">
+          <p className="text-sm font-semibold text-sky-700">
             {dispute.item.title}
           </p>
           <p className="text-xs text-gray-600 mt-0.5">
@@ -1052,7 +1052,7 @@ function DecisionConfirmation({
       <button
         type="button"
         onClick={onBack}
-        className="mt-4 text-xs font-semibold text-[#00aaff] hover:underline"
+        className="mt-4 text-xs font-semibold text-sky-700 hover:underline"
       >
         Back to Disputes
       </button>
