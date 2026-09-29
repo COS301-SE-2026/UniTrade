@@ -10,4 +10,7 @@ public class CaseDetailDto : CaseSummaryDto
     public string FiledByRole { get; set; } = "";
     public string? SuggestedDecision { get; set; }
     public List<string>? SuggestedOutcomes { get; set; }
+
+    public string? Resolution { get; set; }
+    public DateTime? ResolvedAt { get; set; }
 }

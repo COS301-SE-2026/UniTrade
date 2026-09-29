@@ -22,10 +22,11 @@ export function formatDate(isoString: string): string {
 
 export function formatCondition(condition: string): string {
   const map: Record<string, string> = {
-    like_new: 'Like New',
+    new: 'Like New',
     good: 'Good',
     fair: 'Fair',
-    worn: 'Worn',
+    poor: 'Poor',
+    worn: 'Poor',
   }
   return map[condition] ?? condition
 }

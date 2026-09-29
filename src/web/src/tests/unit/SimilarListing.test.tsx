@@ -33,7 +33,7 @@ function makeCandidate(overrides: Partial<BrowseListing> = {}): BrowseListing {
     courseId: 1076,
     category: 'book',
     price: 200,
-    condition: 'Good',
+    condition: 'good',
     metadata: null,
     sellerId: 'seller-2',
     answeredQuestionCount: 2,
@@ -76,8 +76,8 @@ describe('getSimilarListings', () => {
 
   test('book category: same courseId + same condition ranks above same courseId + different condition', () => {
     const current = makeCurrent({ category: 'book', courseId: 1076, condition: 'good', price: 200 })
-    const sameCourseSameCondition = makeCandidate({ id: 'a', courseId: 1076, condition: 'Good', price: 200 })
-    const sameCourseDiffCondition = makeCandidate({ id: 'b', courseId: 1076, condition: 'Fair', price: 200 })
+    const sameCourseSameCondition = makeCandidate({ id: 'a', courseId: 1076, condition: 'good', price: 200 })
+    const sameCourseDiffCondition = makeCandidate({ id: 'b', courseId: 1076, condition: 'fair', price: 200 })
 
     const result = getSimilarListings(current, [sameCourseDiffCondition, sameCourseSameCondition], 2)
 
@@ -86,7 +86,7 @@ describe('getSimilarListings', () => {
 
   test('book category: candidates with a different courseId never get the key-match tier', () => {
     const current = makeCurrent({ category: 'book', courseId: 1076, price: 200, condition: 'good' })
-    const differentCourse = makeCandidate({ id: 'a', courseId: 1077, price: 200, condition: 'Good' })
+    const differentCourse = makeCandidate({ id: 'a', courseId: 1077, price: 200, condition: 'good' })
 
     const result = getSimilarListings(current, [differentCourse])
 
@@ -115,14 +115,14 @@ describe('getSimilarListings', () => {
       category: 'electronics',
       metadata: { brand: 'sony' },
       price: 500,
-      condition: 'Good',
+      condition: 'good',
     })
     const diffBrand = makeCandidate({
       id: 'b',
       category: 'electronics',
       metadata: { brand: 'Bose' },
       price: 500,
-      condition: 'Good',
+      condition: 'good',
     })
 
     const result = getSimilarListings(current, [diffBrand, sameBrand], 2)
@@ -132,7 +132,7 @@ describe('getSimilarListings', () => {
 
   test('electronics category: missing brand on either side never key-matches', () => {
     const current = makeCurrent({ category: 'electronics', metadata: null, price: 500, condition: 'good' })
-    const candidate = makeCandidate({ id: 'a', category: 'electronics', metadata: null, price: 500, condition: 'Good' })
+    const candidate = makeCandidate({ id: 'a', category: 'electronics', metadata: null, price: 500, condition: 'good' })
 
     const result = getSimilarListings(current, [candidate])
 
@@ -151,14 +151,14 @@ describe('getSimilarListings', () => {
       category: 'furniture',
       metadata: { dimensions: '120X60' },
       price: 300,
-      condition: 'Good',
+      condition: 'good',
     })
     const diffDims = makeCandidate({
       id: 'b',
       category: 'furniture',
       metadata: { dimensions: '90x40' },
       price: 300,
-      condition: 'Good',
+      condition: 'good',
     })
 
     const result = getSimilarListings(current, [diffDims, sameDims], 2)
@@ -168,8 +168,8 @@ describe('getSimilarListings', () => {
 
   test('unrecognized category never key-matches, falls back to price/condition tiers', () => {
     const current = makeCurrent({ category: 'clothing', price: 100, condition: 'good' })
-    const closeInPrice = makeCandidate({ id: 'a', category: 'clothing', price: 120, condition: 'Good' })
-    const farInPrice = makeCandidate({ id: 'b', category: 'clothing', price: 900, condition: 'Good' })
+    const closeInPrice = makeCandidate({ id: 'a', category: 'clothing', price: 120, condition: 'good' })
+    const farInPrice = makeCandidate({ id: 'b', category: 'clothing', price: 900, condition: 'good' })
 
     const result = getSimilarListings(current, [farInPrice, closeInPrice], 2)
 
@@ -178,8 +178,8 @@ describe('getSimilarListings', () => {
 
   test('price difference exactly at the 100 threshold still counts as within threshold', () => {
     const current = makeCurrent({ category: 'clothing', price: 200, condition: 'good' })
-    const atThreshold = makeCandidate({ id: 'a', category: 'clothing', price: 300, condition: 'Good' })
-    const beyondThreshold = makeCandidate({ id: 'b', category: 'clothing', price: 301, condition: 'Good' })
+    const atThreshold = makeCandidate({ id: 'a', category: 'clothing', price: 300, condition: 'good' })
+    const beyondThreshold = makeCandidate({ id: 'b', category: 'clothing', price: 301, condition: 'good' })
 
     const result = getSimilarListings(current, [beyondThreshold, atThreshold], 2)
 
@@ -188,8 +188,8 @@ describe('getSimilarListings', () => {
 
   test('within the same tier, the closer price wins', () => {
     const current = makeCurrent({ category: 'clothing', price: 200, condition: 'good' })
-    const closer = makeCandidate({ id: 'a', category: 'clothing', price: 210, condition: 'Good' })
-    const further = makeCandidate({ id: 'b', category: 'clothing', price: 250, condition: 'Good' })
+    const closer = makeCandidate({ id: 'a', category: 'clothing', price: 210, condition: 'good' })
+    const further = makeCandidate({ id: 'b', category: 'clothing', price: 250, condition: 'good' })
 
     const result = getSimilarListings(current, [further, closer], 2)
 
@@ -198,8 +198,8 @@ describe('getSimilarListings', () => {
 
   test('"new" and "like_new" are treated as the same condition', () => {
     const current = makeCurrent({ category: 'clothing', price: 200, condition: 'new' })
-    const likeNew = makeCandidate({ id: 'a', category: 'clothing', price: 200, condition: 'like_new' })
-    const fair = makeCandidate({ id: 'b', category: 'clothing', price: 200, condition: 'Fair' })
+    const likeNew = makeCandidate({ id: 'a', category: 'clothing', price: 200, condition: 'new' })
+    const fair = makeCandidate({ id: 'b', category: 'clothing', price: 200, condition: 'fair' })
 
     const result = getSimilarListings(current, [fair, likeNew], 2)
 
@@ -209,7 +209,7 @@ describe('getSimilarListings', () => {
   test('respects a custom limit', () => {
     const current = makeCurrent({ category: 'clothing', price: 200, condition: 'good' })
     const candidates = Array.from({ length: 5 }, (_, i) =>
-      makeCandidate({ id: `c${i}`, category: 'clothing', price: 200 + i, condition: 'Good' })
+      makeCandidate({ id: `c${i}`, category: 'clothing', price: 200 + i, condition: 'good' })
     )
 
     const result = getSimilarListings(current, candidates, 3)
@@ -220,7 +220,7 @@ describe('getSimilarListings', () => {
   test('defaults to a limit of 2 when none is provided', () => {
     const current = makeCurrent({ category: 'clothing', price: 200, condition: 'good' })
     const candidates = Array.from({ length: 5 }, (_, i) =>
-      makeCandidate({ id: `c${i}`, category: 'clothing', price: 200 + i, condition: 'Good' })
+      makeCandidate({ id: `c${i}`, category: 'clothing', price: 200 + i, condition: 'good' })
     )
 
     const result = getSimilarListings(current, candidates)
@@ -242,7 +242,7 @@ describe('getSimilarListings', () => {
       title: 'Some Book',
       price: 210,
       image: '/img/a.jpg',
-      condition: 'like_new',
+      condition: 'new',
       courseId: 1076,
     })
 

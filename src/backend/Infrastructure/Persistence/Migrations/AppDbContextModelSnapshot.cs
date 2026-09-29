@@ -166,6 +166,50 @@ namespace Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Modules.Disputes.Models.CaseNote", b =>
+                {
+                    b.Property<Guid>("NoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("note_id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("AuthorAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_admin_id");
+
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("case_id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("NoteId")
+                        .HasName("pk_case_notes");
+
+                    b.HasIndex("AuthorAdminId")
+                        .HasDatabaseName("ix_case_notes_author_admin_id");
+
+                    b.HasIndex("CaseId")
+                        .HasDatabaseName("ix_case_notes_case");
+
+                    b.HasIndex("CreatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("ix_case_notes_created");
+
+                    b.ToTable("case_notes", "unitrade");
+                });
+
             modelBuilder.Entity("Modules.Disputes.Models.Dispute", b =>
                 {
                     b.Property<Guid>("DisputeId")
@@ -189,6 +233,10 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<int?>("MeetupId")
                         .HasColumnType("integer")
                         .HasColumnName("meetup_id");
+
+                    b.Property<Guid?>("OriginalSnapshotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("original_snapshot_id");
 
                     b.PrimitiveCollection<List<string>>("Photos")
                         .HasColumnType("text[]")
@@ -256,6 +304,9 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("MeetupId")
                         .HasDatabaseName("ix_disputes_meetup_id");
 
+                    b.HasIndex("OriginalSnapshotId")
+                        .HasDatabaseName("ix_disputes_original_snapshot_id");
+
                     b.HasIndex("RaisedBy")
                         .HasDatabaseName("ix_disputes_raised_by");
 
@@ -280,7 +331,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("disputes", "unitrade", t =>
                         {
-                            t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed')");
+                            t.HasCheckConstraint("chk_dispute_status", "status IN ('open','under_review','resolved','closed','resubmission')");
 
                             t.HasCheckConstraint("chk_dispute_type", "type IN ('listing_quality','report_listing','no_show')");
                         });
@@ -312,6 +363,56 @@ namespace Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_admin_profiles_user_id");
 
                     b.ToTable("admin_profiles", "unitrade");
+                });
+
+            modelBuilder.Entity("Modules.Identity.Models.PasswordResetRequest", b =>
+                {
+                    b.Property<Guid>("PasswordResetRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("password_reset_request_id");
+
+                    b.Property<int>("AttemptNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("attempt_number");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_current");
+
+                    b.Property<string>("OtpCodeHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("otp_code_hash");
+
+                    b.Property<DateTime>("OtpExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("otp_expires_at");
+
+                    b.Property<DateTime>("OtpSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("otp_sent_at");
+
+                    b.Property<DateTime?>("OtpVerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("otp_verified_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("PasswordResetRequestId")
+                        .HasName("pk_password_reset_requests");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("uix_prr_current")
+                        .HasFilter("is_current = true");
+
+                    b.ToTable("password_reset_requests", "unitrade");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>
@@ -452,6 +553,18 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
+                    b.Property<DateTime?>("BlockedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("blocked_until");
+
+                    b.Property<int>("BuyerBanCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("buyer_ban_count");
+
+                    b.Property<DateTime?>("BuyerBannedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("buyer_banned_until");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -471,6 +584,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("first_name");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_blocked");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -497,6 +614,14 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
                         .HasColumnName("role");
+
+                    b.Property<int>("SellerBanCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("seller_ban_count");
+
+                    b.Property<DateTime?>("SellerBannedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seller_banned_until");
 
                     b.Property<DateTime?>("TermsAcceptedAt")
                         .HasColumnType("timestamp with time zone")
@@ -800,6 +925,14 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("rejection_reason");
 
+                    b.Property<bool>("RequiresManualReviewOnResubmit")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_manual_review_on_resubmit");
+
+                    b.Property<int>("ResubmissionCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("resubmission_count");
+
                     b.Property<Guid>("SellerId")
                         .HasColumnType("uuid")
                         .HasColumnName("seller_id");
@@ -876,7 +1009,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned', 'suspended')");
                         });
                 });
 
@@ -1308,6 +1441,11 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("reason");
 
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("scope");
+
                     b.Property<Guid?>("SourceCaseId")
                         .HasColumnType("uuid")
                         .HasColumnName("source_case_id");
@@ -1400,6 +1538,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<DateTime?>("ReminderSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reminder_sent_at");
+
                     b.Property<Guid>("ReservationId")
                         .HasColumnType("uuid")
                         .HasColumnName("reservation_id");
@@ -1443,7 +1585,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.ToTable("meetups", "unitrade", t =>
                         {
-                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')");
+                            t.HasCheckConstraint("chk_meetup_status", "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')");
                         });
                 });
 
@@ -1920,6 +2062,16 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("Modules.Disputes.Models.CaseNote", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorAdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_case_notes_users_author_admin_id");
+                });
+
             modelBuilder.Entity("Modules.Disputes.Models.Dispute", b =>
                 {
                     b.HasOne("Modules.Identity.Models.User", null)
@@ -1939,6 +2091,12 @@ namespace Infrastructure.Persistence.Migrations
                         .HasForeignKey("MeetupId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_disputes_meetups_meetup_id");
+
+                    b.HasOne("Modules.Listings.Models.ListingSnapshot", "OriginalSnapshot")
+                        .WithMany()
+                        .HasForeignKey("OriginalSnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_disputes_listing_snapshot_original_snapshot_id");
 
                     b.HasOne("Modules.Identity.Models.User", null)
                         .WithMany()
@@ -1965,6 +2123,8 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_disputes_users_subject_user_id");
 
+                    b.Navigation("OriginalSnapshot");
+
                     b.Navigation("Snapshot");
                 });
 
@@ -1985,6 +2145,16 @@ namespace Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_admin_profiles_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Modules.Identity.Models.PasswordResetRequest", b =>
+                {
+                    b.HasOne("Modules.Identity.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_password_reset_requests_users_user_id");
                 });
 
             modelBuilder.Entity("Modules.Identity.Models.ProofOfRegistrationDocument", b =>

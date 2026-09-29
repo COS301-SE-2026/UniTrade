@@ -33,10 +33,10 @@ public static class ListingQualityEvaluator
             return new(DisputeCaseDecision.Dismiss, Array.Empty<DisputeOutcome>());
         }
 
-        // the real case->photos upload, compare against snapshot, actual mismatch, strike seller, remove listing
+        // the real case->photos upload, but we cant compare the to the snapshot, so defer to admin
         return new(
-            DisputeCaseDecision.Uphold,
-            new[] { DisputeOutcome.Strike, DisputeOutcome.RemoveListing }
+            DisputeCaseDecision.RequestInfo,
+            Array.Empty<DisputeOutcome>()
         );
     }
 }

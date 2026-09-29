@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
+using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
 using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
@@ -35,6 +36,8 @@ public class ListingServiceTests
     private readonly Mock<IListingRiskScoreService> _riskMock;
     private readonly Mock<IListingNotifier> _notifierMock;
     private readonly Mock<IClipVisionClient> _clipMock;
+    private readonly Mock<IListingResubmissionListener> _resubmissionListenerMock;
+    private readonly Mock<IUserRepository> _usersRepoMock;
 
     public ListingServiceTests()
     {
@@ -48,6 +51,7 @@ public class ListingServiceTests
         _riskMock = new Mock<IListingRiskScoreService>();
         _notifierMock = new Mock<IListingNotifier>();
         _clipMock = new Mock<IClipVisionClient>();
+        _resubmissionListenerMock = new Mock<IListingResubmissionListener>();
         _questionRepo
             .Setup(r =>
                 r.GetAnsweredQuestionCountsAsync(
@@ -61,16 +65,20 @@ public class ListingServiceTests
             .Setup(r => r.ScoreAsync(It.IsAny<Listing>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<RiskReason>()));
 
+        _usersRepoMock = new Mock<IUserRepository>();
+
         _sut = new ListingService(
             _repo.Object,
             _imageRepo.Object,
             _verificationMock.Object,
             _listingPublishedListener.Object,
+            _resubmissionListenerMock.Object,
             _loggerMock.Object,
             _questionRepo.Object,
             _riskMock.Object,
             _notifierMock.Object,
-            _clipMock.Object
+            _clipMock.Object,
+            _usersRepoMock.Object
         );
     }
 

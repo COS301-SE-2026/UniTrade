@@ -172,7 +172,7 @@ export default function AdminListingRiskReview() {
                     Flagged Listings
                 </button>
                 <IconChevronRight size={12} />
-                <span className="text-gray-400"></span>
+               
                 <span className="text-gray-600">Listing Review</span>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

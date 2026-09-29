@@ -366,7 +366,7 @@ export default function ReservationDetails() {
     if (reservation.isBundle) {
       setItemsExpanded((prev) => !prev);
     } else {
-      navigate(`/buyer/listings/${reservation.listings[0].listingId}`);
+      navigate(`/${isSeller ? "seller" : "buyer"}/listings/${reservation.listings[0].listingId}`);
     }
   };
 
@@ -402,15 +402,7 @@ export default function ReservationDetails() {
 
   const handleViewMeetupDetails = () => {
     if (!reservation) return;
-    navigate("/payment/meetup", {
-      state: {
-        reservationId: reservation.reservationId,
-        role: isSeller ? "seller" : "buyer",
-        counterpartyName: otherPartyName,
-        listingTitle: displayTitle,
-        listingPrice: reservation.totalPrice,
-      },
-    });
+    navigate(`/payment/meetup/${reservation.reservationId}`);
   };
 
   if (isLoading) {
@@ -643,7 +635,7 @@ export default function ReservationDetails() {
                 icon={<IconCalendarClock size={16} />}
                 label="View Meetup Details"
                 onClick={handleViewMeetupDetails}
-                disabled={isCancelled || isExpired}
+                disabled={isCancelled || isExpired || !isMeetupConfirmed}
               />
               <ActionButton
                 icon={<IconFlag size={16} />}
