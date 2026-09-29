@@ -20,7 +20,8 @@ using Modules.Listings;
 using Moq;
 using Xunit;
 using UniversityEntity = Modules.ReferenceData.University.University;
-
+using Modules.Identity.Repositories;
+using Modules.Audit;
 namespace UniTrade.Tests.Unit.Modules;
 
 [Trait("Category", "Unit")]
@@ -41,6 +42,8 @@ public class IdentityServiceTests
     private readonly VerificationService _verificationService;
     private readonly Mock<IBroadCastService> _broadcastMock;
     private readonly Mock<ILogger<VerificationService>> _loggerMock;
+    private readonly Mock<IProofOfRegistrationRepository> _porRepository = new();
+    private readonly Mock<IAuditService> _audit = new();
     private readonly Mock<IListingNotifier> _listingNotifierMock;
 
     public IdentityServiceTests()
@@ -80,7 +83,9 @@ public class IdentityServiceTests
             _identityServiceMock.Object,
             _configMock.Object,
             _broadcastMock.Object,
-            _loggerMock.Object
+            _loggerMock.Object,
+            _porRepository.Object,
+            _audit.Object
         );
     }
 
