@@ -324,6 +324,8 @@ builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
 builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
 builder.Services.AddScoped<ICaseNoteRepository, CaseNoteRepository>();
 builder.Services.AddHostedService<ProofRetentionWorker>();
+builder.Services.AddScoped<IAccountSanctionService, AccountSanctionService>();
+builder.Services.AddHostedService<SuspensionExpiryWorker>();
 
 if (!builder.Environment.IsDevelopment())
 {

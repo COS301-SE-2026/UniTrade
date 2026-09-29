@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Disputes;
 using Modules.Disputes.Models.Dto;
+using Modules.Listings.Models;
 namespace Api.Controllers;
 
 [ApiController]
@@ -69,6 +70,66 @@ public class DisputesController : ControllerBase
         catch (DisputesException ex)
         {
             return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMine(
+[FromServices] IDisputeService disputeService,
+[FromQuery] string? type,
+CancellationToken ct
+    )
+    {
+        var cases = await disputeService.ListForUserAsync(CallerId, type, ct);
+        var withRole = cases.Select(c => new
+        {
+            c.CaseId,
+            c.Type,
+            c.Status,
+            c.SubjectUserId,
+            c.SubmittedAt,
+            c.AgeHours,
+            c.SlaHours,
+            c.SlaBreached,
+            c.Title,
+            c.SubjectInitials,
+            c.CounterpartyInitials,
+            c.RaisedBy,
+            c.SellerId,
+            c.BuyerId,
+            c.ReservationId,
+            c.ListingId,
+            c.ImageUrl,
+            c.CopyCount,
+            ViewerRole = c.RaisedBy == CallerId ? "filed_by_me" : "against_me",
+        });
+
+        return Ok(new { cases = withRole });
+
+    }
+
+    [HttpGet("mine/{id}")]
+    public async Task<IActionResult> GetMineById(
+        Guid id,
+        [FromServices] IAdminCaseService adminCaseService,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+
+            var detail = await adminCaseService.GetCaseByIdForUserAsync(id, CallerId, ct);
+            if (detail is null)
+            {
+                return NotFound(new { error = "case_not_found" });
+            }
+            var viewRole = detail.FiledByUserId == CallerId ? "filed_by_me" : "against_me";
+            return Ok(new { detail, viewRole });
+
+        }
+        catch (DisputesException ex) when (ex.Message == "forbidden")
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Message });
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
 using Modules.ListingQuestions.Repositories;
 using Modules.Listings.Models;
@@ -22,6 +23,7 @@ public class ListingService : IListingService
     private readonly IListingRiskScoreService _risk;
     private readonly IListingNotifier _notifier;
     private readonly IClipVisionClient _clip;
+    private readonly IUserRepository _users;
     private readonly ILogger<ListingService> _logger;
     private readonly IListingResubmissionListener _resubmissionListener;
 
@@ -57,8 +59,8 @@ public class ListingService : IListingService
         IListingQuestionRepository questions,
         IListingRiskScoreService risk,
         IListingNotifier notifier,
-        IClipVisionClient clip
-    )
+        IClipVisionClient clip,
+        IUserRepository users)
     {
         _listings = listings;
         _images = images;
@@ -70,6 +72,7 @@ public class ListingService : IListingService
         _risk = risk;
         _notifier = notifier;
         _clip = clip;
+        _users = users;
     }
 
     public async Task<ListingSummaryDto?> GetByIdAsync(Guid listingId)
@@ -174,6 +177,7 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
+        await GuardSellerNotSuspendedAsync(callerId, ct);
         var quantity = dto.Quantity ?? 1;
         if (quantity is < 1 or > 10)
         {
@@ -358,6 +362,8 @@ public class ListingService : IListingService
         CancellationToken ct = default
     )
     {
+        await GuardSellerNotSuspendedAsync(callerId, ct);
+
         var listing = await _listings.GetByIdTrackedAsync(listingId);
         if (listing is null)
         {
@@ -716,6 +722,11 @@ public class ListingService : IListingService
             throw new ArgumentException("invalid_status");
         }
 
+        if (newStatus == "live")
+        {
+            await GuardSellerNotSuspendedAsync(callerId, ct);
+        }
+
         var listing = await _listings.GetByIdTrackedAsync(listingId);
         if (listing is null)
         {
@@ -862,7 +873,7 @@ public class ListingService : IListingService
         {
             return (
                 "live",
-                "Your listing is live but showing lower in search results due to some flagged concerns.Please edit your listing to fix the problem or re-check if not satifsied."
+                "Your listing is live but showing lower in search results due to some flagged concerns.Please edit your listing to fix the problem or re-check if not satisfied."
             );
         }
 
@@ -1092,5 +1103,14 @@ public class ListingService : IListingService
         listing.AiRiskLevel = "high";
         listing.AiRiskScore = Math.Min(100m, baseScore + 30m * severity);
         listing.VisibilityScore = null;
+    }
+
+    private async Task GuardSellerNotSuspendedAsync(Guid sellerId, CancellationToken ct)
+    {
+        var seller = await _users.GetByIdAsync(sellerId);
+        if (seller?.SellerBannedUntil is DateTime until && until > DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("seller_suspended");
+        }
     }
 }

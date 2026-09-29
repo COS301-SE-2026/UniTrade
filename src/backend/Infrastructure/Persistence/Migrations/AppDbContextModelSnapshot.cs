@@ -557,6 +557,14 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("blocked_until");
 
+                    b.Property<int>("BuyerBanCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("buyer_ban_count");
+
+                    b.Property<DateTime?>("BuyerBannedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("buyer_banned_until");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -606,6 +614,14 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
                         .HasColumnName("role");
+
+                    b.Property<int>("SellerBanCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("seller_ban_count");
+
+                    b.Property<DateTime?>("SellerBannedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seller_banned_until");
 
                     b.Property<DateTime?>("TermsAcceptedAt")
                         .HasColumnType("timestamp with time zone")
@@ -993,7 +1009,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("chk_listing_risk", "ai_risk_level IS NULL OR ai_risk_level IN ('low', 'medium', 'high')");
 
-                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned')");
+                            t.HasCheckConstraint("chk_listing_status", "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned', 'suspended')");
                         });
                 });
 
@@ -1424,6 +1440,11 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("reason");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("scope");
 
                     b.Property<Guid?>("SourceCaseId")
                         .HasColumnType("uuid")

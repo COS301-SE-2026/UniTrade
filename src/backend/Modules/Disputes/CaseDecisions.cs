@@ -45,4 +45,14 @@ internal static class DisputeDecisionMappings
                 }
             )
             .ToList();
+
+    public static string ToWire(DisputeOutcome outcome) =>
+    outcome switch
+    {
+        DisputeOutcome.Strike => "strike",
+        DisputeOutcome.RemoveListing => "remove_listing",
+        DisputeOutcome.WarnSellerResubmit => "warn_seller_resubmit",
+        DisputeOutcome.RefusalFlag => "refusal_flag",
+        _ => throw new ArgumentOutOfRangeException(nameof(outcome)),
+    };
 }

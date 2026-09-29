@@ -85,4 +85,10 @@ public class UserRepository : IUserRepository
     {
         return await _db.Users.CountAsync(ct);
     }
+
+    public async Task<IReadOnlyList<User>> ListExpiredSuspensionAsync(DateTime now, CancellationToken ct = default) =>
+        await _db.Users.Where(u => !u.IsBlocked && ((u.SellerBannedUntil != null && u.SellerBannedUntil <= now) ||
+        (u.BuyerBannedUntil != null && u.BuyerBannedUntil <= now)))
+        .ToListAsync(ct);
+
 }

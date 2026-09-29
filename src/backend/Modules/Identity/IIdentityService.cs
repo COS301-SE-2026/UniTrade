@@ -14,6 +14,6 @@ public interface IIdentityService
     Task DeleteAccountAsync(string userId);
     Task<string> GenerateAuthTokenAsync(Guid userId);
 
-    string GenerateHubToken(string userId);
+    Task<string> GenerateHubTokenAsync(string userId);
     Task BlockAccountAsync(string userId);
 }

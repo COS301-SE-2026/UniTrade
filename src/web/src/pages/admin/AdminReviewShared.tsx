@@ -1,4 +1,4 @@
-
+import type React from "react";
 import { IconStar, IconStarFilled, IconX, IconNote } from "@tabler/icons-react";
 import type { PersonSummary} from "../../types/mockAdmin";
 import {useEffect, useState, useReducer} from "react";
@@ -16,6 +16,8 @@ interface ConfirmModalProps {
   reason?: string;
   setReason?: (value: string) => void;
   showReasonField?: boolean;
+  confirmDisabled?: boolean;
+  children?: React.ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -39,6 +41,8 @@ export function ConfirmModal({
   reason = "",
   setReason,
   showReasonField = true,
+  confirmDisabled = false,
+  children,
   onCancel,
   onConfirm,
 }: Readonly<ConfirmModalProps>) {
@@ -51,20 +55,19 @@ export function ConfirmModal({
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('input, textarea, [contenteditable="true"]')) {
-          if (e.key === 'Escape') {
+          if (e.key === "Escape") {
             onCancel();
           }
           return;
         }
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onCancel();
         }
-
       }}
     >
       <div
-        role='alertdialog'
+        role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
         aria-describedby="confirm-modal-message"
@@ -74,10 +77,7 @@ export function ConfirmModal({
           role="presentation"
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
-
         >
-
-
           <div className="flex items-center justify-between mb-4">
             <h2
               id="confirm-modal-title"
@@ -97,16 +97,23 @@ export function ConfirmModal({
           <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">
             {message}
           </p>
+          {children}
           {showReasonField && (
             <div className="mb-4">
-              <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
+              <label
+                htmlFor="modal-reason"
+                className="block text-xs font-medium text-gray-700 mb-1.5"
+              >
+                Reason <span className="text-red-500">*</span>
+              </label>
               <textarea
                 id="modal-reason"
                 rows={3}
                 value={reason}
                 onChange={(e) => setReason?.(e.target.value)}
                 placeholder="Prove reasoning for this decision..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
+                required
               ></textarea>
             </div>
           )}
@@ -122,7 +129,11 @@ export function ConfirmModal({
             <button
               type="button"
               onClick={onConfirm}
-              disabled={submitting || (showReasonField && !reason.trim())}
+              disabled={
+                submitting ||
+                confirmDisabled ||
+                (showReasonField && !reason.trim())
+              }
               className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
             >
               {submitting ? "Submitting..." : confirmLabel}
@@ -306,7 +317,8 @@ export function PrimaryButton({
 type DecisionTone = "success" | "danger" | "neutral";
 
 const decisionToneClasses: Record<DecisionTone, string> = {
-  success: "bg-green-600 hover:bg-green-700 text-white border border-transparent",
+  success:
+    "bg-green-600 hover:bg-green-700 text-white border border-transparent",
   danger: "bg-red-600 hover:bg-red-700 text-white border border-transparent",
   neutral:
     "border border-navy-700 text-navy-700 dark:text-white dark:border-white/30 hover:bg-secondary-500 hover:text-primary-700 hover:border-secondary-500",

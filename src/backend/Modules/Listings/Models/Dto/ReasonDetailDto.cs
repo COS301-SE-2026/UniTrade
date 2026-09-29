@@ -5,7 +5,7 @@ public sealed record ReasonDetailDto(string Code, string Detail, int? ImageId = 
 public sealed record FlaggedListingSellerDto(
     Guid SellerId,
     string Name,
-    string initials,
+    string Initials,
     string VerificationStatus,
     int StrikeCount,
     int PriorFlagCount

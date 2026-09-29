@@ -20,4 +20,9 @@ public class User
     public AdminProfile? AdminProfile { get; set; }
     public bool IsBlocked { get; set; } = false;
     public DateTime? BlockedUntil { get; set; }
+    public DateTime? SellerBannedUntil { get; set; }
+    public DateTime? BuyerBannedUntil { get; set; }
+    public int SellerBanCount { get; set; }
+    public int BuyerBanCount { get; set; }
+
 }

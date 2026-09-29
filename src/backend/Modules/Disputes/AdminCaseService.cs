@@ -3,6 +3,7 @@ using Modules.Audit;
 using Modules.Disputes.Models.Dto;
 using Modules.Disputes.Repositories;
 using Modules.Identity;
+using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Verification;
 using Modules.Listings;
@@ -29,6 +30,7 @@ public class AdminCaseService : IAdminCaseService
     private readonly IListingSnapshotService _snapshots;
     private readonly IPartyDirectory _parties;
     private readonly IReputationService _reputation;
+    private readonly IAccountSanctionService _sanctions;
     private readonly IListingService _listings;
     private readonly IBroadCastService _broadcast;
     private readonly IModerationService _moderation;
@@ -56,6 +58,7 @@ public class AdminCaseService : IAdminCaseService
         IListingSnapshotService snapshots,
         IPartyDirectory parties,
         IReputationService reputation,
+        IAccountSanctionService sanctions,
         IListingService listings,
         IBroadCastService broadcast,
         IModerationService moderation,
@@ -72,6 +75,7 @@ public class AdminCaseService : IAdminCaseService
         _snapshots = snapshots;
         _parties = parties;
         _reputation = reputation;
+        _sanctions = sanctions;
         _listings = listings;
         _broadcast = broadcast;
         _moderation = moderation;
@@ -104,7 +108,11 @@ public class AdminCaseService : IAdminCaseService
         // 2. Dispute Cases
         if (type is null or _listingQualityString or _noShowString or _reportListingString)
         {
-            var disputeItems = await _disputes.ListPendingAsync(type, ct);
+            var wantsClosed = string.Equals(status, _resolvedString, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(status, _dismissedString, StringComparison.OrdinalIgnoreCase);
+
+            var disputeItems = wantsClosed
+            ? await _disputes.ListClosedAsync(type, ct) : await _disputes.ListPendingAsync(type, ct);
 
             var subjectUserIds = disputeItems.Select(i => i.SubjectUserId).Distinct().ToList();
             var counterpartyIds = disputeItems
@@ -262,6 +270,32 @@ public class AdminCaseService : IAdminCaseService
         return dispute is null ? null : await ToDisputeDetailAsync(dispute, ct);
     }
 
+    public async Task<CaseDetailDto?> GetCaseByIdForUserAsync(
+      Guid caseId,
+
+      Guid userId,
+      CancellationToken ct = default
+  )
+    {
+        var detail = await GetCaseByIdAsync(caseId, ct);
+        if (detail is null)
+        {
+            return null;
+        }
+        var isParty = detail.SubjectUserId == userId ||
+        detail.FiledByUserId == userId
+        || (detail.CounterParty?.UserId == userId);
+
+        if (!isParty)
+        {
+            throw new DisputesException("forbidden");
+        }
+
+        return detail;
+
+    }
+
+
     public async Task<CaseDetailDto?> DecideCaseAsync(
         Guid caseId,
         DecisionRequestDto request,
@@ -317,6 +351,9 @@ public class AdminCaseService : IAdminCaseService
             return null;
         }
 
+        if (disputeData.Status is "resolved" or "closed")
+        { throw new DisputesException("case_already_closed"); }
+
         if (
             decision
             is DisputeCaseDecision.Approve
@@ -332,6 +369,11 @@ public class AdminCaseService : IAdminCaseService
             throw new DisputesException("outcome_required");
         }
 
+        var strikeScope =
+            disputeData.Type == _noShowString
+                ? (disputeData.SubjectUserId == disputeData.SellerId ? "seller" : "buyer")
+                : "seller";
+
         await ApplyDisputeDecisionAsync(
             disputeData.DisputeId,
             disputeData.SubjectUserId,
@@ -341,6 +383,7 @@ public class AdminCaseService : IAdminCaseService
             outcomes,
             request.Reason,
             adminId,
+            strikeScope,
             ct
         );
 
@@ -369,7 +412,9 @@ public class AdminCaseService : IAdminCaseService
         CancellationToken ct = default
     )
     {
-        await _reputation.AddStrikeAsync(userId, caseId, "manual", reason, adminId, ct);
+        var scope = await ResolveManualStrikeScopeAsync(userId, caseId, ct);
+
+        await _sanctions.ApplyStrikeAsync(userId, caseId, "manual", reason, adminId, scope, ct);
 
         var auditRequest = new AuditWriteRequest(
             ActorId: adminId,
@@ -377,7 +422,7 @@ public class AdminCaseService : IAdminCaseService
             EntityType: "user",
             EntityId: userId.ToString(),
             OldValue: null,
-            NewValue: $"manual strike (case: {caseId?.ToString() ?? "none"})",
+            NewValue: $"manual strike (scope: {scope}, case: {caseId?.ToString() ?? "none"})",
             Reason: reason
         );
         await _audit.WriteAsync(auditRequest, ct);
@@ -399,6 +444,29 @@ public class AdminCaseService : IAdminCaseService
     {
         Buyer,
         Seller,
+    }
+
+    private async Task<string> ResolveManualStrikeScopeAsync(Guid userId, Guid? caseId, CancellationToken ct)
+    {
+        if (caseId is null)
+            return "seller";
+
+        var data = await _disputes.GetCaseDataAsync(caseId.Value, ct);
+        if (data is null)
+            return "seller";
+
+        if (data.BuyerId == userId)
+            return "buyer";
+
+        if (data.SellerId == userId)
+            return "seller";
+
+        // false - vindictive reporter is abusing the consumer side -> buyer scope
+        if (data.Type == _reportListingString && data.RaisedBy == userId)
+            return "buyer";
+
+        return
+        "seller";
     }
 
     private static int SlaHours(string caseType) =>
@@ -423,6 +491,7 @@ public class AdminCaseService : IAdminCaseService
         IReadOnlyList<DisputeOutcome> outcomes,
         string? reason,
         Guid adminId,
+        string scope,
         CancellationToken ct = default
     )
     {
@@ -430,7 +499,7 @@ public class AdminCaseService : IAdminCaseService
         {
             await _outcomes.ApplyAsync(
                 outcomes,
-                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason),
+                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason, scope),
                 ct
             );
         }
@@ -626,15 +695,18 @@ public class AdminCaseService : IAdminCaseService
                 d.Photos,
                 d.SellerRefusedPhotos
             );
-            suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
-            suggestedOutcomes = verdict
-                .Outcomes.Select(o => o.ToString().ToLowerInvariant())
-                .ToList();
+            if (verdict.Decision is DisputeCaseDecision.Uphold or DisputeCaseDecision.Dismiss)
+            {
+                suggestedDecision = verdict.Decision.ToString().ToLowerInvariant();
+                suggestedOutcomes = verdict
+                    .Outcomes.Select(DisputeDecisionMappings.ToWire)
+                    .ToList();
+            }
         }
 
         var filedByRole =
-            d.RaisedBy == Guid.Empty ? "system"
-            : d.Type == _reportListingString ? "reporter"
+            d.Type == _reportListingString ? "reporter"
+            : d.RaisedBy == Guid.Empty ? "system"
             : d.RaisedBy == d.SellerId ? "seller"
             : d.RaisedBy == d.BuyerId ? "buyer"
             : "unknown";
@@ -656,6 +728,8 @@ public class AdminCaseService : IAdminCaseService
             Evidence = BuildDisputeEvidence(d, snapshot, originalSnapshot, currentListingStatus),
             SuggestedDecision = suggestedDecision,
             SuggestedOutcomes = suggestedOutcomes,
+            Resolution = d.Resolution,
+            ResolvedAt = d.ResolvedAt,
         };
     }
 
@@ -740,7 +814,10 @@ public class AdminCaseService : IAdminCaseService
             _ => _pendingString,
         };
 
-    public async Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(Guid caseId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<CaseNoteDto>> GetNotesAsync(
+        Guid caseId,
+        CancellationToken ct = default
+    )
     {
         var notes = await _caseNotes.ListByCaseIdAsync(caseId, ct);
         var result = new List<CaseNoteDto>(notes.Count);
@@ -752,7 +829,12 @@ public class AdminCaseService : IAdminCaseService
         return result;
     }
 
-    public async Task<CaseNoteDto> AddNoteAsync(Guid caseId, Guid adminId, string content, CancellationToken ct = default)
+    public async Task<CaseNoteDto> AddNoteAsync(
+        Guid caseId,
+        Guid adminId,
+        string content,
+        CancellationToken ct = default
+    )
     {
         var note = await _caseNotes.AddAsync(caseId, adminId, content, ct);
         return await ToNotesDtoAsync(note, ct);
@@ -771,7 +853,4 @@ public class AdminCaseService : IAdminCaseService
             CreatedAt = note.CreatedAt,
         };
     }
-
-
-
 }
