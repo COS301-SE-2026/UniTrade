@@ -156,9 +156,11 @@ export function RealtimeProvider({
             ? "A listing was held for review."
             : e.status === "removed"
               ? "A listing was removed by an admin."
-              : e.status === "banned"
-                ? "A listing was permanenlty banned."
-                : "A listing is now live.",
+              : e.status === "suspended"
+                ? "A listing is on hold while your account is suspended."
+                : e.status === "banned"
+                  ? "A listing was permanently banned."
+                  : "A listing is now live.",
         );
       },
     );
