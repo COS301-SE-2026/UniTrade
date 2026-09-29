@@ -31,6 +31,7 @@ import { fileDispute } from "../../services/adminService";
 import ListingQnA from "../../components/ListingQnA";
 import { useToast } from "../../components/layout/useToast";
 import { queryClient } from "../../lib/queryClient";
+import { LoadingState} from "../../components/layout/Spinner";
 import { useAuthStore } from "../../store/useAuthStore";
 
 function DetailRow({
@@ -267,12 +268,7 @@ export default function ListingDetail() {
     sellerReviews?.reviews.filter((r) => r.reviewType === "buyer_to_seller") ??
     [];
   const sellerReputationScore = computeReputationScore(sellerReceivedReviews);
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
-      </div>
-    );
+  if (loading) return <LoadingState message = "Loading..." />;
 
   if (error || !listing)
     return (
@@ -282,9 +278,10 @@ export default function ListingDetail() {
     );
   const getReserveLabel = () => {
     if (reserved) return "Reserved!";
-    if (reserving) return "Reserving...";
+    if (reserving ) return "Reserving...";
     return "Reserve this item";
   };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-1.5 text-xs text-gray-400">
