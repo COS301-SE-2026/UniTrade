@@ -28,8 +28,8 @@ public sealed class DisputeCaseData
 
     public Guid? SnapshotId { get; set; }
     public Guid? OriginalSnapshotId { get; set; }
-    public string? Resolution {get; set; }
+    public string? Resolution { get; set; }
 
-    public DateTime? ResolvedAt {get; set;}
+    public DateTime? ResolvedAt { get; set; }
 
 }

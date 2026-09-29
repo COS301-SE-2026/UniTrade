@@ -316,12 +316,12 @@ public class DisputeService : IDisputeService
     public Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(
         Guid userId, string? type, CancellationToken ct = default)
     {
-        return _disputes.ListForUserAsync(userId,type,ct);
+        return _disputes.ListForUserAsync(userId, type, ct);
     }
 
-    public  Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default)
+    public Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default)
     {
         return _disputes.ListClosedAsync(type, ct);
     }
-    
+
 }

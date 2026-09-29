@@ -58,8 +58,8 @@ public class ReservationsController : ControllerBase
         CancellationToken ct
     )
     {
-        if(User.IsAdmin())
-            return StatusCode(403, new {error = "admin_not_allowed"});
+        if (User.IsAdmin())
+            return StatusCode(403, new { error = "admin_not_allowed" });
         if (!IsVerified)
             return StatusCode(403, new { error = "not_verified" });
 
@@ -251,8 +251,8 @@ public class ReservationsController : ControllerBase
         CancellationToken ct
     )
     {
-        if(User.IsAdmin())
-            return StatusCode(403, new {error = "admin_not_allowed"});
+        if (User.IsAdmin())
+            return StatusCode(403, new { error = "admin_not_allowed" });
         if (!IsVerified)
         {
             return StatusCode(403, new { error = "not_verified" });

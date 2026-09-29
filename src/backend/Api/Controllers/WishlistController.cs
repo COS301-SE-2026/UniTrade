@@ -38,8 +38,8 @@ public class WishlistController : ControllerBase
     )
     {
 
-        if(User.IsAdmin())
-            return StatusCode(403, new {error = "admin_not_allowed"});
+        if (User.IsAdmin())
+            return StatusCode(403, new { error = "admin_not_allowed" });
         if (!TryGetCallerId(out var callerId))
         {
             return Unauthorized(new { error = "unauthenticated" });

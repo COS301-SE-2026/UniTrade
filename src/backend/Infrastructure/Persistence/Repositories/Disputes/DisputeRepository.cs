@@ -42,19 +42,20 @@ public class DisputeRepository : IDisputeRepository
 string? type,
 CancellationToken ct = default)
 
-{
-var query = _db.Disputes.Where(d => d.Status =="resolved" || d.Status == "closed");
-if (!string.IsNullOrWhiteSpace(type))
-{
-query = query.Where(d => d.Type == type);
-} var disputes = await query.OrderByDescending(d=> d.ResolvedAt).ToListAsync(ct);
-var results = new List<CaseSummaryDto>(disputes.Count);
-foreach (var d in disputes)
-{
-	results.Add(await BuildSummaryAsync(d, ct));
-}
-return results;
-}
+    {
+        var query = _db.Disputes.Where(d => d.Status == "resolved" || d.Status == "closed");
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            query = query.Where(d => d.Type == type);
+        }
+        var disputes = await query.OrderByDescending(d => d.ResolvedAt).ToListAsync(ct);
+        var results = new List<CaseSummaryDto>(disputes.Count);
+        foreach (var d in disputes)
+        {
+            results.Add(await BuildSummaryAsync(d, ct));
+        }
+        return results;
+    }
 
 
 
@@ -320,16 +321,16 @@ return results;
     )
     {
         var query = _db.Disputes.Where(d => d.RaisedBy == userId || d.SubjectUserId == userId);
-        if(!string.IsNullOrWhiteSpace(type))
+        if (!string.IsNullOrWhiteSpace(type))
         {
             query = query.Where(d => d.Type == type);
         }
 
-        var disputes = await query.OrderByDescending(d=> d.SubmittedAt).ToListAsync(ct);
+        var disputes = await query.OrderByDescending(d => d.SubmittedAt).ToListAsync(ct);
         var results = new List<CaseSummaryDto>(disputes.Count);
-        foreach (var d  in disputes)
+        foreach (var d in disputes)
         {
-            results.Add(await BuildSummaryAsync (d,ct));
+            results.Add(await BuildSummaryAsync(d, ct));
         }
         return results;
 

@@ -108,11 +108,11 @@ public class AdminCaseService : IAdminCaseService
         // 2. Dispute Cases
         if (type is null or _listingQualityString or _noShowString or _reportListingString)
         {
-            var wantsClosed = string.Equals(status, _resolvedString, StringComparison.OrdinalIgnoreCase)||
-            string.Equals(status,_dismissedString,StringComparison.OrdinalIgnoreCase);
+            var wantsClosed = string.Equals(status, _resolvedString, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(status, _dismissedString, StringComparison.OrdinalIgnoreCase);
 
             var disputeItems = wantsClosed
-            ? await _disputes.ListClosedAsync(type,ct) : await _disputes.ListPendingAsync(type,ct);
+            ? await _disputes.ListClosedAsync(type, ct) : await _disputes.ListPendingAsync(type, ct);
 
             var subjectUserIds = disputeItems.Select(i => i.SubjectUserId).Distinct().ToList();
             var counterpartyIds = disputeItems
@@ -270,15 +270,15 @@ public class AdminCaseService : IAdminCaseService
         return dispute is null ? null : await ToDisputeDetailAsync(dispute, ct);
     }
 
-      public async Task<CaseDetailDto?> GetCaseByIdForUserAsync(
-        Guid caseId,
-       
-        Guid userId,
-        CancellationToken ct = default
-    )
+    public async Task<CaseDetailDto?> GetCaseByIdForUserAsync(
+      Guid caseId,
+
+      Guid userId,
+      CancellationToken ct = default
+  )
     {
-        var detail = await GetCaseByIdAsync(caseId,ct);
-        if(detail is null)
+        var detail = await GetCaseByIdAsync(caseId, ct);
+        if (detail is null)
         {
             return null;
         }
@@ -295,7 +295,7 @@ public class AdminCaseService : IAdminCaseService
 
     }
 
-    
+
     public async Task<CaseDetailDto?> DecideCaseAsync(
         Guid caseId,
         DecisionRequestDto request,
@@ -352,7 +352,7 @@ public class AdminCaseService : IAdminCaseService
         }
 
         if (disputeData.Status is "resolved" or "closed")
-         { throw new DisputesException("case_already_closed");}
+        { throw new DisputesException("case_already_closed"); }
 
         if (
             decision
