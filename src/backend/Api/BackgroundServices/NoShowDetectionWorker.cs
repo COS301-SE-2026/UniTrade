@@ -8,7 +8,10 @@ public class NoShowDetectionWorker : BackgroundService
     private readonly ILogger<NoShowDetectionWorker> _logger;
     private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
 
-    public NoShowDetectionWorker(IServiceScopeFactory scopeFactory, ILogger<NoShowDetectionWorker> logger)
+    public NoShowDetectionWorker(
+        IServiceScopeFactory scopeFactory,
+        ILogger<NoShowDetectionWorker> logger
+    )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
@@ -29,7 +32,10 @@ public class NoShowDetectionWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "No-show detection failed,next attempt will retry the next trick");
+                _logger.LogError(
+                    ex,
+                    "No-show detection failed,next attempt will retry the next trick"
+                );
             }
         } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
@@ -41,10 +47,11 @@ public class NoShowDetectionWorker : BackgroundService
 
         var now = DateTime.UtcNow;
 
-        try {
+        try
+        {
             var reminded = await meetups.SendUpcomingReminderAsync(now, ct);
             if (reminded > 0 && _logger.IsEnabled(LogLevel.Information))
-               _logger.LogInformation("Sent check-in reminders for {Count} meetup(s)", reminded);
+                _logger.LogInformation("Sent check-in reminders for {Count} meetup(s)", reminded);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -59,7 +66,10 @@ public class NoShowDetectionWorker : BackgroundService
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Auto-resolved {Count} meetup(s) at end of check-in window", resolved.Count);
+            _logger.LogInformation(
+                "Auto-resolved {Count} meetup(s) at end of check-in window",
+                resolved.Count
+            );
         }
     }
 }
