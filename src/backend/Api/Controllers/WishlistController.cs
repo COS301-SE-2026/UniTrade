@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Api.Extensions;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms.Mapping;
@@ -36,6 +37,9 @@ public class WishlistController : ControllerBase
         CancellationToken ct
     )
     {
+
+        if(User.IsAdmin())
+            return StatusCode(403, new {error = "admin_not_allowed"});
         if (!TryGetCallerId(out var callerId))
         {
             return Unauthorized(new { error = "unauthenticated" });

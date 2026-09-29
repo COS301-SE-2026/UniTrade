@@ -16,25 +16,24 @@ public class ListingRiskScoreService : IListingRiskScoreService
     private readonly IStrikeRepository _strikes;
     private readonly IUserRepository _users;
 
-    private const decimal LowRiskUpperBound = 39m;
-    private const decimal MediumRiskUpperBound = 69m;
-    private const int DuplicateHashThreshold = 8;
-    private const double DuplicateEmbeddingThreshold = 0.85;
-    private const int _minComparableSampleSize = 3;
     private const decimal _lowRiskUpperBound = 39m;
+    private const decimal _mediumRiskUpperBound = 69m;
+    private const int _duplicateHashThreshold = 8;
+    private const double _duplicateEmbeddingThreshold = 0.85;
+    private const int _minComparableSampleSize = 3;
     private const int _fullVisibilityScore = 100;
     private const int _minMediumVisibilityScore = 20;
 
-    private const decimal PriceSignalWeight = 0.4m;
-    private const decimal SellerHistorySignalWeight = 0.3m;
-    private const decimal DuplicateSignalWeight = 0.3m;
+    private const decimal _priceSignalWeight = 0.4m;
+    private const decimal _sellerHistorySignalWeight = 0.3m;
+    private const decimal _duplicateSignalWeight = 0.3m;
 
-    private const decimal RatingSubWeight = 0.5m;
-    private const decimal StrikeSubWeight = 0.5m;
-    private const int StrikeRiskPerStrike = 34;
+    private const decimal _ratingSubWeight = 0.5m;
+    private const decimal _strikeSubWeight = 0.5m;
+    private const int _strikeRiskPerStrike = 34;
 
-    private const decimal HardPriceCeiling = 25_000m;
-    private const decimal HighRiskScoreFloor = 70m;
+    private const decimal _hardPriceCeiling = 25_000m;
+    private const decimal _highRiskScoreFloor = 70m;
 
     public ListingRiskScoreService(
         IListingRepository listings,
@@ -60,7 +59,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
         var duplicateSore = await ComputeDuplicateImageScoreAsync(listing, reasons, ct);
         var sellerHistoryScore = await ComputeSellerHistoryScoreAsync(listing, reasons, ct);
 
-        var extremePrice = listing.Price > HardPriceCeiling;
+        var extremePrice = listing.Price > _hardPriceCeiling;
         if (extremePrice && !reasons.Any(r => r.Code == "price_anomaly"))
         {
             reasons.Add(
@@ -68,23 +67,23 @@ public class ListingRiskScoreService : IListingRiskScoreService
                 {
                     Code = "price_anomaly",
                     Detail =
-                        $"R{listing.Price:N0} is above the R{HardPriceCeiling:N0} maximum for a campus listing",
+                        $"R{listing.Price:N0} is above the R{_hardPriceCeiling:N0} maximum for a campus listing",
                 }
             );
         }
 
         var combinedScore = CombineSignals(
-            (priceScore, PriceSignalWeight),
-            (duplicateSore, DuplicateSignalWeight),
-            (sellerHistoryScore, SellerHistorySignalWeight)
+            (priceScore, _priceSignalWeight),
+            (duplicateSore, _duplicateSignalWeight),
+            (sellerHistoryScore, _sellerHistorySignalWeight)
         );
         if (extremePrice)
         {
-            combinedScore = Math.Max(combinedScore, HighRiskScoreFloor);
+            combinedScore = Math.Max(combinedScore, _highRiskScoreFloor);
         }
         var level =
-            combinedScore > MediumRiskUpperBound ? "high"
-            : combinedScore > LowRiskUpperBound ? "medium"
+            combinedScore > _mediumRiskUpperBound ? "high"
+            : combinedScore > _lowRiskUpperBound ? "medium"
             : "low";
 
         int? visibilityScore = level switch
@@ -201,7 +200,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
             {
                 var hashMatch = candidates.FirstOrDefault(c =>
                     c.Hash != null
-                    && _hashing.HammingDistance(ownHash, c.Hash) <= DuplicateHashThreshold
+                    && _hashing.HammingDistance(ownHash, c.Hash) <= _duplicateHashThreshold
                 );
                 if (hashMatch is not null)
                 {
@@ -223,7 +222,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
                 var embeddingMatch = candidates.FirstOrDefault(c =>
                     c.Embedding is { Length: > 0 } candidateEmbedding
                     && CosineSimilarity(ownEmbedding, candidateEmbedding)
-                        >= DuplicateEmbeddingThreshold
+                        >= _duplicateEmbeddingThreshold
                 );
                 if (embeddingMatch is not null)
                 {
@@ -266,7 +265,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
         decimal? ratingRisk =
             trustScore == 0m ? null : Math.Min(100m, Math.Max(0m, (5m - trustScore) / 4m * 100m));
 
-        if (ratingRisk is > LowRiskUpperBound)
+        if (ratingRisk is > _lowRiskUpperBound)
         {
             reasons.Add(
                 new RiskReason
@@ -277,7 +276,7 @@ public class ListingRiskScoreService : IListingRiskScoreService
             );
         }
         var strikeCount = await _strikes.CountForUserAsync(listing.SellerId, ct);
-        decimal strikeRisk = Math.Min(100m, strikeCount * StrikeRiskPerStrike);
+        decimal strikeRisk = Math.Min(100m, strikeCount * _strikeRiskPerStrike);
 
         if (strikeCount > 0)
         {
@@ -290,6 +289,6 @@ public class ListingRiskScoreService : IListingRiskScoreService
             );
         }
 
-        return CombineSignals((ratingRisk, RatingSubWeight), (strikeRisk, StrikeSubWeight));
+        return CombineSignals((ratingRisk, _ratingSubWeight), (strikeRisk, _strikeSubWeight));
     }
 }

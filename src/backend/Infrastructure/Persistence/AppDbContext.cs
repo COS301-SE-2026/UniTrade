@@ -35,7 +35,7 @@ public class AppDbContext : DbContext
     public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
         Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
-    
+
 
     ///add listing model after resolving conflicts
     // Listings
@@ -781,7 +781,7 @@ public class AppDbContext : DbContext
         });
 
         //Passwod reset requets
-        modelBuilder.Entity<PasswordResetRequest>(entity => 
+        modelBuilder.Entity<PasswordResetRequest>(entity =>
         {
             entity.HasKey(x => x.PasswordResetRequestId);
 
@@ -803,9 +803,9 @@ public class AppDbContext : DbContext
              .IsUnique()
              .HasFilter("is_current = true");
 
-            });
+        });
 
-        
+
 
         // Wishlist items
         modelBuilder.Entity<WishlistItem>(entity =>

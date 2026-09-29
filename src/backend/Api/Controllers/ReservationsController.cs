@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Api.Extensions;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using Modules.Chat;
 using Modules.Listings.Models.Dto;
 using Modules.Listings.Snapshot;
 using Modules.Reservations;
+
 
 namespace Api.Controllers;
 
@@ -56,6 +58,8 @@ public class ReservationsController : ControllerBase
         CancellationToken ct
     )
     {
+        if(User.IsAdmin())
+            return StatusCode(403, new {error = "admin_not_allowed"});
         if (!IsVerified)
             return StatusCode(403, new { error = "not_verified" });
 
@@ -246,6 +250,8 @@ public class ReservationsController : ControllerBase
         CancellationToken ct
     )
     {
+        if(User.IsAdmin())
+            return StatusCode(403, new {error = "admin_not_allowed"});
         if (!IsVerified)
         {
             return StatusCode(403, new { error = "not_verified" });

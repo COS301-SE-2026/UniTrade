@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '../../lib/queryKeys'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import chemImg from '../../assets/bio-textbook.jpg'
 import calcImg from '../../assets/calculas-textbook.jpg'
 import laptopImg from '../../assets/hp-laptop.jpg'
-import { type CaseType } from '../../types/admin_disputes'
+import { type CaseType, type CaseSummary } from '../../types/admin_disputes'
 import { getCases } from '../../services/adminService'
 import { LoadingState } from '../../components/layout/Spinner'
 import { imageUrl } from '../../services/listingsService'
@@ -20,6 +20,10 @@ export interface DisputeRow {
   status: string
   image: string
 }
+
+function toCaseList(response: unknown): CaseSummary[] {
+  if (Array.isArray(response)) return response as CaseSummary[]
+  return (response as { cases?: CaseSummary [] } | null)?.cases ?? []}
 
 
 function getTimeAgo(ageHours: number): string {
@@ -50,16 +54,28 @@ function getPlaceholder(type: CaseType): string {
 
 export default function AdminDisputes() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const view: 'active' | 'closed' = searchParams.get('view') === 'closed' ? 'closed' : 'active'
+
   const [filter, setFilter] = useState<'all' | 'No-show' | 'Listing-quality' | 'Report'>('all');
   const navigate = useNavigate();
 
   const { data: rows = [], isLoading, error } = useQuery({
-    queryKey: queryKeys.disputes(),
+    queryKey:[...queryKeys.disputes(), view],
     queryFn: async () => {
-      const response = await getCases();
+      const cases = view ==='active' ? toCaseList(await getCases())
+      : (
+        await Promise.all([
+          getCases({ status: 'resolved'}),
+          getCases({ status: 'dismissed'}),
+
+        ])
+      ).flatMap(toCaseList)
+
+     // const response = await getCases();
 
       const disputeTypes: Set<CaseType> = new Set(['no_show', 'listing_quality', 'report_listing']);
-      const cases = Array.isArray(response) ? response : response?.cases ?? [];
+      //const cases = Array.isArray(response) ? response : response?.cases ?? [];
       const filtered = cases.filter(c => disputeTypes.has(c.type));
 
       return filtered.map(summary => ({
@@ -101,11 +117,38 @@ export default function AdminDisputes() {
 
   return (
     <div className='space-y-6'>
-      <div>
+ {/*     <div>
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">Active Disputes</h1>
         <p className="text-xs text-gray-600 mt-1">Manage all the Disputes in one place.</p>
-      </div>
+      </div>*/}
 
+<div className="flex items-start justify-between flex-wrap gap-3">
+  <div>
+    <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
+      {view === 'active' ? 'Active Disputes' : 'Closed Disputes'}
+    </h1>
+    <p className="text-xs text-gray-600 mt-1">
+      {view === 'active'
+        ? 'Manage all the Disputes in one place.'
+        : 'Resolved and dismissed disputes, for reference.'}
+    </p>
+  </div>
+  <div className="inline-flex items-center rounded-full border border-gray-300 bg-white p-0.5 text-xs font-semibold">
+    {(['active', 'closed'] as const).map((v) => (
+      <button
+        key={v}
+        type="button"
+        onClick={() => setSearchParams(v === 'closed' ? { view: 'closed' } : {})}
+        className={`px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+          view === v ? 'bg-navy-700 text-white' : 'text-gray-600 hover:bg-gray-50'
+        }`}
+      >
+        {v === 'active' ? 'Active' : 'Closed'}
+      </button>
+    ))}
+  </div>
+
+</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">{totalDisputes}
@@ -236,7 +279,18 @@ export default function AdminDisputes() {
                       <span className="inline-block px-3 py-1 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
                         Resubmitted
                       </span>
-                    )}
+)}
+
+                  {view === 'closed' && (
+                        <span className={`inline-block ml-2 px-3 py-1 rounded-full text-[10px] font-medium ${
+    dispute.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+  }`}>
+   
+    {dispute.status === 'resolved' ? 'Resolved' : 'Dismissed'}
+
+                        </span>
+                      
+   )}
                   </td>
 
                   <td className="py-4 px-4 text-right">
@@ -246,7 +300,7 @@ export default function AdminDisputes() {
                         onClick={() => navigate(`/admin/disputes/${dispute.id}`)}
                         className="bg-navy-700 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-navy-500 
                 transition-colors cursor-pointer">
-                        Review
+                        {view === 'closed' ? 'View': 'Review'}
                       </button>
                     </div>
                   </td>

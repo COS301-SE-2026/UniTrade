@@ -38,6 +38,26 @@ public class DisputeRepository : IDisputeRepository
         return results;
     }
 
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(
+string? type,
+CancellationToken ct = default)
+
+{
+var query = _db.Disputes.Where(d => d.Status =="resolved" || d.Status == "closed");
+if (!string.IsNullOrWhiteSpace(type))
+{
+query = query.Where(d => d.Type == type);
+} var disputes = await query.OrderByDescending(d=> d.ResolvedAt).ToListAsync(ct);
+var results = new List<CaseSummaryDto>(disputes.Count);
+foreach (var d in disputes)
+{
+	results.Add(await BuildSummaryAsync(d, ct));
+}
+return results;
+}
+
+
+
     public async Task<DisputeCaseData?> GetCaseDataAsync(
         Guid disputeId,
         CancellationToken ct = default
@@ -67,6 +87,8 @@ public class DisputeRepository : IDisputeRepository
             RaisedBy = d.RaisedBy ?? Guid.Empty,
             BuyerId = parties.BuyerId,
             SellerId = parties.SellerId,
+            Resolution = d.Resolution,
+            ResolvedAt = d.ResolvedAt,
         };
 
         //no show dispute
@@ -291,6 +313,28 @@ public class DisputeRepository : IDisputeRepository
         };
     }
 
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(
+        Guid userId,
+        string? type,
+        CancellationToken ct = default
+    )
+    {
+        var query = _db.Disputes.Where(d => d.RaisedBy == userId || d.SubjectUserId == userId);
+        if(!string.IsNullOrWhiteSpace(type))
+        {
+            query = query.Where(d => d.Type == type);
+        }
+
+        var disputes = await query.OrderByDescending(d=> d.SubmittedAt).ToListAsync(ct);
+        var results = new List<CaseSummaryDto>(disputes.Count);
+        foreach (var d  in disputes)
+        {
+            results.Add(await BuildSummaryAsync (d,ct));
+        }
+        return results;
+
+    }
+
     public async Task SetOriginalSnapshotAsync(
         Guid disputeId,
         Guid snapshotId,
@@ -299,7 +343,7 @@ public class DisputeRepository : IDisputeRepository
     {
         var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
         if (d is null)
-           return;
+            return;
         d.OriginalSnapshotId = snapshotId;
         await _db.SaveChangesAsync(ct);
     }

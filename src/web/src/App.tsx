@@ -95,6 +95,8 @@ const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResul
 const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
 const AdminListingRiskReview = lazy(() => import("./pages/admin/AdminListingRiskReview"))
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const MyDisputes = lazy(() => import("./pages/buyer/MyDisputes"));
+const MyDisputeView = lazy(() => import("./pages/buyer/MyDisputeView"));
 
 function FullPageLoading({message = "Loading..."}: Readonly<{message?: string}>) {
   return (
@@ -171,6 +173,10 @@ export default function App() {
           <Route path="/buyer/smart-budget-reserve" element={<SmartBudgetReserve />} />
           <Route path = "/buyer/saved-searches" element={<SavedSearches />} />
           <Route path = "/buyer/reservations/smart-budget-result" element={<SmartBudgetReservation />} />
+          <Route path="/buyer/disputes" element={<MyDisputes />} />
+          <Route path="/buyer/disputes/:id" element={<MyDisputeView />} />
+          <Route path="/seller/disputes" element={<MyDisputes />} />
+          <Route path="/seller/disputes/:id" element={<MyDisputeView />} />
           <Route path="/seller/reservations" element={<SellerReservations />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/upload" element={<UploadListing />} />
