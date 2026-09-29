@@ -50,12 +50,34 @@ public class MeetupRepository : IMeetupRepository
             .OrderByDescending(m => m.AgreedTime)
             .FirstOrDefaultAsync(ct);
 
-    public async Task<IReadOnlyList<Meetup>> GetDueForNoShowDetectionAsync(DateTime asOf, int batchSize, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Meetup>> GetDueForNoShowDetectionAsync(
+        DateTime asOf,
+        int batchSize,
+        CancellationToken ct = default
+    )
     {
-        return await _db.Meetups
-            .Where(m => m.Status == _scheduledString && m.CheckinWindowClosesAt <= asOf)
+        return await _db
+            .Meetups.Where(m => m.Status == _scheduledString && m.CheckinWindowClosesAt <= asOf)
             .Take(batchSize)
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Meetup>> GetDueForReminderAsync(
+        DateTime asOf,
+        int batchSize,
+        CancellationToken ct = default
+    )
+    {
+        var threshold = asOf + MeetupStateMachine.CheckInOpensBefore;
+        return await _db
+            .Meetups.Where(m =>
+                m.Status == _scheduledString
+                && m.ReminderSentAt == null
+                && m.AgreedTime <= threshold
+                && m.CheckinWindowClosesAt > asOf
+            )
+            .OrderBy(m => m.AgreedTime)
+            .Take(batchSize)
+            .ToListAsync(ct);
+    }
 }

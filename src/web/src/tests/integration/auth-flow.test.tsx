@@ -39,6 +39,7 @@ vi.mock('../../services/realtime/connectionManager', () => ({
     onSavedSearchMatch: vi.fn(() => vi.fn()),
     onVerificationCreated: vi.fn(() => vi.fn()),
     onVerificationUpdated: vi.fn(() => vi.fn()),
+    onListingSold: vi.fn(() => vi.fn()),
   },
 }));
 

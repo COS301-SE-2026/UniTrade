@@ -9,6 +9,8 @@ import { LoadingState } from '../../components/layout/Spinner'
 
 type Filter = "All" | "Overdue" | "Due soon" | "Normal";
 
+const PAGE_SIZE = 6;
+
 export interface VerificationRow {
   id: string
   name: string
@@ -35,6 +37,7 @@ export default function AdminVerifications() {
   const searchQuery = searchParams.get('q') ?? '';
   const [filter, setFilter] = useState<Filter>("All");
   const [sortBy, setSortBy] = useState<'Oldest First' | 'Newest First'>('Oldest First');
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
   const { data: rows = [], isLoading: loading, error } = useQuery({
@@ -106,6 +109,20 @@ export default function AdminVerifications() {
     const dateB = new Date(b.submittedDate).getTime();
     return sortBy === 'Oldest First' ? dateA - dateB : dateB - dateA;
   });
+
+const listKey = `${filter}|${sortBy}|${searchQuery}`;
+const [lastListKey, setLastListKey] = useState(listKey);
+if (lastListKey !== listKey) {
+  setLastListKey(listKey);
+  setCurrentPage(1);
+}
+
+const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+const safePage = Math.min(currentPage, totalPages);
+const paginatedRows = sortedRows.slice(
+  (safePage - 1) * PAGE_SIZE,
+  safePage * PAGE_SIZE,
+);
 
   const numOverdue = rows.filter(r => r.slaState === 'Overdue').length;
   const numDueSoon = rows.filter(r => r.slaState === 'Due soon').length;
@@ -183,7 +200,10 @@ export default function AdminVerifications() {
             <button
               key={label}
               type="button"
-              onClick={() => setFilter(label)}
+              onClick={() => {
+                setFilter(label)
+                setCurrentPage(1);
+              }}
               className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors whitespace-nowrap
                 ${filter === label
                   ? "bg-navy-700 text-white border-navy-700 dark:bg-white dark:text-navy-900"
@@ -199,7 +219,10 @@ export default function AdminVerifications() {
           <select
             aria-label="Sort disputes"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'Oldest First' | 'Newest First')}
+            onChange={(e) => {
+              setSortBy(e.target.value as 'Oldest First' | 'Newest First');
+              setCurrentPage(1);
+            }}
             className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-none cursor-pointer w-full sm:w-auto'
           >
             <option value="Oldest First">Sort: Oldest First</option>
@@ -225,7 +248,7 @@ export default function AdminVerifications() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-white/10">
-              {sortedRows.map((ver) => (
+              {paginatedRows.map((ver) => (
                 <div
                   key={ver.id}
                   className="p-4 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors"
@@ -297,7 +320,7 @@ export default function AdminVerifications() {
                       <button
                         type="button"
                         onClick={() => navigate(`/admin/verifications/${ver.id}`)}
-                        className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-3 sm:px-5 py-2 flex-1 whitespace-nowrap"
+                        className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-4 sm:px-5 py-1.5 flex-1 whitespace-nowrap"
                       >
                         Review
                       </button>
@@ -307,7 +330,7 @@ export default function AdminVerifications() {
                           href={ver.docUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-white dark:bg-navy-800 text-[#0a1931] dark:text-white border border-gray-300 dark:border-white/10 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer text-xs px-3 sm:px-5 py-2 inline-flex items-center justify-center gap-1 flex-1 whitespace-nowrap"
+                          className="bg-white dark:bg-navy-800 text-[#0a1931] dark:text-white border border-gray-300 dark:border-white/10 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer text-xs px-4 sm:px-5 py-1.5 inline-flex items-center justify-center gap-1 flex-1 whitespace-nowrap"
                         >
                           <IconEye className="w-3.5 h-3.5" />
                           <span>View Doc</span>
@@ -326,6 +349,32 @@ export default function AdminVerifications() {
           )}
         </div>
       </div>
+      {sortedRows.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-400 whitespace-nowrap">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}-
+            {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
+            {sortedRows.length} verifications
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+              (page) => (
+                <button
+                  type="button"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${safePage === page
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

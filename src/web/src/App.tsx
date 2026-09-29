@@ -210,6 +210,7 @@ export default function App() {
           />
 
           <Route path="/payment/meetup" element={<MeetupDetails />} />
+          <Route path="/payment/meetup/:reservationId" element={<MeetupDetails />} />
           <Route path="/payment/payfast-redirect" element={<Redirect />} />
 
           <Route path="/payment/generate-pin" element={<GeneratePin />} />

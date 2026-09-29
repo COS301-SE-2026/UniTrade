@@ -12,4 +12,5 @@ public interface IListingNotifier
         CancellationToken ct = default
     );
     Task ListingFlaggedForAdminAsync(Guid listingId, CancellationToken ct = default);
+    Task ListingLiveAsync(Guid listingId, CancellationToken ct = default);
 }

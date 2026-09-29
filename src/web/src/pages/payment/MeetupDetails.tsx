@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation, useParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import CheckInModal from '../../components/CheckInModal';
 import { ChevronLeft, User, MapPin, Calendar, Users, Lock, ShieldCheck } from 'lucide-react';
@@ -9,6 +9,8 @@ import LocationPicker from '../../components/layout/LocationPicker';
 import { getTransactionStatus, createTransactionRequest, type TransactionStatusResponse } from '../../services/reservationService';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { LoadingState } from '../../components/layout/Spinner';
+import { useAuthStore } from '../../store/useAuthStore';
+
 
 interface MeetupDetailsState {
   reservationId?: string;
@@ -84,10 +86,12 @@ export default function MeetupDetails() {
 
   const location = useLocation();
 
+  const { reservationId: paramId } = useParams<{ reservationId: string }>();
+  const { user } = useAuthStore();
   const navState = (location.state as MeetupDetailsState | null) ?? {};
-  const isSeller = navState.role === 'seller'
-  const reservationId = navState.reservationId;
+  const reservationId = paramId ?? navState.reservationId;
   const [showCheckIn, setShowCheckIn] = useState(false);
+
 
   const { data: reservation, isLoading: isReservationLoading } = useQuery({
     queryKey: ['reservation', reservationId],
@@ -98,6 +102,12 @@ export default function MeetupDetails() {
     },
     enabled: !!reservationId,
   });
+  let isSeller = false;
+  if (navState.role) {
+    isSeller = navState.role === 'seller';
+  } else if (reservation) {
+    isSeller = reservation.sellerId === user?.id;
+  }
 
   const { data: meetup, isLoading: isMeetupLoading, refetch: refetchMeetup } = useQuery({
     queryKey: ['meetup', reservationId],
@@ -144,7 +154,7 @@ export default function MeetupDetails() {
 
   const isLoading = !!reservationId && (isReservationLoading || isMeetupLoading);
 
-  const counterpartyName = navState.counterpartyName ?? (isSeller ? 'Buyer' : 'Seller');
+  const counterpartyName = reservation?.counterParty?.name ?? navState.counterpartyName ?? (isSeller ? 'Buyer' : 'Seller');
   const meetupLocation = meetup?.agreedLocationName ?? navState.meetupLocation ?? 'Location to be confirmed';
   const meetupTime = meetup?.agreedTime ?? navState.meetupTime;
   const price = navState.listingPrice ?? reservation?.totalPrice;
