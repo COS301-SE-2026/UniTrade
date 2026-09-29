@@ -378,7 +378,9 @@ public class AdminCaseService : IAdminCaseService
         CancellationToken ct = default
     )
     {
-        await _sanctions.ApplyStrikeAsync(userId, caseId, "manual", reason, adminId, "seller", ct);
+        var scope = await ResolveManualStrikeScopeAsync(userId, caseId, ct);
+
+        await _sanctions.ApplyStrikeAsync(userId, caseId, "manual", reason, adminId, scope, ct);
 
         var auditRequest = new AuditWriteRequest(
             ActorId: adminId,
@@ -386,7 +388,7 @@ public class AdminCaseService : IAdminCaseService
             EntityType: "user",
             EntityId: userId.ToString(),
             OldValue: null,
-            NewValue: $"manual strike (case: {caseId?.ToString() ?? "none"})",
+            NewValue: $"manual strike (scope: {scope}, case: {caseId?.ToString() ?? "none"})",
             Reason: reason
         );
         await _audit.WriteAsync(auditRequest, ct);
@@ -408,6 +410,29 @@ public class AdminCaseService : IAdminCaseService
     {
         Buyer,
         Seller,
+    }
+
+    private async Task<string> ResolveManualStrikeScopeAsync(Guid userId, Guid? caseId, CancellationToken ct)
+    {
+        if (caseId is null)
+            return "seller";
+
+        var data = await _disputes.GetCaseDataAsync(caseId.Value, ct);
+        if (data is null)
+            return "seller";
+
+        if (data.BuyerId == userId)
+            return "buyer";
+
+        if (data.SellerId == userId)
+            return "seller";
+
+        // false - vindictive reporter is abusing the consumer side -> buyer scope
+        if (data.Type == _reportListingString && data.RaisedBy == userId)
+            return "buyer";
+
+        return
+        "seller";
     }
 
     private static int SlaHours(string caseType) =>
