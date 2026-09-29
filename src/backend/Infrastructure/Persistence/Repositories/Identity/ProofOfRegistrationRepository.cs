@@ -62,4 +62,10 @@ public class ProofOfRegistrationRepository : IProofOfRegistrationRepository
             await _db.SaveChangesAsync(ct);
         }
     }
+
+    public async Task<IReadOnlyList<Guid>> ListDueForPurgeAsync(DateTime cutoffUtc, CancellationToken ct = default)
+    {
+        return await _db.ProofOfRegistrationDocuments.AsNoTracking().Join(_db.VerificationRequests.AsNoTracking(), doc => doc.VerificationId, vr => vr.VerificationId, (doc, vr) => new { doc.VerificationId, vr.DecidedAt }).Where(x => x.DecidedAt != null && x.DecidedAt <= cutoffUtc).Select(x => x.VerificationId).ToListAsync(ct);
+    }
+
 }
