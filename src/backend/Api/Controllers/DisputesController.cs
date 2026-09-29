@@ -101,7 +101,7 @@ CancellationToken ct
             c.ListingId,
             c.ImageUrl,
             c.CopyCount,
-            ViewerRole = c.RaisedBy == CallerId ? "filed_by_me" : "againt_me",
+            ViewerRole = c.RaisedBy == CallerId ? "filed_by_me" : "against_me",
         });
 
         return Ok(new { cases = withRole });

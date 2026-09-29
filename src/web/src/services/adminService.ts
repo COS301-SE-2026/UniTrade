@@ -168,7 +168,7 @@ export async function getMyCases(
 ): Promise<ListMyCasesResponse> {
   const query = new URLSearchParams();
   if (type) query.set("type", type);
-  const res = await fetch(`${getApiUrl()}/disputes/mines?${query.toString()}`, {
+  const res = await fetch(`${getApiUrl()}/disputes/mine?${query.toString()}`, {
     method: "GET",
     credentials: "include",
   });
