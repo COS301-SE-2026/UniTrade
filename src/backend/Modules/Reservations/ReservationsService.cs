@@ -45,7 +45,7 @@ public class ReservationService(
     private readonly TimeProvider _clock = clock;
     private readonly IListingSnapshotService _snapshots = snapshots;
     private readonly IAuditService _audit = audit;
-     private readonly IUserRepository _users = users;
+    private readonly IUserRepository _users = users;
 
     // const strings
     private const string _reservationString = "reservation";
@@ -420,7 +420,7 @@ public class ReservationService(
     private async Task GuardBuyerNotSuspendedAsync(Guid buyerId, CancellationToken ct)
     {
         var buyer = await _users.GetByIdAsync(buyerId);
-        if(buyer?.BuyerBannedUntil is DateTime until && until > _clock.GetUtcNow().UtcDateTime)
+        if (buyer?.BuyerBannedUntil is DateTime until && until > _clock.GetUtcNow().UtcDateTime)
         {
             throw new ReservationException(ReservationErrors.BuyerSuspended);
         }

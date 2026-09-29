@@ -10,7 +10,7 @@ public interface IReputationService
         string type,
         string reason,
         Guid adminId,
-        string scope  ="seller",
+        string scope = "seller",
         CancellationToken ct = default
     );
 

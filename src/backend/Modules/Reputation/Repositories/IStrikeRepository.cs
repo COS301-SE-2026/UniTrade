@@ -8,5 +8,5 @@ public interface IStrikeRepository
     Task<int> CountBannableForUserByScopeAsync(Guid userId, string scope, CancellationToken ct = default);
     Task<IReadOnlyList<Strike>> ListForUserAsync(Guid userId, CancellationToken ct = default);
     Task<int> CountForUserAsync(Guid userId, CancellationToken ct = default);
-        
+
 }

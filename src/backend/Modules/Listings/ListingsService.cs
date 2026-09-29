@@ -363,7 +363,7 @@ public class ListingService : IListingService
     )
     {
         await GuardSellerNotSuspendedAsync(callerId, ct);
-        
+
         var listing = await _listings.GetByIdTrackedAsync(listingId);
         if (listing is null)
         {
@@ -722,7 +722,7 @@ public class ListingService : IListingService
             throw new ArgumentException("invalid_status");
         }
 
-        if(newStatus == "live")
+        if (newStatus == "live")
         {
             await GuardSellerNotSuspendedAsync(callerId, ct);
         }
@@ -1108,7 +1108,7 @@ public class ListingService : IListingService
     private async Task GuardSellerNotSuspendedAsync(Guid sellerId, CancellationToken ct)
     {
         var seller = await _users.GetByIdAsync(sellerId);
-        if(seller?.SellerBannedUntil is DateTime until && until > DateTime.UtcNow)
+        if (seller?.SellerBannedUntil is DateTime until && until > DateTime.UtcNow)
         {
             throw new InvalidOperationException("seller_suspended");
         }

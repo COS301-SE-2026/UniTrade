@@ -26,5 +26,5 @@ public interface IUserRepository
     );
 
     Task<IReadOnlyList<User>> ListExpiredSuspensionAsync(DateTime now, CancellationToken ct = default);
-    
+
 }
