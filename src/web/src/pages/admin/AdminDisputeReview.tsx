@@ -175,8 +175,6 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
         reputationScore: 0,
         reviewAverage: 0,
         reviewCount: 0,
-        status: detail.status,
-      resolvedAt: detail.resolvedAt ?? undefined
       };
     }
     return {
@@ -329,6 +327,8 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
     suggestedDecision,
     suggestedOutcomes:
       detail.type === "listing_quality" ? detail.suggestedOutcomes : undefined,
+    status: detail.status,
+    resolvedAt: detail.resolvedAt?? undefined,
   };
 }
 

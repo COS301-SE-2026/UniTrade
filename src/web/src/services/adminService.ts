@@ -1,34 +1,36 @@
 import { getApiUrl } from "../config";
 
-import type {
-  ListCasesParams,
-  PublishListingResponse,
-  DecisionRequest,
-  ApiError,
-  ListCasesResponse,
-  ListMyCasesResponse,
-  GetCaseResponse,
-  DecideCaseResponse,
-  DisputeFiling,
-  FileCaseResponse,
-  FileDisputeBundleRequest,FileDisputeBundleResponse,
-  ListAuditParams,
-  ListAuditResponse,
-  GetListingSnapshotResponse,
-  PublishListingError,
-  ListUserParams,
-  ListUsersResponse,
-  UserReputation,
-  CaseType,
-  UserListing,
-  CaseSummary,
-  FlaggedListing,
-  ListingDecisionResponse,
-  ListingStatusResponse,
-  FlaggedListingDetail,
-  GetMyCaseResponse,
-  Outcome,
-  CaseNote,
+import {
+  type ListCasesParams,
+  type PublishListingResponse,
+  type DecisionRequest,
+  type ApiError,
+  type ListCasesResponse,
+  type ListMyCasesResponse,
+  type GetCaseResponse,
+  type DecideCaseResponse,
+  type DisputeFiling,
+  type FileCaseResponse,
+  type FileDisputeBundleRequest,
+  type FileDisputeBundleResponse,
+  type ListAuditParams,
+  type ListAuditResponse,
+  type GetListingSnapshotResponse,
+  type PublishListingError,
+  type ListUserParams,
+  type ListUsersResponse,
+  type UserReputation,
+  type CaseType,
+  type UserListing,
+  type CaseSummary,
+  type FlaggedListing,
+  type ListingDecisionResponse,
+  type ListingStatusResponse,
+  type FlaggedListingDetail,
+  type GetMyCaseResponse,
+  type Outcome,
+  type CaseNote,
+  type AuditEntry,
 } from "../types/admin_disputes";
 
 export type ButtonAction =
@@ -161,22 +163,24 @@ export async function getCaseById(id: string): Promise<GetCaseResponse> {
   return handleResponse<GetCaseResponse>(res);
 }
 
-export async function getMyCases(type?: CaseType): Promise<ListMyCasesResponse> {
+export async function getMyCases(
+  type?: CaseType,
+): Promise<ListMyCasesResponse> {
   const query = new URLSearchParams();
   if (type) query.set("type", type);
-  const res = await fetch(`${getApiUrl()}/disputes/mines?${query.toString()}`,{
-method: "GET",
-credentials:"include",
-});
+  const res = await fetch(`${getApiUrl()}/disputes/mines?${query.toString()}`, {
+    method: "GET",
+    credentials: "include",
+  });
 
-return handleResponse<ListMyCasesResponse>(res);
+  return handleResponse<ListMyCasesResponse>(res);
 }
 
 export async function getMyCaseById(id: string): Promise<GetMyCaseResponse> {
-  const res= await fetch(`${getApiUrl()}/disputes/mine/${id}`, {
-    method:"GET",
-    credentials: "include"
-  })
+  const res = await fetch(`${getApiUrl()}/disputes/mine/${id}`, {
+    method: "GET",
+    credentials: "include",
+  });
   return handleResponse<GetMyCaseResponse>(res);
 }
 
@@ -215,8 +219,9 @@ export async function fileDisputeBundle(
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-});
-return handleResponse<FileDisputeBundleResponse>(res);}
+  });
+  return handleResponse<FileDisputeBundleResponse>(res);
+}
 
 export async function getAuditEntries(
   params: ListAuditParams = {},
@@ -232,7 +237,12 @@ export async function getAuditEntries(
     credentials: "include",
   });
 
-  return handleResponse<ListAuditResponse>(res);
+  const data = await handleResponse<ListAuditResponse | AuditEntry[]>(res);
+  if (Array.isArray(data)) {
+    return { entries: data, total: data.length };
+  }
+
+  return data;
 }
 
 export async function getReservationSnapshot(
