@@ -31,6 +31,7 @@ import { fileDispute } from "../../services/adminService";
 import ListingQnA from "../../components/ListingQnA";
 import { useToast } from "../../components/layout/useToast";
 import { queryClient } from "../../lib/queryClient";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
 function DetailRow({
   label,
@@ -73,16 +74,15 @@ function ReportModal({
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('input, textarea, [contenteditable="true"]')) {
-          if (e.key === 'Escape') {
+          if (e.key === "Escape") {
             onClose();
           }
           return;
         }
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClose();
         }
-
       }}
     >
       <div
@@ -90,7 +90,6 @@ function ReportModal({
         tabIndex={-1}
         className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-md p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
         onClick={(e) => e.stopPropagation()}
-
       >
         <button
           onClick={onClose}
@@ -103,7 +102,10 @@ function ReportModal({
         </h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="reason" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label
+              htmlFor="reason"
+              className="block text-xs font-semibold text-navy-700 dark:text-white mb-2"
+            >
               Reason
             </label>
             <textarea
@@ -114,7 +116,7 @@ function ReportModal({
               placeholder="Provide a reason for reporting this listing..."
               className="w-full rounded-lg border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700"
             />
-            {error && (<p className="text-xs text-red-500 mt-1">{error}</p>)}
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
           </div>
           <button
             type="button"
@@ -122,7 +124,7 @@ function ReportModal({
             onClick={onSubmit}
             disabled={submitting}
           >
-            {submitting ? 'Submitting...' : 'Submit'}
+            {submitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>
@@ -172,10 +174,18 @@ export default function ListingDetail() {
       setReportModalOpen(false);
       setReportReason("");
       setReportError(null);
-      showToast("success", "Thanks — your report has been submitted and a UniTrade admin will review it shortly.");
+      showToast(
+        "success",
+        "Thanks — your report has been submitted and a UniTrade admin will review it shortly.",
+      );
     } catch (err) {
       const code = (err as { code?: string })?.code ?? "";
-      const message_row = code === "dispute_already_open" ? "You've already reported this listing." : code === "listing_not_live" ? "This listing is no longer available to report." : "Something went wrong submitting your report. Please try again.";
+      const message_row =
+        code === "dispute_already_open"
+          ? "You've already reported this listing."
+          : code === "listing_not_live"
+            ? "This listing is no longer available to report."
+            : "Something went wrong submitting your report. Please try again.";
       setReportError(message_row);
     } finally {
       setReportSubmitting(false);
@@ -214,12 +224,14 @@ export default function ListingDetail() {
 
     if (result.success) {
       setReserved(true);
-      queryClient.invalidateQueries({ queryKey: ["browseListings"]});
+      queryClient.invalidateQueries({ queryKey: ["browseListings"] });
       navigate("/buyer/reservations");
     } else if (result.error.code === "self_reserve") {
       setReserveError("You can't reserve your own listing.");
     } else if (result.error.code === "already_reserved") {
       setReserveError("Item was just reserved by someone else!");
+    } else if (result.error.code === "buyer_suspended") {
+      setReserveError(getAccountStateErrorMessage("buyer_suspended", ""));
     } else {
       setReserveError(result.error.message ?? "Could not reserve this item.");
     }
@@ -245,8 +257,8 @@ export default function ListingDetail() {
           .catch(() => setSimilarListings([]));
         setActiveImage(
           data.images.find((i) => i.isPrimary)?.url ??
-          data.images[0]?.url ??
-          null,
+            data.images[0]?.url ??
+            null,
         );
 
         if (data.sellerId) {
@@ -338,10 +350,11 @@ export default function ListingDetail() {
                   type="button"
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
-                    ? "border-navy-700 dark:border-white"
-                    : "border-transparent"
-                    }`}
+                  className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${
+                    activeImage === img.url
+                      ? "border-navy-700 dark:border-white"
+                      : "border-transparent"
+                  }`}
                 >
                   {img.url ? (
                     <img
@@ -350,9 +363,7 @@ export default function ListingDetail() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-lg">
-
-                    </div>
+                    <div className="w-full h-full flex items-center justify-center text-lg"></div>
                   )}
                 </button>
               ))}
@@ -428,13 +439,8 @@ export default function ListingDetail() {
               )}
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
-
           </div>
-          <ListingQnA
-            listingId={listing.id}
-            isSeller={false}
-            canAsk={true}
-          />
+          <ListingQnA listingId={listing.id} isSeller={false} canAsk={true} />
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
@@ -528,11 +534,12 @@ export default function ListingDetail() {
               disabled={wishlisting || wishlisted}
               className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
-              <IconHeart size={16} /> {
-                wishlisted ? 'In Wishlist' :
-                  wishlisting ? 'Adding...' :
-                    'Add to Wishlist'
-              }
+              <IconHeart size={16} />{" "}
+              {wishlisted
+                ? "In Wishlist"
+                : wishlisting
+                  ? "Adding..."
+                  : "Add to Wishlist"}
             </button>
 
             <button

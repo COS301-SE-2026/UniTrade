@@ -259,14 +259,23 @@ public class ReservationsController : ControllerBase
         {
             return BadRequest(new { error = "invalid_max_budget" });
         }
-        var result = await _smartBudget.ReserveAsync(
-            CallerId,
-            body.ListingIds,
-            body.MaxBudget,
-            body.ExpectedSellerTotals,
-            ct
-        );
+        try
+        {
 
-        return Ok(result);
+
+            var result = await _smartBudget.ReserveAsync(
+                CallerId,
+                body.ListingIds,
+                body.MaxBudget,
+                body.ExpectedSellerTotals,
+                ct
+            );
+
+            return Ok(result);
+        }
+        catch (ReservationException ex)
+        {
+            return MapError(ex);
+        }
     }
 }
