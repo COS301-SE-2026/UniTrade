@@ -6,10 +6,12 @@ import type {
   DecisionRequest,
   ApiError,
   ListCasesResponse,
+  ListMyCasesResponse,
   GetCaseResponse,
   DecideCaseResponse,
   DisputeFiling,
   FileCaseResponse,
+  FileDisputeBundleRequest,FileDisputeBundleResponse,
   ListAuditParams,
   ListAuditResponse,
   GetListingSnapshotResponse,
@@ -24,6 +26,7 @@ import type {
   ListingDecisionResponse,
   ListingStatusResponse,
   FlaggedListingDetail,
+  GetMyCaseResponse,
   Outcome,
   CaseNote,
 } from "../types/admin_disputes";
@@ -158,6 +161,25 @@ export async function getCaseById(id: string): Promise<GetCaseResponse> {
   return handleResponse<GetCaseResponse>(res);
 }
 
+export async function getMyCases(type?: CaseType): Promise<ListMyCasesResponse> {
+  const query = new URLSearchParams();
+  if (type) query.set("type", type);
+  const res = await fetch(`${getApiUrl()}/disputes/mines?${query.toString()}`,{
+method: "GET",
+credentials:"include",
+});
+
+return handleResponse<ListMyCasesResponse>(res);
+}
+
+export async function getMyCaseById(id: string): Promise<GetMyCaseResponse> {
+  const res= await fetch(`${getApiUrl()}/disputes/mine/${id}`, {
+    method:"GET",
+    credentials: "include"
+  })
+  return handleResponse<GetMyCaseResponse>(res);
+}
+
 export async function decideCase(
   id: string,
   body: DecisionRequest,
@@ -184,6 +206,17 @@ export async function fileDispute(
 
   return handleResponse<FileCaseResponse>(res);
 }
+
+export async function fileDisputeBundle(
+  body: FileDisputeBundleRequest,
+): Promise<FileDisputeBundleResponse> {
+  const res = await fetch(`${getApiUrl()}/disputes/bundle`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+});
+return handleResponse<FileDisputeBundleResponse>(res);}
 
 export async function getAuditEntries(
   params: ListAuditParams = {},

@@ -32,6 +32,7 @@ import ListingQnA from "../../components/ListingQnA";
 import { useToast } from "../../components/layout/useToast";
 import { queryClient } from "../../lib/queryClient";
 import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
+import { useAuthStore } from "../../store/useAuthStore";
 
 function DetailRow({
   label,
@@ -133,6 +134,7 @@ function ReportModal({
 }
 
 export default function ListingDetail() {
+  const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { id } = useParams<{ id: string }>();
@@ -440,7 +442,11 @@ export default function ListingDetail() {
             <DetailRow label="Listed on" value={formatDate(listing.listedAt)} />
             <DetailRow label="Views" value={listing.views} />
           </div>
-          <ListingQnA listingId={listing.id} isSeller={false} canAsk={true} />
+          <ListingQnA
+            listingId={listing.id}
+            isSeller={false}
+            canAsk={!isAdmin}
+          />
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
@@ -501,6 +507,9 @@ export default function ListingDetail() {
               ))}
             </div>
 
+            {!isAdmin && (
+              <>
+
             <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
               <span className="text-blue-500 text-sm flex-shrink-0">🛡</span>
               <p className="text-xs text-blue-700 dark:text-white/70 leading-relaxed">
@@ -548,6 +557,7 @@ export default function ListingDetail() {
             >
               <IconFlag size={16} /> Report this listing
             </button>
+            </>)}
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
@@ -573,7 +583,7 @@ export default function ListingDetail() {
                     type="button"
                     key={item.id}
                     onClick={() => navigate(`/buyer/listings/${item.id}`)}
-                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-navy-700 rounded-lg p-2 -m-2"
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-navy-700 rounded-lg p-2 -m-2 w-full text-left"
                   >
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex-shrink-0">
                       {item.image ? (

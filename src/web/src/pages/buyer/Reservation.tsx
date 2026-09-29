@@ -20,10 +20,12 @@ import {
 } from '@tabler/icons-react'
 import { LoadingState } from '../../components/layout/Spinner'
 import { useSearchQuery } from '../../hooks/useSearchQuery'
-import { fileDispute } from '../../services/adminService'
-import { getReservationSnapshot } from '../../services/adminService'
+
+import { getReservationSnapshot,fileDispute,fileDisputeBundle } from '../../services/adminService'
 import { useReservationsList } from '../../hooks/useReservationsList';
 import { queryKeys } from '../../lib/queryKeys';
+//import { listingLifecycleHandlers } from '../../tests/mocks/handlers';
+//import { resumeToPipeableStream } from 'react-dom/server';
 //import type { ListingSnapshot } from '../../types/admin_disputes'
 
 type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
@@ -125,6 +127,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [manualSelectedListingId, setManualSelectedListingId] = useState<string | null>(null);
+  const [reportAll, setReportAll] = useState(false);
   const apiBase = getApiUrl();
   const { showToast } = useToast()
 
@@ -189,6 +192,22 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
     setSubmitting(true);
 
     try {
+      if(reportAll && items.length > 1) {
+        const result = await fileDisputeBundle({
+          
+          type: 'listing_quality',
+        reservationId,
+        description: description || undefined,
+        items: items.map((item) => ({
+          listingId: item.listingId,
+          photos,
+          sellerRefusedPhotos,
+        })),
+        });
+
+        const count = result.caseIds.length;
+        showToast('success', `Submitted ${count} report${count ===1 ? '' : 's'} for this bundle.`);
+      } else {
       await fileDispute({
         type: 'listing_quality',
         reservationId,
@@ -197,13 +216,14 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
         photos,
         description: description || undefined,
       });
-      showToast('success', 'Listing quality report submitted.');
+      showToast('success', 'Listing quality report submitted.');}
       onClose();
 
       setPhotos([]);
       setDescription('');
       setSellerRefusedPhotos(false);
       setManualSelectedListingId(null);
+      setReportAll(false);
     }
     catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -300,6 +320,21 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
           </div>
 
           {items.length > 1 && (
+            <div className='space-y-3'>
+              <div className='flex items-center gap-3'>
+                <input
+                type="checkbox"
+                 id= "report-all"
+                checked= {reportAll}
+                onChange={(e) =>{
+                  setReportAll(e.target.checked);
+                  if (e.target.checked) setManualSelectedListingId(null);
+                }}
+                className='w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer'/>
+                <label htmlFor= "report-all" className='text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none'>
+               Report all {items.length} items in this bundle
+               </label></div>
+               {!reportAll && (
             <div>
               <label htmlFor="item-picker" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
                 Which item is this about?
@@ -319,7 +354,17 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
               </select>
             </div>
           )}
-          {loadingItems && <p className="text-xs text-gray-400">Loading items....</p>}
+
+
+          {reportAll&& (
+            <p className='text-xs text-gray-500'>
+              The photos and description below will be submitted as a seperate report for each item.</p>
+          
+          )}
+
+          </div>
+          )}
+                    {loadingItems && <p className="text-xs text-gray-400">Loading items....</p>}
 
           <div className="flex items-center gap-3">
             <input

@@ -25,7 +25,20 @@ export type PinStatus =
   | "confirmed";
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
+export type ViewerRole = "filed_by_me" | "against_me"
 
+export interface MyCaseSummary extends CaseSummary{
+viewerRole: ViewerRole;
+}
+
+export interface ListMyCasesResponse {
+  cases: MyCaseSummary[];
+}
+
+export interface GetMyCaseResponse {
+  detail: CaseDetail;
+  viewerRole: ViewerRole;
+}
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
@@ -145,6 +158,8 @@ export interface CaseDetail extends CaseSummary {
   slaBreached: boolean;
   suggestedDecision?: 'uphold'|'dismiss';
   suggestedOutcomes?: Outcome[];
+  resolution?: string | null;
+  resolvedAt?: string | null;
 }
 
 export interface CaseHistoryEntry {
@@ -350,6 +365,25 @@ export interface ListingStatusResponse {
   riskLevel: "low" | "medium" | "high";
   message: string;
 }
+
+export interface BundleDisputeItemFiling{
+  listingId: string;
+  photos?: string[];
+  sellerRefusedPhotos?: boolean
+}
+
+export interface FileDisputeBundleRequest{
+  type: "listing_quality";
+  reservationId: string;
+  description?: string;
+  items: BundleDisputeItemFiling[];
+
+}
+
+export interface FileDisputeBundleResponse{
+  caseIds: string[];
+}
+
 
 export interface CaseNote{
   id: string;
