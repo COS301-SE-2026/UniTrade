@@ -6,7 +6,7 @@ import { useMeetupWindow } from '../../hooks/useMeetupWindow';
 import {
     IconSend,
     IconCheck,
-    //I/conMapPin,
+    //I//conMapPin,
     ///conCalendar,
     IconPaperclip,
     IconArrowLeft,
