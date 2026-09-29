@@ -27,7 +27,7 @@ public interface IAdminCaseService
         CancellationToken ct = default
     );
 
-     Task<CaseDetailDto?> GetCaseByIdForUserAsync(Guid caseId, Guid userID, CancellationToken ct = default);
+    Task<CaseDetailDto?> GetCaseByIdForUserAsync(Guid caseId, Guid userID, CancellationToken ct = default);
 
 
 }

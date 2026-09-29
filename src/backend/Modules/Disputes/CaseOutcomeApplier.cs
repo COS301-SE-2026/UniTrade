@@ -10,7 +10,7 @@ namespace Modules.Disputes;
 
 public class CaseOutcomeApplier : ICaseOutcomeApplier
 {
-    private readonly IReputationService _reputation;
+    private readonly IAccountSanctionService _sanctions;
     private readonly IModerationService _moderation;
     private readonly IListingRepository _listings;
     private readonly INotificationDispatcher _notifications;
@@ -20,7 +20,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
     private readonly ILogger<CaseOutcomeApplier> _logger;
 
     public CaseOutcomeApplier(
-        IReputationService reputation,
+        IAccountSanctionService sanctions,
         IModerationService moderation,
         IListingRepository listings,
         INotificationDispatcher notifications,
@@ -30,7 +30,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
         ILogger<CaseOutcomeApplier> logger
     )
     {
-        _reputation = reputation;
+        _sanctions = sanctions;
         _moderation = moderation;
         _listings = listings;
         _notifications = notifications;
@@ -51,22 +51,24 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
             switch (outcome)
             {
                 case DisputeOutcome.Strike:
-                    await _reputation.AddStrikeAsync(
+                    await _sanctions.ApplyStrikeAsync(
                         context.SubjectUserId,
                         context.CaseId,
                         "strike",
                         context.Reason ?? "strike",
                         context.AdminId,
+                        context.Scope,
                         ct
                     );
                     break;
                 case DisputeOutcome.RefusalFlag:
-                    await _reputation.AddStrikeAsync(
+                    await _sanctions.ApplyStrikeAsync(
                         context.SubjectUserId,
                         context.CaseId,
                         "refusal_flag",
                         context.Reason ?? "seller refused photos",
                         context.AdminId,
+                        context.Scope,
                         ct
                     );
                     break;

@@ -15,8 +15,9 @@ import { LoadingState } from "../../components/layout/Spinner";
 import ListingQnA from "../../components/ListingQnA";
 import type { ListingStatusResponse } from "../../types/riskTemp";
 import { mockStatusFromListing } from "../../types/riskTemp";
-import { connectionManager } from "../../services/realtime/connectionManager"
-
+import { connectionManager } from "../../services/realtime/connectionManager";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
+import { useToast } from "../../components/layout/useToast";
 
 function DetailRow({
   label,
@@ -36,9 +37,23 @@ function DetailRow({
 }
 
 function visibilityInfo(score: number) {
-  if (score >= 90) return { label: "Full visibilty", bar: "bg-green-500", text: "text-green-700" };
-  if (score >= 45) return { label: "Reduced visibility", bar: "bg-amber-500", text: "text-amber-700" };
-  return { label: "Limited visibility", bar: "bg-orange-500", text: "text-orange-700" };
+  if (score >= 90)
+    return {
+      label: "Full visibility",
+      bar: "bg-green-500",
+      text: "text-green-700",
+    };
+  if (score >= 45)
+    return {
+      label: "Reduced visibility",
+      bar: "bg-amber-500",
+      text: "text-amber-700",
+    };
+  return {
+    label: "Limited visibility",
+    bar: "bg-orange-500",
+    text: "text-orange-700",
+  };
 }
 export default function SellerListingDetail() {
   const navigate = useNavigate();
@@ -49,9 +64,11 @@ export default function SellerListingDetail() {
   const [selectedImg, setSelectedImg] = useState(0);
   const [courseCode, setCourseCode] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [statusData, setStatusData] = useState<ListingStatusResponse | null>(null);
+  const [statusData, setStatusData] = useState<ListingStatusResponse | null>(
+    null,
+  );
   const [showResubmitModal, setShowResubmitModal] = useState(false);
-  const [resubmitSubmitting, setResubmitSubmitting] = useState(false)
+  const [resubmitSubmitting, setResubmitSubmitting] = useState(false);
   const [rescoreSubmitting, setRescoreSubmitting] = useState(false);
   const [showRescoreModal, setShowRescoreModal] = useState(false);
 
@@ -59,20 +76,23 @@ export default function SellerListingDetail() {
   const resubmissionUsed = statusData?.resubmissionCount ?? 0;
   const remaining = maxResubmissions - resubmissionUsed;
   const canResubmit = remaining > 0;
-
+  const { showToast } = useToast();
   const handleResubmitConfirm = async () => {
     if (!id) return;
     setResubmitSubmitting(true);
     try {
       const result = await listingsService.resubmitListing(id);
-      setListing((prev) =>
-        prev ? { ...prev, status: result.status } : prev,
-      );
+      setListing((prev) => (prev ? { ...prev, status: result.status } : prev));
       const freshStatus = await listingsService.getListingStatus(id);
-      setStatusData(freshStatus)
+      setStatusData(freshStatus);
       setShowResubmitModal(false);
-    } catch {
-      setError("Failed to resubmit listing");
+    } catch (err) {
+      const code = (err as Error).message ?? "";
+
+      showToast(
+        "error",
+        getAccountStateErrorMessage(code, "Failed to resubmit listing"),
+      );
     } finally {
       setResubmitSubmitting(false);
     }
@@ -85,7 +105,9 @@ export default function SellerListingDetail() {
       await listingsService.requestRescore(id);
       const freshStatus = await listingsService.getListingStatus(id);
       setStatusData(freshStatus);
-      setListing((prev) => (prev ? { ...prev, status: freshStatus.status } : prev));
+      setListing((prev) =>
+        prev ? { ...prev, status: freshStatus.status } : prev,
+      );
       setShowRescoreModal(false);
     } catch {
       setError("Failed to re-check listing");
@@ -124,8 +146,7 @@ export default function SellerListingDetail() {
       listingsService
         .getListingStatus(id)
         .then(setStatusData)
-        .catch(() => {
-        });
+        .catch(() => {});
     });
 
     return off;
@@ -146,7 +167,6 @@ export default function SellerListingDetail() {
     return <LoadingState message="Loading..." />;
   }
 
-
   if (error || !listing)
     return (
       <div className="flex items-center justify-center h-64">
@@ -156,12 +176,14 @@ export default function SellerListingDetail() {
 
   const visibility =
     statusData?.status === "live" && statusData.visibilityScore != null
-      ? { score: statusData.visibilityScore, ...visibilityInfo(statusData.visibilityScore) }
+      ? {
+          score: statusData.visibilityScore,
+          ...visibilityInfo(statusData.visibilityScore),
+        }
       : null;
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-
         <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
           <button
             type="button"
@@ -177,10 +199,14 @@ export default function SellerListingDetail() {
           </span>
         </div>
 
-
-        {statusData && (statusData.status === "under_review" || statusData.status === "removed" || statusData.status === "banned" || (statusData.status === "live" && statusData.riskLevel === "medium")) && (
-          <StatusPill status={statusData.status} />
-        )}
+        {statusData &&
+          (statusData.status === "under_review" ||
+            statusData.status === "removed" ||
+            statusData.status === "banned" ||
+            (statusData.status === "live" &&
+              statusData.riskLevel === "medium")) && (
+            <StatusPill status={statusData.status} />
+          )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
@@ -189,12 +215,15 @@ export default function SellerListingDetail() {
             <button
               type="button"
               className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group appearance-none border-0 p-0"
-              onClick={() => listing.images && setLightboxOpen(true)}>
+              onClick={() => listing.images && setLightboxOpen(true)}
+            >
               {listing.images?.length > 0 ? (
                 <>
-                  <img src={listing.images[selectedImg]}
+                  <img
+                    src={listing.images[selectedImg]}
                     alt={listing.title}
-                    className="w-full h-full object-cover" />
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-full">
                       Click to view full image
@@ -203,23 +232,26 @@ export default function SellerListingDetail() {
                 </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-2xl sm:text-4xl text-gray-400">No image</span>
+                  <span className="text-2xl sm:text-4xl text-gray-400">
+                    No image
+                  </span>
                 </div>
               )}
             </button>
             {listing.images?.length > 0 && (
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
                 {listing.images.map((img, i) => (
-                  <button type="button"
+                  <button
+                    type="button"
                     key={`thumb-${img}`}
                     onClick={() => setSelectedImg(i)}
-                    className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-colors flex-shrink-0 appearance-none p-0 bg-transparent ${selectedImg === i
-                      ? "border-navy-700 dark:border-white"
-                      : "border-transparent"}`}
-
+                    className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-colors flex-shrink-0 appearance-none p-0 bg-transparent ${
+                      selectedImg === i
+                        ? "border-navy-700 dark:border-white"
+                        : "border-transparent"
+                    }`}
                   >
                     <img
-
                       src={img}
                       alt={`thumbnail ${i + 1}`}
                       className="w-full h-full object-cover"
@@ -247,16 +279,18 @@ export default function SellerListingDetail() {
                   {courseCode}
                 </span>
               )}
-              {listing.category === "electronics" && listing.metadata?.brand && (
-                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
-                  {listing.metadata.brand}
-                </span>
-              )}
-              {listing.category === "furniture" && listing.metadata?.dimensions && (
-                <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
-                  {listing.metadata.dimensions}
-                </span>
-              )}
+              {listing.category === "electronics" &&
+                listing.metadata?.brand && (
+                  <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                    {listing.metadata.brand}
+                  </span>
+                )}
+              {listing.category === "furniture" &&
+                listing.metadata?.dimensions && (
+                  <span className="text-xs px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 dark:bg-navy-700 dark:text-white/70">
+                    {listing.metadata.dimensions}
+                  </span>
+                )}
             </div>
 
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-2">
@@ -281,27 +315,31 @@ export default function SellerListingDetail() {
             {listing.category === "electronics" && listing.metadata?.brand && (
               <DetailRow label="Brand" value={listing.metadata.brand} />
             )}
-            {listing.category === "furniture" && listing.metadata?.dimensions && (
-              <DetailRow label="Dimensions" value={listing.metadata.dimensions} />
-            )}
+            {listing.category === "furniture" &&
+              listing.metadata?.dimensions && (
+                <DetailRow
+                  label="Dimensions"
+                  value={listing.metadata.dimensions}
+                />
+              )}
             {listing.category === "book" && courseCode && (
               <DetailRow label="Course Code" value={courseCode} />
             )}
             <DetailRow label="Listed On" value={formatDate(listing.listedAt)} />
           </div>
-          <ListingQnA listingId={listing.id}
-            isSeller={true}
-            canAsk={false}
-          />
+          <ListingQnA listingId={listing.id} isSeller={true} canAsk={false} />
         </div>
 
         <div className="lg:col-span-1 space-y-4">
-
           {visibility && (
             <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
-              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">Visibility</h3>
+              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
+                Visibility
+              </h3>
               <div className="flex items-center justify-between text-xs mb-2">
-                <span className={`font-semibold ${visibility.text}`}>{visibility.label}</span>
+                <span className={`font-semibold ${visibility.text}`}>
+                  {visibility.label}
+                </span>
                 <span className="text-gray-500">{visibility.score}</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
@@ -312,59 +350,70 @@ export default function SellerListingDetail() {
                 <p className="mt-3 text-[11px] leading-relaxed text-gray-500 dark:text-white/50">
                   {visibility.score >= 90
                     ? "Your listing appears normally in browse results."
-                    : "Your listing appears lower in browse results. Check that your photos clearly show the item and match the category, and that the price and description are accurate."
-                  }
+                    : "Your listing appears lower in browse results. Check that your photos clearly show the item and match the category, and that the price and description are accurate."}
                 </p>
               </div>
             </div>
           )}
-          {statusData && (statusData.status === "under_review" || (statusData.reasons && statusData.reasons.length > 0)) && (
-            <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
-              <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
-                {statusData.status === "under_review"
-                  ? "Why it was flagged"
-                  : statusData.status === "banned"
-                  ? "Why it was banned"
-                  : statusData.status === "live" && statusData.riskLevel === "medium"
-                    ? "Why visibility is reduced"
-                    : "Why it was removed"}
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-white/60 mb-3">
-                {statusData.message}
-              </p>
-              {statusData.reasons && statusData.reasons.length > 0 && (
-                <ul className="space-y-2">
-                  {statusData.reasons.map((r, i) => (
-                    <li
-                      key={`${r.code}-${i}`}
-                      className="text-xs text-gray-500 dark:text-white/50 leading-relaxed pl-3 border-l-2 border-gray-200 dark:border-white/10"
-                    >
-                      {r.detail ?? r.code}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+          {statusData &&
+            (statusData.status === "under_review" ||
+              (statusData.reasons && statusData.reasons.length > 0)) && (
+              <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
+                <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-3">
+                  {statusData.status === "under_review"
+                    ? "Why it was flagged"
+                    : statusData.status === "banned"
+                      ? "Why it was banned"
+                      : statusData.status === "live" &&
+                          statusData.riskLevel === "medium"
+                        ? "Why visibility is reduced"
+                        : "Why it was removed"}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-white/60 mb-3">
+                  {statusData.message}
+                </p>
+                {statusData.reasons && statusData.reasons.length > 0 && (
+                  <ul className="space-y-2">
+                    {statusData.reasons.map((r, i) => (
+                      <li
+                        key={`${r.code}-${i}`}
+                        className="text-xs text-gray-500 dark:text-white/50 leading-relaxed pl-3 border-l-2 border-gray-200 dark:border-white/10"
+                      >
+                        {r.detail ?? r.code}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-5">
-
             <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">
               Actions
             </h3>
             <button
-              type='button'
+              type="button"
               onClick={() => navigate(`/seller/editListing/${id}`)}
-              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review" || listing.status === "banned"}
+              disabled={
+                listing.isReserved ||
+                listing.status === "sold" ||
+                listing.status === "under_review" ||
+                listing.status === "banned"
+              }
               className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-xl mb-2.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Edit Listing
             </button>
 
             <button
-              type='button'
+              type="button"
               onClick={handleDelete}
-              disabled={listing.isReserved || listing.status === "sold" || listing.status === "under_review" || listing.status === "banned"}
+              disabled={
+                listing.isReserved ||
+                listing.status === "sold" ||
+                listing.status === "under_review" ||
+                listing.status === "banned"
+              }
               className="w-full border border-red-200 dark:border-red-900/50 text-red-500 font-semibold text-sm py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Delete Listing
@@ -377,23 +426,25 @@ export default function SellerListingDetail() {
                 disabled={!canResubmit}
                 className="w-full mt-4 py-2.5 bg-navy-700 text-white text-sm font-semibold rounded-xl hover:bg-navy-600 transition-colors disabled:opacity-50"
               >
-                {canResubmit ? `Resubmit (${remaining} left)` : "Resubmission limit reached"}
+                {canResubmit
+                  ? `Resubmit (${remaining} left)`
+                  : "Resubmission limit reached"}
               </button>
             )}
 
-            {statusData?.status === "live" && statusData.riskLevel === "medium" && statusData.canRescore && (
-              <button
-                type="button"
-                onClick={() => setShowRescoreModal(true)}
-                className="w-full mt-4 py-2.5 bg-navy-700 text-white text-sm font-semibold rounded-xl hover:bg-navy-600 transition-colors"
-              >
-                Re-check my listing
-              </button>
-            )}
+            {statusData?.status === "live" &&
+              statusData.riskLevel === "medium" &&
+              statusData.canRescore && (
+                <button
+                  type="button"
+                  onClick={() => setShowRescoreModal(true)}
+                  className="w-full mt-4 py-2.5 bg-navy-700 text-white text-sm font-semibold rounded-xl hover:bg-navy-600 transition-colors"
+                >
+                  Re-check my listing
+                </button>
+              )}
           </div>
         </div>
-
-
 
         {showResubmitModal && (
           <ConfirmModal
@@ -428,11 +479,11 @@ export default function SellerListingDetail() {
               if (e.target === e.currentTarget) setLightboxOpen(false);
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Escape') setLightboxOpen(false);
+              if (e.key === "Escape") setLightboxOpen(false);
             }}
           >
             <button
-              type='button'
+              type="button"
               onClick={() => setLightboxOpen(false)}
               className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none"
             >

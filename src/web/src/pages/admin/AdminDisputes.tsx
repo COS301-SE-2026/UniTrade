@@ -117,10 +117,6 @@ export default function AdminDisputes() {
 
   return (
     <div className='space-y-6'>
- {/*     <div>
-        <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">Active Disputes</h1>
-        <p className="text-xs text-gray-600 mt-1">Manage all the Disputes in one place.</p>
-      </div>*/}
 
 <div className="flex items-start justify-between flex-wrap gap-3">
   <div>

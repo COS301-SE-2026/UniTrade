@@ -23,6 +23,7 @@ public class ListingController : ControllerBase
     private readonly string _invalidMetaDataString = "invalid_metadata";
 
     private readonly string _invalidCategory = "invalid_category";
+    private readonly string _sellerSuspendedString = "seller_suspended";
 
     public ListingController(IListingService listings, IImageStorageService images)
     {
@@ -71,6 +72,10 @@ public class ListingController : ControllerBase
         {
             return BadRequest(new { error = _invalidMetaDataString });
         }
+        catch (InvalidOperationException ex) when (ex.Message == _sellerSuspendedString)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _sellerSuspendedString });
+        }
     }
 
     [Authorize]
@@ -115,6 +120,7 @@ public class ListingController : ControllerBase
         {
             return BadRequest(new { error = _invalidMetaDataString });
         }
+
     }
 
     [Authorize]
@@ -303,6 +309,10 @@ public class ListingController : ControllerBase
                 new { error = "seller_not_verified" }
             );
         }
+        catch (InvalidOperationException ex) when (ex.Message == _sellerSuspendedString)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _sellerSuspendedString });
+        }
         catch (ArgumentException ex) when (ex.Message == "invalid_status")
         {
             return BadRequest(new { error = "invalid_status" });
@@ -375,6 +385,10 @@ public class ListingController : ControllerBase
                 StatusCodes.Status403Forbidden,
                 new { error = "seller_not_verified" }
             );
+        }
+        catch (InvalidOperationException ex) when (ex.Message == _sellerSuspendedString)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = _sellerSuspendedString });
         }
         catch (KeyNotFoundException)
         {

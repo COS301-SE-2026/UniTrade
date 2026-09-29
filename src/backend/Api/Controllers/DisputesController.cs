@@ -80,7 +80,7 @@ public class DisputesController : ControllerBase
 CancellationToken ct
     )
     {
-        var cases= await disputeService.ListForUserAsync(CallerId,type,ct);
+        var cases = await disputeService.ListForUserAsync(CallerId, type, ct);
         var withRole = cases.Select(c => new
         {
             c.CaseId,
@@ -93,15 +93,18 @@ CancellationToken ct
             c.SlaBreached,
             c.Title,
             c.SubjectInitials,
-            c.CounterpartyInitials,c.RaisedBy,c.SellerId,c.BuyerId,
+            c.CounterpartyInitials,
+            c.RaisedBy,
+            c.SellerId,
+            c.BuyerId,
             c.ReservationId,
             c.ListingId,
             c.ImageUrl,
             c.CopyCount,
-            ViewerRole = c.RaisedBy ==CallerId ?  "filed_by_me" :  "againt_me",
+            ViewerRole = c.RaisedBy == CallerId ? "filed_by_me" : "against_me",
         });
 
-        return Ok(new {cases = withRole});
+        return Ok(new { cases = withRole });
 
     }
 
@@ -115,17 +118,18 @@ CancellationToken ct
         try
         {
 
-            var detail = await adminCaseService.GetCaseByIdForUserAsync(id, CallerId,ct);
-            if(detail is null)
+            var detail = await adminCaseService.GetCaseByIdForUserAsync(id, CallerId, ct);
+            if (detail is null)
             {
-                return NotFound(new{ error="case_not_found"});
+                return NotFound(new { error = "case_not_found" });
             }
-        var viewRole = detail.FiledByUserId == CallerId ? "filed_by_me" : "against_me";
-        return Ok(new {detail,viewRole });
+            var viewRole = detail.FiledByUserId == CallerId ? "filed_by_me" : "against_me";
+            return Ok(new { detail, viewRole });
 
         }
-        catch (DisputesException ex) when (ex.Message=="forbidden")
+        catch (DisputesException ex) when (ex.Message == "forbidden")
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new{error = ex.Message });
-        }}
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = ex.Message });
+        }
+    }
 }

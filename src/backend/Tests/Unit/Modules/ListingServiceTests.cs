@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using Modules.Identity.Models;
+using Modules.Identity.Repositories;
 using Modules.Identity.Verification;
 using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
@@ -36,6 +37,7 @@ public class ListingServiceTests
     private readonly Mock<IListingNotifier> _notifierMock;
     private readonly Mock<IClipVisionClient> _clipMock;
     private readonly Mock<IListingResubmissionListener> _resubmissionListenerMock;
+    private readonly Mock<IUserRepository> _usersRepoMock;
 
     public ListingServiceTests()
     {
@@ -63,6 +65,8 @@ public class ListingServiceTests
             .Setup(r => r.ScoreAsync(It.IsAny<Listing>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RiskScoreResult(0m, "low", 100, new List<RiskReason>()));
 
+        _usersRepoMock = new Mock<IUserRepository>();
+
         _sut = new ListingService(
             _repo.Object,
             _imageRepo.Object,
@@ -73,7 +77,8 @@ public class ListingServiceTests
             _questionRepo.Object,
             _riskMock.Object,
             _notifierMock.Object,
-            _clipMock.Object
+            _clipMock.Object,
+            _usersRepoMock.Object
         );
     }
 

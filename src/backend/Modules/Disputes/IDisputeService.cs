@@ -22,7 +22,7 @@ public interface IDisputeService
         CancellationToken ct = default
     );
 
-    Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(Guid userId, string? type, CancellationToken ct =default);
+    Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(Guid userId, string? type, CancellationToken ct = default);
 
-     Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct =default);
+    Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(string? type, CancellationToken ct = default);
 }

@@ -123,7 +123,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
         }
     }
 
-    // decline proposal, and put for location change, add a edit unconfirmed meeutp, one a meetup is confirmed disacrd he other one
+    // decline proposal, and put for location change, add a edit unconfirmed meetup, one a meetup is confirmed discard he other one
     private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
