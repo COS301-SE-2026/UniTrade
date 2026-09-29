@@ -69,7 +69,8 @@ public class ListingControllerTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: DateTime.UtcNow,
             Images: new List<ListingImageDto>(),
-            Seller: null
+            Seller: null,
+            ListingGroupId: null
         );
 
     // GET /api/listings GetAll

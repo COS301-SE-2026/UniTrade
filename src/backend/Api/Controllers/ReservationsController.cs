@@ -1,11 +1,13 @@
 using System.Security.Claims;
+using Api.Extensions;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.Chat;
-using Modules.Reservations;
-using Modules.Listings.Snapshot;
 using Modules.Listings.Models.Dto;
+using Modules.Listings.Snapshot;
+using Modules.Reservations;
+
 
 namespace Api.Controllers;
 
@@ -19,7 +21,12 @@ public class ReservationsController : ControllerBase
     private readonly IListingSnapshotService _snapshot;
     private readonly ISmartBudgetService _smartBudget;
 
-    public ReservationsController(IReservationService reservations, IChatService chat, IListingSnapshotService snapshot, ISmartBudgetService smartBudget)
+    public ReservationsController(
+        IReservationService reservations,
+        IChatService chat,
+        IListingSnapshotService snapshot,
+        ISmartBudgetService smartBudget
+    )
     {
         _reservations = reservations;
         _chat = chat;
@@ -31,10 +38,13 @@ public class ReservationsController : ControllerBase
     {
         get
         {
-            var value = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var value =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (value is null || !Guid.TryParse(value, out var id))
             {
-                throw new InvalidOperationException("Authenticated request is missing a valid user id.");
+                throw new InvalidOperationException(
+                    "Authenticated request is missing a valid user id."
+                );
             }
             return id;
         }
@@ -48,6 +58,8 @@ public class ReservationsController : ControllerBase
         CancellationToken ct
     )
     {
+        if (User.IsAdmin())
+            return StatusCode(403, new { error = "admin_not_allowed" });
         if (!IsVerified)
             return StatusCode(403, new { error = "not_verified" });
 
@@ -149,7 +161,10 @@ public class ReservationsController : ControllerBase
     //get /reservation/{reservationId}/snapshot
     [HttpGet("{reservationId:guid}/snapshot")]
     [Authorize]
-    public async Task<ActionResult<ListingSnapshotDto>> GetSnapshot(Guid reservationId, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<ListingSnapshotDto>>> GetSnapshot(
+        Guid reservationId,
+        CancellationToken ct
+    )
     {
         var snapshot = await _snapshot.GetByReservationIdAsync(reservationId, ct);
         if (snapshot is null)
@@ -161,7 +176,11 @@ public class ReservationsController : ControllerBase
 
     //get/api/reservations/smart-budget/preview?listingIds=<guid>,<guid>&maxBudget=1500
     [HttpGet("smart-budget/preview")]
-    public async Task<IActionResult> PreviewSmartBudget([FromQuery] string? listingIds, [FromQuery] decimal maxBudget, CancellationToken ct)
+    public async Task<IActionResult> PreviewSmartBudget(
+        [FromQuery] string? listingIds,
+        [FromQuery] decimal maxBudget,
+        CancellationToken ct
+    )
     {
         var ids = ParseListingIds(listingIds);
         if (ids is null)
@@ -173,7 +192,7 @@ public class ReservationsController : ControllerBase
             return BadRequest(new { error = "invalid_max_budget" });
         }
 
-        var preview = await _smartBudget.PreviewAsync(ids, maxBudget, ct);
+        var preview = await _smartBudget.PreviewAsync(CallerId, ids, maxBudget, ct);
         return Ok(preview);
     }
 
@@ -185,7 +204,12 @@ public class ReservationsController : ControllerBase
         }
 
         var ids = new List<Guid>();
-        foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (
+            var part in raw.Split(
+                ',',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            )
+        )
         {
             if (!Guid.TryParse(part, out var id))
             {
@@ -208,8 +232,56 @@ public class ReservationsController : ControllerBase
             ReservationErrors.AlreadyAcknowledged => Conflict(new { error = ex.Message }),
             ReservationErrors.AlreadyTerminal => Conflict(new { error = ex.Message }),
             ReservationErrors.ReleasedTooEarly => StatusCode(403, new { error = ex.Message }),
+            ReservationErrors.BuyerSuspended => StatusCode(403, new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 
     public record CreateReservationRequest([property: JsonRequired] Guid ListingId);
+
+    public record SmartBudgetReserveRequest(
+        [property: JsonRequired] List<Guid> ListingIds,
+        [property: JsonRequired] decimal MaxBudget,
+        Dictionary<Guid, decimal>? ExpectedSellerTotals = null
+    );
+
+    //post /api/reservation/smart-budget
+    [HttpPost("smart-budget")]
+    public async Task<IActionResult> ReserveSmartBudget(
+        [FromBody] SmartBudgetReserveRequest body,
+        CancellationToken ct
+    )
+    {
+        if (User.IsAdmin())
+            return StatusCode(403, new { error = "admin_not_allowed" });
+        if (!IsVerified)
+        {
+            return StatusCode(403, new { error = "not_verified" });
+        }
+        if (body.ListingIds is null || body.ListingIds.Count == 0)
+        {
+            return BadRequest(new { error = "invalid_listing_ids" });
+        }
+        if (body.MaxBudget < 0)
+        {
+            return BadRequest(new { error = "invalid_max_budget" });
+        }
+        try
+        {
+
+
+            var result = await _smartBudget.ReserveAsync(
+                CallerId,
+                body.ListingIds,
+                body.MaxBudget,
+                body.ExpectedSellerTotals,
+                ct
+            );
+
+            return Ok(result);
+        }
+        catch (ReservationException ex)
+        {
+            return MapError(ex);
+        }
+    }
 }

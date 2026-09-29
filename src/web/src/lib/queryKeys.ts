@@ -5,8 +5,11 @@ export const queryKeys = {
   reservations: (role: "buyer" | "seller") => ["reservations", role] as const,
   wishlist: () => ["wishlist"] as const,
   disputes: () => ["disputes"] as const,
+  myDisputes: () => ["disputes", "mine"] as const,
   verifications: () => ["verifications"] as const,
   dashboardStats: () => ["dashboard"] as const,
   meetupAvailability: (reservationId: string) =>
     ["meetup-availability", reservationId] as const,
+  flaggedListings: () => ['admin', 'flaggedListings'] as const,
+  flaggedListing: (id: string) => ['admin', 'flaggedListing', id] as const,
 };

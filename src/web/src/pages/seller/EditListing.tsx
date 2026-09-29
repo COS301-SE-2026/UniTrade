@@ -75,6 +75,7 @@ const EditListing: React.FC = () => {
   const [courseResults, setCourseResults] = useState<Course[]>([]);
   const [courseLoading, setCourseLoading] = useState(false);
   const totalImageCount = existingImages.length + newFiles.length;
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     listingsService
@@ -101,6 +102,7 @@ const EditListing: React.FC = () => {
           price: data.price,
         });
 
+        setStatus(data.status)
         setExistingImages(
           data.images.map((i) => ({ imageId: Number(i.id), url: i.url })),
         );
@@ -201,6 +203,12 @@ const EditListing: React.FC = () => {
 
   const handleSave = async () => {
     if (!id) return;
+    if ( status !== "draft" && totalImageCount === 0) {
+      const msg = "A listing needs a least one photo";
+      setError(msg);
+      showToast("error", msg);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -236,6 +244,17 @@ const EditListing: React.FC = () => {
         await listingsService.uploadImages(id, newFiles);
       }
 
+      let held = false
+      try {
+        held = (await listingsService.getListingStatus(id)).status === "under_review";
+
+      } catch {
+        // nothing
+      }
+      if (held) {
+        showToast("info", "Changes saved, but your listing was held for admin review.")
+      }
+
       const freshListing = await listingsService.getById(id);
 
       queryClient.setQueryData(["listing", id], freshListing);
@@ -253,10 +272,16 @@ const EditListing: React.FC = () => {
             }
             : old,
       );
+      queryClient.setQueryData(["listing", id], freshListing);
+      queryClient.invalidateQueries({ queryKey: ["listings", "my"]});
       navigate("/seller/listings");
-    } catch {
-      setError("Failed to save changes");
-      showToast('error', 'Failed to save changes');
+    } catch (err) {
+      const msg = 
+         err instanceof Error && err.message === "listing_locked_for_edit"
+             ? "This listing can't be edited right now (it's under review, reserved or sold)"
+             : "Failed to save changes";
+      setError(msg);
+      showToast('error', msg);
     } finally {
       setSaving(false);
     }

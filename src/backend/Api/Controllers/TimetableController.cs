@@ -14,6 +14,8 @@ public class TimetableController : ControllerBase
     private readonly ITimetableService _timetable;
     private readonly IIcsImportService _icsImport;
 
+    private const string _unauthenticatedString = "unauthenticated";
+
     public TimetableController(ITimetableService timetable, IIcsImportService icsImport)
     {
         _timetable = timetable;
@@ -33,7 +35,7 @@ public class TimetableController : ControllerBase
     {
         if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
         return Ok(await _timetable.ListMineAsync(callerId, ct));
     }
@@ -50,7 +52,7 @@ public class TimetableController : ControllerBase
     {
         if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
         try
@@ -70,7 +72,7 @@ public class TimetableController : ControllerBase
     {
         if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
         try
         {
@@ -93,7 +95,7 @@ public class TimetableController : ControllerBase
     {
         if (!TryGetCallerId(out _))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
         if (file is null || file.Length == 0)
@@ -122,7 +124,7 @@ public class TimetableController : ControllerBase
     {
         if (!TryGetCallerId(out var callerId))
         {
-            return Unauthorized(new { error = "unauthenticated" });
+            return Unauthorized(new { error = _unauthenticatedString });
         }
 
         if (patterns is null || patterns.Count == 0)

@@ -131,9 +131,6 @@ public class ChatHub : Hub
         return message;
     }
 
-    //read receipts -markAsread func
-    //automatic messages->test zee's reservationfunc when pr'd
-    //braodcast messages to reservation
     public async Task ReadReceipts(Guid reservationId, int upToMessageId)
     {
         var userId = GetUserId() ?? throw new HubException("Unauthorised: not a valid user");
@@ -195,6 +192,17 @@ public class ChatHub : Hub
             throw new HubException("Unauthorized");
         }
 
+        var isAdmin =
+            Context.User?.IsInRole("admin") == true
+            || string.Equals(
+                Context.User?.FindFirst("role")?.Value,
+                "admin",
+                StringComparison.OrdinalIgnoreCase);
+        if (isAdmin)
+        {
+            throw new HubException("Forbidden");
+        }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
         await Clients.Caller.SendAsync("JoinedAdminGroup");
     }
@@ -203,4 +211,20 @@ public class ChatHub : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
     }
+
+    public async Task JoinSellerGroup(Guid sellerId)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            throw new HubException("Unauthorized");
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, SellerGroupName(sellerId));
+    }
+
+    public Task LeaveSellerGroup(Guid sellerId) =>
+        Groups.RemoveFromGroupAsync(Context.ConnectionId, SellerGroupName(sellerId));
+
+    private static string SellerGroupName(Guid sellerId) => $"seller-{sellerId}";
 }

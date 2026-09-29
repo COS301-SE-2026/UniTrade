@@ -9,7 +9,7 @@ export function useReservationsList(role: 'buyer' | 'seller', options?: {enabled
         queryFn: async () => {
             const result = await getReservations({role });
             if(!result.success){
-                throw new Error(result.error.message ?? result.error.code);
+                throw new Error(result.error.message ?? "Could not load your reservations.");
             }
             return result.data.items;
         },

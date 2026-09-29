@@ -1,10 +1,10 @@
-//import React from "react";
 import { useNavigate, useLocation } from "react-router";
 import { formatPrice } from "../../utils/formatters";
 import type {
     SmartBudgetResponse,
     SmartBudgetReservationGroup,
-    SmartBudgetNotReservedItem
+    SmartBudgetNotReservedItem,
+    TimerStage
 } from "../../types/Reservations"
 import {
     IconWallet,
@@ -12,8 +12,10 @@ import {
     IconCircleX,
     IconMessageCircle,
     IconArrowLeft,
-    IconClock,
+    IconTag,
 } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { connectionManager } from "../../services/realtime/connectionManager";
 
 interface SmartBudgetResultLocationState {
     result: SmartBudgetResponse;
@@ -21,9 +23,18 @@ interface SmartBudgetResultLocationState {
 }
 
 function notReservedReasonLabel(reason: SmartBudgetNotReservedItem["reason"]): string {
-    return reason === "over_budget"
-        ? "Didn't fit your budget"
-        : "Reserved by someone else";
+    switch (reason) {
+        case "over_budget":
+            return "Didn't fit your budget";
+        case "bundle_broken":
+            return "Price changed before checkout — not reserved";
+        case "unavailable":
+            return "No longer available";
+        case "own_listing":
+            return "This is your own listing";
+        default:
+            return "Reserved by someone else"
+    }
 }
 
 function SellerAvatar({ initials }: Readonly<{ initials: string }>) {
@@ -37,9 +48,19 @@ function SellerAvatar({ initials }: Readonly<{ initials: string }>) {
 function ReservedGroupCard({
     group,
     sellerName,
-}: Readonly<{ group: SmartBudgetReservationGroup; sellerName?: string }>) {
+    status, stage,
+}: Readonly<{ group: SmartBudgetReservationGroup; sellerName?: string, status: string; stage: TimerStage }>) {
     const navigate = useNavigate();
+    const s = status.toLowerCase();
+    const isAwaitingSeller = s === "active" && stage === "awaiting_seller";
+    const isDeclined = s === "cancelled";
+    const isExpired = s === "expired";
+    const chatOpen = s === "active" && stage !== "awaiting_seller";
+    const line = stageLine(status, stage);
+
+
     return (
+
         <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                 <div className="flex items-center gap-2">
@@ -47,10 +68,6 @@ function ReservedGroupCard({
                     <span className="text-sm font-semibold text-gray-800">
                         {sellerName ?? "Seller"}
                     </span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-success-600">
-                    <IconCircleCheck size={14} />
-                    Reserved
                 </div>
             </div>
 
@@ -64,23 +81,57 @@ function ReservedGroupCard({
                     </div>
                 ))}
             </div>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-sm">
-                <span className="text-gray-500">Subtotal</span>
-                <span className="font-bold text-gray-800">{formatPrice(group.subtotal)}</span>
+            <div className="mt-3 pt-3 border-t border-gray-100 text-sm space-y-1.5">
+                {group.discountPercent != null && group.discount > 0 ? (
+                    <>
+                        <div className="flex items-center justify-between text-gray-500">
+                            <span>Subtotal</span>
+                            <span>{formatPrice(group.subTotal)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-emerald-600 font-semibold">
+                            <span className="inline-flex items-center gap-1">
+                                <IconTag size={13} />
+                                Bundle discount ({group.discountPercent}% off)
+                            </span>
+                            <span>−{formatPrice(group.discount)}</span>
+                        </div>
+                        <div className="flex items-center justify-between pt-1.5 border-t border-gray-100">
+                            <span className="text-gray-500">Total</span>
+                            <span className="font-bold text-gray-800">{formatPrice(group.total)}</span>
+                        </div>
+                    </>) : (
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Subtotal</span>
+                        <span className="font-bold text-gray-800">{formatPrice(group.subTotal)}</span>
+                    </div>
+                )}
+
             </div>
-            <div className="flex items-center justify-between mt-3 rounded-lg px-3 py-2 bg-navy-50">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-navy-700">
-                    <IconClock size={14} />
-                    PIN pending - awaiting seller {/* this has to change to matkc the actual reservarion timer stage but I will do that when itegrating*/}
+
+            <div className="mt-3 rounded-lg px-3 py-2 bg-navy-50">
+                <div className="flex items-center justify-between">
+                    <div className={`flex items-center gap-1.5 text-xs font-semibold ${line.cls}`}>
+                        {line.icon}
+                        {line.text}
+                    </div>
+                    {!isDeclined && !isExpired && (
+                        <button
+                            type="button"
+                            disabled={!chatOpen}
+                            onClick={() => chatOpen && navigate(`/buyer/messages/${group.reservationId}`)}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md bg-navy-800 text-white hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
+                        >
+                            <IconMessageCircle size={14} />
+                            Chat
+                        </button>
+                    )}
                 </div>
-                <button
-                    type="button"
-                    onClick={() => navigate(`/buyer/reservations/${group.reservationId}`)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md bg-navy-800 text-white hover:bg-navy-700 transition-colors"
-                >
-                    <IconMessageCircle size={14} />
-                    Chat
-                </button>
+                {isAwaitingSeller && (
+                    <p className="text-[11px] text-navy-600/70 mt-1">
+                        You'll be able to message the seller once they accept this reservation.
+                    </p>
+                )}
             </div>
         </div>
     );
@@ -100,14 +151,35 @@ function NotReservedRow({ item }: Readonly<{ item: SmartBudgetNotReservedItem }>
         </div>
     );
 }
-
+function stageLine(status: string, stage: TimerStage) {
+    const s = status.toLowerCase();
+    if (s === "cancelled") return { icon: <IconCircleX size={14} />, text: "Reservation cancelled", cls: "text-rose-600" };
+    if (s === "expired") return { icon: <IconCircleX size={14} />, text: "Reservation expired", cls: "text-gray-500" };
+    if (stage === "awaiting_seller") return { icon: <IconCircleX size={14} />, text: "Waiting for seller to accept or reject", cls: "text-navy-700" };
+    return { icon: <IconCircleCheck size={14} />, text: "Seller accepted — you can chat now", cls: "text-emerald-600" }
+}
 export default function SmartBudgetResult() {
     const navigate = useNavigate();
     const location = useLocation();
     const state = location.state as SmartBudgetResultLocationState | null;
     const result = state?.result;
     const sellerNamesById = state?.sellerNamesById ?? {};
+    const reservations = result?.reservations ?? [];
 
+    const [statusMap, setStatusMap] = useState<Record<string, { status: string, stage: TimerStage }>>(
+        () => Object.fromEntries(
+            reservations.map((g) => [g.reservationId, { status: "active", stage: "awaiting_seller" as TimerStage }])
+        )
+    );
+
+    useEffect(() => {
+        const off = connectionManager.onReservationUpdated((r) => {
+            setStatusMap((prev) =>
+                prev[r.reservationId] ? { ...prev, [r.reservationId]: { status: r.reservationStatus, stage: r.timerStage } } : prev);
+
+        });
+        return off;
+    }, []);
     if (!result) {
         return (
             <div className="flex flex-col gap-6">
@@ -131,7 +203,7 @@ export default function SmartBudgetResult() {
         );
     }
 
-    const { totalSpent, reservations, notReserved } = result;
+    const { totalSpent, notReserved } = result;
     const reservedItemCount = reservations.reduce((sum, g) => sum + g.items.length, 0);
 
     return (
@@ -158,7 +230,7 @@ export default function SmartBudgetResult() {
                         <p className="text-lg font-bold text-gray-800">{formatPrice(totalSpent)}</p>
                     </div>
                 </div>
-                <div className="flex-1 bg-whote rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+                <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
                         <IconCircleCheck size={20} />
                     </div>
@@ -173,13 +245,19 @@ export default function SmartBudgetResult() {
                 <div>
                     <h2 className="text-sm font-bold text-gray-700 mb-3">Reserved, by seller</h2>
                     <div className="flex flex-col gap-3">
-                        {reservations.map((group) => (
-                            <ReservedGroupCard
-                                key={group.reservationId}
-                                group={group}
-                                sellerName={sellerNamesById[group.sellerId]}
-                            />
-                        ))}
+                        {reservations.map((group) => {
+                            const st = statusMap[group.reservationId] ?? { status: "active", stage: "awaiting_seller" as TimerStage };
+                            return (
+                                <ReservedGroupCard
+                                    key={group.reservationId}
+                                    group={group}
+                                    sellerName={sellerNamesById[group.sellerId]}
+                                    status={st.status}
+                                    stage={st.stage}
+                                />
+                            );
+
+                        })}
                     </div>
                 </div>
             )}
@@ -197,14 +275,14 @@ export default function SmartBudgetResult() {
             )}
 
             <div className="flex justify-end">
-                <button 
-                  type="button"
-                  onClick={() => navigate("/buyer/wishlist")}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors"
-                  >
+                <button
+                    type="button"
+                    onClick={() => navigate("/buyer/wishlist")}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-navy-800 text-white px-5 py-2.5 text-sm font-semibold hover:bg-navy-700 transition-colors"
+                >
                     <IconArrowLeft size={16} />
                     Back to wishlist
-                  </button>
+                </button>
             </div>
         </div>
     );

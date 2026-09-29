@@ -5,6 +5,9 @@ import { useAuthStore } from "./store/useAuthStore";
 import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
+import { LoadingState } from "./components/layout/Spinner";
+
+
 /*
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -89,7 +92,19 @@ const BrandingStyleDoc = lazy(() => import("./pages/auth/BrandingStyleDoc"));
 const ProofOfRegistrationUpload = lazy(() => import("./pages/auth/UploadProofOfRegistration"));
 const SavedSearches = lazy(() => import("./pages/buyer/SavedSearches"));  
 const SmartBudgetReservation = lazy(() => import("./pages/buyer/SmartBudgetResult"));
+const SmartBudgetReserve = lazy(() => import("./pages/buyer/SmartBudgetReserve"))
+const AdminListingRiskReview = lazy(() => import("./pages/admin/AdminListingRiskReview"))
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const MyDisputes = lazy(() => import("./pages/buyer/MyDisputes"));
+const MyDisputeView = lazy(() => import("./pages/buyer/MyDisputeView"));
 
+function FullPageLoading({message = "Loading..."}: Readonly<{message?: string}>) {
+  return (
+    <div className = "min-h-screen flex items-center justify-center">
+      <LoadingState message = {message} />
+    </div>
+  )
+}
 
 function RedirectToMessages({ role }: Readonly<{ role: "buyer" | "seller" }>) {
   const { reservationId } = useParams<{ reservationId: string }>();
@@ -122,11 +137,11 @@ export default function App() {
       .finally(() => setAuthChecked(true));
   }, [setUser]);
   if (!authChecked) {
-    return <div>Loading...</div>;
+    return <FullPageLoading />;
   }
   return (
     <RealtimeProvider>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<FullPageLoading />}>
       <Routes>
         {/*<Route element={<AppLayout />}>*/}
 
@@ -140,6 +155,7 @@ export default function App() {
         <Route path="/auth/timetable" element={<TimetableScreen />} />
         <Route path="/auth/Brand-style-doc" element={<BrandingStyleDoc />} />
         <Route path="/auth/ProofUpload" element={<ProofOfRegistrationUpload />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
 
         <Route element={<AppLayout />}>
@@ -154,8 +170,13 @@ export default function App() {
           <Route path="/buyer/listings" element={<BrowseListings />} />
           <Route path="/buyer/wishlist" element={<Wishlist />} />
           <Route path="/buyer/reservations" element={<Reservations />} />
+          <Route path="/buyer/smart-budget-reserve" element={<SmartBudgetReserve />} />
           <Route path = "/buyer/saved-searches" element={<SavedSearches />} />
           <Route path = "/buyer/reservations/smart-budget-result" element={<SmartBudgetReservation />} />
+          <Route path="/buyer/disputes" element={<MyDisputes />} />
+          <Route path="/buyer/disputes/:id" element={<MyDisputeView />} />
+          <Route path="/seller/disputes" element={<MyDisputes />} />
+          <Route path="/seller/disputes/:id" element={<MyDisputeView />} />
           <Route path="/seller/reservations" element={<SellerReservations />} />
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/upload" element={<UploadListing />} />
@@ -165,9 +186,11 @@ export default function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/verifications" element={<AdminVerifications />} />
           <Route path="/admin/listings" element={<AdminListingQueue />} />
+          <Route path="/admin/listings/flagged/:id" element={<AdminListingRiskReview />} />
           <Route path="/admin/disputes" element={<AdminDisputes />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/users/:userId" element={<ViewUser />} />
+
 
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
@@ -187,6 +210,7 @@ export default function App() {
           />
 
           <Route path="/payment/meetup" element={<MeetupDetails />} />
+          <Route path="/payment/meetup/:reservationId" element={<MeetupDetails />} />
           <Route path="/payment/payfast-redirect" element={<Redirect />} />
 
           <Route path="/payment/generate-pin" element={<GeneratePin />} />

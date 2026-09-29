@@ -302,7 +302,7 @@ export default function HelpCenter() {
       title: 'PIN-based handover confirmation',
       description: 'How the PIN-based confirmation works.',
       details: [
-        "Upon payment completion, the buyer receives a PIN they have to give to the seller, the PIN is used to confirm that the handover actually hapenned.",
+        "Upon payment completion, the buyer receives a PIN they have to give to the seller, the PIN is used to confirm that the handover actually happened.",
         "If the PIN is not entered the transaction is never labelled complete, the listing status is always going to stay as reserved.",
 
       ]
@@ -344,7 +344,7 @@ export default function HelpCenter() {
     },
     {
       question: "Can I resubmit if I was rejected?",
-      answer: "Yes you can rsubmit your proof of registration so admin can look at it, but resubmitting doesn't guarantee acceptance."
+      answer: "Yes you can re-submit your proof of registration so admin can look at it, but resubmitting doesn't guarantee acceptance."
     },
     {
       question: "Can I edit a listing after it's live?",
@@ -352,7 +352,7 @@ export default function HelpCenter() {
     },
     {
       question: "Can I report a listing I think is fake or misleading?",
-      answer: "Yes, If you see a listing you suspect of being fake plese report it immediately, and admin will review it and decide on the verdict, either the seller will receive a warning or can be banned from the system."
+      answer: "Yes, If you see a listing you suspect of being fake please report it immediately, and admin will review it and decide on the verdict, either the seller will receive a warning or can be banned from the system."
     },
     {
       question: "How long does a reservation last?",

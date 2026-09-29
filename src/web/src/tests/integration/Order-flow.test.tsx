@@ -1,14 +1,14 @@
-import {test, expect, vi, beforeEach} from 'vitest'
-import { screen, render} from '@testing-library/react'
+import { test, expect, vi, beforeEach } from 'vitest'
+import { screen, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Routes, Route  } from 'react-router'
+import { MemoryRouter, Routes, Route } from 'react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTestQueryClient } from '../test-utils'
 import {
-  resetMockListings, seedMockListing,
-  resetMockReservations, seedMockReservation,
-  resetMockTransactions, seedMockTransaction,
-  resetMockReviews, seedMockReview,
+    resetMockListings, seedMockListing,
+    resetMockReservations, seedMockReservation,
+    resetMockTransactions, seedMockTransaction,
+    resetMockReviews, seedMockReview,
 } from '../mocks/handlers'
 import { useAuthStore } from '../../store/useAuthStore'
 import { ToastProvider } from '../../components/layout/Toast'
@@ -58,14 +58,19 @@ test('buyer views their completed orders and opens order details', async () => {
         buyerId: 'buyer-1',
         sellerId: 'seller-1',
         reservationStatus: 'completed',
-        counterParty: { 
-            userId: 'seller-1', 
-            name: 'Zee Shazi', 
-            initials: 'ZS' },
-        listing: { 
-            title: 'Chemistry Textbook', 
-            price: 250, 
-            imagePath: '' },
+        counterParty: {
+            userId: 'seller-1',
+            name: 'Zee Shazi',
+            initials: 'ZS'
+        },
+        listings: [
+            {
+                listingId: '1',
+                title: 'Chemistry Textbook',
+                price: 250,
+                imagePath: ''
+            }
+        ],
     })
     seedMockTransaction({ reservationId: '1', transactionId: 'txn-1' })
 
@@ -84,11 +89,11 @@ test('buyer views their completed orders and opens order details', async () => {
 })
 
 test('buyer sees an existing review for a completed order', async () => {
-    seedMockListing({ 
-        listingId: '1', 
-        title: 'Chemistry Textbook', 
-        sellerId: 'seller-1', 
-        condition: 'like_new' 
+    seedMockListing({
+        listingId: '1',
+        title: 'Chemistry Textbook',
+        sellerId: 'seller-1',
+        condition: 'like_new'
     })
     seedMockReservation({
         reservationId: '1',
@@ -96,16 +101,19 @@ test('buyer sees an existing review for a completed order', async () => {
         buyerId: 'buyer-1',
         sellerId: 'seller-1',
         reservationStatus: 'completed',
-        counterParty: { 
-            userId: 'seller-1', 
-            name: 'Zee Shazi', 
-            initials: 'ZS' 
+        counterParty: {
+            userId: 'seller-1',
+            name: 'Zee Shazi',
+            initials: 'ZS'
         },
-        listing: { 
-            title: 'Chemistry Textbook', 
-            price: 250, 
-            imagePath: '' 
-        },
+        listings: [
+            {
+                listingId: '1',
+                title: 'Chemistry Textbook',
+                price: 250,
+                imagePath: ''
+            }
+        ],
     })
     seedMockTransaction({ reservationId: '1', transactionId: 'txn-1' })
     seedMockReview({

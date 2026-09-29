@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Modules.Audit.Models;
@@ -30,9 +31,11 @@ public class AppDbContext : DbContext
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
     public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<PasswordResetRequest> PasswordResetRequests => Set<PasswordResetRequest>();
     public DbSet<ProofOfRegistrationDocument> ProofOfRegistrationDocuments =>
         Set<ProofOfRegistrationDocument>();
     public DbSet<Strike> Strikes => Set<Strike>();
+
 
     ///add listing model after resolving conflicts
     // Listings
@@ -75,6 +78,7 @@ public class AppDbContext : DbContext
 
     // Disputes
     public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<CaseNote> CaseNotes => Set<CaseNote>();
 
     // Images
     public DbSet<Image> Images => Set<Image>();
@@ -149,13 +153,18 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.SellerTrustScore).HasPrecision(4, 2).HasDefaultValue(0);
             entity.Property(x => x.BuyerReliabilityScore).HasPrecision(4, 2).HasDefaultValue(0);
-
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint("chk_student_year", "year_of_study BETWEEN 1 AND 8");
                 t.HasCheckConstraint(
                     "chk_student_verification",
                     "verification_status IN ('pending', 'partial', 'verified', 'rejected')"
+                );
+                t.HasCheckConstraint(
+                    "chk_student_bundle_rule",
+                    "(bundle_min_items IS NULL AND bundle_discount_percent IS NULL) OR (bundle_min_items BETWEEN 3 AND 10 AND bundle_discount_percent BETWEEN 1 AND 30)"
                 );
             });
 
@@ -180,6 +189,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.UniversityId).HasDatabaseName("ix_student_university");
             entity.HasIndex(x => x.CourseId).HasDatabaseName("ix_student_course");
             entity.HasIndex(x => x.VerificationStatus).HasDatabaseName("ix_student_status");
+            entity.Property(x => x.BundleMinItems);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         //ADMIN
@@ -351,7 +362,7 @@ public class AppDbContext : DbContext
                 );
                 tb.HasCheckConstraint(
                     "chk_listing_status",
-                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed')"
+                    "listing_status IN ('draft', 'pending', 'live', 'reserved', 'low_visibility', 'rejected', 'sold', 'removed','under_review','screening', 'banned', 'suspended')"
                 );
             });
 
@@ -383,6 +394,17 @@ public class AppDbContext : DbContext
             entity.Property(x => x.AiRiskScore).HasPrecision(5, 2);
             entity.Property(x => x.AiRiskLevel).HasMaxLength(10);
             entity.Property(x => x.VisibilityScore).HasDefaultValue(100);
+            entity
+                .Property(x => x.AiRiskReasons)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v =>
+                        JsonSerializer.Deserialize<List<RiskReason>>(
+                            v,
+                            (JsonSerializerOptions?)null
+                        )
+                );
 
             entity.Property(x => x.RejectionReason);
 
@@ -469,8 +491,14 @@ public class AppDbContext : DbContext
                 .HasDatabaseName("ix_listings_feed")
                 .HasFilter("listing_status = 'live'")
                 .IsDescending(false, true, true);
+
+            entity
+                .HasIndex(x => x.ListingGroupId)
+                .HasDatabaseName("ix_listings_group")
+                .HasFilter("listing_group_id IS NOT NULL");
         });
 
+        // Listing Category
         modelBuilder.Entity<ListingCategory>(entity =>
         {
             entity.HasKey(x => x.CategoryId);
@@ -561,6 +589,10 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(x => x.ListingId).HasDatabaseName("ix_listing_images_listing");
+            entity.Property(x => x.PerceptualHash).HasMaxLength(16);
+            entity
+                .HasIndex(x => x.PerceptualHash)
+                .HasDatabaseName("ix_listing_images_perceptual_hash");
         });
 
         // Reservations
@@ -582,12 +614,24 @@ public class AppDbContext : DbContext
             entity.Property(x => x.ExpiresAt).IsRequired();
             entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
             entity.Property(x => x.TwoHourWarningSentAt);
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
 
             entity.ToTable(t =>
             {
                 t.HasCheckConstraint(
                     "chk_res_status",
                     "reservation_status IN ('active', 'expired', 'cancelled', 'completed')"
+                );
+
+                t.HasCheckConstraint(
+                    "chk_res_amount",
+                    "subtotal_amount >= 0 AND total_amount >=0 AND total_amount <= subtotal_amount"
+                );
+                t.HasCheckConstraint(
+                    "chk_res_discount_percent",
+                    "bundle_discount_percent IS NULL OR bundle_discount_percent BETWEEN 1 AND 30"
                 );
             });
 
@@ -611,6 +655,10 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.ExpiresAt)
                 .HasDatabaseName("ix_res_expires")
                 .HasFilter("reservation_status = 'active' AND meetup_confirmed_at IS NULL");
+
+            entity.Property(x => x.SubtotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.TotalAmount).HasPrecision(10, 2);
+            entity.Property(x => x.BundleDiscountPercent);
         });
 
         modelBuilder.Entity<ReservationListing>(entity =>
@@ -732,6 +780,33 @@ public class AppDbContext : DbContext
                 .HasFilter("is_read = false");
         });
 
+        //Passwod reset requets
+        modelBuilder.Entity<PasswordResetRequest>(entity =>
+        {
+            entity.HasKey(x => x.PasswordResetRequestId);
+
+            entity.Property(x => x.UserId).IsRequired();
+            entity.Property(x => x.OtpCodeHash).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.AttemptNumber).HasDefaultValue(0);
+
+            entity
+             .HasOne<User>()
+             .WithMany()
+             .HasForeignKey(x => x.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(x => x.UserId).HasDatabaseName("ix_prr_user");
+
+            entity
+             .HasIndex(x => x.UserId)
+             .HasDatabaseName("uix_prr_current")
+             .IsUnique()
+             .HasFilter("is_current = true");
+
+        });
+
+
+
         // Wishlist items
         modelBuilder.Entity<WishlistItem>(entity =>
         {
@@ -820,7 +895,7 @@ public class AppDbContext : DbContext
             {
                 t.HasCheckConstraint(
                     "chk_meetup_status",
-                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller')"
+                    "status IN ('scheduled', 'completed', 'no_show_buyer', 'no_show_seller','no_show_both')"
                 );
             });
 
@@ -928,8 +1003,8 @@ public class AppDbContext : DbContext
             });
             entity
                 .HasOne(x => x.Reservation)
-                .WithOne(r => r.ListingSnapshot)
-                .HasForeignKey<ListingSnapshot>(x => x.ReservationId)
+                .WithMany(r => r.ListingSnapshots)
+                .HasForeignKey(x => x.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
@@ -1023,7 +1098,7 @@ public class AppDbContext : DbContext
                 );
                 t.HasCheckConstraint(
                     "chk_dispute_status",
-                    "status IN ('open','under_review','resolved','closed')"
+                    "status IN ('open','under_review','resolved','closed','resubmission')"
                 );
             });
 
@@ -1062,6 +1137,11 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.SnapshotId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(x => x.OriginalSnapshot)
+                .WithMany()
+                .HasForeignKey(x => x.OriginalSnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(x => x.Status).HasDatabaseName("ix_disputes_status");
             entity.HasIndex(x => x.Type).HasDatabaseName("ix_disputes_type");
@@ -1070,6 +1150,21 @@ public class AppDbContext : DbContext
                 .HasIndex(x => x.SubmittedAt)
                 .HasDatabaseName("ix_disputes_submitted")
                 .IsDescending();
+        });
+
+        //casenotes
+        modelBuilder.Entity<CaseNote>(entity =>
+        {
+            entity.HasKey(x => x.NoteId);
+            entity.Property(x => x.NoteId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.CaseId).IsRequired();
+            entity.Property(x => x.AuthorAdminId).IsRequired();
+            entity.Property(x => x.Content).HasMaxLength(2000).IsRequired();
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql(_nowString).ValueGeneratedOnAdd();
+
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.AuthorAdminId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(x => x.CaseId).HasDatabaseName("ix_case_notes_case");
+            entity.HasIndex(x => x.CreatedAt).HasDatabaseName("ix_case_notes_created").IsDescending();
         });
         // IMages
 

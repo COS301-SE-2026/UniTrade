@@ -13,6 +13,7 @@ public sealed class CaseEvidenceDto
     public string? CurrentListingStatus { get; set; }
 
     public ListingSnapshotDto? Snapshot { get; set; }
+    public ListingSnapshotDto? OriginalSnapshot { get; set; }
     public List<string>? BuyerPhotos { get; set; }
     public bool? SellerRefusedPhotos { get; set; }
 

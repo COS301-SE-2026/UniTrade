@@ -1,3 +1,4 @@
+using Modules.Disputes.Models;
 namespace Modules.Disputes.Repositories;
 
 public interface ICaseRepository

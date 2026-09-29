@@ -123,7 +123,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
         }
     }
 
-    // decline proposal, and put for location change, add a edit unconfirmed meeutp, one a meetup is confirmed disacrd he other one
+    // decline proposal, and put for location change, add a edit unconfirmed meetup, one a meetup is confirmed discard he other one
     private ObjectResult MapError(ReservationException ex) =>
         ex.Message switch
         {
@@ -148,6 +148,7 @@ public class MeetupsController(IMeetupService meetups) : ControllerBase
             ReservationErrors.MeetupNotScheduled => Conflict(new { error = ex.Message }),
             ReservationErrors.AlreadyCheckedIn => Conflict(new { error = ex.Message }),
             ReservationErrors.CheckInWindowClosed => Conflict(new { error = ex.Message }),
+            ReservationErrors.CheckInWindowNotOpen => Conflict(new { error = ex.Message }),
             _ => StatusCode(500, new { error = "server_error" }),
         };
 

@@ -8,7 +8,7 @@ public sealed class TimetableQueryForAvailability(ITimetableRepository repositor
     : ITimetableQueryForAvailability
 {
     public Task<IReadOnlyList<TimetableEntry>> ListForUserAsync(
-        Guid userId,
+        Guid UserId,
         CancellationToken ct = default
-    ) => repository.ListForUserAsync(userId, ct);
+    ) => repository.ListForUserAsync(UserId, ct);
 }

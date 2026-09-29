@@ -45,13 +45,13 @@ public class ListingSnapshotService : IListingSnapshotService
         return MapToDto(snapshot);
     }
 
-    public async Task<ListingSnapshotDto?> GetByReservationIdAsync(
+    public async Task<IReadOnlyList<ListingSnapshotDto>> GetByReservationIdAsync(
         Guid reservationId,
         CancellationToken ct = default
     )
     {
-        var snapshot = await _snapshots.GetByReservationIdAsync(reservationId, ct);
-        return snapshot is null ? null : MapToDto(snapshot);
+        var snapshots = await _snapshots.GetByReservationIdAsync(reservationId, ct);
+        return snapshots.Select(MapToDto).ToList();
     }
 
     public async Task<ListingSnapshotDto?> CaptureForListingAsync(
@@ -98,6 +98,7 @@ public class ListingSnapshotService : IListingSnapshotService
             Title = s.Title,
             Price = s.Price,
             Condition = s.Condition,
+            Description = s.Description,
             CourseTags = s.CourseTags,
             PhotoRefs = s.PhotoRefs,
             CapturedAt = s.CapturedAt,

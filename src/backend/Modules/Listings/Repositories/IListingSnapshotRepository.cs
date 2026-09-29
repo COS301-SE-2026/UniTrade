@@ -5,7 +5,7 @@ namespace Modules.Listings.Repositories;
 public interface IListingSnapshotRepository
 {
     Task AddAsync(ListingSnapshot snapshot, CancellationToken ct = default);
-    Task<ListingSnapshot?> GetByReservationIdAsync(
+    Task<IReadOnlyList<ListingSnapshot>> GetByReservationIdAsync(
         Guid reservationId,
         CancellationToken ct = default
     );

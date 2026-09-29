@@ -50,6 +50,16 @@ const makeReservationRecord = (overrides: Partial<Reservation> = {}): Reservatio
   counterParty: { userId: 'seller-1', name: 'Tafadzwa Musiiwa', initials: 'TM' },
   handoverConfirmedAt: null,
   completedAt: null,
+  listings: [
+    {
+      listingId: `listing-${idCounter}`,
+      title: 'Test Listing',
+      price: 100,
+      imagePath: "null",
+    },
+  ],
+  totalPrice: 100,
+  isBundle: false,
   ...overrides,
 });
 
@@ -120,7 +130,7 @@ beforeEach(() => {
   mockGetMeetupStatus.mockResolvedValue(makeMeetup());
 });
 
-describe('ReservationDetails - all load states', () => { //Npte to me(Tafadzwa): this might need tp change now that Didi has done all the animations
+describe('ReservationDetails - all load states', () => { 
   it('shows a loading skeleton while the reservation is being fetched', () => {
     mockGetReservationById.mockReturnValue(new Promise(() => { }));
     const { container } = renderAt('/buyer/reservations/res-1');
@@ -161,7 +171,7 @@ describe('ReservationDetails - all load states', () => { //Npte to me(Tafadzwa):
     mockGetById.mockRejectedValue(new Error('network fail'));
     renderAt('/buyer/reservations/res-1');
 
-    expect(await screen.findByText('Untitled listing')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Test Listing'})).toBeInTheDocument();
     expect(screen.getByText(/condition: good/i)).toBeInTheDocument();
     expect(screen.getByText(/category: textbooks/i)).toBeInTheDocument();
   });
@@ -170,7 +180,9 @@ describe('ReservationDetails - all load states', () => { //Npte to me(Tafadzwa):
 
 describe('ReservationDetails - buyer view', () => {
   it('renders listing, status, seller info, complete payment shen the buyer has successfully checked in', async () => {
-    const reservation = makeReservationRecord({ reservationStatus: 'active', timerStage: 'awaiting_buyer' });
+    const reservation = makeReservationRecord({ reservationStatus: 'active', timerStage: 'awaiting_buyer', totalPrice: 350, 
+      listings: [{ listingId: 'listing-1', title: 'Software Engineering', price: 350, imagePath: "null" }],
+     });
     mockGetReservationById.mockResolvedValue({ success: true, data: reservation });
     mockGetById.mockResolvedValue(makeListingDetail({ price: 350 }));
     mockGetMeetupStatus.mockResolvedValue(makeMeetup({ buyerCheckedIn: true, paymentUnlocked: true }));

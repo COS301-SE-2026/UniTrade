@@ -8,62 +8,71 @@ param placeholderImage string
 //param acrUsername string
 //param acrPassword string
 //param useManagedIdentity bool=true
-param useAcrRegistry bool=false
+param useAcrRegistry bool = false
+param clipBaseUrl string = ''
 
-var appName='ca-backend-${environment}'
+var appName = 'ca-backend-${environment}'
 
-resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview'={
-    name: appName
-    location:location
-    identity:{
-        type: 'SystemAssigned'
-    }
-    properties:{
-        environmentId:containerAppsEnvId
-        configuration:{
-            ingress:{
-                external:true
-                targetPort:8080
-                transport:'auto'
+resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
+  name: appName
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    environmentId: containerAppsEnvId
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 8080
+        transport: 'auto'
+      }
+      registries: useAcrRegistry
+        ? [
+            {
+              server: acrLoginServer
+              identity: 'system'
             }
-            registries: useAcrRegistry ? [
-                {
-                    server: acrLoginServer
-                    identity: 'system'
-                }
-            ]: []
-            
-            activeRevisionsMode: 'Multiple'
-        }
-        template:{
-            containers:[
-                {
-                    name:'backend'
-                    image:placeholderImage
-                    resources:{
-                        cpu:json('0.5')
-                        memory:'1Gi'
-                    }
-                }
-            ]
-            scale:{
-                minReplicas:0
-                maxReplicas:3
-                rules:[
-                    {
-                        name:'http-scale'
-                        http:{
-                            metadata:{
-                                concurrentRequests:'10'
-                            }
-                        }
-                    }
-                ]
-            }
-        }
+          ]
+        : []
+
+      activeRevisionsMode: 'Multiple'
     }
+    template: {
+      containers: [
+        {
+          name: 'backend'
+          image: placeholderImage
+          resources: {
+            cpu: json('0.5')
+            memory: '1Gi'
+          }
+          env: [
+            {
+              name: 'Clip__BaseUrl'
+              value: clipBaseUrl
+            }
+          ]
+        }
+      ]
+      scale: {
+        minReplicas: 0
+        maxReplicas: 3
+        rules: [
+          {
+            name: 'http-scale'
+            http: {
+              metadata: {
+                concurrentRequests: '10'
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
 }
 
-output fqdn string =backendApp.properties.configuration.ingress.fqdn
-output appName string =backendApp.name
-output principalId string =backendApp.identity.principalId
+output fqdn string = backendApp.properties.configuration.ingress.fqdn
+output appName string = backendApp.name
+output principalId string = backendApp.identity.principalId

@@ -13,8 +13,6 @@ import type {
 } from "../types/Reservations";
 import { getApiUrl } from "../config";
 
-//import type { MeetupDetailsResponse } from '../types/meetup';
-
 export interface TransactionStatusResponse {
   transactionId: string | null;
   transactionStatus: string;

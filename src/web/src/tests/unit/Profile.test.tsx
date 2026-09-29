@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import Profile from '../../pages/auth/Profile'
 import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
+//import { BundleDiscountCard } from '../../components/layout/BundleDiscount'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router', async () => {
@@ -17,6 +18,10 @@ vi.mock('react-router', async () => {
 
 vi.mock('../../store/useAuthStore')
 vi.mock('../../services/authService')
+vi.mock('../../components/layout/BundleDiscount', () => ({
+    BundleDiscountCard: () => null,
+})
+)
 
 const mockUser = {
     id: '1',

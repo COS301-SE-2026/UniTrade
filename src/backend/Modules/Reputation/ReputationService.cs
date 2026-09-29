@@ -21,6 +21,7 @@ public class ReputationService : IReputationService
         string type,
         string reason,
         Guid adminId,
+        string scope = "seller",
         CancellationToken ct = default
     ) =>
         _strikes.AddAsync(
@@ -35,6 +36,8 @@ public class ReputationService : IReputationService
             },
             ct
         );
+    public Task<int> CountBannableStrikeAsync(Guid userId, string scope, CancellationToken ct = default) =>
+    _strikes.CountBannableForUserByScopeAsync(userId, scope, ct);
 
     public Task<IReadOnlyList<Strike>> GetStrikesAsync(
         Guid userId,

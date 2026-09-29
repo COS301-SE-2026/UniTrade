@@ -4,7 +4,7 @@ export type CaseType =
   | "report_listing"
   | "no_show";
 
-export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed";
+export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed" | "resubmission";
 export type SnapshotStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 
 export type Decision =
@@ -15,8 +15,7 @@ export type Decision =
   | "dismiss"
   | "request_info";
 
-//assumptions for now as I'm waiting for som confirmation from backend
-export type Outcome = "strike" | "remove_listing" | "refusal_flag";
+export type Outcome = "strike" | "remove_listing" | "refusal_flag" | "warn_seller_resubmit";
 
 export type PinStatus =
   | "not_entered"
@@ -26,9 +25,20 @@ export type PinStatus =
   | "confirmed";
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
+export type ViewerRole = "filed_by_me" | "against_me"
 
-//for the admintoken this is not clear, so might change aftetr confirmation from backend
+export interface MyCaseSummary extends CaseSummary{
+viewerRole: ViewerRole;
+}
 
+export interface ListMyCasesResponse {
+  cases: MyCaseSummary[];
+}
+
+export interface GetMyCaseResponse {
+  detail: CaseDetail;
+  viewerRole: ViewerRole;
+}
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
@@ -36,13 +46,13 @@ export interface AdminTokenClaims {
   iat: number;
 }
 
-//evidence types
+
 export interface VerificationEvidence {
   university: string;
   degree: string;
   year: number;
   email: string;
-  proofDocumentUrl?: string; //the url to the actual proof of registration
+  proofDocumentUrl?: string;
 }
 
 export interface ListingQualityEvidence {
@@ -66,7 +76,7 @@ export interface NoShowEvidence {
   meetupWindowEnd: string;
 }
 
-//the actual listing snapshot
+
 export interface ListingSnapshot {
   listingId: string;
   reservationId: string;
@@ -91,6 +101,7 @@ export interface CaseEvidence {
   proofDocument?:string;
   // listing_quality
   snapshot?: ListingSnapshot;
+  originalSnapshot?: ListingSnapshot;
   buyerPhotos?: string[];
   sellerRefusedPhotos?: boolean;
   currentListingStatus?: string | null;
@@ -118,6 +129,7 @@ export interface CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   title?: string;
+  imageUrl?: string;
   subjectInitials?: string;
   counterpartyInitials?: string;
   subjectName?: string;
@@ -145,7 +157,9 @@ export interface CaseDetail extends CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   suggestedDecision?: 'uphold'|'dismiss';
-  suggestedOutcomes?: string[];
+  suggestedOutcomes?: Outcome[];
+  resolution?: string | null;
+  resolvedAt?: string | null;
 }
 
 export interface CaseHistoryEntry {
@@ -170,6 +184,7 @@ export interface NoShowFiling {
 export interface ListingQualityFiling {
   type: "listing_quality";
   reservationId: string;
+  listingId?: string;
   sellerRefusedPhotos: boolean;
   photos?: string[];
   description?: string;
@@ -262,7 +277,7 @@ export interface ListAuditResponse {
   entries: AuditEntry[];
   total: number;
 }
-export type GetListingSnapshotResponse = ListingSnapshot;
+export type GetListingSnapshotResponse = ListingSnapshot[];
 
 export interface ListUsersResponse {
   users: UserListItem[];
@@ -299,4 +314,80 @@ export interface UserListing {
   price: number;
   createdAt: string;
   imageUrl?: string | null;
+}
+
+export interface FlaggedListing {
+  listingId: string;
+  title: string;
+  price: number;
+  sellerId: string;
+  sellerInitials: string;
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  reasons: string[];
+  imageMatchScore: number | null;
+  createdAt: string;
+  copyCount: number;
+}
+
+export interface FlaggedListingDetail {
+  listingId: string;
+  title: string;
+  description: string;
+  price: number;
+  condition: string;
+  categoryName: string;
+  images: string[];
+  seller: {
+    sellerId: string;
+    name: string;
+    initials: string;
+    verificationStatus: string;
+    strikeCount: number;
+    priorFlagCount: number;
+  };
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  visibilityScore: number;
+  reasons: {code: string; detail?: string; imageId?: number | null}[];
+  imageMatchScore: number | null;
+  createdAt: string;
+  copyCount: number;
+}
+export interface ListingDecisionResponse {
+  listingId: string;
+  status: string;
+}
+
+export interface ListingStatusResponse {
+  listingId: string;
+  status: "live" | "under_review" | "removed";
+  riskLevel: "low" | "medium" | "high";
+  message: string;
+}
+
+export interface BundleDisputeItemFiling{
+  listingId: string;
+  photos?: string[];
+  sellerRefusedPhotos?: boolean
+}
+
+export interface FileDisputeBundleRequest{
+  type: "listing_quality";
+  reservationId: string;
+  description?: string;
+  items: BundleDisputeItemFiling[];
+
+}
+
+export interface FileDisputeBundleResponse{
+  caseIds: string[];
+}
+
+
+export interface CaseNote{
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }
