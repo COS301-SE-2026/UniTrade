@@ -7,6 +7,7 @@ import { listingsService } from "../../services/listingsService";
 import type { ListingDetail, MeetupStatusResponse, UserReviewsResponse } from "../../types/listing";
 import type { Reservation } from "../../types/Reservations";
 import { useAuthStore } from "../../store/useAuthStore";
+import { LoadingState } from "../../components/layout/Spinner";
 
 function toRefNum(reservationId: string): string {
     return `#${reservationId.slice(0, 8).toUpperCase()}`;
@@ -93,9 +94,7 @@ export default function OrderDetails() {
     const backPath = isBuyer ? "/buyer/orders" : "/seller/sales";
     const backLabel = isBuyer ? "My Orders" : "My Sales";
 
-    if (loading) {
-        return <div className="text-slate-500">Loading order details....</div>;
-    }
+    if (loading) return <LoadingState message="Loading orders details..." />;
 
     if (error || !reservation || !listing) {
         return (
