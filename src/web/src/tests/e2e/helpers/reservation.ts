@@ -42,7 +42,7 @@ export async function createSellerListing(
   await sellerPage
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await sellerPage.locator('input[type="number"]').fill(String(price));
+  await sellerPage.locator('#price').fill(String(price));
 
   await sellerPage.setInputFiles(
     'input[type="file"]',
