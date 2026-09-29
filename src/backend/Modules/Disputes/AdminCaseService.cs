@@ -387,7 +387,7 @@ public class AdminCaseService : IAdminCaseService
             ct
         );
 
-        var resolvedStatus = decision == DisputeCaseDecision.Dismiss ? "dismiss" : _resolvedString;
+        var resolvedStatus = decision == DisputeCaseDecision.Dismiss ? "closed" : _resolvedString;
         await _disputes.MarkResolvedAsync(disputeData.DisputeId, adminId, resolvedStatus, ct);
 
         await _broadcast.NotifyAdminAsync(
