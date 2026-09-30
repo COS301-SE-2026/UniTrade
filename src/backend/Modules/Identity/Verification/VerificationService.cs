@@ -2,14 +2,14 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Modules.Audit;
+using Modules.Audit.Models;
 using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
 using Modules.Notifications;
 using Modules.Reservations;
 using Modules.SharedKernel;
-using Modules.Audit;
-using Modules.Audit.Models;
 
 namespace Modules.Identity.Verification;
 
@@ -242,11 +242,9 @@ public class VerificationService : IVerificationService
         switch (decision)
         {
             case VerificationDecision.Approve:
-                await _broadcast.SendToUserAsync(
-                    vr.UserId,
-                    "verification_approved",
-                    new { }
-                );
+                vr.Status = "approved";
+                vr.AdminDecision = "approved";
+                user.StudentProfile.VerificationStatus = "verified";
                 break;
 
             case VerificationDecision.Reject:
@@ -266,17 +264,31 @@ public class VerificationService : IVerificationService
         await _verifications.UpdateAsync(vr);
         await _users.UpdateAsync(user);
 
-        await _emails.SendVerificationDecisionEmailAsync(
-            user.Email,
-            user.FirstName,
-            vr.AdminDecision!,
-            reason
-        );
+        try
+        {
+            await _emails.SendVerificationDecisionEmailAsync(
+                user.Email,
+                user.FirstName,
+                vr.AdminDecision!,
+                reason
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to send verification decision email for {UserId}",
+                vr.UserId
+            );
+        }
 
         var result = await _verifications.GetCaseByIdAsync(verificationId, ct);
 
         switch (decision)
         {
+            case VerificationDecision.Approve:
+                await _broadcast.SendToUserAsync(vr.UserId, "verification_approved", new { });
+                break;
             case VerificationDecision.Reject:
                 await _broadcast.SendToUserAsync(
                     vr.UserId,
@@ -368,7 +380,10 @@ public class VerificationService : IVerificationService
         return TimeSpan.FromSeconds(seconds);
     }
 
-    public async Task<int> PurgeExpiredProofOfRegistrationAsync(int retentionDays, CancellationToken ct = default)
+    public async Task<int> PurgeExpiredProofOfRegistrationAsync(
+        int retentionDays,
+        CancellationToken ct = default
+    )
     {
         var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
         var dueVerificationIds = await _porRepository.ListDueForPurgeAsync(cutoff, ct);
@@ -404,5 +419,4 @@ public class VerificationService : IVerificationService
         }
         return purgedCount;
     }
-
 }
