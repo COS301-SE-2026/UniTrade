@@ -6,10 +6,10 @@
   "paymentMode": "PayFast hand-off asserted (POST /reservations/:id/Transaction-request returns 2xx); external redirect blocked",
   "drivenSynchronously": "both parties driven back-to-back with no human think-time; number is the mechanical floor of the journey",
   "budgetMs": 120000,
-  "elapsedMs": 7105,
-  "elapsedSeconds": 7.1,
+  "elapsedMs": 8660,
+  "elapsedSeconds": 8.7,
   "pass": true,
   "transactionRequestStatus": 200,
-  "reservationId": "9d39540b-95e6-4a28-8fcf-9875d37e4a34",
-  "measuredAt": "2026-09-30T00:55:26.719Z"
+  "reservationId": "e04b4575-fb22-4c67-809f-77d18dcc8fb2",
+  "measuredAt": "2026-09-30T01:26:21.684Z"
 }
