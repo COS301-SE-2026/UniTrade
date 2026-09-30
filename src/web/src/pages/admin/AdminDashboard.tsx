@@ -111,12 +111,7 @@ interface PanelProps {
   children: ReactNode
 }
 
-/*interface VerificationRowProps {
-  id: string
-  initials: string
-  name: string
-  meta: string
-}*/
+
 
 function Panel({ title,viewAllTo,loading,error,what,isEmpty,emptyText,children }:Readonly<PanelProps>){
   let body: ReactNode
@@ -172,51 +167,7 @@ return(
 
   const rowClass="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0"
 
-/*function VerificationRow({ id, initials, name, meta }: Readonly<VerificationRowProps>) {
-  const navigate = useNavigate();
-  return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
-      <div className="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-        {initials}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-navy-700 dark:text-white">{name}</p>
-        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
-      </div>
-      <button type='button' onClick={() => navigate(`/admin/verifications/${id}`)} className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">
-        Review
-      </button>
-    </div>
-  )
-}
 
-interface DisputeRowProps {
-  id: string
-  title: string
-  meta: string
-}*/
-
-/*function DisputeRow({ id, title, meta }: Readonly<DisputeRowProps>) {
-  const navigate = useNavigate();
-  return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
-      <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex-shrink-0 overflow-hidden">
-        <img
-          src={`https://placehold.co/48x48/e8eef5/b0bcd4?text=''`}
-          alt={title}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{title}</p>
-        <p className="text-xs text-gray-600 mt-0.5">{meta}</p>
-      </div>
-      <button type='button' onClick={() => navigate(`/admin/disputes/${id}`)} className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-colors">
-        Review
-      </button>
-    </div>
-  )
-}*/
 
 
 export default function AdminDashboard() {
