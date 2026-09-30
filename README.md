@@ -7,7 +7,7 @@
 
 # UniTrade
 
-### The trusted peer-to-peer marketplace for South African university students
+### The trusted peer-to-peer marketplace for South African university students 
 
 <br/>
 <!---
