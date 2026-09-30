@@ -12,11 +12,13 @@ import {
   IconArrowLeft,
   IconSend,
   IconX,
-  IconMessageCircle,
   IconMail,
   IconLockCode,
   IconBrandHipchat,
   IconFlag,
+  IconPigMoney,
+  IconCalendarEvent,
+  IconShieldLock,
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router';
 import AlexAvatar from './AlexAvatar.tsx';
@@ -262,9 +264,9 @@ export default function HelpCenter() {
       description: 'How the In-app chat work and when you start chatting.',
       details: [
         "Coordinate directly with the other party to arrange meetup time and location through a meetup scheduler.",
-        "You can only start chatting with the other party once the reservation has been accepted.",
+        "The chat thread opens immediately upon reservation creation, populated with an automated greeting. Both parties can immediately coordinate logistics.",
         "It is very important to schedule a meeting with the other party, because that is what will be used to stop the timer.",
-        "If a meetup is not scheduled, then the buyer will not be allowed to pay (the pay button will be disabled), so to enable the pay button the buyer needs to checkin at the location, and checkin can only be done if a meetup was arranged.",
+        "If a meetup is not scheduled, then the buyer will not be allowed to pay (the pay button will be disabled), so to enable the pay button the buyer needs to check in at the location, and checkin can only be done if a meetup was arranged.",
       ],
     },
     {
@@ -272,7 +274,7 @@ export default function HelpCenter() {
       title: 'Payment and Payouts',
       description: 'How payments are processed and when you get paid.',
       details: [
-        "Payment is processed instantly via PayFast after inspecting the item in person.",
+        "UniTrade operates as a direct escrow-style gateway via PayFast. Payments complete immediately at the physical meetup upon entering the 6-digit confirmation PIN.",
         "Sellers receive payouts within 2-3 business days after a completed and confirmed handover.",
         "You can track payout status from your Seller Dashboard."
       ]
@@ -284,7 +286,7 @@ export default function HelpCenter() {
       details: [
         "After a transaction and you are not happy you should always report to the system as soon as possible, provide enough evidence for the admin to decide on a punishment.",
         "If you are reported you are always given a chance to state your case, ensure you have enough evidence to prove your innocence.",
-        "An admin must be able to come up with a decision within a week of reporting."
+        "Verifications operate on a 48-hour SLA; disputed operate on a 72-hour SLA, processed in strict FIFO chronological sequence."
       ]
     },
     {
@@ -327,6 +329,49 @@ export default function HelpCenter() {
         "We aim to review reports within 24 hours.",
       ]
     },
+    {
+      icon: <IconLockCode size={22} className="text-[#003366]" />,
+      title: 'Handover PIN Protocol',
+      description: 'The 5 steps from check-in to confirmed handover',
+      details: [
+        "Step 1: Buyer and seller meet at the agreed campus location.",
+        "Step 2: Buyer checks in on their phone, unlocking the Pay button",
+        "Step 3: Buyer completes payment via PayFast and inspects the textbook.",
+        "Step 4: Seller's screen displays a 6-digit confirmation PIN.",
+        "Step 5: Buyer enters the 6-digit PIN on their phone to complete the trade.",
+      ]
+    },
+    {
+      icon: <IconPigMoney size={22} className="text-[#003366]" />,
+      title: 'Smart Budget',
+      description: 'Set a budget and unlock seller bundle discounts.',
+      details: [
+        "Set a total budget cap, then select listings from the same seller until your combined total reaches, but does not exceed, that cap.",
+        "When your selection qualifies for a seller's bundle discount, it is applied automatically. You don't need to request it or negotiate it in chat.",
+        "You can add or remove listings at any time before reserving, and the running total and any discount update as you go.",
+      ],
+    },
+    {
+      icon: <IconCalendarEvent size={22} className="text-[#003366]" />,
+      title: 'Timetable Sync',
+      description: 'Import your timetable to find free slots that match.',
+      details: [
+        "Export your timetable from your calendar app as an .ics file, then import it into UniTrade.",
+        "UniTrade compares your classes with the other person's and highlights the gaps you both have free on campus.",
+        "Pick one of the highlighted slots when scheduling your meetup. A scheduled meetup is required to check in and unlock payment.",
+      ],
+    },
+    {
+      icon: <IconShieldLock size={22} className="text-[#003366]" />,
+      title: 'POPIA Privacy',
+      description: 'How your student data is protected and deleted.',
+      details: [
+        "Your proof of registration is only used to verify that you are a student.",
+        "To protect your data in line with POPIA, proof-of-registration files are automatically and permanently deleted after 30 days.",
+        "Deletion is automated, so you don't need to request it. If you are asked to resubmit later, you can upload a fresh copy.",
+      ],
+    },
+
   ];
 
   const faqs: FaqItem[] = [
@@ -506,21 +551,6 @@ export default function HelpCenter() {
         <h3 className="text-xs font-bold text-[#003366] uppercase tracking-wider mb-4">
           Still Need Help?
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button
-            type='button'
-            onClick={() => setChatOpen(true)}
-            className="bg-white border border-gray-200/80 rounded-xl p-5 flex items-center gap-4 hover:border-gray-300 hover:shadow-xs transition-all text-left group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-[#dbeafe] text-[#003366] flex items-center justify-center flex-shrink-0">
-              <IconMessageCircle size={20} />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-gray-800">Chat with support</h4>
-              <p className="text-xs text-gray-500 mt-0.5">Avg. response time: 10 min</p>
-            </div>
-          </button>
-
           <a
             href="mailto:devnexus28@gmail.com"
             className="bg-white border border-gray-200/80 rounded-xl p-5 flex items-center gap-4 hover:border-gray-300 hover:shadow-xs transition-all text-left group"
@@ -534,7 +564,6 @@ export default function HelpCenter() {
             </div>
           </a>
         </div>
-      </div>
 
       {activeLink && (
         <QuickLinkOverlay link={activeLink} onClose={() => setActiveLink(null)} />
