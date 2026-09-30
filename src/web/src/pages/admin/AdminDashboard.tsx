@@ -3,6 +3,8 @@ import {
   IconAlertTriangle,
   IconClock,
   IconFlag,
+  IconUsers,
+  IconGavel,
   //IconTrendingUp,
 } from '@tabler/icons-react'
 import { getTopDisputes, getTopVerifications, getTotalUsers, getFlaggedListings,getUsers,getAuditEntries,getCaseCounts } from '../../services/adminService'
@@ -38,7 +40,7 @@ import { queryKeys } from '../../lib/queryKeys'
  function ErrorNote({what}:Readonly<{what: string}>) {
   return(
     <p className="text-sm text-red-700 dark:text-red-400" role="alert">
-      Couldnt load {what}. Reload the page to try again.
+      Could not load {what}. Reload the page to try again.
       </p>
   )
  }
@@ -109,12 +111,12 @@ interface PanelProps {
   children: ReactNode
 }
 
-interface VerificationRowProps {
+/*interface VerificationRowProps {
   id: string
   initials: string
   name: string
   meta: string
-}
+}*/
 
 function Panel({ title,viewAllTo,loading,error,what,isEmpty,emptyText,children }:Readonly<PanelProps>){
   let body: ReactNode
@@ -123,7 +125,7 @@ function Panel({ title,viewAllTo,loading,error,what,isEmpty,emptyText,children }
     body = (
       <div className="space-y-3">
         {[0,1,2].map((i)=>(
-          <div key={i} className="flex items center gap-3">
+          <div key={i} className="flex items-center gap-3">
             <Skeleton className="h-9 w-9 rounded-full" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-3 w-2/3" />
@@ -170,7 +172,7 @@ return(
 
   const rowClass="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0"
 
-function VerificationRow({ id, initials, name, meta }: Readonly<VerificationRowProps>) {
+/*function VerificationRow({ id, initials, name, meta }: Readonly<VerificationRowProps>) {
   const navigate = useNavigate();
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
@@ -192,15 +194,15 @@ interface DisputeRowProps {
   id: string
   title: string
   meta: string
-}
+}*/
 
-function DisputeRow({ id, title, meta }: Readonly<DisputeRowProps>) {
+/*function DisputeRow({ id, title, meta }: Readonly<DisputeRowProps>) {
   const navigate = useNavigate();
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
       <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-navy-700 flex-shrink-0 overflow-hidden">
         <img
-          src={`https://placehold.co/48x48/e8eef5/b0bcd4?text=📦`}
+          src={`https://placehold.co/48x48/e8eef5/b0bcd4?text=''`}
           alt={title}
           className="w-full h-full object-cover"
         />
@@ -214,8 +216,256 @@ function DisputeRow({ id, title, meta }: Readonly<DisputeRowProps>) {
       </button>
     </div>
   )
-}
+}*/
 
 
 export default function AdminDashboard() {
- }
+  const verifications = useQuery({
+    queryKey: [...queryKeys.verifications(), 'dashboard'],
+    queryFn: () => getTopVerifications(5),
+  })
+
+  const disputes = useQuery({
+    queryKey: [...queryKeys.disputes(), 'dashboard'],
+    queryFn: () => getTopDisputes(5),
+  })
+
+
+    const flagged = useQuery({
+    queryKey: [...queryKeys.flaggedListings(), 'dashboard'],
+    queryFn: () => getFlaggedListings(),
+  })
+
+    const totalUsers = useQuery({
+    queryKey: [...queryKeys.dashboardStats(), 'totalUsers'],
+    queryFn: () => getTotalUsers(),
+  })
+
+    const verifiedUsers = useQuery({
+    queryKey: [...queryKeys.dashboardStats(), 'usersVerified'],
+    queryFn: async() => (await getUsers({ verificationStatus: 'verified', limit:1})).total,
+  })
+
+   const pendingUsers = useQuery({
+    queryKey: [...queryKeys.dashboardStats(), 'usersPending'],
+    queryFn: async() => (await getUsers({ verificationStatus: 'pending',limit:1})).total,
+  })
+
+      const strikeUsers = useQuery({
+    queryKey: [...queryKeys.dashboardStats(), 'usersWithStrikes'],
+    queryFn: () => getUsers({hasStrikes:true, limit:1}),
+  })
+
+      const audit = useQuery({
+    queryKey: ['admin','audit','recent'],
+    queryFn: () => getAuditEntries({limit:20}),
+  })
+
+      const counts = useQuery({
+    queryKey: [...queryKeys.dashboardStats(), 'caseCounts'],
+    queryFn: getCaseCounts,
+  })
+
+  const vList =verifications.data ?? []
+  const dList = disputes.data ?? []
+  const fList = flagged.data ??[]
+  const aList = audit.data?.entries ?? []
+
+  const cc = counts.data
+  const plus = cc?.truncated ? '+' : ''
+  const slaBreached = cc?.slaBreached ?? 0
+  const strikeCount = strikeUsers.data?.total ?? 0
+
+  return (
+    <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <StatCard
+          title="Pending Verifications"
+          to="/admin/verifications"
+          loading={counts.isLoading}
+          error={counts.isError}
+          value={ `${cc?.pendingVerifications ?? 0}${plus}`}
+          sub={
+            cc?.oldestVerificationHours != null
+            ?
+            `Oldest ${shortAge(cc.oldestVerificationHours)}`
+          :'Nothing waiting'
+        }
+          subColor={cc?.oldestVerificationHours !=null ? "text-amber-700": 'text-green-700'}
+          icon={<IconClock size={13} />}
+        />
+
+        <StatCard
+          title="Active disputes"
+          to="/admin/disputes"
+          loading={counts.isLoading}
+          error={counts.isError}
+          value={ `${cc?.activeDisputes?? 0}${plus}`}
+          sub={slaBreached > 0 ? `${slaBreached} past SLA` : (cc?.activeDisputes ?? 0) > 0 ? 'All within SLA': 'Nothing open'}
+            
+          subColor={slaBreached > 0 ?  "text-red-700" :'text-green-700'}
+          icon={<IconAlertTriangle size={13} />}
+          badge={slaBreached > 0 ? 'SLA breached' : undefined}
+        />
+
+
+          <StatCard
+          title="Flagged listings"
+          to="/admin/listings?status=under_review"
+          loading={flagged.isLoading}
+          error={flagged.isError}
+          value={ fList.length}
+          sub={
+             fList.length>0 ? 'Under review' :'Nothing flagged'}
+          subColor={ fList.length >0 ? "text-amber-700": 'text-green-700'}
+          icon={<IconFlag size={13} />}
+          />
+
+          <StatCard
+          title="Total users"
+          to="/admin/users"
+          loading={totalUsers.isLoading}
+          error={totalUsers.isError}
+          value={totalUsers.data ?? 0}
+          sub={
+             verifiedUsers.data !== undefined && pendingUsers.data !== undefined
+            ? `${verifiedUsers.data} verified, ${pendingUsers.data} pending`: undefined}
+          
+         
+          icon={<IconUsers size={13} />}
+          />
+
+      <StatCard
+          title="Users with strikes"
+          to="/admin/users?hasStrikes=true"
+          loading={strikeUsers.isLoading}
+          error={strikeUsers.isError}
+          value={strikeCount}
+          sub={strikeCount > 0 ? 'Have active strikes' : 'No strikes issued'}
+          subColor={strikeCount > 0 ? 'text-amber-700' : 'text-green-700'}
+          icon={<IconGavel size={13} />}
+        />
+      </div>
+ 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Panel
+          title="Student verifications"
+          viewAllTo="/admin/verifications"
+          loading={verifications.isLoading}
+          error={verifications.isError}
+          what="verifications"
+          isEmpty={vList.length === 0}
+          emptyText="All clear, no pending verifications."
+        >
+          {vList.slice(0, 5).map((v) => (
+            <div key={v.caseId} className={rowClass}>
+              <div className="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                {v.subjectInitials || '??'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{v.subjectName || 'Unknown'}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+                  Waiting {shortAge(v.ageHours)}
+                  {v.submittedAt ? ` (submitted ${new Date(v.submittedAt).toLocaleDateString()})` : ''}
+                </p>
+              </div>
+              <ReviewButton to={`/admin/verifications/${v.caseId}`} />
+            </div>
+          ))}
+        </Panel>
+ 
+        <Panel
+          title="Active disputes"
+          viewAllTo="/admin/disputes"
+          loading={disputes.isLoading}
+          error={disputes.isError}
+          what="disputes"
+          isEmpty={dList.length === 0}
+          emptyText="All clear, no active disputes."
+        >
+          {dList.slice(0, 5).map((d) => (
+            <div key={d.caseId} className={rowClass}>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{d.title || 'Untitled dispute'}</p>
+                <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                  {d.type && (
+                    <span className="text-[11px] bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-full">
+                      {String(d.type).replace(/_/g, ' ')}
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-600 dark:text-gray-300">{timeAgo(d.ageHours)}</span>
+                  {d.slaBreached && (
+                    <span className="text-[11px] bg-red-600 text-white font-semibold px-2 py-0.5 rounded-full">SLA breached</span>
+                  )}
+                </div>
+              </div>
+              <ReviewButton to={`/admin/disputes/${d.caseId}`} />
+            </div>
+          ))}
+        </Panel>
+ 
+        <Panel
+          title="Flagged listings"
+          viewAllTo="/admin/listings?status=under_review"
+          loading={flagged.isLoading}
+          error={flagged.isError}
+          what="flagged listings"
+          isEmpty={fList.length === 0}
+          emptyText="All clear, no listings under review."
+        >
+          {fList.slice(0, 5).map((l) => {
+            const risk = String(l.riskLevel ?? 'low')
+            const riskStyle =
+              risk === 'high'
+                ? 'bg-red-600 text-white'
+                : risk === 'medium'
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-gray-200 text-gray-800'
+            return (
+              <div key={l.listingId} className={rowClass}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">{l.title || 'Untitled listing'}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${riskStyle}`}>{risk} risk</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-300 truncate">{l.reasons?.[0] ?? 'No reason recorded'}</span>
+                  </div>
+                </div>
+                <ReviewButton to={`/admin/listings/flagged/${l.listingId}`} />
+              </div>
+            )
+          })}
+        </Panel>
+      </div>
+ 
+      <Panel
+        title="Recent activity"
+        loading={audit.isLoading}
+        error={audit.isError}
+        what="activity"
+        isEmpty={aList.length === 0}
+        emptyText="No activity recorded yet."
+      >
+        {aList.map((e) => {
+          const who = actorLabel(e.actorId)
+          return (
+            <div key={e.id} className={rowClass}>
+              <span
+                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                  who === 'System' ? 'bg-gray-200 text-gray-800' : 'bg-sky-100 text-sky-900'
+                }`}
+              >
+                {who}
+              </span>
+              <p className="flex-1 min-w-0 text-sm text-navy-700 dark:text-white truncate">
+                {String(e.action).replace(/_/g, ' ')}
+                {e.entityType ? `, ${e.entityType}` : ''}
+              </p>
+              <time className="text-xs text-gray-600 dark:text-gray-300 flex-shrink-0" dateTime={e.timestamp}>
+                {new Date(e.timestamp).toLocaleString()}
+              </time>
+            </div>
+          )
+        })}
+      </Panel>
+    </div>
+  )}
