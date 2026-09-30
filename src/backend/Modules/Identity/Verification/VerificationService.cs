@@ -242,9 +242,11 @@ public class VerificationService : IVerificationService
         switch (decision)
         {
             case VerificationDecision.Approve:
-                vr.Status = "approved";
-                vr.AdminDecision = "approved";
-                user.StudentProfile.VerificationStatus = "verified";
+                await _broadcast.SendToUserAsync(
+                    vr.UserId,
+                    "verification_approved",
+                    new {}
+                );
                 break;
 
             case VerificationDecision.Reject:
