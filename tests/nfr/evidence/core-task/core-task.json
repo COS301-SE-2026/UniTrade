@@ -1,0 +1,15 @@
+{
+  "qr": "QR-06b",
+  "category": "Usability",
+  "requirement": "Core task (browse -> reserve -> chat -> meetup -> initiate payment) completes in <=120s",
+  "measurement": "buyer core-task wall-clock; EXCLUDES account onboarding + selle listing creation (precondition)",
+  "paymentMode": "PayFast hand-off asserted (POST /reservations/:id/Transaction-request returns 2xx); external redirect blocked",
+  "drivenSynchronously": "both parties driven back-to-back with no human think-time; number is the mechanical floor of the journey",
+  "budgetMs": 120000,
+  "elapsedMs": 8293,
+  "elapsedSeconds": 8.3,
+  "pass": true,
+  "transactionRequestStatus": 200,
+  "reservationId": "51882337-ecb7-4491-a515-d5e772128657",
+  "measuredAt": "2026-09-30T00:53:26.613Z"
+}

@@ -64,7 +64,7 @@ export async function createSellerListing(
   if (!listingId) {
     throw new Error(
       "createSellerListing: could not find a listing id (checked listingId/id/listing.id) " +
-      "on the create-listing response. Update this function once you confirm the real shape.",
+        "on the create-listing response. Update this function once you confirm the real shape.",
     );
   }
 
@@ -183,20 +183,43 @@ export async function scheduleMeetupAndCheckIn(
   await sellerPage
     .getByPlaceholder("e.g. Merensky Library - Main Entrance")
     .fill("Hatfield Plaza, Pretoria");
-  
-    
+
   await dropMapPin(sellerPage);
 
-   const sendProposal = sellerPage.getByRole("button", {
+  const sendProposal = sellerPage.getByRole("button", {
     name: /send proposal/i,
   });
   await expect(sendProposal).toBeEnabled();
+
+  const proposeResp = sellerPage.waitForResponse(
+    (res) =>
+      res.url().includes("/meetup/propose") &&
+      res.request().method() === "POST",
+    { timeout: 15000 },
+  );
+
   await sendProposal.click();
 
-  await expect(
-    buyerPage.getByText("Meetup Proposal", { exact: true }),
-  ).toBeVisible({ timeout: 10000 });
+  const proposeRes = await proposeResp;
 
+  console.log(`[meetup] propose status: ${proposeRes.status()}`);
+
+  await buyerPage.waitForTimeout(800);
+
+  await buyerPage.goto(`/buyer/messages/${reservationId}`);
+
+  try {
+    await expect(
+      buyerPage.getByText("Meetup Proposal", { exact: true }),
+    ).toBeVisible({ timeout: 10000 });
+  } catch (err) {
+    const text = await buyerPage
+      .locator("body")
+      .innerText()
+      .catch(() => "<no body>");
+    console.error(`[meetup] buyer page after propose:\n${text.slice(0, 2000)}`);
+    throw err;
+  }
 
   const acceptResp = buyerPage.waitForResponse(
     (resp) =>
@@ -204,8 +227,8 @@ export async function scheduleMeetupAndCheckIn(
       resp.request().method() === "POST",
     { timeout: 15000 },
   );
-
   await buyerPage.getByRole("button", { name: "Accept", exact: true }).click();
+
   await acceptResp;
 
   await buyerPage.goto(`/payment/meetup/${reservationId}`);
