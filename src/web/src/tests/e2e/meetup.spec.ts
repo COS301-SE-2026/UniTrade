@@ -3,7 +3,6 @@ import {
   createListingAndReserve,
   scheduleMeetupAndCheckIn,
   dropMapPin,
-  openCheckInModal,
 } from "./helpers/reservation";
 
 test.describe("meetup scheduling and check-in", () => {
