@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Modules.Disputes;
 using Modules.Disputes.Models.Dto;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
@@ -17,18 +19,21 @@ public sealed class AdminUsersController : AdminControllerBase
     private readonly IStrikeRepository _strikes;
     private readonly IUserRepository _users;
     private readonly IReputationService _reputation;
+    private readonly IAdminCaseService _adminCases;
 
     public AdminUsersController(
         IListingService listings,
         IStrikeRepository strikes,
         IUserRepository users,
-        IReputationService reputation
+        IReputationService reputation,
+        IAdminCaseService adminCases
     )
     {
         _listings = listings;
         _users = users;
         _strikes = strikes;
         _reputation = reputation;
+        _adminCases = adminCases;
     }
 
     [HttpGet("{userId:guid}/listings")]
@@ -147,4 +152,40 @@ public sealed class AdminUsersController : AdminControllerBase
 
         return Ok(new ListUsersResponseDto { Users = items, Total = total });
     }
+
+    [HttpPost("{userId:guid}/strike")]
+    public async Task<IActionResult> StrikeUser(
+        Guid userId,
+        [FromBody] StrikeUserRequest request,
+        CancellationToken ct = default
+    )
+    {
+        var adminId = GetAdminId();
+
+        if (string.IsNullOrWhiteSpace(request.Reason))
+            return BadRequest(new { error = "reason_required" });
+
+        var user = await _users.GetByIdAsync(userId);
+        if (user is null)
+            return NotFound(new { error = "user_not_found" });
+
+        await _adminCases.StrikeUserAsync(
+            userId,
+            request.CaseId,
+            request.Reason.Trim(),
+            adminId,
+            request.Scope,
+            ct
+        );
+
+        return NoContent();
+    }
+
+    private Guid GetAdminId()
+    {
+        var sub = User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(sub, out var id) ? id : Guid.Empty;
+    }
+
+    public sealed record StrikeUserRequest(string Reason, Guid? CaseId, string? Scope = null);
 }

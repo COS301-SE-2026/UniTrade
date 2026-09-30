@@ -15,4 +15,6 @@ public interface IProofOfRegistrationRepository
     );
 
     Task DeleteAsync(Guid verificationId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Guid>> ListDueForPurgeAsync(DateTime cutoffUtc, CancellationToken ct = default);
 }

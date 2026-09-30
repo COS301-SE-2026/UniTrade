@@ -4,7 +4,7 @@ export type CaseType =
   | "report_listing"
   | "no_show";
 
-export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed";
+export type CaseStatus = "pending" | "resolved" | "under_review" | "dismissed" | "resubmission";
 export type SnapshotStatus = 'live' | 'pending' | 'draft' | 'rejected' | 'reserved' | 'sold'
 
 export type Decision =
@@ -15,7 +15,7 @@ export type Decision =
   | "dismiss"
   | "request_info";
 
-export type Outcome = "strike" | "remove_listing" | "refusal_flag";
+export type Outcome = "strike" | "remove_listing" | "refusal_flag" | "warn_seller_resubmit";
 
 export type PinStatus =
   | "not_entered"
@@ -25,7 +25,20 @@ export type PinStatus =
   | "confirmed";
 
 export type VerificationStatus = "verified" | "pending" | "rejected";
+export type ViewerRole = "filed_by_me" | "against_me"
 
+export interface MyCaseSummary extends CaseSummary{
+viewerRole: ViewerRole;
+}
+
+export interface ListMyCasesResponse {
+  cases: MyCaseSummary[];
+}
+
+export interface GetMyCaseResponse {
+  detail: CaseDetail;
+  viewerRole: ViewerRole;
+}
 export interface AdminTokenClaims {
   sub: string;
   role: "admin" | "student";
@@ -88,6 +101,7 @@ export interface CaseEvidence {
   proofDocument?:string;
   // listing_quality
   snapshot?: ListingSnapshot;
+  originalSnapshot?: ListingSnapshot;
   buyerPhotos?: string[];
   sellerRefusedPhotos?: boolean;
   currentListingStatus?: string | null;
@@ -115,6 +129,7 @@ export interface CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   title?: string;
+  imageUrl?: string;
   subjectInitials?: string;
   counterpartyInitials?: string;
   subjectName?: string;
@@ -142,7 +157,9 @@ export interface CaseDetail extends CaseSummary {
   slaHours: number;
   slaBreached: boolean;
   suggestedDecision?: 'uphold'|'dismiss';
-  suggestedOutcomes?: string[];
+  suggestedOutcomes?: Outcome[];
+  resolution?: string | null;
+  resolvedAt?: string | null;
 }
 
 export interface CaseHistoryEntry {
@@ -347,4 +364,30 @@ export interface ListingStatusResponse {
   status: "live" | "under_review" | "removed";
   riskLevel: "low" | "medium" | "high";
   message: string;
+}
+
+export interface BundleDisputeItemFiling{
+  listingId: string;
+  photos?: string[];
+  sellerRefusedPhotos?: boolean
+}
+
+export interface FileDisputeBundleRequest{
+  type: "listing_quality";
+  reservationId: string;
+  description?: string;
+  items: BundleDisputeItemFiling[];
+
+}
+
+export interface FileDisputeBundleResponse{
+  caseIds: string[];
+}
+
+
+export interface CaseNote{
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
 }

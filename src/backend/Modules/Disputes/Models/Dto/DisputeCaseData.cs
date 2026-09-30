@@ -1,3 +1,5 @@
+using NodaTime.TimeZones;
+
 namespace Modules.Disputes.Models.Dto;
 
 public sealed class DisputeCaseData
@@ -16,6 +18,7 @@ public sealed class DisputeCaseData
     public Guid? BuyerId { get; set; }
     public Guid? SellerId { get; set; }
     public Guid? MeetupId { get; set; }
+
     public bool BuyerCheckedIn { get; set; }
     public DateTime? BuyerCheckInTime { get; set; }
     public bool SellerCheckedIn { get; set; }
@@ -24,5 +27,9 @@ public sealed class DisputeCaseData
     public DateTime? CheckInWindowClosesAt { get; set; }
 
     public Guid? SnapshotId { get; set; }
+    public Guid? OriginalSnapshotId { get; set; }
+    public string? Resolution { get; set; }
+
+    public DateTime? ResolvedAt { get; set; }
 
 }

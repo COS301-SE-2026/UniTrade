@@ -41,6 +41,9 @@ class ConnectionManager {
   private readonly paymentCompletedListeners = new Set<
     (e: { reservationId: string }) => void
   >();
+  private readonly disputeOutcomeListeners = new Set<
+    (e: { message: string; reason?: string }) => void
+  >();
   private readonly pinConfirmedListeners = new Set<
     (e: { reservationId: string }) => void
   >();
@@ -50,7 +53,9 @@ class ConnectionManager {
   private readonly disputeResolvedListeners = new Set<
     (data: { caseId: string; status: string }) => void
   >();
-
+  private readonly disputeResubmittedListeners = new Set<
+    (data: { caseId: string }) => void
+  >();
   private readonly savedSearchMatchListeners = new Set<
     (e: {
       listingId: string;
@@ -81,6 +86,16 @@ class ConnectionManager {
   private readonly bundleRuleChangedListeners = new Set<
     (e: { sellerId: string }) => void
   >();
+
+  private readonly listingSoldListeners = new Set<
+    (e: { listingIds: string[] }) => void
+  >();
+
+  private readonly auditEventListeners = new Set<
+    (e: { action: string; entityType: string; entityId: string }) => void
+  >();
+
+  private readonly verificationApprovedListeners=new Set<() => void>();
 
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
@@ -171,7 +186,24 @@ class ConnectionManager {
       conn.on("bundle_rule_changed", (e: { sellerId: string }) =>
         this.bundleRuleChangedListeners.forEach((cb) => cb(e)),
       );
+      conn.on("dispute_outcome", (e: { message: string; reason?: string }) =>
+        this.disputeOutcomeListeners.forEach((cb) => cb(e)),
+      );
 
+      conn.on("listing_sold", (e: { listingIds: string[] }) =>
+        this.listingSoldListeners.forEach((cb) => cb(e)),
+      );
+      conn.on(
+        "audit_event",
+        (e: { action: string; entityType: string; entityId: string }) =>
+          this.auditEventListeners.forEach((cb) => cb(e)),
+      );
+
+      conn.on("verification_approved", () =>
+        this.verificationApprovedListeners.forEach((cb) => cb()),
+      );
+
+    
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
@@ -188,6 +220,9 @@ class ConnectionManager {
         this.reconnectedListeners.forEach((cb) => cb());
       });
 
+      conn.on("dispute_resubmitted", (data: { caseId: string }) =>
+        this.disputeResubmittedListeners.forEach((cb) => cb(data)),
+      );
       conn.onclose(() => {
         this.connection = null;
         this.connectPromise = null;
@@ -264,6 +299,12 @@ class ConnectionManager {
     return () => this.readListeners.delete(callback);
   }
 
+  onDisputeResubmitted(
+    callback: (data: { caseId: string }) => void,
+  ): Unsubscribe {
+    this.disputeResubmittedListeners.add(callback);
+    return () => this.disputeResubmittedListeners.delete(callback);
+  }
   onReservationUpdated(callback: (r: Reservation) => void): Unsubscribe {
     this.reservationListeners.add(callback);
     return () => this.reservationListeners.delete(callback);
@@ -299,7 +340,23 @@ class ConnectionManager {
     this.bundleRuleChangedListeners.add(cb);
     return () => this.bundleRuleChangedListeners.delete(cb);
   }
-  
+  onListingSold(cb: (e: { listingIds: string[] }) => void): Unsubscribe {
+    this.listingSoldListeners.add(cb);
+    return () => this.listingSoldListeners.delete(cb);
+  }
+
+  onAuditEvent(
+    cb: (e: { action: string; entityType: string; entityId: string }) => void,
+  ): Unsubscribe {
+    this.auditEventListeners.add(cb);
+    return () => this.auditEventListeners.delete(cb);
+  }
+
+  onVerificationApproved(callback: () => void): Unsubscribe{
+    this.verificationApprovedListeners.add(callback);
+    return () => this.verificationApprovedListeners.delete(callback);      
+  }
+
   async sendMessage(
     reservationId: string,
     content: string,
@@ -385,6 +442,13 @@ class ConnectionManager {
   ): Unsubscribe {
     this.disputeResolvedListeners.add(callback);
     return () => this.disputeResolvedListeners.delete(callback);
+  }
+
+  onDisputeOutcome(
+    callback: (e: { message: string; reason?: string }) => void,
+  ): Unsubscribe {
+    this.disputeOutcomeListeners.add(callback);
+    return () => this.disputeOutcomeListeners.delete(callback);
   }
 
   onForceLogout(callback: (e: { reason: string }) => void): Unsubscribe {

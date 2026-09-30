@@ -56,10 +56,12 @@ public class ListingRepository : IListingRepository
             .Listings.AsNoTracking()
             .Include(l => l.Category)
             .Include(l => l.BookDetails);
-        
+
         if (!listingFilterDto.SellerId.HasValue)
         {
-            query = query.Where(l => l.ListingStatus != _removedStatus);
+            query = query.Where(l =>
+                l.ListingStatus != _removedStatus && l.ListingStatus != "banned"
+            );
         }
 
         query = query.Where(l => _db.Users.Any(u => u.UserId == l.SellerId && !u.IsDeleted));
@@ -85,17 +87,26 @@ public class ListingRepository : IListingRepository
                 x.Title.Contains(searchInput) || x.Description.Contains(searchInput)
             );
         }
+        if (!string.IsNullOrWhiteSpace(listingFilterDto.Condition))
+            query = query.Where(x => x.Condition == listingFilterDto.Condition);
 
         var total = await query.CountAsync();
 
         var take = Math.Clamp(listingFilterDto.Take, 1, 100);
 
-        IOrderedQueryable<Listing> ordered =
-            listingFilterDto.ListingStatus == "live"
+        IOrderedQueryable<Listing> ordered = listingFilterDto.SortBy switch
+        {
+            "price_asc" => query.OrderBy(l => l.Price),
+            "price_desc" => query.OrderByDescending(l => l.Price),
+            "newest" => query.OrderByDescending(l => l.CreatedAt),
+            "oldest" => query.OrderBy(l => l.CreatedAt),
+
+            _ => listingFilterDto.ListingStatus == "live"
                 ? query
                     .OrderByDescending(l => l.VisibilityScore ?? 100)
                     .ThenByDescending(l => l.CreatedAt)
-                : query.OrderByDescending(l => l.CreatedAt);
+                : query.OrderByDescending(l => l.CreatedAt)
+        };
         // Map to entity
         var items = await ordered
             .ThenByDescending(l => l.ListingId)
@@ -209,10 +220,7 @@ public class ListingRepository : IListingRepository
     {
         return await _db
             .Listings.AsNoTracking()
-            .AnyAsync(l =>
-                l.ListingId == listingId
-                && l.SellerId == sellerId
-            );
+            .AnyAsync(l => l.ListingId == listingId && l.SellerId == sellerId);
     }
 
     public async Task<List<ListingCategory>> GetActiveCategories()
@@ -224,7 +232,7 @@ public class ListingRepository : IListingRepository
             .ToListAsync();
     }
 
-    public async Task MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
+    public async Task<IReadOnlyList<Guid>> MarkAllBySellerAsRemovedAsync(Guid sellerId, string reason)
     {
         var listings = await _db
             .Listings.Where(l =>
@@ -234,7 +242,7 @@ public class ListingRepository : IListingRepository
             .ToListAsync();
         if (listings.Count == 0)
         {
-            return;
+            return Array.Empty<Guid>();
         }
         foreach (var listing in listings)
         {
@@ -244,6 +252,7 @@ public class ListingRepository : IListingRepository
         }
 
         await _db.SaveChangesAsync();
+        return listings.Select(l => l.ListingId).ToList();
     }
 
     public async Task<bool> TryReserveAsync(Guid listingId, CancellationToken ct = default)
@@ -329,17 +338,85 @@ public class ListingRepository : IListingRepository
         CancellationToken ct = default
     )
     {
-        var rowsFetched = await _db
-            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus != _removedStatus)
+        var rows = await _db
+            .Listings.Where(l =>
+                l.ListingId == listingId
+                && l.ListingStatus != _removedStatus
+                && l.ListingStatus != "banned"
+            )
             .ExecuteUpdateAsync(
                 s =>
-                    s.SetProperty(l => l.ListingStatus, "removed")
+                    s.SetProperty(l => l.ListingStatus, "banned")
                         .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
                         .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
                 ct
             );
 
-        return rowsFetched == 1;
+        return rows == 1;
+    }
+
+    public async Task<bool> WarnSellerAsync(
+        Guid listingId,
+        string reason,
+        CancellationToken ct = default
+    )
+    {
+        var rows = await _db
+            .Listings.Where(l =>
+                l.ListingId == listingId
+                && l.ListingStatus != _removedStatus
+                && l.ListingStatus != "banned"
+            )
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, _removedStatus)
+                        .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.RequiresManualReviewOnResubmit, true)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+        return rows == 1;
+    }
+
+    public async Task<bool> RestoreToLiveAsync(Guid listingId, CancellationToken ct = default)
+    {
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "under_review")
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, "live")
+                        .SetProperty(l => l.RejectionReason, (string?)null)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+        return rows == 1;
+    }
+
+    public async Task<bool> SetUnderReviewAsync(
+        Guid listingId,
+        string reason,
+        CancellationToken ct = default
+    )
+    {
+        var rows = await _db
+            .Listings.Where(l => l.ListingId == listingId && l.ListingStatus == "live")
+            .ExecuteUpdateAsync(
+                s =>
+                    s.SetProperty(l => l.ListingStatus, "under_review")
+                        .SetProperty(l => l.RejectionReason, reason)
+                        .SetProperty(l => l.AiRiskReasons, (List<RiskReason>?)null)
+                        .SetProperty(l => l.AiRiskLevel, (string?)null)
+                        .SetProperty(l => l.AiRiskScore, (decimal?)null)
+                        .SetProperty(l => l.UpdatedAt, DateTime.UtcNow),
+                ct
+            );
+        return rows == 1;
     }
 
     public async Task<IReadOnlyList<Listing>> GetByGroupIdAsync(
@@ -349,7 +426,9 @@ public class ListingRepository : IListingRepository
     ) =>
         await _db
             .Listings.AsNoTracking()
-            .Where(l => l.ListingGroupId == groupId && ( includeRemoved || l.ListingStatus != _removedStatus))
+            .Where(l =>
+                l.ListingGroupId == groupId && (includeRemoved || l.ListingStatus != _removedStatus)
+            )
             .ToListAsync(ct);
 
     public async Task DuplicateImagesToGroupAsync(
@@ -372,10 +451,7 @@ public class ListingRepository : IListingRepository
             .ToListAsync(ct);
 
         var siblingIds = await _db
-            .Listings.Where(l =>
-                l.ListingGroupId == groupId
-                && l.ListingId != sourceListingId
-            )
+            .Listings.Where(l => l.ListingGroupId == groupId && l.ListingId != sourceListingId)
             .Select(l => l.ListingId)
             .ToListAsync(ct);
 
@@ -462,4 +538,12 @@ public class ListingRepository : IListingRepository
                 ct
             );
     }
+
+    public async Task SuspendAllLiveBySellerAsync(Guid sellerId, CancellationToken ct = default) =>
+        await _db.Listings.Where(l => l.SellerId == sellerId && l.ListingStatus == "live")
+                .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "suspended"), ct);
+
+    public async Task RestoreSuspendedBySellerAsync(Guid sellerId, CancellationToken ct = default) =>
+        await _db.Listings.Where(l => l.SellerId == sellerId && l.ListingStatus == "suspended")
+                .ExecuteUpdateAsync(s => s.SetProperty(l => l.ListingStatus, "live"), ct);
 }

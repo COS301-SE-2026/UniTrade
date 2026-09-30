@@ -1,0 +1,266 @@
+project: UniTrade
+srs_quality_requirement: 7
+
+requirements:
+  # Performance
+  - id: QR-01a
+    category: Performance
+    requirement: "p95 read latency (feed / search / browse) under load"
+    target: "p95 <= 800ms, error rate < 1% at ~40 concurrent users (baseline)"
+    tactic: "Composite + filtered indexes on read paths; background workers off teh request path"
+    tool: k6
+    test: "tests/nfr/performance.js"
+    evidence:
+      type: artifact
+      workflow: "NFR Fitness Functions"
+      artifact: "perf-summary"
+    status: pass
+    note: "Run against localhost (free-tier constraints)"
+
+  - id: QR-01b
+    category: Performance
+    requirement: "Chat message delivery latency"
+    target: "p95 <= 500 ms"
+    tactic: "Push-based delivery via SignalR (no polling)"
+    tool: "Playwright (SignalR round-trip timing)"
+    test: "tests/nfr/chat-latency.ts"
+    evidence:
+      type: committed-file
+      path: "tests/nfr/evidence/chat-latency/chat-latency.json"
+      workflow: "E2E Tests"
+    status: pass
+
+  # Scalability
+
+  - id: QR-02
+    category: Scalability
+    requirement: "Error rate + latency at 2x baseline load"
+    target: "p95(2x) <= 1.5x baseline p95, error < 1% (baseline 40 VUs -> peak 80 VUs)"
+    tactic: "Stateless API + Container Apps autoscale (min/max replicas) + DB connection pooling"
+    tool: k6
+    test: "tests/nfr/scalability.js"
+    evidence:
+      type: artifact
+      workflow: "NFR Fitness Functions"
+      artifact: "scale-summary"
+    status: pass
+    note: "Run against localhost"
+
+  # Security
+  - id: QR-03a
+    category: Security
+    requirement: "Admin endpoints reject non-admin callers"
+    target: "100% reject (anon -> 401, student -> 403, admin 200)"
+    tactic: "Role-based authorisation on all admin routes"
+    tool: "Integration Tests"
+    test: "AdminTests.AdminPing_admin_200_student_403_anon_401"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-03b
+    category: Security
+    requirement: "Forged/tampered payment callback has no effect"
+    target: "Rejected (400 invalid_signature), no state change"
+    tactic: "Server-side signed-ITN verification before any state change"
+    tool: "Integration + fault injection"
+    test: "PaymentWebhookTests.TamperedPaymentNotification_IsRejected_NoStateChange"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-03c
+    category: Security
+    requirement: "OTP storage + comparison"
+    target: "Peppered hash; constant-time compare; never equals raw OTP"
+    tactic: "Peppered hash + constant-time compare"
+    tool: "Unit test"
+    test: "OtpSecurityTests"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-03d
+    category: Security
+    requirement: "No medium-or-above exposure on staging"
+    target: "0 high/critical (mediums triaged)"
+    tactic: "Security headers, TLS-only, limited exposure"
+    tool: "OWASP ZAP baseline"
+    test: "./zap/rules.tsv (baseline)"
+    evidence:
+      type: committed-file
+      path: "  commit the ZAP report tests/nfr/evidence/dast"
+
+  - id: QR-03e
+    category: Security
+    requirement: "No high/critical dependency CVEs on main"
+    target: "0 high/critical"
+    tactic: "Dependency scanning enforced in CI"
+    tool: "dotnet list package --vulnerable + npm audit --audit-level=high"
+    test: "nfr-checks (backend) + nfr-checks (web)"
+    evidence:
+      type: committed-file
+      path:
+        - "tests/nfr/evidence/Dependency Audits/npm-audit-report.txt"
+        - "tests/nfr/evidence/Dependency Audits/dotnet-vulnerability-report.txt"
+    workflow: "Backend CI / Web Frontend CI"
+    status: pass
+
+  # Reliability
+  - id: QR-04a
+    category: Reliability
+    requirement: "Duplicate payment notification is idempotent"
+    target: "Exactly one side effect (one transaction, status completed)"
+    tactic: "Idempotent ITN handling (dedup on provider reference)"
+    tool: "Integration + duplicate delivery"
+    test: "PaymentWebhookTests.DuplicatePaymentNotification_ProcessedOnlyOnce"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-04b
+    category: Reliability
+    requirement: "A single failed worker cycle does not stop the worker"
+    target: "Worker continues to next cycle after an injected fault"
+    tactic: "Per-cycle failure isolation in background workers"
+    tool: "Integration + fault injection"
+    test: "ReservationExpiryWorkerTests.Worker_ContinuesAfterFailedCycle_AndRunsNextCycle"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-04c
+    category: Reliability
+    requirement: "A failed deployment auto-rolls-back"
+    target: "Health-gated with health check before traffic shift; rollback on failure"
+    tactic: "Per-cycle failure isolation in background workers"
+    tool: "Deploy config + observed failing run"
+    test: ".github/workflows/cd.yml (rollback to previous revision [failure event])"
+    evidence:
+      type: workflow-config + screenshots
+      path:
+        - ".github/workflows/cd.yml"
+        - "screenshot of the failing deploy rolling back, tests/nfr/evidence/rollback/**"
+      workflow: "Backend CI"
+    status: documented
+
+  - id: QR-04d
+    category: Reliability
+    requirement: "Availability over the 30 days before the demo"
+    target: ">=99.5%"
+    tactic: "Health checks + managed restart + always-warm min replica"
+    tool: "UptimeRobot"
+    evidence:
+      type: screenshot
+      path: "UptimeRobot screenshot, tests/nfr/evidence/uptime/**"
+      workflow: "Backend CI"
+    status: pass
+    note: Prod monitor currently 100%
+
+  # Maintainability
+  - id: QR-05a
+    category: Maintainability
+    requirement: "Critical-path tests + static-analysis gate on main"
+    target: "Critical paths covered by unit + integration tests"
+    tactic: "CI gate: build + unit/integration on critical paths + format + static analysis (quality gate)"
+    tool: "SonarCloud quality gate + xUnit (critical-path suites)"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI / Web Backend CI"
+      link: "https://sonarcloud.io/summary/overall?id=COS301-SE-2026_UniTrade&branch=main"
+    status: pass
+
+  - id: QR-05b
+    category: Maintainability
+    requirement: "MIgrations apply cleanly from an empty database"
+    target: "Applies clean in a fresh Postgres"
+    tactic: "Migrations run in the pipeline"
+    tool: "dotnet ed database update"
+    test: "nfr-checks (MIgrations apply from empty DB)"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  # Usability
+  - id: QR-06a
+    category: Usability
+    requirement: "Accessibility on public + admin pages"
+    target: "0 serious/critical (Lighthouse/axe >= 90 threshold)"
+    tactic: "Semantic markup + tested design tokens"
+    tool: "Lighthouse (axe-core)"
+    test: "nfr-checks (MIgrations apply from empty DB)"
+    evidence:
+      type: committed-file
+      path: "tests/nfr/evidence/perf-access-lighthouse/*-accs.{html,json}"
+      workflow: "Lighthouse NFR Audits"
+    status: pass
+
+  - id: QR-06a
+    category: Usability
+    requirement: "Core task completes end-to-end in <= 2 min"
+    target: "<= 120s {browse -> reserve -> chat -> meetup -> initiate payment}"
+    tactic: "Single PWA + real-time updates (no manual refresh)"
+    tool: "Playwright e2e"
+    test: "src/web/tests/e2e/core-task.spec.ts"
+    evidence:
+      type: committed-file
+      path: "tests/nfr/evidence/core-task.json"
+      workflow: "E2E Tests"
+    status: pass
+
+  # Administration
+
+  - id: QR-07a
+    category: Administration
+    requirement: "Moderation queue returns cases oldest-first"
+    target: "oldest-first ordering"
+    tactic: "Age-ordered queue query over a persisted case entity"
+    tool: "Integration test"
+    test: "AdminTests.Cases_queue_is_oldest_first"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+      link: TODO_RUN_URL
+    status: pass
+
+  - id: QR-07b
+    category: Administration
+    requirement: "Every admin decision is audited"
+    target: "actor + timestamp _ reason present (exactly one row)"
+    tactic: "Audit log written on every status"
+    tool: "Integration test"
+    test: "AdminTests.VerificationDecision_writes_one_audit_row_with_all_fields"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-07c
+    category: Administration
+    requirement: "Decision notifies the subject"
+    target: "Notification dispatched on each decision"
+    tactic: "Notification dispatch on every status-changing decision"
+    tool: "Integration test (notification check)"
+    test: "AdminDecisionTests.AdminDecision_CreatesNotificationForSubject"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass
+
+  - id: QR-07d
+    category: Administration
+    requirement: "SLA breach is surfaced on the dashboard"
+    target: "Cases older than SLA (48 h verification / 72 h disputes) flagged"
+    tactic: "Dashboard flags cases open longer than the window"
+    tool: "Integration test"
+    test: "AdminDecisionTests.Dashboard_FlagsCasesExceedingSla"
+    evidence:
+      type: ci-run
+      workflow: "Backend CI"
+    status: pass

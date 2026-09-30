@@ -139,7 +139,7 @@ export function seedMockListing(overrides: Partial<MockListing> = {}) {
     title: "Calculus Textbook",
     description: "Good condition, minor highlighting.",
     price: 250,
-    condition: "like_new",
+    condition: "new",
     listingStatus: "live",
     viewCount: 42,
     sellerId: "seller-1",

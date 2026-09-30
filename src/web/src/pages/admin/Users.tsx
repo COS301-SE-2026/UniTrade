@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { getUsers } from '../../services/adminService'
 import type { UserListItem } from '../../types/admin_disputes'
-import {LoadingState} from '../../components/layout/Spinner'
+import { LoadingState } from '../../components/layout/Spinner'
+import {
+  IconUsers,
+  IconCircleCheck,
+  IconCalendarDue,
+  IconXMark
+} from "@tabler/icons-react"
+
+type SortBy = 'Name A-Z' | 'Name Z-A';
+type Filter = "All" | "With Strikes" | "Verified" | "Pending";
+
+const PAGE_SIZE = 6;
 
 export interface UserRow {
   id: string
@@ -28,8 +39,11 @@ export default function Users() {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery] = useState('')
-  const [filter, setFilter] = useState<'all' | 'strikes' | 'verified' | 'pending'>('all');
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") ?? "";
+  const [filter, setFilter] = useState<Filter>('All');
+  const [sortBy, setSortBy] = useState<SortBy>('Name A-Z');
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,98 +78,139 @@ export default function Users() {
   }, []);
 
   const filteredRows = rows.filter((user) => {
-    const matchSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.degree.toLowerCase().includes(searchQuery.toLowerCase());
-
+    const q = searchQuery.toLowerCase();
+    const matchSearch = user.name.toLowerCase().includes(q) ||
+      user.degree.toLowerCase().includes(q);
 
     if (!matchSearch) return false;
-    if (filter === 'strikes') return user.strikesCount > 0
-    if (filter === 'verified') return user.verificationStatus === 'Verified'
-    if (filter === 'pending') return user.verificationStatus === 'Pending'
+    if (filter === 'With Strikes') return user.strikesCount > 0
+    if (filter === 'Verified') return user.verificationStatus === 'Verified'
+    if (filter === 'Pending') return user.verificationStatus === 'Pending'
     return true;
   });
 
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    const cmp = a.name.localeCompare(b.name);
+    return sortBy === 'Name A-Z' ? cmp : -cmp;
+  });
+
+  
+  const listKey = `${filter}|${sortBy}|${searchQuery}`;
+  const [lastListKey, setLastListKey] = useState(listKey);
+  if (lastListKey !== listKey) {
+    setLastListKey(listKey);
+    setCurrentPage(1);
+  }
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedRows = sortedRows.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
   const total = rows.length
+  const WithStrikes = rows.filter((user) => user.strikesCount > 0)
+  const numWithStrikes = WithStrikes.length
   const numVerified = rows.filter((user) => user.verificationStatus === 'Verified').length
   const numPending = rows.filter((user) => user.verificationStatus === 'Pending').length
 
-  if(loading )
-     {return <LoadingState message = "Loading users..." />}
-  
+  const filters: { label: Filter; count: number }[] = [
+    { label: "All", count: total },
+    { label: "Verified", count: numVerified },
+    { label: "Pending", count: numPending },
+    { label: "With Strikes", count: numWithStrikes },
+  ];
+
+  if (loading) { return <LoadingState message="Loading users..." /> }
+
   if (error) {
     return <p className='text-sm text-red-700'>{error}</p>;
   }
 
   return (
     <div className='space-y-6'>
-  <div>
-      <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
-<p className="text-xs text-gray-600 mt-1">
+      <div>
+        <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800"> Users</h1>
+       <p className="text-sm text-gray-600 mt-1">
           View all student users registered on the application. </p>
-        </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-          <div>
-            <div className="text-2xl font-bold text-navy-700 dark:text-white">{total}</div>
-            <div className="text-xs text-gray-600 mt-0.5">Total Users</div>
-
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-
-          <div>
-            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numVerified}</div>
-            <div className="text-xs text-gray-600 mt-0.5">Verified</div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
-          <div>
-            <div className="text-2xl font-bold text-navy-700 dark:text-white">{numPending}</div>
-            <div className="text-xs text-gray-600 mt-0.5">Pending verification</div>
-          </div>
-        </div>
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-      <div className="flex items-center space-x-2 pt-2">
-        <button
-          type="button"
-          onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'all' ? 'bg-navy-700 text-white'
-            : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
-        >
-          All</button>
-        <button
-          type="button"
-          onClick={() => setFilter('strikes')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'strikes' ? 'bg-navy-700 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          With Strikes
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter('verified')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'verified' ? 'bg-navy-700 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-        >
-          Verified
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter('pending')}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer ${filter === 'pending' ? 'bg-navy-700 text-white' : 'bg-white text-gray-600 border border-gray-300'
-            }`}
-        >
-          Pending
-        </button>
+        {[
+          {
+            label: "Total Users",
+            value: total,
+            icon: <IconUsers size={20} />,
+          },
+          {
+            label: "Verified",
+            value: numVerified,
+            icon: <IconCircleCheck size={20} />,
+          },
+          {
+            label: "Pending Verification",
+            value: numPending,
+            icon: <IconCalendarDue size={20} />,
+          },
+          {
+            label: "With Strikes",
+            value: numWithStrikes,
+            icon: <IconXMark size={20} />,
+          },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3"
+          >
+            <span className="text-navy-700 dark:text-white">{stat.icon}</span>
+            <div>
+              <div className="text-2xl font-bold text-navy-700 dark:text-white">
+                {stat.value}
+              </div>
+              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+<div className="flex items-center justify-between pt-2">
+        <div className="flex items-center space-x-3">
+          {filters.map(({ label }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setFilter(label)}
+              className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors 
+                ${filter === label
+                  ? "bg-navy-700 text-white border-navy-700"
+                  : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
+                }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div>
+          <select
+            aria-label="Sort users"
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as SortBy);
+              setCurrentPage(1);
+            }}
+            className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-none cursor-pointer w-full sm:w-auto'
+          >
+            <option value="Name A-Z">Sort: Name A-Z</option>
+            <option value="Name Z-A">Sort: Name Z-A</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className=" border-b border-gray-100 text-xs text-gray-500 font-semibold">
+            <tr className=" border-b border-gray-100 bg-gray-50 text-xs text-gray-500 font-semibold uppercase">
               <th className="py-4 px-6">Student</th>
               <th className="py-4 px-6">Verification</th>
               <th className="py-4 px-6">Reputation</th>
@@ -169,7 +224,7 @@ export default function Users() {
                   No users match your criteria.
                 </td>
               </tr>) : (
-              filteredRows.map((user) => (
+              paginatedRows.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-6 flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center font-bold text-xs">
@@ -221,6 +276,32 @@ export default function Users() {
         </table>
 
       </div>
+      {sortedRows.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}-
+            {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
+            {sortedRows.length} users
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+              (page) => (
+                <button
+                  type="button"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

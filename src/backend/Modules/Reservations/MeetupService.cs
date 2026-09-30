@@ -11,6 +11,7 @@ using Modules.Reservations.Models;
 using Modules.Reservations.Models.Dto;
 using Modules.Reservations.Repositories;
 using Modules.Reservations.StateMachine;
+using Modules.Transactions;
 
 namespace Modules.Reservations;
 
@@ -23,6 +24,7 @@ public class MeetupService : IMeetupService
     private readonly ILogger<MeetupService> _logger;
     private readonly TimeProvider _clock;
     private readonly IDisputeRepository _disputes;
+    private readonly IReservationService _reservationService;
 
     public MeetupService(
         IReservationRepository reservations,
@@ -31,7 +33,8 @@ public class MeetupService : IMeetupService
         IMeetupRepository meetups,
         INotificationDispatcher pushNotifier,
         IDisputeRepository disputes,
-        ILogger<MeetupService> logger
+        ILogger<MeetupService> logger,
+        IReservationService reservationService
     )
     {
         _reservations = reservations;
@@ -41,6 +44,7 @@ public class MeetupService : IMeetupService
         _logger = logger;
         _clock = clock;
         _disputes = disputes;
+        _reservationService = reservationService;
     }
 
     public async Task<ChatMessageDto> ProposeAsync(
@@ -65,7 +69,7 @@ public class MeetupService : IMeetupService
         await GuardedPushAsync(
             recipient,
             NotificationTypes.ReservationStatus,
-            $"TMeetup propose at {payload.LocationName}, {payload.ProposedTime:ddd d MMM HH:mm}",
+            $"Meetup propose at {payload.LocationName}, {payload.ProposedTime:ddd d MMM HH:mm}",
             ct
         );
 
@@ -171,6 +175,35 @@ public class MeetupService : IMeetupService
         );
     }
 
+    public async Task<int> SendUpcomingReminderAsync(DateTime asOf, CancellationToken ct = default)
+    {
+        var due = await _meetups.GetDueForReminderAsync(asOf, 100, ct);
+        if (due.Count == 0) return 0;
+
+        foreach (var m in due) m.ReminderSentAt = asOf;
+        await _meetups.SaveAsync(ct);
+
+        foreach (var m in due)
+        {
+            try
+            {
+                var r = await _reservations.GetByIdAsync(m.ReservationId, ct);
+                if (r is null || r.ReservationStatus != ReservationState.Active) continue;
+
+                var text = $"Check-in for your meetup at {m.AgreedLocationName} is now open. " +
+                "Open Meetup Details when you arrive.";
+
+                await _chat.SendSystemAsync(m.ReservationId, text, ct);
+                await GuardedPushAsync(r.BuyerId, NotificationTypes.ReservationStatus, text, ct);
+                await GuardedPushAsync(r.SellerId, NotificationTypes.ReservationStatus, text, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Reminder failed for meetup {MeetupId}", m.MeetupId);
+            }
+        }
+        return due.Count;
+    }
     public async Task<CheckInResult> CheckInAsync(
         Guid reservationId,
         Guid callerId,
@@ -235,7 +268,7 @@ public class MeetupService : IMeetupService
         }
 
         var now = _clock.GetUtcNow().UtcDateTime;
-        var opensAt = meetup.AgreedTime - ReservationStateMachine.CheckinWindowAfterMeetup;
+        var opensAt = MeetupStateMachine.CheckInOpensAt(meetup);
         return new MeetupStatusDto(
             MeetupId: meetup.MeetupId,
             AgreedLocationName: meetup.AgreedLocationName,
@@ -380,8 +413,28 @@ public class MeetupService : IMeetupService
                 meetup.Status = "no_show_buyer";
                 noShowSubjectId = r.BuyerId;
             }
-            else
+            else if (!meetup.BuyerCheckedIn && !meetup.SellerCheckedIn)
             {
+                meetup.Status = "no_show_both";
+                resolved.Add(meetup);
+
+                // of both don't show up, no disputes, no strikes they cancel each other out 
+                try
+                {
+                    await _reservationService.CancelBySystemAsync(
+                        meetup.ReservationId,
+                        "Reservation cancelled-neither party checking in for the meetup.",
+                        ct
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                       ex,
+                       "Failed to auto-cancel reservation {ReservationId} after mutual no-show",
+                       meetup.ReservationId
+                   );
+                }
                 continue;
             }
             resolved.Add(meetup);
@@ -411,6 +464,20 @@ public class MeetupService : IMeetupService
                         meetup.MeetupId
                     );
                 }
+
+                try
+                {
+                    await _reservationService.CancelBySystemAsync(meetup.ReservationId, "Reservation cancelled - the other party did not check in for the meetup.", ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                       ex,
+                       "Failed to auto-cancel reservation {ReservationId} after one-sided no-show",
+                       meetup.ReservationId
+                   );
+                }
+
             }
         }
         if (resolved.Count > 0)

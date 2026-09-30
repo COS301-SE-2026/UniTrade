@@ -6,20 +6,25 @@ public static class MeetupStateMachine
 {
     public static readonly TimeSpan CheckInOpensBefore = TimeSpan.FromMinutes(15); // check-in period opens 15 minutes before
 
+    public static DateTime CheckInOpensAt(Meetup m) => m.AgreedTime - CheckInOpensBefore;
+
     public static bool IsCheckInWindowOpen(Meetup m, DateTime now) =>
-        now >= m.AgreedTime - CheckInOpensBefore && now <= m.CheckinWindowClosesAt;
+        now >= CheckInOpensAt(m) && now <= m.CheckinWindowClosesAt;
+
+    private static void EnsureCanCheckIn(Meetup m, DateTime now)
+    {
+        if (m.Status != "scheduled")
+            throw new ReservationException(ReservationErrors.MeetupNotScheduled);
+        if (now < CheckInOpensAt(m))
+            throw new ReservationException(ReservationErrors.CheckInWindowNotOpen);
+        if (now > m.CheckinWindowClosesAt)
+            throw new ReservationException(ReservationErrors.CheckInWindowClosed);
+    }
 
     // if no location permission, still allows for payments to be unlocked, just that they cant raise disputes later because well..
     public static bool CheckInBuyer(Meetup m, DateTime now, decimal? lat, decimal? lng)
     {
-        if (m.Status != "scheduled")
-        {
-            throw new ReservationException(ReservationErrors.MeetupNotScheduled);
-        }
-        if (!IsCheckInWindowOpen(m, now))
-        {
-            throw new ReservationException(ReservationErrors.CheckInWindowClosed);
-        }
+        EnsureCanCheckIn(m, now);
 
         if (m.BuyerCheckedIn)
         {
@@ -52,14 +57,7 @@ public static class MeetupStateMachine
 
     public static bool CheckInSeller(Meetup m, DateTime now, decimal? lat, decimal? lng)
     {
-        if (m.Status != "scheduled")
-        {
-            throw new ReservationException(ReservationErrors.MeetupNotScheduled);
-        }
-        if (!IsCheckInWindowOpen(m, now))
-        {
-            throw new ReservationException(ReservationErrors.CheckInWindowClosed);
-        }
+        EnsureCanCheckIn(m, now);
 
         if (m.SellerCheckedIn)
         {

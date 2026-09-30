@@ -80,6 +80,7 @@ using Modules.Wishlist.Repositories;
 using Modules.Listings.Risk;
 using Infrastructure.Imaging;
 using Modules.Listings.Admin;
+using Modules.Identity.PasswordReset;
 
 
 DotEnv.Load(
@@ -231,6 +232,10 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
+builder.Services.AddScoped<IListingResubmissionListener, DisputeResubmissionListener>();
+builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<IEmailService, TestEmailService>();
@@ -317,6 +322,10 @@ builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IIcsImportService, IcsImportService>();
 builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
 builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
+builder.Services.AddScoped<ICaseNoteRepository, CaseNoteRepository>();
+builder.Services.AddHostedService<ProofRetentionWorker>();
+builder.Services.AddScoped<IAccountSanctionService, AccountSanctionService>();
+builder.Services.AddHostedService<SuspensionExpiryWorker>();
 
 if (!builder.Environment.IsDevelopment())
 {

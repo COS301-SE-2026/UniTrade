@@ -21,7 +21,9 @@ public class DisputeRepository : IDisputeRepository
         CancellationToken ct = default
     )
     {
-        var query = _db.Disputes.Where(d => d.Status == "open" || d.Status == "under_review");
+        var query = _db.Disputes.Where(d =>
+            d.Status == "open" || d.Status == "under_review" || d.Status == "resubmission"
+        );
         if (!string.IsNullOrWhiteSpace(type))
         {
             query = query.Where(d => d.Type == type);
@@ -35,6 +37,27 @@ public class DisputeRepository : IDisputeRepository
         }
         return results;
     }
+
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListClosedAsync(
+string? type,
+CancellationToken ct = default)
+
+    {
+        var query = _db.Disputes.Where(d => d.Status == "resolved" || d.Status == "closed");
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            query = query.Where(d => d.Type == type);
+        }
+        var disputes = await query.OrderByDescending(d => d.ResolvedAt).ToListAsync(ct);
+        var results = new List<CaseSummaryDto>(disputes.Count);
+        foreach (var d in disputes)
+        {
+            results.Add(await BuildSummaryAsync(d, ct));
+        }
+        return results;
+    }
+
+
 
     public async Task<DisputeCaseData?> GetCaseDataAsync(
         Guid disputeId,
@@ -61,9 +84,12 @@ public class DisputeRepository : IDisputeRepository
             Description = d.Description,
             SubmittedAt = d.SubmittedAt,
             SnapshotId = d.SnapshotId,
+            OriginalSnapshotId = d.OriginalSnapshotId,
             RaisedBy = d.RaisedBy ?? Guid.Empty,
             BuyerId = parties.BuyerId,
             SellerId = parties.SellerId,
+            Resolution = d.Resolution,
+            ResolvedAt = d.ResolvedAt,
         };
 
         //no show dispute
@@ -111,6 +137,7 @@ public class DisputeRepository : IDisputeRepository
 
         await _db.SaveChangesAsync(ct);
     }
+
     public async Task<Guid> CreateDisputeAsync(Dispute dispute, CancellationToken ct = default)
     {
         dispute.DisputeId = Guid.NewGuid();
@@ -126,14 +153,30 @@ public class DisputeRepository : IDisputeRepository
     public async Task<bool> HasOpenDisputeAsync(
         Guid filedByUserId,
         Guid subjectUserId,
+        Guid? listingId = null,
         CancellationToken ct = default
     )
     {
+        if (listingId.HasValue)
+        {
+            return await _db.Disputes.AnyAsync(
+                d =>
+                    d.RaisedBy == filedByUserId
+                    && d.ListingId == listingId.Value
+                    && d.Type == "report_listing"
+                    && (
+                        d.Status == "open"
+                        || d.Status == "under_review"
+                        || d.Status == "resubmission"
+                    ),
+                ct
+            );
+        }
         return await _db.Disputes.AnyAsync(
             d =>
                 d.RaisedBy == filedByUserId
                 && d.SubjectUserId == subjectUserId
-                && (d.Status == "open" || d.Status == "under_review"),
+                && (d.Status == "open" || d.Status == "under_review" || d.Status == "resubmission"),
             ct
         );
     }
@@ -154,6 +197,29 @@ public class DisputeRepository : IDisputeRepository
         return reservation is null ? (null, null) : (reservation.BuyerId, reservation.SellerId);
     }
 
+    public async Task<Dispute?> GetMostRecentReportDisputeForListingAsync(
+        Guid listingId,
+        CancellationToken ct = default
+    )
+    {
+        return await _db
+            .Disputes.Where(d => d.ListingId == listingId && d.Type == "report_listing")
+            .OrderByDescending(d => d.SubmittedAt)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task ReopenAsResubmissionAsync(Guid disputeId, CancellationToken ct = default)
+    {
+        var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
+        if (d is null)
+            return;
+        d.Status = "resubmission";
+        d.Resolution = null;
+        d.ResolvedAt = null;
+        d.AssignedAdminId = null;
+        await _db.SaveChangesAsync(ct);
+    }
+
     private async Task<CaseSummaryDto> BuildSummaryAsync(Dispute d, CancellationToken ct)
     {
         var parties = await ResolvePartiesAsync(d, ct);
@@ -161,6 +227,8 @@ public class DisputeRepository : IDisputeRepository
         var sellerId = parties.SellerId;
 
         string? title = null;
+        string? imageUrl = null;
+
         if (d.ReservationId is not null)
         {
             var snapshot = await _db.ListingSnapshot.FirstOrDefaultAsync(
@@ -168,6 +236,7 @@ public class DisputeRepository : IDisputeRepository
                 ct
             );
             title = snapshot?.Title;
+            imageUrl = snapshot?.PhotoRefs?.FirstOrDefault();
         }
 
         if (title is null && d.ListingId is not null)
@@ -176,6 +245,21 @@ public class DisputeRepository : IDisputeRepository
                 .Listings.Where(l => l.ListingId == d.ListingId)
                 .Select(l => l.Title)
                 .FirstOrDefaultAsync(ct);
+        }
+
+        if (imageUrl is null && d.ListingId is not null)
+        {
+            var firstImageId = await _db
+                .ListingImages.Where(i => i.ListingId == d.ListingId)
+                .OrderByDescending(i => i.IsPrimary)
+                .ThenBy(i => i.ImageId)
+                .Select(i => (int?)i.ImageId)
+                .FirstOrDefaultAsync(ct);
+
+            if (firstImageId is not null)
+            {
+                imageUrl = $"/api/listings/{d.ListingId}/images/{firstImageId}";
+            }
         }
         var subject = await _db.Users.FirstOrDefaultAsync(u => u.UserId == d.SubjectUserId, ct);
         var subjectInitials = Initials(subject);
@@ -192,6 +276,21 @@ public class DisputeRepository : IDisputeRepository
         }
         var counterpartyInitials = Initials(counterparty);
 
+        var copyCount = 1;
+        if (d.ListingId is not null)
+        {
+            var listing = await _db
+                .Listings.Where(l => l.ListingId == d.ListingId)
+                .Select(l => l.ListingGroupId)
+                .FirstOrDefaultAsync(ct);
+            if (listing is Guid groupId)
+            {
+                copyCount = await _db.Listings.CountAsync(
+                    l => l.ListingGroupId == groupId && l.ListingStatus == "under_review",
+                    ct
+                );
+            }
+        }
         return new CaseSummaryDto
         {
             CaseId = d.DisputeId,
@@ -203,6 +302,8 @@ public class DisputeRepository : IDisputeRepository
             SlaHours = 0,
             SlaBreached = false,
             Title = title,
+            ImageUrl = imageUrl,
+            CopyCount = copyCount,
             SubjectInitials = subjectInitials,
             CounterpartyInitials = counterpartyInitials,
             RaisedBy = d.RaisedBy ?? Guid.Empty,
@@ -211,6 +312,53 @@ public class DisputeRepository : IDisputeRepository
             ReservationId = d.ReservationId,
             ListingId = d.ListingId,
         };
+    }
+
+    public async Task<IReadOnlyList<CaseSummaryDto>> ListForUserAsync(
+        Guid userId,
+        string? type,
+        CancellationToken ct = default
+    )
+    {
+        var query = _db.Disputes.Where(d => d.RaisedBy == userId || d.SubjectUserId == userId);
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            query = query.Where(d => d.Type == type);
+        }
+
+        var disputes = await query.OrderByDescending(d => d.SubmittedAt).ToListAsync(ct);
+        var results = new List<CaseSummaryDto>(disputes.Count);
+        foreach (var d in disputes)
+        {
+            results.Add(await BuildSummaryAsync(d, ct));
+        }
+        return results;
+
+    }
+
+    public async Task SetOriginalSnapshotAsync(
+        Guid disputeId,
+        Guid snapshotId,
+        CancellationToken ct = default
+    )
+    {
+        var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
+        if (d is null)
+            return;
+        d.OriginalSnapshotId = snapshotId;
+        await _db.SaveChangesAsync(ct);
+    }
+    public async Task UpdateSnapshotAsync(
+        Guid disputeId,
+        Guid snapshotId,
+        CancellationToken ct = default
+    )
+    {
+        var d = await _db.Disputes.FirstOrDefaultAsync(x => x.DisputeId == disputeId, ct);
+        if (d is null)
+            return;
+        d.SnapshotId = snapshotId;
+        await _db.SaveChangesAsync(ct);
     }
 
     private static string? Initials(User? u) =>

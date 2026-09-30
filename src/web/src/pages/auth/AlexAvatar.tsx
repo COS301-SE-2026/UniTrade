@@ -78,7 +78,7 @@ export default function AlexAvatar({ isThinking = true, className = "", onClick,
       {isThinking && (
         <div className="alex-thought mb-2 flex flex-col items-center">
           <div className="thought-cloud">
-            I'M ALEX, <br />ASK ME ANYTHING!
+            WELCOME TO THE HELP CENTRE
             <span className="thought-dot" style={{ width: 9, height: 9, bottom: -12, left: '48%' }} />
             <span className="thought-dot" style={{ width: 6, height: 6, bottom: -18, left: '51%' }} />
           </div>
@@ -103,4 +103,3 @@ export default function AlexAvatar({ isThinking = true, className = "", onClick,
     </div>
   );
 }
-
