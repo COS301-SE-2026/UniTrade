@@ -9,6 +9,8 @@ import { LoadingState } from '../../components/layout/Spinner'
 
 type Filter = "All" | "Overdue" | "Due soon" | "Normal";
 
+const PAGE_SIZE = 6;
+
 export interface VerificationRow {
   id: string
   name: string
@@ -35,6 +37,7 @@ export default function AdminVerifications() {
   const searchQuery = searchParams.get('q') ?? '';
   const [filter, setFilter] = useState<Filter>("All");
   const [sortBy, setSortBy] = useState<'Oldest First' | 'Newest First'>('Oldest First');
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
   const { data: rows = [], isLoading: loading, error } = useQuery({
@@ -107,6 +110,20 @@ export default function AdminVerifications() {
     return sortBy === 'Oldest First' ? dateA - dateB : dateB - dateA;
   });
 
+const listKey = `${filter}|${sortBy}|${searchQuery}`;
+const [lastListKey, setLastListKey] = useState(listKey);
+if (lastListKey !== listKey) {
+  setLastListKey(listKey);
+  setCurrentPage(1);
+}
+
+const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+const safePage = Math.min(currentPage, totalPages);
+const paginatedRows = sortedRows.slice(
+  (safePage - 1) * PAGE_SIZE,
+  safePage * PAGE_SIZE,
+);
+
   const numOverdue = rows.filter(r => r.slaState === 'Overdue').length;
   const numDueSoon = rows.filter(r => r.slaState === 'Due soon').length;
   const numPending = rows.length;
@@ -134,7 +151,7 @@ export default function AdminVerifications() {
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800 dark:text-white">
           Student Verifications
         </h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-600 mt-1">
           Review students proof of registration and approve or reject account
         </p>
       </div>
@@ -171,7 +188,7 @@ export default function AdminVerifications() {
               <div className="text-2xl font-bold text-navy-700 dark:text-white">
                 {stat.value}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -183,7 +200,10 @@ export default function AdminVerifications() {
             <button
               key={label}
               type="button"
-              onClick={() => setFilter(label)}
+              onClick={() => {
+                setFilter(label)
+                setCurrentPage(1);
+              }}
               className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors whitespace-nowrap
                 ${filter === label
                   ? "bg-navy-700 text-white border-navy-700 dark:bg-white dark:text-navy-900"
@@ -199,7 +219,10 @@ export default function AdminVerifications() {
           <select
             aria-label="Sort disputes"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'Oldest First' | 'Newest First')}
+            onChange={(e) => {
+              setSortBy(e.target.value as 'Oldest First' | 'Newest First');
+              setCurrentPage(1);
+            }}
             className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-none cursor-pointer w-full sm:w-auto'
           >
             <option value="Oldest First">Sort: Oldest First</option>
@@ -210,7 +233,7 @@ export default function AdminVerifications() {
 
       <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden">
 
-        <div className="hidden lg:flex items-center gap-4 px-4 py-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-navy-900/50 text-xs font-semibold text-gray-400 uppercase">
+        <div className="hidden lg:flex items-center gap-4 px-4 py-3 border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-navy-900/50 text-xs font-semibold text-gray-600 uppercase">
           <div className="flex-1 min-w-0">Student</div>
           <div className="w-48 text-center shrink-0">Verification Status</div>
           <div className="flex-1 min-w-0">Document</div>
@@ -218,14 +241,14 @@ export default function AdminVerifications() {
         </div>
         <div>
           {sortedRows.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-600">
               {numTotal === 0
                 ? "Nothing is waiting for review"
                 : "No verifications match your filters"}
             </div>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-white/10">
-              {sortedRows.map((ver) => (
+              {paginatedRows.map((ver) => (
                 <div
                   key={ver.id}
                   className="p-4 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors"
@@ -238,14 +261,14 @@ export default function AdminVerifications() {
                       <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
                         {ver.name}
                       </p>
-                      <p className="text-[10px] font-normal text-gray-400 mt-0.5">
+                      <p className="text-[10px] font-normal text-gray-600 mt-0.5">
                         {ver.degree}{ver.year ? `, Y${ver.year}` : ''}
                       </p>
                     </div>
                   </div>
 
                   <div className="lg:w-48 shrink-0 flex flex-col items-start lg:items-center">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Verification Status
                     </p>
                     <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-medium ${ver.slaState === 'Overdue'
@@ -256,7 +279,7 @@ export default function AdminVerifications() {
                       }`}>
                       {ver.slaState}
                     </span>
-                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400">
+                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-600">
                       <span>{ver.slaStatus}</span>
                       <span>·</span>
                       <span>{ver.domain}</span>
@@ -274,7 +297,7 @@ export default function AdminVerifications() {
                     </div>
                   </div>
                   <div className="lg:flex-1 lg:min-w-0">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1 lg:hidden">
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Document
                     </p>
                     <div className="flex items-center space-x-2">
@@ -285,7 +308,7 @@ export default function AdminVerifications() {
                         <div className="font-semibold text-gray-800 dark:text-white text-xs truncate">
                           {ver.docName}
                         </div>
-                        <div className="text-[10px] text-gray-400">
+                        <div className="text-[10px] text-gray-600">
                           Uploaded {ver.docDate}
                         </div>
                       </div>
@@ -297,7 +320,7 @@ export default function AdminVerifications() {
                       <button
                         type="button"
                         onClick={() => navigate(`/admin/verifications/${ver.id}`)}
-                        className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-3 sm:px-5 py-2 flex-1 whitespace-nowrap"
+                        className="bg-navy-700 text-white rounded-full font-semibold hover:bg-navy-500 transition-colors text-xs px-4 sm:px-5 py-1.5 flex-1 whitespace-nowrap"
                       >
                         Review
                       </button>
@@ -307,13 +330,13 @@ export default function AdminVerifications() {
                           href={ver.docUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-white dark:bg-navy-800 text-[#0a1931] dark:text-white border border-gray-300 dark:border-white/10 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer text-xs px-3 sm:px-5 py-2 inline-flex items-center justify-center gap-1 flex-1 whitespace-nowrap"
+                          className="bg-white dark:bg-navy-800 text-[#0a1931] dark:text-white border border-gray-300 dark:border-white/10 rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer text-xs px-4 sm:px-5 py-1.5 inline-flex items-center justify-center gap-1 flex-1 whitespace-nowrap"
                         >
                           <IconEye className="w-3.5 h-3.5" />
                           <span>View Doc</span>
                         </a>
                       ) : (
-                        <span className="text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-white/10 rounded-full text-xs px-3 sm:px-5 py-2 inline-flex items-center justify-center gap-1 cursor-not-allowed flex-1 whitespace-nowrap">
+                        <span className="text-gray-600 dark:text-gray-500 border border-gray-200 dark:border-white/10 rounded-full text-xs px-3 sm:px-5 py-2 inline-flex items-center justify-center gap-1 cursor-not-allowed flex-1 whitespace-nowrap">
                           <IconEye className="w-3.5 h-3.5" />
                           <span>View Doc</span>
                         </span>
@@ -326,6 +349,32 @@ export default function AdminVerifications() {
           )}
         </div>
       </div>
+      {sortedRows.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}-
+            {Math.min(safePage * PAGE_SIZE, sortedRows.length)} of{" "}
+            {sortedRows.length} verifications
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+              (page) => (
+                <button
+                  type="button"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${safePage === page
+                    ? "bg-navy-700 text-white border-navy-700"
+                    : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
+                    }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

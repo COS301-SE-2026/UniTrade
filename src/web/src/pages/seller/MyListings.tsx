@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ConfirmModal } from "../admin/AdminReviewShared";
@@ -22,6 +22,8 @@ import { useToast } from "../../components/layout/useToast";
 import { useMyListings } from "../../hooks/useMyListings";
 import { LoadingState } from "../../components/layout/Spinner";
 import { useSearchQuery } from "../../hooks/useSearchQuery";
+import { connectionManager } from "../../services/realtime/connectionManager";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
 function ActionButtons({
   listing,
@@ -52,7 +54,8 @@ function ActionButtons({
   const btnClass =
     "px-3 py-1.5 text-xs md:text-sm font-semibold rounded-full transition-colors whitespace-nowrap flex-shrink-0";
 
-  const wrapper = "flex items-center justify-start md:justify-end gap-2 flex-nowrap";
+  const wrapper =
+    "flex items-center justify-start md:justify-end gap-2 flex-nowrap";
 
   if (listing.status === "live" || listing.status === "pending") {
     return (
@@ -76,6 +79,19 @@ function ActionButtons({
     );
   }
 
+  if (listing.status === "banned") {
+    return (
+      <div className={wrapper}>
+        <button
+          type="button"
+          onClick={() => navigate(`/seller/listings/${listing.id}`)}
+          className={`bg-navy-700 hover:bg-navy-500 text-white ${btnClass}`}
+        >
+          View
+        </button>
+      </div>
+    );
+  }
   if (listing.status === "draft") {
     return (
       <div className={wrapper}>
@@ -256,11 +272,16 @@ function GroupCard({
   const allSameStatus = group.items.every((l) => l.status === first.status);
   const isGroupFlagged =
     allSameStatus &&
-    (first.status === "removed" || first.status === "under_review");
+    (first.status === "removed" ||
+      first.status === "under_review" ||
+      first.status === "banned");
 
   const countLabel = isGroupFlagged
     ? `${group.items.length} ${group.items.length === 1 ? "copy" : "copies"}`
     : `${liveCount} of ${group.items.length} available`;
+  const hasMediumRisk = group.items.some(
+    (l) => l.status === "live" && l.riskLevel === "medium",
+  );
 
   return (
     <div className="border-b border-gray-100 dark:border-white/5">
@@ -287,6 +308,12 @@ function GroupCard({
               <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
                 {countLabel}
               </p>
+
+              {hasMediumRisk && !isGroupFlagged && (
+                <span className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 block">
+                  Reduced visibility on some copies · open to review
+                </span>
+              )}
             </div>
           </div>
 
@@ -323,8 +350,9 @@ function GroupCard({
               >
                 <IconChevronDown
                   size={18}
-                  className={`transition-transform ${expanded ? "rotate-180" : ""
-                    }`}
+                  className={`transition-transform ${
+                    expanded ? "rotate-180" : ""
+                  }`}
                 />
               </button>
             )}
@@ -389,6 +417,26 @@ type Tab = "all" | ListingStatus;
 
 const PAGE_SIZE = 6;
 
+function VisibilityHint({
+  listing,
+  onOpen,
+}: {
+  listing: ListingSummary;
+  onOpen: () => void;
+}) {
+  if (listing.status !== "live" || listing.riskLevel !== "medium") return null;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline mt-0.5 block whitespace-nowrap text-left"
+    >
+      Reduced visibility
+      {listing.visibilityScore != null ? ` (${listing.visibilityScore})` : ""}
+      {" · click to review"}
+    </button>
+  );
+}
 export default function MyListings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -419,27 +467,52 @@ export default function MyListings() {
         (old) =>
           old
             ? {
-              ...old,
-              listings: old.listings.map((l) =>
-                l.id === resubmitTarget.id
-                  ? {
-                    ...l,
-                    status: result.status,
-                    resubmissionCount: result.resubmissionCount,
-                  }
-                  : l,
-              ),
-            }
+                ...old,
+                listings: old.listings.map((l) =>
+                  l.id === resubmitTarget.id
+                    ? {
+                        ...l,
+                        status: result.status,
+                        resubmissionCount: result.resubmissionCount,
+                      }
+                    : l,
+                ),
+              }
             : old,
       );
       showToast("success", "Listing resubmitted for review.");
       setResubmitTarget(null);
-    } catch {
-      showToast("error", "Failed to resubmit listing");
+    } catch (err) {
+      const code = (err as Error).message ?? "";
+
+      showToast(
+        "error",
+        getAccountStateErrorMessage(code, "Failed to resubmit listing"),
+      );
     } finally {
       setResubmitSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const off = connectionManager.onListingStatusChanged((e) => {
+      queryClient.setQueryData<{ listings: ListingSummary[]; total: number }>(
+        ["listings", "my"],
+        (old) =>
+          old
+            ? {
+                ...old,
+                listings: old.listings.map((l) =>
+                  l.id === e.listingId
+                    ? { ...l, status: e.status as ListingStatus }
+                    : l,
+                ),
+              }
+            : old,
+      );
+    });
+    return off;
+  }, [queryClient]);
 
   const handleSubmitListing = async (id: string) => {
     setSubmittingId(id);
@@ -450,24 +523,24 @@ export default function MyListings() {
         (old) =>
           old
             ? {
-              ...old,
-              listings: old.listings.map((l) =>
-                l.id === id ? { ...l, status: "live" as const } : l,
-              ),
-            }
+                ...old,
+                listings: old.listings.map((l) =>
+                  l.id === id ? { ...l, status: "live" as const } : l,
+                ),
+              }
             : old,
       );
       showToast("success", "Listing Uploaded successfully.");
     } catch (err: unknown) {
       const error = err as ApiError;
-      const theError =
-        error.message === "images_required" ||
-          error.message === "description_required" ||
-          error.message === "seller_not_verified"
-          ? "Please add at least one photo and Description before uploading this listing, and make sure you are fully verified. If you are not verified, your listing will only go live once you are verified."
-          : "Failed to submit listing";
+      const code = error.message ?? "";
+      const isValidation = code === "images_required"||
+      code === "description_required" || code === "seller_not_verified";
+      const fallback = isValidation
+        ? "Please add at least one photo and Description before uploading this listing, and make sure you are fully verified. If you are not verified, your listing will only go live once you are verified."
+        : "Failed to submit listing";
 
-      showToast("error", theError);
+      showToast("error", getAccountStateErrorMessage(code, fallback));
     } finally {
       setSubmittingId(null);
     }
@@ -482,9 +555,9 @@ export default function MyListings() {
         (old) =>
           old
             ? {
-              listings: old.listings.filter((l) => l.id !== id),
-              total: old.total - 1,
-            }
+                listings: old.listings.filter((l) => l.id !== id),
+                total: old.total - 1,
+              }
             : old,
       );
       showToast("success", "Listing successfully deleted.");
@@ -500,7 +573,9 @@ export default function MyListings() {
         : listings.filter((l) => l.status === activeTab);
 
     if (searchQuery) {
-      result = result.filter((l) => l.title.toLowerCase().includes(searchQuery));
+      result = result.filter((l) =>
+        l.title.toLowerCase().includes(searchQuery),
+      );
     }
 
     return result;
@@ -627,10 +702,11 @@ export default function MyListings() {
               setActiveTab(tab.key);
               setCurrentPage(1);
             }}
-            className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors ${activeTab === tab.key
+            className={`px-4 md:px-5 py-1.5 rounded-full text-xs md:text-sm font-semibold cursor-pointer transition-colors ${
+              activeTab === tab.key
                 ? "bg-navy-700 text-white border-navy-700"
                 : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
-              }`}
+            }`}
           >
             {tab.label}
           </button>
@@ -659,10 +735,11 @@ export default function MyListings() {
             return (
               <div
                 key={listing.id}
-                className={`px-4 md:px-5 py-4 ${i < paginated.length - 1
+                className={`px-4 md:px-5 py-4 ${
+                  i < paginated.length - 1
                     ? "border-b border-gray-100 dark:border-white/5"
                     : ""
-                  }`}
+                }`}
               >
                 <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                   <div className="flex items-center gap-3 md:flex-1 md:min-w-0">
@@ -678,19 +755,50 @@ export default function MyListings() {
                       <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
                         {listing.meta}
                       </p>
-                      {(listing.status === "under_review" ||
-                        (listing.status === "removed" &&
-                          (listing.maxResubmissions ?? 0) > 0)) && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigate(`/seller/listings/${listing.id}`)
-                            }
-                            className="text-[11px] text-[#00aaff] hover:underline mt-0.5 block whitespace-nowrap"
-                          >
-                            View details for reasons
-                          </button>
-                        )}
+                      {listing.status === "under_review" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(`/seller/listings/${listing.id}`)
+                          }
+                          className="text-[11px] text-[#00aaff] hover:underline mt-0.5 block whitespace-nowrap"
+                        >
+                          View details for reasons
+                        </button>
+                      )}
+
+                      {(listing.status === "removed" ||
+                        (listing.maxResubmissions ?? 0) > 0) && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(`/seller/listings/${listing.id}`)
+                          }
+                          className="text-[11px] text-red-400 hover:underline mt-0.5 block whitespace-nowrap"
+                        >
+                          {" "}
+                          View details for reasons
+                        </button>
+                      )}
+                      {listing.status === "banned" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(`/seller/listings/${listing.id}`)
+                          }
+                          className="text-[11px] text-red-600 hover:underline mt-0.5 block whitespace-nowrap"
+                        >
+                          {" "}
+                          View details for reasons
+                        </button>
+                      )}
+
+                      <VisibilityHint
+                        listing={listing}
+                        onOpen={() =>
+                          navigate(`/seller/listings/${listing.id}`)
+                        }
+                      />
                     </div>
                   </div>
 
@@ -757,8 +865,9 @@ export default function MyListings() {
       {resubmitTarget && (
         <ConfirmModal
           title="Resubmit listing"
-          message={`You have ${resubmitTarget.remaining} resubmission${resubmitTarget.remaining === 1 ? "" : "s"
-            } left. Do you want to continue?`}
+          message={`You have ${resubmitTarget.remaining} resubmission${
+            resubmitTarget.remaining === 1 ? "" : "s"
+          } left. Do you want to continue?`}
           confirmLabel="Resubmit"
           tone="neutral"
           submitting={resubmitSubmitting}
@@ -770,8 +879,8 @@ export default function MyListings() {
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-gray-400 whitespace-nowrap">
-          Showing {grouped.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–
-          {Math.min(currentPage * PAGE_SIZE, grouped.length)} of{" "}
+          Showing {grouped.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
+          –{Math.min(currentPage * PAGE_SIZE, grouped.length)} of{" "}
           {grouped.length} listings
         </p>
         <div className="flex flex-wrap justify-center gap-2">
@@ -781,10 +890,11 @@ export default function MyListings() {
                 type="button"
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${currentPage === page
+                className={`w-8 h-8 rounded-lg text-sm font-semibold border transition-colors ${
+                  currentPage === page
                     ? "bg-navy-700 text-white border-navy-700"
                     : "bg-white dark:bg-navy-800 text-gray-500 dark:text-white/60 border-gray-200 dark:border-white/10 hover:bg-gray-50"
-                  }`}
+                }`}
               >
                 {page}
               </button>

@@ -1,4 +1,4 @@
-export type ListingStatus = 'live' | 'pending' | 'draft' | 'screening' | 'reserved' | 'sold' | 'rejected' | 'low_visibility' | 'under_review' | 'removed'
+export type ListingStatus = 'live' | 'pending' | 'draft' | 'screening' | 'reserved' | 'sold' | 'rejected' | 'low_visibility' | 'under_review' | 'removed' | 'banned'
 export type ListingCondition = 'new' | 'good' | 'fair' | 'poor'
 export type ListingMetadata = Record<string, string> | null
 
@@ -55,6 +55,8 @@ export interface ListingSummary {
   listingGroupId?: string | null;
   resubmissionCount?: number;
   maxResubmissions?: number;
+  riskLevel?: 'low' | 'medium' | 'high' | null;
+  visibilityScore?: number | null;  
 }
 
 export interface MyListingsResponse {
@@ -91,7 +93,7 @@ export interface SellerListingDetail {
   maxResubmissions: number
 }
 
-export type BrowseCondition = 'like_new' | 'Good' | 'Fair' | 'Poor'
+export type BrowseCondition = ListingCondition
 
 
 export interface BrowseListing {

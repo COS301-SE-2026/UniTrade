@@ -9,11 +9,11 @@ namespace Infrastructure.Imaging;
 
 public class PerceptualHash : IPerceptualHashService
 {
-    private const int Width = 9;
-    private const int Height = 8;
+    private const int _width = 9;
+    private const int _height = 8;
 
     //security addition
-    private static readonly HashSet<string> AllowedFormatNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> _allowedFormatNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "JPEG",
         "PNG",
@@ -33,19 +33,19 @@ public class PerceptualHash : IPerceptualHashService
             {
                 return null;
             }
-            if (!AllowedFormatNames.Contains(format.Name))
+            if (!_allowedFormatNames.Contains(format.Name))
             {
                 return null;
             }
             using var image = SixLaborsImage.Load<L8>(imageData);
-            image.Mutate(ctx => ctx.Resize(Width, Height));
+            image.Mutate(ctx => ctx.Resize(_width, _height));
 
             ulong hash = 0;
             int bitIndex = 0;
 
-            for (int y = 0; y < Height; y++)
+            for (int y = 0; y < _height; y++)
             {
-                for (int x = 0; x < Width - 1; x++)
+                for (int x = 0; x < _width - 1; x++)
                 {
                     var left = image[x, y].PackedValue;
                     var right = image[x + 1, y].PackedValue;

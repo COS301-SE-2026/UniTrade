@@ -18,4 +18,5 @@ public interface IMeetupRepository
     );
 
     Task<IReadOnlyList<Meetup>> GetDueForNoShowDetectionAsync(DateTime asOf, int batchSize, CancellationToken ct = default);
+    Task<IReadOnlyList<Meetup>> GetDueForReminderAsync(DateTime asOf, int batchSize, CancellationToken ct = default);
 }

@@ -25,4 +25,6 @@ public interface IVerificationService
         string fileName,
         CancellationToken ct = default
     );
+
+    Task<int> PurgeExpiredProofOfRegistrationAsync(int retentionDays, CancellationToken ct = default);
 }

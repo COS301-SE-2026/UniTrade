@@ -51,7 +51,8 @@ public class AdminListingRiskService : IAdminListingRiskService
         var filter = new ListFilterDto { ListingStatus = status, Take = 100 };
         var (items, _) = await _listings.ListAsync(filter);
 
-        return items
+        var aiFlagged = items.Where(l => l.AiRiskReasons is { Count: > 0 });
+        return aiFlagged
             .GroupBy(l => l.ListingGroupId ?? l.ListingId)
             .Select(g =>
             {
@@ -103,6 +104,10 @@ public class AdminListingRiskService : IAdminListingRiskService
             return null;
         }
 
+        if (listing.AiRiskReasons is not { Count: > 0 })
+        {
+            throw new ArgumentException("not_ai_flagged");
+        }
         var statusBeforeDecision = listing.ListingStatus;
 
         if (action == "remove" && string.IsNullOrWhiteSpace(reason))
@@ -113,7 +118,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         var siblingIds = new List<Guid>();
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved:false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             siblingIds = siblings
                 .Where(s => s.ListingId != listingId && s.ListingStatus == "under_review")
                 .Select(s => s.ListingId)
@@ -180,6 +185,9 @@ public class AdminListingRiskService : IAdminListingRiskService
                 listing.AiRiskLevel ?? "low",
                 ct
             );
+
+            await _notifier.BroadcastBrowseChangeAsync(listingId, false, ct);
+
             if (notifyText)
             {
                 await _notifications.NotifyAsync(
@@ -192,7 +200,12 @@ public class AdminListingRiskService : IAdminListingRiskService
             return ListingService.MapToSummary(listing);
         }
 
-        listing.ListingStatus = "live";
+        var seller = await _users.GetByIdAsync(listing.SellerId);
+        var sellerSuspended =
+            seller?.SellerBannedUntil is DateTime until && until > DateTime.UtcNow;
+
+
+        listing.ListingStatus = sellerSuspended ? "suspended" : "live";
         listing.VisibilityScore = 100;
         listing.UpdatedAt = DateTime.UtcNow;
 
@@ -206,7 +219,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 EntityType = "Listing",
                 EntityId = listingId.ToString(),
                 OldValue = statusBeforeDecision,
-                NewValue = "live",
+                NewValue = listing.ListingStatus,
                 Reason = reason,
             },
             ct
@@ -214,35 +227,43 @@ public class AdminListingRiskService : IAdminListingRiskService
         await _notifier.ListingStatusChangedAsync(
             listing.SellerId,
             listingId,
-            "live",
+            listing.ListingStatus,
             listing.AiRiskLevel ?? "low",
             ct
         );
+
+        await _notifier.BroadcastBrowseChangeAsync(listingId, true, ct);
 
         if (notifyText)
         {
             await _notifications.NotifyAsync(
                 listing.SellerId,
                 NotificationTypes.ListingStatus,
-                $"Your listing {label} has been approved and is now live.",
+                sellerSuspended
+                ?
+                $"Your listing {label} was approved and will go live automatically once your selling suspension lifts." : $"Your listing {label} has been approved and is now live.",
                 ct
             );
         }
-        try
+        if (!sellerSuspended)
         {
-            var evnt = new ListingPublishedEvent
+            try
             {
-                ListingId = listing.ListingId,
-                Title = listing.Title,
-                Description = listing.Description,
-                Price = listing.Price,
-                CategoryId = listing.CategoryId,
-                CourseId = listing.CourseId,
-                SellerId = listing.SellerId,
-            };
-            await _listener.OnListingPublishedEventAsync(evnt, ct);
+                var evnt = new ListingPublishedEvent
+                {
+                    ListingId = listing.ListingId,
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    CategoryId = listing.CategoryId,
+                    CourseId = listing.CourseId,
+                    SellerId = listing.SellerId,
+                };
+                await _listener.OnListingPublishedEventAsync(evnt, ct);
+            }
+            catch (Exception) { }
         }
-        catch (Exception) { }
+
         return ListingService.MapToSummary(listing);
     }
 
@@ -260,7 +281,7 @@ public class AdminListingRiskService : IAdminListingRiskService
         var copyCount = 1;
         if (listing.ListingGroupId is Guid groupId)
         {
-            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false,ct);
+            var siblings = await _listings.GetByGroupIdAsync(groupId, includeRemoved: false, ct);
             copyCount = Math.Max(1, siblings.Count(s => s.ListingStatus == "under_review"));
         }
         var seller = await _users.GetByIdAsync(listing.SellerId);
