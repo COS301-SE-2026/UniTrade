@@ -253,7 +253,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
 <details>
   <summary><strong>User Manual</summary>
          <p align="center">
-  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/main/docs/Demo4/SRSDocument_4.pdf">
+  <a href="https://github.com/COS301-SE-2026/UniTrade/blob/main/docs/Demo4/User_Manual_4.pdf">
     <img src="https://img.shields.io/badge/User_Manual-View%20Document-04B4FD?style=for-the-badge" height="40">
   </a>
      </p>
