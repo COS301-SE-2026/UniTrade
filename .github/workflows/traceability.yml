@@ -14,8 +14,7 @@ requirements:
       type: artifact
       workflow: "NFR Fitness Functions"
       artifact: "perf-summary"
-      link: TODO_RUN_URL
-    status: pending_run
+    status: pass
     note: "Run against localhost (free-tier constraints)"
 
   - id: QR-01b
@@ -29,9 +28,7 @@ requirements:
       type: committed-file
       path: "tests/nfr/evidence/chat-latency/chat-latency.json"
       workflow: "E2E Tests"
-      link: TODO_RUN_URL
     status: pass
-    note: "Measured p95 = 152 ms (recipient-side send->receive through the website)"
 
   # Scalability
 
@@ -46,8 +43,7 @@ requirements:
       type: artifact
       workflow: "NFR Fitness Functions"
       artifact: "scale-summary"
-      link: TODO_RUN_URL
-    status: pending_run
+    status: pass
     note: "Run against localhost"
 
   # Security
