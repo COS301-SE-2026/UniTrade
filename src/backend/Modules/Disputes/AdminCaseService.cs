@@ -409,10 +409,11 @@ public class AdminCaseService : IAdminCaseService
         Guid? caseId,
         string reason,
         Guid adminId,
+        string? requestedScope = null,
         CancellationToken ct = default
     )
     {
-        var scope = await ResolveManualStrikeScopeAsync(userId, caseId, ct);
+        var scope = requestedScope is "buyer" or "seller" ? requestedScope : await ResolveManualStrikeScopeAsync(userId, caseId, ct);
 
         await _sanctions.ApplyStrikeAsync(userId, caseId, "manual", reason, adminId, scope, ct);
 
