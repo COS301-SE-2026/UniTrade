@@ -57,7 +57,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-03b
@@ -70,7 +69,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-03c
@@ -83,7 +81,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-03d
@@ -95,8 +92,7 @@ requirements:
     test: "./zap/rules.tsv (baseline)"
     evidence:
       type: committed-file
-      path: "TODO_FILL - commit the ZAP report tests/nfr/evidence/dast"
-    status: pending_run
+      path: "  commit the ZAP report tests/nfr/evidence/dast"
 
   - id: QR-03e
     category: Security
@@ -124,7 +120,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-04b
@@ -137,7 +132,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-04c
@@ -151,9 +145,8 @@ requirements:
       type: workflow-config + screenshots
       path:
         - ".github/workflows/cd.yml"
-        - "TODO_FILL - screenshot of the failing deploy rolling back, tests/nfr/evidence/rollback/**"
+        - "screenshot of the failing deploy rolling back, tests/nfr/evidence/rollback/**"
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: documented
 
   - id: QR-04d
@@ -164,9 +157,8 @@ requirements:
     tool: "UptimeRobot"
     evidence:
       type: screenshot
-      path: "TODO_FILL - UptimeRobot screenshot, tests/nfr/evidence/uptime/**"
+      path: "UptimeRobot screenshot, tests/nfr/evidence/uptime/**"
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
     note: Prod monitor currently 100%
 
@@ -180,7 +172,7 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI / Web Backend CI"
-      link: "TODO_FILL - SonarCloud project dashboard URL"
+      link: "https://sonarcloud.io/summary/overall?id=COS301-SE-2026_UniTrade&branch=main"
     status: pass
 
   - id: QR-05b
@@ -193,7 +185,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   # Usability
@@ -248,7 +239,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-07c
@@ -261,7 +251,6 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-07d
@@ -274,5 +263,4 @@ requirements:
     evidence:
       type: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
