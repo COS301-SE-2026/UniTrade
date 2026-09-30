@@ -198,7 +198,7 @@ public class ChatHub : Hub
                 Context.User?.FindFirst("role")?.Value,
                 "admin",
                 StringComparison.OrdinalIgnoreCase);
-        if (isAdmin)
+        if (!isAdmin)
         {
             throw new HubException("Forbidden");
         }

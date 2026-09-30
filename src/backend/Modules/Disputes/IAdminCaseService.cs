@@ -24,6 +24,7 @@ public interface IAdminCaseService
         Guid? caseId,
         string reason,
         Guid adminId,
+        string? requestedScope = null,
         CancellationToken ct = default
     );
 

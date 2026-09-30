@@ -1,6 +1,6 @@
 namespace Modules.Listings;
 
-public static class ListingNotifierExtensions 
+public static class ListingNotifierExtensions
 {
     public static async Task BroadcastBrowseChangeAsync(
         this IListingNotifier notifier,
@@ -9,7 +9,7 @@ public static class ListingNotifierExtensions
         CancellationToken ct = default
     )
     {
-        try 
+        try
         {
             if (nowVisible)
                 await notifier.ListingLiveAsync(listingId, ct);
