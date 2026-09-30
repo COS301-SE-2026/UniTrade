@@ -44,14 +44,14 @@ public class TransactionService : ITransactionsService
         var reservation =
             await _reservations.GetByIdAsync(reservationId, ct)
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
-       
+
 
         if (reservation.BuyerId != buyerId)
         {
             throw new TransactionException(TransactionErrors.NotBuyer);
         }
-        
-       var meetup = await _meetups.GetActiveByReservationAsync(reservationId, ct);
+
+        var meetup = await _meetups.GetActiveByReservationAsync(reservationId, ct);
 
         if (reservation.ReservationStatus != ReservationState.Active)
         {

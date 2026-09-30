@@ -245,7 +245,7 @@ public class VerificationService : IVerificationService
                 await _broadcast.SendToUserAsync(
                     vr.UserId,
                     "verification_approved",
-                    new {}
+                    new { }
                 );
                 break;
 

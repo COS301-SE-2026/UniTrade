@@ -452,7 +452,10 @@ export const listingsService = {
 
       }),
     });
-    if (!res.ok) throw new Error("Failed to create listing");
+    if (!res.ok){
+      const data=await res.json().catch(()=> null);
+      throw new Error(data?.error ?? "Failed to create listing");
+    }
     const createdListing = await res.json();
     return {
       listingId: createdListing.listingId,

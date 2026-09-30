@@ -186,7 +186,7 @@ public class AdminListingRiskService : IAdminListingRiskService
                 ct
             );
 
-            await _notifier.BroadcastBrowseChangeAsync(listingId,false,ct);
+            await _notifier.BroadcastBrowseChangeAsync(listingId, false, ct);
 
             if (notifyText)
             {

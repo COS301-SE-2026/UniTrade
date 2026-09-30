@@ -510,7 +510,7 @@ public class AdminCaseService : IAdminCaseService
         )
         {
             await _moderation.RestoreToLiveAsync(listingId.Value, ct);
-        
+
 
             var listing = await _listingRepository.GetByIdAnyStatusAsync(listingId.Value);
             if (listing?.ListingGroupId is Guid groupId)
@@ -527,7 +527,7 @@ public class AdminCaseService : IAdminCaseService
                 )
                 {
                     await _moderation.RestoreToLiveAsync(sibling.ListingId, ct);
-                   
+
                 }
             }
         }
