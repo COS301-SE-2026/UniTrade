@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { connectionManager } from "../../services/realtime/connectionManager";
 import {
   IconStar,
   IconCheck,
@@ -274,6 +275,21 @@ export default function ListingDetail() {
       .catch(() => setError("Failed to load listing"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(()=>{
+    if(!id) return;
+    const off=connectionManager.onListingChanged((changedId)=>{
+      if(changedId!==id) return;
+      listingsService
+        .getById(id)
+        .then(setListing)
+        .catch(() =>{
+          setListing(null);
+          setError("This listing is no longer available");
+        });
+    });
+  return off;
+},[id]);
 
   const sellerRating = sellerReviews ? ratingAsSeller(sellerReviews) : null;
   const sellerReceivedReviews =

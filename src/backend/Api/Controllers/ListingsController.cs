@@ -138,6 +138,21 @@ public class ListingController : ControllerBase
         var listing = await _listings.GetByIdAsync(id);
         if (listing == null)
             return NotFound(new { error = "listing_not_found" });
+
+        var callerIdClaim =
+            User.FindFirstValue("sub") ?? (User.FindFirstValue(ClaimTypes.NameIdentifier));
+        Guid.TryParse(callerIdClaim,out var callerId);
+
+        var isOwner=listing.SellerId==callerId;
+        var isAdmin=User.IsInRole("admin") || string. Equals(User.FindFirstValue("role"),"admin", StringComparison.OrdinalIgnoreCase);
+
+        var hiddenFromPublic=listing.ListingStatus is "removed" or "banned" or "draft" or "screening" or "under_review" or "suspended";
+
+        if(hiddenFromPublic && !isOwner && !isAdmin)
+        {
+            return NotFound(new {error="listing_not_found"});
+        }
+        
         return Ok(listing);
     }
 

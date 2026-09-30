@@ -8,7 +8,6 @@ import {
     IconCheck,
     //I//conMapPin,
     ///conCalendar,
-    IconPaperclip,
     IconArrowLeft,
     IconEye,
     IconCalendarCheck
@@ -571,9 +570,6 @@ export default function ChatPage() {
                 </div>
             ) : (
                 <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
-                    <button type="button" className="text-gray-400 p-1">
-                        <IconPaperclip size={22} />
-                    </button>
                     <input
                         ref={inputRef}
                         type="text"
