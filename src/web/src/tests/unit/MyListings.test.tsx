@@ -111,9 +111,9 @@ describe('MyListings', () => {
         await waitFor(() => {
             expect(screen.getByRole('button', { name: /^all$/i })).toBeInTheDocument()
             expect(screen.getByRole('button', { name: /^live/i })).toBeInTheDocument()
-            expect(screen.getByRole('button', { name: /^pending/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^under review/i })).toBeInTheDocument()
             expect(screen.getByRole('button', { name: /^drafts/i })).toBeInTheDocument()
-            expect(screen.getByRole('button', { name: /^rejected/i })).toBeInTheDocument()
+            expect(screen.getByRole('button', { name: /^removed/i })).toBeInTheDocument()
 
         })
     })
@@ -285,7 +285,7 @@ describe('MyListings - actions', () => {
             expect(screen.getByText('Chemistry Textbook')).toBeInTheDocument()
         })
 
-        fireEvent.click(screen.getByRole('button', { name: /^rejected/i }))
+        fireEvent.click(screen.getByRole('button', { name: /^removed/i }))
         expect(screen.getByText('No listings found.')).toBeInTheDocument()
     })
 
