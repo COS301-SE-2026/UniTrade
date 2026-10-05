@@ -10,27 +10,27 @@ public sealed class NotificationException(string code) : Exception(code) { }
 
 public class AcsEmailService : IEmailService
 {
-    private readonly EmailClient _emailClient;
-    private readonly ILogger<AcsEmailService> _logger;
-    private readonly string _senderAddress;
+  private readonly EmailClient _emailClient;
+  private readonly ILogger<AcsEmailService> _logger;
+  private readonly string _senderAddress;
 
-    public AcsEmailService(
-        EmailClient emailClient,
-        IConfiguration config,
-        ILogger<AcsEmailService> logger
-    )
-    {
-        _emailClient = emailClient;
-        _logger = logger;
-        _senderAddress =
-            config["Acs:SenderAddress"]
-            ?? throw new InvalidOperationException("Acs:SenderAddress is not configured");
-    }
+  public AcsEmailService(
+      EmailClient emailClient,
+      IConfiguration config,
+      ILogger<AcsEmailService> logger
+  )
+  {
+    _emailClient = emailClient;
+    _logger = logger;
+    _senderAddress =
+        config["Acs:SenderAddress"]
+        ?? throw new InvalidOperationException("Acs:SenderAddress is not configured");
+  }
 
-    public async Task SendOtpEmailAsync(string email, string otp)
-    {
-        var subject = "Your UniTrade Verification Code";
-        var html = $"""
+  public async Task SendOtpEmailAsync(string email, string otp)
+  {
+    var subject = "Your UniTrade Verification Code";
+    var html = $"""
                 <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
                     <h2 style="color: rgb(26, 26, 26);">Verify your UniTrade account</h2>
                     <p style="color: #444;">Use the code below to complete your registration. It expires in <strong>5 minutes</strong>.</p>
@@ -42,13 +42,13 @@ public class AcsEmailService : IEmailService
                     <p style="color: #888; font-size: 13px;">If you didn't create a UniTrade account, you can safely ignore this email.</p>
                 </div>
             """;
-        await SendAsync(email, subject, html);
-    }
+    await SendAsync(email, subject, html);
+  }
 
-    public async Task SendPasswordResetOtpEmailAsync(string email, string otp)
-    {
-        var subject = "Your UniTrade Password Reset Code";
-        var html = $"""
+  public async Task SendPasswordResetOtpEmailAsync(string email, string otp)
+  {
+    var subject = "Your UniTrade Password Reset Code";
+    var html = $"""
                 <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
                     <h2 style="color: rgb(26, 26, 26);">Reset your UniTrade password</h2>
                     <p style="color: #444;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
@@ -60,47 +60,47 @@ public class AcsEmailService : IEmailService
                     <p style="color: #888; font-size: 13px;">If you didn't request a password reset, you can safely ignore this email — your password will not be changed.</p>
                 </div>
             """;
-        await SendAsync(email, subject, html);
-    }
+    await SendAsync(email, subject, html);
+  }
 
-    public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
+  public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
+  {
+    var html = WelcomeHtml(firstName);
+    await SendAsync(toEmail, "Welcome to UniTrade!", html);
+  }
+
+  private async Task SendAsync(string recipient, string subject, string html)
+  {
+    try
     {
-        var html = WelcomeHtml(firstName);
-        await SendAsync(toEmail, "Welcome to UniTrade!", html);
-    }
+      EmailSendOperation operation = await _emailClient.SendAsync(
+          wait: WaitUntil.Completed,
+          senderAddress: _senderAddress,
+          recipientAddress: recipient,
+          subject: subject,
+          htmlContent: html
+      );
 
-    private async Task SendAsync(string recipient, string subject, string html)
+      if (operation.Value.Status != EmailSendStatus.Succeeded)
+      {
+        _logger.LogError(
+            "Email to {Recipient} ended in a non-success status {Status}",
+            recipient,
+            operation.Value.Status
+        );
+        throw new NotificationException("email_send_failed");
+      }
+    }
+    catch (RequestFailedException ex)
     {
-        try
-        {
-            EmailSendOperation operation = await _emailClient.SendAsync(
-                wait: WaitUntil.Completed,
-                senderAddress: _senderAddress,
-                recipientAddress: recipient,
-                subject: subject,
-                htmlContent: html
-            );
-
-            if (operation.Value.Status != EmailSendStatus.Succeeded)
-            {
-                _logger.LogError(
-                    "Email to {Recipient} ended in a non-success status {Status}",
-                    recipient,
-                    operation.Value.Status
-                );
-                throw new NotificationException("email_send_failed");
-            }
-        }
-        catch (RequestFailedException ex)
-        {
-            _logger.LogError(ex, "Email to {Recipient} failed to send", recipient);
-            throw new NotificationException("email_send_failed");
-        }
+      _logger.LogError(ex, "Email to {Recipient} failed to send", recipient);
+      throw new NotificationException("email_send_failed");
     }
+  }
 
-    // will have to ask the front end team to align it to the palette
-    private static string WelcomeHtml(string firstName) =>
-        $"""
+  // will have to ask the front end team to align it to the palette
+  private static string WelcomeHtml(string firstName) =>
+      $"""
             <!DOCTYPE html>
             <html>
             <head>
@@ -198,47 +198,47 @@ public class AcsEmailService : IEmailService
             </html>
             """;
 
-    public async Task SendVerificationDecisionEmailAsync(
-        string toEmail,
-        string firstName,
-        string decision,
-        string? reason = null
-    )
+  public async Task SendVerificationDecisionEmailAsync(
+      string toEmail,
+      string firstName,
+      string decision,
+      string? reason = null
+  )
+  {
+    var (subject, bodyMessage) = decision switch
     {
-        var (subject, bodyMessage) = decision switch
-        {
-            "approved" => (
-                "Your UniTrade verification was approved",
-                "<p>Great news, your student verification has been approved. You can now reserve and publish listings on UniTrade.</p>"
-            ),
-            "rejected" => (
-                "Your UniTrade verification was not approved",
-                $"<p>Unfortunately, your student verification was not approved.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
-            ),
-            "resubmission" => (
-                "Action needed: resubmit your UniTrade verification",
-                $"<p>We need you to resubmit your proof of registration to complete verification.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
-            ),
-            _ => (
-                "Your UniTrade verification status was updated",
-                "<p>Your verification status has changed.</p>"
-            ),
-        };
+      "approved" => (
+          "Your UniTrade verification was approved",
+          "<p>Great news, your student verification has been approved. You can now reserve and publish listings on UniTrade.</p>"
+      ),
+      "rejected" => (
+          "Your UniTrade verification was not approved",
+          $"<p>Unfortunately, your student verification was not approved.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
+      ),
+      "resubmission" => (
+          "Action needed: resubmit your UniTrade verification",
+          $"<p>We need you to resubmit your proof of registration to complete verification.</p>{(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}"
+      ),
+      _ => (
+          "Your UniTrade verification status was updated",
+          "<p>Your verification status has changed.</p>"
+      ),
+    };
 
-        var html = $"""
+    var html = $"""
                       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
                           <h2 style="color: rgb(26,26,26);">Hi {firstName},</h2>
                           {bodyMessage}
                           </div>
             """;
-        await SendAsync(toEmail, subject, html);
-    }
+    await SendAsync(toEmail, subject, html);
+  }
 
-    public async Task SendSavedSearchMatchEmailAsync(string email, string title, decimal price)
-    {
-        var subject = "New listing matches your saved search";
-        var html =
-            $@"
+  public async Task SendSavedSearchMatchEmailAsync(string email, string title, decimal price)
+  {
+    var subject = "New listing matches your saved search";
+    var html =
+        $@"
       <div style='font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;'>
       <h2 style='color: #0f2d6b;'>New match for your search!</h2>
       <p>A listing you might be interested in has just been posted;</p>
@@ -249,24 +249,24 @@ public class AcsEmailService : IEmailService
       <p style='color: #888; font-size: 13px;'>You received this because you saved a search on UniTrade.</p>
       </div>
       ";
-        await SendAsync(email, subject, html);
-    }
+    await SendAsync(email, subject, html);
+  }
 
-    public async Task SendDisputeOutcomeEmailAsync(
-        string toEmail,
-        string firstName,
-        string outcomeSummary,
-        string? reason
-    )
-    {
-        var subject = "Update on a dispute involving your account";
-        var reasonBlock = string.IsNullOrWhiteSpace(reason)
-            ? ""
-            : $"<p style='color:#444;'<strong>Reason:</strong> {reason} </p>";
-        var html = $"""
+  public async Task SendDisputeOutcomeEmailAsync(
+      string toEmail,
+      string firstName,
+      string outcomeSummary,
+      string? reason
+  )
+  {
+    var subject = "An update from UniTrade moderation";
+    var reasonBlock = string.IsNullOrWhiteSpace(reason)
+        ? ""
+        : $"<p style='color:#444;'><strong>Reason:</strong> {reason} </p>";
+    var html = $"""
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
             <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
-            <p style="color:#444;">A dispute involving your account has been resolved.</p>
+            <p style="color:#444;">After reviewing a report, our moderation team made a decision on your account:</p>
             <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:16px 0;">
               <p style="margin:0;color:#0f2d6b;font-weight:bold;">{outcomeSummary}</p>
             </div>
@@ -275,6 +275,20 @@ public class AcsEmailService : IEmailService
             </div>
             """;
 
-        await SendAsync(toEmail, subject, html);
-    }
+    await SendAsync(toEmail, subject, html);
+  }
+
+  public async Task SendReportOutcomeEmailAsync(string toEmail, string firstName, string outcomeSummary)
+  {
+    var subject = "Update on the listing you reported";
+    var html = $"""
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+        <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
+        <p style="color:#444;">Thanks for flagging a listing on UniTrade. After reviewing it, {outcomeSummary}.</p>
+        <p style="color:#444;">We appreciate you helping keep UniTrade safe for students.</p>
+        <p style="color:#888;font-size:13px;">You received this because you reported a listing on UniTrade.</p>
+    </div>
+    """;
+    await SendAsync(toEmail, subject, html);
+  }
 }
