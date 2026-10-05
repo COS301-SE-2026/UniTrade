@@ -59,12 +59,18 @@ const Signup: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'yearOfStudy') {
+      const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 1); 
+      setFormData((prev) => ({ ...prev, [name]: cleaned }));
+    }
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    
   };
 
   const handleTermsAccept = () => {
     setTermsAcceptedAt(new Date().toISOString())
     setShowTerms(false)
+
   }
 
   const handleTermsDecline = () => {
@@ -165,7 +171,7 @@ const Signup: React.FC = () => {
               </div>
               <div>
                 <label htmlFor='year' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
-                <input id="year" type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} required
+                <input id="year" type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} maxLength={1} pattern="^[A-Za-z0-9]" required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
