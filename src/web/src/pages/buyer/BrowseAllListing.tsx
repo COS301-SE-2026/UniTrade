@@ -244,7 +244,7 @@ function mapSortToServer(s: SortOption): string {
 export default function BrowseAllListing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get("q") || "";
+  const searchQuery = searchParams.get('q') ?? '';
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
