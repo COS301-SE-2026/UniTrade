@@ -185,7 +185,7 @@ public class MeetupService : IMeetupService
 
         foreach (var m in due)
         {
-            try 
+            try
             {
                 var r = await _reservations.GetByIdAsync(m.ReservationId, ct);
                 if (r is null || r.ReservationStatus != ReservationState.Active) continue;

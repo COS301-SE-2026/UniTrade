@@ -103,4 +103,3 @@ export default function AlexAvatar({ isThinking = true, className = "", onClick,
     </div>
   );
 }
-

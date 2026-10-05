@@ -437,13 +437,58 @@ export async function strikeUser(
   userId: string,
   reason: string,
   caseId?: string,
+  scope?: "buyer" | "seller",
 ): Promise<void> {
   const res = await fetch(`${getApiUrl()}/admin/users/${userId}/strike`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason, caseId }),
+    body: JSON.stringify({ reason, caseId, scope }),
   });
 
   await handleResponse<void>(res);
+}
+
+export interface CaseCounts {
+  pendingVerifications: number;
+  oldestVerificationHours: number | null;
+  activeDisputes: number;
+  slaBreached: number;
+  truncated: boolean;
+}
+const COUNT_LIMIT = 500;
+const DISPUTE_TYPES = new Set<CaseType>([
+  "no_show",
+  "listing_quality",
+  "report_listing",
+]);
+
+function isTruncated(res: ListCasesResponse, list: CaseSummary[]): boolean {
+  return res.total !== undefined
+    ? res.total > list.length
+    : list.length >= COUNT_LIMIT;
+}
+
+export async function getCaseCounts(): Promise<CaseCounts> {
+  const [pendingRes, reviewRes] = await Promise.all([
+    getCases({ status: "pending", limit: COUNT_LIMIT }),
+    getCases({ status: "under_review", limit: COUNT_LIMIT }),
+  ]);
+  const pending = normaliseCases(pendingRes);
+  const review = normaliseCases(reviewRes);
+  const verifications = pending.filter((c) => c.type === "verification");
+  const disputes = [...pending, ...review].filter((c) =>
+    DISPUTE_TYPES.has(c.type),
+  );
+
+  return {
+    pendingVerifications: verifications.length,
+    oldestVerificationHours: verifications.length
+      ? Math.max(...verifications.map((c) => c.ageHours))
+      : null,
+    activeDisputes: disputes.length,
+    slaBreached: disputes.filter((c) => c.slaBreached).length,
+    truncated:
+      isTruncated(pendingRes, pending) || isTruncated(reviewRes, review),
+  };
 }

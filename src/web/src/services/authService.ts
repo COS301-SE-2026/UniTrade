@@ -114,6 +114,16 @@ export const authService = {
     }
   },
 
+  refresh: async(): Promise<void> => {
+    const res=await fetch(`${getApiUrl()}/auth/refresh`,{
+      method: "POST",
+      credentials: "include",
+    });
+    if(!res.ok){
+      throw new Error("refresh_failed");
+    }
+  },
+
 getMe: async (): Promise<MeResponse> => {
   const res = await fetch(`${getApiUrl()}/users/me`, {
     credentials: "include",
