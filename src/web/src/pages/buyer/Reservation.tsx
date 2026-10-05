@@ -320,21 +320,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
           </div>
 
           {items.length > 1 && (
-            <div className='space-y-3'>
-              <div className='flex items-center gap-3'>
-                <input
-                type="checkbox"
-                 id= "report-all"
-                checked= {reportAll}
-                onChange={(e) =>{
-                  setReportAll(e.target.checked);
-                  if (e.target.checked) setManualSelectedListingId(null);
-                }}
-                className='w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer'/>
-                <label htmlFor= "report-all" className='text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none'>
-               Report all {items.length} items in this bundle
-               </label></div>
-               {!reportAll && (
+            <div className='space-y-3'> 
             <div>
               <label htmlFor="item-picker" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
                 Which item is this about?
@@ -353,9 +339,6 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
                 ))}
               </select>
             </div>
-          )}
-
-
           </div>
           )}
                     {loadingItems && <p className="text-xs text-gray-400">Loading items....</p>}
