@@ -240,7 +240,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
     <div
       role="button"
       tabIndex={0}
-      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] bg-black/60 flex items-start justify-center p-4 overflow-y-auto"
       onClick={onClose}
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
@@ -261,7 +261,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
       <div
         role="presentation"
         tabIndex={-1}
-        className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10"
+        className="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg p-6 relative shadow-xl border border-gray-200 dark:border-white/10 my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -355,12 +355,6 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
             </div>
           )}
 
-
-          {reportAll&& (
-            <p className='text-xs text-gray-500'>
-              The photos and description below will be submitted as a seperate report for each item.</p>
-          
-          )}
 
           </div>
           )}

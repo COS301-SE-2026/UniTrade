@@ -154,7 +154,7 @@ test.describe("QR-06b core task end-to-end time", () => {
     // core task end
 
     const pass = elapsedMs <= CORE_TASK_BUDGET_MS;
-    // eslint-disable-next-line no-console
+     
     console.log(
         `[QR-06b] core task = ${(elapsedMs / 1000).toFixed(1)}s ` +
         `(budget ${CORE_TASK_BUDGET_MS / 1000}s) -> ${pass? "PASS":"FAIL"}`,
