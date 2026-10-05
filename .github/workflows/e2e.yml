@@ -3,9 +3,9 @@ name: E2E Tests
 on:
     workflow_call:
     pull_request:
-        branches-ignore: ["**"]
+        branches: ["**"]
     push:
-         branches-ignore: ["**"] # temporal they are bound to fail mid implementation
+         branches: ["**"]
     
 concurrency:
     group: e2e-ci-${{github.workflow}}-${{github.ref}}
