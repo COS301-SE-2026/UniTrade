@@ -34,7 +34,7 @@ test("QR-01b: chat delivery latency stays under 500ms p95", async ({
     const sentAt = Date.now();
     await buyerInput.press("Enter");
     await sellerPage
-      .getByText(marker, { exact: true })
+      .locator("p.whitespace-pre-wrap", {hasText: marker})
       .waitFor({ state: "visible", timeout: 5_000 });
     latencies.push(Date.now() - sentAt);
     await buyerPage.waitForTimeout(150);

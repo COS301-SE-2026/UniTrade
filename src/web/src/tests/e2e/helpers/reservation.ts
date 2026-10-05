@@ -170,18 +170,14 @@ export async function scheduleMeetupAndCheckIn(
     .getByRole("button", { name: /enter a time manually/i })
     .first();
 
-  if (await enterManual.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await enterManual.click();
-  }
-
-  await sellerPage
-    .locator('input[type="time"]')
-    .waitFor({ state: "visible", timeout: 5000 });
+  await enterManual.waitFor({ state: "visible", timeout: 20000 });
+  await enterManual.click();
 
   const scheduledTime = await sellerPage.evaluate(() => {
     const d = new Date(Date.now() + 300_000);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
+
   await sellerPage.locator('input[type="time"]').fill(scheduledTime);
 
   await sellerPage
@@ -194,12 +190,46 @@ export async function scheduleMeetupAndCheckIn(
     name: /send proposal/i,
   });
   await expect(sendProposal).toBeEnabled();
+
+  const proposeResp = sellerPage.waitForResponse(
+    (res) =>
+      res.url().includes("/meetup/propose") &&
+      res.request().method() === "POST",
+    { timeout: 15000 },
+  );
+
   await sendProposal.click();
 
-  await expect(
-    buyerPage.getByText("Meetup Proposal", { exact: true }),
-  ).toBeVisible({ timeout: 10000 });
+  const proposeRes = await proposeResp;
+
+  console.log(`[meetup] propose status: ${proposeRes.status()}`);
+
+  await buyerPage.waitForTimeout(800);
+
+  await buyerPage.goto(`/buyer/messages/${reservationId}`);
+
+  try {
+    await expect(
+      buyerPage.getByText("Meetup Proposal", { exact: true }),
+    ).toBeVisible({ timeout: 10000 });
+  } catch (err) {
+    const text = await buyerPage
+      .locator("body")
+      .innerText()
+      .catch(() => "<no body>");
+    console.error(`[meetup] buyer page after propose:\n${text.slice(0, 2000)}`);
+    throw err;
+  }
+
+  const acceptResp = buyerPage.waitForResponse(
+    (resp) =>
+      resp.url().includes(`/reservations/${reservationId}/meetup/accept`) &&
+      resp.request().method() === "POST",
+    { timeout: 15000 },
+  );
   await buyerPage.getByRole("button", { name: "Accept", exact: true }).click();
+
+  await acceptResp;
 
   await buyerPage.goto(`/payment/meetup/${reservationId}`);
   await expect(
@@ -210,7 +240,7 @@ export async function scheduleMeetupAndCheckIn(
     name: "Check In at Meetup",
   });
   await expect(buyerCheckInButton).toBeEnabled({ timeout: 90_000 });
-  
+
   await Promise.all([
     buyerPage.waitForResponse(
       (resp) =>
