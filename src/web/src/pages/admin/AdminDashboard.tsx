@@ -15,11 +15,12 @@ import { queryKeys } from '../../lib/queryKeys'
 
  const EMPTY_GUID ='00000000-0000-0000-0000-000000000000'
 
- function timeAgo(ageHours: number): string {
+ /*function timeAgo(ageHours: number): string {
   if(ageHours < 1) return 'just now'
   if(ageHours < 24) return `${Math.round(ageHours)}h ago`
   return `${Math.round(ageHours/24)}d ago`
  }
+  */
 
  function shortAge(ageHours:number): string{
     if(ageHours < 1) return '1h'
@@ -344,7 +345,7 @@ export default function AdminDashboard() {
                       {String(d.type).replace(/_/g, ' ')}
                     </span>
                   )}
-                  <span className="text-xs text-gray-600 dark:text-gray-300">{timeAgo(d.ageHours)}</span>
+                  {/* <span className="text-xs text-gray-600 dark:text-gray-300">{timeAgo(d.ageHours)}</span> */}
                   {d.slaBreached && (
                     <span className="text-[11px] bg-red-600 text-white font-semibold px-2 py-0.5 rounded-full">SLA breached</span>
                   )}

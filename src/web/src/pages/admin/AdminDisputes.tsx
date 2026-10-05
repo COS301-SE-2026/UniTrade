@@ -21,7 +21,7 @@ export interface DisputeRow {
   title: string
   buyerInitials: string
   sellerInitials: string
-  timeAgo: string
+  //timeAgo: string
   type: 'No-show' | 'Listing-quality' | 'Report'
   status: string
   image: string
@@ -36,12 +36,13 @@ function toCaseList(response: unknown): CaseSummary[] {
 
 type Filter = 'All' | 'No-show' | 'Quality' | 'Report'
 
-function getTimeAgo(ageHours: number): string {
+/*function getTimeAgo(ageHours: number): string {
   if (ageHours < 1) return 'Just now'
   if (ageHours < 24) return `${Math.round(ageHours)}h ago`
   const days = Math.round(ageHours / 24)
   return `${days}d ago`
 }
+  */
 
 type DisputeCaseType = 'no_show' | 'listing_quality' | 'report_listing'
 
@@ -106,7 +107,7 @@ export default function AdminDisputes() {
         title: summary.title ?? 'Unknown listing',
         buyerInitials: summary.counterpartyInitials ?? '??',
         sellerInitials: summary.subjectInitials ?? '??',
-        timeAgo: getTimeAgo(summary.ageHours),
+        //timeAgo: getTimeAgo(summary.ageHours),
         type: getDisplayType(summary.type as DisputeCaseType),
         status: summary.status,
         image: summary.imageUrl
@@ -294,7 +295,7 @@ export default function AdminDisputes() {
                       </div>
                       <div className="text-[10px] text-gray-600 mt-0.5">
                         Buyer: {dispute.buyerInitials} &bull; Seller:{' '}
-                        {dispute.sellerInitials} &bull; {dispute.timeAgo}
+                        {dispute.sellerInitials}
                       </div>
                     </div>
                   </td>
