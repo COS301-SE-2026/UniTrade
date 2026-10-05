@@ -174,6 +174,7 @@ public sealed class AdminUsersController : AdminControllerBase
             request.CaseId,
             request.Reason.Trim(),
             adminId,
+            request.Scope,
             ct
         );
 
@@ -186,5 +187,5 @@ public sealed class AdminUsersController : AdminControllerBase
         return Guid.TryParse(sub, out var id) ? id : Guid.Empty;
     }
 
-    public sealed record StrikeUserRequest(string Reason, Guid? CaseId);
+    public sealed record StrikeUserRequest(string Reason, Guid? CaseId, string? Scope = null);
 }

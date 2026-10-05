@@ -437,12 +437,13 @@ export async function strikeUser(
   userId: string,
   reason: string,
   caseId?: string,
+  scope?: "buyer" | "seller",
 ): Promise<void> {
   const res = await fetch(`${getApiUrl()}/admin/users/${userId}/strike`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason, caseId }),
+    body: JSON.stringify({ reason, caseId, scope }),
   });
 
   await handleResponse<void>(res);

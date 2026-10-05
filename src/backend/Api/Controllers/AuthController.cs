@@ -186,6 +186,23 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("refresh")]
+    [Authorize]
+    public async Task<IActionResult> Refresh()
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if ((string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId)))
+        {
+            return Unauthorized(new { error = "unauthenticated" });
+        }
+
+        var token = await _identityService.GenerateAuthTokenAsync(userId);
+        SetAuthCookie(token);
+
+        return Ok(new { message = "Token refreshed" });
+    }
+
 
     [HttpPost("login")]
     [EnableRateLimiting("login")]

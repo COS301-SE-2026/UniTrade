@@ -409,10 +409,11 @@ public class AdminCaseService : IAdminCaseService
         Guid? caseId,
         string reason,
         Guid adminId,
+        string? requestedScope = null,
         CancellationToken ct = default
     )
     {
-        var scope = await ResolveManualStrikeScopeAsync(userId, caseId, ct);
+        var scope = requestedScope is "buyer" or "seller" ? requestedScope : await ResolveManualStrikeScopeAsync(userId, caseId, ct);
 
         await _sanctions.ApplyStrikeAsync(userId, caseId, "manual", reason, adminId, scope, ct);
 
@@ -510,7 +511,7 @@ public class AdminCaseService : IAdminCaseService
         )
         {
             await _moderation.RestoreToLiveAsync(listingId.Value, ct);
-        
+
 
             var listing = await _listingRepository.GetByIdAnyStatusAsync(listingId.Value);
             if (listing?.ListingGroupId is Guid groupId)
@@ -527,7 +528,7 @@ public class AdminCaseService : IAdminCaseService
                 )
                 {
                     await _moderation.RestoreToLiveAsync(sibling.ListingId, ct);
-                   
+
                 }
             }
         }

@@ -265,7 +265,7 @@ public class ListingService : IListingService
             }
 
             created.Add(newListing);
-            await BroadcastBrowseChangeAsync(newListing.ListingId,true, ct );
+            await BroadcastBrowseChangeAsync(newListing.ListingId, true, ct);
         }
         await _listings.AddRangeAsync(created);
 
@@ -714,20 +714,20 @@ public class ListingService : IListingService
         return true;
     }
 
-private async Task BroadcastBrowseChangeAsync(Guid listingId, bool nowVisible, CancellationToken ct)
-{
-    try 
+    private async Task BroadcastBrowseChangeAsync(Guid listingId, bool nowVisible, CancellationToken ct)
     {
-        if (nowVisible)
-            await _notifier.ListingLiveAsync(listingId, ct);
-        else 
-            await _notifier.ListingReleasedAsync(listingId, ct);
+        try
+        {
+            if (nowVisible)
+                await _notifier.ListingLiveAsync(listingId, ct);
+            else
+                await _notifier.ListingReleasedAsync(listingId, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Browse broadcast failed for listing {ListingId}", listingId);
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogWarning(ex, "Browse broadcast failed for listing {ListingId}", listingId);
-    }
-}
     private async Task<bool> UpdateOneStatusAsync(
         Guid listingId,
         Guid callerId,

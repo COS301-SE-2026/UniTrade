@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { IconUpload, IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 import type {
   Category,
   Course,
@@ -14,7 +15,6 @@ import {
 } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 interface ApiError {
   message: string;
 }
@@ -212,6 +212,7 @@ const UploadListing: React.FC = () => {
         error.message ?? "Something went wrong",
       );
       setError(message);
+      showToast("error", message);
     } finally {
       setSubmitting(false);
     }

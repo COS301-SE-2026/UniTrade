@@ -145,12 +145,6 @@ export function RealtimeProvider({
       queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
       queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
 
-      showToast("info",
-        e.status === "under_review" ? "A listing was held for review."
-          : e.status === "removed" ? "A listing was removed by an admin."
-            : e.status === "banned" ? "A listing was permanenlty banned."
-              : "A listing is now live.");
-
       showToast(
         "info",
         e.status === "under_review"
@@ -233,6 +227,16 @@ export function RealtimeProvider({
         navigate("/auth/ProofUpload");
       });
 
+      const offVerificationApproved=connectionManager.onVerificationApproved(async () =>{
+        try{
+          await authService.refresh();
+        } catch(e){
+          console.error("token refresh failed",e);
+        }
+        await queryClient.invalidateQueries();
+        showToast("success", "You're verified-you can now reserve and save items.");
+      });
+
     const offAuditEvent = connectionManager.onAuditEvent(() => {
       queryClient.invalidateQueries({ queryKey: ["admin", "audit"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
@@ -253,6 +257,7 @@ export function RealtimeProvider({
       offListingStatusChanged();
       offDisputeOutcome();
       offListingSold();
+      offVerificationApproved();
       offAuditEvent();
       if (user?.role === "admin") {
         connectionManager.leaveAdminGroup();

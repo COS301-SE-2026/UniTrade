@@ -95,6 +95,8 @@ class ConnectionManager {
     (e: { action: string; entityType: string; entityId: string }) => void
   >();
 
+  private readonly verificationApprovedListeners=new Set<() => void>();
+
   connect(): Promise<void> {
     if (this.connectPromise) return this.connectPromise;
 
@@ -197,6 +199,11 @@ class ConnectionManager {
           this.auditEventListeners.forEach((cb) => cb(e)),
       );
 
+      conn.on("verification_approved", () =>
+        this.verificationApprovedListeners.forEach((cb) => cb()),
+      );
+
+    
       conn.onreconnecting(() => {
         this.notifyState("Reconnecting");
       });
@@ -343,6 +350,11 @@ class ConnectionManager {
   ): Unsubscribe {
     this.auditEventListeners.add(cb);
     return () => this.auditEventListeners.delete(cb);
+  }
+
+  onVerificationApproved(callback: () => void): Unsubscribe{
+    this.verificationApprovedListeners.add(callback);
+    return () => this.verificationApprovedListeners.delete(callback);      
   }
 
   async sendMessage(

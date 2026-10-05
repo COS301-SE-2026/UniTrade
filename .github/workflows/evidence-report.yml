@@ -1,0 +1,57 @@
+name: NFR Evidence report
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    path:
+      - "tests/nfr/traceability.yml"
+      - "tests/nfr/evidence/**"
+      - "tests/nfr/render_evidence.py"
+      - ".github/workflows/evidence-report.yml"
+
+permission:
+  contents: write
+
+concurrency:
+  group: nfr-evidence
+  cancel-in-progress: false
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: setup Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip Install pyyaml
+
+      - name: Render stamped evidence report
+        run: python tests/nfr/render_evidence.py
+
+      - name: Attach report to this run (immutable copy)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nfr-evidence-report
+          path:: |
+            tests/nfr/EVIDENCE.md
+            tests/nfr/evidence/SHA256SUMS
+          if-no-files-found: error
+
+      - name: Commit stamped report
+        run: |
+          git config user.name "github-action[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/nfr/EVIDENCE.md tests/nfr/evidence/SHA256SUMS
+          if git diff --cached --quiet; then
+            echo "No evidence changes to commit."
+          else 
+            git commit -m "docs(nfr): regenerate stamped evidence report [skip ci]"

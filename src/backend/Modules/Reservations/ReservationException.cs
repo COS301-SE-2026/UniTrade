@@ -30,6 +30,6 @@ public static class ReservationErrors
     public const string CheckInWindowClosed = "check_in_window_closed";
     public const string AlreadyCheckedIn = "already_checked_in";
     public const string CheckInWindowNotOpen = "check_in_window_not_open";
-    
+
     public const string BuyerSuspended = "buyer_suspended";
 }

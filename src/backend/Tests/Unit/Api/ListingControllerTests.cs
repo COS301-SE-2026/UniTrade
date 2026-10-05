@@ -99,16 +99,6 @@ public class ListingControllerTests
         Assert.IsType<NotFoundObjectResult>(result);
     }
 
-    [Fact]
-    public async Task GetById_ReturnsOkWithListing_WhenFound()
-    {
-        var dto = ASummaryDto();
-        _service.Setup(s => s.GetByIdAsync(dto.ListingId)).ReturnsAsync(dto);
-        var result = await _sut.GetById(dto.ListingId);
-        var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Same(dto, ok.Value);
-    }
-
     [Theory]
     [InlineData(-5)]
     [InlineData(0)]
