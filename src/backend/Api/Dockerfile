@@ -20,6 +20,7 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && apt-get install -y --only-upgrade openssl libssl3t64 \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080

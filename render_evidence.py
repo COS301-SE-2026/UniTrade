@@ -76,7 +76,6 @@ def main() -> None:
     if not MATRIX.exists():
         raise SystemExit(f"traceability matrix not found at {MATRIX}")
 
-    # 1) hash the evidence tree (skip the sums file itself)
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     files = sorted(
         p for p in EVIDENCE_DIR.rglob("*")
@@ -87,17 +86,14 @@ def main() -> None:
 
     matrix_hash = sha256(MATRIX)
 
-    # 2) load the matrix
     data = yaml.safe_load(MATRIX.read_text(encoding="utf-8")) or {}
     reqs = data.get("requirements", [])
 
-    # tally
     counts: dict[str, int] = {}
     for r in reqs:
         counts[r.get("status", "?")] = counts.get(r.get("status", "?"), 0) + 1
     tally = " · ".join(f"{STATUS_LABEL.get(k, k)}: {v}" for k, v in sorted(counts.items()))
 
-    # 3) render
     out = []
     out.append(f"# {data.get('project', 'UniTrade')} — NFR Evidence Report")
     out.append("")
@@ -129,7 +125,6 @@ def main() -> None:
     out.append("")
     out.append("## Quality requirements")
 
-    # group by category, preserving first-seen order
     seen: list[str] = []
     by_cat: dict[str, list[dict]] = {}
     for r in reqs:

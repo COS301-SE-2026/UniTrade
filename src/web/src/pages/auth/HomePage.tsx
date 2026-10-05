@@ -537,6 +537,16 @@ export function Footer() {
                 Help Center
               </button>
             </li>
+            <li>
+              <a
+              href = "https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/Brand-style-doc"
+              target = "_blank"
+              rel = "noopener noreferrer"
+              className = "hover: text-white transition-colors cursor-pointer"
+              >
+                Brand Style Guide
+              </a>
+            </li>
           </ul>
         </div>
 
