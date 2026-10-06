@@ -43,7 +43,7 @@ describe('HelpCenter', () => {
     it('shows the Help Center heading and the title', () => {
         renderHelpCenter()
         expect(screen.getByText('Help Center')).toBeInTheDocument()
-        expect(screen.getByText('Find answers, tutorials, and support resources')).toBeInTheDocument()
+        expect(screen.getByText('Browse quick guides and FAQs')).toBeInTheDocument()
     })
 
     it('navigates back to the home page when the back button is clicked', () => {

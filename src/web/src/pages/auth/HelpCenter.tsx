@@ -507,7 +507,7 @@ export default function HelpCenter() {
               Help Center
             </h2>
             <p className="text-sm text-gray-500 mt-1 mb-6">
-              Find answers, tutorials, and support resources
+              Browse quick guides and FAQs
             </p>
 
             <div className="relative w-full max-w-lg">
