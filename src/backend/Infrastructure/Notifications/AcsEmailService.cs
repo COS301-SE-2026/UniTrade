@@ -259,14 +259,14 @@ public class AcsEmailService : IEmailService
         string? reason
     )
     {
-        var subject = "Update on a dispute involving your account";
+        var subject = "An update from UniTrade moderation";
         var reasonBlock = string.IsNullOrWhiteSpace(reason)
             ? ""
-            : $"<p style='color:#444;'<strong>Reason:</strong> {reason} </p>";
+            : $"<p style='color:#444;'><strong>Reason:</strong> {reason} </p>";
         var html = $"""
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
             <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
-            <p style="color:#444;">A dispute involving your account has been resolved.</p>
+            <p style="color:#444;">After reviewing a report, our moderation team made a decision on your account:</p>
             <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:16px 0;">
               <p style="margin:0;color:#0f2d6b;font-weight:bold;">{outcomeSummary}</p>
             </div>
@@ -275,6 +275,20 @@ public class AcsEmailService : IEmailService
             </div>
             """;
 
+        await SendAsync(toEmail, subject, html);
+    }
+
+    public async Task SendReportOutcomeEmailAsync(string toEmail, string firstName, string outcomeSummary)
+    {
+        var subject = "Update on the listing you reported";
+        var html = $"""
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+        <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
+        <p style="color:#444;">Thanks for flagging a listing on UniTrade. After reviewing it, {outcomeSummary}.</p>
+        <p style="color:#444;">We appreciate you helping keep UniTrade safe for students.</p>
+        <p style="color:#888;font-size:13px;">You received this because you reported a listing on UniTrade.</p>
+    </div>
+    """;
         await SendAsync(toEmail, subject, html);
     }
 }

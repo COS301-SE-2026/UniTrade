@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    path:
+    paths:
       - "tests/nfr/traceability.yml"
       - "tests/nfr/evidence/**"
       - "tests/nfr/render_evidence.py"
       - ".github/workflows/evidence-report.yml"
 
-permission:
+permissions:
   contents: write
 
 concurrency:
@@ -26,13 +26,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: setup Python
+      - name: Setup Python
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           python-version: "3.12"
 
       - name: Install deps
-        run: pip Install pyyaml
+        run: pip install pyyaml
 
       - name: Render stamped evidence report
         run: python tests/nfr/render_evidence.py
@@ -41,17 +41,20 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: nfr-evidence-report
-          path:: |
+          path: |
             tests/nfr/EVIDENCE.md
             tests/nfr/evidence/SHA256SUMS
           if-no-files-found: error
 
       - name: Commit stamped report
         run: |
-          git config user.name "github-action[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tests/nfr/EVIDENCE.md tests/nfr/evidence/SHA256SUMS
           if git diff --cached --quiet; then
             echo "No evidence changes to commit."
-          else 
+          else
             git commit -m "docs(nfr): regenerate stamped evidence report [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

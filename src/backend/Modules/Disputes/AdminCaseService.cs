@@ -374,6 +374,21 @@ public class AdminCaseService : IAdminCaseService
                 ? (disputeData.SubjectUserId == disputeData.SellerId ? "seller" : "buyer")
                 : "seller";
 
+        Guid? counterpartyUserId = disputeData.Type switch
+        {
+            _reportListingString => disputeData.RaisedBy,
+            _listingQualityString =>
+               disputeData.SubjectUserId == disputeData.SellerId ? disputeData.BuyerId
+               : disputeData.SubjectUserId == disputeData.BuyerId ? disputeData.SellerId
+               : (Guid?)null,
+            _ => null,
+        };
+
+        if (counterpartyUserId == disputeData.SubjectUserId || counterpartyUserId == Guid.Empty)
+            counterpartyUserId = null;
+
+
+
         await ApplyDisputeDecisionAsync(
             disputeData.DisputeId,
             disputeData.SubjectUserId,
@@ -384,6 +399,7 @@ public class AdminCaseService : IAdminCaseService
             request.Reason,
             adminId,
             strikeScope,
+            counterpartyUserId,
             ct
         );
 
@@ -493,6 +509,7 @@ public class AdminCaseService : IAdminCaseService
         string? reason,
         Guid adminId,
         string scope,
+        Guid? counterpartyUserId,
         CancellationToken ct = default
     )
     {
@@ -500,7 +517,7 @@ public class AdminCaseService : IAdminCaseService
         {
             await _outcomes.ApplyAsync(
                 outcomes,
-                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason, scope),
+                new CaseOutcomeContext(caseId, subjectUserId, listingId, adminId, reason, scope, counterpartyUserId),
                 ct
             );
         }

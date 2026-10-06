@@ -14,5 +14,6 @@ public interface IEmailService
     Task SendSavedSearchMatchEmailAsync(string email, string title, decimal price);
 
     Task SendDisputeOutcomeEmailAsync(string toEmail, string firstName, string outcomeSummary, string? reason);
+    Task SendReportOutcomeEmailAsync(string toEmail, string firstName, string outcomeSummary);
 
 }
