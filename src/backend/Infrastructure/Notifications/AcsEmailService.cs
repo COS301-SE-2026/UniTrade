@@ -171,8 +171,8 @@ public class AcsEmailService : IEmailService
                           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
                             <tr>
                               <td align="center">
-                                <a href="https://UniTrade.co.za" 
-                                   style="display:inline-block;background:#1a56db;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.2px;">
+                                <a href="https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/HomePage" 
+                                  style="display:inline-block;background:#1a56db;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.2px;">
                                   Go to UniTrade
                                 </a>
                               </td>
