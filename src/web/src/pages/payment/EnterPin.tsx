@@ -78,17 +78,17 @@ export default function EnterPin() {
     };
 
     if (!reservationId) {
-        return <div className="p-8 text-center text-slate-500">No reservation specified.</div>;
+        return <div className="p-8 text-center text-gray-500">No reservation specified.</div>;
     }
 
     return (
-        <div className="min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-100 p-12 md:p-16 flex flex-col items-center space-y-10">
+        <div className="h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
                 <div className="text-center space-y-2">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-blue-900 tracking-tight">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-navy-700 tracking-tight">
                         PIN Verification
                     </h1>
-                    <p className="text-sm text-slate-500 font-medium">
+                    <p className="text-sm text-gray-500 font-medium">
                         Enter the PIN shown by the seller
                     </p>
                 </div>
@@ -110,8 +110,8 @@ export default function EnterPin() {
                             onKeyDown={e => handleKeyDown(index, e)}
                             onPaste={handlePaste}
                             className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all duration-150 ${digit
-                                ? 'border-[#00aaff] text-slate-800 bg-white'
-                                : 'border-[#00aaff]/60 text-slate-800 bg-white'
+                                ? 'border-[#00aaff] text-gray-800 bg-white'
+                                : 'border-[#00aaff]/60 text-gray-800 bg-white'
                                 } focus:border-[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`}
                         />
                     ))}
@@ -121,8 +121,8 @@ export default function EnterPin() {
                     onClick={handleVerify}
                     disabled={!isComplete || isVerifying}
                     className={`w-full max-w-xs py-4 rounded-full text-white font-bold text-lg tracking-wide transition-all ${isComplete && !isVerifying
-                        ? 'bg-[#0d2a5c] hover:bg-[#081e42] cursor-pointer active:scale-[0.99]'
-                        : 'bg-[#0d2a5c]/50 cursor-not-allowed'
+                        ? 'bg-navy-700 hover:bg-navy-500 cursor-pointer active:scale-[0.99]'
+                        : 'bg-navy-700/50 cursor-not-allowed'
                         }`}
                 >
                     {isVerifying ? 'Verifying...' : 'Verify PIN'}
