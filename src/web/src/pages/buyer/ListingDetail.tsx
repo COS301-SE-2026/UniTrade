@@ -33,7 +33,7 @@ import ListingQnA from "../../components/ListingQnA";
 import { useToast } from "../../components/layout/useToast";
 import { queryClient } from "../../lib/queryClient";
 import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
-import { LoadingState} from "../../components/layout/Spinner";
+import { LoadingState } from "../../components/layout/Spinner";
 import { useAuthStore } from "../../store/useAuthStore";
 
 function DetailRow({
@@ -261,8 +261,8 @@ export default function ListingDetail() {
           .catch(() => setSimilarListings([]));
         setActiveImage(
           data.images.find((i) => i.isPrimary)?.url ??
-            data.images[0]?.url ??
-            null,
+          data.images[0]?.url ??
+          null,
         );
 
         if (data.sellerId) {
@@ -276,27 +276,27 @@ export default function ListingDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  useEffect(()=>{
-    if(!id) return;
-    const off=connectionManager.onListingChanged((changedId)=>{
-      if(changedId!==id) return;
+  useEffect(() => {
+    if (!id) return;
+    const off = connectionManager.onListingChanged((changedId) => {
+      if (changedId !== id) return;
       listingsService
         .getById(id)
         .then(setListing)
-        .catch(() =>{
+        .catch(() => {
           setListing(null);
           setError("This listing is no longer available");
         });
     });
-  return off;
-},[id]);
+    return off;
+  }, [id]);
 
   const sellerRating = sellerReviews ? ratingAsSeller(sellerReviews) : null;
   const sellerReceivedReviews =
     sellerReviews?.reviews.filter((r) => r.reviewType === "buyer_to_seller") ??
     [];
   const sellerReputationScore = computeReputationScore(sellerReceivedReviews);
-  if (loading) return <LoadingState message = "Loading..." />;
+  if (loading) return <LoadingState message="Loading..." />;
 
   if (error || !listing)
     return (
@@ -306,30 +306,25 @@ export default function ListingDetail() {
     );
   const getReserveLabel = () => {
     if (reserved) return "Reserved!";
-    if (reserving ) return "Reserving...";
+    if (reserving) return "Reserving...";
     return "Reserve this item";
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+      <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
         <button
           type="button"
-          className="text-[#00aaff] cursor-pointer hover:underline"
-          onClick={() => navigate("/buyer/dashboard")}
-        >
-          Dashboard
-        </button>
-        <IconChevronRight size={12} />
-        <button
-          type="button"
-          className="text-[#00aaff] cursor-pointer hover:underline"
+          className="text-[#00aaff] cursor-pointer hover:underline flex-shrink-0 bg-transparent border-0 p-0 text-sm"
           onClick={() => navigate("/buyer/listings")}
         >
           Listings
         </button>
         <IconChevronRight size={12} />
-        <span>{listing.title}</span>
+        <span className="text-gray-400"></span>
+        <span className="text-gray-600 dark:text-white truncate">
+          {listing.title}
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -365,11 +360,10 @@ export default function ListingDetail() {
                   type="button"
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${
-                    activeImage === img.url
+                  className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
                       ? "border-navy-700 dark:border-white"
                       : "border-transparent"
-                  }`}
+                    }`}
                 >
                   {img.url ? (
                     <img
@@ -523,54 +517,54 @@ export default function ListingDetail() {
             {!isAdmin && (
               <>
 
-            <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
-              <span className="text-blue-500 text-sm flex-shrink-0">🛡</span>
-              <p className="text-xs text-blue-700 dark:text-white/70 leading-relaxed">
-                Reserve now to hold this item for 24 hours. No payment until you
-                meet and inspect it in person.
-              </p>
-            </div>
+                <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
+                  <span className="text-blue-500 text-sm flex-shrink-0">🛡</span>
+                  <p className="text-xs text-blue-700 dark:text-white/70 leading-relaxed">
+                    Reserve now to hold this item for 24 hours. No payment until you
+                    meet and inspect it in person.
+                  </p>
+                </div>
 
-            {reserveError && (
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2 mb-3">
-                <p className="text-xs text-red-600 dark:text-red-400 text-center">
-                  {reserveError}
-                </p>
-              </div>
-            )}
+                {reserveError && (
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-2 mb-3">
+                    <p className="text-xs text-red-600 dark:text-red-400 text-center">
+                      {reserveError}
+                    </p>
+                  </div>
+                )}
 
-            <button
-              type="button"
-              onClick={handleReserve}
-              disabled={reserving || reserved}
-              className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-2"
-            >
-              <IconBookmark size={16} />
+                <button
+                  type="button"
+                  onClick={handleReserve}
+                  disabled={reserving || reserved}
+                  className="w-full bg-navy-700 hover:bg-navy-500 text-white font-semibold text-sm py-3 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-2"
+                >
+                  <IconBookmark size={16} />
 
-              {getReserveLabel()}
-            </button>
+                  {getReserveLabel()}
+                </button>
 
-            <button
-              type="button"
-              onClick={handleAddToWishlist}
-              disabled={wishlisting || wishlisted}
-              className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-            >
-              <IconHeart size={16} />{" "}
-              {wishlisted
-                ? "In Wishlist"
-                : wishlisting
-                  ? "Adding..."
-                  : "Add to Wishlist"}
-            </button>
+                <button
+                  type="button"
+                  onClick={handleAddToWishlist}
+                  disabled={wishlisting || wishlisted}
+                  className="w-full border border-navy-700 dark:border-white/20 text-navy-700 dark:text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 mb-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                >
+                  <IconHeart size={16} />{" "}
+                  {wishlisted
+                    ? "In Wishlist"
+                    : wishlisting
+                      ? "Adding..."
+                      : "Add to Wishlist"}
+                </button>
 
-            <button
-              onClick={() => setReportModalOpen(true)}
-              className="w-full border border-red-300 dark:border-red-500/30 text-red-500 dark:text-red-400 font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-            >
-              <IconFlag size={16} /> Report this listing
-            </button>
-            </>)}
+                <button
+                  onClick={() => setReportModalOpen(true)}
+                  className="w-full border border-red-300 dark:border-red-500/30 text-red-500 dark:text-red-400 font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                >
+                  <IconFlag size={16} /> Report this listing
+                </button>
+              </>)}
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">

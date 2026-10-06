@@ -505,7 +505,7 @@ export function Footer() {
   const navigate = useNavigate();
 
   return (
-    <footer className="w-full bg-navy-900 text-white">
+    <footer className="w-full bg-navy-700 text-white">
       <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col items-center justify-center text-center gap-6">
 
         <p className="flex items-center gap-3 text-xs sm:text-sm text-gray-300 font-medium">
@@ -518,7 +518,7 @@ export function Footer() {
         </p>
 
         <p className="text-xs text-gray-400">
-          © 2026 UniTrade. All rights reserved. Made for South African students.
+          © 2026 UniTrade. All rights reserved. Made for South African University students.
         </p>
 
         <div className="w-16 h-[1px] bg-white/10" />
@@ -536,6 +536,16 @@ export function Footer() {
               >
                 Help Center
               </button>
+            </li>
+            <li>
+              <a
+              href = "https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/Brand-style-doc"
+              target = "_blank"
+              rel = "noopener noreferrer"
+              className = "hover: text-white transition-colors cursor-pointer"
+              >
+                Brand Style Guide
+              </a>
             </li>
           </ul>
         </div>

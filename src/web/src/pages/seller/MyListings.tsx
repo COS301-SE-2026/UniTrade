@@ -612,10 +612,11 @@ export default function MyListings() {
   const tabs: { key: Tab; label: string }[] = [
     { key: "all", label: "All" },
     { key: "live", label: `Live` },
-    { key: "pending", label: `Pending` },
+    { key: "under_review", label: `Under Review` },
     { key: "draft", label: `Drafts` },
-    { key: "rejected", label: `Rejected` },
+    { key: "removed", label: `Removed` },
     { key: "sold", label: `Sold` },
+    { key: "banned", label: `Banned`},
   ];
 
   if (isLoading) {
@@ -669,8 +670,8 @@ export default function MyListings() {
           },
           {
             icon: <IconNotes size={20} />,
-            value: count("pending"),
-            label: "Pending Review",
+            value: count("under_review"),
+            label: "Under Review",
           },
           {
             icon: <IconBoxPadding size={20} />,

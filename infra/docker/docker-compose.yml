@@ -60,7 +60,7 @@ services:
       PayFast__NotifyUrl: ${PayFast__NotifyUrl}
       PayFast__ReturnUrl: ${PayFast__ReturnUrl}
       PayFast__CancelUrl: ${PayFast__CancelUrl}
-      Clip__BaseUrl: ${Clip__BaseUrl}
+      Clip__BaseUrl: http://clip-service:8000
     depends_on:
       db:
         condition: service_healthy
