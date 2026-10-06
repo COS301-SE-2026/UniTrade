@@ -8,7 +8,8 @@ import {
   IconEye,
   IconCalendarClock,
   IconFlag,
-  IconChevronDown
+  IconChevronDown,
+  IconCheck,
 } from "@tabler/icons-react";
 import type { Reservation } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
@@ -16,9 +17,11 @@ import {
   cancelReservation,
   getReservationById,
   createTransactionRequest,
+  acknowledgeReservatioin,
 } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../lib/queryKeys";
 import { getApiUrl } from "../../config";
 import { connectionManager } from "../../services/realtime/connectionManager";
 
@@ -181,14 +184,16 @@ function ActionButton({
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  variant?: "primary" | "danger" | "default";
+  variant?: "primary" | "danger" | "success" | "default";
 }>) {
   const variantClasses =
     variant === "primary"
       ? "bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500"
-      : variant === "danger"
-        ? "border-gray-300 dark:border-navy-600 text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20"
-        : "border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700";
+      : variant === "success"
+        ? "bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700"
+        : variant === "danger"
+          ? "border-gray-300 dark:border-navy-600 text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20"
+          : "border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700";
 
   return (
     <button
@@ -252,6 +257,22 @@ export default function ReservationDetails() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [itemsExpanded, setItemsExpanded] = useState(false);
 
+  const queryClient = useQueryClient();
+  const [isAccepting, setIsAccepting] = useState(false);
+
+  const handleAccept = async () => {
+    if (!reservation || isAccepting) return;
+    setIsAccepting(true);
+    const result = await acknowledgeReservatioin(reservation.reservationId);
+    if (result.success) {
+      showToast("success", "Reservation accepted.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.reservations("seller") });
+      await loadReservation(); // refresh timerStage so the button disappears
+    } else {
+      showToast("error", result.error.message ?? "Failed to accept reservation.");
+    }
+    setIsAccepting(false);
+  };
 
   const { data: meetup } = useQuery({
     queryKey: ["meetup", reservationId],
@@ -465,6 +486,11 @@ export default function ReservationDetails() {
   const canCancel =
     !isCancelled && !isCancelling && (isSeller || !isCoordinating);
 
+  const canAccept =
+    isSeller &&
+    reservation.timerStage === "awaiting_seller" &&
+    !isCancelled &&
+    !isExpired;
   const otherPartyName = reservation.counterParty?.name ?? otherPartyLabel;
   const otherPartyInitials =
     reservation.counterParty?.initials ?? otherPartyLabel[0];
@@ -603,7 +629,18 @@ export default function ReservationDetails() {
           </SectionCard>
 
           <SectionCard title="Actions">
+
             <div className="flex flex-col gap-3">
+              {canAccept && (
+                <ActionButton
+                  icon={<IconCheck size={16} />}
+                  label={isAccepting ? "Accepting..." : "Accept Reservation"}
+                  onClick={handleAccept}
+                  disabled={isAccepting}
+                  variant="success"
+                />
+              )}
+
               <ActionButton
                 icon={<IconMessageCircle size={16} />}
                 label={messageLabel}

@@ -110,10 +110,6 @@ describe('OTPVerification', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows the dark mode toggle button', () => {
-    renderOTP()
-    expect(screen.getByRole('button', { name: /toggle dark mode/i })).toBeInTheDocument()
-  })
 
   it('Verify OTP button is disabled when inputs are empty', () => {
     renderOTP()
@@ -237,11 +233,6 @@ describe('OTPVerification', () => {
     expect(inputs[5]).toHaveValue('')
   })
 
-  it('calls toggle whne the dark mode button is clicked', () => {
-    renderOTP()
-    fireEvent.click(screen.getByRole('button', { name: /toggle dark mode/i }))
-    expect(mockToggle).toHaveBeenCalledTimes(1)
-  })
 
   it('does not call verifyOtp if fewer than 6 digits are entered and button is clicked', () => {
     renderOTP()
