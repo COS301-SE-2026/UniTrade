@@ -1,5 +1,5 @@
 project: UniTrade
-srs_quality_requirement: 7
+srs_quality_requirements: 7
 
 requirements:
   # Performance
@@ -201,7 +201,7 @@ requirements:
       workflow: "Lighthouse NFR Audits"
     status: pass
 
-  - id: QR-06a
+  - id: QR-06b
     category: Usability
     requirement: "Core task completes end-to-end in <= 2 min"
     target: "<= 120s {browse -> reserve -> chat -> meetup -> initiate payment}"

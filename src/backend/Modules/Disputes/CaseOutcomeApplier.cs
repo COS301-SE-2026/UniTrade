@@ -103,6 +103,7 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
         }
         if (outcomes.Count > 0)
         {
+
             var summary = BuildOutcomeSummary(outcomes);
 
             try
@@ -164,6 +165,22 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
                     context.SubjectUserId
                 );
             }
+
+            if (context.CounterpartyUserId is Guid counterpartyId)
+            {
+                try
+                {
+                    var reporter = await _users.GetByIdAsync(counterpartyId);
+                    if (reporter is not null && !string.IsNullOrWhiteSpace(reporter.Email))
+                    {
+                        await _emails.SendReportOutcomeEmailAsync(reporter.Email, reporter.FirstName ?? "there", BuildReporterSummary(outcomes));
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, "Failed to send reporter outcome email to counterparty {UserId}", context.CounterpartyUserId);
+                }
+            }
         }
     }
 
@@ -203,7 +220,16 @@ public class CaseOutcomeApplier : ICaseOutcomeApplier
             parts.Add("a refusal flag was applied to your account");
         if (outcomes.Count == 0)
             return "A dispute involving your account was resolved.";
-        var joined = string.Join(" and ", parts);
-        return $"A dispute was resolved: {char.ToUpper(joined[0])}{joined[1..]}.";
+        var joined = string.Join(", and ", parts);
+        return $"{char.ToUpper(joined[0])}{joined[1..]}.";
     }
+    private static string BuildReporterSummary(IReadOnlyList<DisputeOutcome> outcomes)
+    {
+        if (outcomes.Contains(DisputeOutcome.RemoveListing))
+            return "the listing you flagged has been removed from UniTrade";
+        if (outcomes.Contains(DisputeOutcome.WarnSellerResubmit))
+            return "the listing you flagged has been taken down for correction";
+        return "we reviewed the listing you flagged and have taken action";
+    }
+
 }
