@@ -1112,13 +1112,6 @@ function DecisionActions({
         >
           {submitting === "dismiss" ? "Dismissing…" : "Dismiss"}
         </DecisionButton>
-        <DecisionButton
-          tone="neutral"
-          disabled={!!submitting}
-          onClick={() => onDecide("more-info")}
-        >
-          {submitting === "more-info" ? "Requesting…" : "Ask for More Info"}
-        </DecisionButton>
       </div>
     );
   }
