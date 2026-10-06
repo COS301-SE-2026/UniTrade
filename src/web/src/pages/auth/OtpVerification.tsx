@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { IconSun, IconMoon } from '@tabler/icons-react'
-import { useThemeStore } from '../../store/useThemeStore'
 import { useAuthStore } from '../../store/useAuthStore'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
@@ -13,7 +11,6 @@ interface ApiError {
 
 export default function OTPVerification() {
   const navigate = useNavigate()
-  const { isDark, toggle } = useThemeStore()
   const { pendingEmail, clearPendingEmail} = useAuthStore()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timeLeft, setTimeLeft] = useState(60)
@@ -88,9 +85,6 @@ export default function OTPVerification() {
     <div className="min-h-screen bg-gray-50 dark:bg-navy-900 flex flex-col">
       <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 dark:border-white/10">
         <span className="text-base font-bold text-navy-700 dark:text-white">UniTrade</span>
-        <button type='button' onClick={toggle} className="text-gray-500 dark:text-white/70 hover:text-navy-700 dark:hover:text-white transition-colors" aria-label="Toggle dark mode">
-          {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
-        </button>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4">

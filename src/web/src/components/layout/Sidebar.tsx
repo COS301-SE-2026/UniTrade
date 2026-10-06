@@ -30,10 +30,11 @@ import TermsAndConditionsModal from "../legal/TermsandConditions";
 import logo from "../../assets/Transaprent Logo.png";
 
 interface NavItem {
-  label: string;
-  to: string;
-  icon: React.ReactNode;
-  badge?: number;
+  label: string
+  to: string
+  icon: React.ReactNode
+  badge?: number
+  action?: 'switch'
 }
 
 interface NavSection {
@@ -45,41 +46,13 @@ const buyerNav: NavSection[] = [
   {
     heading: "Main",
     items: [
-      {
-        label: "Browse Listings",
-        to: "/buyer/listings",
-        icon: <IconLayoutDashboard size={18} />,
-      },
-      {
-        label: "Switch",
-        to: "/switch",
-        icon: <IconSwitchHorizontal size={18} />,
-      },
-      {
-        label: "My Orders",
-        to: "/buyer/orders",
-        icon: <IconShoppingBag size={18} />,
-      },
-      {
-        label: "My Wishlist",
-        to: "/buyer/wishlist",
-        icon: <IconHeart size={18} />,
-      },
-      {
-        label: "My Reservations",
-        to: "/buyer/reservations",
-        icon: <IconBookmark size={18} />,
-      },
-      {
-        label: "My Disputes",
-        to: "/buyer/disputes",
-        icon: <IconFlag size={18} />,
-      },
-      {
-        label: "Saved Searches",
-        to: "/buyer/saved-searches",
-        icon: <IconSearch size={18} />,
-      },
+      { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'Seller Mode', to: '/switch', action: 'switch', icon: <IconSwitchHorizontal size={18} /> },
+      { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} /> },
+      { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
+      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} /> },
+      { label: 'My Disputes', to: '/buyer/disputes', icon: <IconFlag size={18} /> },
+      { label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} /> },
     ],
   },
   {
@@ -105,36 +78,12 @@ const sellerNav: NavSection[] = [
   {
     heading: "Main",
     items: [
-      {
-        label: "My Listings",
-        to: "/seller/listings",
-        icon: <IconLayoutDashboard size={18} />,
-      },
-      {
-        label: "Switch",
-        to: "/switch",
-        icon: <IconSwitchHorizontal size={18} />,
-      },
-      {
-        label: "New Listing",
-        to: "/seller/upload",
-        icon: <IconPackage size={18} />,
-      },
-      {
-        label: "My Sales",
-        to: "/seller/sales",
-        icon: <IconShoppingBag size={18} />,
-      },
-      {
-        label: "My Disputes",
-        to: "/buyer/disputes",
-        icon: <IconFlag size={18} />,
-      },
-      {
-        label: "Reserved",
-        to: "/seller/reservations",
-        icon: <IconBookmark size={18} />,
-      },
+      { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
+      { label: 'Buyer Mode', to: '/switch', action: 'switch', icon: <IconSwitchHorizontal size={18} /> },
+      { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
+      { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} /> },
+      { label: 'My Disputes', to: '/buyer/disputes', icon: <IconFlag size={18} /> },
+      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} /> },
     ],
   },
   {
@@ -373,17 +322,18 @@ export default function Sidebar() {
               </p>
             )}
             {section.items.map((item) => {
-              if (item.label === "Switch" && user?.role === "student") {
+
+              if (item.action === 'switch' && user?.role === 'student') {
                 return (
                   <button
                     type="button"
                     key={item.to}
                     onClick={handleSwitch}
                     className={clsx(
-                      "w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors",
-                      "text-left bg-transparent cursor-pointer focus:outline-none", // fixes alignment
-                      collapsed && "justify-center px-0",
-                      "text-white/75 hover:bg-white/5 hover:text-white",
+                      'w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors',
+                      'text-left bg-transparent cursor-pointer focus:outline-none',
+                      collapsed && 'justify-center px-0',
+                      'text-white/75 hover:bg-white/5 hover:text-white'
                     )}
                     title={collapsed ? item.label : undefined}
                   >

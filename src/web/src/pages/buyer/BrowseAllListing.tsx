@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { listingsService } from "../../services/listingsService";
 import { formatCondition, formatPrice } from "../../utils/formatters";
@@ -244,7 +244,7 @@ function mapSortToServer(s: SortOption): string {
 export default function BrowseAllListing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get("q") || "";
+  const searchQuery = searchParams.get('q') ?? '';
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
@@ -254,6 +254,7 @@ export default function BrowseAllListing() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const resetPage = () => setCurrentPage(1);
+
 
   const [showMoreCategories, setShowMoreCategories] = useState(false);
 
@@ -266,32 +267,42 @@ export default function BrowseAllListing() {
       .catch(() => {});
   }, []);
 
-  const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: [
-      "browseListings",
-      searchQuery,
-      activeCategory,
-      conditionFilter,
-      sortOption,
-      currentPage,
-    ],
-    queryFn: () =>
-      listingsService.getBrowseListingsPaginated({
-        page: currentPage,
-        pageSize: PAGE_SIZE,
-        search: searchQuery || undefined,
-        categoryId: activeCategory ?? undefined,
-        condition:
-          conditionFilter === "All conditions" ? undefined : conditionFilter,
-        sortBy: mapSortToServer(sortOption),
-        listingStatus: "live",
-      }),
-    placeholderData: keepPreviousData,
-  });
+const needle = searchQuery.trim().toLowerCase();
+const clientSearch = needle.length > 0;
 
-  const listings: BrowseListing[] = data?.listings ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+const { data, isLoading, isFetching, error } = useQuery({
+  queryKey: [
+    "browseListings",
+    activeCategory,
+    conditionFilter,
+    sortOption,
+    clientSearch ? "all" : currentPage,
+  ],
+  queryFn: () =>
+    listingsService.getBrowseListingsPaginated({
+      page: clientSearch ? 1 : currentPage,
+      pageSize: clientSearch ? 500 : PAGE_SIZE,
+      categoryId: activeCategory ?? undefined,
+      condition:
+        conditionFilter === "All conditions" ? undefined : conditionFilter,
+      sortBy: mapSortToServer(sortOption),
+      listingStatus: "live",
+    }),
+  placeholderData: keepPreviousData,
+});
+
+const filtered = useMemo(() => {
+  const all = data?.listings ?? [];
+  return clientSearch
+    ? all.filter((l) => l.title.toLowerCase().includes(needle))
+    : all;
+}, [data?.listings, clientSearch, needle]);
+
+const total = clientSearch ? filtered.length : (data?.total ?? 0);
+const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+const listings = clientSearch
+  ? filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  : filtered;
 
   const handleCategoryClick = (categoryId: number | null) => {
     setActiveCategory(categoryId);
