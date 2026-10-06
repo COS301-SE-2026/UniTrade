@@ -1,5 +1,5 @@
-import { NavLink, useNavigate, useLocation } from 'react-router'
-import { clsx } from 'clsx'
+import { NavLink, useNavigate, useLocation } from "react-router";
+import { clsx } from "clsx";
 import {
   IconLayoutDashboard,
   IconSwitchHorizontal,
@@ -8,89 +8,179 @@ import {
   IconListCheck,
   IconFlag,
   IconUsers,
-
   IconPackage,
   IconChevronLeft,
   IconChevronRight,
   IconX,
-  IconShoppingBag, IconHeart, IconBookmark, IconMessage, IconUser,
+  IconShoppingBag,
+  IconHeart,
+  IconBookmark,
+  IconMessage,
+  IconUser,
   IconSearch,
   IconCalendarEvent,
-} from '@tabler/icons-react'
-import { useAuthStore } from '../../store/useAuthStore'
-import { authService } from '../../services/authService'
-import { useState, useEffect, useRef } from 'react'
-import { useReservationsList } from '../../hooks/useReservationsList'
-import { useUnreadRealtime } from '../../hooks/useUnreadRealtime'
-import { connectionManager } from '../../services/realtime/connectionManager'
-import TermsAndConditionsModal from '../legal/TermsandConditions'
+} from "@tabler/icons-react";
+import { useAuthStore } from "../../store/useAuthStore";
+import { authService } from "../../services/authService";
+import { useState, useEffect, useRef } from "react";
+import { useReservationsList } from "../../hooks/useReservationsList";
+import { useUnreadRealtime } from "../../hooks/useUnreadRealtime";
+import { connectionManager } from "../../services/realtime/connectionManager";
+import TermsAndConditionsModal from "../legal/TermsandConditions";
+import logo from "../../assets/Transaprent Logo.png";
 
 interface NavItem {
-  label: string
-  to: string
-  icon: React.ReactNode
-  badge?: number
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+  badge?: number;
 }
 
 interface NavSection {
-  heading: string
-  items: NavItem[]
+  heading: string;
+  items: NavItem[];
 }
 
 const buyerNav: NavSection[] = [
   {
-    heading: 'Main',
+    heading: "Main",
     items: [
-      { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} /> },
-      { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} /> },
-      { label: 'My Disputes', to: '/buyer/disputes', icon: <IconFlag size={18} /> },
-      { label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} /> },
+      {
+        label: "Browse Listings",
+        to: "/buyer/listings",
+        icon: <IconLayoutDashboard size={18} />,
+      },
+      {
+        label: "Switch",
+        to: "/switch",
+        icon: <IconSwitchHorizontal size={18} />,
+      },
+      {
+        label: "My Orders",
+        to: "/buyer/orders",
+        icon: <IconShoppingBag size={18} />,
+      },
+      {
+        label: "My Wishlist",
+        to: "/buyer/wishlist",
+        icon: <IconHeart size={18} />,
+      },
+      {
+        label: "My Reservations",
+        to: "/buyer/reservations",
+        icon: <IconBookmark size={18} />,
+      },
+      {
+        label: "My Disputes",
+        to: "/buyer/disputes",
+        icon: <IconFlag size={18} />,
+      },
+      {
+        label: "Saved Searches",
+        to: "/buyer/saved-searches",
+        icon: <IconSearch size={18} />,
+      },
     ],
   },
   {
-    heading: 'Account',
+    heading: "Account",
     items: [
-      { label: 'Messages', to: '/buyer/messages', icon: <IconMessage size={18} />, badge: 5 },
-      { label: 'Timetable', to: '/auth/timetable', icon: <IconCalendarEvent size={18} /> },
-      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      {
+        label: "Messages",
+        to: "/buyer/messages",
+        icon: <IconMessage size={18} />,
+        badge: 5,
+      },
+      {
+        label: "Timetable",
+        to: "/auth/timetable",
+        icon: <IconCalendarEvent size={18} />,
+      },
+      { label: "Profile", to: "/auth/profile", icon: <IconUser size={18} /> },
     ],
   },
-]
+];
 
 const sellerNav: NavSection[] = [
   {
-    heading: 'Main',
+    heading: "Main",
     items: [
-      { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Switch', to: '/switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
-      { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} /> },
-      { label: 'My Disputes', to: '/buyer/disputes', icon: <IconFlag size={18} /> },
-      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} /> },
+      {
+        label: "My Listings",
+        to: "/seller/listings",
+        icon: <IconLayoutDashboard size={18} />,
+      },
+      {
+        label: "Switch",
+        to: "/switch",
+        icon: <IconSwitchHorizontal size={18} />,
+      },
+      {
+        label: "New Listing",
+        to: "/seller/upload",
+        icon: <IconPackage size={18} />,
+      },
+      {
+        label: "My Sales",
+        to: "/seller/sales",
+        icon: <IconShoppingBag size={18} />,
+      },
+      {
+        label: "My Disputes",
+        to: "/buyer/disputes",
+        icon: <IconFlag size={18} />,
+      },
+      {
+        label: "Reserved",
+        to: "/seller/reservations",
+        icon: <IconBookmark size={18} />,
+      },
     ],
   },
   {
-    heading: 'Account',
+    heading: "Account",
     items: [
-      { label: 'Messages', to: '/seller/messages', icon: <IconMessage size={18} />, badge: 5 },
-      { label: 'Timetable', to: '/auth/timetable', icon: <IconCalendarEvent size={18} /> },
-      { label: 'Profile', to: '/auth/profile', icon: <IconUser size={18} /> },
+      {
+        label: "Messages",
+        to: "/seller/messages",
+        icon: <IconMessage size={18} />,
+        badge: 5,
+      },
+      {
+        label: "Timetable",
+        to: "/auth/timetable",
+        icon: <IconCalendarEvent size={18} />,
+      },
+      { label: "Profile", to: "/auth/profile", icon: <IconUser size={18} /> },
     ],
   },
-]
+];
 
 const adminNav: NavSection[] = [
   {
-    heading: 'Main',
+    heading: "Main",
     items: [
-      { label: 'Dashboard', to: '/admin/dashboard', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Disputes', to: '/admin/disputes', icon: <IconFlag size={18} /> },
-      { label: 'Verifications', to: '/admin/verifications', icon: <IconShieldCheck size={18} /> },
-      { label: 'Listing Queue', to: '/admin/listings', icon: <IconListCheck size={18} /> },
-      { label: 'Users', to: '/admin/users', icon: <IconUsers size={18} /> },
+      {
+        label: "Dashboard",
+        to: "/admin/dashboard",
+        icon: <IconLayoutDashboard size={18} />,
+      },
+      {
+        label: "Disputes",
+        to: "/admin/disputes",
+        icon: <IconFlag size={18} />,
+      },
+      {
+        label: "Verifications",
+        to: "/admin/verifications",
+        icon: <IconShieldCheck size={18} />,
+      },
+      {
+        label: "Listing Queue",
+        to: "/admin/listings",
+        icon: <IconListCheck size={18} />,
+      },
+      { label: "Users", to: "/admin/users", icon: <IconUsers size={18} /> },
     ],
   },
   /*{
@@ -100,31 +190,34 @@ const adminNav: NavSection[] = [
 
     ],
   },*/
-]
+];
 
 interface UserPopoverProps {
-  name: string
-  initials: string
-  roleLabel: string
-  onClose: () => void
-  onLogout: () => void
-
+  name: string;
+  initials: string;
+  roleLabel: string;
+  onClose: () => void;
+  onLogout: () => void;
 }
 function UserPopover({
-  name, initials, roleLabel, onClose, onLogout,
+  name,
+  initials,
+  roleLabel,
+  onClose,
+  onLogout,
 }: Readonly<UserPopoverProps>) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [showTerms, setShowTerms] = useState(false)
+  const ref = useRef<HTMLDivElement>(null);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose()
+        onClose();
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onClose])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
 
   return (
     <div
@@ -132,7 +225,6 @@ function UserPopover({
       className="absolute bottom-16 left-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50"
     >
       <div className="flex items-center justify-end mb-4">
-
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600"
@@ -143,7 +235,7 @@ function UserPopover({
       </div>
       <div className="flex items-center gap-3 mb-5">
         <button
-          type='button'
+          type="button"
           className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
         >
           {initials}
@@ -175,56 +267,61 @@ function UserPopover({
         onDecline={() => setShowTerms(false)}
       />
     </div>
-  )
+  );
 }
 export default function Sidebar() {
-  const { user, viewMode, toggleViewMode, clearUser, setViewMode } = useAuthStore()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [collapsed, setCollapsed] = useState(false)
-  const [ShowPopover, setShowPopover] = useState(false)
-
+  const { user, viewMode, toggleViewMode, clearUser, setViewMode } =
+    useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [ShowPopover, setShowPopover] = useState(false);
 
   useEffect(() => {
-    if (user?.role !== 'student') return
-    if (location.pathname.startsWith('/seller') && viewMode !== 'seller') {
-      setViewMode('seller')
-    } else if (location.pathname.startsWith('/buyer') && viewMode !== 'buyer') {
-      setViewMode('buyer')
+    if (user?.role !== "student") return;
+    if (location.pathname.startsWith("/seller") && viewMode !== "seller") {
+      setViewMode("seller");
+    } else if (location.pathname.startsWith("/buyer") && viewMode !== "buyer") {
+      setViewMode("buyer");
     }
-  }, [location.pathname, user?.role, viewMode, setViewMode])
+  }, [location.pathname, user?.role, viewMode, setViewMode]);
 
-  const messageRole = viewMode === 'buyer' ? 'buyer' : 'seller'
+  const messageRole = viewMode === "buyer" ? "buyer" : "seller";
   const { data: reservations = [] } = useReservationsList(messageRole, {
-    enabled: user?.role === 'student',
-  })
-  useUnreadRealtime(messageRole)
+    enabled: user?.role === "student",
+  });
+  useUnreadRealtime(messageRole);
 
   const unreadTotal = reservations
-    .filter((r) => r.reservationStatus === 'active')
-    .reduce((sum, r) => sum + (r.unreadCount ?? 0), 0)
+    .filter((r) => r.reservationStatus === "active")
+    .reduce((sum, r) => sum + (r.unreadCount ?? 0), 0);
 
-
-  let sections: NavSection[] = []
-  if (user?.role === 'admin') {
-    sections = adminNav
-  } else if (user?.role === 'student') {
-    sections = viewMode === 'buyer' ? buyerNav : sellerNav
+  let sections: NavSection[] = [];
+  if (user?.role === "admin") {
+    sections = adminNav;
+  } else if (user?.role === "student") {
+    sections = viewMode === "buyer" ? buyerNav : sellerNav;
   }
 
   sections = sections.map((section) => ({
     ...section,
     items: section.items.map((item) =>
-      item.label === 'Messages' ? { ...item, badge: unreadTotal } : item
+      item.label === "Messages" ? { ...item, badge: unreadTotal } : item,
     ),
-  }))
+  }));
+  const homePath =
+    user?.role === "admin"
+      ? "/admin/dashboard"
+      : viewMode === "buyer"
+        ? "/auth/HomePage"
+        : "/auth/HomePage";
 
   const handleSwitch = () => {
-    if (user?.role !== 'student') return
-    const newMode = viewMode === 'buyer' ? 'seller' : 'buyer'
-    toggleViewMode()
-    navigate(newMode === 'buyer' ? '/buyer/listings' : '/seller/listings')
-  }
+    if (user?.role !== "student") return;
+    const newMode = viewMode === "buyer" ? "seller" : "buyer";
+    toggleViewMode();
+    navigate(newMode === "buyer" ? "/buyer/listings" : "/seller/listings");
+  };
 
   const handleLogout = async () => {
     try {
@@ -232,28 +329,40 @@ export default function Sidebar() {
     } catch {
       //Inacase there is an api call frontend doesn't fail
     } finally {
-      clearUser()
-      setShowPopover(false)
-      navigate('/auth/login')
+      clearUser();
+      setShowPopover(false);
+      navigate("/auth/login");
     }
-  }
+  };
   return (
     <aside
       className={clsx(
-        'relative flex flex-col h-screen bg-navy-700 text-white transition-all duration-300 ease-in-out flex-shrink-0',
-        collapsed ? 'w-16' : 'w-52'
+        "relative flex flex-col h-screen bg-navy-700 text-white transition-all duration-300 ease-in-out flex-shrink-0",
+        collapsed ? "w-16" : "w-52",
       )}
     >
-
-      <div className="flex items-center gap-2 px-4 py-5 border-b border-white/10 overflow-hidden">
-        <span className="text-base font-bold whitespace-nowrap">
-          {collapsed ? 'UT' : 'UniTrade'}
-        </span>
-        {!collapsed && user?.role === 'admin' && (
+      <NavLink
+        to={homePath}
+        title="Go to home"
+        className={clsx(
+          "flex items-center gap-2 px-4 py-5 border-b border-white/10 overflow-hidden",
+          collapsed && "justify-center px-0",
+        )}
+      >
+        <img
+          src={logo}
+          alt="UniTrade"
+          className="h-8 w-8 object-contain flex-shrink-0"
+        />
+        {!collapsed && (
+          <span className="text-lg font-bold tracking-tight whitespace-nowrap">
+            UniTrade
+          </span>
+        )}
+        {!collapsed && user?.role === "admin" && (
           <span className="text-[10px] text-white/70 font-normal">Admin</span>
         )}
-      </div>
-
+      </NavLink>
 
       <nav className="flex-1 overflow-y-auto py-2">
         {sections.map((section) => (
@@ -264,25 +373,26 @@ export default function Sidebar() {
               </p>
             )}
             {section.items.map((item) => {
-
-              if (item.label === 'Switch' && user?.role === 'student') {
+              if (item.label === "Switch" && user?.role === "student") {
                 return (
                   <button
-                    type='button'
+                    type="button"
                     key={item.to}
                     onClick={handleSwitch}
                     className={clsx(
-                      'w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors',
-                      'text-left bg-transparent cursor-pointer focus:outline-none', // fixes alignment
-                      collapsed && 'justify-center px-0',
-                      'text-white/75 hover:bg-white/5 hover:text-white'
+                      "w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors",
+                      "text-left bg-transparent cursor-pointer focus:outline-none", // fixes alignment
+                      collapsed && "justify-center px-0",
+                      "text-white/75 hover:bg-white/5 hover:text-white",
                     )}
                     title={collapsed ? item.label : undefined}
                   >
                     <span className="flex-shrink-0">{item.icon}</span>
                     {!collapsed && (
                       <>
-                        <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                        <span className="flex-1 whitespace-nowrap">
+                          {item.label}
+                        </span>
                         {item.badge !== undefined && (
                           <span className="bg-[#00aaff] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none">
                             {item.badge}
@@ -291,7 +401,7 @@ export default function Sidebar() {
                       </>
                     )}
                   </button>
-                )
+                );
               }
               return (
                 <NavLink
@@ -299,11 +409,11 @@ export default function Sidebar() {
                   to={item.to}
                   className={({ isActive }) =>
                     clsx(
-                      'flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors',
-                      collapsed && 'justify-center px-0',
+                      "flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors",
+                      collapsed && "justify-center px-0",
                       isActive
-                        ? 'bg-navy-500 text-white'
-                        : 'text-white/75 hover:bg-white/5 hover:text-white'
+                        ? "bg-navy-500 text-white"
+                        : "text-white/75 hover:bg-white/5 hover:text-white",
                     )
                   }
                   title={collapsed ? item.label : undefined}
@@ -311,7 +421,9 @@ export default function Sidebar() {
                   <span className="flex-shrink-0">{item.icon}</span>
                   {!collapsed && (
                     <>
-                      <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                      <span className="flex-1 whitespace-nowrap">
+                        {item.label}
+                      </span>
                       {item.badge !== undefined && (
                         <span className="bg-[#00aaff] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none">
                           {item.badge}
@@ -320,28 +432,27 @@ export default function Sidebar() {
                     </>
                   )}
                 </NavLink>
-              )
+              );
             })}
           </div>
         ))}
       </nav>
 
       {user && (
-        <div
-          className="relative">
+        <div className="relative">
           <div
-            role='button'
+            role="button"
             tabIndex={0}
             onClick={() => setShowPopover((prev) => !prev)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 setShowPopover((prev) => !prev);
               }
             }}
             className={clsx(
-              'border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5',
-              collapsed && 'justify-center'
+              "border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5",
+              collapsed && "justify-center",
             )}
           >
             <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
@@ -349,9 +460,15 @@ export default function Sidebar() {
             </div>
             {!collapsed && (
               <div className="min-w-0">
-                <p className="text-[12px] font-semibold truncate">{user.name}</p>
+                <p className="text-[12px] font-semibold truncate">
+                  {user.name}
+                </p>
                 <p className="text=[10px] text-white/50 capitalize">
-                  {user.role === 'admin' ? 'Admin' : viewMode === 'buyer' ? 'Buyer' : 'Seller'}
+                  {user.role === "admin"
+                    ? "Admin"
+                    : viewMode === "buyer"
+                      ? "Buyer"
+                      : "Seller"}
                 </p>
               </div>
             )}
@@ -361,7 +478,11 @@ export default function Sidebar() {
               name={user.name}
               initials={user.initials}
               roleLabel={
-                user.role === 'admin' ? 'Admin Account' : viewMode === 'buyer' ? 'Buyer Account' : 'Seller Account'
+                user.role === "admin"
+                  ? "Admin Account"
+                  : viewMode === "buyer"
+                    ? "Buyer Account"
+                    : "Seller Account"
               }
               onClose={() => setShowPopover(false)}
               onLogout={handleLogout}
@@ -371,15 +492,19 @@ export default function Sidebar() {
       )}
 
       <button
-        type='button'
+        type="button"
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-navy-700 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors z-10"
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
-        {collapsed ? <IconChevronRight size={12} /> : <IconChevronLeft size={12} />}
+        {collapsed ? (
+          <IconChevronRight size={12} />
+        ) : (
+          <IconChevronLeft size={12} />
+        )}
       </button>
     </aside>
-  )
+  );
 }
 
 /*function buildSections(role: string | undefined, viewMode: string, unreadTotal: number): NavSection[] {
