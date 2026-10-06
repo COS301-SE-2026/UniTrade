@@ -52,14 +52,14 @@ export default function PaymentComplete() {
 
   if (!reservationId) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
-        <p className="text-slate-600">
+      <div className="h-dvh overflow-hidden flex flex-col items-center justify-center gap-4 text-center px-4">
+        <p className="text-gray-600">
           We couldn't find the details for this payment. Please check your reservations for the latest status.
         </p>
         <button
           type='button'
           onClick={() => navigate('/buyer/reservations')}
-          className="bg-blue-950 hover:bg-blue-900 text-white font-bold py-2.5 px-5 rounded-xl"
+          className="bg-navy-700 hover:bg-navy-500 text-white font-bold py-2.5 px-5 rounded-xl"
         >
           Go to reservations
         </button>
@@ -68,27 +68,27 @@ export default function PaymentComplete() {
   }
   if (view === 'complete') {
     return (
-      <div className='min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4 gap-8'>
+      <div className='h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4 gap-8'>
         <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center border-4 border-emerald-100 text-emerald-500"><CheckCircle2 className='w-14 h-14' />
 
         </div>
         <div className='text-center space-y-2'>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight">{doneState}</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-navy-700 tracking-tight">{doneState}</h1>
 
-          <p className="text-sm text-slate-500 font-medium">
+          <p className="text-sm text-gray-500 font-medium">
             {completionMessage}
           </p>
         </div>
-        <button type='button' onClick={() => navigate(redirectPath)} className='w-full max-w-xs py-4 bg-[#0d2a5c] hover:bg-[#081e42] active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer'>{buttonLabel}</button>
+        <button type='button' onClick={() => navigate(redirectPath)} className='w-full max-w-xs py-4 bg-navy-700 hover:bg-navy-500 active:scale-[0.99] text-white font-bold text-lg tracking-wide rounded-full shadow-md transition-all cursor-pointer'>{buttonLabel}</button>
 
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4 gap-8'>
-      <div className="w-20 h-20 rounded-full border-4 border-slate-200 border-t-blue-900 animate-spin" />
-      <p className='text-sm text-slate-500 font-medium'>Waiting for payment confirmation from PayFast...</p>
+    <div className='h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4 gap-8'>
+      <div className="w-20 h-20 rounded-full border-4 border-gray-200 border-t-navy-700 animate-spin" />
+      <p className='text-sm text-gray-500 font-medium'>Waiting for payment confirmation from PayFast...</p>
     </div>
   );
 }
