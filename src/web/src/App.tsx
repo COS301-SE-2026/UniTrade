@@ -6,6 +6,8 @@ import { getApiUrl } from "./config";
 import ChatLayout from "./components/ChatLayout";
 import { RealtimeProvider } from "./providers/RealtimeProvider";
 import { LoadingState } from "./components/layout/Spinner";
+import RequireRole from "./components/layout/RequireRole";
+
 
 
 /*
@@ -159,8 +161,19 @@ export default function App() {
         
 
         <Route element={<AppLayout />}>
+        <Route element={<RequireRole allow="admin" />}>
           <Route path="/admin/verifications/:id" element={<AdminVerificationReview />} />
           <Route path="/admin/disputes/:id" element={<AdminDisputeReview />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/verifications" element={<AdminVerifications />} />
+          <Route path="/admin/listings" element={<AdminListingQueue />} />
+          <Route path="/admin/listings/flagged/:id" element={<AdminListingRiskReview />} />
+          <Route path="/admin/disputes" element={<AdminDisputes />} />
+          <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/users/:userId" element={<ViewUser />} />
+        </Route>
+          
+        <Route element={<RequireRole allow="student" />}>
           <Route path="/buyer/orders" element={<Orders />} />
           <Route path="/buyer/orders/:reservationId" element={<OrderDetails />} />
           <Route path="/seller/sales" element={<Sales />} />
@@ -183,15 +196,7 @@ export default function App() {
           <Route path="/seller/editListing/:id" element={<EditListing />} />
           <Route path="/seller/listings" element={<MyListings />} />
           <Route path="/seller/listings/:id" element={<SellerListingDetail />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/verifications" element={<AdminVerifications />} />
-          <Route path="/admin/listings" element={<AdminListingQueue />} />
-          <Route path="/admin/listings/flagged/:id" element={<AdminListingRiskReview />} />
-          <Route path="/admin/disputes" element={<AdminDisputes />} />
-          <Route path="/admin/users" element={<Users />} />
-          <Route path="/admin/users/:userId" element={<ViewUser />} />
-
-
+          
           <Route path="/buyer/messages" element={<ChatLayout role="buyer" />}>
             <Route index element={<NoConversationsSelected />} />
             <Route path=":reservationId" element={<ChatPage />} />
@@ -219,6 +224,7 @@ export default function App() {
 
           <Route path="/buyer/reservations/:reservationId" element={<ReservationDetails />} />
           <Route path="/seller/reservations/:reservationId" element={<ReservationDetails />} />
+          </Route>
         </Route>
         {<Route path="*" element={<Navigate to="/auth/HomePage" replace />} />}
 
