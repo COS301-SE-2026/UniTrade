@@ -97,6 +97,10 @@ const Signup: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  if (name === 'yearOfStudy') {
+      const cleaned = value.replace(/[^0-9]/g, '').slice(0, 1); 
+      setFormData((prev) => ({ ...prev, [name]: cleaned }));
+    }
   };
 
   const handleTermsAccept = () => {
@@ -219,7 +223,7 @@ const Signup: React.FC = () => {
               </div>
               <div>
                 <label htmlFor='year' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
-                <input id="year" type="text" name="yearOfStudy" placeholder="e.g. 2" value={formData.yearOfStudy} onChange={handleChange} required
+                <input id="year" type="text" name="yearOfStudy" placeholder="e.g. 2" value={formData.yearOfStudy} onChange={handleChange}  maxLength={1} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>

@@ -141,7 +141,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [verificationModal, setVerificationModal] = useState<VerificationModalStatus | null>(null)
-  const [pendingRole, setPendingRole] = useState<UserRole | null>(null)
+  const [, setPendingRole] = useState<UserRole | null>(null)
   const [modalRejectionReason, setModalRejectionReason] = useState<string | null>(null)
   const [showForgotModal, setShowForgotModal] = useState(false)
 
@@ -212,14 +212,18 @@ const Login: React.FC = () => {
     }
   }
 
-  const handleModalClose = () => {
+  {/*const handleModalClose = () => {
     setVerificationModal(null)
     if (pendingRole) proceedToDestination(pendingRole)
-  }
+      }*/}
 
   const handleModalProceed = () => {
     setVerificationModal(null)
     navigate('/auth/ProofUpload')
+  }
+  const handleCancelOnLogin = () => {
+    setVerificationModal(null)
+    navigate('/auth/login')
   }
   return (
     <div className="min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16">
@@ -302,7 +306,7 @@ const Login: React.FC = () => {
           status={verificationModal}
           onProceed={handleModalProceed}
           rejectionReason={modalRejectionReason}
-          onClose={handleModalClose}
+          onClose={handleCancelOnLogin}
         />
       )}
 
