@@ -18,6 +18,7 @@ public class CreateListingDto
 
     public bool IsBundle { get; set; } = false;
     public List<CreateListingImageDto> Images { get; set; } = new();
+    public int? Quantity { get; init; }
 }
 
 public class CreateListingImageDto

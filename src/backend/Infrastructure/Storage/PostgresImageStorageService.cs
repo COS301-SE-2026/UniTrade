@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Modules.Listings.Models;
 using Modules.Listings.Repositories;
+using Modules.Listings.Scoring;
 using Modules.SharedKernel;
 
 namespace Infrastructure.Storage;
@@ -8,10 +9,21 @@ namespace Infrastructure.Storage;
 public class PostgresImageStorageService : IImageStorageService
 {
     private readonly IListingImageRepository _images;
+    private readonly IPerceptualHashService _hashing;
+    private readonly IClipVisionClient _clip;
 
-    public PostgresImageStorageService(IListingImageRepository images) => _images = images;
+    public PostgresImageStorageService(
+        IListingImageRepository images,
+        IPerceptualHashService hashing,
+        IClipVisionClient clip
+    )
+    {
+        _images = images;
+        _hashing = hashing;
+        _clip = clip;
+    }
 
-    public Task<int> UploadAsync(
+    public async Task<int> UploadAsync(
         Guid listingId,
         byte[] data,
         string contentType,
@@ -26,9 +38,11 @@ public class PostgresImageStorageService : IImageStorageService
             ContentType = contentType,
             FileSize = data.Length,
             IsPrimary = isPrimary,
+            PerceptualHash = _hashing.ComputeHash(data),
+            Embedding = await _clip.EmbedAsync(data, ct),
         };
 
-        return _images.AddAsync(image, ct);
+        return await _images.AddAsync(image, ct);
     }
 
     public Task<(byte[] Data, string ContentType)?> GetAsync(

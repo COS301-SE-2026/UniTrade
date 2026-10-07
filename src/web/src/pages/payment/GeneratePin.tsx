@@ -44,7 +44,7 @@ export default function GeneratePin() {
 
     if (!pin && !confirmed) {
         return (
-            <div className='min-h-screen flex items-center justify-center text-slate-500'>
+            <div className='h-dvh overflow-hidden flex items-center justify-center text-gray-500'>
                 No PIN available. Make sure the buyer has completed payment.
             </div>
         );
@@ -53,7 +53,7 @@ export default function GeneratePin() {
 
     if (!pin) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-slate-500">
+            <div className="h-dvh overflow-hidden flex items-center justify-center text-gray-500">
                 No PIN available. Make sure the buyer has completed payment.
             </div>
         );
@@ -61,13 +61,13 @@ export default function GeneratePin() {
     const pinDigits = pin.padEnd(6, ' ').split('');
 
     return (
-        <div className="min-h-screen bg-[#f1f1f1] flex flex-col justify-center items-center font-sans p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-100 p-12 md:p-16 flex flex-col items-center space-y-10">
+        <div className="h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
                 <div className="text-center space-y-2">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-blue-900 tracking-tight">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-navy-700 tracking-tight">
                         Transaction PIN
                     </h1>
-                    <p className="text-sm text-slate-500 font-medium">
+                    <p className="text-sm text-gray-500 font-medium">
                         Show this PIN to the buyer. They enter it to complete the sale.
                     </p>
                 </div>
@@ -82,7 +82,7 @@ export default function GeneratePin() {
                         </div>
                     ))}
                 </div>
-                <p className='text-center text-sm text-slate-500 max-w-xs'>Waiting for the buyer to enter this PIN...</p>
+                <p className='text-center text-sm text-gray-500 max-w-xs'>Waiting for the buyer to enter this PIN...</p>
             </div>
         </div>
     );

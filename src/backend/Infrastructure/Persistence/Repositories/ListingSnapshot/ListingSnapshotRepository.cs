@@ -18,14 +18,14 @@ public class ListingSnapshotRepository : IListingSnapshotRepository
         await _db.ListingSnapshot.AddAsync(snapshot, ct);
     }
 
-    public async Task<ListingSnapshot?> GetByReservationIdAsync(
+    public async Task<IReadOnlyList<ListingSnapshot>> GetByReservationIdAsync(
         Guid reservationId,
         CancellationToken ct = default
     )
     {
-        return await _db
-            .ListingSnapshot.AsNoTracking()
-            .FirstOrDefaultAsync(s => s.ReservationId == reservationId, ct);
+        return await _db.ListingSnapshot
+            .Where(s => s.ReservationId == reservationId)
+            .ToListAsync(ct);
     }
 
     public async Task<ListingSnapshot?> GetByIdAsync(

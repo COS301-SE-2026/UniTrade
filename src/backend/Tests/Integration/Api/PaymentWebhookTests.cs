@@ -29,7 +29,7 @@ public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>
     private HttpClient NewClient() =>
         _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
 
-    // QR-03b Forged/tampered payment callback has no effect
+    //  QR-03b Forged/tampered payment callback has no effect
     [Fact]
     public async Task TamperedPaymentNotification_IsRejected_NoStateChange()
     {
@@ -56,7 +56,7 @@ public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>
         Assert.Null(tx);
     }
 
-    // QR-04a Duplicate payment notification
+    //QR-04a Duplicate payment notification
     [Fact]
     public async Task DuplicatePaymentNotification_ProcessedOnlyOnce()
     {
@@ -162,21 +162,21 @@ public sealed class PaymentWebhookTests : IClassFixture<AdminApiFactory>
         const string passphrase = "verymuchexistentpassphrase";
 
         var fields = new List<KeyValuePair<string, string>>
-        {
-            new("merchant_id", merchantId),
-            new("merchant_key", merchantKey),
-            new("return_url", $"http://localhost/return"),
-            new("cancel_url", $"http://localhost/cancel"),
-            new("notify_url", $"http://localhost/notify"),
-            new("name_first", "buyer FirstName"),
-            new("name_last", ""),
-            new("email_address", "buyerEmail@gmail.com"),
-            new("m_payment_id", reservationId.ToString()),
-            new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
-            new("item_name", "Testing thing item"),
-            new("payment_status", "COMPLETE"),
-            new("pf_payment_id", "12345"),
-        };
+         {
+             new("merchant_id", merchantId),
+             new("merchant_key", merchantKey),
+             new("return_url", $"http:localhost/return"),
+             new("cancel_url", $"http:localhost/cancel"),
+             new("notify_url", $"http:localhost/notify"),
+             new("name_first", "buyer FirstName"),
+             new("name_last", ""),
+             new("email_address", "buyerEmail@gmail.com"),
+             new("m_payment_id", reservationId.ToString()),
+             new("amount", price.ToString("F2", CultureInfo.InvariantCulture)),
+             new("item_name", "Testing thing item"),
+             new("payment_status", "COMPLETE"),
+             new("pf_payment_id", "12345"),
+         };
 
         var encodedPairs = fields
             .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))

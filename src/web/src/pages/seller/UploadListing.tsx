@@ -1,9 +1,18 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { IconUpload, IconCheck, IconX } from "@tabler/icons-react";
+import { IconUpload, IconCheck, IconX, IconClock } from "@tabler/icons-react";
 import { listingsService } from "../../services/listingsService";
-import type { Category, Course, ListingCondition, ListingMetadata } from "../../types/listing";
-import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
+import type {
+  Category,
+  Course,
+  ListingCondition,
+  ListingMetadata,
+} from "../../types/listing";
+import {
+  getDisplayCategory,
+  sortTheCategories,
+} from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
 import { useQueryClient } from "@tanstack/react-query";
 interface ApiError {
@@ -33,7 +42,9 @@ const UploadListing: React.FC = () => {
   const [courseLoading, setCourseLoading] = useState(false);
   const [brand, setBrand] = useState("");
   const [dimensions, setDimensions] = useState("");
-  const {showToast} = useToast();
+  const { showToast } = useToast();
+  const [heldListing, setHeldListingId] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
@@ -42,11 +53,10 @@ const UploadListing: React.FC = () => {
     Worn: "poor",
   };
 
-
   useEffect(() => {
     listingsService
       .getListingsCategories()
-      .then(data => {
+      .then((data) => {
         setCategories(sortTheCategories(data));
         if (data.length > 0) setCategory(data[0].name);
       })
@@ -104,11 +114,9 @@ const UploadListing: React.FC = () => {
 
     const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
     if (oversized.length > 0) {
-      const eror =  `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`;
-      setError(
-       eror
-      );
-      showToast('error', eror);
+      const eror = `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`;
+      setError(eror);
+      showToast("error", eror);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -133,13 +141,16 @@ const UploadListing: React.FC = () => {
   const handleSubmit = async () => {
     if (!title || !description || !price || files.length === 0) {
       setError("Please fill in all fields and add at least one image.");
-      showToast('error', 'Please fill in all fields and add at least one image.');
+      showToast(
+        "error",
+        "Please fill in all fields and add at least one image.",
+      );
       return;
     }
 
     if (category === "book" && courseQuery.trim() && !moduleTag) {
       setError("Please pick a module from the list");
-      showToast('error', 'Please pick a module from the list');
+      showToast("error", "Please pick a module from the list");
       return;
     }
     setSubmitting(true);
@@ -150,8 +161,9 @@ const UploadListing: React.FC = () => {
         : category === "furniture"
           ? { dimensions: dimensions }
           : null;
+    let createdId: string | null = null;
     try {
-      const {listingId, listingStatus } = await listingsService.createListing({
+      const { listingId, listingStatus } = await listingsService.createListing({
         title,
         description,
         price: Number(price),
@@ -160,18 +172,47 @@ const UploadListing: React.FC = () => {
         courseId: moduleTag ? Number.parseInt(moduleTag) : null,
         listingStatus: "live",
         metadata,
+        quantity,
       });
+      createdId = listingId;
       await listingsService.uploadImages(listingId, files);
+      let finalStatus: string = listingStatus;
+      try {
+        await listingsService.updateListingStatus(listingId, "live");
+        finalStatus = (await listingsService.getListingStatus(listingId))
+          .status;
+      } catch (err) {
+        if (!(err instanceof Error && err.message === "seller_not_verified"))
+          throw err;
+      }
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
-      if (listingStatus === "live"){
-      showToast('success', 'Listing uploaded successfully');
+
+      if (finalStatus === "under_review") {
+        setHeldListingId(listingId);
+        return;
+      }
+      if (finalStatus === "draft") {
+        showToast(
+          "info",
+          "Saved as a draft - you\u2019ll be able to publish once your verification is approved.",
+        );
       } else {
-        showToast('info', 'Saved as a draft - you\u2019ll be able to publish once your verification is approved.');
+        showToast("success", "Listing uploaded successfully");
       }
       navigate("/seller/listings");
     } catch (err: unknown) {
+      if (createdId) {
+        await listingsService
+          .updateListingStatus(createdId, "draft")
+          .catch(() => {});
+      }
       const error = err as ApiError;
-      setError(error.message ?? "Something went wrong");
+      const message = getAccountStateErrorMessage(
+        error.message ?? "",
+        error.message ?? "Something went wrong",
+      );
+      setError(message);
+      showToast("error", message);
     } finally {
       setSubmitting(false);
     }
@@ -179,15 +220,14 @@ const UploadListing: React.FC = () => {
 
   const handleDraft = async () => {
     if (!title) {
-      
-      showToast('error', 'Please add a title before saving as draft');
+      showToast("error", "Please add a title before saving as draft");
       return;
     }
 
-     if (category === "Textbooks" && courseQuery.trim() && !moduleTag) {
-    showToast('error', 'Please pick a module from the list');
-    return;
-     }
+    if (category === "book" && courseQuery.trim() && !moduleTag) {
+      showToast("error", "Please pick a module from the list");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const metadata: ListingMetadata =
@@ -197,7 +237,7 @@ const UploadListing: React.FC = () => {
           ? { dimensions: dimensions }
           : null;
     try {
-      const {listingId} = await listingsService.createListing({
+      const { listingId } = await listingsService.createListing({
         title,
         description,
         price: Number(price) || 0,
@@ -212,15 +252,56 @@ const UploadListing: React.FC = () => {
       }
       navigate("/seller/listings");
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
-      showToast('success', 'Listing saved successfully');
+      showToast("success", "Listing saved successfully");
     } catch (err: unknown) {
       const error = err as ApiError;
-      setError(error.message ?? "Something went wrong");
-      showToast('error', 'Something went wrong.')
+      const message = getAccountStateErrorMessage(
+        error.message ?? "",
+        error.message ?? "Something went wrong",
+      );
+      setError(message)
+      showToast("error", message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (heldListing) {
+    return (
+      <div className="max-w-2xl w-full mx-auto p-6">
+        <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <IconClock size={14} stroke={2} />
+          </div>
+          <h2 className="font-['Fraunces'] text-2xl text-gray-800 mb-2">
+            Your listing is being reviewed
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed mb-6">
+            "{title}" was uploaded successfully, but our automated checks
+            flagged it for a closer look. An admin will review it before it goes
+            live. Do not worry you will be notified as soon as that happens, you
+            don't need to do anything.
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(`/seller/listings/${heldListing}`)}
+              className="px-5 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold hover:bg-sky-900 transition-all shadow-md"
+            >
+              View listing
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/seller/listings")}
+              className="px-5 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              Back to my listings
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
@@ -242,7 +323,6 @@ const UploadListing: React.FC = () => {
       <div className="relative pl-12 space-y-8 mt-6">
         <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200" />
 
-
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
@@ -262,7 +342,10 @@ const UploadListing: React.FC = () => {
                 <span className="block text-xs font-semibold text-slate-500 mb-2">
                   Category
                 </span>
-                <div className="flex flex-wrap gap-2" data-testid="category-buttons">
+                <div
+                  className="flex flex-wrap gap-2"
+                  data-testid="category-buttons"
+                >
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
@@ -272,10 +355,11 @@ const UploadListing: React.FC = () => {
                         setBrand("");
                         setDimensions("");
                       }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${category === cat.name
-                        ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                        }`}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
+                        category === cat.name
+                          ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                          : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                      }`}
                     >
                       {getDisplayCategory(cat.name)}
                     </button>
@@ -322,6 +406,7 @@ const UploadListing: React.FC = () => {
                     )}
                   </div>
                 )}
+
                 {category === "electronics" && (
                   <div>
                     <input
@@ -443,8 +528,9 @@ const UploadListing: React.FC = () => {
                 {files.length > 0 && (
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
-                        }`}
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        usedPercent > 87 ? "bg-amber-400" : "bg-sky-500"
+                      }`}
                       style={{ width: `${usedPercent}%` }}
                     />
                   </div>
@@ -469,7 +555,10 @@ const UploadListing: React.FC = () => {
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">Pricing</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="price" className="block text-xs font-semibold text-slate-500 mb-1">
+                  <label
+                    htmlFor="price"
+                    className="block text-xs font-semibold text-slate-500 mb-1"
+                  >
                     Price (ZAR)
                   </label>
                   <div className="relative rounded-xl shadow-xs">
@@ -477,6 +566,7 @@ const UploadListing: React.FC = () => {
                       <span className="text-slate-500 text-sm">R</span>
                     </div>
                     <input
+                      id="price"
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
@@ -495,10 +585,11 @@ const UploadListing: React.FC = () => {
                           key={item}
                           type="button"
                           onClick={() => setCondition(item)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${condition === item
-                            ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
-                            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                            }`}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                            condition === item
+                              ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                              : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                          }`}
                         >
                           {item.replace("_", " ")}
                         </button>
@@ -507,11 +598,35 @@ const UploadListing: React.FC = () => {
                   </div>
                 </div>
               </div>
+              <div>
+                <label
+                  htmlFor="quantity"
+                  className="block text-xs font-semibold text-slate-500 mb-1"
+                >
+                  Quantity
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={quantity}
+                  onChange={(e) =>
+                    setQuantity(
+                      Math.max(1, Math.min(10, Number(e.target.value) || 1)),
+                    )
+                  }
+                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Listing multiple identical copies? Set how many. Copies count
+                  toward your bundle discount (manage it under My Listings)
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Step 4: Confirmation */}
         <div className="relative">
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-sm font-bold">
             4
@@ -544,6 +659,7 @@ const UploadListing: React.FC = () => {
                   </h5>
                   <p className="text-xs text-slate-400 capitalize">
                     {category} · R{price || "0"} · {condition.replace("_", " ")}
+                    {quantity > 1 && ` · ${quantity} copies`}
                   </p>
                 </div>
               </div>

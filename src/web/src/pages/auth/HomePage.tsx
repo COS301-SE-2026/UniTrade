@@ -102,14 +102,16 @@ export function BenefitList({ title, items }: Readonly<BenefitListProps>) {
       </h3>
       <ul className="space-y-4">
         {items.map((item, idx) => (
+          <li key={item} >
           <Reveal key={item} delay={idx * 80}>
-            <li className="flex items-start gap-3 text-sm">
+            <div className="flex items-start gap-3 text-sm">
               <div className="mt-1 text-green-500">
                 <IconPoint size={18} />
               </div>
               <span className="text-gray-700 dark:text-gray-300">{item}</span>
-            </li>
+            </div>
           </Reveal>
+        </li>
         ))}
       </ul>
     </div>
@@ -503,12 +505,10 @@ export function Footer() {
   const navigate = useNavigate();
 
   return (
-    <footer className="w-full bg-navy-900 text-white">
+    <footer className="w-full bg-navy-700 text-white">
       <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col items-center justify-center text-center gap-6">
 
         <p className="flex items-center gap-3 text-xs sm:text-sm text-gray-300 font-medium">
-          <span>+27 123 456 789</span>
-          <span className="text-gray-500">|</span>
           <a
             href="mailto:devenexus28@gmail.com"
             className="hover:text-white transition-colors underline-offset-2 hover:underline"
@@ -518,7 +518,7 @@ export function Footer() {
         </p>
 
         <p className="text-xs text-gray-400">
-          © 2026 UniTrade. All rights reserved. Made for South African students.
+          © 2026 UniTrade. All rights reserved. Made for South African University students.
         </p>
 
         <div className="w-16 h-[1px] bg-white/10" />
@@ -538,14 +538,14 @@ export function Footer() {
               </button>
             </li>
             <li>
-              <button type='button' className="hover:text-white transition-colors cursor-pointer">
-                Safety Tips
-              </button>
-            </li>
-            <li>
-              <button type='button' className="hover:text-white transition-colors cursor-pointer">
-                Contact Us
-              </button>
+              <a
+              href = "https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/Brand-style-doc"
+              target = "_blank"
+              rel = "noopener noreferrer"
+              className = "hover: text-white transition-colors cursor-pointer"
+              >
+                Brand Style Guide
+              </a>
             </li>
           </ul>
         </div>

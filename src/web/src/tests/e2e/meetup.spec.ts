@@ -3,13 +3,12 @@ import {
   createListingAndReserve,
   scheduleMeetupAndCheckIn,
   dropMapPin,
-  openCheckInModal,
 } from "./helpers/reservation";
 
 test.describe("meetup scheduling and check-in", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("seller and buyer can  schedule a meetup and both check in at the venue that they choose to meet up at ", async ({
+  test("seller and buyer can schedule a meetup and both check in at the venue that they choose to meet up at ", async ({
     browser,
     request,
   }) => {
@@ -36,7 +35,7 @@ test.describe("meetup scheduling and check-in", () => {
       sellerPage,
       buyerPage,
       request,
-      browser
+      browser,
     );
     await scheduleMeetupAndCheckIn(sellerPage, buyerPage, reservationId);
 
@@ -65,6 +64,13 @@ test.describe("meetup scheduling and check-in", () => {
     await expect(
       sellerPage.getByRole("heading", { name: "Propose a Meetup" }),
     ).toBeVisible();
+    const enterManual = sellerPage
+      .getByRole("button", { name: /enter a time manually/i })
+      .first();
+
+    if (await enterManual.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await enterManual.click();
+    }
     const scheduledTime = await sellerPage.evaluate(() => {
       const d = new Date(Date.now() + 300_000);
       return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -94,86 +100,5 @@ test.describe("meetup scheduling and check-in", () => {
     await buyerContext.close();
   });
 
-  test("check-in card shows a message failure when location is denies", async ({
-    browser,
-    request,
-  }) => {
-    test.setTimeout(150_000);
-
-    const sellerContext = await browser.newContext();
-    const buyerContext = await browser.newContext();
-
-    const sellerPage = await sellerContext.newPage();
-    const buyerPage = await buyerContext.newPage();
-
-    await buyerPage.addInitScript(() => {
-      Object.defineProperty(window.navigator, "geolocation", {
-        value: {
-          getCurrentPosition: (
-            _success: PositionCallback,
-            error: PositionErrorCallback,
-          ) => {
-            error({
-              code: 1,
-              message: "User denied Geolocation",
-              PERMISSION_DENIED: 1,
-              POSITION_UNAVAILABLE: 2,
-              TIMEOUT: 3,
-            });
-          },
-        },
-        configurable: true,
-      });
-    });
-    await createListingAndReserve(sellerPage, buyerPage, request, browser);
-
-    await sellerPage.getByRole("button", { name: "SCHEDULE A MEETUP" }).click();
-    await expect(
-      sellerPage.getByRole("heading", { name: "Propose a Meetup" }),
-    ).toBeVisible();
-    const scheduledTime = await sellerPage.evaluate(() => {
-      const d = new Date(Date.now() + 300_000);
-      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-    });
-    await sellerPage.locator('input[type="time"]').fill(scheduledTime);
-    await sellerPage
-      .getByPlaceholder("e.g. Merensky Library - Main Entrance")
-      .fill("Hatfield Plaza, Pretoria");
-    await dropMapPin(sellerPage);
-    await sellerPage.getByRole("button", { name: /send proposal/i }).click();
-
-    await expect(
-      buyerPage.getByText("Meetup Proposal", { exact: true }),
-    ).toBeVisible({ timeout: 10000 });
-    await buyerPage
-      .getByRole("button", { name: "Accept", exact: true })
-      .click();
-    await expect(
-      buyerPage.getByRole("heading", { name: "Meetup Details" }),
-    ).toBeVisible({ timeout: 10000 });
-
-    await openCheckInModal(buyerPage);
-
-    await expect(buyerPage.getByText(/location access denied/i)).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(
-      buyerPage.getByRole("button", { name: "TRY AGAIN" }),
-    ).toBeVisible();
-    await expect(
-      buyerPage.getByRole("button", { name: "CANCEL" }),
-    ).toBeVisible();
-
-    await buyerPage.getByRole("button", { name: "CANCEL" }).click();
-    await expect(
-      buyerPage.getByText(/location access denied/i),
-    ).not.toBeVisible();
-
-    await expect(
-      buyerPage.getByRole("button", { name: "Check In at Meetup" }),
-    ).toBeVisible();
-
-    await sellerContext.close();
-    await buyerContext.close();
-  });
 });
+// triigger

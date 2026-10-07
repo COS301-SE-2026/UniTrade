@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Modules.Audit;
+using Modules.Audit.Models;
 using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Repositories;
@@ -24,6 +26,8 @@ public class VerificationService : IVerificationService
     private readonly IConfiguration _config;
     private readonly IBroadCastService _broadcast;
     private readonly ILogger<VerificationService> _logger;
+    private readonly IProofOfRegistrationRepository _porRepository;
+    private readonly IAuditService _audit;
     private const int _otpExpiryMinutes = 5;
     private const int _maxAttempts = 3;
     private const int _resendCooldownSeconds = 60;
@@ -37,7 +41,9 @@ public class VerificationService : IVerificationService
         IIdentityService identity,
         IConfiguration config,
         IBroadCastService broadcast,
-        ILogger<VerificationService> logger
+        ILogger<VerificationService> logger,
+        IProofOfRegistrationRepository porRepository,
+        IAuditService audit
     )
     {
         _verifications = verifications;
@@ -48,6 +54,8 @@ public class VerificationService : IVerificationService
         _config = config;
         _broadcast = broadcast;
         _logger = logger;
+        _porRepository = porRepository;
+        _audit = audit;
     }
 
     public async Task InitiateAsync(string email, Guid userId)
@@ -157,7 +165,7 @@ public class VerificationService : IVerificationService
         {
             User.StudentProfile.VerificationStatus = "partial";
             await _users.UpdateAsync(User);
-            await _emails.SendWelcomeEmailAsync(User.Email, User.FirstName);
+            
         }
         return true;
     }
@@ -256,24 +264,50 @@ public class VerificationService : IVerificationService
         await _verifications.UpdateAsync(vr);
         await _users.UpdateAsync(user);
 
-        await _emails.SendVerificationDecisionEmailAsync(
-            user.Email,
-            user.FirstName,
-            vr.AdminDecision!,
-            reason
-        );
+        try
+        {
+            await _emails.SendVerificationDecisionEmailAsync(
+                user.Email,
+                user.FirstName,
+                vr.AdminDecision!,
+                reason
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to send verification decision email for {UserId}",
+                vr.UserId
+            );
+        }
 
         var result = await _verifications.GetCaseByIdAsync(verificationId, ct);
 
         switch (decision)
         {
+            case VerificationDecision.Approve:
+                await _broadcast.SendToUserAsync(vr.UserId, "verification_approved", new { });
+                try 
+                {
+                    await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Failed to send welcome email for {UserId}",
+                        vr.UserId
+                    );
+                }
+                break;
             case VerificationDecision.Reject:
                 await _broadcast.SendToUserAsync(
                     vr.UserId,
                     "force_logout",
                     new { reason = "verification_rejected" }
                 );
-                await _identity.DeleteAccountAsync(vr.UserId.ToString());
+                await _identity.BlockAccountAsync(vr.UserId.ToString());
                 break;
 
             case VerificationDecision.Resubmit:
@@ -356,5 +390,45 @@ public class VerificationService : IVerificationService
             return TimeSpan.Zero;
         var seconds = Math.Min(Math.Pow(2, count), 900);
         return TimeSpan.FromSeconds(seconds);
+    }
+
+    public async Task<int> PurgeExpiredProofOfRegistrationAsync(
+        int retentionDays,
+        CancellationToken ct = default
+    )
+    {
+        var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
+        var dueVerificationIds = await _porRepository.ListDueForPurgeAsync(cutoff, ct);
+
+        var purgedCount = 0;
+        foreach (var verificationId in dueVerificationIds)
+        {
+            try
+            {
+                await _porRepository.DeleteAsync(verificationId, ct);
+                await _audit.WriteAsync(
+                    new AuditWriteRequest(
+                        ActorId: null,
+                        Action: "por_purged",
+                        EntityType: "verification",
+                        EntityId: verificationId.ToString(),
+                        OldValue: null,
+                        NewValue: null,
+                        Reason: $"Retention period of {retentionDays} days elapsed since decision."
+                    ),
+                    ct
+                );
+                purgedCount++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to purge proof of registration for verification {VerificationId}",
+                    verificationId
+                );
+            }
+        }
+        return purgedCount;
     }
 }

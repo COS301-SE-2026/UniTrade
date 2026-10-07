@@ -1,14 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getApiUrl } from '../../config';
+import { useMeetupWindow } from '../../hooks/useMeetupWindow';
 import {
     IconSend,
     IconCheck,
-    //IconMapPin,
-    ///I/////conCalendar,
-    IconPaperclip,
+    //I//conMapPin,
+    ///conCalendar,
     IconArrowLeft,
     IconEye,
+    IconCalendarCheck
 } from '@tabler/icons-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useChatMessages } from '../../hooks/useChatMessages';
@@ -18,7 +20,7 @@ import type { ClientChatMessage } from '../../types/chat';
 import { connectionManager } from '../../services/realtime/connectionManager';
 import { getReservationById } from '../../services/reservationService';
 import { listingsService } from '../../services/listingsService';
-import { combineDateAndTime, type MeetupFormValues,type MeetupStatus } from '../../types/meetup';
+import { combineDateAndTime, type MeetupFormValues, type MeetupStatus } from '../../types/meetup';
 import { queryKeys } from '../../lib/queryKeys';
 import MeetupProposalForm from '../../components/layout/MeetupProposalForm';
 import CheckInModal from '../../components/CheckInModal';
@@ -166,7 +168,7 @@ function MessageBubble({
     proposalStatusMap: Record<string, MeetupStatus>;
     respondingKey: string | null;
     onRespondMeetup: (proposalMessageId: number, status: MeetupStatus) => void;
-    onCheckIn: (location: string) => void;
+    onCheckIn?: (location: string) => void;
 }>) {
     const isOwnMessage = message.senderId === currentUserId;
 
@@ -209,7 +211,8 @@ function MessageBubble({
                         }
                     }}
                     onCheckIn={
-                        status === "accepted" ? () => onCheckIn(location) : undefined
+                        status === "accepted" && onCheckIn
+                            ? () => onCheckIn(location) : undefined
                     }
                 />
             );
@@ -238,7 +241,8 @@ export default function ChatPage() {
     const {
         data: messages = [],
         isLoading,
-        isError, refetch,
+        isError,
+        refetch,
     } = useChatMessages(reservationId!);
     useReservationRealtime(reservationId!);
     const { send, retry } = useSendMessage(reservationId!);
@@ -276,13 +280,6 @@ export default function ChatPage() {
         return map;
     }, [sortedMessages]);
 
-
-    const meetupConfirmed = sortedMessages.some(
-        (message) =>
-            message.messageType === "meetup_response" &&
-            message.payload?.Accepted === true,
-    );
-
     const { data: reservation } = useQuery({
         queryKey: ["reservation", reservationId],
         queryFn: async () => {
@@ -296,11 +293,11 @@ export default function ChatPage() {
 
     const isSeller = reservation ? reservation.sellerId === user?.id : window.location.pathname.startsWith("/seller");
     const role = isSeller ? "seller" : "buyer";
-    const { data: listing } = useQuery({
+    /*const { data: listing } = useQuery({
         queryKey: ["listing", reservation?.listingId],
         queryFn: () => listingsService.getById(reservation!.listingId),
         enabled: !!reservation?.listingId,
-    });
+    });*/
 
     const locationState = location.state as ChatLocationState | null;
     const counterpartyName =
@@ -323,6 +320,23 @@ export default function ChatPage() {
     const [respondingKey, setRespondingKey] = useState<string | null>(null);
     const [checkInLocation, setCheckInLocation] = useState<string | null>(null);
     const [isSendingProposal, setIsSendingProposal] = useState(false);
+    const meetupConfirmed =
+        reservation?.timerStage === "meetup_confirmed" ||
+        sortedMessages.some(
+            (m) => m.messageType === "meetup_response" && m.payload?.Accepted === true,
+        );
+
+    const { isOpen: checkinOpen } = useMeetupWindow(
+        reservationId,
+        meetupConfirmed,
+    );
+    const isActive = reservation?.reservationStatus === "active";
+
+    const goToMeetupDetails = () =>
+        navigate(`/payment/meetup/${reservationId}`, {
+            state: { reservationId, role, counterpartyName, counterpartyInitials },
+        });
+
 
     const handleProposeMeetup = async (values: MeetupFormValues) => {
         const proposedTime = combineDateAndTime(values.date, values.time);
@@ -347,45 +361,24 @@ export default function ChatPage() {
         }
     };
 
-
     const handleRespondMeetup = async (proposalMessageId: number, status: MeetupStatus) => {
-        const key = proposalMessageId.toString();
-        setRespondingKey(key);
+
+        setRespondingKey(proposalMessageId.toString());
         try {
             if (status === "accepted") {
                 await listingsService.acceptMeetup(reservationId!, proposalMessageId);
 
-                const proposalMessage = sortedMessages.find(
-                    (m) => m.messageId === proposalMessageId,
-                );
-                const payload = proposalMessage?.payload as MeetupProposalPayload | undefined;;
-
-                const meetupLocation =
-                    payload?.LocationName || payload?.proposedLocation || '';
-                const meetupTime =
-                    payload?.ProposedTime || payload?.proposedTime || '';
-                const meetupLat = payload?.Lat;
-                const meetupLng = payload?.Lng;
-
-                navigate(`/payment/meetup`, {
-                    state: {
-                        reservationId,
-                        role,
-                        counterpartyName,
-                        counterpartyInitials,
-                        meetupLocation,
-                        meetupTime,
-                        meetupLat,
-                        meetupLng,
-                        listingTitle: listing?.title,
-                        listingPrice: listing?.price,
-                    },
-                });
-            } else if (status === "declined") {
+                await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ["reservation", reservationId] }),
+                    queryClient.invalidateQueries({ queryKey: ["meetup", reservationId] }),
+                    refetch(),
+                ]);
+            } else {
                 await listingsService.declineMeetup(reservationId!, proposalMessageId);
+                await refetch();
             }
         } catch (err) {
-            console.error("Failed to respond to meetup:", err);
+            console.error("Falied to respond to meetup:", err);
         } finally {
             setRespondingKey(null);
         }
@@ -424,12 +417,13 @@ export default function ChatPage() {
     if (!reservationId)
         return <div className="p-8 text-center">No reservation specified.</div>;
 
+
     return (
         <div className="h-full w-full flex flex-col bg-white overflow-hidden">
 
             <div className="px-5 py-4 border-b flex items-center gap-3 shrink-0">
                 <button type='button'
-                    onClick={() => navigate(`/${isSeller ? 'seller' : 'buyer'}/messages`)}
+                    onClick={() => navigate(`/${role}/messages`)}
                     className="md:hidden text-gray-400 hover:text-gray-600 shrink-0">
                     <IconArrowLeft size={20} />
                 </button>
@@ -444,12 +438,12 @@ export default function ChatPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-4 bg-[#f8f9fa] space-y-4">
-                {listing && (
+                {reservation && reservation.listings.length > 0 && (
                     <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
-                        {listing.images?.[0]?.url && (
+                        {!reservation.isBundle && reservation.listings[0].imagePath && (
                             <img
-                                src={listing.images[0].url}
-                                alt={listing.title}
+                                src={`${getApiUrl().split('/api')[0]}${reservation.listings[0].imagePath}`}
+                                alt={reservation.listings[0].title}
                                 className="w-16 h-16 rounded-xl object-cover shrink-0"
                             />
                         )}
@@ -460,23 +454,29 @@ export default function ChatPage() {
                                 </span>
                                 <span className="text-[10px] text-gray-400">•</span>
                                 <span className="text-xs text-gray-500 truncate">
-                                    {listing.title}
+                                    {reservation.isBundle
+                                        ? `${reservation.listings.length} items`
+                                        : reservation.listings[0].title}
                                 </span>
                             </div>
                             <p className="text-sm font-semibold text-gray-900">
-                                R {listing.price.toFixed(2)}
+                                R {reservation.totalPrice.toFixed(2)}
                             </p>
                         </div>
                         <button type='button'
-                            onClick={() => navigate(
-                                isSeller
-                                    ? `/seller/reservations/${reservationId}`
-                                    : `/buyer/reservations/${reservationId}`
-                            )}
+                            onClick={() =>
+                                meetupConfirmed
+                                    ? goToMeetupDetails()
+                                    : navigate(`/${role}/reservations/${reservationId}`)
+                            }
                             className="bg-[#003366] text-white text-xs font-bold px-2 py-2 sm:px-4 rounded-xl hover:bg-[#002244] transition-colors shrink-0"
                         >
-                            <span className="hidden sm:inline">View Reservation</span>
-                            <IconEye size={16} className="sm:hidden" />
+                            <span className="hidden sm:inline">{meetupConfirmed ? "View Meetup Details" : "View Reservation"}</span>
+                            {meetupConfirmed ? (
+                                <IconCalendarCheck size={16} className="sm:hidden" />
+                            ) : (
+                                <IconEye size={16} className="sm:hidden" />
+                            )}
                         </button>
                     </div>
                 )}
@@ -505,7 +505,7 @@ export default function ChatPage() {
                                 proposalStatusMap={proposalStatusMap}
                                 respondingKey={respondingKey}
                                 onRespondMeetup={handleRespondMeetup}
-                                onCheckIn={setCheckInLocation}
+                                onCheckIn={checkinOpen ? setCheckInLocation : undefined}
                             />
                         </React.Fragment>
                     );
@@ -513,7 +513,38 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
             </div>
 
-            {reservation?.reservationStatus === "active" && !isAwaitingAck && (
+            {/*{meetupConfirmed && isActive && checkinOpen && (
+                <div className="px-4 py-3 bg-emerald-50 border-t border-emerald-200 flex items-center justify-between gap-3 shrink-0">
+                    <p className="text-sm text-emerald-800">
+                        {isSeller
+                            ? "Check-in is open. Chec in when you arrive, then share your PIN with the buyer."
+                            : "Check-in is open. Check in when you arrice to unlock payment."}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={goToMeetupDetails}
+                        className="bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl shrink-0"
+                    >
+                        Go to Meetup
+                    </button>
+                </div>
+            )}*/}
+
+            {/*{meetupConfirmed && isActive && meetup && isBefore && (
+                <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 text-xs text-blue-900 shrink-0">
+                    Meetup on{" "}
+                    {
+                        new Date(meetup.agreedTime).toLocaleString("en-ZA", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })}
+                    . Check-in opens 15 minutes before.
+                </div>
+                )}*/}
+            {isActive && !isAwaitingAck && (
                 <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
                     <button
                         type="button"
@@ -539,9 +570,6 @@ export default function ChatPage() {
                 </div>
             ) : (
                 <div className="p-4 border-t bg-white flex items-center gap-3 shrink-0">
-                    <button type="button" className="text-gray-400 p-1">
-                        <IconPaperclip size={22} />
-                    </button>
                     <input
                         ref={inputRef}
                         type="text"
@@ -565,17 +593,25 @@ export default function ChatPage() {
 
             {isProposingMeetup && (
                 <MeetupProposalForm
+                    reservationId={reservationId!}
+                    buyerId={reservation!.buyerId}
+                    sellerId={reservation!.sellerId}
+                    role={role}
                     onCancel={() => setIsProposingMeetup(false)}
                     onSubmit={handleProposeMeetup}
                     isSubmitting={isSendingProposal}
                 />
             )}
 
+
             {checkInLocation && (
                 <CheckInModal
                     reservationId={reservationId!}
                     meetupLocation={checkInLocation}
-                    onClose={() => setCheckInLocation(null)}
+                    onClose={() => {
+                        setCheckInLocation(null)
+                        queryClient.invalidateQueries({ queryKey: ["meetup", reservationId] });
+                    }}
                 />
             )}
         </div>

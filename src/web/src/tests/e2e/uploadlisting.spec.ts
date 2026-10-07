@@ -27,7 +27,7 @@ test("verified seller can upload a listing", async ({
   await page
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await page.locator('input[type="number"]').fill("250");
+  await page.locator('#price').fill("250");
 
   await page.setInputFiles(
     'input[type="file"]',

@@ -32,7 +32,7 @@ test("seller can edit a listing's title and price", async ({
   await page
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await page.locator('input[type="number"]').fill("250");
+  await page.locator('#price').fill("250");
 
   await page.setInputFiles(
     'input[type="file"]',
@@ -50,7 +50,7 @@ test("seller can edit a listing's title and price", async ({
   await expect(titleInput).toHaveValue(originalTitle);
 
   await titleInput.fill(updatedTitle);
-  await page.locator('input[type="number"]').fill("300");
+  await page.locator('#edit-price').fill("300");
 
   await page.getByRole("button", { name: /^save changes$/i }).click();
 
@@ -83,7 +83,7 @@ test("cancelling out of edit discards changes", async ({ browser, page, request 
   await page
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await page.locator('input[type="number"]').fill("250");
+  await page.locator('#price').fill("250");
 
   await page.setInputFiles(
     'input[type="file"]',

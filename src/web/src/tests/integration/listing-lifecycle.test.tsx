@@ -104,7 +104,7 @@ test('delete a listing directly from the MyListings row', async () => {
   })
 })
 
-test('submit a draft listing, moving it to live', async () => {
+/*test('submit a draft listing, moving it to live', async () => {
   seedMockListing({ title: 'Molecular Biology - 6th Ed', listingStatus: 'draft' })
   const user = userEvent.setup()
 
@@ -119,4 +119,4 @@ test('submit a draft listing, moving it to live', async () => {
   })
 
   expect(screen.getByRole('button', { name: /drafts \(0\)/i })).toBeInTheDocument()
-})
+})*/

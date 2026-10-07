@@ -1,7 +1,7 @@
 name: UniTrade Pipeline
 on:
     push:
-        branches: ["main", "dev", "feature/backend/savedSearchesPolishing"]
+        branches: ["main","feature/backend/savedSearchesPolishing","feature/backend/RiskAssess"]
     workflow_dispatch:
 permissions:
     id-token: write
@@ -12,12 +12,12 @@ concurrency:
 
 jobs: 
     # backend-ci:
-    #     uses: ./.github/workflows/backend-ci.yml
-    #     secrets: inherit
+         # uses: ./.github/workflows/backend-ci.yml
+         # secrets: inherit
     # web-ci:
-    #     uses: ./.github/workflows/web-ci.yml
-    #     secrets: inherit
+        # uses: ./.github/workflows/web-ci.yml
+        # secrets: inherit
     deploy:
-        #needs: [backend-ci, web-ci]
+        # needs: [backend-ci, web-ci]
         uses: ./.github/workflows/cd.yml
         secrets: inherit

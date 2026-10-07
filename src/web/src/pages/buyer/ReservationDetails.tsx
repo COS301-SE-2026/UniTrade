@@ -8,6 +8,8 @@ import {
   IconEye,
   IconCalendarClock,
   IconFlag,
+  IconChevronDown,
+  IconCheck,
 } from "@tabler/icons-react";
 import type { Reservation } from "../../types/Reservations";
 import type { ListingDetail } from "../../types/listing";
@@ -15,11 +17,14 @@ import {
   cancelReservation,
   getReservationById,
   createTransactionRequest,
+  acknowledgeReservatioin,
 } from "../../services/reservationService";
 import { listingsService } from "../../services/listingsService";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../lib/queryKeys";
+import { getApiUrl } from "../../config";
+import { connectionManager } from "../../services/realtime/connectionManager";
 
-//type ReservationListItem = ReservationListResponse["items"][number];
 
 interface CountdownResult {
   label: string;
@@ -179,14 +184,16 @@ function ActionButton({
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  variant?: "primary" | "danger" | "default";
+  variant?: "primary" | "danger" | "success" | "default";
 }>) {
   const variantClasses =
     variant === "primary"
       ? "bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500"
-      : variant === "danger"
-        ? "border-gray-300 dark:border-navy-600 text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20"
-        : "border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700";
+      : variant === "success"
+        ? "bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700"
+        : variant === "danger"
+          ? "border-gray-300 dark:border-navy-600 text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-900/20"
+          : "border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700";
 
   return (
     <button
@@ -248,6 +255,25 @@ export default function ReservationDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [itemsExpanded, setItemsExpanded] = useState(false);
+
+  const queryClient = useQueryClient();
+  const [isAccepting, setIsAccepting] = useState(false);
+
+  const handleAccept = async () => {
+    if (!reservation || isAccepting) return;
+    setIsAccepting(true);
+    const result = await acknowledgeReservatioin(reservation.reservationId);
+    if (result.success) {
+      showToast("success", "Reservation accepted.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.reservations("seller") });
+      await loadReservation(); // refresh timerStage so the button disappears
+    } else {
+      showToast("error", result.error.message ?? "Failed to accept reservation.");
+    }
+    setIsAccepting(false);
+  };
+
   const { data: meetup } = useQuery({
     queryKey: ["meetup", reservationId],
     queryFn: () => listingsService.getMeetupStatus(reservationId!),
@@ -262,7 +288,7 @@ export default function ReservationDetails() {
 
     setError(null);
 
-    //I should change once the endpoint to get each reservation by id is available
+
     const result = await getReservationById(reservationId);
 
     if (!result.success) {
@@ -275,15 +301,24 @@ export default function ReservationDetails() {
 
     setReservation(result.data);
 
-    try {
-      const detail = await listingsService.getById(result.data.listingId);
-      setListingDetail(detail);
-    } catch {
-      //nothing
+    if (result.data.listings[0]) {
+      try {
+        const detail = await listingsService.getById(result.data.listings[0].listingId);
+        setListingDetail(detail);
+      } catch {
+        //nothing
+      }
     }
-
     setIsLoading(false);
   }, [reservationId]);
+
+  useEffect(() => {
+    if (!reservationId) return;
+    const off = connectionManager.onReservationUpdated((r) => {
+      if (r.reservationId === reservationId) void loadReservation();
+    });
+    return off;
+  }, [reservationId, loadReservation]);
 
   useEffect(() => {
     let cancelled = false;
@@ -347,9 +382,16 @@ export default function ReservationDetails() {
     }
   };
 
-  const handleViewListing = () => {
-    if (reservation) navigate(`/buyer/listings/${reservation.listingId}`);
+  const handleViewOrToggleListing = () => {
+    if (!reservation) return;
+    if (reservation.isBundle) {
+      setItemsExpanded((prev) => !prev);
+    } else {
+      navigate(`/${isSeller ? "seller" : "buyer"}/listings/${reservation.listings[0].listingId}`);
+    }
   };
+
+
 
   const handleCancel = async () => {
     if (!reservation) return;
@@ -381,15 +423,7 @@ export default function ReservationDetails() {
 
   const handleViewMeetupDetails = () => {
     if (!reservation) return;
-    navigate("/payment/meetup", {
-      state: {
-        reservationId: reservation.reservationId,
-        role: isSeller ? "seller" : "buyer",
-        counterpartyName: otherPartyName,
-        listingTitle: listingDetail?.title,
-        listingPrice: listingDetail?.price,
-      },
-    });
+    navigate(`/payment/meetup/${reservation.reservationId}`);
   };
 
   if (isLoading) {
@@ -424,11 +458,14 @@ export default function ReservationDetails() {
       </div>
     );
   }
+  const apiOrigin = reservation.isBundle ? getApiUrl().split("/api")[0] : "";
   const isCancelled = reservation.reservationStatus === "cancelled";
   const isCoordinating = reservation.timerStage === "coordinating";
   const isMeetupConfirmed = reservation.timerStage === "meetup_confirmed";
   const expiresDate = new Date(reservation.expiresAt);
   const createdDate = new Date(reservation.createdAt);
+  const primaryItem = reservation.listings[0];
+
 
   const { messageLabel, cancelLabel, otherPartyLabel } = deriveLabels(
     reservation,
@@ -449,9 +486,18 @@ export default function ReservationDetails() {
   const canCancel =
     !isCancelled && !isCancelling && (isSeller || !isCoordinating);
 
+  const canAccept =
+    isSeller &&
+    reservation.timerStage === "awaiting_seller" &&
+    !isCancelled &&
+    !isExpired;
   const otherPartyName = reservation.counterParty?.name ?? otherPartyLabel;
   const otherPartyInitials =
     reservation.counterParty?.initials ?? otherPartyLabel[0];
+
+  const displayTitle = reservation.isBundle
+    ? `${reservation.listings.length} items from ${otherPartyName}`
+    : (listingDetail?.title ?? primaryItem?.title ?? "Untitled listing");
 
   return (
     <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
@@ -465,7 +511,7 @@ export default function ReservationDetails() {
           </Link>
           <IconChevronRight size={16} className="text-gray-400" />
           <span className="font-semibold text-navy-900 dark:text-white">
-            {listingDetail?.title}
+            {displayTitle}
           </span>
         </nav>
 
@@ -485,38 +531,86 @@ export default function ReservationDetails() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="flex flex-col gap-6">
           <SectionCard title="Item">
-            <div className="flex gap-4 mb-5">
-              <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
-                {listingDetail?.images?.[0]?.url ? (
-                  <img
-                    src={listingDetail?.images?.[0]?.url}
-                    alt={listingDetail?.title ?? "Listing image"}
-                    className="w-full h-full object-cover"
+            {!reservation.isBundle ? (
+              <div className="flex gap-4 mb-5">
+                <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
+                  {listingDetail?.images?.[0]?.url ? (
+                    <img
+                      src={listingDetail.images?.[0]?.url}
+                      alt={displayTitle}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
+                      {displayTitle}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
+                    {displayTitle}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-navy-100">
+                    Condition: {listingDetail?.condition ?? "Good"}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-navy-100">
+                    Category: {listingDetail?.category ?? "Textbooks"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-5">
+                <button
+                  type="button"
+                  onClick={() => setItemsExpanded((prev) => !prev)}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <h3 className="text-lg font-bold text-navy-900 dark:text-white">
+                    {displayTitle}
+                  </h3>
+                  <IconChevronDown
+                    size={18}
+                    className={`text-gray-400 transition-transform ${itemsExpanded ? "rotate-180" : ""}`}
                   />
-                ) : (
-                  <span className="text-[11px] text-gray-400 dark:text-navy-100 text-center px-1.5">
-                    {listingDetail?.title ?? "Listing"}
-                  </span>
+                </button>
+                {itemsExpanded && (
+                  <div className="mt-3 flex flex-col gap-3">
+                    {reservation.listings.map((item) => (
+                      <div key={item.listingId} className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
+                          {item.imagePath ? (
+                            <img
+                              src={`${apiOrigin}${item.imagePath}`}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[9px] text-gray-400 text-center px-1">
+                              {item.title}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold text-navy-900 dark:text-white truncate">
+                          {item.title}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/${isSeller ? "seller" : "buyer"}/listings/${item.listingId}`)}
+                          className="ml-auto rounded-2xl bg-navy-700 shrink-0 text-xs font-semibold text-white dark:text-blue-300 hover:underline px-2 py-1"
+                        >
+                          View
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-              <div className="min-w-0">
-                <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
-                  {listingDetail?.title ?? "Untitled listing"}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-navy-100">
-                  Condition: {listingDetail?.condition ?? "Good"}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-navy-100">
-                  Category: {listingDetail?.category ?? "Textbooks"}
-                </p>
-              </div>
-            </div>
-
+            )}
             <InfoRow
-              label="Item price"
+              label={reservation.isBundle ? "Total price" : "Item price"}
               value={
                 <span className="text-lg font-extrabold">
-                  {formatCurrency(listingDetail?.price ?? 0)}
+                  {formatCurrency(reservation.totalPrice)}
                 </span>
               }
             />
@@ -535,7 +629,18 @@ export default function ReservationDetails() {
           </SectionCard>
 
           <SectionCard title="Actions">
+
             <div className="flex flex-col gap-3">
+              {canAccept && (
+                <ActionButton
+                  icon={<IconCheck size={16} />}
+                  label={isAccepting ? "Accepting..." : "Accept Reservation"}
+                  onClick={handleAccept}
+                  disabled={isAccepting}
+                  variant="success"
+                />
+              )}
+
               <ActionButton
                 icon={<IconMessageCircle size={16} />}
                 label={messageLabel}
@@ -560,14 +665,14 @@ export default function ReservationDetails() {
 
               <ActionButton
                 icon={<IconEye size={16} />}
-                label="View Listing"
-                onClick={handleViewListing}
+                label={reservation.isBundle ? (itemsExpanded ? "Hide items" : "View items") : "View Listing"}
+                onClick={handleViewOrToggleListing}
               />
               <ActionButton
                 icon={<IconCalendarClock size={16} />}
                 label="View Meetup Details"
                 onClick={handleViewMeetupDetails}
-                disabled={isCancelled || isExpired}
+                disabled={isCancelled || isExpired || !isMeetupConfirmed}
               />
               <ActionButton
                 icon={<IconFlag size={16} />}

@@ -46,10 +46,17 @@ vi.mock('../../services/reservationService', () => ({
   createReservation: vi.fn(),
 }));
 
-vi.mock('../../utils/formatters', () => ({
-  formatPrice: (price: number) => `R${price}`,
-}));
+vi.mock('../../utils/formatters', async () => {
+  const actual = await vi.importActual<typeof import('../../utils/formatters')>
+    (
+      '../../utils/formatters'
+    )
+  return {
+    ...actual,
+    formatPrice: (price: number) => `R${price}`,
+  }
 
+})
 vi.mock('../../lib/queryClient', () => ({
   queryClient: {
     setQueryData: vi.fn(),
@@ -121,7 +128,7 @@ function mockWishlist(
 it('shows a loading message when waiting for the wishlist to load', () => {
   mockWishlist(undefined, true, null);
   renderWishlist();
- 
+
   expect(screen.getByText('Loading wishlist ...')).toBeInTheDocument();
 });
 
@@ -149,9 +156,9 @@ describe('filtering by the condition of the listing', () => {
   beforeEach(() => {
     mockWishlist({
       listings: [
-        makeListing({ id: '1', title: 'Good Item', condition: 'Good' }),
-        makeListing({ id: '2', title: 'Fair Item', condition: 'Fair' }),
-        makeListing({ id: '3', title: 'Poor Item', condition: 'Poor' }),
+        makeListing({ id: '1', title: 'Good Item', condition: 'good' }),
+        makeListing({ id: '2', title: 'Fair Item', condition: 'fair' }),
+        makeListing({ id: '3', title: 'Poor Item', condition: 'poor' }),
       ],
       total: 450,
     });
@@ -167,7 +174,7 @@ describe('filtering by the condition of the listing', () => {
   it('filters down to only the selected condition', () => {
     renderWishlist();
     fireEvent.click(screen.getByText('Filter'));
-    const fairOption = screen.getAllByText('Fair').find((el) => el.tagName === 'BUTTON')!;
+    const fairOption = screen.getAllByText('fair').find((el) => el.tagName === 'BUTTON')!;
     fireEvent.click(fairOption);
 
     expect(screen.queryByText('Good Item')).not.toBeInTheDocument();
@@ -187,7 +194,7 @@ describe('reserving a listing', () => {
   it('navigates to reservation on a successful reserve', async () => {
     vi.mocked(createReservation).mockResolvedValueOnce({ success: true } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     await vi.waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith('/buyer/reservations');
     });
@@ -199,7 +206,7 @@ describe('reserving a listing', () => {
       error: { code: 'self_reserve' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(await screen.findByText('You cant reserve your own listing.')).toBeInTheDocument();
   });
 
@@ -209,7 +216,7 @@ describe('reserving a listing', () => {
       error: { code: 'already_reserved' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(
       await screen.findByText('Sorry, This Item has already been reserved by someone else'),
     ).toBeInTheDocument();
@@ -221,7 +228,7 @@ describe('reserving a listing', () => {
       error: { code: 'weird_error', message: 'Something unexpected happened' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(await screen.findByText('Something unexpected happened')).toBeInTheDocument();
   });
 
@@ -231,7 +238,7 @@ describe('reserving a listing', () => {
       error: { code: 'weird_error' },
     } as unknown as ReservationResult);
     renderWishlist();
-    fireEvent.click(screen.getByRole('button', { name: /reserve/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
     expect(await screen.findByText('Could not reserve this item.')).toBeInTheDocument();
   });
 });

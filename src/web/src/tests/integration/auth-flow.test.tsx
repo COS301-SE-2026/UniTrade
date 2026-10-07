@@ -39,6 +39,7 @@ vi.mock('../../services/realtime/connectionManager', () => ({
     onSavedSearchMatch: vi.fn(() => vi.fn()),
     onVerificationCreated: vi.fn(() => vi.fn()),
     onVerificationUpdated: vi.fn(() => vi.fn()),
+    onListingSold: vi.fn(() => vi.fn()),
   },
 }));
 
@@ -160,6 +161,15 @@ test('login -> profile -> logout', async () => {
           lastName: 'M',
           userRole: 'student',
         },
+        student: {
+        verificationStatus: 'verified',
+        verificationRequestStatus: null,
+        verificationAdminDecision: null,
+        verificationRejectionReason: null,
+        degreeProgram: 'BSc Computer Science',
+        yearOfStudy: 3,
+        university: 'University of Pretoria',
+      },
       });
     })
   );
@@ -172,7 +182,7 @@ test('login -> profile -> logout', async () => {
   await user.type(screen.getByPlaceholderText(/password/i), 'Password123!');
   await user.click(screen.getByRole('button', { name: /^login$/i }));
 
-  const profileLink = await screen.findByRole('link', { name: /profile/i });
+  const profileLink = await screen.findByRole('link', { name: 'Profile' });
   await user.click(profileLink);
   await screen.findByText('Account Details');
 

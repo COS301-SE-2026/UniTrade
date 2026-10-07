@@ -7,6 +7,7 @@ public sealed class ReservationException(string code) : Exception(code) { }
 public static class ReservationErrors
 {
     public const string NotFound = "not_found";
+    public const string ReservationNotFound = "reservation_not_found";
     public const string ListingNotFound = "listing_not_found";
     public const string AlreadyReserved = "already_reserved";
     public const string SelfReserve = "self_reserve";
@@ -28,4 +29,7 @@ public static class ReservationErrors
     public const string MeetupNotScheduled = "meetup_not_scheduled";
     public const string CheckInWindowClosed = "check_in_window_closed";
     public const string AlreadyCheckedIn = "already_checked_in";
+    public const string CheckInWindowNotOpen = "check_in_window_not_open";
+
+    public const string BuyerSuspended = "buyer_suspended";
 }

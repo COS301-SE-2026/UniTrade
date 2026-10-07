@@ -7,10 +7,11 @@ import type {
   GetMessagesParams,
   Result,
   TransactionRequestResponse,
+  SmartBudgetRequest,
+  SmartBudgetResponse,
+  SmartBudgetPreviewResponse
 } from "../types/Reservations";
 import { getApiUrl } from "../config";
-
-//import type { MeetupDetailsResponse } from '../types/meetup';
 
 export interface TransactionStatusResponse {
   transactionId: string | null;
@@ -63,6 +64,17 @@ export async function createReservation(
   return handleResponse<Reservation>(res);
 }
 
+export async function createSmartBudgetReservation(
+  payload: SmartBudgetRequest,
+): Promise<Result<SmartBudgetResponse>> {
+  const res = await fetch (`${getApiUrl()}/reservations/smart-budget`, {
+    method: "POST",
+    credentials: "include",
+    headers: {"Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<SmartBudgetResponse>(res);
+}
 export async function acknowledgeReservatioin(
   reservationId: string,
 ): Promise<Result<Reservation>> {
@@ -100,6 +112,18 @@ export async function getReservations(
   return handleResponse<ReservationListResponse>(res);
 }
 
+export async function getSmartBudgetPreview(
+  params: SmartBudgetRequest,
+): Promise<Result<SmartBudgetPreviewResponse>> {
+  const query = new URLSearchParams({
+    listingIds: params.listingIds.join(","),
+    maxBudget: String(params.maxBudget),
+  })
+  const res = await fetch(`${getApiUrl()}/reservations/smart-budget/preview?${query}`, {
+    credentials: "include",
+  });
+  return handleResponse<SmartBudgetPreviewResponse>(res)
+}
 export async function getMessages(
   params: GetMessagesParams,
 ): Promise<Result<ChatHistoryResponse>> {

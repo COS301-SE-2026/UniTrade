@@ -14,11 +14,13 @@ using Modules.Identity.Models;
 using Modules.Identity.Models.Dto;
 using Modules.Identity.Models.DTO;
 using Modules.Identity.Repositories;
+using Modules.Identity.Verification;
 using Modules.Listings.Repositories;
 using Modules.ReferenceData;
 using Modules.ReferenceData.University;
 using Modules.ReferenceData.University.Repositories;
 using Modules.Identity.Verification;
+using Modules.Listings;
 
 namespace Modules.Identity;
 
@@ -32,17 +34,21 @@ public class IdentityService : IIdentityService
 
     private readonly IListingRepository _listings;
     private readonly IConfiguration _config;
+    private readonly IListingNotifier _listingNotifier;
 
     private const string _studentRole = "student";
     private const string _pendingStatus = "pending";
     private const string _notFoundString = "not_found";
+
+    private static readonly int[] _intakeMonths = { 2, 7 };
 
     public IdentityService(
         IUserRepository users,
         IUniversityRepository universities,
         IVerificationRepository verifications,
         IListingRepository listing,
-        IConfiguration config
+        IConfiguration config,
+        IListingNotifier listingNotifier
     )
     {
         _users = users;
@@ -50,6 +56,7 @@ public class IdentityService : IIdentityService
         _verifications = verifications;
         _listings = listing;
         _config = config;
+        _listingNotifier = listingNotifier;
     }
 
     public async Task<User> RegisterAsync(RegisterDto dto)
@@ -105,14 +112,26 @@ public class IdentityService : IIdentityService
 
         if (existingUser != null)
         {
-            var currentStatus = existingUser.StudentProfile?.VerificationStatus;
-
-            throw currentStatus switch
+            if (existingUser.IsBlocked)
             {
-                "verified" => new IdentityException("email_taken"),
-                _pendingStatus => new IdentityException("otp_already_sent"),
-                _ => new IdentityException("email_taken"),
-            };
+                if (existingUser.BlockedUntil is DateTime until && until > DateTime.UtcNow)
+                {
+                    throw new IdentityException("account_blocked");
+                }
+
+                await FreeBlockedAccountAsync(existingUser);
+            }
+            else
+            {
+                var currentStatus = existingUser.StudentProfile?.VerificationStatus;
+
+                throw currentStatus switch
+                {
+                    "verified" => new IdentityException("email_taken"),
+                    _pendingStatus => new IdentityException("otp_already_sent"),
+                    _ => new IdentityException("email_taken"),
+                };
+            }
         }
 
         // hash password
@@ -333,7 +352,7 @@ public class IdentityService : IIdentityService
             NormaliseEmail(loginDto.Email.Trim().ToLowerInvariant())
         );
         //tasks: query db, verify password and get email, gen. token, then return a response
-        if (user == null || user.IsDeleted)
+        if (user == null)
         {
             throw new IdentityException("invalid_credentials");
         }
@@ -342,6 +361,12 @@ public class IdentityService : IIdentityService
         {
             throw new IdentityException("invalid_credentials");
         }
+        if (user.IsBlocked)
+            throw new IdentityException("account_blocked");
+
+        if (user.IsDeleted)
+            throw new IdentityException("invalid_credentials");
+
         string verificationStatus;
 
         if (user.Role == _studentRole)
@@ -504,14 +529,22 @@ public class IdentityService : IIdentityService
         user.Email = $"deleted_{user.UserId}@unitrade.com";
         await _users.UpdateAsync(user);
 
-        await _listings.MarkAllBySellerAsRemovedAsync(
+        var removedIds = await _listings.MarkAllBySellerAsRemovedAsync(
             Guid.Parse(userId),
             "User deleted their account"
         );
+        foreach (var id in removedIds ?? Array.Empty<Guid>())
+        {
+            await _listingNotifier.BroadcastBrowseChangeAsync(id, false);
+        }
     }
 
-    public string GenerateHubToken(string userId)
+    public async Task<string> GenerateHubTokenAsync(string userId)
     {
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+        if (user is null)
+            throw new IdentityException(_notFoundString);
+
         var secret =
             _config["Jwt:Secret"]
             ?? throw new InvalidOperationException("Jwt__Secret is not configured");
@@ -520,7 +553,7 @@ public class IdentityService : IIdentityService
 
         var token = new JwtSecurityToken(
             audience: "chat-hub",
-            claims: new[] { new Claim("sub", userId) },
+            claims: new[] { new Claim("sub", userId), new Claim("role", user.Role) },
             expires: DateTime.UtcNow.AddSeconds(60),
             signingCredentials: creds
         );
@@ -546,5 +579,53 @@ public class IdentityService : IIdentityService
         }
 
         return TokenGenerator(user, verificationStatus);
+    }
+
+    public static DateTime NextIntakeDate(DateTime now)
+    {
+        var candidates = _intakeMonths
+            .Select(m => new DateTime(now.Year, m, 1, 0, 0, 0, DateTimeKind.Utc))
+            .Concat(
+                _intakeMonths.Select(m => new DateTime(
+                    now.Year + 1,
+                    m,
+                    1,
+                    0,
+                    0,
+                    0,
+                    DateTimeKind.Utc
+                ))
+            )
+            .OrderBy(d => d);
+
+        return candidates.First(d => d > now);
+    }
+
+    public async Task BlockAccountAsync(string userId)
+    {
+        var user = await _users.GetByIdAsync(Guid.Parse(userId));
+        if (user == null)
+            throw new IdentityException(_notFoundString);
+
+        user.IsBlocked = true;
+        user.BlockedUntil = NextIntakeDate(DateTime.UtcNow);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _users.UpdateAsync(user);
+
+        var removedIds = await _listings.MarkAllBySellerAsRemovedAsync(Guid.Parse(userId), "Account blocked by admin");
+        foreach (var id in removedIds ?? Array.Empty<Guid>())
+        {
+            await _listingNotifier.BroadcastBrowseChangeAsync(id, false);
+        }
+
+    }
+
+    // for retiring the old rejected account so its email is available for a fresh registration
+    private async Task FreeBlockedAccountAsync(User blocked)
+    {
+        blocked.IsDeleted = true;
+        blocked.DeletedAt = DateTime.UtcNow;
+        blocked.Email = $"blocked_{blocked.UserId}@unitrade.com";
+        await _users.UpdateAsync(blocked);
     }
 }

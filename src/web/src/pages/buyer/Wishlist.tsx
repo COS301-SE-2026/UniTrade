@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { listingsService } from "../../services/listingsService";
-import { formatPrice } from "../../utils/formatters";
+import { formatCondition, formatPrice } from "../../utils/formatters";
 import type { WishlistListing, BrowseCondition, WishlistResponse } from "../../types/listing";
 import { createReservation } from "../../services/reservationService";
 import { SummaryCard } from "./Reservation";
@@ -12,11 +12,13 @@ import {
   IconTrash,
   IconFilter,
   IconChevronDown,
+  IconWallet,
 } from "@tabler/icons-react";
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
 import { LoadingState } from '../../components/layout/Spinner';
 import { useSearchQuery } from "../../hooks/useSearchQuery";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
 type SortOption = "Date added" | "Price low" | "Price high";
 
@@ -24,28 +26,28 @@ const conditionColours: Record<
   BrowseCondition,
   { bg: string; text: string; dot: string }
 > = {
-  like_new: {
+  new: {
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
-  Good: {
+  good: {
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
-  Fair: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
-  Poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
+  fair: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
+  poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
 function ConditionBadge({ condition }: Readonly<{ condition: BrowseCondition }>) {
-  const s = conditionColours[condition] ?? conditionColours.Fair;
+  const s = conditionColours[condition] ?? conditionColours.fair;
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${s.text}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-      {condition}
+      {formatCondition(condition)}
     </span>
   );
 }
@@ -79,14 +81,17 @@ function WishlistCard({
       setReserveError(
         "Sorry, This Item has already been reserved by someone else",
       );
-    } else {
+    }
+    else if(result.error.code === "buyer_suspended"){
+      setReserveError(getAccountStateErrorMessage("buyer_suspended", ""));
+    } 
+    else {
       setReserveError(result.error.message ?? "Could not reserve this item.");
     }
     setReserving(false);
   };
 
   const handleRemove = async () => {
-    //e.stopPropagation()
     if (removing) return;
     setRemoving(true);
     try {
@@ -174,7 +179,7 @@ function WishlistCard({
 }
 
 export default function Wishlist() {
-  //const navigate = useNavigate()
+  const navigate = useNavigate()
   const [sortOption, setSortOption] = useState<SortOption>("Date added");
   const [sortOpen, setSortOpen] = useState(false);
   const { data, isLoading, error } = useWishlist();
@@ -193,14 +198,14 @@ export default function Wishlist() {
   const searchQuery = useSearchQuery()
   const filtered = useMemo(() => {
     let result = conditionFilter === 'All'
-    ? listings
-    : listings.filter((l) => l.condition === conditionFilter)
+      ? listings
+      : listings.filter((l) => l.condition === conditionFilter)
 
     if (searchQuery) {
       result = result.filter(
         (l) =>
           l.title.toLowerCase().includes(searchQuery) ||
-        (l.sellerName ?? '').toLowerCase().includes(searchQuery)
+          (l.sellerName ?? '').toLowerCase().includes(searchQuery)
       )
     }
 
@@ -281,7 +286,7 @@ export default function Wishlist() {
             </button>
             {filterOpen && (
               <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
-                {(["All", "like_new", "Good", "Fair", "Poor"] as const).map(
+                {(["All", "new", "good", "fair", "poor"] as const).map(
                   (opt) => (
                     <button
                       type='button'
@@ -292,7 +297,7 @@ export default function Wishlist() {
                       }}
                       className={`w-full text-left px-4 py-2 text-sm capitalize hover:bg-gray-50  ${conditionFilter === opt ? "text-navy-700 font-semibold" : "text-gray-600"}`}
                     >
-                      {opt === "like_new" ? "Like New" : opt}
+                      {opt === "new" ? "Like New" : opt}
                     </button>
                   ),
                 )}
@@ -317,6 +322,30 @@ export default function Wishlist() {
 
       {isLoading && <LoadingState message="Loading wishlist ..." />}
 
+      {listings.length > 0 && (
+        <div className="bg-navy-50 rounded-xl border border-navy-100 p-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white text-navy-700 flex items-center justify-center shrink-0">
+              <IconWallet size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-800">Reserve within a budget</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Set a budget and we will reserve as many of your saved items as possible in one go.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/buyer/smart-budget-reserve")}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-navy-800 text-white px-4 py-2 text-sm font-semibold hover:bg-navy-700 transitions-colors shrink-0"
+          >
+            <IconWallet size={16} />
+            Reserve within budget
+          </button>
+        </div>
+      )}
+
       {!isLoading && error && (
         <div className="bg-white rounded-xl border border-rose-200 p-6 text-center">
           <p className="text-sm font-semibold text-rose-600">
@@ -325,19 +354,19 @@ export default function Wishlist() {
         </div>
       )}
 
-        {!isLoading && !error && sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-sm font-semibold text-gray-700">
-              Your wishlist is empty
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {searchQuery
+      {!isLoading && !error && sorted.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">
+            Your wishlist is empty
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            {searchQuery
               ? `No items match "${searchQuery}".`
-              : 'Browse listings and tap "Add to Wishlist" to save items here.' }
+              : 'Browse listings and tap "Add to Wishlist" to save items here.'}
 
-            </p>
-          </div>
-        )}
+          </p>
+        </div>
+      )}
 
       {sorted.map((listing) => (
         <WishlistCard

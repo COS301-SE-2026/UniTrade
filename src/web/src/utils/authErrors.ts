@@ -14,6 +14,8 @@ export function getAuthErrorMessage(code: string): string {
       "Too many incorrect attempts on this code. Please request another one.",
     too_many_attempts: "Too many attempts. Please request a new OTP.",
     invalid_credentials: "Incorrect email or password.",
+    account_blocked:
+      "Your account has been blocked. You can register again from the start at the next intake (February or July).",
     resend_limit_exceeded: "Too many resend attempts. Please wait 60 seconds.",
     cooldown_active: "Please wait 60 seconds before requesting another OTP.",
     server_error: "Something went wrong. Please try again.",

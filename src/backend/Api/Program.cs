@@ -7,6 +7,7 @@ using Api.Middleware;
 using Api.Notifiers;
 using Azure.Communication.Email;
 using dotenv.net;
+using Infrastructure.AI;
 using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
@@ -22,6 +23,7 @@ using Infrastructure.Persistence.Repositories.Listings;
 using Infrastructure.Persistence.Repositories.Reputation;
 using Infrastructure.Persistence.Repositories.Reservations;
 using Infrastructure.Persistence.Repositories.Reviews;
+using Infrastructure.Persistence.Repositories.Timetable;
 using Infrastructure.Persistence.Repositories.Transactions;
 using Infrastructure.Persistence.SavedSearches;
 using Infrastructure.Realtime;
@@ -48,6 +50,7 @@ using Modules.ListingQuestions.Repositories;
 using Modules.Listings;
 using Modules.Listings.Moderation;
 using Modules.Listings.Repositories;
+using Modules.Listings.Scoring;
 using Modules.Listings.Snapshot;
 using Modules.Notifications;
 using Modules.Notifications.Repositories;
@@ -59,6 +62,7 @@ using Modules.ReferenceData.University.Repositories;
 using Modules.Reputation;
 using Modules.Reputation.Repositories;
 using Modules.Reservations;
+using Modules.Reservations.Availability;
 using Modules.Reservations.Repositories;
 using Modules.Reviews;
 using Modules.Reviews.Repositories;
@@ -67,10 +71,17 @@ using Modules.SavedSearches.Models;
 using Modules.SavedSearches.Repositories;
 using Modules.SharedKernel;
 using Modules.SharedKernel.Repositories;
+using Modules.Timetable;
+using Modules.Timetable.Repositories;
 using Modules.Transactions;
 using Modules.Transactions.Repositories;
 using Modules.Wishlist;
 using Modules.Wishlist.Repositories;
+using Modules.Listings.Risk;
+using Infrastructure.Imaging;
+using Modules.Listings.Admin;
+using Modules.Identity.PasswordReset;
+
 
 DotEnv.Load(
     options: new DotEnvOptions(
@@ -221,6 +232,10 @@ builder.Services.AddScoped<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
+builder.Services.AddScoped<IListingResubmissionListener, DisputeResubmissionListener>();
+builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<IEmailService, TestEmailService>();
@@ -239,6 +254,8 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<ISmartBudgetService, SmartBudgetService>();
+builder.Services.AddScoped<ISmartBudgetRepository, SmartBudgetRepository>();
 builder.Services.AddScoped<IReservationMembership, ReservationRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHostedService<ReservationExpiryWorker>();
@@ -257,6 +274,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
 builder.Services.AddScoped<IListingNotifier, ListingNotifier>();
+builder.Services.AddScoped<ITimetableNotifier, TimetableNotifier>();
 builder.Services.AddSingleton<IUserIdProvider, SubUserIdProvider>();
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
@@ -281,6 +299,7 @@ builder.Services.AddScoped<IUploadedImageService, UploadedImageService>();
 builder.Services.AddScoped<IProofOfRegistrationRepository, ProofOfRegistrationRepository>();
 builder.Services.AddScoped<SavedSearchService>();
 builder.Services.AddScoped<ISavedSearchService>(sp => sp.GetRequiredService<SavedSearchService>());
+builder.Services.AddScoped<IListingRiskScoreService, ListingRiskScoreService>();
 builder.Services.AddScoped<IListingPublishedListener>(sp =>
     sp.GetRequiredService<SavedSearchService>()
 );
@@ -296,6 +315,18 @@ builder.Services.AddScoped<
     IProofOfRegistrationStorageService,
     PostgresProofOfRegistrationStorageService
 >();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<ITimetableQueryForAvailability, TimetableQueryForAvailability>();
+builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IIcsImportService, IcsImportService>();
+builder.Services.AddScoped<IPerceptualHashService, PerceptualHash>();
+builder.Services.AddScoped<IAdminListingRiskService, AdminListingRiskService>();
+builder.Services.AddScoped<ICaseNoteRepository, CaseNoteRepository>();
+builder.Services.AddHostedService<ProofRetentionWorker>();
+builder.Services.AddScoped<IAccountSanctionService, AccountSanctionService>();
+builder.Services.AddHostedService<SuspensionExpiryWorker>();
+
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton(
@@ -345,6 +376,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
+
+builder.Services.AddHttpClient<IClipVisionClient, ClipVisionClient>(
+    (sp, client) =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var baseUrl =
+            config["Clip:BaseUrl"]
+            ?? throw new InvalidOperationException("Clip:BaseUrl is not configured.");
+        client.BaseAddress = new Uri(baseUrl);
+        client.Timeout = TimeSpan.FromSeconds(5);
+    }
+);
 var app = builder.Build();
 
 app.UseForwardedHeaders();

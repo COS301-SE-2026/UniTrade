@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { IconStar, IconStarFilled, IconNote, IconX } from "@tabler/icons-react";
-import type { PersonSummary, CaseNote } from "../../types/mockAdmin";
-import { getMockCaseNotes, addMockCaseNote } from "../../types/mockAdmin";
-import { LoadingState } from "../../components/layout/Spinner";
+import type React from "react";
+import { IconStar, IconStarFilled, IconX, IconNote } from "@tabler/icons-react";
+import type { PersonSummary} from "../../types/mockAdmin";
+import {useEffect, useState, useReducer} from "react";
+import{getCaseNotes,addCaseNote} from "../../services/adminService";
+import type{CaseNote} from "../../types/admin_disputes";
+import {LoadingState} from "../../components/layout/Spinner";
 
 interface ConfirmModalProps {
   title: string;
@@ -13,6 +15,9 @@ interface ConfirmModalProps {
   submitting?: boolean;
   reason?: string;
   setReason?: (value: string) => void;
+  showReasonField?: boolean;
+  confirmDisabled?: boolean;
+  children?: React.ReactNode;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -35,6 +40,9 @@ export function ConfirmModal({
   submitting = false,
   reason = "",
   setReason,
+  showReasonField = true,
+  confirmDisabled = false,
+  children,
   onCancel,
   onConfirm,
 }: Readonly<ConfirmModalProps>) {
@@ -47,20 +55,19 @@ export function ConfirmModal({
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('input, textarea, [contenteditable="true"]')) {
-          if (e.key === 'Escape') {
+          if (e.key === "Escape") {
             onCancel();
           }
           return;
         }
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onCancel();
         }
-
       }}
     >
       <div
-        role='alertdialog'
+        role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
         aria-describedby="confirm-modal-message"
@@ -70,14 +77,11 @@ export function ConfirmModal({
           role="presentation"
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
-
         >
-
-
           <div className="flex items-center justify-between mb-4">
             <h2
               id="confirm-modal-title"
-              className="text-xl font-bol text-gray-900"
+              className="text-xl font-bold text-gray-900"
             >
               {title}
             </h2>
@@ -93,17 +97,26 @@ export function ConfirmModal({
           <p id="confirm-modal-message" className="text-sm text-gray-600 mb-6">
             {message}
           </p>
-          <div className="mb-4">
-            <label htmlFor="modal-reason" className="block text-xs font-medium text-gray-700 mb-1.5">Reason <span className="text-red-500">*</span></label>
-            <textarea
-              id="modal-reason"
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason?.(e.target.value)}
-              placeholder="Prove reasoning for this decision..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none" required
-            ></textarea>
-          </div>
+          {children}
+          {showReasonField && (
+            <div className="mb-4">
+              <label
+                htmlFor="modal-reason"
+                className="block text-xs font-medium text-gray-700 mb-1.5"
+              >
+                Reason <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="modal-reason"
+                rows={3}
+                value={reason}
+                onChange={(e) => setReason?.(e.target.value)}
+                placeholder="Prove reasoning for this decision..."
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
+                required
+              ></textarea>
+            </div>
+          )}
           <div className="flex gap-3">
             <button
               type="button"
@@ -116,9 +129,12 @@ export function ConfirmModal({
             <button
               type="button"
               onClick={onConfirm}
-              disabled={submitting || !reason.trim()}
-              className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors
-              disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
+              disabled={
+                submitting ||
+                confirmDisabled ||
+                (showReasonField && !reason.trim())
+              }
+              className={`flex-1 flex items-center justify-center text-center py-3 text-white font-bold rounded-lg transition-colors disabled:opacity-50 ${confirmModalToneClasses[tone]}`}
             >
               {submitting ? "Submitting..." : confirmLabel}
             </button>
@@ -139,7 +155,7 @@ export function Breadcrumb({ trail }: Readonly<{ trail: string[] }>) {
               {step}
             </span>
           ) : (
-            <span className="text-[#00aaff]">{step}</span>
+            <span className="text-sky-700">{step}</span>
           )}
           {i < trail.length - 1 && (
             <span className="mx-1.5 text-gray-300"></span>
@@ -184,7 +200,7 @@ export function InfoRow({
 type StatusTone = "blue" | "red" | "green" | "amber" | "gray";
 
 const toneClasses: Record<StatusTone, string> = {
-  blue: "bg-[#00aaff]/10 text-[#00aaff]",
+  blue: "bg-[#00aaff]/10 text-sky-700",
   red: "bg-red-100 text-red-700",
   green: "bg-green-100 text-green-700",
   amber: "bg-amber-100 text-amber-700",
@@ -301,7 +317,8 @@ export function PrimaryButton({
 type DecisionTone = "success" | "danger" | "neutral";
 
 const decisionToneClasses: Record<DecisionTone, string> = {
-  success: "bg-green-600 hover:bg-green-700 text-white border border-transparent",
+  success:
+    "bg-green-600 hover:bg-green-700 text-white border border-transparent",
   danger: "bg-red-600 hover:bg-red-700 text-white border border-transparent",
   neutral:
     "border border-navy-700 text-navy-700 dark:text-white dark:border-white/30 hover:bg-secondary-500 hover:text-primary-700 hover:border-secondary-500",
@@ -330,20 +347,57 @@ export function DecisionButton({
   );
 }
 
+type NotesState={
+  notes: CaseNote[];
+  loading: boolean;
+  error: boolean;
+};
+
+type NotesAction=
+  |{type: "FETCH_START"}
+  |{type: "FETCH_SUCCESS"; payload: CaseNote[]}
+  | {type: "FETCH_ERROR"}
+  | {type: "ADD_NOTE"; payload: CaseNote};
+
+function notesReducer(state: NotesState, action: NotesAction):NotesState{
+  switch(action.type){
+    case "FETCH_START":
+      return {...state,loading: true, error: false};
+    case "FETCH_SUCCESS":
+      return {notes: action.payload,loading: false, error: false};
+    case "FETCH_ERROR":
+      return {...state,loading: false, error: true};
+    case "ADD_NOTE":
+      return {...state,notes: [...state.notes,action.payload]};
+    default:
+      return state;
+    
+  }
+}
+
 export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
-  const [notes, setNotes] = useState<CaseNote[]>([]);
+  const [state, dispatch]=useReducer(notesReducer,{
+    notes: [],
+    loading: true,
+    error: false,
+  });
   const [draft, setDraft] = useState("");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
-    getMockCaseNotes(caseId).then((data) => {
-      if (active) {
-        setNotes(data);
-        setLoading(false);
-      }
-    });
+    dispatch({type: "FETCH_START"});
+    getCaseNotes(caseId)
+      .then((data)=>{
+        if(active){
+          dispatch({type: "FETCH_SUCCESS", payload: data});
+        }
+      })
+      .catch(() =>{
+        if(active){
+          dispatch({type: "FETCH_ERROR"});
+        } 
+      });
     return () => {
       active = false;
     };
@@ -353,17 +407,24 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
     const content = draft.trim();
     if (!content) return;
     setSaving(true);
-    const note = await addMockCaseNote(caseId, content);
-    setNotes((prev) => [...prev, note]);
+    try{
+    const note = await addCaseNote(caseId, content);
+    dispatch({type: "ADD_NOTE",payload: note});
     setDraft("");
-    setSaving(false);
-  }
+    } catch{
+      dispatch({type: "FETCH_ERROR"});
+     } finally{
+        setSaving(false);
+      }
+    }
 
   return (
     <Panel title="Case Notes">
-      {loading && <LoadingState message="Loading notes ..." />}
+      {state.loading && <LoadingState message="Loading notes ..." />}
 
-      {!loading && notes.length === 0 && (
+      {state.error && <p className="text-xs text-red-600 mb-2">Something went wrong with notes.</p>}
+
+      {!state.loading && state.notes.length === 0 && (
         <div className="flex flex-col items-center justify-center text-center py-6 mb-3">
           <IconNote size={28} className="text-gray-300 mb-2" />
           <p className="text-sm font-medium text-gray-500">No notes yet</p>
@@ -373,9 +434,9 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
         </div>
       )}
 
-      {!loading && notes.length > 0 && (
+      {!state.loading && state.notes.length > 0 && (
         <div className="space-y-2 mb-3">
-          {notes.map((note) => (
+          {state.notes.map((note) => (
             <div
               key={note.id}
               className="flex items-start gap-2 p-3 rounded-lg bg-gray-50 dark:bg-navy-700 border border-gray-100 dark:border-white/5"
@@ -389,7 +450,7 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
                   {note.content}
                 </p>
                 <p className="text-xs text-gray-600 mt-0.5">
-                  {note.author} · {note.createdAt}
+                  {note.author} · {new Date(note.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>

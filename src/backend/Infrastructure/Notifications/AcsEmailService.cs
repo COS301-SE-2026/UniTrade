@@ -45,6 +45,24 @@ public class AcsEmailService : IEmailService
         await SendAsync(email, subject, html);
     }
 
+    public async Task SendPasswordResetOtpEmailAsync(string email, string otp)
+    {
+        var subject = "Your UniTrade Password Reset Code";
+        var html = $"""
+                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                    <h2 style="color: rgb(26, 26, 26);">Reset your UniTrade password</h2>
+                    <p style="color: #444;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
+                    
+                    <div style="background: #f4f4f4; border-radius: 8px; padding: 24px; text-align: center; margin: 24px 0;">
+                        <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: rgb(69, 47, 235);">{otp}</span>
+                    </div>
+                    
+                    <p style="color: #888; font-size: 13px;">If you didn't request a password reset, you can safely ignore this email — your password will not be changed.</p>
+                </div>
+            """;
+        await SendAsync(email, subject, html);
+    }
+
     public async Task SendWelcomeEmailAsync(string toEmail, string firstName)
     {
         var html = WelcomeHtml(firstName);
@@ -153,8 +171,8 @@ public class AcsEmailService : IEmailService
                           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:32px;">
                             <tr>
                               <td align="center">
-                                <a href="https://UniTrade.co.za" 
-                                   style="display:inline-block;background:#1a56db;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.2px;">
+                                <a href="https://ca-frontend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io/auth/HomePage" 
+                                  style="display:inline-block;background:#1a56db;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.2px;">
                                   Go to UniTrade
                                 </a>
                               </td>
@@ -241,14 +259,14 @@ public class AcsEmailService : IEmailService
         string? reason
     )
     {
-        var subject = "Update on a dispute involving your account";
+        var subject = "An update from UniTrade moderation";
         var reasonBlock = string.IsNullOrWhiteSpace(reason)
             ? ""
-            : $"<p style='color:#444;'<strong>Reason:</strong> {reason} </p>";
+            : $"<p style='color:#444;'><strong>Reason:</strong> {reason} </p>";
         var html = $"""
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
             <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
-            <p style="color:#444;">A dispute involving your account has been resolved.</p>
+            <p style="color:#444;">After reviewing a report, our moderation team made a decision on your account:</p>
             <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:16px 0;">
               <p style="margin:0;color:#0f2d6b;font-weight:bold;">{outcomeSummary}</p>
             </div>
@@ -257,6 +275,20 @@ public class AcsEmailService : IEmailService
             </div>
             """;
 
+        await SendAsync(toEmail, subject, html);
+    }
+
+    public async Task SendReportOutcomeEmailAsync(string toEmail, string firstName, string outcomeSummary)
+    {
+        var subject = "Update on the listing you reported";
+        var html = $"""
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+        <h2 style="color: rgb(26, 26, 26);">Hi {firstName},</h2>
+        <p style="color:#444;">Thanks for flagging a listing on UniTrade. After reviewing it, {outcomeSummary}.</p>
+        <p style="color:#444;">We appreciate you helping keep UniTrade safe for students.</p>
+        <p style="color:#888;font-size:13px;">You received this because you reported a listing on UniTrade.</p>
+    </div>
+    """;
         await SendAsync(toEmail, subject, html);
     }
 }

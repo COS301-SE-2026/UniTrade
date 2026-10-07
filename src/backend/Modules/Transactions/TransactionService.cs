@@ -5,6 +5,7 @@ using Modules.Reservations.StateMachine;
 using Modules.Transactions.Models;
 using Modules.Transactions.Models.Dto;
 using Modules.Transactions.Repositories;
+using Modules.Wishlist;
 
 namespace Modules.Transactions;
 
@@ -14,18 +15,24 @@ public class TransactionService : ITransactionsService
     private readonly ITransactionRepository _transactions;
     private readonly IBroadCastService _broadcast;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly IWishlistService _wishlist;
+    private readonly IMeetupRepository _meetups;
 
     public TransactionService(
         IReservationRepository reservations,
         IPaymentGateway paymentGateway,
         IBroadCastService broadcast,
-        ITransactionRepository transactions
+        ITransactionRepository transactions,
+        IWishlistService wishlist,
+        IMeetupRepository meetups
     )
     {
         _reservations = reservations;
         _transactions = transactions;
         _broadcast = broadcast;
         _paymentGateway = paymentGateway;
+        _wishlist = wishlist;
+        _meetups = meetups;
     }
 
     public async Task<TransactionRequestDto> CreatesTransactionReq(
@@ -37,25 +44,46 @@ public class TransactionService : ITransactionsService
         var reservation =
             await _reservations.GetByIdAsync(reservationId, ct)
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
+
+
         if (reservation.BuyerId != buyerId)
         {
             throw new TransactionException(TransactionErrors.NotBuyer);
         }
+
+        var meetup = await _meetups.GetActiveByReservationAsync(reservationId, ct);
 
         if (reservation.ReservationStatus != ReservationState.Active)
         {
             throw new TransactionException(TransactionErrors.InvalidStatus);
         }
 
-        var listing = reservation.ReservationListings.First().Listing;
+        if (meetup is null || !MeetupStateMachine.IsPaymentUnlocked(meetup))
+        {
+            throw new TransactionException("payment_not_unlocked");
+        }
+        if (reservation.TotalAmount <= 0m)
+        {
+            throw new TransactionException("invalid_amount");
+        }
         var buyer =
             reservation.Buyer
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
 
+        var listings = reservation.ReservationListings.Select(rl => rl.Listing).ToList();
+        var itemName = listings.Count switch
+        {
+            0 => "UniTrade reservation",
+            1 => listings[0].Title,
+            _ => reservation.BundleDiscountPercent is int pct
+                ? $"{listings.Count} items ({pct}% bundle discount)"
+                : $"{listings.Count} items",
+        };
+
         return _paymentGateway.CreatePaymentRequest(
             reservation.ReservationId,
-            listing.Title,
-            listing.Price,
+            itemName,
+            reservation.TotalAmount,
             buyer.FirstName ?? "",
             buyer.Email ?? ""
         );
@@ -82,7 +110,6 @@ public class TransactionService : ITransactionsService
         }
 
         var pin = GeneratePin();
-        var listing = reservation.ReservationListings.First().Listing;
 
         if (existing is null)
         {
@@ -91,7 +118,7 @@ public class TransactionService : ITransactionsService
                 ReservationId = reservationId,
                 BuyerId = reservation.BuyerId,
                 SellerId = reservation.SellerId,
-                Amount = listing.Price,
+                Amount = reservation.TotalAmount,
             };
 
             await _transactions.AddAsync(existing, ct);
@@ -184,12 +211,19 @@ public class TransactionService : ITransactionsService
             ?? throw new TransactionException(TransactionErrors.ReservationNotFound);
         reservation.ReservationStatus = ReservationState.Completed;
 
-        var listing = reservation.ReservationListings.First().Listing;
-        listing.ListingStatus = "sold";
+        foreach (var r1 in reservation.ReservationListings)
+        {
+            r1.Listing.ListingStatus = "sold";
+        }
 
         await _transactions.SaveAsync(ct);
         await _reservations.SaveAsync(ct);
 
+        foreach (var r1 in reservation.ReservationListings)
+        {
+            await _wishlist.CleanForListingAsync(r1.Listing.ListingId, ct);
+        }
+        await _broadcast.NotifyListingSoldAsync(reservation.ReservationListings.Select(rl => rl.Listing.ListingId).ToList());
         await _broadcast.SendToUserAsync(tx.SellerId, "pin_confirmed", new { reservationId });
     }
 

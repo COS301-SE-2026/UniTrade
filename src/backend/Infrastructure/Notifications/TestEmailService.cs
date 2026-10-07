@@ -8,6 +8,8 @@ public class TestEmailService : IEmailService
     private static readonly ConcurrentDictionary<string, string> _lastOtps = new();
     private static readonly ConcurrentDictionary<string, string> _lastDecisions = new();
     private static readonly ConcurrentDictionary<string, string> _lastDisputeOutcomes = new();
+    private static readonly ConcurrentDictionary<string, string> _lastPasswordResetOtps = new();
+    private static readonly ConcurrentDictionary<string, string> _lastReportOutcomes = new();
 
     public Task SendOtpEmailAsync(string email, string otp)
     {
@@ -53,6 +55,21 @@ public class TestEmailService : IEmailService
     {
         _lastDisputeOutcomes[toEmail.ToLowerInvariant()] = outcomeSummary;
 
+        return Task.CompletedTask;
+    }
+
+    public Task SendPasswordResetOtpEmailAsync(string email, string otp)
+    {
+        _lastPasswordResetOtps[email.ToLowerInvariant()] = otp;
+        return Task.CompletedTask;
+    }
+
+    public static string? GetLastPasswordResetOtp(string email) =>
+    _lastPasswordResetOtps.TryGetValue(email.ToLowerInvariant(), out var otp) ? otp : null;
+
+    public Task SendReportOutcomeEmailAsync(string toEmail, string firstName, string outcomeSummary)
+    {
+        _lastReportOutcomes[toEmail.ToLowerInvariant()] = outcomeSummary;
         return Task.CompletedTask;
     }
 }

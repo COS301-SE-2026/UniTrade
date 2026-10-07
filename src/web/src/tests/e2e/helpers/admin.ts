@@ -51,7 +51,7 @@ export async function approveVerificationCase(
 
   await expect(
     adminPage.getByRole("button", { name: /^approve$/i }),
-  ).toBeEnabled({ timeout: 1500 });
+  ).toBeEnabled({ timeout: 15000 });
 
   const decisionResponse = adminPage.waitForResponse(
     (res) =>

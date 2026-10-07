@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { listingsService } from "../../services/listingsService";
-import { formatPrice } from "../../utils/formatters";
+import { formatCondition, formatPrice } from "../../utils/formatters";
 import type {
   BrowseListing,
   BrowseCondition,
@@ -13,9 +13,15 @@ import {
   sortTheCategories,
 } from "../../utils/categoryUtils";
 import { useToast } from "../../components/layout/useToast";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import {
+  useQueryClient,
+  useQuery,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { LoadingState } from "../../components/layout/Spinner";
 import { IconMessageCircle2 } from "@tabler/icons-react";
+import { connectionManager } from "../../services/realtime/connectionManager";
+import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
 function CategoryCard({
   title,
@@ -30,12 +36,13 @@ function CategoryCard({
 }>) {
   return (
     <button
-      type='button'
+      type="button"
       onClick={onClick}
-      className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap ${active
-        ? "bg-navy-700 text-white border-navy-700"
-        : "bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
-        } ${className}`}
+      className={`px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap ${
+        active
+          ? "bg-navy-700 text-white border-navy-700"
+          : "bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
+      } ${className}`}
     >
       {title}
     </button>
@@ -61,10 +68,10 @@ function ListingCard({
   const queryClient = useQueryClient();
 
   const conditionColours: Record<BrowseCondition, string> = {
-    like_new: "bg-green-100 text-green-700",
-    Good: "bg-green-100 text-green-700",
-    Fair: "bg-yellow-100 text-yellow-700",
-    Poor: "bg-red-100 text-red-700",
+    new: "bg-green-100 text-green-700",
+    good: "bg-green-100 text-green-700",
+    fair: "bg-yellow-100 text-yellow-700",
+    poor: "bg-red-100 text-red-700",
   };
 
   const handleAddToWishlist = async (e: React.MouseEvent) => {
@@ -101,7 +108,7 @@ function ListingCard({
 
     if (result.success) {
       setReserved(true);
-      queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
+      queryClient.invalidateQueries({ queryKey: ["browseListings"] });
       navigate("/buyer/reservations");
     } else if (result.error.code === "self_reserve") {
       setReserveError("You can't reserve your own listing.");
@@ -109,7 +116,12 @@ function ListingCard({
     } else if (result.error.code === "already_reserved") {
       showToast("error", "Item was already reserved!!");
     } else if (result.error.code === "not_verified") {
-      showToast("error", "You need to complete verification before reserving items.");
+      showToast(
+        "error",
+        "You need to complete verification before reserving items.",
+      );
+    } else if (result.error.code === "buyer_suspended") {
+      showToast("error", getAccountStateErrorMessage("buyer_suspended", ""));
     } else {
       const msg = result.error.message ?? "Could not reserve this item.";
       showToast("error", msg);
@@ -124,14 +136,14 @@ function ListingCard({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();
         }
       }}
       className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col cursor-pointer hover:border-navy-700 dark:hover:border-white/30 transition-colors"
-      data-testid="listing-card">
-
+      data-testid="listing-card"
+    >
       <img
         src={listing.image}
         alt={listing.title}
@@ -145,14 +157,15 @@ function ListingCard({
           <span
             className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${conditionColours[listing.condition]}`}
           >
-            {listing.condition}
+            {formatCondition(listing.condition)}
           </span>
         </div>
 
         {(listing.answeredQuestionCount ?? 0) > 0 && (
           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-600 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded-full w-fit">
             <IconMessageCircle2 size={11} />
-            {listing.answeredQuestionCount} question{listing.answeredQuestionCount === 1 ? '' : 's'} answered
+            {listing.answeredQuestionCount} question
+            {listing.answeredQuestionCount === 1 ? "" : "s"} answered
           </span>
         )}
 
@@ -163,32 +176,36 @@ function ListingCard({
           {formatPrice(listing.price)}
         </p>
 
-        {reserveError && <p className="text-xs text-rose-600">{reserveError}</p>}
-        {wishlistError && <p className="text-xs text-rose-600">{wishlistError}</p>}
+        {reserveError && (
+          <p className="text-xs text-rose-600">{reserveError}</p>
+        )}
+        {wishlistError && (
+          <p className="text-xs text-rose-600">{wishlistError}</p>
+        )}
 
         <div className="flex flex-col gap-2 mt-auto pt-2">
           <button
-            type='button'
+            type="button"
             onClick={handleReserve}
             disabled={reserving || reserved}
             className="w-full py-2 bg-navy-700 text-white text-sm font-semibold rounded-lg hover:bg-navy-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {(() => {
-              if (reserved) return 'Reserved';
-              if (reserving) return 'Reserving...';
-              return 'Reserve';
+              if (reserved) return "Reserved";
+              if (reserving) return "Reserving...";
+              return "Reserve";
             })()}
           </button>
           <button
-            type='button'
+            type="button"
             onClick={handleAddToWishlist}
             disabled={wishlisting || wishlisted}
             className="w-full py-2 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
             {(() => {
-              if (wishlisted) return 'In Wishlist';
-              if (wishlisting) return 'Adding...';
-              return 'Add to Wishlist';
+              if (wishlisted) return "In Wishlist";
+              if (wishlisting) return "Adding...";
+              return "Add to Wishlist";
             })()}
           </button>
         </div>
@@ -198,20 +215,47 @@ function ListingCard({
 }
 
 type ConditionFilter = "All conditions" | BrowseCondition;
-type SortOption = "Newest" | "Oldest" | "Price Low" | "Price High";
-const PAGE_SIZE = 8;
+type SortOption =
+  | "Recommended"
+  | "Newest"
+  | "Oldest"
+  | "Price Low"
+  | "Price High";
+
+const PAGE_SIZE = 12;
+
+function mapSortToServer(s: SortOption): string {
+  switch (s) {
+    case "Recommended":
+      return "recommended";
+    case "Newest":
+      return "newest";
+    case "Oldest":
+      return "oldest";
+    case "Price High":
+      return "price_desc";
+    case "Price Low":
+      return "price_asc";
+    default:
+      return "recommended";
+  }
+}
 
 export default function BrowseAllListing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get('q') || '';
+  const searchQuery = searchParams.get('q') ?? '';
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [conditionFilter, setConditionFilter] =
     useState<ConditionFilter>("All conditions");
-  const [sortOption, setSortOption] = useState<SortOption>("Newest");
+  const [sortOption, setSortOption] = useState<SortOption>("Recommended");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const resetPage = () => setCurrentPage(1);
+
+
   const [showMoreCategories, setShowMoreCategories] = useState(false);
 
   useEffect(() => {
@@ -220,49 +264,86 @@ export default function BrowseAllListing() {
       .then((data) => {
         setCategories(sortTheCategories(data));
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
+const needle = searchQuery.trim().toLowerCase();
+const clientSearch = needle.length > 0;
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["browseListings", searchQuery],
-    queryFn: () =>
-      listingsService.getBrowseListings({
-        search: searchQuery || undefined,
-      }),
-  });
+const { data, isLoading, isFetching, error } = useQuery({
+  queryKey: [
+    "browseListings",
+    activeCategory,
+    conditionFilter,
+    sortOption,
+    clientSearch ? "all" : currentPage,
+  ],
+  queryFn: () =>
+    listingsService.getBrowseListingsPaginated({
+      page: clientSearch ? 1 : currentPage,
+      pageSize: clientSearch ? 500 : PAGE_SIZE,
+      categoryId: activeCategory ?? undefined,
+      condition:
+        conditionFilter === "All conditions" ? undefined : conditionFilter,
+      sortBy: mapSortToServer(sortOption),
+      listingStatus: "live",
+    }),
+  placeholderData: keepPreviousData,
+});
 
-  const allListings = data?.listings ?? [];
-  const total = data?.total ?? 0;
+const filtered = useMemo(() => {
+  const all = data?.listings ?? [];
+  return clientSearch
+    ? all.filter((l) => l.title.toLowerCase().includes(needle))
+    : all;
+}, [data?.listings, clientSearch, needle]);
 
-  const afterCategory =
-    activeCategory === "All"
-      ? allListings
-      : allListings.filter((l) => l.category === activeCategory);
+const total = clientSearch ? filtered.length : (data?.total ?? 0);
+const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+const listings = clientSearch
+  ? filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  : filtered;
 
-  const afterCondition =
-    conditionFilter === "All conditions"
-      ? afterCategory
-      : afterCategory.filter((l) => l.condition === conditionFilter);
-
-  const filtered = [...afterCondition].sort((a, b) => {
-    if (sortOption === "Price Low") return a.price - b.price;
-    if (sortOption === "Price High") return b.price - a.price;
-    return 0;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  const handleCategoryClick = (category: string) => {
-    setActiveCategory(category);
-    setCurrentPage(1);
+  const handleCategoryClick = (categoryId: number | null) => {
+    setActiveCategory(categoryId);
+    resetPage();
     setShowMoreCategories(false);
   };
 
+  const handleConditionChange = (value: ConditionFilter) => {
+    setConditionFilter(value);
+    resetPage();
+  };
+
+  const handleSortChange = (value: SortOption) => {
+    setSortOption(value);
+    resetPage();
+  };
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["browseListings"] });
+      }, 800);
+    };
+
+    connectionManager.connect().catch((e) => console.error("connect failed", e));
+
+    const offs = [
+      connectionManager.onListingChanged(refresh),
+      connectionManager.onListingSold(refresh),
+      connectionManager.onReconnected(refresh),
+    ];
+
+    return () => {
+      clearTimeout(timer);
+      offs.forEach((off) => off());
+    };
+  }, [queryClient]);
+  
   if (isLoading) {
     return <LoadingState message="Loading listings..." />;
   }
@@ -276,9 +357,11 @@ export default function BrowseAllListing() {
       </div>
     );
 
+  const firstOnPage = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const lastOnPage = Math.min(currentPage * PAGE_SIZE, total);
+
   return (
     <div className="flex flex-col gap-6">
-
       <div>
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Browse All Listings
@@ -288,28 +371,27 @@ export default function BrowseAllListing() {
         </p>
       </div>
 
-
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <CategoryCard
             key="All"
             title="All"
-            active={activeCategory === "All"}
-            onClick={() => handleCategoryClick("All")}
+            active={activeCategory === null}
+            onClick={() => handleCategoryClick(null)}
           />
           {categories.slice(0, 3).map((cat) => (
             <CategoryCard
               key={cat.id}
               title={getDisplayCategory(cat.name)}
-              active={activeCategory === cat.name}
-              onClick={() => handleCategoryClick(cat.name)}
+              active={activeCategory === cat.id}
+              onClick={() => handleCategoryClick(cat.id)}
             />
           ))}
 
           {categories.length > 3 && (
             <div className="relative md:hidden">
               <button
-                type='button'
+                type="button"
                 onClick={() => setShowMoreCategories(!showMoreCategories)}
                 className="px-5 py-2 rounded-full border text-sm font-medium capitalize transition-colors whitespace-nowrap bg-white dark:bg-navy-800 text-gray-700 dark:text-white/70 border-gray-300 dark:border-white/10 hover:border-navy-700"
               >
@@ -319,13 +401,14 @@ export default function BrowseAllListing() {
                 <div className="absolute z-50 mt-2 w-48 bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl shadow-lg py-2">
                   {categories.slice(3).map((cat) => (
                     <button
-                      type='button'
+                      type="button"
                       key={cat.id}
-                      onClick={() => handleCategoryClick(cat.name)}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${activeCategory === cat.name
-                        ? "text-navy-700 font-medium"
-                        : ""
-                        }`}
+                      onClick={() => handleCategoryClick(cat.id)}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-navy-700 text-sm capitalize ${
+                        activeCategory === cat.id
+                          ? "text-navy-700 font-medium"
+                          : ""
+                      }`}
                     >
                       {getDisplayCategory(cat.name)}
                     </button>
@@ -339,8 +422,8 @@ export default function BrowseAllListing() {
             <CategoryCard
               key={cat.id}
               title={getDisplayCategory(cat.name)}
-              active={activeCategory === cat.name}
-              onClick={() => handleCategoryClick(cat.name)}
+              active={activeCategory === cat.id}
+              onClick={() => handleCategoryClick(cat.id)}
               className="hidden md:inline-flex"
             />
           ))}
@@ -350,21 +433,22 @@ export default function BrowseAllListing() {
           <select
             value={conditionFilter}
             onChange={(e) =>
-              setConditionFilter(e.target.value as ConditionFilter)
+              handleConditionChange(e.target.value as ConditionFilter)
             }
             className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
           >
             <option value="All conditions">All conditions</option>
-            <option value="like_new">Like New</option>
-            <option value="Good">Good</option>
-            <option value="Fair">Fair</option>
-            <option value="Poor">Poor</option>
+            <option value="new">Like New</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
           </select>
           <select
             value={sortOption}
-            onChange={(e) => setSortOption(e.target.value as SortOption)}
+            onChange={(e) => handleSortChange(e.target.value as SortOption)}
             className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
           >
+            <option>Recommended</option>
             <option>Newest</option>
             <option>Oldest</option>
             <option>Price Low</option>
@@ -373,9 +457,22 @@ export default function BrowseAllListing() {
         </div>
       </div>
 
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {paginated.map((listing) => (
+      {!isFetching && listings.length === 0 && (
+        <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700 dark:text-white">
+            No listings match your filters
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Try clearing the condition or category filter.
+          </p>
+        </div>
+      )}
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity ${
+          isFetching ? "opacity-60" : "opacity-100"
+        }`}
+      >
+        {listings.map((listing) => (
           <ListingCard
             key={listing.id}
             listing={listing}
@@ -386,37 +483,31 @@ export default function BrowseAllListing() {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <p className="text-sm text-gray-400">
-          Showing {filtered.length} of {total} listings
+          Showing {firstOnPage}-{lastOnPage} of {total} listings
         </p>
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-400 whitespace-nowrap">
-            Showing{" "}
-            {paginated.length === 0
-              ? 0
-              : (currentPage - 1) * PAGE_SIZE + 1}
-            -
-            {Math.min(currentPage * PAGE_SIZE, filtered.length)} of{" "}
-            {filtered.length} listings
-          </p>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
-              (page) => (
-                <button
-                  type='button'
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === page
-                    ? "bg-navy-700 text-white"
-                    : "bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700"
-                    }`}
-                >
-                  {page}
-                </button>
-              )
-            )}
-          </div>
+        <div className="flex gap-1">
+          {buildPageWindow(currentPage, totalPages).map((p) => (
+            <button
+              type="button"
+              key={p}
+              onClick={() => setCurrentPage(p)}
+              className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
+                currentPage === p
+                  ? "bg-navy-700 text-white"
+                  : "bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/20 text-gray-600 dark:text-white hover:border-navy-700"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
         </div>
       </div>
     </div>
   );
+}
+
+function buildPageWindow(current: number, total: number): number[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.max(1, Math.min(current - 3, total - 6));
+  return Array.from({ length: 7 }, (_, i) => start + i);
 }

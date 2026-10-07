@@ -1,4 +1,7 @@
 using Modules.Reservations.Models.Dto;
+using Modules.Reservations.Models;
+
+
 
 namespace Modules.Reservations;
 
@@ -53,4 +56,16 @@ public interface IReservationService
         DateTime asOfTime,
         CancellationToken ct
     );
+
+    Task<ReserveMultipleResultDto> ReserveMultipleAsync(
+        Guid buyerId,
+        Guid sellerId,
+        IReadOnlyList<Guid> listingIds,
+        BundleRule? bundleRule = null,
+        decimal? maxTotal = null,
+        CancellationToken ct = default
+    );
+
+    Task<ReservationDto> CancelBySystemAsync(Guid reservationId, string reason, CancellationToken ct = default);
+
 }

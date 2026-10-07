@@ -16,8 +16,13 @@ public record ReservationListItemDto(
     DateTime ExpiresAt,
     DateTime CreatedAt,
     CounterPartyDto CounterParty,
-    ReservationListingSummaryDto Listing,
+    IReadOnlyList<ReservationListingSummaryDto> Listings,
+    decimal TotalPrice,
+    bool IsBundle,
     int UnreadCount,
     string? LastMessagePreview,
-    DateTime? LastMessageAt
+    DateTime? LastMessageAt,
+    decimal SubTotal = 0m,
+    decimal DiscountAmount = 0m,
+    int? BundleDiscountPercent = null
 );

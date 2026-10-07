@@ -42,7 +42,7 @@ export async function createSellerListing(
   await sellerPage
     .getByPlaceholder("Description")
     .fill("A listing created by an automated test.");
-  await sellerPage.locator('input[type="number"]').fill(String(price));
+  await sellerPage.locator("#price").fill(String(price));
 
   await sellerPage.setInputFiles(
     'input[type="file"]',
@@ -91,7 +91,7 @@ export async function createListingAndReserve(
 
   const { listingTitle, price } = await createSellerListing(sellerPage);
 
-const buyerAdminContext = await browser.newContext();
+  const buyerAdminContext = await browser.newContext();
   const buyerAdminPage = await buyerAdminContext.newPage();
   await signupVerifyAndLogin(buyerPage, request, buyerAdminPage, {
     email: uniqueEmail("buyer"),
@@ -125,13 +125,15 @@ const buyerAdminContext = await browser.newContext();
 
   await sellerPage.goto("/seller/reservations");
 
-  await Promise.all([sellerPage.waitForResponse(
-    (res) => /\/reservations\/.+\/acknowledge/i.test(res.url()) && res.request().method() === "POST" && res.ok(),
-
-  ),
-     sellerPage.getByRole("button", { name: "Accept Reservation" }).click(),
-
-]);
+  await Promise.all([
+    sellerPage.waitForResponse(
+      (res) =>
+        /\/reservations\/.+\/acknowledge/i.test(res.url()) &&
+        res.request().method() === "POST" &&
+        res.ok(),
+    ),
+    sellerPage.getByRole("button", { name: "Accept Reservation" }).click(),
+  ]);
 
   await sellerPage.goto(`/seller/messages/${reservationId}`);
   await buyerPage.reload();
@@ -164,10 +166,18 @@ export async function scheduleMeetupAndCheckIn(
     sellerPage.getByRole("heading", { name: "Propose a Meetup" }),
   ).toBeVisible();
 
+  const enterManual = sellerPage
+    .getByRole("button", { name: /enter a time manually/i })
+    .first();
+
+  await enterManual.waitFor({ state: "visible", timeout: 20000 });
+  await enterManual.click();
+
   const scheduledTime = await sellerPage.evaluate(() => {
     const d = new Date(Date.now() + 300_000);
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
+
   await sellerPage.locator('input[type="time"]').fill(scheduledTime);
 
   await sellerPage
@@ -180,12 +190,48 @@ export async function scheduleMeetupAndCheckIn(
     name: /send proposal/i,
   });
   await expect(sendProposal).toBeEnabled();
+
+  const proposeResp = sellerPage.waitForResponse(
+    (res) =>
+      res.url().includes("/meetup/propose") &&
+      res.request().method() === "POST",
+    { timeout: 15000 },
+  );
+
   await sendProposal.click();
 
-  await expect(
-    buyerPage.getByText("Meetup Proposal", { exact: true }),
-  ).toBeVisible({ timeout: 10000 });
+  const proposeRes = await proposeResp;
+
+  console.log(`[meetup] propose status: ${proposeRes.status()}`);
+
+  await buyerPage.waitForTimeout(800);
+
+  await buyerPage.goto(`/buyer/messages/${reservationId}`);
+
+  try {
+    await expect(
+      buyerPage.getByText("Meetup Proposal", { exact: true }),
+    ).toBeVisible({ timeout: 10000 });
+  } catch (err) {
+    const text = await buyerPage
+      .locator("body")
+      .innerText()
+      .catch(() => "<no body>");
+    console.error(`[meetup] buyer page after propose:\n${text.slice(0, 2000)}`);
+    throw err;
+  }
+
+  const acceptResp = buyerPage.waitForResponse(
+    (resp) =>
+      resp.url().includes(`/reservations/${reservationId}/meetup/accept`) &&
+      resp.request().method() === "POST",
+    { timeout: 15000 },
+  );
   await buyerPage.getByRole("button", { name: "Accept", exact: true }).click();
+
+  await acceptResp;
+
+  await buyerPage.goto(`/payment/meetup/${reservationId}`);
   await expect(
     buyerPage.getByRole("heading", { name: "Meetup Details" }),
   ).toBeVisible({ timeout: 10000 });
@@ -212,7 +258,7 @@ export async function scheduleMeetupAndCheckIn(
     .getByRole("button", { name: "DONE" })
     .click({ timeout: 15000 });
 
-  await sellerPage.getByRole("button", { name: "View Reservation" }).click();
+  await buyerPage.goto(`/payment/meetup/${reservationId}`);
   await sellerPage.getByRole("button", { name: "View Meetup Details" }).click();
   await expect(
     sellerPage.getByRole("heading", { name: "Meetup Details" }),

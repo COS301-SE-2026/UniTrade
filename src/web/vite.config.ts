@@ -74,6 +74,7 @@ export default defineConfig({
         "**/assets/**",
         "**/types/**",
         "**/*/d.ts",
+        'src/tests/lighthouse/**',
         "src/pages/admin",
         "src/components",
         "src/services",
