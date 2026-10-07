@@ -85,11 +85,13 @@ function VerificationStatusModal({
   rejectionReason,
   onProceed,
   onClose,
+  onCloseLogin,
 }: Readonly<{
   status: VerificationModalStatus
   rejectionReason?: string | null
   onProceed: () => void
   onClose: () => void
+  onCloseLogin: () => void
 }>) {
   const content = getVerificationModalContent(status, rejectionReason)
 
@@ -103,7 +105,7 @@ function VerificationStatusModal({
             <>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={onCloseLogin}
                 className="flex-1 rounded-full bg-navy-700 text-white font-bold text-sm py-3 hover:bg-sky-900 transition-colors"
               > Cancel
               </button>
@@ -215,11 +217,15 @@ const Login: React.FC = () => {
   const handleModalClose = () => {
     setVerificationModal(null)
     if (pendingRole) proceedToDestination(pendingRole)
-  }
+      }
 
   const handleModalProceed = () => {
     setVerificationModal(null)
     navigate('/auth/ProofUpload')
+  }
+  const handleCancelOnLogin = () => {
+    setVerificationModal(null)
+    navigate('/auth/login')
   }
   return (
     <div className="min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16">
@@ -303,6 +309,7 @@ const Login: React.FC = () => {
           onProceed={handleModalProceed}
           rejectionReason={modalRejectionReason}
           onClose={handleModalClose}
+          onCloseLogin = {handleCancelOnLogin}
         />
       )}
 
