@@ -153,7 +153,7 @@ UniTrade provides a structured, verified marketplace where students can list, br
   <b>Sabira Karie</b><br />
   <sub>DevOps & Backend Engineer</sub><br/><br/>
   <a href="https://github.com/Sabira-k-commits"><img src="https://img.shields.io/badge/-GitHub-0d1f4e?style=round-square&logo=github&logoColor=F5F3F4&labelColor=161A1D"/></a>
-<a href="https://www.linkedin.com/in/saira-kaire-666365378/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
+<a href="https://www.linkedin.com/in/sabira-karie-666365378/"><img src="https://img.shields.io/badge/-LinkedIn-04B4FD?style=round-square&logo=linkedin&logoColor=F5F3F4&labelColor=161A1D"/></a>
   </td>
   <td align="center" width="20%">
   
