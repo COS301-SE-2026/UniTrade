@@ -85,11 +85,13 @@ function VerificationStatusModal({
   rejectionReason,
   onProceed,
   onClose,
+  onCloseLogin,
 }: Readonly<{
   status: VerificationModalStatus
   rejectionReason?: string | null
   onProceed: () => void
   onClose: () => void
+  onCloseLogin: () => void
 }>) {
   const content = getVerificationModalContent(status, rejectionReason)
 
@@ -103,7 +105,7 @@ function VerificationStatusModal({
             <>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={onCloseLogin}
                 className="flex-1 rounded-full bg-navy-700 text-white font-bold text-sm py-3 hover:bg-sky-900 transition-colors"
               > Cancel
               </button>
@@ -141,7 +143,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [verificationModal, setVerificationModal] = useState<VerificationModalStatus | null>(null)
-  const [, setPendingRole] = useState<UserRole | null>(null)
+  const [pendingRole, setPendingRole] = useState<UserRole | null>(null)
   const [modalRejectionReason, setModalRejectionReason] = useState<string | null>(null)
   const [showForgotModal, setShowForgotModal] = useState(false)
 
@@ -212,10 +214,10 @@ const Login: React.FC = () => {
     }
   }
 
-  {/*const handleModalClose = () => {
+  const handleModalClose = () => {
     setVerificationModal(null)
     if (pendingRole) proceedToDestination(pendingRole)
-      }*/}
+      }
 
   const handleModalProceed = () => {
     setVerificationModal(null)
@@ -306,7 +308,8 @@ const Login: React.FC = () => {
           status={verificationModal}
           onProceed={handleModalProceed}
           rejectionReason={modalRejectionReason}
-          onClose={handleCancelOnLogin}
+          onClose={handleModalClose}
+          onCloseLogin = {handleCancelOnLogin}
         />
       )}
 
