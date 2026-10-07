@@ -110,6 +110,7 @@ export default function MeetupProposalForm({
             return result.data;
         },
         enabled: !!reservationId,
+        refetchOnMount: "always",
     });
 
     const isReservationUnavailable =
