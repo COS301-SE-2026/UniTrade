@@ -5,9 +5,47 @@ import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
 import type { UserRole } from '../../store/useAuthStore'
-import { IconEye, IconEyeOff } from '@tabler/icons-react'
+import { IconEye, IconEyeOff, IconArrowLeft } from '@tabler/icons-react'
 import ForgotPasswordModal from '../../components/layout/ForgotPasswordModal'
+import logo from "../../assets/Transaprent Logo.png"
 //import { useToast } from '../../components/layout/useToast'
+
+
+function Navbar() {
+  const navigate = useNavigate();
+  return (
+    <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
+      <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all"
+          >
+            <IconArrowLeft size={20} />
+          </button>
+          <div className="flex items-end gap-2">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <img
+                src={logo}
+                alt="UniTrade Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+                }}
+              />
+            </div>
+            <h1 className="font-bold text-navy-700 dark:text-white text-3xl leading-none">
+              UniTrade
+            </h1>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
 
 interface ApiError {
   message: string
@@ -47,11 +85,13 @@ function VerificationStatusModal({
   rejectionReason,
   onProceed,
   onClose,
+  onCloseLogin,
 }: Readonly<{
   status: VerificationModalStatus
   rejectionReason?: string | null
   onProceed: () => void
   onClose: () => void
+  onCloseLogin: () => void
 }>) {
   const content = getVerificationModalContent(status, rejectionReason)
 
@@ -65,7 +105,7 @@ function VerificationStatusModal({
             <>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={onCloseLogin}
                 className="flex-1 rounded-full bg-navy-700 text-white font-bold text-sm py-3 hover:bg-sky-900 transition-colors"
               > Cancel
               </button>
@@ -180,13 +220,20 @@ const Login: React.FC = () => {
   const handleModalClose = () => {
     setVerificationModal(null)
     if (pendingRole) proceedToDestination(pendingRole)
-  }
+      }
 
   const handleModalProceed = () => {
     setVerificationModal(null)
     navigate('/auth/ProofUpload')
   }
+  const handleCancelOnLogin = () => {
+    setVerificationModal(null)
+    navigate('/auth/login')
+  }
   return (
+    <div className="min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16">
+      <Navbar />
+
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
       <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
 
@@ -265,6 +312,7 @@ const Login: React.FC = () => {
           onProceed={handleModalProceed}
           rejectionReason={modalRejectionReason}
           onClose={handleModalClose}
+          onCloseLogin = {handleCancelOnLogin}
         />
       )}
 
@@ -278,6 +326,7 @@ const Login: React.FC = () => {
     />
     )}
       </div>
+    </div>
     )
   }
 

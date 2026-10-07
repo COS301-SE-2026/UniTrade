@@ -5,8 +5,45 @@ import { authService } from '../../services/authService'
 import type { University } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
 import { useAuthStore } from '../../store/useAuthStore'
-import { IconEye, IconEyeOff } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconArrowLeft } from "@tabler/icons-react";
 import TersmAndConditions from '../../components/legal/TermsandConditions'
+import logo from "../../assets/Transaprent Logo.png"
+
+
+function Navbar() {
+  const navigate = useNavigate();
+  return (
+    <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
+      <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all"
+          >
+            <IconArrowLeft size={20} />
+          </button>
+          <div className="flex items-end gap-2">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <img
+                src={logo}
+                alt="UniTrade Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/120x40/0d1f4e/white?text=UniTrade";
+                }}
+              />
+            </div>
+            <h1 className="font-bold text-navy-700 dark:text-white text-3xl leading-none">
+              UniTrade
+            </h1>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
 
 interface ApiError {
   message: string
@@ -60,6 +97,10 @@ const Signup: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  if (name === 'yearOfStudy') {
+      const cleaned = value.replace(/[^0-9]/g, '').slice(0, 1); 
+      setFormData((prev) => ({ ...prev, [name]: cleaned }));
+    }
   };
 
   const handleTermsAccept = () => {
@@ -78,13 +119,27 @@ const Signup: React.FC = () => {
       return
     }
 
+    const cleaned = {
+      ...formData,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim(),
+      degreeProgram: formData.degreeProgram.trim(),
+      yearOfStudy: formData.yearOfStudy.trim(),
+    }
+
+    if(!cleaned.yearOfStudy){
+      setError('Please enter your year of study')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      await authService.register({...formData, termsAcceptedAt})
+      await authService.register({...cleaned, termsAcceptedAt})
       // save email so OTP page knows who to verify
-      setPendingEmail(formData.email)
+      setPendingEmail(cleaned.email)
       navigate('/verify-otp')
     } catch (err: unknown) {
       const error = err as ApiError
@@ -95,6 +150,9 @@ const Signup: React.FC = () => {
   }
 
   return (
+    <div className="min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16">
+      <Navbar />
+
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
       <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
         <div className="flex w-full flex-col justify-center px-12 py-12 md:w-3/5 lg:px-20">
@@ -165,7 +223,7 @@ const Signup: React.FC = () => {
               </div>
               <div>
                 <label htmlFor='year' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
-                <input id="year" type="text" name="yearOfStudy" placeholder="Year of Study" value={formData.yearOfStudy} onChange={handleChange} required
+                <input id="year" type="text" name="yearOfStudy" placeholder="e.g. 2" value={formData.yearOfStudy} onChange={handleChange}  maxLength={1} required
                   className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
@@ -227,6 +285,7 @@ const Signup: React.FC = () => {
       onAccept={handleTermsAccept}
       onDecline={handleTermsDecline}
       />
+    </div>
     </div>
   )
 }

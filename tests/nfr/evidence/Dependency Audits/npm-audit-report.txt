@@ -1,20 +1,91 @@
 # npm audit report
 
-brace-expansion  4.0.0 - 5.0.11
-Severity: high
-brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service - https://github.com/advisories/GHSA-q2hr-2g5m-vwhr
-brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion - https://github.com/advisories/GHSA-qhr7-859c-m2p7
-brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion - https://github.com/advisories/GHSA-6j4f-fj2g-mc7p
-fix available via `npm audit fix`
-node_modules/brace-expansion
-
-fast-uri  3.0.0 - 3.1.7
+@opentelemetry/instrumentation-knex  <0.65.0
 Severity: moderate
-fast-uri vulnerable to inconsistent host case normalization via percent-encoded octets - https://github.com/advisories/GHSA-hrr3-gc8f-f4qj
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix --force`
+Will install lighthouse@12.6.1, which is a breaking change
+node_modules/@opentelemetry/instrumentation-knex
+  @sentry/node  8.0.0-alpha.1 - 10.53.1
+  Depends on vulnerable versions of @opentelemetry/instrumentation-knex
+  Depends on vulnerable versions of @opentelemetry/instrumentation-mongoose
+  Depends on vulnerable versions of @opentelemetry/instrumentation-mysql
+  Depends on vulnerable versions of @opentelemetry/instrumentation-mysql2
+  Depends on vulnerable versions of @opentelemetry/instrumentation-pg
+  Depends on vulnerable versions of @opentelemetry/instrumentation-tedious
+  node_modules/@sentry/node
+    lighthouse  12.6.1-dev.20250602 - 12.6.1-dev.20250626 || 12.7.0-dev.20250627 - 13.4.0
+    Depends on vulnerable versions of @sentry/node
+    node_modules/lighthouse
+
+@opentelemetry/instrumentation-mongoose  <0.67.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix --force`
+Will install lighthouse@12.6.1, which is a breaking change
+node_modules/@opentelemetry/instrumentation-mongoose
+
+@opentelemetry/instrumentation-mysql  <0.67.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
 fix available via `npm audit fix`
-node_modules/fast-uri
+node_modules/@opentelemetry/instrumentation-mysql
 
-2 vulnerabilities (1 moderate, 1 high)
+@opentelemetry/instrumentation-mysql2  <0.67.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix`
+node_modules/@opentelemetry/instrumentation-mysql2
 
-To address all issues, run:
+@opentelemetry/instrumentation-pg  <0.73.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix`
+node_modules/@opentelemetry/instrumentation-pg
+
+@opentelemetry/instrumentation-tedious  <0.40.0
+Severity: moderate
+Multiple @opentelemetry/instrumentation-* packages expose database username via unconditional db.user span attribute - https://github.com/advisories/GHSA-qqmp-wf37-98f9
+fix available via `npm audit fix`
+node_modules/@opentelemetry/instrumentation-tedious
+
+braces  *
+Severity: high
+braces vulnerable to stack-exhaustion denial of service through deeply nested patterns - https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
+fix available via `npm audit fix --force`
+Will install tailwindcss@4.3.3, which is a breaking change
+node_modules/braces
+  chokidar  2.0.0 - 3.6.0
+  Depends on vulnerable versions of braces
+  node_modules/chokidar
+    tailwindcss  <=0.0.0-oxide-insiders.ff2c25f || 0.5.0 - 3.4.19
+    Depends on vulnerable versions of chokidar
+    Depends on vulnerable versions of fast-glob
+    Depends on vulnerable versions of micromatch
+    Depends on vulnerable versions of postcss-nested
+    Depends on vulnerable versions of postcss-selector-parser
+    node_modules/tailwindcss
+  micromatch  >=0.2.0
+  Depends on vulnerable versions of braces
+  node_modules/micromatch
+    fast-glob  *
+    Depends on vulnerable versions of micromatch
+    node_modules/fast-glob
+
+postcss-selector-parser  <7.1.6
+Severity: moderate
+PostCSS: Quadratic complexity in flat selector parsing allows CPU exhaustion - https://github.com/advisories/GHSA-rj75-hqrm-r3gf
+fix available via `npm audit fix --force`
+Will install tailwindcss@4.3.3, which is a breaking change
+node_modules/postcss-selector-parser
+  postcss-nested  2.0.3 - 6.2.0
+  Depends on vulnerable versions of postcss-selector-parser
+  node_modules/postcss-nested
+
+15 vulnerabilities (10 moderate, 5 high)
+
+To address issues that do not require attention, run:
   npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force

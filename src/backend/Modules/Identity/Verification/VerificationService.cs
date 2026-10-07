@@ -165,7 +165,7 @@ public class VerificationService : IVerificationService
         {
             User.StudentProfile.VerificationStatus = "partial";
             await _users.UpdateAsync(User);
-            await _emails.SendWelcomeEmailAsync(User.Email, User.FirstName);
+            
         }
         return true;
     }
@@ -288,6 +288,18 @@ public class VerificationService : IVerificationService
         {
             case VerificationDecision.Approve:
                 await _broadcast.SendToUserAsync(vr.UserId, "verification_approved", new { });
+                try 
+                {
+                    await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Failed to send welcome email for {UserId}",
+                        vr.UserId
+                    );
+                }
                 break;
             case VerificationDecision.Reject:
                 await _broadcast.SendToUserAsync(
