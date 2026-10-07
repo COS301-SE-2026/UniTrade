@@ -79,6 +79,13 @@ const typeBadge: Record<
   report_listing: { label: "Report listing", tone: "blue" },
 };
 
+const HIDE_MANUAL_STRIKE: DisputeType[]=[
+  "no_show",
+  "listing_quality",
+];
+
+
+
 const decisionLabel: Record<DisputeDecision, string> = {
   uphold: "Uphold Dispute",
   dismiss: "Dismiss Dispute",
@@ -511,6 +518,7 @@ export default function AdminDisputeReview() {
 
   const dispute = state.data;
   const badge = typeBadge[dispute.type as DisputeType];
+  const showManualStrike= !HIDE_MANUAL_STRIKE.includes(dispute.type);
 
   return (
     <div className="space-y-4">
@@ -620,12 +628,13 @@ export default function AdminDisputeReview() {
                     suggestedDecision={dispute.suggestedDecision}
                   />
 
+                  {showManualStrike && (
                   <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 dark:border-white/5">
                     <p className="text-xs font-medium text-gray-500">
                       Manual strike (conduct)
                     </p>
                     <p className="text-xs text-gray-500">
-                      Penalise whichever party the evidence shows misbehaved —
+                      Penalise whichever party the evidence shows misbehaved -
                       including a false or vindictive reporter. Separate from
                       the decision above.
                     </p>
@@ -679,6 +688,7 @@ export default function AdminDisputeReview() {
                       <p className="text-xs text-green-600">{strikeSuccess}</p>
                     )}
                   </div>
+                  )}
                 </div>
               )}
             </div>
