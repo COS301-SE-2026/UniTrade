@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router'
 import girl from '../../assets/girl.webp'
 import { authService } from '../../services/authService'
 import { getAuthErrorMessage } from '../../utils/authErrors'
@@ -152,9 +152,12 @@ const Login: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const location=useLocation();
+  const from=(location.state as { from?: string} | null)?.from
+
   const proceedToDestination = (role: UserRole) => {
     if (role === 'admin') navigate('/admin/disputes')
-    else navigate('/buyer/listings')
+    else navigate(from ?? '/buyer/listings')
   }
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
 
