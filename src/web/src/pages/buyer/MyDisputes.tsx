@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "../../lib/queryKeys";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import chemImg from "../../assets/bio-textbook.jpg";
 import calcImg from "../../assets/calculas-textbook.jpg";
 import laptopImg from "../../assets/hp-laptop.jpg";
@@ -48,12 +48,14 @@ function getPlaceholder(type: CaseType): string {
   return map[type] ?? chemImg;
 }
 export default function MyDisputes() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<
     "all" | "No-show" | "Listing-quality" | "Report"
   >("all");
   const [roleFilter, setRoleFilter] = useState<"all" | ViewerRole>("all");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") ?? "";
+
   const {
     data: rows = [],
     isLoading,
@@ -80,10 +82,8 @@ export default function MyDisputes() {
   });
 
   const filteredRows = rows.filter((row) => {
-    const matchSearch = row.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    if (!matchSearch) return false;
+    if (!row.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      return false;
     if (filter !== "all" && row.type !== filter) return false;
     if (roleFilter !== "all" && row.viewerRole !== roleFilter) return false;
     return true;
@@ -115,9 +115,7 @@ export default function MyDisputes() {
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
-          className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3"
-        >
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">
             {totalDisputes}
           </div>
@@ -131,9 +129,7 @@ export default function MyDisputes() {
             <div className="text-xs text-gray-600 mt-0.5">Filed by You</div>
           </div>
         </div>
-        <div
-          className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3"
-        >
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">
             {againstYou}
           </div>
@@ -148,18 +144,7 @@ export default function MyDisputes() {
       </div>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative max-w-xs w-full sm:w-auto">
-            <input
-              type="text"
-              placeholder="Search disputes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-4 pr-4 py-2 bg-gray-200/60 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-navy-700"
-            />
-          </div>
-          <div
-            className="inline-flex items-center rounded-full border border-gray-300 bg-white p-0.5 text-xs font-semibold"
-          >
+          <div className="inline-flex items-center rounded-full border border-gray-300 bg-white p-0.5 text-xs font-semibold">
             {(
               [
                 { key: "all", label: "All" },
@@ -173,9 +158,9 @@ export default function MyDisputes() {
                 onClick={() => setRoleFilter(opt.key)}
                 className={`px-3 py-1.5 rounded-full transition-colors cursor-pointer
     ${
-  roleFilter === opt.key
-    ? "bg-navy-700 text-white"
-    : "text-gray-600 hover:bg-gray-50"
+      roleFilter === opt.key
+        ? "bg-navy-700 text-white"
+        : "text-gray-600 hover:bg-gray-50"
     }`}
               >
                 {opt.label}
