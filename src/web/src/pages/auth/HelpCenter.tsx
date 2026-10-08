@@ -379,7 +379,7 @@ export default function HelpCenter() {
       {!hasResults && (
         <div className="max-w-5xl mx-auto px-6 mt-10">
           <p className="text-center text-sm text-gray-400 py-6">
-            No results for "{searchQuery}". Try a different word, or ask Alex.
+            No results for "{searchQuery}". Try a different word.
           </p>
         </div>
       )}
