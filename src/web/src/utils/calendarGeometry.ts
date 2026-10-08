@@ -18,11 +18,13 @@ export function snapMinutes(
 export function pixelToMinutes(
   offsetY: number,
   columnHeightPx: number,
+  snap: number = SnapMinutes,
+
 ): number {
   const height = columnHeightPx > 0 ? columnHeightPx : 600;
   const fraction = clamp(offsetY / height, 0, 1);
   const rawMinutes = DAY_START_MINUTES + fraction * WINDOW_MINUTES;
-  return clamp(snapMinutes(rawMinutes), DAY_START_MINUTES, DAY_END_MINUTES);
+  return clamp(snapMinutes(rawMinutes, snap), DAY_START_MINUTES, DAY_END_MINUTES);
 }
 
 export function minutesToTopPercent(minutes: number): number {

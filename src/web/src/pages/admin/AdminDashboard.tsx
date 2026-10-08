@@ -4,7 +4,6 @@ import {
   IconClock,
   IconFlag,
   IconUsers,
-  IconGavel,
   //IconTrendingUp,
 } from '@tabler/icons-react'
 import { getTopDisputes, getTopVerifications, getTotalUsers, getFlaggedListings,getUsers,getAuditEntries,getCaseCounts } from '../../services/adminService'
@@ -203,10 +202,6 @@ export default function AdminDashboard() {
     queryFn: async() => (await getUsers({ verificationStatus: 'pending',limit:1})).total,
   })
 
-      const strikeUsers = useQuery({
-    queryKey: [...queryKeys.dashboardStats(), 'usersWithStrikes'],
-    queryFn: () => getUsers({hasStrikes:true, limit:1}),
-  })
 
       const audit = useQuery({
     queryKey: ['admin','audit','recent'],
@@ -226,7 +221,6 @@ export default function AdminDashboard() {
   const cc = counts.data
   const plus = cc?.truncated ? '+' : ''
   const slaBreached = cc?.slaBreached ?? 0
-  const strikeCount = strikeUsers.data?.total ?? 0
 
   return (
     <div className="space-y-6">
@@ -286,17 +280,7 @@ export default function AdminDashboard() {
          
           icon={<IconUsers size={13} />}
           />
-
-      <StatCard
-          title="Users with strikes"
-          to="/admin/users?hasStrikes=true"
-          loading={strikeUsers.isLoading}
-          error={strikeUsers.isError}
-          value={strikeCount}
-          sub={strikeCount > 0 ? 'Have active strikes' : 'No strikes issued'}
-          subColor={strikeCount > 0 ? 'text-amber-700' : 'text-green-700'}
-          icon={<IconGavel size={13} />}
-        />
+        
       </div>
  
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
