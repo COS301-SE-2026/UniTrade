@@ -434,7 +434,7 @@ export default function MeetupProposalForm({
                                 return (
                                   <div
                                     key={`${s.date}-${s.start}`}
-                                    className="absolute left-0.5 right-0.5 rounded bg-emerald-100/70 border border-emerald-300 pointer-events-none"
+                                    className="absolute left-0.5 right-0.5 rounded-sm bg-emerald-100/70 border border-emerald-300 pointer-events-none"
                                     style={{
                                       top: `${minutesToTopPercent(startM)}%`,
                                       height: `${minutesToHeightPercent(endM - startM)}%`,
@@ -580,7 +580,7 @@ export default function MeetupProposalForm({
                   value={date}
                   min={todayISODate()}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700/20"
+                  className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-700/20"
                 />
               </div>
               <div className="relative">
@@ -593,7 +593,7 @@ export default function MeetupProposalForm({
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700/20"
+                  className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-700/20"
                 />
               </div>
               {availability?.status === "ok" && slots.length > 0 && (
@@ -628,7 +628,7 @@ export default function MeetupProposalForm({
                 setNameEdited(true);
               }}
               placeholder="e.g. Merensky Library - Main Entrance"
-              className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700/20"
+              className="w-full bg-gray-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-700/20"
             />
           </div>
           <p className="text-xs text-gray-400 mb-3 px-1">

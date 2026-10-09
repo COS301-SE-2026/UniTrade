@@ -199,7 +199,7 @@ export default function Users() {
               setSortBy(e.target.value as SortBy);
               setCurrentPage(1);
             }}
-            className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-none cursor-pointer w-full sm:w-auto'
+            className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-hidden cursor-pointer w-full sm:w-auto'
           >
             <option value="Name A-Z">Sort: Name A-Z</option>
             <option value="Name Z-A">Sort: Name Z-A</option>

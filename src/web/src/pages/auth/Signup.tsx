@@ -171,19 +171,19 @@ const Signup: React.FC = () => {
               <div>
                 <label htmlFor="fname" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">First Name</label>
                 <input id="fname" type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required
-                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
               <div>
                 <label htmlFor="lname" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Last Name</label>
                 <input id="lname" type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} required
-                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
 
             <div>
               <label htmlFor="email" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Student Email</label>
               <input id="email" type="text" inputMode="email" name="email" placeholder="Student Email" value={formData.email} onChange={handleChange} required
-                className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
             </div>
 
             <div>
@@ -195,7 +195,7 @@ const Signup: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={uniLoading}
-                className={`w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1
+                className={`w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1
                  focus:ring-sky-500 transition-all disabled:opacity-60 ${formData.university === "" ? "text-gray-600" : "text-gray-900"}`}>
                 <option value="" style={{ color: "#374151"}}>
                   {uniLoading
@@ -219,12 +219,12 @@ const Signup: React.FC = () => {
               <div>
                 <label htmlFor='degree' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Degree Program</label>
                 <input id="degree" type="text" name="degreeProgram" placeholder="Degree Program" value={formData.degreeProgram} onChange={handleChange}
-                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
               <div>
                 <label htmlFor='year' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Year of Study</label>
                 <input id="year" type="text" name="yearOfStudy" placeholder="e.g. 2" value={formData.yearOfStudy} onChange={handleChange}  maxLength={1} required
-                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
               </div>
             </div>
 
@@ -239,7 +239,7 @@ const Signup: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
@@ -276,7 +276,7 @@ const Signup: React.FC = () => {
         </div>
         <div className="hidden relative md:block md:w-1/2">
           <img src={girl} alt="model-student-holding-books" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-900/80 via-sky-900/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-b from-sky-900/80 via-sky-900/40 to-transparent" />
         </div>
       </div>
 

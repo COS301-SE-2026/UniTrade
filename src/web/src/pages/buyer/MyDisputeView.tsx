@@ -295,9 +295,9 @@ export default function MyDisputeView() {
                 }`}
             >
               {status.tone === "green" ? (
-                <IconCircleCheck size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+                <IconCircleCheck size={18} className="text-green-600 shrink-0 mt-0.5" />
               ) : (
-                <IconAlertTriangle size={18} className={`${status.tone === "gray" ? "text-gray-500" : "text-amber-600"} flex-shrink-0 mt-0.5`}
+                <IconAlertTriangle size={18} className={`${status.tone === "gray" ? "text-gray-500" : "text-amber-600"} shrink-0 mt-0.5`}
                  />
               )}
               <div>
@@ -346,7 +346,7 @@ function ItemPanel({ dispute }: Readonly<{ dispute: MyDisputeCase }>) {
   return (
     <Panel title="Item">
       <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0 overflow-hidden">
           {dispute.item.imageUrl && (
             <img src={dispute.item.imageUrl} alt={dispute.item.title} className="w-full h-full object-cover" />
           )}

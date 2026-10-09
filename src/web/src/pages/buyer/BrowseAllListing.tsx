@@ -435,7 +435,7 @@ const listings = clientSearch
             onChange={(e) =>
               handleConditionChange(e.target.value as ConditionFilter)
             }
-            className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
+            className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-hidden focus:border-navy-700"
           >
             <option value="All conditions">All conditions</option>
             <option value="new">Like New</option>
@@ -446,7 +446,7 @@ const listings = clientSearch
           <select
             value={sortOption}
             onChange={(e) => handleSortChange(e.target.value as SortOption)}
-            className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-navy-700"
+            className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-hidden focus:border-navy-700"
           >
             <option>Recommended</option>
             <option>Newest</option>

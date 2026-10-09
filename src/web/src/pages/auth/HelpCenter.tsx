@@ -81,7 +81,7 @@ function QuickLinkOverlay({
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 ">
       <div className="bg-white rounded-2xl w-full max-w-lg flex flex-col max-h-[75vh] shadow-xl">
         <div className="flex items-start gap-3 px-6 py-5 border-b border-gray-100">
-          <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center shrink-0">
             {link.icon}
           </div>
           <div className="flex-1 min-w-0">
@@ -94,7 +94,7 @@ function QuickLinkOverlay({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors flex-shrink-0"
+            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors shrink-0"
           >
             <IconX size={16} />
           </button>
@@ -348,7 +348,7 @@ export default function HelpCenter() {
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-6 mt-8 relative">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible">
           <div className="flex-1 w-full">
             <h2 className="text-3xl font-extrabold text-[#003366] tracking-tight">
               Help Center
@@ -365,7 +365,7 @@ export default function HelpCenter() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setSearchQuery(e.target.value)
                 }
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#003366] focus:bg-white transition-all"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:border-[#003366] focus:bg-white transition-all"
               />
               <IconSearch
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
@@ -395,7 +395,7 @@ export default function HelpCenter() {
                 type="button"
                 key={link.title}
                 onClick={() => setActiveLink(link)}
-                className="bg-white border border-gray-100 p-5 rounded-xl shadow-xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
+                className="bg-white border border-gray-100 p-5 rounded-xl shadow-2xs hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
               >
                 <div className="w-10 h-10 rounded-lg bg-[#eef4fa] flex items-center justify-center mb-3 group-hover:bg-[#dce9f7] transition-colors">
                   {link.icon}
@@ -423,7 +423,7 @@ export default function HelpCenter() {
               return (
                 <div
                   key={faq.question}
-                  className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs transition-all"
+                  className="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-2xs transition-all"
                 >
                   <button
                     type="button"
@@ -456,9 +456,9 @@ export default function HelpCenter() {
         </h3>
         <a
           href="mailto:devnexus28@gmail.com"
-          className="bg-white border border-gray-200/80 rounded-xl p-5 flex items-center gap-4 hover:border-gray-300 hover:shadow-xs transition-all text-left group"
+          className="bg-white border border-gray-200/80 rounded-xl p-5 flex items-center gap-4 hover:border-gray-300 hover:shadow-2xs transition-all text-left group"
         >
-          <div className="w-10 h-10 rounded-lg bg-[#dbeafe] text-[#003366] flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[#dbeafe] text-[#003366] flex items-center justify-center shrink-0">
             <IconMail size={20} />
           </div>
           <div>

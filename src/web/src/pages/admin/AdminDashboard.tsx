@@ -33,7 +33,7 @@ import { queryKeys } from '../../lib/queryKeys'
  }
 
  function Skeleton({className=''}:Readonly<{className?: string}>){
-  return <div className={`animate-pulse rounded bg-gray-200 dark:bg-white/10 ${className}`} />
+  return <div className={`animate-pulse rounded-sm bg-gray-200 dark:bg-white/10 ${className}`} />
 
  }
 
@@ -66,7 +66,7 @@ function StatCard({ title,to,loading,error, value, sub, subColor = 'text-gray-60
   return (
   <Link
   to={to}
- className="block bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden hover:border-navy-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-600 transition-colors">
+ className="block bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden hover:border-navy-500 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-sky-600 transition-colors">
       <div className="bg-navy-700 px-4 py-2 flex items-center justify-between">
         <p className="text-white font-semibold text-sm">{title}</p>
 
@@ -160,7 +160,7 @@ return(
   <button
   type="button"
   onClick={() => navigate(to)}
-  className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors flex-shrink-0">
+  className="bg-navy-700 hover:bg-navy-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors shrink-0">
     Review</button>
 )
   }
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
         >
           {vList.slice(0, 5).map((v) => (
             <div key={v.caseId} className={rowClass}>
-              <div className="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {v.subjectInitials || '??'}
               </div>
               <div className="flex-1 min-w-0">
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
           return (
             <div key={e.id} className={rowClass}>
               <span
-                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                   who === 'System' ? 'bg-gray-200 text-gray-800' : 'bg-sky-100 text-sky-900'
                 }`}
               >
@@ -396,7 +396,7 @@ export default function AdminDashboard() {
                 {String(e.action).replace(/_/g, ' ')}
                 {e.entityType ? `, ${e.entityType}` : ''}
               </p>
-              <time className="text-xs text-gray-600 dark:text-gray-300 flex-shrink-0" dateTime={e.timestamp}>
+              <time className="text-xs text-gray-600 dark:text-gray-300 shrink-0" dateTime={e.timestamp}>
                 {new Date(e.timestamp).toLocaleString()}
               </time>
             </div>

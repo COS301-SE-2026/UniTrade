@@ -133,7 +133,7 @@ export default function ReviewFrom({
                 rows = {4}
                 maxLength={500}
                 placeholder = "Share details about your experience..."
-                className = "w-full rounded-xl border border-gray-200 px-3 py-2 text-navy-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy-700/20 resize-none"
+                className = "w-full rounded-xl border border-gray-200 px-3 py-2 text-navy-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-navy-700/20 resize-none"
                 />
                 <p className = "text-[11px] text-gray-400 mt-1 text-right">
                     {comment.length}/500

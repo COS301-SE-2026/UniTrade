@@ -45,14 +45,14 @@ function ActionButtons({
       type="button"
       onClick={() => onDelete(listing.id)}
       aria-label="Delete listing"
-      className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+      className="border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors shrink-0"
     >
       <IconTrash size={16} />
     </button>
   );
 
   const btnClass =
-    "px-3 py-1.5 text-xs md:text-sm font-semibold rounded-full transition-colors whitespace-nowrap flex-shrink-0";
+    "px-3 py-1.5 text-xs md:text-sm font-semibold rounded-full transition-colors whitespace-nowrap shrink-0";
 
   const wrapper =
     "flex items-center justify-start md:justify-end gap-2 flex-nowrap";
@@ -157,7 +157,7 @@ function ActionButtons({
           type="button"
           disabled
           aria-label="Delete listing"
-          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-1.5 rounded-full cursor-not-allowed flex-shrink-0"
+          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-1.5 rounded-full cursor-not-allowed shrink-0"
         >
           <IconTrash size={16} />
         </button>
@@ -219,7 +219,7 @@ function ActionButtons({
           type="button"
           disabled
           aria-label="Delete listing"
-          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-1.5 rounded-full cursor-not-allowed flex-shrink-0"
+          className="border border-red-200 dark:border-red-500/30 text-red-300 dark:text-red-400/40 p-1.5 rounded-full cursor-not-allowed shrink-0"
         >
           <IconTrash size={16} />
         </button>
@@ -299,7 +299,7 @@ function GroupCard({
             <img
               src={first.imageUrl || biologyTextbook}
               alt={first.title}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
@@ -324,15 +324,15 @@ function GroupCard({
             {isGroupFlagged && <StatusPill status={first.status} />}
           </div>
 
-          <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right flex-shrink-0 whitespace-nowrap">
+          <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right shrink-0 whitespace-nowrap">
             {priceLabel}
           </p>
 
-          <div className="hidden md:flex w-28 justify-center flex-shrink-0">
+          <div className="hidden md:flex w-28 justify-center shrink-0">
             {isGroupFlagged ? <StatusPill status={first.status} /> : null}
           </div>
 
-          <div className="flex justify-start md:justify-end md:w-64 flex-shrink-0">
+          <div className="flex justify-start md:justify-end md:w-64 shrink-0">
             {isGroupFlagged ? (
               <ActionButtons
                 listing={first}
@@ -381,7 +381,7 @@ function GroupCard({
                 </p>
               </div>
 
-              <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right flex-shrink-0 whitespace-nowrap">
+              <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right shrink-0 whitespace-nowrap">
                 {formatPrice(listing.price)}
               </p>
 
@@ -392,11 +392,11 @@ function GroupCard({
                 <StatusPill status={listing.status} />
               </div>
 
-              <div className="hidden md:flex w-28 justify-center flex-shrink-0">
+              <div className="hidden md:flex w-28 justify-center shrink-0">
                 <StatusPill status={listing.status} />
               </div>
 
-              <div className="flex justify-start md:justify-end md:w-64 flex-shrink-0">
+              <div className="flex justify-start md:justify-end md:w-64 shrink-0">
                 <ActionButtons
                   listing={listing}
                   onDelete={onDelete}
@@ -747,7 +747,7 @@ export default function MyListings() {
                     <img
                       src={listing.imageUrl || biologyTextbook}
                       alt={listing.title}
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover flex-shrink-0"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-navy-700 dark:text-white truncate">
@@ -810,15 +810,15 @@ export default function MyListings() {
                     <StatusPill status={listing.status} />
                   </div>
 
-                  <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right flex-shrink-0 whitespace-nowrap">
+                  <p className="hidden md:block text-sm font-semibold text-navy-700 dark:text-white w-24 text-right shrink-0 whitespace-nowrap">
                     {formatPrice(listing.price)}
                   </p>
 
-                  <div className="hidden md:flex w-28 justify-center flex-shrink-0">
+                  <div className="hidden md:flex w-28 justify-center shrink-0">
                     <StatusPill status={listing.status} />
                   </div>
 
-                  <div className="flex justify-start md:justify-end md:w-64 flex-shrink-0">
+                  <div className="flex justify-start md:justify-end md:w-64 shrink-0">
                     <ActionButtons
                       listing={listing}
                       onDelete={handleDelete}

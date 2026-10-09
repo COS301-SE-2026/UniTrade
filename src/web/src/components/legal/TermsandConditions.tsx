@@ -109,7 +109,7 @@ export default function TermsAndConditionsModal({
               checked={checked}
               disabled={!hasScrolledToEnd}
               onChange={(e) => setChecked(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-navy-700 focus:ring-navy-600 disabled:opacity-40"
+              className="mt-0.5 h-4 w-4 rounded-sm border-slate-300 text-navy-700 focus:ring-navy-600 disabled:opacity-40"
             />
             <span>
               I have read and agree to the Terms &amp; Conditions and Privacy

@@ -185,7 +185,7 @@ function UserPopover({
       <div className="flex items-center gap-3 mb-5">
         <button
           type="button"
-          className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0"
+          className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-semibold shrink-0"
         >
           {initials}
         </button>
@@ -286,7 +286,7 @@ export default function Sidebar() {
   return (
     <aside
       className={clsx(
-        "relative flex flex-col h-screen bg-navy-700 text-white transition-all duration-300 ease-in-out flex-shrink-0",
+        "relative flex flex-col h-screen bg-navy-700 text-white transition-all duration-300 ease-in-out shrink-0",
         collapsed ? "w-16" : "w-52",
       )}
     >
@@ -301,7 +301,7 @@ export default function Sidebar() {
         <img
           src={logo}
           alt="UniTrade"
-          className="h-8 w-8 object-contain flex-shrink-0"
+          className="h-8 w-8 object-contain shrink-0"
         />
         {!collapsed && (
           <span className="text-lg font-bold tracking-tight whitespace-nowrap">
@@ -331,13 +331,13 @@ export default function Sidebar() {
                     onClick={handleSwitch}
                     className={clsx(
                       'w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors',
-                      'text-left bg-transparent cursor-pointer focus:outline-none',
+                      'text-left bg-transparent cursor-pointer focus:outline-hidden',
                       collapsed && 'justify-center px-0',
                       'text-white/75 hover:bg-white/5 hover:text-white'
                     )}
                     title={collapsed ? item.label : undefined}
                   >
-                    <span className="flex-shrink-0">{item.icon}</span>
+                    <span className="shrink-0">{item.icon}</span>
                     {!collapsed && (
                       <>
                         <span className="flex-1 whitespace-nowrap">
@@ -368,7 +368,7 @@ export default function Sidebar() {
                   }
                   title={collapsed ? item.label : undefined}
                 >
-                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="shrink-0">{item.icon}</span>
                   {!collapsed && (
                     <>
                       <span className="flex-1 whitespace-nowrap">
@@ -405,7 +405,7 @@ export default function Sidebar() {
               collapsed && "justify-center",
             )}
           >
-            <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold shrink-0">
               {user.initials}
             </div>
             {!collapsed && (

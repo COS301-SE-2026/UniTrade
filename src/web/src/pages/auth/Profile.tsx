@@ -42,7 +42,7 @@ function ProfileRow({ icon, label, onClick, danger, highlight }: Readonly<Profil
 
       <span className={`flex items-center gap-3 text-sm font-medium ${danger ? "text-red-500" : "text-navy-700"}`}>
         {highlight ? (
-          <span className="w-8 h-8 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+          <span className="w-8 h-8 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
             {icon}
           </span>
         ) : (
@@ -69,7 +69,7 @@ function InfoRow({
 }>) {
   return (
     <div className="flex items-center gap-3 px-4 py-3.5">
-      <span className="w-9 h-9 rounded-full bg-gray-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+      <span className="w-9 h-9 rounded-full bg-gray-50 text-navy-700 flex items-center justify-center shrink-0">
         {icon}
       </span>
       <div className="min-w-0">
@@ -165,7 +165,7 @@ export default function Profile() {
   return (
     <div className="flex flex-col gap-6">
 
-      <div className="bg-navy-700 rounded-xl px-8 py-7 shadow-sm flex flex-col gap-6">
+      <div className="bg-navy-700 rounded-xl px-8 py-7 shadow-xs flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-start mb-4">
             <button
@@ -190,7 +190,7 @@ export default function Profile() {
             </p>
             <div className="flex items-center gap-2 mt-5 flex-wrap">
 
-              <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded text-blue-100 font-semibold ">
+              <span className="inline-block bg-blue-600/80 text-[11px] px-2 py-0.5 rounded-sm text-blue-100 font-semibold ">
                 {user.role}
               </span>
               {profile?.verificationStatus && (<VerificationBadge status={profile.verificationStatus} />
@@ -201,10 +201,10 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50 h-fit">
+      <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden divide-y divide-gray-50 h-fit">
 
 
-        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="col-span-2 bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-bold text-gray-800">Account Details</h2>
 
@@ -249,7 +249,7 @@ export default function Profile() {
       </div>
 
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xs border border-gray-100 mt-5 mx-4 overflow-hidden">
         <div className="px-4 py-4 flex items-center justify-between border-b border-gray-50">
           <div>
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Reputation Score</p>
@@ -301,9 +301,9 @@ export default function Profile() {
         {!loadingReviews && !reviewsError && <ReviewList reviews={reviews} />}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xs border border-gray-100 mt-5 mx-4 overflow-hidden">
         <div className="px-5 py-4 flex items-start gap-3">
-          <span className="w-10 h-10 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center flex-shrink-0">
+          <span className="w-10 h-10 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
             <IconCalendarEvent size={20} />
 
           </span>
@@ -330,7 +330,7 @@ export default function Profile() {
     )}
 
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
+      <div className="bg-white rounded-2xl shadow-xs border border-gray-100 mt-5 mx-4 overflow-hidden divide-y divide-gray-50">
 
         <ProfileRow
           icon={<IconTrash size={19} />}

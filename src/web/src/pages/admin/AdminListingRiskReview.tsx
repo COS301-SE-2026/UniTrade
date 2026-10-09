@@ -88,7 +88,7 @@ function RemoveReasonModal({
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     rows={5}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-navy-700 resize-none"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-navy-700 resize-none"
                     placeholder="Explain why this listing is being removed. The seller will see this."
                 />
 

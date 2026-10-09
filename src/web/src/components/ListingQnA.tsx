@@ -49,7 +49,7 @@ export default function ListingQnA({ listingId, isSeller, canAsk }: Readonly<Pro
     };
 
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">
                 Questions &amp; Answers ({questions.length})
             </h2>

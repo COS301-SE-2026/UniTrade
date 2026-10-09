@@ -269,7 +269,7 @@ const UploadListing: React.FC = () => {
   if (heldListing) {
     return (
       <div className="max-w-2xl w-full mx-auto p-6">
-        <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center">
+        <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-xs text-center">
           <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
             <IconClock size={14} stroke={2} />
           </div>
@@ -333,7 +333,7 @@ const UploadListing: React.FC = () => {
                 Step 1: Basic Information
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">
                 Listing Information
               </h4>
@@ -357,7 +357,7 @@ const UploadListing: React.FC = () => {
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
                         category === cat.name
-                          ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                          ? "bg-[#0F2D5E] text-white border-transparent shadow-xs"
                           : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
@@ -378,7 +378,7 @@ const UploadListing: React.FC = () => {
                     placeholder="Title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                   />
                 </div>
 
@@ -390,7 +390,7 @@ const UploadListing: React.FC = () => {
                       placeholder="Module (e.g. COS110)"
                       value={courseQuery}
                       onChange={(e) => setCourseQuery(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 "
+                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 "
                     />
                     <datalist id="course-options">
                       {ActiveCourseResults.map((c) => (
@@ -414,7 +414,7 @@ const UploadListing: React.FC = () => {
                       placeholder="Brand"
                       value={brand}
                       onChange={(e) => setBrand(e.target.value)}
-                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 )}
@@ -426,7 +426,7 @@ const UploadListing: React.FC = () => {
                       placeholder="Dimensions"
                       value={dimensions}
                       onChange={(e) => setDimensions(e.target.value)}
-                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 )}
@@ -437,7 +437,7 @@ const UploadListing: React.FC = () => {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
               />
             </div>
           </div>
@@ -453,7 +453,7 @@ const UploadListing: React.FC = () => {
                 Step 2: Pictures
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">
                 Images{" "}
                 <span className="text-xs font-normal text-slate-400">
@@ -551,7 +551,7 @@ const UploadListing: React.FC = () => {
                 Step 3: Price
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">Pricing</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -561,7 +561,7 @@ const UploadListing: React.FC = () => {
                   >
                     Price (ZAR)
                   </label>
-                  <div className="relative rounded-xl shadow-xs">
+                  <div className="relative rounded-xl shadow-2xs">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-slate-500 text-sm">R</span>
                     </div>
@@ -570,7 +570,7 @@ const UploadListing: React.FC = () => {
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-none focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-hidden focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 </div>
@@ -587,7 +587,7 @@ const UploadListing: React.FC = () => {
                           onClick={() => setCondition(item)}
                           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
                             condition === item
-                              ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                              ? "bg-[#0F2D5E] text-white border-transparent shadow-xs"
                               : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                           }`}
                         >
@@ -616,7 +616,7 @@ const UploadListing: React.FC = () => {
                       Math.max(1, Math.min(10, Number(e.target.value) || 1)),
                     )
                   }
-                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                 />
                 <p className="mt-1 text-[10px] text-slate-400">
                   Listing multiple identical copies? Set how many. Copies count
@@ -637,12 +637,12 @@ const UploadListing: React.FC = () => {
                 Step 4: Confirmation
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">
                 Summary Overview
               </h4>
               <div className="flex gap-4 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200">
+                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200">
                   {previews[0] ? (
                     <img
                       src={previews[0]}
@@ -673,7 +673,7 @@ const UploadListing: React.FC = () => {
           type="button"
           onClick={handleDraft}
           disabled={submitting}
-          className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-xs disabled:opacity-50"
+          className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-2xs disabled:opacity-50"
         >
           Save Draft
         </button>

@@ -329,7 +329,7 @@ const EditListing: React.FC = () => {
                 Step 1: Basic Information
               </h4>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
               <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">
                 Listing Information
               </h4>
@@ -349,7 +349,7 @@ const EditListing: React.FC = () => {
                         handleChange("dimensions", "");
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
-                        ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                        ? "bg-[#0F2D5E] text-white border-transparent shadow-xs"
                         : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                         }`}
                     >
@@ -373,7 +373,7 @@ const EditListing: React.FC = () => {
                     data-testid="edit-title-input"
                     value={formData.title}
                     onChange={(e) => handleChange("title", e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                   />
                 </div>
 
@@ -385,7 +385,7 @@ const EditListing: React.FC = () => {
                       placeholder="Module (e.g. COS110)"
                       value={courseQuery}
                       onChange={(e) => setCourseQuery(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 cursor-pointer"
                     />
                     <datalist id="course-options">
                       {ActiveCourseResults.map((c) => (
@@ -407,7 +407,7 @@ const EditListing: React.FC = () => {
                       value={formData.brand}
                       onChange={(e) => handleChange("brand", e.target.value)}
                       placeholder="Brand"
-                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 )}
@@ -419,7 +419,7 @@ const EditListing: React.FC = () => {
                       value={formData.dimensions}
                       onChange={(e) => handleChange("dimensions", e.target.value)}
                       placeholder="Dimensions"
-                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 )}
@@ -431,7 +431,7 @@ const EditListing: React.FC = () => {
                   onChange={(e) => handleChange("description", e.target.value)}
                   placeholder="Description"
                   rows={3}
-                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                 />
               </div>
             </div>
@@ -448,7 +448,7 @@ const EditListing: React.FC = () => {
                 Step 2: Pictures
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">
                 Images{" "}
                 <span className="text-xs font-normal text-slate-400">
@@ -546,14 +546,14 @@ const EditListing: React.FC = () => {
                 Step 3: Price
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">Pricing</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="edit-price" className="block text-xs font-semibold text-slate-500 mb-1">
                     Price (ZAR)
                   </label>
-                  <div className="relative rounded-xl shadow-xs">
+                  <div className="relative rounded-xl shadow-2xs">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-slate-600 font-medium text-sm">
                         R
@@ -564,7 +564,7 @@ const EditListing: React.FC = () => {
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleChange("price", e.target.value)}
-                      className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-none focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-hidden focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 </div>
@@ -580,7 +580,7 @@ const EditListing: React.FC = () => {
                           type="button"
                           onClick={() => handleChange("condition", item)}
                           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${formData.condition === item
-                            ? "bg-[#0F2D5E] text-white border-transparent shadow-sm"
+                            ? "bg-[#0F2D5E] text-white border-transparent shadow-xs"
                             : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
                             }`}
                         >
@@ -606,12 +606,12 @@ const EditListing: React.FC = () => {
                 Step 4: Confirmation
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">
                 Summary Overview
               </h4>
               <div className="flex gap-4 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <div className="w-10 h-12 rounded overflow-hidden flex-shrink-0 bg-slate-200">
+                <div className="w-10 h-12 rounded-sm overflow-hidden shrink-0 bg-slate-200">
                   <img
                     src={existingImages[0]?.url || newPreviews[0] || ""}
                     alt={formData.title}
@@ -636,7 +636,7 @@ const EditListing: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate("/seller/listings")}
-          className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-xs"
+          className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-2xs"
         >
           Cancel Changes
         </button>

@@ -114,7 +114,7 @@ export function BundleDiscountCard({
                 value={percent}
                 onChange={(e) => setPercent(e.target.value)}
                 aria-label="Discount percent"
-                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-navy-700 focus:ring-1 focus:ring-navy-700/10"
+                className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-hidden focus:border-navy-700 focus:ring-1 focus:ring-navy-700/10"
 
             />
             <span>% off when a buyer reserves at least</span>
@@ -122,7 +122,7 @@ export function BundleDiscountCard({
                 value={minItems}
                 onChange={(e) => setMinItems(Number(e.target.value))}
                 aria-label="Minimum items"
-                className="rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-navy-700 focus:ring-1 focus:ring-navy-700/10">
+                className="rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-hidden focus:border-navy-700 focus:ring-1 focus:ring-navy-700/10">
                 {Array.from({
                     length: limits.minItemsCeiling - limits.minItemsFloor + 1,
 

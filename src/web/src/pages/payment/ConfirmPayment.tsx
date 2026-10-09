@@ -39,7 +39,7 @@ export default function ConfirmPayment() {
 
     return (
         <div className="bg-gray-50 h-dvh overflow-hidden flex flex-col justify-between">
-            <div className="bg-navy-800 text-white w-full shadow-sm">
+            <div className="bg-navy-800 text-white w-full shadow-xs">
                 <div className="max-w-6xl mx-auto px-6 py-4">
                     <h1 className="font-semibold text-lg">Payment Status</h1>
                 </div>

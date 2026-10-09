@@ -83,7 +83,7 @@ export default function EnterPin() {
 
     return (
         <div className="h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xs border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
                 <div className="text-center space-y-2">
                     <h1 className="text-4xl md:text-5xl font-extrabold text-navy-700 tracking-tight">
                         PIN Verification
@@ -109,7 +109,7 @@ export default function EnterPin() {
                             onChange={e => handleChange(index, e.target.value)}
                             onKeyDown={e => handleKeyDown(index, e)}
                             onPaste={handlePaste}
-                            className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all duration-150 ${digit
+                            className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-hidden transition-all duration-150 ${digit
                                 ? 'border-[#00aaff] text-gray-800 bg-white'
                                 : 'border-[#00aaff]/60 text-gray-800 bg-white'
                                 } focus:border-[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`}

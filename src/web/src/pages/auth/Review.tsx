@@ -29,7 +29,7 @@ export function ReviewList({ reviews }: Readonly<{ reviews: ReviewData[] }>) {
       {reviews.map((review) => (
         <div key={review.reviewId} className="px-4 py-3.5">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="inline-block bg-navy-700/10 text-navy-700 text-[11px] font-semibold px-2 py-0.5 rounded">
+            <span className="inline-block bg-navy-700/10 text-navy-700 text-[11px] font-semibold px-2 py-0.5 rounded-sm">
               From a {reviewerRoleLabel(review.reviewType as ReviewType).toLowerCase()}
             </span>
             <span className="text-[11px] text-gray-400">{timeAgo(review.createdAt)}</span>

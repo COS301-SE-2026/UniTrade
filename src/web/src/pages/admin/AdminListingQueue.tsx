@@ -210,7 +210,7 @@ export default function AdminListingQueue() {
             aria-label="Sort flagged listings"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-600 focus:outline-none cursor-pointer"
+            className="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-600 focus:outline-hidden cursor-pointer"
           >
             <option value="Oldest First">Sort: Newest First</option>
             <option value="Newest First">Sort: Oldest First</option>
@@ -303,7 +303,7 @@ export default function AdminListingQueue() {
                     </div>
                   </div>
 
-                  <div className="min-w-0 lg:[&_*]:whitespace-nowrap">
+                  <div className="min-w-0 lg:**:whitespace-nowrap">
                     <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-1 lg:hidden">
                       Image match
                     </p>
@@ -358,7 +358,7 @@ export default function AdminListingQueue() {
                   value={removeReason}
                   onChange={(e) => setRemoveReason(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#0a1931]"
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-hidden focus:ring-1 focus:ring-[#0a1931]"
                 />
               </div>
 

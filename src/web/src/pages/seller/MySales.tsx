@@ -176,7 +176,7 @@ export default function MySales() {
                 <select
                 value={sortSale}
                 onChange={(e) => setSortSale(e.target.value as SaleSort)}
-                className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-none focus:outline-none focus:border-navy-700">
+                className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-hidden focus:outline-hidden focus:border-navy-700">
                   <option value="Newest">Sort by: Newest</option>
                   <option value="Oldest">Sort by: Oldest</option>
                   <option value="Price Low">Sort by: Price Low to High</option>

@@ -254,7 +254,7 @@ const Login: React.FC = () => {
             <div>
               <label htmlFor='email' className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">Email Address</label>
               <input id="email" type="text" inputMode='email' name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required
-                className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all" />
+                className="w-full rounded-2xl border border-sky-300 px-4 py-3 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 transition-all" />
             </div>
 
             <div>
@@ -266,7 +266,7 @@ const Login: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-none focus:ring-sky-500 transition-all" />
+                  className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 focus:outline-hidden focus:ring-sky-500 transition-all" />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
@@ -302,7 +302,7 @@ const Login: React.FC = () => {
 
         <div className="hidden relative md:block md:w-1/2">
           <img src={girl} alt="model-student-holding-books" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-900/80 via-sky-900/40 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-b from-sky-900/80 via-sky-900/40 to-transparent" />
         </div>
       </div>
 

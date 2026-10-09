@@ -50,16 +50,16 @@ export default function Topbar() {
   if (!showSearch) return null;
 
   return (
-    <header className="h-14 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-white/10 flex items-center px-5 gap-4 flex-shrink-0">
+    <header className="h-14 bg-white dark:bg-navy-900 border-b border-gray-200 dark:border-white/10 flex items-center px-5 gap-4 shrink-0">
       {showSearch && (
         <div className="flex items-center gap-2 bg-gray-100 dark:bg-navy-700 rounded-full px-4 py-2 flex-1 max-w-sm">
-          <IconSearch size={15} className="text-gray-400 flex-shrink-0" />
+          <IconSearch size={15} className="text-gray-400 shrink-0" />
           <input
             type="text"
             placeholder="Search..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="bg-transparent outline-none text-[12.5px] text-gray-700 dark:text-white placeholder:text-gray-400 w-full"
+            className="bg-transparent outline-hidden text-[12.5px] text-gray-700 dark:text-white placeholder:text-gray-400 w-full"
           />
         </div>
       )}

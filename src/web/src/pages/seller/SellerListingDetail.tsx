@@ -187,7 +187,7 @@ export default function SellerListingDetail() {
         <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
           <button
             type="button"
-            className="text-[#00aaff] cursor-pointer hover:underline flex-shrink-0 bg-transparent border-0 p-0 text-sm"
+            className="text-[#00aaff] cursor-pointer hover:underline shrink-0 bg-transparent border-0 p-0 text-sm"
             onClick={() => navigate("/seller/listings")}
           >
             My Listings
@@ -214,7 +214,7 @@ export default function SellerListingDetail() {
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-3 sm:p-4">
             <button
               type="button"
-              className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group appearance-none border-0 p-0"
+              className="relative w-full aspect-square sm:aspect-4/3 md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group appearance-none border-0 p-0"
               onClick={() => listing.images && setLightboxOpen(true)}
             >
               {listing.images?.length > 0 ? (
@@ -245,7 +245,7 @@ export default function SellerListingDetail() {
                     type="button"
                     key={`thumb-${img}`}
                     onClick={() => setSelectedImg(i)}
-                    className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-colors flex-shrink-0 appearance-none p-0 bg-transparent ${
+                    className={`w-16 h-14 sm:w-20 sm:h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-colors shrink-0 appearance-none p-0 bg-transparent ${
                       selectedImg === i
                         ? "border-navy-700 dark:border-white"
                         : "border-transparent"
@@ -474,7 +474,7 @@ export default function SellerListingDetail() {
         {lightboxOpen && listing.images?.[selectedImg] && (
           <button
             type="button"
-            className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 border-0"
+            className="fixed inset-0 z-9999 bg-black/95 flex items-center justify-center p-4 border-0"
             onClick={(e) => {
               if (e.target === e.currentTarget) setLightboxOpen(false);
             }}

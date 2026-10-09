@@ -237,7 +237,7 @@ export default function MeetupDetails() {
 
           <div className="lg:col-span-2 space-y-6">
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">{isSeller ? 'Buyer' : 'Seller'}</h2>
               <div className=" flex items-center gap-4">
                 <div className="w-12 h-12 bg-blue-50 border border-indigo-100 rounded-full flex items-center justify-center">
@@ -250,7 +250,7 @@ export default function MeetupDetails() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Logistics</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex gap-3 items-start p-3 bg-slate-50 rounded-xl">
@@ -273,7 +273,7 @@ export default function MeetupDetails() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">
                 Meetup Location on Map
               </h2>
@@ -289,7 +289,7 @@ export default function MeetupDetails() {
               )}
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Session Info</h2>
               <div className="flex gap-3 items-start p-3 bg-slate-50 rounded-xl">
                 <Users className="w-5 h-5 text-blue-600" />

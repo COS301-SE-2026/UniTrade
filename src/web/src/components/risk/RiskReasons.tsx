@@ -48,7 +48,7 @@ export default function RiskReasons({
                                 <img
                                     src={photo}
                                     alt="Flagged photo"
-                                    className="mt-1 h-24 w-24 rounded border border-gray-200 object-cover"
+                                    className="mt-1 h-24 w-24 rounded-sm border border-gray-200 object-cover"
                                 />
                             </div>
                         )}

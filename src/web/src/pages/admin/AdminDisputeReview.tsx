@@ -829,7 +829,7 @@ function ItemPanel({ dispute }: Readonly<{ dispute: DisputeCase }>) {
   return (
     <Panel title="Item">
       <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0 overflow-hidden">
           {dispute.item.imageUrl && (
             <img
               src={dispute.item.imageUrl}
@@ -1061,11 +1061,11 @@ function DecisionConfirmation({
         }`}
       >
         {isFinal ? (
-          <IconMail size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+          <IconMail size={18} className="text-green-600 shrink-0 mt-0.5" />
         ) : (
           <IconCircleCheck
             size={18}
-            className="text-amber-600 flex-shrink-0 mt-0.5"
+            className="text-amber-600 shrink-0 mt-0.5"
           />
         )}
         <div>
@@ -1239,7 +1239,7 @@ function ClosedOutcome({
       <div className="flex items-start gap-3">
         <IconCircleCheck
           size={18}
-          className={`${dismissed ? "text-gray-500" : "text-green-600"} flex-shrink-0 mt-0.5`}
+          className={`${dismissed ? "text-gray-500" : "text-green-600"} shrink-0 mt-0.5`}
         />
         <div>
           <p className="text-sm font-semibold text-navy-700 dark:text-white">

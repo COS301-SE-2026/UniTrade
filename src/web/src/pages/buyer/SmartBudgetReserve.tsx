@@ -391,7 +391,7 @@ export default function SmartBudgetReserve() {
             value={maxBudget}
             onChange={(e) => setMaxBudget(e.target.value)}
             placeholder="0.00"
-            className="w-40 rounded-lg border border-gray-300 pl-7 pr-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-navy-700 focus:border-navy-700"
+            className="w-40 rounded-lg border border-gray-300 pl-7 pr-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-1 focus:ring-navy-700 focus:border-navy-700"
           />
         </div>
 
@@ -488,7 +488,7 @@ export default function SmartBudgetReserve() {
         ))}
       </div>
 
-      <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-gradient-to-t from-white via-white to-transparent">
+      <div className="sticky bottom-0 -mx-4 px-4 py-3 bg-linear-to-t from-white via-white to-transparent">
         {submitError && (
           <p className="text-xs text-rose-600 text-right mb-2">{submitError}</p>
         )}

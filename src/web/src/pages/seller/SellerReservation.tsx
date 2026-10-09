@@ -160,7 +160,7 @@ function ReservationCard({
                         </p>
                     </div>
                     {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
-                        <div className="text-right flex-shrink-0">
+                        <div className="text-right shrink-0">
                             <p className="text-[10px] text-gray-400 uppercase tracking-wide">
                                 Action timer
                             </p>
@@ -188,7 +188,7 @@ function ReservationCard({
                                 Accept Reservation
                             </button>
                         ) : (
-                            <div className={`${baseBtn} flex-1 py-2 bg-white/100 text-gray-400 text-xs font-medium rounded-lg transition-colors`}>
+                            <div className={`${baseBtn} flex-1 py-2 bg-white text-gray-400 text-xs font-medium rounded-lg transition-colors`}>
                                 Awaiting Payment Completion
                             </div>
                         )}

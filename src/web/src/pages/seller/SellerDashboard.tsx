@@ -46,7 +46,7 @@ const SellerDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
           <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
             <p className="text-white text-sm font-bold">Total Orders</p>
             <span className="text-white/70"><IconShoppingBag size={16} /></span>
@@ -57,7 +57,7 @@ const SellerDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
           <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
             <p className="text-white text-sm font-bold">Total Sales</p>
             <span className="text-white/70"><IconCurrencyDollar size={16} /></span>
@@ -68,7 +68,7 @@ const SellerDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
           <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
             <p className="text-white text-sm font-bold">Pending Delivery</p>
             <span className="text-white/70"><IconClock size={16} /></span>
@@ -79,7 +79,7 @@ const SellerDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
           <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
             <p className="text-white text-sm font-bold">New Listing</p>
             <span className="text-white/70"><IconPlus size={16} /></span>
@@ -96,7 +96,7 @@ const SellerDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-sm font-bold text-gray-800">Recent Orders</h2>
             <button type='button' className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
@@ -145,7 +145,7 @@ const SellerDashboard: React.FC = () => {
           </table>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-sm font-bold text-gray-800">Sales Performance</h2>
             <button type='button' className="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors">

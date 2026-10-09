@@ -143,7 +143,7 @@ export default function OrderDetails() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-7 space-y-6">
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             Item
                         </h3>
@@ -179,7 +179,7 @@ export default function OrderDetails() {
                         )}
                     </div>
 
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             Order Timeline
                         </h3>
@@ -196,7 +196,7 @@ export default function OrderDetails() {
                             ))}
                         </div>
                     </div>
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             {isBuyer ? "Your review" : "Buyer's review"}
                         </h3>
@@ -223,7 +223,7 @@ export default function OrderDetails() {
                 </div>
 
                 <div className="lg:col-span-5 space-y-6">
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             Receipt
                         </h3>
@@ -247,7 +247,7 @@ export default function OrderDetails() {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             {isBuyer ? "Seller" : "Buyer"}
                         </h3>
@@ -273,7 +273,7 @@ export default function OrderDetails() {
                         </>
                         )}
                     </div>
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-xs">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
                             Order Info
                         </h3>

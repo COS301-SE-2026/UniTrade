@@ -14,7 +14,7 @@ export default function Redirect() {
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col justify-between">
-            <div className="bg-blue-900 text-white w-full shadow-sm">
+            <div className="bg-blue-900 text-white w-full shadow-xs">
                 <div className='max-w-6xl mx-auto px-6 py-4 flex items-center gap-2'>
                     <div className="w-6 h-6 bg-white text-blue-900 rounded-full font-black text-xs flex items-center justify-center">PF
                     </div>

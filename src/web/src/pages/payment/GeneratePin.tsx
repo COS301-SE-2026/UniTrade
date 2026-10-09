@@ -62,7 +62,7 @@ export default function GeneratePin() {
 
     return (
         <div className="h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xs border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
                 <div className="text-center space-y-2">
                     <h1 className="text-4xl md:text-5xl font-extrabold text-navy-700 tracking-tight">
                         Transaction PIN

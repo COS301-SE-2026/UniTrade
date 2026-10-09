@@ -94,7 +94,7 @@ export default function ResetPassword() {
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white dark:bg-navy-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10">
+        <div className="w-full max-w-md bg-white dark:bg-navy-800 p-8 rounded-2xl shadow-xs border border-gray-100 dark:border-white/10">
           {stage === 'otp' ? (
             <>
               <div className="text-center">
@@ -129,7 +129,7 @@ export default function ResetPassword() {
                       value={digit}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      className={`w-14 h-14 text-center text-xl font-semibold rounded-2xl border-2 outline-none transition-all dark:bg-navy-700
+                      className={`w-14 h-14 text-center text-xl font-semibold rounded-2xl border-2 outline-hidden transition-all dark:bg-navy-700
                         ${digit
                           ? 'border-navy-700 dark:border-white text-navy-700 dark:text-white bg-white'
                           : 'border-[#00aaff] text-navy-700 dark:text-white bg-white'
@@ -148,7 +148,7 @@ export default function ResetPassword() {
                     : 'bg-navy-700/40 cursor-not-allowed'
                     }`}
                 >
-                  {loading && <Spinner size={18} className="!text-white" />}
+                  {loading && <Spinner size={18} className="text-white!" />}
                   {loading ? 'Verifying ...' : 'Verify Code'}
                 </button>
               </div>
@@ -184,7 +184,7 @@ export default function ResetPassword() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
-                      className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 dark:bg-navy-700 dark:text-white focus:outline-none focus:ring-sky-500 transition-all"
+                      className="w-full rounded-2xl border border-sky-300 px-4 py-3 pr-11 dark:bg-navy-700 dark:text-white focus:outline-hidden focus:ring-sky-500 transition-all"
                     />
                     <button
                       type="button"
@@ -208,7 +208,7 @@ export default function ResetPassword() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="w-full rounded-2xl border border-sky-300 px-4 py-3 dark:bg-navy-700 dark:text-white focus:outline-none focus:ring-sky-500 transition-all"
+                    className="w-full rounded-2xl border border-sky-300 px-4 py-3 dark:bg-navy-700 dark:text-white focus:outline-hidden focus:ring-sky-500 transition-all"
                   />
                 </div>
 
@@ -217,7 +217,7 @@ export default function ResetPassword() {
                   disabled={loading}
                   className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50"
                 >
-                  {loading && <Spinner size={16} className="!text-white" />}
+                  {loading && <Spinner size={16} className="text-white!" />}
                   {loading ? 'Resetting...' : 'RESET PASSWORD'}
                 </button>
               </form>

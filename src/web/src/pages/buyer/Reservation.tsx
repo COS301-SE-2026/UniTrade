@@ -240,7 +240,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
     <div
       role="button"
       tabIndex={0}
-      className="fixed inset-0 z-[9999] bg-black/60 flex items-start justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-9999 bg-black/60 flex items-start justify-center p-4 overflow-y-auto"
       onClick={onClose}
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
@@ -329,7 +329,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
                 id="item-picker"
                 value={selectedListingId ?? ''}
                 onChange={(e) => setManualSelectedListingId(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700"
+                className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-navy-700"
               >
                 <option value="" disabled>Select an item</option>
                 {items.map((item) => (
@@ -349,7 +349,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
               id="refuse-photos"
               checked={sellerRefusedPhotos}
               onChange={(e) => setSellerRefusedPhotos(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer"
+              className="w-4 h-4 rounded-sm border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer"
             />
             <label htmlFor="refuse-photos" className="text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none">
               Did the seller refuse to provide more photos?
@@ -365,7 +365,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Describe the quality issue..."
-              className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
+              className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-navy-700 resize-none"
             />
           </div>
 
@@ -458,7 +458,7 @@ function ReservationCard({
               </p>
             </div>
             {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
-              <div className="text-right flex-shrink-0">
+              <div className="text-right shrink-0">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide">
                   Expires in
                 </p>

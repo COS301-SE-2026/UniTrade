@@ -200,7 +200,7 @@ export default function ViewUser() {
 
       <div className="grid grid-cols-12 gap-6 items-start">
         <div className="col-span-7 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Strikes</h2>
             <div className="flex items-baseline space-x-2 border-b border-gray-100 pb-4">
               <span className="text-3xl font-bold text-gray-900">{user.strikesCount}</span>
@@ -230,7 +230,7 @@ export default function ViewUser() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Reputation</h2>
             <div className="flex items-center space-x-1 text-amber-700">
               {
@@ -246,7 +246,7 @@ export default function ViewUser() {
 
 
         <div className="col-span-5 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Recent listings</h2>
             <div className="space-y-3">
               {user.recentListings.map((listing: Listing) => (
@@ -256,10 +256,10 @@ export default function ViewUser() {
                     <img
                       src={listing.imageUrl}
                       alt={listing.title}
-                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                      className="w-12 h-12 rounded-lg object-cover shrink-0"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
+                    <div className="w-12 h-12 bg-gray-200 rounded-lg shrink-0" />
 
                   )}
                   <div>
@@ -279,7 +279,7 @@ export default function ViewUser() {
 
 
 
-          {/*<div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          {/*<div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Actions</h2>
             <div className="space-y-2">
               <button

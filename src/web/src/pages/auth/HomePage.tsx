@@ -77,7 +77,7 @@ export function Step({ number, title, description }: Readonly<StepProps>) {
   return (
     <div className="flex-1 relative">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center font-bold text-lg shrink-0">
           {number}
         </div>
         <div>
@@ -243,7 +243,7 @@ export function AlexAvatar({ className = '', onClick }: Readonly<AlexAvatarProps
     >
       <div className="relative mb-6 flex flex-col items-center">
         <div
-          className={`px-6 py-4 rounded-[2rem] text-white text-sm font-medium
+          className={`px-6 py-4 rounded-4xl text-white text-sm font-medium
                         transition-all duration-500 max-w-[220px] text-center
                         ${bubbleColor}
                         ${stage === 'answer' ? 'scale-105' : 'scale-100'}`}>
@@ -301,7 +301,7 @@ function Firstpage() {
       </div>
       <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
-          <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
+          <div className="shrink-0 text-center lg:text-left lg:max-w-[40%]">
             <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
                animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
               Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
@@ -521,7 +521,7 @@ export function Footer() {
           © 2026 UniTrade. All rights reserved. Made for South African University students.
         </p>
 
-        <div className="w-16 h-[1px] bg-white/10" />
+        <div className="w-16 h-px bg-white/10" />
 
         <div className="flex flex-col items-center gap-2">
           <p className="text-[10px] tracking-wider uppercase text-gray-400 font-semibold">

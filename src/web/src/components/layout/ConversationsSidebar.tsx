@@ -108,11 +108,11 @@ export default function ConversationsSidebar({ role }: Readonly<{ role: 'buyer' 
                                     <p className="text-sm font-semibold text-gray-800 truncate">
                                         {r.counterParty.name}
                                         {r.reservationStatus === 'cancelled' && (
-                                            <span className="text-[9px] font-bold uppercase tracking-wide text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                                            <span className="text-[9px] font-bold uppercase tracking-wide text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-sm">
                                                 Cancelled
                                             </span>)}
                                         {r.timerStage === 'meetup_confirmed' && r.reservationStatus === 'active' && (
-                                            <span className='text-[9px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded'>
+                                            <span className='text-[9px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm'>
                                                 Meetup set
                                             </span>
                                         )}

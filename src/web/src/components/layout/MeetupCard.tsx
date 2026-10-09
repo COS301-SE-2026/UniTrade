@@ -50,7 +50,7 @@ export default function MeetupCard({
                 <span className="text-xs text-gray-400 px-1">
                     {caption}
                 </span>}
-            <div className={`w-full max-w-[280px] ${bg} text-white rounded-2xl overflow-hidden shadow`}>
+            <div className={`w-full max-w-[280px] ${bg} text-white rounded-2xl overflow-hidden shadow-sm`}>
                 <div className="p-4">
                     <div className="flex items-center justify-between mb-3">
                         <span className="uppercase text-[10px] tracking-widest font-semibold text-white/70">

@@ -225,7 +225,7 @@ const Section: React.FC<SectionProps> = ({ id, title, description, children, lab
                             </div>
                             <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
                                 <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
-                                    <div className="flex-shrink-0 text-center lg:text-left lg:max-w-[40%]">
+                                    <div className="shrink-0 text-center lg:text-left lg:max-w-[40%]">
                                         <div className="inline-flex items-center gap-2 bg-white/10 text-blue-400 text-xs font-medium px-4 py-1.5 rounded-full mb-6">
 
                                         </div>
@@ -304,7 +304,7 @@ const Section: React.FC<SectionProps> = ({ id, title, description, children, lab
                                         style={{ backgroundColor: c.hex }}
                                     >
                                         <span
-                                            className={`$ rounded-md px-2.5 py-1 text-[13px] font-semibold tracking-[0.05em] backdrop-blur-sm ${c.onLight ? "bg-black/[0.08] text-gray-700" : "bg-white/20 text-white"
+                                            className={`$ rounded-md px-2.5 py-1 text-[13px] font-semibold tracking-wider backdrop-blur-xs ${c.onLight ? "bg-black/8 text-gray-700" : "bg-white/20 text-white"
                                                 }`}
                                         >
                                             {c.hex}
@@ -712,7 +712,7 @@ const Section: React.FC<SectionProps> = ({ id, title, description, children, lab
                                             </label>
                                             <input
                                                 id="course-code"
-                                                className={`w-full rounded-[8px] border border-gray-400 px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10`}
+                                                className={`w-full rounded-[8px] border border-gray-400 px-3.5 py-2.5 text-[14px] text-black outline-hidden focus:border-primary-700 focus:ring-[3px] focus:ring-primary-700/10`}
                                                 defaultValue="BIO121"
                                                 readOnly
                                             />

@@ -339,7 +339,7 @@ export default function Timetable() {
                       <div
                         key={entry.entryId}
                         data-block
-                        className="group absolute left-1 right-1 bg-navy-700 text-white rounded-md px-1.5 py-1 text-[10px] leading-tight overflow-hidden shadow-sm ring-1 ring-navy-800/20 hover:bg-navy-600 transition-colors"
+                        className="group absolute left-1 right-1 bg-navy-700 text-white rounded-md px-1.5 py-1 text-[10px] leading-tight overflow-hidden shadow-xs ring-1 ring-navy-800/20 hover:bg-navy-600 transition-colors"
                         style={{
                           top: `${minutesToTopPercent(s)}%`,
                           height: `${minutesToHeightPercent(e - s)}%`,
@@ -370,7 +370,7 @@ export default function Timetable() {
                         height: `${minutesToHeightPercent(preview.end - preview.start)}%`,
                       }}
                     >
-                      <span className="text-[9px] font-semibold text-navy-800 bg-white/80 rounded px-1 mt-0.5 tabular-nums">
+                      <span className="text-[9px] font-semibold text-navy-800 bg-white/80 rounded-sm px-1 mt-0.5 tabular-nums">
                         {minutesToHHMM(snapMinutes(preview.start))}&ndash;
                         {minutesToHHMM(snapMinutes(preview.end))}
                       </span>
@@ -401,7 +401,7 @@ export default function Timetable() {
                   onChange={(e) =>
                     setFormDay(Number(e.target.value) as DayOfWeek)
                   }
-                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-700/10"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 outline-hidden focus:border-navy-700 focus:ring-2 focus:ring-navy-700/10"
                 >
                   {DAY_ORDER.map((d) => (
                     <option key={d} value={d}>
@@ -425,7 +425,7 @@ export default function Timetable() {
                     min="08:00"
                     max="20:00"
                     onChange={(e) => setFormStart(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-700/10"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 outline-hidden focus:border-navy-700 focus:ring-2 focus:ring-navy-700/10"
                   />
                 </div>
                 <div>
@@ -442,7 +442,7 @@ export default function Timetable() {
                     min="08:00"
                     max="20:00"
                     onChange={(e) => setFormEnd(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-700/10"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-800 outline-hidden focus:border-navy-700 focus:ring-2 focus:ring-navy-700/10"
                   />
                 </div>
               </div>

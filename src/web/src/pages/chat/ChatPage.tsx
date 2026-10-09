@@ -60,7 +60,7 @@ function formatDateDivider(iso: string): string {
 
 const DateDivider: React.FC<{ label: string }> = ({ label }) => (
     <div className="flex justify-center py-4">
-        <span className="bg-white text-xs font-medium text-gray-500 px-4 py-1 rounded-full shadow-sm">
+        <span className="bg-white text-xs font-medium text-gray-500 px-4 py-1 rounded-full shadow-xs">
             {label}
         </span>
     </div>
@@ -93,12 +93,12 @@ const TextMessageBubble: React.FC<{
                 className={`flex flex-col ${isOwnMessage ? "items-end" : "items-start"} max-w-[70%]`}
             >
                 <div
-                    className={`px-4 py-2.5 text-[15px] leading-relaxed shadow-sm rounded-3xl ${isOwnMessage
+                    className={`px-4 py-2.5 text-[15px] leading-relaxed shadow-xs rounded-3xl ${isOwnMessage
                         ? "bg-[#003366] text-white rounded-br-none"
                         : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
                         }`}
                 >
-                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                    <p className="whitespace-pre-wrap wrap-break-word">{message.content}</p>
                 </div>
                 <div className="mt-1 px-1 flex items-center gap-1.5 text-[10px] text-gray-400">
                     <span>{time}</span>
@@ -439,7 +439,7 @@ export default function ChatPage() {
 
             <div className="flex-1 overflow-y-auto px-4 py-4 bg-[#f8f9fa] space-y-4">
                 {reservation && reservation.listings.length > 0 && (
-                    <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
+                    <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xs rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
                         {!reservation.isBundle && reservation.listings[0].imagePath && (
                             <img
                                 src={`${getApiUrl().split('/api')[0]}${reservation.listings[0].imagePath}`}
@@ -577,7 +577,7 @@ export default function ChatPage() {
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
                         placeholder="Type a message..."
-                        className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-[#003366]/30 border border-transparent"
+                        className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 text-sm focus:outline-hidden focus:border-[#003366]/30 border border-transparent"
                     />
                     <button type='button'
                         onClick={handleSend}

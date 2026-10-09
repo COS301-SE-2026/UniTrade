@@ -72,7 +72,7 @@ function ReportModal({
     <div
       role="button"
       tabIndex={0}
-      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+      className="fixed inset-0 z-9999 bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
@@ -117,7 +117,7 @@ function ReportModal({
               onChange={(e) => setReason(e.target.value)}
               disabled={submitting}
               placeholder="Provide a reason for reporting this listing..."
-              className="w-full rounded-lg border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-navy-700"
+              className="w-full rounded-lg border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-navy-700"
             />
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
           </div>
@@ -315,7 +315,7 @@ export default function ListingDetail() {
       <div className="flex items-center gap-2 text-sm text-gray-400 overflow-x-auto whitespace-nowrap">
         <button
           type="button"
-          className="text-[#00aaff] cursor-pointer hover:underline flex-shrink-0 bg-transparent border-0 p-0 text-sm"
+          className="text-[#00aaff] cursor-pointer hover:underline shrink-0 bg-transparent border-0 p-0 text-sm"
           onClick={() => navigate("/buyer/listings")}
         >
           Listings
@@ -332,7 +332,7 @@ export default function ListingDetail() {
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-4">
             <button
               type="button"
-              className="relative w-full aspect-square sm:aspect-[4/3] md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
+              className="relative w-full aspect-square sm:aspect-4/3 md:h-96 rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-navy-700 cursor-pointer group"
               onClick={() => activeImage && setLightboxOpen(true)}
             >
               {activeImage ? (
@@ -360,7 +360,7 @@ export default function ListingDetail() {
                   type="button"
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
+                  className={`w-14 h-12 shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
                       ? "border-navy-700 dark:border-white"
                       : "border-transparent"
                     }`}
@@ -474,7 +474,7 @@ export default function ListingDetail() {
               Seller
             </h3>
             <div className="flex items-center gap-3 bg-blue-50 dark:bg-navy-700 rounded-lg p-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-navy-700 dark:bg-navy-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-navy-700 dark:bg-navy-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {`${listing.seller?.firstName?.[0] ?? ""}${listing.seller?.lastName?.[0] ?? ""}`}
               </div>
               <div>
@@ -518,7 +518,7 @@ export default function ListingDetail() {
               <>
 
                 <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
-                  <span className="text-blue-500 text-sm flex-shrink-0">🛡</span>
+                  <span className="text-blue-500 text-sm shrink-0">🛡</span>
                   <p className="text-xs text-blue-700 dark:text-white/70 leading-relaxed">
                     Reserve now to hold this item for 24 hours. No payment until you
                     meet and inspect it in person.
@@ -575,8 +575,8 @@ export default function ListingDetail() {
               <div className="flex flex-col items-center justify-center py-6 gap-3">
                 <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-navy-600 animate-pulse" />
                 <div className="space-y-2">
-                  <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
-                  <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded animate-pulse mx-auto" />
+                  <div className="h-3 w-28 bg-gray-200 dark:bg-navy-600 rounded-sm animate-pulse mx-auto" />
+                  <div className="h-2.5 w-20 bg-gray-200 dark:bg-navy-600 rounded-sm animate-pulse mx-auto" />
                 </div>
               </div>
             ) : similarListings.length === 0 ? (
@@ -592,7 +592,7 @@ export default function ListingDetail() {
                     onClick={() => navigate(`/buyer/listings/${item.id}`)}
                     className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-navy-700 rounded-lg p-2 -m-2 w-full text-left"
                   >
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 shrink-0">
                       {item.image ? (
                         <img
                           src={item.image}
@@ -613,7 +613,7 @@ export default function ListingDetail() {
                         {formatPrice(item.price)}
                       </p>
                     </div>
-                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium shrink-0">
                       {formatCondition(item.condition)}
                     </span>
                   </button>
@@ -627,7 +627,7 @@ export default function ListingDetail() {
       {lightboxOpen && activeImage && (
         <button
           type="button"
-          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 appearance-none border-0"
+          className="fixed inset-0 z-9999 bg-black/95 flex items-center justify-center p-4 appearance-none border-0"
           onClick={(e) => {
             if (e.target === e.currentTarget) setLightboxOpen(false);
           }}

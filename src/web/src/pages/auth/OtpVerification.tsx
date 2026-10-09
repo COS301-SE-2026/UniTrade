@@ -88,7 +88,7 @@ export default function OTPVerification() {
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white dark:bg-navy-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-white/10">
+        <div className="w-full max-w-md bg-white dark:bg-navy-800 p-8 rounded-2xl shadow-xs border border-gray-100 dark:border-white/10">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-navy-700 dark:text-white tracking-tight">OTP Verification</h1>
             <p className="mt-4 text-sm text-gray-500 dark:text-white/50 leading-relaxed">
@@ -116,7 +116,7 @@ export default function OTPVerification() {
                   onChange={e => handleChange(index, e.target.value)}
                   onKeyDown={e => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className={`w-14 h-14 text-center text-xl font-semibold rounded-2xl border-2 outline-none transition-all dark:bg-navy-700
+                  className={`w-14 h-14 text-center text-xl font-semibold rounded-2xl border-2 outline-hidden transition-all dark:bg-navy-700
                     ${digit
                       ? 'border-navy-700 dark:border-white text-navy-700 dark:text-white bg-white'
                       : 'border-[#00aaff] text-navy-700 dark:text-white bg-white'

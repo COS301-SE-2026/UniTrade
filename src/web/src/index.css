@@ -1,3 +1,75 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: Inter, sans-serif;
+  --font-display: Fraunces, serrif;
+
+  --animate-fade-up: fade-up 0.6s ease-out both;
+  --animate-pop-in: pop-in 0.5s ease-out both;
+
+  --color-primary-500: #1a3a7a;
+  --color-primary-700: #0d1f4e;
+  --color-primary-800: #0a1840;
+
+  --color-secondary-500: #04b4fd;
+
+  --color-success-600: #059669;
+
+  --color-error-600: #e11d48;
+
+  --color-warning-500: #f59e0b;
+
+  --color-info-700: #0a1840;
+
+  --color-navy-50: #e6eaf2;
+  --color-navy-100: #b3bcce;
+  --color-navy-500: #1a3a7a;
+  --color-navy-600: #04b4fd;
+  --color-navy-700: #0d1f4e;
+  --color-navy-800: #0a1840;
+  --color-navy-900: #070f27;
+
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pop-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}

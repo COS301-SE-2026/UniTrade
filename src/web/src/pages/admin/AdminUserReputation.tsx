@@ -131,7 +131,7 @@ export default function AdminUserReputation() {
       <Breadcrumb trail={['Users', profile.name]} />
 
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-navy-700 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+        <div className="w-12 h-12 rounded-full bg-navy-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
           {profile.initials}
         </div>
         <div>
@@ -185,7 +185,7 @@ export default function AdminUserReputation() {
                   key={strike.id}
                   className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20"
                 >
-                  <IconAlertTriangle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <IconAlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
                   <div className="min-w-0">
                     <p className="text-sm text-navy-700 dark:text-white">{strike.reason}</p>
                     <p className="text-xs text-gray-600 mt-0.5">

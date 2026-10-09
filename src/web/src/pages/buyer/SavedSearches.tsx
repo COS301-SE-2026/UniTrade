@@ -139,7 +139,7 @@ export default function SavedSearches() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="e.g. COS301 textbook"
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           />
         </div>
 
@@ -150,7 +150,7 @@ export default function SavedSearches() {
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           >
             <option value="">All</option>
             {categories.map((cat) => (
@@ -171,7 +171,7 @@ export default function SavedSearches() {
             step="1"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : "")}
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           />
         </div>
 
@@ -185,13 +185,13 @@ export default function SavedSearches() {
             step="1"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
-            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           />
         </div>
 
         <button
           onClick={handleCreate}
-          className="bg-navy-700 hover:bg-navy-500 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-sm active:scale-95"
+          className="bg-navy-700 hover:bg-navy-500 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-xs active:scale-95"
         >
           Save Search
         </button>
@@ -208,7 +208,7 @@ export default function SavedSearches() {
                 key={s.searchId}
                 className={`flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-full border transition-all ${
                   isSelected
-                    ? "bg-navy-50/60 border-navy-300 shadow-sm"
+                    ? "bg-navy-50/60 border-navy-300 shadow-xs"
                     : "bg-white border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -237,7 +237,7 @@ export default function SavedSearches() {
                     onClick={() => handleViewMatches(s)}
                     className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                       isSelected
-                        ? "bg-navy-700 text-white shadow-sm"
+                        ? "bg-navy-700 text-white shadow-xs"
                         : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                     }`}
                   >
@@ -300,7 +300,7 @@ export default function SavedSearches() {
                   <img
                     src={listing.imageUrl || "/placeholder.png"}
                     alt={listing.title}
-                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+                    className="w-16 h-16 rounded-xl object-cover shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-navy-700 truncate">
@@ -318,7 +318,7 @@ export default function SavedSearches() {
                   <button
                     type="button"
                     onClick={() => navigate(`/buyer/listings/${listing.id}`)}
-                    className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors whitespace-nowrap shadow-sm"
+                    className="bg-navy-700 hover:bg-navy-500 text-white text-sm font-semibold px-5 py-2 rounded-full transition-colors whitespace-nowrap shadow-xs"
                   >
                     View
                   </button>

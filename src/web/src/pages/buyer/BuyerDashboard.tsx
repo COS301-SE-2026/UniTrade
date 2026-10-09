@@ -30,7 +30,7 @@ function StatCard({
   icon: React.ReactNode;
 }>) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
       <div className="bg-[#003366] px-4 py-2 flex items-center justify-between">
         <p className="text-white text-sm font-bold">{title}</p>
         <span className="text-white/70">{icon}</span>
@@ -100,7 +100,7 @@ function OrderRow({
       <img
         src={image}
         alt={title}
-        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+        className="w-10 h-10 rounded-full object-cover shrink-0"
       />
 
       <div className="flex-1 min-w-0">
@@ -200,7 +200,7 @@ export default function BuyerDashboard() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="col-span-2 bg-white rounded-xl shadow-xs border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-gray-800">
               Suggested For You
@@ -231,7 +231,7 @@ export default function BuyerDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-4">
           <h2 className="text-sm font-bold text-gray-800 mb-2">
             Recent Orders
           </h2>

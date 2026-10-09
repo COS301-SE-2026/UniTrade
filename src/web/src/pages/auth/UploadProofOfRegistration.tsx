@@ -134,12 +134,12 @@ export default function ProofOfRegistrationUpload() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-navy-900 p-6 md:p-12 flex items-center justify-center font-sans">
 
-            <div className="w-full max-w-[1024px] bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-2xl p-10 md:p-20 flex flex-col items-center shadow-sm">
+            <div className="w-full max-w-[1024px] bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-2xl p-10 md:p-20 flex flex-col items-center shadow-xs">
                 <div className="w-full max-w-[900px] mb-8 rounded-xl bg-blue-50 dark:bg-navy-700/60 border border-blue-100 dark:border-navy-600 overflow-hidden transition-all duration-200">
                     <button
                         type="button"
                         onClick={() => setIsInfoOpen(!isInfoOpen)}
-                        className="w-full p-4 flex items-center justify-between text-left focus:outline-none hover:bg-blue-100/50 dark:hover:bg-navy-600/50 transition-colors"
+                        className="w-full p-4 flex items-center justify-between text-left focus:outline-hidden hover:bg-blue-100/50 dark:hover:bg-navy-600/50 transition-colors"
                         aria-expanded={isInfoOpen}
                     >
                         <div className="flex items-start gap-3">
@@ -214,7 +214,7 @@ export default function ProofOfRegistrationUpload() {
                     />
                 </div>
                 {uploadedFile && (
-                    <div className="w-full max-w-[700px] border border-secondary-500 bg-white dark:bg-navy-900 rounded-xl px-6 py-4 flex items-center justify-between shadow-sm">
+                    <div className="w-full max-w-[700px] border border-secondary-500 bg-white dark:bg-navy-900 rounded-xl px-6 py-4 flex items-center justify-between shadow-xs">
                         <div className="flex flex-col mr-4 min-w-0">
                             <span className="text-[17px] text-gray-800 dark:text-white font-medium tracking-wide truncate mr-4">
                                 {uploadedFile.name}
@@ -226,7 +226,7 @@ export default function ProofOfRegistrationUpload() {
                             )}
                         </div>
                         <span
-                            className={`px-5 py-1.5 rounded-full text-xs font-semibold lowercase tracking-wide flex-shrink-0 ${statusStyles[uploadedFile.status]}`}
+                            className={`px-5 py-1.5 rounded-full text-xs font-semibold lowercase tracking-wide shrink-0 ${statusStyles[uploadedFile.status]}`}
                         >
                             {uploadedFile.status}
                         </span>

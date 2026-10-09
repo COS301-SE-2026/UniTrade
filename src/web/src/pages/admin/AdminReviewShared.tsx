@@ -112,7 +112,7 @@ export function ConfirmModal({
                 value={reason}
                 onChange={(e) => setReason?.(e.target.value)}
                 placeholder="Prove reasoning for this decision..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-700 resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-700 resize-none"
                 required
               ></textarea>
             </div>
@@ -248,7 +248,7 @@ export function PersonCard({
   return (
     <Panel title={title}>
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
           {person.initials}
         </div>
         <div className="min-w-0">
@@ -443,7 +443,7 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
             >
               <IconNote
                 size={15}
-                className="text-gray-600 flex-shrink-0 mt-0.5"
+                className="text-gray-600 shrink-0 mt-0.5"
               />
               <div className="min-w-0">
                 <p className="text-sm text-navy-700 dark:text-white">
@@ -464,7 +464,7 @@ export function NotesPanel({ caseId }: Readonly<{ caseId: string }>) {
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a note about this case…"
           rows={2}
-          className="flex-1 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-navy-700 resize-none"
+          className="flex-1 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-navy-800 px-3 py-2 text-navy-700 dark:text-white placeholder:text-gray-600 focus:outline-hidden focus:ring-1 focus:ring-navy-700 resize-none"
         />
       </div>
       <div className="flex justify-end mt-2">

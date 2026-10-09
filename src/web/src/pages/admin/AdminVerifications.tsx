@@ -223,7 +223,7 @@ const paginatedRows = sortedRows.slice(
               setSortBy(e.target.value as 'Oldest First' | 'Newest First');
               setCurrentPage(1);
             }}
-            className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-none cursor-pointer w-full sm:w-auto'
+            className='px-4 py-1.5 bg-white dark:bg-navy-800 border border-gray-300 dark:border-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-white/80 focus:outline-hidden cursor-pointer w-full sm:w-auto'
           >
             <option value="Oldest First">Sort: Oldest First</option>
             <option value="Newest First">Sort: Newest First</option>
@@ -251,7 +251,7 @@ const paginatedRows = sortedRows.slice(
               {paginatedRows.map((ver) => (
                 <div
                   key={ver.id}
-                  className="p-4 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                  className="p-4 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/2 transition-colors"
                 >
                   <div className="flex items-center gap-3 lg:flex-1 lg:min-w-0">
                     <div className="w-10 h-10 rounded-full bg-[#0a1931] text-white flex items-center justify-center text-xs font-bold shrink-0">
