@@ -162,6 +162,7 @@ jobs:
                   exit 0
                 fi
                 git commit -m "QR:update lighthouse reports [skip ci]"
+                git stash --include-untracked || true
                 for i in 1 2 3 4 5; do
                   git pull --rebase origin "$GITHUB_REF_NAME" \
                     && git push origin "HEAD:$GITHUB_REF_NAME" \
