@@ -150,17 +150,17 @@ const Signup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16">
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-gray-800 font-sans">
       <Navbar />
 
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
+    <div className="flex flex-1 items-center justify-center bg-gray-100 p-4">
       <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex w-full flex-col justify-center px-12 py-12 md:w-3/5 lg:px-20">
-          <div className="mb-8">
+        <div className="flex w-full flex-col justify-center px-12 py-8 md:w-3/5 lg:px-20">
+          <div className="mb-5">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 uppercase">Get Started</h1>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-3" onSubmit={handleSubmit}>
             {error && (
               <div className="rounded-md bg-red-100 p-4">
                 <p className="text-sm text-red-700">{error}</p>

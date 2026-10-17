@@ -231,10 +231,10 @@ const Login: React.FC = () => {
     navigate('/auth/login')
   }
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-gray-800 font-sans pb-16">
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-gray-800 font-sans">
       <Navbar />
 
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
+    <div className="flex flex-1 items-center justify-center bg-gray-100 p-4">
       <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl">
 
 
