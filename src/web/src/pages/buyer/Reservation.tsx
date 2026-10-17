@@ -89,11 +89,11 @@ const stageMeta: Record<TimerStage, { label: string; className: string }> = {
 
 export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
-    <div className="flex-1 bg-white rounded-2xl border border-gray-200 py-3 px-4 flex items-center gap-3">
+    <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-200 py-3 px-3 sm:px-4 flex flex-col items-start sm:flex-row sm:items-center gap-1 sm:gap-3">
       <span className="text-navy-700">{icon}</span>
       <div>
-        <p className="text-2xl font-extrabold text-gray-800">{value}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+        <p className="text-xl sm:text-2xl font-extrabold text-gray-800">{value}</p>
+        <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 break-words">{label}</p>
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number
   const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
     : 'bg-sky-50 text-sky-700 border border-sky-200'
   return (
-    <div className={`flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-lg ${style}`}>
+    <div className={`flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap ${style}`}>
       <IconClock size={14} />
       {formatCountdown(msRemaining)}
     </div>
@@ -417,11 +417,11 @@ function ReservationCard({
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
         <button
           type='button'
           onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
-          className="w-20 h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
+          className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
         >
           <img
             src={primaryItem.imagePath
@@ -432,7 +432,7 @@ function ReservationCard({
           />
         </button>
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-2 sm:gap-4">
             <div
               role='button'
               tabIndex={0}
@@ -443,10 +443,10 @@ function ReservationCard({
                   navigate(`/buyer/reservations/${reservation.reservationId}`);
                 }
               }}
-              className="min-w-0 cursor-pointer group"
+              className="min-w-0 w-full sm:w-auto cursor-pointer group"
             >
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-bold text-gray-800 truncate">
+                <p className="min-w-0 max-w-full text-sm font-bold text-gray-800 truncate">
                   {displayTitle}
                 </p>
                 <StatusBadge status={reservation.reservationStatus} />
@@ -458,7 +458,7 @@ function ReservationCard({
               </p>
             </div>
             {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
-              <div className="text-right shrink-0">
+              <div className="sm:text-right shrink-0">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide">
                   Expires in
                 </p>
@@ -605,7 +605,7 @@ export default function Reservations() {
             My Reservations
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start sm:flex-row sm:items-center gap-2">
           <div className="relative">
             <button
               type="button"
@@ -616,7 +616,7 @@ export default function Reservations() {
               <IconChevronDown size={12} />
             </button>
             {sortOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+              <div className="absolute left-0 sm:left-auto sm:right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
                   <button
                     key={opt}
@@ -643,7 +643,7 @@ export default function Reservations() {
               <IconChevronDown size={12} />
             </button>
             {filterOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+              <div className="absolute left-0 sm:left-auto sm:right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
                   <button
                     key={opt}
@@ -662,7 +662,7 @@ export default function Reservations() {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <SummaryCard
           label="Active reservations"
           value={String(summary.activeCount)}
