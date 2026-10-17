@@ -1,8 +1,6 @@
-
-import { useSearchParams, useLocation } from 'react-router';
-import { useState, useEffect } from 'react';
-import { IconSearch } from '@tabler/icons-react';
-
+import { useSearchParams, useLocation } from "react-router";
+import { useState, useEffect } from "react";
+import { IconSearch } from "@tabler/icons-react";
 
 const Search_hidden = [
   /^\/buyer\/orders\/[^/]+$/,
@@ -15,6 +13,7 @@ const Search_hidden = [
   /\/admin\/verifications\/[^/]+$/,
   /^\/payment\/payment-complete$/,
   /^\/seller\/messages\/[^/]+$/,
+  /^\/buyer\/messages\/[^/]+$/,
 ];
 
 function shouldSearchHide(pathname: string): boolean {
@@ -26,25 +25,23 @@ export default function Topbar() {
   const location = useLocation();
   const showSearch = !shouldSearchHide(location.pathname);
 
-  const [inputValue, setInputValue] = useState(searchParams.get('q') || '');
+  const [inputValue, setInputValue] = useState(searchParams.get("q") || "");
   useEffect(() => {
     const timer = setTimeout(() => {
-      const currentQ = searchParams.get('q') || '';
+      const currentQ = searchParams.get("q") || "";
 
       if (inputValue.trim() !== currentQ) {
         const newParams = new URLSearchParams(searchParams);
 
         if (inputValue.trim()) {
-          newParams.set('q', inputValue.trim());
+          newParams.set("q", inputValue.trim());
         } else {
-          newParams.delete('q');
+          newParams.delete("q");
         }
 
         setSearchParams(newParams, { replace: true });
       }
     }, 300);
-
-
 
     return () => clearTimeout(timer);
   }, [searchParams, setSearchParams, inputValue]);
