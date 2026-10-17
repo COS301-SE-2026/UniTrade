@@ -1,37 +1,36 @@
-import { useState } from 'react'
-import { authService } from '../../services/authService'
-import { getAuthErrorMessage } from '../../utils/authErrors'
-
+import { useState } from "react";
+import { authService } from "../../services/authService";
+import { getAuthErrorMessage } from "../../utils/authErrors";
+import { IconX } from "@tabler/icons-react";
 interface ApiError {
-  message: string
+  message: string;
 }
 
 export default function ForgotPasswordModal({
   onClose,
   onSent,
 }: Readonly<{
-  onClose: () => void
-  onSent: (email: string) => void
+  onClose: () => void;
+  onSent: (email: string) => void;
 }>) {
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    try 
-    {
-      await authService.forgotPassword(email)
-      onSent(email)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.forgotPassword(email);
+      onSent(email);
     } catch (err: unknown) {
-      const error = err as ApiError
-      setError(getAuthErrorMessage(error.message))
+      const error = err as ApiError;
+      setError(getAuthErrorMessage(error.message));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div
@@ -46,8 +45,9 @@ export default function ForgotPasswordModal({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          className="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         >
+          <IconX size={20} />
         </button>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
@@ -59,15 +59,16 @@ export default function ForgotPasswordModal({
 
         {error && (
           <div className="rounded-md bg-red-100 p-4 mb-4">
-            <p className="text-sm text-red-700">
-                {error}
-            </p>
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="reset-email" className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1">
+            <label
+              htmlFor="reset-email"
+              className="block text-xs font-semibold text-gray-600 uppercase mb-1 ml-1"
+            >
               Email Address
             </label>
             <input
@@ -86,10 +87,10 @@ export default function ForgotPasswordModal({
             disabled={loading}
             className="w-full rounded-xl bg-[#0F2D5E] py-3 text-sm font-bold tracking-widest text-white transition-colors hover:bg-sky-900 shadow-md disabled:opacity-50"
           >
-            {loading ? 'Sending...' : 'SEND RESET CODE'}
+            {loading ? "Sending..." : "SEND RESET CODE"}
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }
