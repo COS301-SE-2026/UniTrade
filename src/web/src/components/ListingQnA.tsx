@@ -60,10 +60,10 @@ export default function ListingQnA({ listingId, isSeller, canAsk }: Readonly<Pro
                        value={draft}
                        onChange={(e) => setDraft(e.target.value)}
                        placeholder="Ask the seller a question...."
-                       className="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm"
+                       className="flex-1 min-w-0 border border-slate-300 rounded-xl px-4 py-2.5 text-sm"
                        />
                     <button type="button" onClick={submitQuestion}
-                    className="bg-navy-700 text-white px-5 py-2 rounded-xl text-sm font-semibold">
+                    className="shrink-0 bg-navy-700 text-white px-5 py-2 rounded-xl text-sm font-semibold">
                         Ask
                     </button>
                     </div>
@@ -89,10 +89,10 @@ export default function ListingQnA({ listingId, isSeller, canAsk }: Readonly<Pro
                                 value={answerDrafts[q.questionId] ?? ""}
                                 onChange={(e) => setAnswerDrafts((s) => ({...s, [q.questionId]: e.target.value}))}
                                 placeholder="Answer this question..."
-                                className="flex-1 border border-slate-300  rounded-xl px-3 py-2 text-sm"
+                                className="flex-1 min-w-0 border border-slate-300 rounded-xl px-3 py-2 text-sm"
                                 />
                                 <button type="button" onClick={() => submitAnswer(q.questionId)}
-                                className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                                className="shrink-0 bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">
                                     Answer
                                 </button>
                             </div>
