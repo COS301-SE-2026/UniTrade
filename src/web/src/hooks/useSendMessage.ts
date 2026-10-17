@@ -125,6 +125,16 @@ export function useSendMessage(reservationId: string) {
     },
   });
 
+  const ensureConnected = async () => {
+    if (!navigator.onLine) return false;
+    if (connectionManager.getState() === "Connected") return true;
+    try {
+      await connectionManager.connect();
+      return connectionManager.getState() === "Connected";
+    } catch {
+      return false;
+    }
+  };
   const canSend = () =>
     navigator.onLine && connectionManager.getState() === "Connected";
   const send = (content: string) => {
@@ -150,8 +160,8 @@ export function useSendMessage(reservationId: string) {
     mutation.mutate({ content, clientId, isRetry: false });
   };
 
-  const retry = (clientId: string, content: string) => {
-    if (!canSend()) {
+  const retry = async (clientId: string, content: string) => {
+    if (!(await ensureConnected())) {
       queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) =>
         old.map((m) =>
           m.clientId === clientId ? { ...m, status: "failed" as const } : m,

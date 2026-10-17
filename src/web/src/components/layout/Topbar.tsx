@@ -14,6 +14,7 @@ const Search_hidden = [
   /\/admin\/disputes\/[^/]+$/,
   /\/admin\/verifications\/[^/]+$/,
   /^\/payment\/payment-complete$/,
+  /^\/seller\/messages\/[^/]+$/,
 ];
 
 function shouldSearchHide(pathname: string): boolean {

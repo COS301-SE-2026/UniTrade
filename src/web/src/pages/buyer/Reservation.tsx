@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { listingsService } from '../../services/listingsService';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { cancelReservation } from '../../services/reservationService'
-import type { ReservationListItem, TimerStage } from '../../types/Reservations'
-import { formatPrice } from '../../utils/formatters'
-import { getApiUrl } from '../../config'
-import { useToast } from '../../components/layout/useToast'
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { listingsService } from "../../services/listingsService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { cancelReservation } from "../../services/reservationService";
+import type { ReservationListItem, TimerStage } from "../../types/Reservations";
+import { formatPrice } from "../../utils/formatters";
+import { getApiUrl } from "../../config";
+import { useToast } from "../../components/layout/useToast";
 import {
   IconClock,
   IconPresentationAnalytics,
@@ -17,126 +17,201 @@ import {
   IconUpload,
   IconX,
   IconFlag,
-} from '@tabler/icons-react'
-import { LoadingState } from '../../components/layout/Spinner'
-import { useSearchQuery } from '../../hooks/useSearchQuery'
+} from "@tabler/icons-react";
+import { LoadingState } from "../../components/layout/Spinner";
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
-import { getReservationSnapshot,fileDispute,fileDisputeBundle } from '../../services/adminService'
-import { useReservationsList } from '../../hooks/useReservationsList';
-import { queryKeys } from '../../lib/queryKeys';
+import {
+  getReservationSnapshot,
+  fileDispute,
+  fileDisputeBundle,
+} from "../../services/adminService";
+import { useReservationsList } from "../../hooks/useReservationsList";
+import { queryKeys } from "../../lib/queryKeys";
+import { ConfirmModal } from "../admin/AdminReviewShared";
 //import { listingLifecycleHandlers } from '../../tests/mocks/handlers';
 //import { resumeToPipeableStream } from 'react-dom/server';
 //import type { ListingSnapshot } from '../../types/admin_disputes'
 
-type ItemStatus = 'Active' | 'Expired' | 'Cancelled' | 'Completed' | 'Reserved';
-type FilterStatus = 'All' | ItemStatus;
-type SortOption = 'Date added' | 'Price low' | 'Price high';
+type ItemStatus = "Active" | "Expired" | "Cancelled" | "Completed" | "Reserved";
+type FilterStatus = "All" | ItemStatus;
+type SortOption = "Date added" | "Price low" | "Price high";
 
 function StatusBadge({ status }: Readonly<{ status: string }>) {
   if (!status) return null;
-  const normalizedStatus = (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as ItemStatus;
+  const normalizedStatus = (status.charAt(0).toUpperCase() +
+    status.slice(1).toLowerCase()) as ItemStatus;
 
-  const config: Record<ItemStatus, { bg: string; text: string; dot: string; label: string }> = {
-    Active: { bg: 'bg-emerald-50', text: 'text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Active' },
-    Completed: { bg: 'bg-blue-50', text: 'text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Completed' },
-    Expired: { bg: 'bg-gray-50', text: 'text-gray-700 border-gray-200', dot: 'bg-gray-500', label: 'Expired' },
-    Cancelled: { bg: 'bg-rose-50', text: 'text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Cancelled' },
-    Reserved: { bg: 'bg-amber-50', text: 'text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Reserved' },
+  const config: Record<
+    ItemStatus,
+    { bg: string; text: string; dot: string; label: string }
+  > = {
+    Active: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700 border-emerald-200",
+      dot: "bg-emerald-500",
+      label: "Active",
+    },
+    Completed: {
+      bg: "bg-blue-50",
+      text: "text-blue-700 border-blue-200",
+      dot: "bg-blue-500",
+      label: "Completed",
+    },
+    Expired: {
+      bg: "bg-gray-50",
+      text: "text-gray-700 border-gray-200",
+      dot: "bg-gray-500",
+      label: "Expired",
+    },
+    Cancelled: {
+      bg: "bg-rose-50",
+      text: "text-rose-700 border-rose-200",
+      dot: "bg-rose-500",
+      label: "Cancelled",
+    },
+    Reserved: {
+      bg: "bg-amber-50",
+      text: "text-amber-700 border-amber-200",
+      dot: "bg-amber-500",
+      label: "Reserved",
+    },
   };
-  const currentConfig = config[normalizedStatus] || config['Expired'];
+  const currentConfig = config[normalizedStatus] || config["Expired"];
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${currentConfig.bg} ${currentConfig.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${currentConfig.dot} ${normalizedStatus === 'Active' ? 'animate-pulse' : ''}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${currentConfig.bg} ${currentConfig.text}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${currentConfig.dot} ${normalizedStatus === "Active" ? "animate-pulse" : ""}`}
+      />
       {currentConfig.label}
     </span>
   );
 }
 
-type UrgencyLevel = 'normal' | 'expiring'
+type UrgencyLevel = "normal" | "expiring";
 
 function getMsRemaining(expiresAt: string): number {
-  return new Date(expiresAt).getTime() - Date.now()
+  return new Date(expiresAt).getTime() - Date.now();
 }
 
 function getUrgency(msRemaining: number): UrgencyLevel {
-  return msRemaining <= 60 * 60 * 1000 ? 'expiring' : 'normal'
+  return msRemaining <= 60 * 60 * 1000 ? "expiring" : "normal";
 }
 
 function formatCountdown(msRemaining: number): string {
-  if (msRemaining <= 0) return 'Expired'
-  const totalSecs = Math.floor(msRemaining / 1000)
-  const hours = Math.floor(totalSecs / 3600)
-  const minutes = Math.floor((totalSecs % 3600) / 60)
-  const seconds = totalSecs % 60
+  if (msRemaining <= 0) return "Expired";
+  const totalSecs = Math.floor(msRemaining / 1000);
+  const hours = Math.floor(totalSecs / 3600);
+  const minutes = Math.floor((totalSecs % 3600) / 60);
+  const seconds = totalSecs % 60;
 
-  const pad = (n: number) => n.toString().padStart(2, '0')
+  const pad = (n: number) => n.toString().padStart(2, "0");
   if (hours > 0) {
-    return `${hours} hrs ${pad(minutes)} mins ${pad(seconds)} sec`
+    return `${hours} hrs ${pad(minutes)} mins ${pad(seconds)} sec`;
   }
 
-  return `${pad(minutes)} mins ${pad(seconds)} sec`
+  return `${pad(minutes)} mins ${pad(seconds)} sec`;
 }
 
-const baseBtn = 'inline-flex items-center justify-center gap-1 rounded-lg border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+const baseBtn =
+  "inline-flex items-center justify-center gap-1 rounded-lg border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
 const stageMeta: Record<TimerStage, { label: string; className: string }> = {
-  awaiting_seller: { label: 'Waiting on seller', className: 'bg-sky-100 text-sky-700' },
-  awaiting_buyer: { label: 'Buyer turn', className: 'bg-sky-100 text-sky-700' },
-  coordinating: { label: 'Coordination pickup', className: 'bg-emerald-100 text-emerald-700' },
-  meetup_confirmed: { label: 'Meetup scheduled', className: 'bg-emerald-100 text-emerald-700' },
-}
+  awaiting_seller: {
+    label: "Waiting on seller",
+    className: "bg-sky-100 text-sky-700",
+  },
+  awaiting_buyer: { label: "Buyer turn", className: "bg-sky-100 text-sky-700" },
+  coordinating: {
+    label: "Coordination pickup",
+    className: "bg-emerald-100 text-emerald-700",
+  },
+  meetup_confirmed: {
+    label: "Meetup scheduled",
+    className: "bg-emerald-100 text-emerald-700",
+  },
+};
 
-export function SummaryCard({ label, value, icon }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
+export function SummaryCard({
+  label,
+  value,
+  icon,
+}: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
     <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-200 py-3 px-3 sm:px-4 flex flex-col items-start sm:flex-row sm:items-center gap-1 sm:gap-3">
       <span className="text-navy-700">{icon}</span>
       <div>
-        <p className="text-xl sm:text-2xl font-extrabold text-gray-800">{value}</p>
-        <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 break-words">{label}</p>
+        <p className="text-xl sm:text-2xl font-extrabold text-gray-800">
+          {value}
+        </p>
+        <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 break-words">
+          {label}
+        </p>
       </div>
     </div>
   );
 }
 
 function StageTag({ stage }: Readonly<{ stage: TimerStage }>) {
-  const meta = stageMeta[stage] ?? { label: stage, className: 'bg-gray-100 text-gray-600' }
+  const meta = stageMeta[stage] ?? {
+    label: stage,
+    className: "bg-gray-100 text-gray-600",
+  };
   return (
-    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}>
+    <span
+      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${meta.className}`}
+    >
       {meta.label}
     </span>
-  )
+  );
 }
 
-function CountdownBadge({ msRemaining, urgency }: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
+function CountdownBadge({
+  msRemaining,
+  urgency,
+}: Readonly<{ msRemaining: number; urgency: UrgencyLevel }>) {
   if (msRemaining <= 0) return null;
-  const style = urgency === 'expiring' ? 'bg-rose-50 text-rose-600 border border-rose-200'
-    : 'bg-sky-50 text-sky-700 border border-sky-200'
+  const style =
+    urgency === "expiring"
+      ? "bg-rose-50 text-rose-600 border border-rose-200"
+      : "bg-sky-50 text-sky-700 border border-sky-200";
   return (
-    <div className={`flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap ${style}`}>
+    <div
+      className={`flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap ${style}`}
+    >
       <IconClock size={14} />
       {formatCountdown(msRemaining)}
     </div>
-  )
+  );
 }
 
-function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpen: boolean; onClose: () => void; reservationId: string }>) {
+function ReportQualityModal({
+  isOpen,
+  onClose,
+  reservationId,
+}: Readonly<{ isOpen: boolean; onClose: () => void; reservationId: string }>) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [sellerRefusedPhotos, setSellerRefusedPhotos] = useState(false);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [manualSelectedListingId, setManualSelectedListingId] = useState<string | null>(null);
+  const [manualSelectedListingId, setManualSelectedListingId] = useState<
+    string | null
+  >(null);
   const [reportAll, setReportAll] = useState(false);
   const apiBase = getApiUrl();
-  const { showToast } = useToast()
+  const { showToast } = useToast();
 
   const { data: items = [], isLoading: loadingItems } = useQuery({
-    queryKey: ['reservation-snapshot', reservationId],
+    queryKey: ["reservation-snapshot", reservationId],
     queryFn: () => getReservationSnapshot(reservationId),
     enabled: isOpen,
   });
-  const selectedListingId = items.length === 1 ? items[0].listingId : manualSelectedListingId;
+  const selectedListingId =
+    items.length === 1 ? items[0].listingId : manualSelectedListingId;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -144,34 +219,29 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('file', files[0]);
+    formData.append("file", files[0]);
 
     try {
       const res = await fetch(`${apiBase}/images/upload`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
+        method: "POST",
+        credentials: "include",
+        body: formData,
       });
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || 'Upload failed');
-
-
+        throw new Error(error.error || "Upload failed");
       }
       const data = await res.json();
-      const url = `${apiBase}${data.url.replace(/^\/api/, '')}`;
+      const url = `${apiBase}${data.url.replace(/^\/api/, "")}`;
       setPhotos((prev) => [...prev, url]);
-      showToast('success', 'Image Uploaded');
-
-    }
-    catch (err) {
+      showToast("success", "Image Uploaded");
+    } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      showToast('error', message || 'Failed to uploaded image');
-    }
-    finally {
+      showToast("error", message || "Failed to uploaded image");
+    } finally {
       setUploading(false);
-      e.target.value = '';
+      e.target.value = "";
     }
   };
 
@@ -181,60 +251,64 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 
   const handleSubmit = async () => {
     if (photos.length === 0 && !sellerRefusedPhotos) {
-      showToast('info', 'Please upload photos or mark that the seller refused.');
+      showToast(
+        "info",
+        "Please upload photos or mark that the seller refused.",
+      );
       return;
     }
 
     if (items.length > 1 && !selectedListingId) {
-      showToast('info', 'Please select which item you are reporting.')
+      showToast("info", "Please select which item you are reporting.");
       return;
     }
     setSubmitting(true);
 
     try {
-      if(reportAll && items.length > 1) {
+      if (reportAll && items.length > 1) {
         const result = await fileDisputeBundle({
-          
-          type: 'listing_quality',
-        reservationId,
-        description: description || undefined,
-        items: items.map((item) => ({
-          listingId: item.listingId,
-          photos,
-          sellerRefusedPhotos,
-        })),
+          type: "listing_quality",
+          reservationId,
+          description: description || undefined,
+          items: items.map((item) => ({
+            listingId: item.listingId,
+            photos,
+            sellerRefusedPhotos,
+          })),
         });
 
         const count = result.caseIds.length;
-        showToast('success', `Submitted ${count} report${count ===1 ? '' : 's'} for this bundle.`);
+        showToast(
+          "success",
+          `Submitted ${count} report${count === 1 ? "" : "s"} for this bundle.`,
+        );
       } else {
-      await fileDispute({
-        type: 'listing_quality',
-        reservationId,
-        listingId: items.length > 1 ? selectedListingId! : undefined,
-        sellerRefusedPhotos,
-        photos,
-        description: description || undefined,
-      });
-      showToast('success', 'Listing quality report submitted.');}
+        await fileDispute({
+          type: "listing_quality",
+          reservationId,
+          listingId: items.length > 1 ? selectedListingId! : undefined,
+          sellerRefusedPhotos,
+          photos,
+          description: description || undefined,
+        });
+        showToast("success", "Listing quality report submitted.");
+      }
       onClose();
 
       setPhotos([]);
-      setDescription('');
+      setDescription("");
       setSellerRefusedPhotos(false);
       setManualSelectedListingId(null);
       setReportAll(false);
-    }
-    catch (err) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      showToast('error', message || 'Failed to submit report.')
-    }
-    finally {
+      showToast("error", message || "Failed to submit report.");
+    } finally {
       setSubmitting(false);
     }
   };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
@@ -245,18 +319,16 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('input, textarea, [contenteditable="true"]')) {
-          if (e.key === 'Escape') {
+          if (e.key === "Escape") {
             onClose();
           }
           return;
         }
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClose();
         }
-
       }}
-
     >
       <div
         role="presentation"
@@ -265,7 +337,7 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          type='button'
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
         >
@@ -278,70 +350,90 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
 
         <div className="space-y-5">
           <div>
-            <label htmlFor='images' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label
+              htmlFor="images"
+              className="block text-xs font-semibold text-navy-700 dark:text-white mb-2"
+            >
               Images <span className="text-gray-400 font-normal">(Upload)</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
-              {
-                photos.map((url, i) => (
-                  <div key={i} className='relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50'>
-                    <img src={url} alt={`Upload ${i + 1}`} className='w-full h-full object-cover' />
-                    <button type='button'
-                      onClick={() => handleRemovePhoto(url)}
-                      className='absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70'
-                    ><IconX size={14} />
-                    </button>
-                  </div>
-                ))
-              }
+              {photos.map((url, i) => (
+                <div
+                  key={i}
+                  className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50"
+                >
+                  <img
+                    src={url}
+                    alt={`Upload ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(url)}
+                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                  >
+                    <IconX size={14} />
+                  </button>
+                </div>
+              ))}
               {photos.length < 5 && (
-                <label htmlFor='upload' className='w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors'>
+                <label
+                  htmlFor="upload"
+                  className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-navy-700 transition-colors"
+                >
                   {uploading ? (
-                    <div className='w-6 h-6 border-2 border-navy-700 border-t-transparent rounded-full animate-spin' />
-
+                    <div className="w-6 h-6 border-2 border-navy-700 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <IconUpload size={22} className='text-gray-400' />
-                      <span className='text-[10px] text-gray-400 mt-1'>Upload</span>
+                      <IconUpload size={22} className="text-gray-400" />
+                      <span className="text-[10px] text-gray-400 mt-1">
+                        Upload
+                      </span>
                     </>
                   )}
                   <input
                     id="upload"
-                    type='file'
+                    type="file"
                     accept="image/*"
                     onChange={handleFileUpload}
                     disabled={uploading}
-                    className='hidden'
+                    className="hidden"
                   />
                 </label>
               )}
             </div>
-
           </div>
 
           {items.length > 1 && (
-            <div className='space-y-3'> 
-            <div>
-              <label htmlFor="item-picker" className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
-                Which item is this about?
-              </label>
-              <select
-                id="item-picker"
-                value={selectedListingId ?? ''}
-                onChange={(e) => setManualSelectedListingId(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-navy-700"
-              >
-                <option value="" disabled>Select an item</option>
-                {items.map((item) => (
-                  <option key={item.listingId} value={item.listingId}>
-                    {item.title} - {formatPrice(item.price)}
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="item-picker"
+                  className="block text-xs font-semibold text-navy-700 dark:text-white mb-2"
+                >
+                  Which item is this about?
+                </label>
+                <select
+                  id="item-picker"
+                  value={selectedListingId ?? ""}
+                  onChange={(e) => setManualSelectedListingId(e.target.value)}
+                  className="w-full rounded-xl border border-gray-300 dark:border-white/10 p-3 text-sm bg-transparent text-navy-700 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-navy-700"
+                >
+                  <option value="" disabled>
+                    Select an item
                   </option>
-                ))}
-              </select>
+                  {items.map((item) => (
+                    <option key={item.listingId} value={item.listingId}>
+                      {item.title} - {formatPrice(item.price)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
           )}
-                    {loadingItems && <p className="text-xs text-gray-400">Loading items....</p>}
+          {loadingItems && (
+            <p className="text-xs text-gray-400">Loading items....</p>
+          )}
 
           <div className="flex items-center gap-3">
             <input
@@ -351,13 +443,19 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
               onChange={(e) => setSellerRefusedPhotos(e.target.checked)}
               className="w-4 h-4 rounded-sm border-gray-300 text-navy-700 focus:ring-navy-700 cursor-pointer"
             />
-            <label htmlFor="refuse-photos" className="text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none">
+            <label
+              htmlFor="refuse-photos"
+              className="text-xs font-medium text-navy-700 dark:text-white cursor-pointer select-none"
+            >
               Did the seller refuse to provide more photos?
             </label>
           </div>
 
           <div>
-            <label htmlFor='desc' className="block text-xs font-semibold text-navy-700 dark:text-white mb-2">
+            <label
+              htmlFor="desc"
+              className="block text-xs font-semibold text-navy-700 dark:text-white mb-2"
+            >
               Description
             </label>
             <textarea
@@ -375,58 +473,63 @@ function ReportQualityModal({ isOpen, onClose, reservationId }: Readonly<{ isOpe
             onClick={handleSubmit}
             disabled={submitting}
           >
-            {submitting ? 'Submitting...' : 'Submit Report'}
+            {submitting ? "Submitting..." : "Submit Report"}
           </button>
         </div>
       </div>
-
     </div>
-  )
+  );
 }
 
 function ReservationCard({
   reservation,
   onCancel,
 }: Readonly<{
-  reservation: ReservationListItem
-  onCancel: (id: string) => void
+  reservation: ReservationListItem;
+  onCancel: (id: string) => void;
 }>) {
-  const navigate = useNavigate()
-  const [reportModalOpen, setReportModalOpen] = useState(false)
-  const [, forceTick] = useState(0)
+  const navigate = useNavigate();
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+
+  const [, forceTick] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => forceTick((t) => t + 1), 1000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const msRemaining = getMsRemaining(reservation.expiresAt)
-  const urgency = getUrgency(msRemaining)
-  const isActive = reservation.reservationStatus === 'active'
-  const {data: meetup} = useQuery({
-    queryKey: ['meetup-status', reservation.reservationId],
+  const msRemaining = getMsRemaining(reservation.expiresAt);
+  const urgency = getUrgency(msRemaining);
+  const isActive = reservation.reservationStatus === "active";
+  const { data: meetup } = useQuery({
+    queryKey: ["meetup-status", reservation.reservationId],
     queryFn: () => listingsService.getMeetupStatus(reservation.reservationId),
-    enabled: isActive && reservation.timerStage === 'meetup_confirmed',
-  })
-  const bothCheckedIn = !!meetup?.buyerCheckedIn && !!meetup?.sellerCheckedIn
-  const apiOrigin = getApiUrl().split('/api')[0]
-  const primaryItem = reservation.listings[0]
+    enabled: isActive && reservation.timerStage === "meetup_confirmed",
+  });
+  const bothCheckedIn = !!meetup?.buyerCheckedIn && !!meetup?.sellerCheckedIn;
+  const apiOrigin = getApiUrl().split("/api")[0];
+  const primaryItem = reservation.listings[0];
   const displayTitle = reservation.isBundle
     ? `${reservation.listings.length} items from ${reservation.counterParty.name}`
-    : primaryItem.title
+    : primaryItem.title;
 
   return (
     <>
       <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
         <button
-          type='button'
-          onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+          type="button"
+          onClick={() =>
+            navigate(`/buyer/reservations/${reservation.reservationId}`)
+          }
           className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg object-cover flex shrink-0 cursor-pointer hover:opacity-90 transition-opacity p-0 bg-transparent border-0"
         >
           <img
-            src={primaryItem.imagePath
-              ? `${apiOrigin}${primaryItem.imagePath}`
-              : '/placeholder.png'}
+            src={
+              primaryItem.imagePath
+                ? `${apiOrigin}${primaryItem.imagePath}`
+                : "/placeholder.png"
+            }
             alt={displayTitle}
             className="w-full h-full object-cover rounded-lg"
           />
@@ -434,11 +537,13 @@ function ReservationCard({
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-2 sm:gap-4">
             <div
-              role='button'
+              role="button"
               tabIndex={0}
-              onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+              onClick={() =>
+                navigate(`/buyer/reservations/${reservation.reservationId}`)
+              }
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   navigate(`/buyer/reservations/${reservation.reservationId}`);
                 }
@@ -452,21 +557,27 @@ function ReservationCard({
                 <StatusBadge status={reservation.reservationStatus} />
               </div>
               <p className="text-xs text-gray-400 mt-0.5">
-                Listed by <span className="font-semibold text-gray-500">
+                Listed by{" "}
+                <span className="font-semibold text-gray-500">
                   {reservation.counterParty.name}
                 </span>
               </p>
             </div>
-            {isActive && msRemaining > 0 && reservation.timerStage !== 'meetup_confirmed' && (
-              <div className="sm:text-right shrink-0">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide">
-                  Expires in
-                </p>
-                <div className="mt-1">
-                  <CountdownBadge msRemaining={msRemaining} urgency={urgency} />
+            {isActive &&
+              msRemaining > 0 &&
+              reservation.timerStage !== "meetup_confirmed" && (
+                <div className="sm:text-right shrink-0">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                    Expires in
+                  </p>
+                  <div className="mt-1">
+                    <CountdownBadge
+                      msRemaining={msRemaining}
+                      urgency={urgency}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           <div className="flex items-center gap-2 mt-2">
@@ -482,19 +593,23 @@ function ReservationCard({
                 <button
                   type="button"
                   className={`${baseBtn} bg-navy-800 border-navy-800 text-white hover:bg-navy-700 dark:hover:bg-navy-500`}
-                  onClick={() => navigate(`/buyer/reservations/${reservation.reservationId}`)}
+                  onClick={() =>
+                    navigate(`/buyer/reservations/${reservation.reservationId}`)
+                  }
                 >
                   View Reservation
                 </button>
                 <button
                   type="button"
                   className={`${baseBtn} relative border-gray-300 dark:border-navy-600 text-navy-900 dark:text-white hover:bg-gray-50 dark:hover:bg-navy-700`}
-                  onClick={() => navigate(`/buyer/messages/${reservation.reservationId}`, {
-                    state: {
-                      counterparty: reservation.counterParty.name,
-                      counterpartyInitials: reservation.counterParty.initials,
-                    },
-                  })}
+                  onClick={() =>
+                    navigate(`/buyer/messages/${reservation.reservationId}`, {
+                      state: {
+                        counterparty: reservation.counterParty.name,
+                        counterpartyInitials: reservation.counterParty.initials,
+                      },
+                    })
+                  }
                 >
                   Message seller
                   {reservation.unreadCount > 0 && (
@@ -505,8 +620,8 @@ function ReservationCard({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onCancel(reservation.reservationId)}
-                  disabled={reservation.timerStage == 'meetup_confirmed'}
+                  onClick={() => setConfirmCancelOpen(true)}
+                  disabled={reservation.timerStage == "meetup_confirmed"}
                   className="py-1.5 px-3 border border-gray-300 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
@@ -515,62 +630,95 @@ function ReservationCard({
 
               {bothCheckedIn && (
                 <button
-                type = "button"
-                onClick = {() => setReportModalOpen(true)}
-                className = "inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
+                  type="button"
+                  onClick={() => setReportModalOpen(true)}
+                  className="inline-flex items-center gap-1 text-xs text-rose-500 hover:text-rose-700 font-medium transition-colors ml-auto"
                 >
-                  <IconFlag size = {13} /> Report listing quality 
+                  <IconFlag size={13} /> Report listing quality
                 </button>
-
               )}
-              </div>
+            </div>
           )}
-          </div>
-          </div>
+        </div>
+      </div>
 
-      <ReportQualityModal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} reservationId={reservation.reservationId} />
+      <ReportQualityModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        reservationId={reservation.reservationId}
+      />
+      {confirmCancelOpen && (
+        <ConfirmModal
+          title="Cancel reservation?"
+          message="The item goes back on the live market and other students can reserve it."
+          confirmLabel="Yes, cancel"
+          cancelLabel="Keep it"
+          tone="danger"
+          showReasonField={false}
+          onCancel={() => setConfirmCancelOpen(false)}
+          onConfirm={() => {
+            setConfirmCancelOpen(false);
+            onCancel(reservation.reservationId);
+          }}
+        />
+      )}
     </>
-  )
+  );
 }
 
 export default function Reservations() {
-  const queryClient = useQueryClient()
-  const { data: reservations = [], isLoading: loading, isError, error: queryError } = useReservationsList('buyer')
-  const error = isError ? (queryError instanceof Error ? queryError.message : 'Could not load your reservations.') : null
+  const queryClient = useQueryClient();
+  const {
+    data: reservations = [],
+    isLoading: loading,
+    isError,
+    error: queryError,
+  } = useReservationsList("buyer");
+  const error = isError
+    ? queryError instanceof Error
+      ? queryError.message
+      : "Could not load your reservations."
+    : null;
 
-  const { showToast } = useToast()
-  const [sortOption, setSortOption] = useState<SortOption>("Date added")
-  const [sortOpen, setSortOpen] = useState(false)
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<FilterStatus>("All")
-  const searchQuery = useSearchQuery()
+  const { showToast } = useToast();
+  const [sortOption, setSortOption] = useState<SortOption>("Date added");
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<FilterStatus>("All");
+  const searchQuery = useSearchQuery();
 
   const handleCancel = async (reservationId: string) => {
-    const result = await cancelReservation(reservationId)
+    const result = await cancelReservation(reservationId);
     if (result.success) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.reservations('buyer') })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reservations("buyer"),
+      });
 
-      showToast('success', 'Successfully cancelled the reservation!!');
+      showToast("success", "Successfully cancelled the reservation!!");
     } else {
-      showToast('error', 'Failed to cancel reservation.');
+      showToast("error", "Failed to cancel reservation.");
     }
-  }
+  };
 
   const filtered = useMemo(() => {
-    let result = statusFilter === 'All'
-      ? reservations
-      : reservations.filter((r) => r.reservationStatus.toLowerCase() === statusFilter.toLowerCase())
+    let result =
+      statusFilter === "All"
+        ? reservations
+        : reservations.filter(
+            (r) =>
+              r.reservationStatus.toLowerCase() === statusFilter.toLowerCase(),
+          );
 
     if (searchQuery) {
       result = result.filter(
         (r) =>
           r.listings.some((l) => l.title.toLowerCase().includes(searchQuery)) ||
-          r.counterParty.name.toLowerCase().includes(searchQuery)
-      )
+          r.counterParty.name.toLowerCase().includes(searchQuery),
+      );
     }
 
-    return result
-  }, [reservations, statusFilter, searchQuery])
+    return result;
+  }, [reservations, statusFilter, searchQuery]);
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -582,20 +730,27 @@ export default function Reservations() {
       copy.sort(
         (a, b) =>
           new Date(b.createdAt ?? b.expiresAt).getTime() -
-          new Date(a.createdAt ?? a.expiresAt).getTime()
+          new Date(a.createdAt ?? a.expiresAt).getTime(),
       );
     }
     return copy;
   }, [filtered, sortOption]);
 
   const summary = useMemo(() => {
-    const activeCount = reservations.filter((r) => r.reservationStatus === 'active').length
+    const activeCount = reservations.filter(
+      (r) => r.reservationStatus === "active",
+    ).length;
     const expiringCount = reservations.filter(
-      (r) => r.reservationStatus === 'active' && getUrgency(getMsRemaining(r.expiresAt)) === 'expiring').length
-    const totalValue = reservations.filter((r) => r.reservationStatus === 'active').reduce((sum, r) => sum + r.totalPrice, 0)
+      (r) =>
+        r.reservationStatus === "active" &&
+        getUrgency(getMsRemaining(r.expiresAt)) === "expiring",
+    ).length;
+    const totalValue = reservations
+      .filter((r) => r.reservationStatus === "active")
+      .reduce((sum, r) => sum + r.totalPrice, 0);
 
-    return { activeCount, expiringCount, totalValue }
-  }, [reservations])
+    return { activeCount, expiringCount, totalValue };
+  }, [reservations]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -604,6 +759,9 @@ export default function Reservations() {
           <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
             My Reservations
           </h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Items you've reserved, and how long you have left to act on each.
+          </p>
         </div>
         <div className="flex flex-col items-start sm:flex-row sm:items-center gap-2">
           <div className="relative">
@@ -617,7 +775,9 @@ export default function Reservations() {
             </button>
             {sortOpen && (
               <div className="absolute left-0 sm:left-auto sm:right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
-                {(["Date added", "Price low", "Price high"] as SortOption[]).map((opt) => (
+                {(
+                  ["Date added", "Price low", "Price high"] as SortOption[]
+                ).map((opt) => (
                   <button
                     key={opt}
                     onClick={() => {
@@ -644,7 +804,16 @@ export default function Reservations() {
             </button>
             {filterOpen && (
               <div className="absolute left-0 sm:left-auto sm:right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
-                {(["All", "Active", "Reserved", "Completed", "Expired", "Cancelled"] as FilterStatus[]).map((opt) => (
+                {(
+                  [
+                    "All",
+                    "Active",
+                    "Reserved",
+                    "Completed",
+                    "Expired",
+                    "Cancelled",
+                  ] as FilterStatus[]
+                ).map((opt) => (
                   <button
                     key={opt}
                     onClick={() => {
@@ -690,7 +859,9 @@ export default function Reservations() {
 
       {!loading && !error && sorted.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-sm font-semibold text-gray-700">No reservations found</p>
+          <p className="text-sm font-semibold text-gray-700">
+            No reservations found
+          </p>
           <p className="text-xs text-gray-400 mt-1">
             {searchQuery
               ? `There are no reservation with "${searchQuery} found.`
@@ -707,5 +878,5 @@ export default function Reservations() {
         />
       ))}
     </div>
-  )
+  );
 }

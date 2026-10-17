@@ -24,7 +24,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../lib/queryKeys";
 import { getApiUrl } from "../../config";
 import { connectionManager } from "../../services/realtime/connectionManager";
-
+import { ConfirmModal } from "../admin/AdminReviewShared";
 
 interface CountdownResult {
   label: string;
@@ -259,6 +259,7 @@ export default function ReservationDetails() {
 
   const queryClient = useQueryClient();
   const [isAccepting, setIsAccepting] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
   const handleAccept = async () => {
     if (!reservation || isAccepting) return;
@@ -266,10 +267,15 @@ export default function ReservationDetails() {
     const result = await acknowledgeReservatioin(reservation.reservationId);
     if (result.success) {
       showToast("success", "Reservation accepted.");
-      queryClient.invalidateQueries({ queryKey: queryKeys.reservations("seller") });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reservations("seller"),
+      });
       await loadReservation(); // refresh timerStage so the button disappears
     } else {
-      showToast("error", result.error.message ?? "Failed to accept reservation.");
+      showToast(
+        "error",
+        result.error.message ?? "Failed to accept reservation.",
+      );
     }
     setIsAccepting(false);
   };
@@ -288,7 +294,6 @@ export default function ReservationDetails() {
 
     setError(null);
 
-
     const result = await getReservationById(reservationId);
 
     if (!result.success) {
@@ -303,7 +308,9 @@ export default function ReservationDetails() {
 
     if (result.data.listings[0]) {
       try {
-        const detail = await listingsService.getById(result.data.listings[0].listingId);
+        const detail = await listingsService.getById(
+          result.data.listings[0].listingId,
+        );
         setListingDetail(detail);
       } catch {
         //nothing
@@ -387,29 +394,30 @@ export default function ReservationDetails() {
     if (reservation.isBundle) {
       setItemsExpanded((prev) => !prev);
     } else {
-      navigate(`/${isSeller ? "seller" : "buyer"}/listings/${reservation.listings[0].listingId}`);
+      navigate(
+        `/${isSeller ? "seller" : "buyer"}/listings/${reservation.listings[0].listingId}`,
+      );
     }
   };
-
-
 
   const handleCancel = async () => {
     if (!reservation) return;
     setIsCancelling(true);
     const result = await cancelReservation(reservation.reservationId);
     if (result.success) {
-      setReservation((prev) =>
-        prev
-          ? { ...prev, reservationStatus: result.data.reservationStatus }
-          : prev,
-      );
       showToast(
         "success",
         isSeller
           ? "Reservation cancelled"
           : "Reservation cancelled successfully.",
       );
+      setConfirmCancelOpen(false);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reservations(isSeller ? "seller" : "buyer"),
+      });
+      navigate(isSeller ? "/seller/reservations" : "/buyer/reservations");
     } else {
+      setConfirmCancelOpen(false);
       showToast(
         "error",
         result.error.code === "release_too_early"
@@ -419,7 +427,6 @@ export default function ReservationDetails() {
     }
     setIsCancelling(false);
   };
-
 
   const handleViewMeetupDetails = () => {
     if (!reservation) return;
@@ -466,7 +473,6 @@ export default function ReservationDetails() {
   const createdDate = new Date(reservation.createdAt);
   const primaryItem = reservation.listings[0];
 
-
   const { messageLabel, cancelLabel, otherPartyLabel } = deriveLabels(
     reservation,
     isSeller,
@@ -502,22 +508,22 @@ export default function ReservationDetails() {
   return (
     <div className="px-4 sm:px-8 py-6 sm:py-7 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-        <nav className="flex items-center gap-1.5 text-sm">
+        <nav className="flex items-center gap-1.5 text-sm min-w-0">
           <Link
             to={isSeller ? "/seller/reservations" : "/buyer/reservations"}
-            className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+            className="shrink-0 whitespace-nowrap text-blue-600 dark:text-blue-400 font-medium hover:underline"
           >
             My Reservations
           </Link>
-          <IconChevronRight size={16} className="text-gray-400" />
-          <span className="font-semibold text-navy-900 dark:text-white">
+          <IconChevronRight size={16} className="shrink-0 text-gray-400" />
+          <span className="min-w-0 truncate font-semibold text-navy-900 dark:text-white">
             {displayTitle}
           </span>
         </nav>
 
         {!isCancelled && !isMeetupConfirmed && (
-          <div className="text-right">
-            <p className="text-sm text-gray-500 dark:text-navy-100 mb-1.5">
+          <div className="flex items-center gap-2 sm:block sm:text-right">
+            <p className="text-sm text-gray-500 dark:text-navy-100 sm:mb-1.5">
               Expires in
             </p>
             <span
@@ -533,7 +539,7 @@ export default function ReservationDetails() {
           <SectionCard title="Item">
             {!reservation.isBundle ? (
               <div className="flex gap-4 mb-5">
-                <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
                   {listingDetail?.images?.[0]?.url ? (
                     <img
                       src={listingDetail.images?.[0]?.url}
@@ -547,7 +553,7 @@ export default function ReservationDetails() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-lg font-bold text-navy-900 dark:text-white mb-1">
+                  <h3 className="text-base sm:text-lg font-bold text-navy-900 dark:text-white mb-1 break-words">
                     {displayTitle}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-navy-100">
@@ -576,7 +582,10 @@ export default function ReservationDetails() {
                 {itemsExpanded && (
                   <div className="mt-3 flex flex-col gap-3">
                     {reservation.listings.map((item) => (
-                      <div key={item.listingId} className="flex items-center gap-3">
+                      <div
+                        key={item.listingId}
+                        className="flex items-center gap-3"
+                      >
                         <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-navy-700 flex items-center justify-center shrink-0">
                           {item.imagePath ? (
                             <img
@@ -595,7 +604,11 @@ export default function ReservationDetails() {
                         </p>
                         <button
                           type="button"
-                          onClick={() => navigate(`/${isSeller ? "seller" : "buyer"}/listings/${item.listingId}`)}
+                          onClick={() =>
+                            navigate(
+                              `/${isSeller ? "seller" : "buyer"}/listings/${item.listingId}`,
+                            )
+                          }
                           className="ml-auto rounded-2xl bg-navy-700 shrink-0 text-xs font-semibold text-white dark:text-blue-300 hover:underline px-2 py-1"
                         >
                           View
@@ -629,7 +642,6 @@ export default function ReservationDetails() {
           </SectionCard>
 
           <SectionCard title="Actions">
-
             <div className="flex flex-col gap-3">
               {canAccept && (
                 <ActionButton
@@ -665,7 +677,13 @@ export default function ReservationDetails() {
 
               <ActionButton
                 icon={<IconEye size={16} />}
-                label={reservation.isBundle ? (itemsExpanded ? "Hide items" : "View items") : "View Listing"}
+                label={
+                  reservation.isBundle
+                    ? itemsExpanded
+                      ? "Hide items"
+                      : "View items"
+                    : "View Listing"
+                }
                 onClick={handleViewOrToggleListing}
               />
               <ActionButton
@@ -677,7 +695,7 @@ export default function ReservationDetails() {
               <ActionButton
                 icon={<IconFlag size={16} />}
                 label={cancelLabel}
-                onClick={handleCancel}
+                onClick={() => setConfirmCancelOpen(true)}
                 disabled={!canCancel}
                 variant="danger"
               />
@@ -713,7 +731,7 @@ export default function ReservationDetails() {
           <SectionCard title="Reservation Info">
             <InfoRow
               label="Reservation ID"
-              value={"#" + reservation.reservationId}
+              value={"#" + reservation.reservationId.slice(0, 8).toUpperCase()}
             />
             <InfoRow
               label="Date Reserved"
@@ -730,6 +748,19 @@ export default function ReservationDetails() {
           </SectionCard>
         </div>
       </div>
+      {confirmCancelOpen && (
+        <ConfirmModal
+          title="Cancel this reservation?"
+          message="The item goes back on the live market and other students can reserve it."
+          confirmLabel="Yes, cancel"
+          cancelLabel="Keep it"
+          tone="danger"
+          showReasonField={false}
+          submitting={isCancelling}
+          onCancel={() => setConfirmCancelOpen(false)}
+          onConfirm={handleCancel}
+        />
+      )}
     </div>
   );
 }
