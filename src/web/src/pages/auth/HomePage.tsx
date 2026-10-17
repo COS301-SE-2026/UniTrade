@@ -23,8 +23,8 @@ interface StatProps {
 function Stat({ number, label }: Readonly<StatProps>) {
   return (
     <div className="text-center">
-      <p className="text-2xl font-bold text-white mx-5">{number}</p>
-      <p className="text-sm text-gray-400 mt-1 mx-5 whitespace-nowrap">{label}</p>
+      <p className="text-2xl font-bold text-white mx-1 sm:mx-5">{number}</p>
+      <p className="text-xs sm:text-sm text-gray-400 mt-1 mx-1 sm:mx-5 sm:whitespace-nowrap">{label}</p>
     </div>
   );
 }
@@ -123,7 +123,7 @@ function Navbar() {
   const navigate = useNavigate()
   return (
     <nav className="bg-white dark:bg-navy-800 border-b border-gray-100 dark:border-white/10 sticky top-0 z-50">
-      <div className="max-w-full mx-auto px-6 py-5 flex items-center justify-between">
+      <div className="max-w-full mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex items-end gap-2">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
@@ -137,7 +137,7 @@ function Navbar() {
                 }}
               />
             </div>
-            <h1 className="font-bold text-navy-700 dark:text-white text-3xl leading-none">UniTrade</h1>
+            <h1 className="font-bold text-navy-700 dark:text-white text-2xl sm:text-3xl leading-none">UniTrade</h1>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ function Navbar() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowTerms(true)}
-            className="bg-navy-700 hover:bg-navy-600 text-white px-6 py-2.5 text-sm font-semibold rounded-full transition-colors">
+            className="bg-navy-700 hover:bg-navy-600 text-white px-4 sm:px-6 py-2.5 text-sm font-semibold rounded-full transition-colors whitespace-nowrap shrink-0">
             Get Started
           </button>
 
@@ -282,7 +282,7 @@ function Firstpage() {
   const [showTerms, setShowTerms] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative lg:min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-navy-700 lg:bg-white" />
       <div className="absolute inset-0 z-10 hidden lg:block">
         <svg
@@ -299,9 +299,9 @@ function Firstpage() {
           />
         </svg>
       </div>
-      <div className="relative z-20 max-w-7xl mx-auto px-6 pt-16 pb-10 min-h-screen flex flex-col">
+      <div className="relative z-20 max-w-7xl mx-auto px-6 pt-10 pb-6 lg:pt-16 lg:pb-10 lg:min-h-screen flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row items-center gap-12">
-          <div className="shrink-0 text-center lg:text-left lg:max-w-[40%]">
+          <div className="w-full lg:w-auto shrink-0 text-center lg:text-left lg:max-w-[40%]">
             <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight max-w-3xl mx-auto
                animate-fade-up [animation-delay:100ms] [animation-fill-mode:both]">
               Buy and sell University materials {' '} <span className="text-blue-400">on your campus</span>
@@ -313,17 +313,17 @@ function Firstpage() {
               No shipping, no strangers - just your campus community.
             </p>
 
-            <div className="grid grid-cols-3 gap-6 mt-12
+            <div className="grid grid-cols-3 gap-3 sm:gap-6 mt-8 sm:mt-12
                 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <Stat number="5+" label="SA UNIVERSITIES" />
               <Stat number="100%" label="VERIFIED STUDENTS" />
               <Stat number="0" label="SHIPPING FEES" />
             </div>
 
-            <div className="flex items-center gap-4 py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
+            <div className="flex items-center gap-4 py-6 lg:py-8 animate-fade-up [animation-delay:400ms] [animation-fill-mode:both]">
               <button
                 onClick={() => setShowTerms(true)}
-                className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                className="bg-white hover:bg-blue-400 text-navy-700 flex-1 px-4 sm:flex-none sm:px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 SIGNUP
                 <IconArrowRight size={18} />
               </button>
@@ -331,7 +331,7 @@ function Firstpage() {
               <button
                 type='button'
                 onClick={() => navigate('/auth/Login')}
-                className="bg-white hover:bg-blue-400 text-navy-700 px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
+                className="bg-white hover:bg-blue-400 text-navy-700 flex-1 px-4 sm:flex-none sm:px-16 py-2.5 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-0">
                 LOGIN
                 <IconArrowRight size={18} />
               </button>
