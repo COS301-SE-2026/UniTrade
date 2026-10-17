@@ -30,11 +30,11 @@ import TermsAndConditionsModal from "../legal/TermsandConditions";
 import logo from "../../assets/Transaprent Logo.png";
 
 interface NavItem {
-  label: string
-  to: string
-  icon: React.ReactNode
-  badge?: number
-  action?: 'switch'
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+  badge?: number;
+  action?: "switch";
 }
 
 interface NavSection {
@@ -46,13 +46,42 @@ const buyerNav: NavSection[] = [
   {
     heading: "Main",
     items: [
-      { label: 'Browse Listings', to: '/buyer/listings', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Seller Mode', to: '/switch', action: 'switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'My Orders', to: '/buyer/orders', icon: <IconShoppingBag size={18} /> },
-      { label: 'My Wishlist', to: '/buyer/wishlist', icon: <IconHeart size={18} /> },
-      { label: 'My Reservations', to: '/buyer/reservations', icon: <IconBookmark size={18} /> },
-      { label: 'My Disputes', to: '/buyer/disputes', icon: <IconFlag size={18} /> },
-      { label: 'Saved Searches', to: '/buyer/saved-searches', icon: <IconSearch size={18} /> },
+      {
+        label: "Browse Listings",
+        to: "/buyer/listings",
+        icon: <IconLayoutDashboard size={18} />,
+      },
+      {
+        label: "Seller Mode",
+        to: "/switch",
+        action: "switch",
+        icon: <IconSwitchHorizontal size={18} />,
+      },
+      {
+        label: "My Orders",
+        to: "/buyer/orders",
+        icon: <IconShoppingBag size={18} />,
+      },
+      {
+        label: "My Wishlist",
+        to: "/buyer/wishlist",
+        icon: <IconHeart size={18} />,
+      },
+      {
+        label: "My Reservations",
+        to: "/buyer/reservations",
+        icon: <IconBookmark size={18} />,
+      },
+      {
+        label: "My Disputes",
+        to: "/buyer/disputes",
+        icon: <IconFlag size={18} />,
+      },
+      {
+        label: "Saved Searches",
+        to: "/buyer/saved-searches",
+        icon: <IconSearch size={18} />,
+      },
     ],
   },
   {
@@ -78,12 +107,37 @@ const sellerNav: NavSection[] = [
   {
     heading: "Main",
     items: [
-      { label: 'My Listings', to: '/seller/listings', icon: <IconLayoutDashboard size={18} /> },
-      { label: 'Buyer Mode', to: '/switch', action: 'switch', icon: <IconSwitchHorizontal size={18} /> },
-      { label: 'New Listing', to: '/seller/upload', icon: <IconPackage size={18} /> },
-      { label: 'My Sales', to: '/seller/sales', icon: <IconShoppingBag size={18} /> },
-      { label: 'My Disputes', to: '/buyer/disputes', icon: <IconFlag size={18} /> },
-      { label: 'Reserved', to: '/seller/reservations', icon: <IconBookmark size={18} /> },
+      {
+        label: "My Listings",
+        to: "/seller/listings",
+        icon: <IconLayoutDashboard size={18} />,
+      },
+      {
+        label: "Buyer Mode",
+        to: "/switch",
+        action: "switch",
+        icon: <IconSwitchHorizontal size={18} />,
+      },
+      {
+        label: "New Listing",
+        to: "/seller/upload",
+        icon: <IconPackage size={18} />,
+      },
+      {
+        label: "My Sales",
+        to: "/seller/sales",
+        icon: <IconShoppingBag size={18} />,
+      },
+      {
+        label: "My Disputes",
+        to: "/buyer/disputes",
+        icon: <IconFlag size={18} />,
+      },
+      {
+        label: "Reserved",
+        to: "/seller/reservations",
+        icon: <IconBookmark size={18} />,
+      },
     ],
   },
   {
@@ -218,12 +272,17 @@ function UserPopover({
     </div>
   );
 }
+const isSmallScreen = () => window.innerWidth < 1024;
+
 export default function Sidebar() {
   const { user, viewMode, toggleViewMode, clearUser, setViewMode } =
     useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () =>
+      isSmallScreen() || localStorage.getItem("sidebar-collapsed") === "true",
+  );
   const [ShowPopover, setShowPopover] = useState(false);
 
   useEffect(() => {
@@ -284,57 +343,102 @@ export default function Sidebar() {
     }
   };
   return (
-    <aside
-      className={clsx(
-        "relative flex flex-col h-screen bg-navy-700 text-white transition-all duration-300 ease-in-out shrink-0",
-        collapsed ? "w-16" : "w-52",
+    <div className={clsx("shrink-0", collapsed ? "w-16" : "w-16 lg:w-52")}>
+      {!collapsed && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={() => setCollapsed(true)}
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+        />
       )}
-    >
-      <NavLink
-        to={homePath}
-        title="Go to home"
+      <aside
+        onClick={(e) => {
+          if (isSmallScreen() && (e.target as HTMLElement).closest("a"))
+            setCollapsed(true);
+        }}
         className={clsx(
-          "flex items-center gap-2 px-4 py-5 border-b border-white/10 overflow-hidden",
-          collapsed && "justify-center px-0",
+          "relative flex flex-col h-screen bg-navy-700 text-white transition-all duration-300 ease-in-out shrink-0",
+          collapsed
+            ? "w-16"
+            : "w-52 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-40 max-lg:shadow-2xl",
         )}
       >
-        <img
-          src={logo}
-          alt="UniTrade"
-          className="h-8 w-8 object-contain shrink-0"
-        />
-        {!collapsed && (
-          <span className="text-lg font-bold tracking-tight whitespace-nowrap">
-            UniTrade
-          </span>
-        )}
-        {!collapsed && user?.role === "admin" && (
-          <span className="text-[10px] text-white/70 font-normal">Admin</span>
-        )}
-      </NavLink>
+        <NavLink
+          to={homePath}
+          title="Go to home"
+          className={clsx(
+            "flex items-center gap-2 px-4 py-5 border-b border-white/10 overflow-hidden",
+            collapsed && "justify-center px-0",
+          )}
+        >
+          <img
+            src={logo}
+            alt="UniTrade"
+            className="h-8 w-8 object-contain shrink-0"
+          />
+          {!collapsed && (
+            <span className="text-lg font-bold tracking-tight whitespace-nowrap">
+              UniTrade
+            </span>
+          )}
+          {!collapsed && user?.role === "admin" && (
+            <span className="text-[10px] text-white/70 font-normal">Admin</span>
+          )}
+        </NavLink>
 
-      <nav className="flex-1 overflow-y-auto py-2">
-        {sections.map((section) => (
-          <div key={section.heading}>
-            {!collapsed && (
-              <p className="px-4 pt-4 pb-1 text-[10px] uppercase tracking-widest text-white/60">
-                {section.heading}
-              </p>
-            )}
-            {section.items.map((item) => {
-
-              if (item.action === 'switch' && user?.role === 'student') {
+        <nav className="flex-1 overflow-y-auto py-2">
+          {sections.map((section) => (
+            <div key={section.heading}>
+              {!collapsed && (
+                <p className="px-4 pt-4 pb-1 text-[10px] uppercase tracking-widest text-white/60">
+                  {section.heading}
+                </p>
+              )}
+              {section.items.map((item) => {
+                if (item.action === "switch" && user?.role === "student") {
+                  return (
+                    <button
+                      type="button"
+                      key={item.to}
+                      onClick={handleSwitch}
+                      className={clsx(
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors",
+                        "text-left bg-transparent cursor-pointer focus:outline-hidden",
+                        collapsed && "justify-center px-0",
+                        "text-white/75 hover:bg-white/5 hover:text-white",
+                      )}
+                      title={collapsed ? item.label : undefined}
+                    >
+                      <span className="shrink-0">{item.icon}</span>
+                      {!collapsed && (
+                        <>
+                          <span className="flex-1 whitespace-nowrap">
+                            {item.label}
+                          </span>
+                          {item.badge !== undefined && (
+                            <span className="bg-[#00aaff] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none">
+                              {item.badge}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  );
+                }
                 return (
-                  <button
-                    type="button"
+                  <NavLink
                     key={item.to}
-                    onClick={handleSwitch}
-                    className={clsx(
-                      'w-full flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors',
-                      'text-left bg-transparent cursor-pointer focus:outline-hidden',
-                      collapsed && 'justify-center px-0',
-                      'text-white/75 hover:bg-white/5 hover:text-white'
-                    )}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors",
+                        collapsed && "justify-center px-0",
+                        isActive
+                          ? "bg-navy-500 text-white"
+                          : "text-white/75 hover:bg-white/5 hover:text-white",
+                      )
+                    }
                     title={collapsed ? item.label : undefined}
                   >
                     <span className="shrink-0">{item.icon}</span>
@@ -350,110 +454,85 @@ export default function Sidebar() {
                         )}
                       </>
                     )}
-                  </button>
+                  </NavLink>
                 );
-              }
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    clsx(
-                      "flex items-center gap-3 px-4 py-2.5 text-[12.5px] transition-colors",
-                      collapsed && "justify-center px-0",
-                      isActive
-                        ? "bg-navy-500 text-white"
-                        : "text-white/75 hover:bg-white/5 hover:text-white",
-                    )
-                  }
-                  title={collapsed ? item.label : undefined}
-                >
-                  <span className="shrink-0">{item.icon}</span>
-                  {!collapsed && (
-                    <>
-                      <span className="flex-1 whitespace-nowrap">
-                        {item.label}
-                      </span>
-                      {item.badge !== undefined && (
-                        <span className="bg-[#00aaff] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
-          </div>
-        ))}
-      </nav>
-
-      {user && (
-        <div className="relative">
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setShowPopover((prev) => !prev)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setShowPopover((prev) => !prev);
-              }
-            }}
-            className={clsx(
-              "border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5",
-              collapsed && "justify-center",
-            )}
-          >
-            <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold shrink-0">
-              {user.initials}
+              })}
             </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <p className="text-[12px] font-semibold truncate">
-                  {user.name}
-                </p>
-                <p className="text=[10px] text-white/50 capitalize">
-                  {user.role === "admin"
-                    ? "Admin"
-                    : viewMode === "buyer"
-                      ? "Buyer"
-                      : "Seller"}
-                </p>
+          ))}
+        </nav>
+
+        {user && (
+          <div className="relative">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowPopover((prev) => !prev)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setShowPopover((prev) => !prev);
+                }
+              }}
+              className={clsx(
+                "border-t border-white/10 p-3 flex items-center gap-2 overflow-hidden cursor-pointer hover:bg-white/5",
+                collapsed && "justify-center",
+              )}
+            >
+              <div className="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-[11px] font-semibold shrink-0">
+                {user.initials}
               </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold truncate">
+                    {user.name}
+                  </p>
+                  <p className="text=[10px] text-white/50 capitalize">
+                    {user.role === "admin"
+                      ? "Admin"
+                      : viewMode === "buyer"
+                        ? "Buyer"
+                        : "Seller"}
+                  </p>
+                </div>
+              )}
+            </div>
+            {ShowPopover && (
+              <UserPopover
+                name={user.name}
+                initials={user.initials}
+                roleLabel={
+                  user.role === "admin"
+                    ? "Admin Account"
+                    : viewMode === "buyer"
+                      ? "Buyer Account"
+                      : "Seller Account"
+                }
+                onClose={() => setShowPopover(false)}
+                onLogout={handleLogout}
+              />
             )}
           </div>
-          {ShowPopover && (
-            <UserPopover
-              name={user.name}
-              initials={user.initials}
-              roleLabel={
-                user.role === "admin"
-                  ? "Admin Account"
-                  : viewMode === "buyer"
-                    ? "Buyer Account"
-                    : "Seller Account"
-              }
-              onClose={() => setShowPopover(false)}
-              onLogout={handleLogout}
-            />
-          )}
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-navy-700 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors z-10"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? (
-          <IconChevronRight size={12} />
-        ) : (
-          <IconChevronLeft size={12} />
         )}
-      </button>
-    </aside>
+
+        <button
+          type="button"
+          onClick={() => {
+            const next = !collapsed;
+            setCollapsed(next);
+            if (!isSmallScreen())
+              localStorage.setItem("sidebar-collapsed", String(next));
+          }}
+          className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-navy-700 border border-white/20 flex items-center justify-center text-white/60 hover:text-white transition-colors z-10"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <IconChevronRight size={12} />
+          ) : (
+            <IconChevronLeft size={12} />
+          )}
+        </button>
+      </aside>
+    </div>
   );
 }
 
