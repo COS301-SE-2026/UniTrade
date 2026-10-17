@@ -126,7 +126,7 @@ export default function MeetupProposalForm({
   const isReservationUnavailable =
     availabilityError instanceof Error &&
     (availabilityError as Error & { code?: string }).code ===
-      "reservation_not_found";
+    "reservation_not_found";
 
   const slots: AvailabilitySlot[] =
     availability?.status === "ok" ? availability.slots : [];
@@ -142,9 +142,9 @@ export default function MeetupProposalForm({
       const d = dateByRow.get(dow) ?? "";
       const label = d
         ? new Date(`${d}T00:00:00`).toLocaleDateString("en-ZA", {
-            weekday: "short",
-            day: "numeric",
-          })
+          weekday: "short",
+          day: "numeric",
+        })
         : DAY_SHORT[dow];
       return { dayOfWeek: dow, date: d, label };
     });
@@ -225,12 +225,15 @@ export default function MeetupProposalForm({
     if (!el) return null;
     const rect = el.getBoundingClientRect();
     const offsetY = clientY - rect.top;
-    return snapToGrid(pixelToMinutes(offsetY, rect.height || GRID_HEIGHT_PX, PICK_SNAP_MINUTES));
+    return snapToGrid(
+      pixelToMinutes(offsetY, rect.height || GRID_HEIGHT_PX, PICK_SNAP_MINUTES),
+    );
   };
   const handleColumnPointerDown = (
     day: GridDay,
     e: React.PointerEvent<HTMLDivElement>,
   ) => {
+    if (e.pointerType === "touch") return;
     if (!day.date) return;
     const minutes = minutesAtPointer(day.date, e.clientY);
     if (minutes == null) return;
@@ -270,6 +273,33 @@ export default function MeetupProposalForm({
     e.currentTarget.releasePointerCapture?.(e.pointerId);
     dragSlot.current = null;
   };
+  const handlePillPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!activeSlot || !pickedDate) return;
+    dragSlot.current = {
+      date: pickedDate,
+      start: toMinutes(activeSlot.start),
+      end: toMinutes(activeSlot.end),
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePillPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const drag = dragSlot.current;
+    if (!drag) return;
+    const minutes = minutesAtPointer(drag.date, e.clientY);
+    if (minutes == null) return;
+    setPickedMinutes(Math.min(Math.max(minutes, drag.start), drag.end));
+  };
+
+  const handlePillPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!dragSlot.current) return;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+    dragSlot.current = null;
+  };
+
   const pickedTimeHHMM =
     pickedMinutes != null ? minutesToHHMM(pickedMinutes) : "";
 
@@ -371,7 +401,7 @@ export default function MeetupProposalForm({
               {availability?.status === "ok" && slots.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-xs text-gray-500">
-                    Tap a green block to pick a time you're both free.
+                    Tap a green block to pick a time you're both free, then drag the time marker to fine-tune.
                   </p>
                   <div className="overflow-x-auto rounded-2xl border border-gray-200">
                     <div className="min-w-[560px] p-2">
@@ -394,7 +424,7 @@ export default function MeetupProposalForm({
                           {hourLabels.map((i) => (
                             <span
                               key={i}
-                              className="absolute -translate-y-1/2 text-[9px] text-gray-300 tabular-nums"
+                              className="absolute -translate-y-1/2 text-[10px] text-gray-400 tabular-nums"
                               style={{ top: `${(i / 12) * 100}%` }}
                             >
                               {String(8 + i).padStart(2, "0")}
@@ -420,10 +450,28 @@ export default function MeetupProposalForm({
                               }
                               onPointerUp={handleColumnPointerUp}
                               onPointerCancel={handleColumnPointerUp}
+                              onClick={(e) => {
+                                if (!day.date) return;
+                                const minutes = minutesAtPointer(
+                                  day.date,
+                                  e.clientY,
+                                );
+                                const slot = (
+                                  slotsByDate.get(day.date) ?? []
+                                ).find(
+                                  (s) =>
+                                    minutes != null &&
+                                    minutes >= toMinutes(s.start) &&
+                                    minutes <= toMinutes(s.end),
+                                );
+                                if (minutes == null || !slot) return;
+                                setPickedDate(day.date);
+                                setPickedMinutes(minutes);
+                              }}
                               className={`relative ${dayIdx === 0 ? "" : "border-l border-gray-100"} ${daySlots.length > 0 ? "cursor-pointer" : ""}`}
                               style={{
                                 height: GRID_HEIGHT_PX,
-                                touchAction: "none",
+                                touchAction: "pan-x pan-y",
                                 backgroundImage:
                                   "repeating-linear-gradient(to bottom, transparent 0px, transparent 49px, #f1f5f9 50px)",
                               }}
@@ -451,9 +499,19 @@ export default function MeetupProposalForm({
                                     }}
                                   >
                                     <div className="h-0.5 bg-navy-700" />
-                                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-navy-700 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                                      <IconCheck size={9} />
-                                      {pickedTimeHHMM}
+                                    <div
+                                      className="absolute -top-5 left-1/2 -translate-x-1/2 h-10 min-w-14 px-1 flex items-center justify-center pointer-events-auto cursor-ns-resize"
+                                      style={{ touchAction: "none" }}
+                                      onPointerDown={handlePillPointerDown}
+                                      onPointerMove={handlePillPointerMove}
+                                      onPointerUp={handlePillPointerUp}
+                                      onPointerCancel={handlePillPointerUp}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <div className="flex items-center gap-0.5 bg-navy-700 text-white text-[11px] font-semibold px-2 py-1 rounded-full whitespace-nowrap shadow">
+                                        <IconCheck size={11} />
+                                        {pickedTimeHHMM}
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -643,7 +701,8 @@ export default function MeetupProposalForm({
               }}
             />
           </div>
-
+        </div>
+        <div className="shrink-0 border-t border-gray-100 px-5 py-4">
           <button
             type="button"
             disabled={!canSubmit || isSubmitting}
