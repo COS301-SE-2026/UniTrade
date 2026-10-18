@@ -300,7 +300,7 @@ const EditListing: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl w-full mx-auto space-y-6 pb-24 p-6">
+    <div className="max-w-4xl w-full mx-auto space-y-6 pb-24">
       <div className="mt-6">
         <h2 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           Edit Listing
@@ -323,13 +323,13 @@ const EditListing: React.FC = () => {
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
           </div>
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-44 pt-2 shrink-0">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 items-start">
+            <div className="lg:w-44 pt-2 shrink-0">
               <h4 className="text-sm font-bold text-slate-900">
                 Step 1: Basic Information
               </h4>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="flex-1 min-w-0 w-full bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 shadow-xs space-y-5">
               <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">
                 Listing Information
               </h4>
@@ -359,12 +359,12 @@ const EditListing: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div
                   className={
                     formData.category !== "other"
-                      ? "md:col-span-2"
-                      : "md:col-span-3"
+                      ? "lg:col-span-2"
+                      : "lg:col-span-3"
                   }
                 >
                   <input
@@ -442,13 +442,13 @@ const EditListing: React.FC = () => {
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
           </div>
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-44 pt-2 shrink-0">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 items-start">
+            <div className="lg:w-44 pt-2 shrink-0">
               <h3 className="text-sm font-bold text-slate-900">
                 Step 2: Pictures
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex-1 min-w-0 w-full bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">
                 Images{" "}
                 <span className="text-xs font-normal text-slate-400">
@@ -465,7 +465,7 @@ const EditListing: React.FC = () => {
                 onChange={handleFileChange}
               />
 
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
 
                 {existingImages.map((img) => (
                   <div
@@ -540,15 +540,15 @@ const EditListing: React.FC = () => {
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-md shadow-sky-200">
             <IconCheck size={16} stroke={2} />
           </div>
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-44 pt-2 shrink-0">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 items-start">
+            <div className="lg:w-44 pt-2 shrink-0">
               <h3 className="text-sm font-bold text-slate-900">
                 Step 3: Price
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex-1 min-w-0 w-full bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] pb-2">Pricing</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="edit-price" className="block text-xs font-semibold text-slate-500 mb-1">
                     Price (ZAR)
@@ -600,13 +600,13 @@ const EditListing: React.FC = () => {
           <div className="absolute -left-12 top-1.5 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-sm font-bold">
             4
           </div>
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-44 pt-2 shrink-0">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 items-start">
+            <div className="lg:w-44 pt-2 shrink-0">
               <h3 className="text-sm font-bold text-slate-900">
                 Step 4: Confirmation
               </h3>
             </div>
-            <div className="flex-1 w-full bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex-1 min-w-0 w-full bg-white border border-slate-200 rounded-2xl p-4 lg:p-6 shadow-xs space-y-4">
               <h4 className="text-sm font-bold text-[#0F2D5E] border-b border-slate-100 pb-2">
                 Summary Overview
               </h4>
@@ -632,21 +632,21 @@ const EditListing: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-end gap-4 mt-8 pt-4 border-t border-slate-200">
+      <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200">
         <button
           type="button"
           onClick={() => navigate("/seller/listings")}
-          className="px-6 py-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-2xs"
+          className="whitespace-nowrap px-4 py-2 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-2xs"
         >
-          Cancel Changes
+          Cancel
         </button>
         <button
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold tracking-wide hover:bg-sky-900 transition-all shadow-md disabled:opacity-50"
+          className="whitespace-nowrap px-4 py-2 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold tracking-wide hover:bg-sky-900 transition-all shadow-md disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? "Saving..." : "Save"}
         </button>
       </div>
     </div>

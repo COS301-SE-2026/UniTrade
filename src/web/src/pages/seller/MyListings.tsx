@@ -429,11 +429,11 @@ function VisibilityHint({
     <button
       type="button"
       onClick={onOpen}
-      className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline mt-0.5 block whitespace-nowrap text-left"
+      className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline mt-0.5 block max-w-full text-left"
     >
       Reduced visibility
       {listing.visibilityScore != null ? ` (${listing.visibilityScore})` : ""}
-      {" · click to review"}
+      {" · review"}
     </button>
   );
 }
@@ -656,7 +656,7 @@ export default function MyListings() {
         <BundleDiscountCard compact liveCount={count("live")} />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           {
             icon: <IconPackage size={20} />,
@@ -681,10 +681,10 @@ export default function MyListings() {
         ].map(({ icon, value, label }) => (
           <div
             key={label}
-            className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3"
+            className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl p-3 lg:px-5 lg:py-4 flex items-center gap-3"
           >
-            <span className="text-navy-700 dark:text-white">{icon}</span>
-            <div>
+            <span className="hidden lg:block text-navy-700 dark:text-white">{icon}</span>
+            <div className="min-w-0">
               <p className="text-2xl font-bold text-navy-700 dark:text-white">
                 {value}
               </p>

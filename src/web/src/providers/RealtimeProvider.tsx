@@ -14,6 +14,22 @@ import { useToast } from "../components/layout/useToast";
 import { authService } from "../services/authService";
 import { useNavigate } from "react-router";
 
+function statusToast(status: string, n: number): string {
+  const one = n === 1;
+  const what = one ? "A listing was" : `${n} listings were`;
+  switch (status) {
+    case "under_review":
+      return `${what} held for review.`;
+    case "removed":
+      return `${what} removed by an admin.`;
+    case "suspended":
+      return `${what} put on hold while your account is suspended.`;
+    case "banned":
+      return `${what} permanently banned.`;
+    default:
+      return one ? "A listing is now live." : `${n} listings are now live.`;
+  }
+}
 export function RealtimeProvider({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -29,7 +45,7 @@ export function RealtimeProvider({
       .connect()
       .catch((e) => console.error("hub connect failed", e));
 
-    const onOnline = () => void connectionManager.connect().catch(() => { });
+    const onOnline = () => void connectionManager.connect().catch(() => {});
     window.addEventListener("online", onOnline);
 
     return () => {
@@ -92,9 +108,9 @@ export function RealtimeProvider({
         (old = []) =>
           old.map((m) =>
             m.senderId !== e.readBy &&
-              m.messageId != null &&
-              m.messageId <= e.upToMessageId &&
-              m.readAt == null
+            m.messageId != null &&
+            m.messageId <= e.upToMessageId &&
+            m.readAt == null
               ? { ...m, readAt: new Date().toISOString() }
               : m,
           ),
@@ -110,12 +126,12 @@ export function RealtimeProvider({
               old?.map((item) =>
                 item.reservationId === updated.reservationId
                   ? {
-                    ...item,
-                    reservationStatus: updated.reservationStatus,
-                    timerStage: updated.timerStage,
-                    expiresAt: updated.expiresAt,
-                    sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
-                  }
+                      ...item,
+                      reservationStatus: updated.reservationStatus,
+                      timerStage: updated.timerStage,
+                      expiresAt: updated.expiresAt,
+                      sellerAcknowledgedAt: updated.sellerAcknowledgedAt,
+                    }
                   : item,
               ),
           );
@@ -139,25 +155,23 @@ export function RealtimeProvider({
       queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
     });
+    const pending = new Map<string, number>();
+    let flushTimer: ReturnType<typeof setTimeout> | undefined;
+    const offListingStatusChanged = connectionManager.onListingStatusChanged(
+      (e) => {
+        queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+        queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
+        queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
 
-    const offListingStatusChanged = connectionManager.onListingStatusChanged((e) => {
-      queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
-      queryClient.invalidateQueries({ queryKey: ["listings", e.listingId] });
-      queryClient.invalidateQueries({ queryKey: ["listings", "browse"] });
-
-      showToast(
-        "info",
-        e.status === "under_review"
-          ? "A listing was held for review."
-          : e.status === "removed"
-            ? "A listing was removed by an admin."
-            : e.status === "suspended"
-              ? "A listing is on hold while your account is suspended."
-              : e.status === "banned"
-                ? "A listing was permanently banned."
-                : "A listing is now live.",
-      );
-    },
+        pending.set(e.status, (pending.get(e.status) ?? 0) + 1);
+        clearTimeout(flushTimer);
+        flushTimer = setTimeout(() => {
+          pending.forEach((n, status) =>
+            showToast("info", statusToast(status, n)),
+          );
+          pending.clear();
+        }, 700);
+      },
     );
 
     if (user?.role === "admin") {
@@ -187,11 +201,30 @@ export function RealtimeProvider({
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboardStats() });
     });
 
+    const matchPending = new Map<
+      string,
+      { title: string; price: number; n: number }
+    >();
+    let matchTimer: ReturnType<typeof setTimeout> | undefined;
+
     const offSavedSearchMatch = connectionManager.onSavedSearchMatch((e) => {
-      showToast(
-        "info",
-        `New match for your search; ${e.title} - R${e.price.toFixed(2)}`,
-      );
+      const key = `${e.title}|${e.price}`;
+      const cur = matchPending.get(key);
+      matchPending.set(key, {
+        title: e.title,
+        price: e.price,
+        n: (cur?.n ?? 0) + 1,
+      });
+      clearTimeout(matchTimer);
+      matchTimer = setTimeout(() => {
+        matchPending.forEach(({ title, price, n }) =>
+          showToast(
+            "info",
+            `New match for your search; ${title} - R${price.toFixed(2)}${n > 1 ? ` (${n} copies)` : ""}`,
+          ),
+        );
+        matchPending.clear();
+      }, 700);
     });
     const offDisputeOutcome = connectionManager.onDisputeOutcome((e) => {
       showToast("error", e.message + (e.reason ? ` Reason: ${e.reason}` : ""));
@@ -227,15 +260,20 @@ export function RealtimeProvider({
         navigate("/auth/ProofUpload");
       });
 
-      const offVerificationApproved=connectionManager.onVerificationApproved(async () =>{
-        try{
+    const offVerificationApproved = connectionManager.onVerificationApproved(
+      async () => {
+        try {
           await authService.refresh();
-        } catch(e){
-          console.error("token refresh failed",e);
+        } catch (e) {
+          console.error("token refresh failed", e);
         }
         await queryClient.invalidateQueries();
-        showToast("success", "You're verified-you can now reserve and save items.");
-      });
+        showToast(
+          "success",
+          "You're verified-you can now reserve and save items.",
+        );
+      },
+    );
 
     const offAuditEvent = connectionManager.onAuditEvent(() => {
       queryClient.invalidateQueries({ queryKey: ["admin", "audit"] });
@@ -259,6 +297,7 @@ export function RealtimeProvider({
       offListingSold();
       offVerificationApproved();
       offAuditEvent();
+      clearTimeout(flushTimer);
       if (user?.role === "admin") {
         connectionManager.leaveAdminGroup();
       }

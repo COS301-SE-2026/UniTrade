@@ -283,7 +283,7 @@ public class ListingService : IListingService
                 await _notifier.ListingFlaggedForAdminAsync(newListing.ListingId, ct);
             }
         }
-        foreach (var newListing in created.Where(l => l.ListingStatus == "live"))
+        foreach (var newListing in created.Where(l => l.ListingStatus == "live").DistinctBy(l => l.ListingGroupId ?? l.ListingId))
         {
             try
             {
