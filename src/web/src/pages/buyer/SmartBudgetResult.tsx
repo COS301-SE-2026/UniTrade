@@ -220,22 +220,22 @@ export default function SmartBudgetResult() {
                 </p>
             </div>
 
-            <div className="flex gap-4">
-                <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
+            <div className="grid grid-cols-2 gap-3">
+                 <div className="min-w-0 bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
                         <IconWallet size={20} />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <p className="text-xs text-gray-400">Total spent</p>
                         <p className="text-lg font-bold text-gray-800">{formatPrice(totalSpent)}</p>
                     </div>
                 </div>
-                <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
+                <div className="min-w-0 bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center shrink-0">
                         <IconCircleCheck size={20} />
                     </div>
-                    <div>
-                        <p className="text-xs text-gray-400">Reservations created</p>
+                    <div className="min-w-0">
+                        <p className="text-xs text-gray-400">Reserved items</p>
                         <p className="text-lg font-bold text-gray-800">{reservations.length}</p>
                     </div>
                 </div>
