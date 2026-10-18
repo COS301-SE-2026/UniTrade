@@ -187,7 +187,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "tests/nfr/evidence/Dependency Audits/"
           git diff --staged --quiet || git commit -m "QR 3e :update dotnet vulnerability report [skip ci]"
-          git push
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin "${{ github.ref_name }}" && git push; then pushed=1; break; fi
+            echo "push attempt $attempt failed, retrying"; sleep $((attempt * 3))
+          done
+          if [ "$pushed" -ne 1 ]; then echo "::warning::could not push the evidence report"; fi
  
   code-quality:
     permissions:
@@ -240,6 +245,10 @@ jobs:
           format: table
           output: "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
       
+      - name: Show Trivy findings (backend)
+        if: always()
+        run: cat "tests/nfr/evidence/Container Image Scans/trivy-backend.txt" || true
+
       - name: Upload Trivy backend report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -255,4 +264,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "tests/nfr/evidence/Container Image Scans/"
           git diff --staged --quiet || git commit -m "QR:update trivy backend report [skip ci]"
-          git push
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin "${{ github.ref_name }}" && git push; then pushed=1; break; fi
+            echo "push attempt $attempt failed, retrying"; sleep $((attempt * 3))
+          done
+          if [ "$pushed" -ne 1 ]; then echo "::warning::could not push the evidence report"; fi
