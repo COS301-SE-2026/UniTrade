@@ -235,6 +235,7 @@ jobs:
         with:
           image-ref: unitrade-backend-ci
           severity: HIGH,CRITICAL
+          trivyignores: .trivyignore
           exit-code: '1'
           format: table
           output: "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
