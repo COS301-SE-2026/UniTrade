@@ -25,6 +25,43 @@ interface ExistingImage {
   url: string;
 }
 
+type FieldKey = "title" | "module" | "description" | "images" | "price";
+type FieldErrors = Partial<Record<FieldKey, string>>;
+
+const FIELD_LABELS: Record<FieldKey, string> = {
+  title: "Title",
+  module: "Module",
+  description: "Description",
+  images: "Photos",
+  price: "Price",
+};
+
+const FIELD_IDS: Record<FieldKey, string> = {
+  title: "edit-title-input",
+  module: "field-module",
+  description: "field-description",
+  images: "field-images",
+  price: "edit-price",
+};
+
+const TITLE_MAX = 150; // listings.title is varchar(150)
+const PRICE_MAX = 99_999_999; // listings.price is numeric(10,2)
+
+const SERVER_MESSAGES: Record<string, string> = {
+  invalid_category: "That category isn't available. Pick one of the categories above.",
+  book_fields_not_allowed:
+    "Module details only apply to textbooks. Clear the module or switch the category to Textbooks.",
+  invalid_metadata: "Check the brand or dimensions field.",
+  invalid_status: "This listing can't be changed to that status right now.",
+};
+
+function FieldError({ msg }: { msg?: string }) {
+  return msg ? (
+    <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+      {msg}
+    </p>
+  ) : null;
+}
 
 const CONDITION_TO_API: Record<ListingData["condition"], string> = {
   Like_New: "new",
@@ -49,10 +86,12 @@ const EditListing: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loadError, setLoadError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -138,8 +177,42 @@ const EditListing: React.FC = () => {
     return () => clearTimeout(handle);
   }, [courseQuery, formData.category]);
 
+  useEffect(() => {
+    if (error)
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
+
+  const clearFieldError = (key: FieldKey) =>
+    setFieldErrors((f) => {
+      if (!(key in f)) return f;
+      const next = { ...f };
+      delete next[key];
+      return next;
+    });
+
+  const jumpTo = (key: FieldKey) =>
+    document
+      .getElementById(FIELD_IDS[key])
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
   const handleChange = (field: keyof ListingData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "title" || field === "description" || field === "price") {
+      clearFieldError(field);
+    }
+  };
+
+  const validate = (): FieldErrors => {
+    const e: FieldErrors = {};
+    if (!formData.title.trim()) e.title = "Add a title so buyers know what this is.";
+    if (status === "draft") return e;
+    if (!formData.description.trim())
+      e.description = "Describe the item: its condition, edition, what's included.";
+    if (totalImageCount === 0) e.images = "Add at least one photo.";
+    const p = Number(formData.price);
+    if (!formData.price || p <= 0) e.price = "Enter a price above R0.";
+    else if (p > PRICE_MAX) e.price = "That price is too high.";
+    return e;
   };
 
   const ActiveCourseResults = useMemo(
@@ -181,14 +254,13 @@ const EditListing: React.FC = () => {
       const eror = `Some files exceed the ${MAX_SIZE_MB}MB limit: ${oversized
         .map((f) => f.name)
         .join(", ")}`
-      setError(
-        eror
-      );
-      showToast('error', eror)
+      setFieldErrors((f) => ({ ...f, images: eror }));
+      jumpTo("images");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
+    clearFieldError("images");
     const remainingSlots = MAX_IMAGES - totalImageCount;
     const accepted = incoming.slice(0, Math.max(0, remainingSlots));
 
@@ -203,10 +275,11 @@ const EditListing: React.FC = () => {
 
   const handleSave = async () => {
     if (!id) return;
-    if ( status !== "draft" && totalImageCount === 0) {
-      const msg = "A listing needs a least one photo";
-      setError(msg);
-      showToast("error", msg);
+    const errs = validate();
+    setFieldErrors(errs);
+    const first = Object.keys(errs)[0] as FieldKey | undefined;
+    if (first) {
+      jumpTo(first);
       return;
     }
     setSaving(true);
@@ -219,7 +292,12 @@ const EditListing: React.FC = () => {
         const match = results.find(
           (c) => c.courseCode.toLowerCase() === courseQuery.trim().toLowerCase()
         );
-        resolvedCourseId = match ? match.courseId : null;
+        if (!match) {
+          setFieldErrors({ module: "Please pick a module from the list" });
+          jumpTo("module");
+          return;
+        }
+        resolvedCourseId = match.courseId;
       }
 
       let metadata: ListingMetadata = null;
@@ -241,7 +319,17 @@ const EditListing: React.FC = () => {
       });
 
       if (newFiles.length > 0) {
-        await listingsService.uploadImages(id, newFiles);
+        try {
+          await listingsService.uploadImages(id, newFiles);
+        } catch {
+          // The text changes above are already saved; only the photos failed.
+          setRemovedImageIds([]);
+          queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
+          setError(
+            "Your changes were saved, but the new photos didn't upload. Press Save to try the photos again."
+          );
+          return;
+        }
       }
 
       let held = false
@@ -276,12 +364,12 @@ const EditListing: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["listings", "my"]});
       navigate("/seller/listings");
     } catch (err) {
-      const msg = 
-         err instanceof Error && err.message === "listing_locked_for_edit"
-             ? "This listing can't be edited right now (it's under review, reserved or sold)"
-             : "Failed to save changes";
+      const code = err instanceof Error ? err.message : "";
+      const msg =
+        code === "listing_locked_for_edit"
+          ? "This listing can't be edited right now (it's under review, reserved or sold)"
+          : SERVER_MESSAGES[code] ?? "Failed to save changes. Please try again.";
       setError(msg);
-      showToast('error', msg);
     } finally {
       setSaving(false);
     }
@@ -309,12 +397,6 @@ const EditListing: React.FC = () => {
           Update your Listing details down below.
         </p>
       </div>
-
-      {error && (
-        <div className="rounded-md bg-red-100 p-3">
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
 
       <div className="relative pl-12 space-y-8 mt-6">
         <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200"></div>
@@ -347,6 +429,7 @@ const EditListing: React.FC = () => {
                         handleChange("category", cat.name);
                         handleChange("brand", "");
                         handleChange("dimensions", "");
+                        clearFieldError("module");
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${formData.category === cat.name
                         ? "bg-[#0F2D5E] text-white border-transparent shadow-xs"
@@ -371,21 +454,33 @@ const EditListing: React.FC = () => {
                     type="text"
                     id="edit-title-input"
                     data-testid="edit-title-input"
+                    maxLength={TITLE_MAX}
                     value={formData.title}
                     onChange={(e) => handleChange("title", e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:ring-1 ${fieldErrors.title
+                      ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+                      }`}
                   />
+                  <FieldError msg={fieldErrors.title} />
                 </div>
 
                 {formData.category === "book" && (
                   <div>
                     <input
+                      id="field-module"
                       type="text"
                       list="course-options"
                       placeholder="Module (e.g. COS110)"
                       value={courseQuery}
-                      onChange={(e) => setCourseQuery(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 cursor-pointer"
+                      onChange={(e) => {
+                        setCourseQuery(e.target.value);
+                        clearFieldError("module");
+                      }}
+                      className={`w-full rounded-xl border px-4 py-2.5 text-sm bg-white text-slate-600 focus:outline-hidden focus:ring-1 cursor-pointer ${fieldErrors.module
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                        : "border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+                        }`}
                     />
                     <datalist id="course-options">
                       {ActiveCourseResults.map((c) => (
@@ -397,6 +492,7 @@ const EditListing: React.FC = () => {
                     {courseQuery.trim().length >= 2 && (
                       <p className="mt-1 text-[10px] text-slate-400">{courseTextStatus}</p>
                     )}
+                    <FieldError msg={fieldErrors.module} />
                   </div>
                 )}
 
@@ -427,12 +523,17 @@ const EditListing: React.FC = () => {
 
               <div>
                 <textarea
+                  id="field-description"
                   value={formData.description}
                   onChange={(e) => handleChange("description", e.target.value)}
                   placeholder="Description"
                   rows={3}
-                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className={`w-full border rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-1 ${fieldErrors.description
+                    ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                    : "border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+                    }`}
                 />
+                <FieldError msg={fieldErrors.description} />
               </div>
             </div>
           </div>
@@ -465,7 +566,10 @@ const EditListing: React.FC = () => {
                 onChange={handleFileChange}
               />
 
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div
+                id="field-images"
+                className={`grid grid-cols-2 gap-3 lg:grid-cols-4 ${fieldErrors.images ? "ring-2 ring-red-300 rounded-xl p-1" : ""}`}
+              >
 
                 {existingImages.map((img) => (
                   <div
@@ -527,6 +631,7 @@ const EditListing: React.FC = () => {
                   </button>
                 ))}
               </div>
+              <FieldError msg={fieldErrors.images} />
               <p className="text-[10px] text-slate-400">
                 Up to {MAX_IMAGES} photos, max {MAX_SIZE_MB}MB each. (
                 {totalImageCount}/{MAX_IMAGES})
@@ -562,11 +667,18 @@ const EditListing: React.FC = () => {
                     <input
                       id="edit-price"
                       type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
                       value={formData.price}
                       onChange={(e) => handleChange("price", e.target.value)}
-                      className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-hidden focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      className={`w-full border rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-hidden focus:bg-white focus:ring-1 ${fieldErrors.price
+                        ? "bg-white border-red-400 focus:border-red-500 focus:ring-red-500"
+                        : "bg-sky-200/70 border-transparent focus:border-sky-500 focus:ring-sky-500"
+                        }`}
                     />
                   </div>
+                  <FieldError msg={fieldErrors.price} />
                 </div>
                 <div>
                   <span className="block text-xs font-semibold text-slate-500 mb-2">
@@ -632,13 +744,42 @@ const EditListing: React.FC = () => {
         </div>
       </div>
 
+      {(Object.keys(fieldErrors).length > 0 || error) && (
+        <div
+          ref={errorRef}
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {Object.keys(fieldErrors).length > 0 ? (
+            <>
+              <p className="font-semibold">Fix these before you save:</p>
+              <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {(Object.keys(fieldErrors) as FieldKey[]).map((key) => (
+                  <li key={key}>
+                    <button
+                      type="button"
+                      onClick={() => jumpTo(key)}
+                      className="underline text-left"
+                    >
+                      {FIELD_LABELS[key]}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p>{error}</p>
+          )}
+        </div>
+      )}
+
       <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200">
         <button
           type="button"
           onClick={() => navigate("/seller/listings")}
           className="whitespace-nowrap px-4 py-2 border border-slate-300 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors shadow-2xs"
         >
-          Cancel
+          Cancel Changes
         </button>
         <button
           type="button"
@@ -646,7 +787,7 @@ const EditListing: React.FC = () => {
           disabled={saving}
           className="whitespace-nowrap px-4 py-2 bg-[#0F2D5E] text-white rounded-xl text-sm font-bold tracking-wide hover:bg-sky-900 transition-all shadow-md disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>

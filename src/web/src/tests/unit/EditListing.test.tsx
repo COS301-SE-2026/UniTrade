@@ -109,7 +109,7 @@ function makeFile(name: string, sizeBytes: number, type = "image/png") {
 }
 
 function getImageGrid(container: HTMLElement) {
-  const grid = container.querySelector("div.grid.grid-cols-4");
+  const grid = container.querySelector("#field-images");
   if (!grid) throw new Error("Image grid not found - check componet markup");
   return grid;
 }
@@ -153,7 +153,9 @@ beforeEach(() => {
     courseName: "",
     faculty: "",
   });
-  searchCourses.mockResolvedValue([]);
+  searchCourses.mockResolvedValue([
+    { courseId: 1, courseCode: "301", courseName: "Mock Course", faculty: "Mock" },
+  ]);
   getListingStatus.mockResolvedValue({ listingId: "123", status: "live", riskLevel: "low", message: ""})
 });
 
@@ -731,8 +733,31 @@ describe("Save flow", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    expect(await screen.findByText(/failed to save changes/i)).toBeInTheDocument();
+    expect(await screen.findByText(/new photos didn't upload/i)).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("shows a module error and does not save when the module code is not found", async () => {
+    const user = userEvent.setup();
+    searchCourses.mockResolvedValue([]);
+    await renderAndLoad({ category: "book", courseCode: "ZZ999" });
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    expect(await screen.findByText("Please pick a module from the list")).toBeInTheDocument();
+    expect(updateListing).not.toHaveBeenCalled();
+  });
+
+  it("shows field errors and does not save when required fields are empty", async () => {
+    const user = userEvent.setup();
+    await renderAndLoad({ title: "", description: "", price: 0 });
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    expect(await screen.findByText(/add a title/i)).toBeInTheDocument();
+    expect(screen.getByText(/describe the item/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter a price above r0/i)).toBeInTheDocument();
+    expect(updateListing).not.toHaveBeenCalled();
   });
 
   it("disables the save button and shows 'Saving...' while the save is in flight", async () => {

@@ -19,10 +19,41 @@ interface ApiError {
   message: string;
 }
 
+type FieldKey = "title" | "module" | "description" | "images" | "price";
+type FieldErrors = Partial<Record<FieldKey, string>>;
+
+const FIELD_LABELS: Record<FieldKey, string> = {
+  title: "Title",
+  module: "Module",
+  description: "Description",
+  images: "Photos",
+  price: "Price",
+};
+
+const TITLE_MAX = 150; // listings.title is varchar(150)
+const PRICE_MAX = 99_999_999; // listings.price is numeric(10,2)
+
+const SERVER_MESSAGES: Record<string, string> = {
+  invalid_quantity: "Quantity must be between 1 and 10.",
+  invalid_category: "That category isn't available. Pick one of the categories above.",
+  book_fields_not_allowed:
+    "Module details only apply to textbooks. Clear the module or switch the category to Textbooks.",
+  invalid_metadata: "Check the brand or dimensions field.",
+  invalid_status: "This listing can't be changed to that status right now.",
+};
+
+function FieldError({ msg }: { msg?: string }) {
+  return msg ? (
+    <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+      {msg}
+    </p>
+  ) : null;
+}
 const UploadListing: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState<string>("");
@@ -46,6 +77,35 @@ const UploadListing: React.FC = () => {
   const [heldListing, setHeldListingId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const clearFieldError = (key: FieldKey) =>
+    setFieldErrors((f) => {
+      if (!(key in f)) return f;
+      const next = { ...f };
+      delete next[key];
+      return next;
+    });
+
+  const validate = (draft = false): FieldErrors => {
+    const e: FieldErrors = {};
+    if (!title.trim()) e.title = "Add a title so buyers know what this is.";
+    if (category === "book" && courseQuery.trim() && !moduleTag)
+      e.module = "Please pick a module from the list";
+    if (draft) return e;
+    if (!description.trim())
+      e.description =
+        "Describe the item: its condition, edition, what's included.";
+    if (files.length === 0) e.images = "Add at least one photo.";
+    if (!price || Number(price) <= 0) e.price = "Enter a price above R0.";
+    else if (Number(price) > PRICE_MAX) e.price = "That price is too high.";
+    return e;
+  };
+  const jumpTo = (key: string) =>
+    document
+      .getElementById(`field-${key}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
   const CONDITION_TO_API: Record<typeof condition, ListingCondition> = {
     Like_New: "new",
     Good: "good",
@@ -62,6 +122,11 @@ const UploadListing: React.FC = () => {
       })
       .catch(() => setError("Failed to load categories"));
   }, []);
+
+  useEffect(() => {
+    if (error)
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
 
   useEffect(() => {
     if (category !== "book") return;
@@ -115,11 +180,12 @@ const UploadListing: React.FC = () => {
     const oversized = incoming.filter((f) => f.size > MAX_SIZE_BYTES);
     if (oversized.length > 0) {
       const eror = `Some files exceed the 10MB limit: ${oversized.map((f) => f.name).join(", ")}`;
-      setError(eror);
-      showToast("error", eror);
+      setFieldErrors((f) => ({ ...f, images: eror }));
+      jumpTo("images");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
+    clearFieldError("images");
     setFiles((prev) => {
       const merged = [...prev, ...incoming].slice(0, 4);
       setPreviews(
@@ -138,19 +204,22 @@ const UploadListing: React.FC = () => {
     setPreviews((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = async () => {
-    if (!title || !description || !price || files.length === 0) {
-      setError("Please fill in all fields and add at least one image.");
-      showToast(
-        "error",
-        "Please fill in all fields and add at least one image.",
-      );
-      return;
-    }
+  const toErrorMessage = (err: unknown): string => {
+    if (err instanceof TypeError)
+      return "Couldn't reach the server. Check your connection and try again.";
+    const code = (err as ApiError).message ?? "";
+    return (
+      SERVER_MESSAGES[code] ??
+      getAccountStateErrorMessage(code, code || "Something went wrong")
+    );
+  };
 
-    if (category === "book" && courseQuery.trim() && !moduleTag) {
-      setError("Please pick a module from the list");
-      showToast("error", "Please pick a module from the list");
+  const handleSubmit = async () => {
+    const errs = validate();
+    setFieldErrors(errs);
+    const first = Object.keys(errs)[0];
+    if (first) {
+      jumpTo(first);
       return;
     }
     setSubmitting(true);
@@ -194,7 +263,7 @@ const UploadListing: React.FC = () => {
       if (finalStatus === "draft") {
         showToast(
           "info",
-          "Saved as a draft - you\u2019ll be able to publish once your verification is approved.",
+          "Saved as a draft - you’ll be able to publish once your verification is approved.",
         );
       } else {
         showToast("success", "Listing uploaded successfully");
@@ -206,26 +275,18 @@ const UploadListing: React.FC = () => {
           .updateListingStatus(createdId, "draft")
           .catch(() => {});
       }
-      const error = err as ApiError;
-      const message = getAccountStateErrorMessage(
-        error.message ?? "",
-        error.message ?? "Something went wrong",
-      );
-      setError(message);
-      showToast("error", message);
+      setError(toErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDraft = async () => {
-    if (!title) {
-      showToast("error", "Please add a title before saving as draft");
-      return;
-    }
-
-    if (category === "book" && courseQuery.trim() && !moduleTag) {
-      showToast("error", "Please pick a module from the list");
+    const errs = validate(true);
+    setFieldErrors(errs);
+    const first = Object.keys(errs)[0];
+    if (first) {
+      jumpTo(first);
       return;
     }
     setSubmitting(true);
@@ -254,13 +315,7 @@ const UploadListing: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["listings", "my"] });
       showToast("success", "Listing saved successfully");
     } catch (err: unknown) {
-      const error = err as ApiError;
-      const message = getAccountStateErrorMessage(
-        error.message ?? "",
-        error.message ?? "Something went wrong",
-      );
-      setError(message);
-      showToast("error", message);
+      setError(toErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -314,12 +369,6 @@ const UploadListing: React.FC = () => {
         </p>
       </div>
 
-      {error && (
-        <div className="rounded-md bg-red-100 p-3">
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
       <div className="relative pl-12 space-y-8 mt-6">
         <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-200" />
 
@@ -354,6 +403,7 @@ const UploadListing: React.FC = () => {
                         setCategory(cat.name);
                         setBrand("");
                         setDimensions("");
+                        clearFieldError("module");
                       }}
                       className={`px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
                         category === cat.name
@@ -374,23 +424,41 @@ const UploadListing: React.FC = () => {
                   }
                 >
                   <input
+                    id="field-title"
                     type="text"
                     placeholder="Title"
+                    maxLength={TITLE_MAX}
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      clearFieldError("title");
+                    }}
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:ring-1 ${
+                      fieldErrors.title
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                        : "border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+                    }`}
                   />
+                  <FieldError msg={fieldErrors.title} />
                 </div>
 
                 {category === "book" && (
                   <div>
                     <input
+                      id="field-module"
                       type="text"
                       list="course-options"
                       placeholder="Module (e.g. COS110)"
                       value={courseQuery}
-                      onChange={(e) => setCourseQuery(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white text-slate-600 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-sky-500 "
+                      onChange={(e) => {
+                        setCourseQuery(e.target.value);
+                        clearFieldError("module");
+                      }}
+                      className={`w-full rounded-xl border px-4 py-2.5 text-sm bg-white text-slate-600 focus:outline-hidden focus:ring-1 ${
+                        fieldErrors.module
+                          ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                          : "border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+                      }`}
                     />
                     <datalist id="course-options">
                       {ActiveCourseResults.map((c) => (
@@ -404,6 +472,7 @@ const UploadListing: React.FC = () => {
                         {courseTextStatus}
                       </p>
                     )}
+                    <FieldError msg={fieldErrors.module} />
                   </div>
                 )}
 
@@ -432,13 +501,24 @@ const UploadListing: React.FC = () => {
                 )}
               </div>
 
-              <textarea
-                placeholder="Description"
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-              />
+              <div>
+                <textarea
+                  id="field-description"
+                  placeholder="Description"
+                  rows={3}
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    clearFieldError("description");
+                  }}
+                  className={`w-full border rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-1 ${
+                    fieldErrors.description
+                      ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                      : "border-slate-300 focus:border-sky-500 focus:ring-sky-500"
+                  }`}
+                />
+                <FieldError msg={fieldErrors.description} />
+              </div>
             </div>
           </div>
         </div>
@@ -470,7 +550,12 @@ const UploadListing: React.FC = () => {
                 onChange={handleFileChange}
               />
 
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div
+                id="field-images"
+                className={`grid grid-cols-2 gap-3 lg:grid-cols-4 ${
+                  fieldErrors.images ? "ring-2 ring-red-300 rounded-xl p-1" : ""
+                }`}
+              >
                 {previews.map((url, idx) => (
                   <div
                     key={url}
@@ -513,6 +598,7 @@ const UploadListing: React.FC = () => {
                   },
                 )}
               </div>
+              <FieldError msg={fieldErrors.images} />
               <div className="space-y-1.5 mt-1">
                 <div className="flex justify-between items-center text-[10px] text-slate-400">
                   <span>Up to 4 photos, max 10MB each</span>
@@ -564,18 +650,32 @@ const UploadListing: React.FC = () => {
                   >
                     Price (ZAR)
                   </label>
-                  <div className="relative rounded-xl shadow-2xs">
+                  <div
+                    id="field-price"
+                    className="relative rounded-xl shadow-2xs"
+                  >
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-slate-500 text-sm">R</span>
                     </div>
                     <input
                       id="price"
                       type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
                       value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      className="w-full bg-sky-200/70 border border-transparent rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-hidden focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      onChange={(e) => {
+                        setPrice(e.target.value);
+                        clearFieldError("price");
+                      }}
+                      className={`w-full border rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold text-[#0F2D5E] focus:outline-hidden focus:bg-white focus:ring-1 ${
+                        fieldErrors.price
+                          ? "bg-white border-red-400 focus:border-red-500 focus:ring-red-500"
+                          : "bg-sky-200/70 border-transparent focus:border-sky-500 focus:ring-sky-500"
+                      }`}
                     />
                   </div>
+                  <FieldError msg={fieldErrors.price} />
                 </div>
                 <div>
                   <span className="block text-xs font-semibold text-slate-500 mb-2">
@@ -622,8 +722,9 @@ const UploadListing: React.FC = () => {
                   className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                 />
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Listing multiple identical copies? Set how many. Copies count
-                  toward your bundle discount (manage it under My Listings)
+                  Listing multiple identical copies? Set how many (up to 10).
+                  Copies count toward your bundle discount (manage it under My
+                  Listings)
                 </p>
               </div>
             </div>
@@ -673,7 +774,34 @@ const UploadListing: React.FC = () => {
           </div>
         </div>
       </div>
-
+      {(Object.keys(fieldErrors).length > 0 || error) && (
+        <div
+          ref={errorRef}
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
+          {Object.keys(fieldErrors).length > 0 ? (
+            <>
+              <p className="font-semibold">Fix these before you submit:</p>
+              <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {(Object.keys(fieldErrors) as FieldKey[]).map((key) => (
+                  <li key={key}>
+                    <button
+                      type="button"
+                      onClick={() => jumpTo(key)}
+                      className="underline text-left"
+                    >
+                      {FIELD_LABELS[key]}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p>{error}</p>
+          )}
+        </div>
+      )}
       <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200">
         <button
           type="button"

@@ -293,7 +293,10 @@ describe('UploadListing', () => {
     const user = userEvent.setup()
     renderUpload()
     await user.click(screen.getByRole('button', { name: /submit listing/i }))
-    expect(await screen.findByText(/please fill in all fields/i)).toBeInTheDocument()
+    expect(await screen.findByText(/add a title/i)).toBeInTheDocument()
+    expect(screen.getByText(/describe the item/i)).toBeInTheDocument()
+    expect(screen.getByText(/add at least one photo/i)).toBeInTheDocument()
+    expect(screen.getByText(/enter a price above r0/i)).toBeInTheDocument()
     expect(listingsService.createListing).not.toHaveBeenCalled()
   })
 
