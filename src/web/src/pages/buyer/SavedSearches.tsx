@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../../components/layout/useToast";
 import { listingsService } from "../../services/listingsService";
-import { getDisplayCategory, sortTheCategories } from "../../utils/categoryUtils";
+import {
+  getDisplayCategory,
+  sortTheCategories,
+} from "../../utils/categoryUtils";
 import type { Category, ListingSummary } from "../../types/listing";
 import {
   getSavedSearches,
@@ -9,10 +12,18 @@ import {
   deleteSavedSearch,
   getMatchingListings,
 } from "../../services/realtime/savedSearchServices";
-import type { SavedSearch, CreateSavedSearchInput } from "../../services/realtime/savedSearchServices";
+import type {
+  SavedSearch,
+  CreateSavedSearchInput,
+} from "../../services/realtime/savedSearchServices";
 import { LoadingState } from "../../components/layout/Spinner";
 import { formatPrice } from "../../utils/formatters";
-import { IconChevronLeft, IconTrash, IconEye, IconEyeOff } from "@tabler/icons-react";
+import {
+  IconChevronLeft,
+  IconTrash,
+  IconEye,
+  IconEyeOff,
+} from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 
 export default function SavedSearches() {
@@ -24,8 +35,12 @@ export default function SavedSearches() {
   const [minPrice, setMinPrice] = useState<number | "">("");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
   const [loading, setLoading] = useState(true);
-  const [selectedSearch, setSelectedSearch] = useState<SavedSearch | null>(null);
-  const [matchingListings, setMatchingListings] = useState<ListingSummary[]>([]);
+  const [selectedSearch, setSelectedSearch] = useState<SavedSearch | null>(
+    null,
+  );
+  const [matchingListings, setMatchingListings] = useState<ListingSummary[]>(
+    [],
+  );
   const [loadingMatches, setLoadingMatches] = useState(false);
   const { showToast } = useToast();
 
@@ -126,12 +141,21 @@ export default function SavedSearches() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
-        Saved Searches
-      </h2>
-      <div className="flex flex-wrap gap-3 items-end  p-4 rounded-2xl">
-        <div className="flex-1 min-w-[200px]">
-          <label htmlFor="keywords" className="block text-xs font-medium text-gray-700 mb-1">
+      <div>
+        <h2 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
+          Saved Searches
+        </h2>
+        <p className="text-sm text-gray-400 mt-1">
+          Save what you're looking for and we'll alert you when a matching
+          listing goes live.{" "}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="basis-full">
+          <label
+            htmlFor="keywords"
+            className="block text-xs font-medium text-gray-700 mb-1"
+          >
             Keywords
           </label>
           <input
@@ -143,13 +167,18 @@ export default function SavedSearches() {
           />
         </div>
 
-        <div className="w-40">
-          <label htmlFor="category" className="block text-xs font-medium text-gray-700 mb-1">
+        <div className="basis-full">
+          <label
+            htmlFor="category"
+            className="block text-xs font-medium text-gray-700 mb-1"
+          >
             Category
           </label>
           <select
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : "")}
+            onChange={(e) =>
+              setCategoryId(e.target.value ? Number(e.target.value) : "")
+            }
             className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           >
             <option value="">All</option>
@@ -161,8 +190,11 @@ export default function SavedSearches() {
           </select>
         </div>
 
-        <div className="w-32">
-          <label htmlFor="min-price" className="block text-xs font-medium text-gray-700 mb-1">
+        <div className="flex-1 min-w-[7rem]">
+          <label
+            htmlFor="min-price"
+            className="block text-xs font-medium text-gray-700 mb-1"
+          >
             Min Price (R)
           </label>
           <input
@@ -170,13 +202,18 @@ export default function SavedSearches() {
             min="0"
             step="1"
             value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : "")}
+            onChange={(e) =>
+              setMinPrice(e.target.value ? Number(e.target.value) : "")
+            }
             className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           />
         </div>
 
         <div className="w-32">
-          <label htmlFor="max-price" className="block text-xs font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="max-price"
+            className="block text-xs font-medium text-gray-700 mb-1"
+          >
             Max Price (R)
           </label>
           <input
@@ -184,7 +221,9 @@ export default function SavedSearches() {
             min="0"
             step="1"
             value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : "")}
+            onChange={(e) =>
+              setMaxPrice(e.target.value ? Number(e.target.value) : "")
+            }
             className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-500"
           />
         </div>
@@ -198,7 +237,7 @@ export default function SavedSearches() {
       </div>
 
       {searches.length === 0 ? (
-        <p className="text-sm text-gray-400 p-4">No saved searches yet.</p>
+        <p className="text-sm text-gray-400">No saved searches yet.</p>
       ) : (
         <div className="space-y-2">
           {searches.map((s) => {
@@ -206,19 +245,22 @@ export default function SavedSearches() {
             return (
               <div
                 key={s.searchId}
-                className={`flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-full border transition-all ${
+                className={`flex flex-wrap items-center justify-between gap-3 p-3 pl-4 rounded-2xl border transition-all ${
                   isSelected
                     ? "bg-navy-50/60 border-navy-300 shadow-xs"
                     : "bg-white border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className="flex items-center gap-2 pl-3 flex-wrap">
-                  <span className="font-semibold text-gray-800 text-sm">{s.query}</span>
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <span className="font-semibold text-gray-800 text-sm">
+                    {s.query}
+                  </span>
 
                   {s.categoryId && (
                     <span className="text-xs bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full font-medium">
                       {getDisplayCategory(
-                        categories.find((c) => c.id === s.categoryId)?.name ?? ""
+                        categories.find((c) => c.id === s.categoryId)?.name ??
+                          "",
                       )}
                     </span>
                   )}
@@ -226,12 +268,13 @@ export default function SavedSearches() {
                   {(s.minPrice !== undefined && s.minPrice !== null) ||
                   (s.maxPrice !== undefined && s.maxPrice !== null) ? (
                     <span className="text-xs text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
-                      R{s.minPrice ?? 0} - {s.maxPrice ? `R${s.maxPrice}` : "No Max"}
+                      R{s.minPrice ?? 0} -{" "}
+                      {s.maxPrice ? `R${s.maxPrice}` : "No Max"}
                     </span>
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-2 pr-1">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleViewMatches(s)}
@@ -289,7 +332,9 @@ export default function SavedSearches() {
               <LoadingState message="Loading matches..." />
             </div>
           ) : matchingListings.length === 0 ? (
-            <p className="text-sm text-gray-400 py-4">No listings match this search.</p>
+            <p className="text-sm text-gray-400 py-4">
+              No listings match this search.
+            </p>
           ) : (
             <div className="space-y-3">
               {matchingListings.map((listing) => (
