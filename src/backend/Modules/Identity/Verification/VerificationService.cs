@@ -165,7 +165,7 @@ public class VerificationService : IVerificationService
         {
             User.StudentProfile.VerificationStatus = "partial";
             await _users.UpdateAsync(User);
-            
+
         }
         return true;
     }
@@ -288,7 +288,7 @@ public class VerificationService : IVerificationService
         {
             case VerificationDecision.Approve:
                 await _broadcast.SendToUserAsync(vr.UserId, "verification_approved", new { });
-                try 
+                try
                 {
                     await _emails.SendWelcomeEmailAsync(user.Email, user.FirstName);
                 }

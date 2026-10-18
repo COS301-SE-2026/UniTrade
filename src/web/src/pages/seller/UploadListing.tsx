@@ -87,20 +87,6 @@ const UploadListing: React.FC = () => {
       return next;
     });
 
-  const validate = (draft = false): FieldErrors => {
-    const e: FieldErrors = {};
-    if (!title.trim()) e.title = "Add a title so buyers know what this is.";
-    if (category === "book" && courseQuery.trim() && !moduleTag)
-      e.module = "Please pick a module from the list";
-    if (draft) return e;
-    if (!description.trim())
-      e.description =
-        "Describe the item: its condition, edition, what's included.";
-    if (files.length === 0) e.images = "Add at least one photo.";
-    if (!price || Number(price) <= 0) e.price = "Enter a price above R0.";
-    else if (Number(price) > PRICE_MAX) e.price = "That price is too high.";
-    return e;
-  };
   const jumpTo = (key: string) =>
     document
       .getElementById(`field-${key}`)
@@ -166,6 +152,22 @@ const UploadListing: React.FC = () => {
   } else if (moduleTag) {
     courseTextStatus = "Module selected";
   }
+
+  const validate = (draft = false): FieldErrors => {
+    const e: FieldErrors = {};
+    if (!title.trim()) e.title = "Add a title so buyers know what this is.";
+    if (category === "book" && courseQuery.trim() && !moduleTag)
+      e.module = "Please pick a module from the list";
+    if (draft) return e;
+    if (!description.trim())
+      e.description =
+        "Describe the item: its condition, edition, what's included.";
+    if (files.length === 0) e.images = "Add at least one photo.";
+    if (!price || Number(price) <= 0) e.price = "Enter a price above R0.";
+    else if (Number(price) > PRICE_MAX) e.price = "That price is too high.";
+    return e;
+  };
+
   const MAX_SIZE_MB = 10;
   const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
   const totalSizeBytes = files.reduce((sum, f) => sum + f.size, 0);
