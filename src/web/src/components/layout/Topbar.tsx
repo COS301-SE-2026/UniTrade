@@ -18,6 +18,7 @@ const Search_hidden = [
   /^\/payment\/meetup\/[^/]+$/,
   /^\/payment\/generate-pin$/,
   /^\/payment\/buyer-pin$/,
+  /^\/buyer\/smart-budget-reserve$/,
 ];
 
 function shouldSearchHide(pathname: string): boolean {

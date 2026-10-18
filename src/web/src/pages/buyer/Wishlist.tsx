@@ -105,10 +105,11 @@ function WishlistCard({
   const unavailable = listing.status !== "live";
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-3">
+      <div className="flex items-start gap-4">
       <button
         type="button"
-        onClick={() => navigate(`/listings/${listing.id}`)}
+        onClick={() => navigate(`/buyer/listings/${listing.id}`)}
         className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
       >
         <img
@@ -120,11 +121,11 @@ function WishlistCard({
       <div className="flex-1 min-w-0">
         <button
           type="button"
-          onClick={() => navigate(`/listings/${listing.id}`)}
-          className="min-w-0 cursor-pointer group text-left bg-transparent border-0 p-0"
+          onClick={() => navigate(`/buyer/listings/${listing.id}`)}
+          className="block w-full min-w-0 cursor-pointer group text-left bg-transparent border-0 p-0"
         >
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-bold text-gray-800 truncate">
+            <p className="min-w-0 max-w-full text-sm font-bold text-gray-800 truncate">
               {listing.title}
             </p>
             <ConditionBadge condition={listing.condition} />
@@ -137,8 +138,10 @@ function WishlistCard({
             . {listing.category}
           </p>
         </button>
+        </div>
+        </div>
 
-        <div className="flex items-center justify-between gap-4 mt-2 flex-wrap">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <span className="text-sm font-bold text-gray-800">
             {formatPrice(listing.price)}
           </span>
@@ -163,18 +166,18 @@ function WishlistCard({
               type="button"
               onClick={handleRemove}
               disabled={removing}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-300 text-rose-600 px-4 py-2 text-sm font-semibold hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Remove from wishlist"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-300 text-rose-600 px-2.5 @md:px-4 py-2 text-sm font-semibold hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <IconTrash size={16} />
-              {removing ? "Removing..." : "Remove"}
+              <span className="hidden @md:inline">{removing ? "Removing..." : "Remove"}</span>
             </button>
           </div>
         </div>
         {reserveError && (
-          <p className="text-xs text-rose-600 mt-2">{reserveError}</p>
+          <p className="text-xs text-rose-600">{reserveError}</p>
         )}
       </div>
-    </div>
   );
 }
 
@@ -243,12 +246,13 @@ export default function Wishlist() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <button
               type="button"
               onClick={() => setSortOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+              aria-label="Remove from wishlist"
+className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
             >
               Sort by : {sortOption.toLowerCase()}
               <IconChevronDown size={12} />
@@ -278,14 +282,15 @@ export default function Wishlist() {
             <button
               type="button"
               onClick={() => setFilterOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+              aria-label="Remove from wishlist"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
             >
               <IconFilter size={12} />
               Filter
               <IconChevronDown size={12} />
             </button>
             {filterOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+              <div className="absolute left-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "new", "good", "fair", "poor"] as const).map(
                   (opt) => (
                     <button
