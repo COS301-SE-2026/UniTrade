@@ -466,6 +466,7 @@ describe('Reservations page - cancel flow', () => {
         await screen.findByText('COS301');
 
         fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
+        fireEvent.click(await screen.findByRole('button', { name: /yes, cancel/i }));
 
         await waitFor(() => expect(mockCancelReservation).toHaveBeenCalled());
         expect(mockShowToast).toHaveBeenCalledWith('success', expect.any(String));
@@ -491,6 +492,7 @@ describe('Reservations page - cancel flow', () => {
         await screen.findByText('COS301');
 
         fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }));
+        fireEvent.click(await screen.findByRole('button', { name: /yes, cancel/i }));
 
         await waitFor(() => expect(mockCancelReservation).toHaveBeenCalled());
         expect(await screen.findByText('Active')).toBeInTheDocument();

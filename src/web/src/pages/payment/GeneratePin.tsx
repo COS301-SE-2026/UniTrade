@@ -76,6 +76,7 @@ export default function GeneratePin() {
                     {pinDigits.map((digit, index) => (
                         <div
                             key={index}
+                            data-testid="pin-digit"
                             className="flex-1 min-w-0 max-w-14 h-14 md:h-16 flex items-center justify-center text-center text-xl md:text-2xl font-bold text-navy-700 rounded-xl border-2 border-[#00aaff]/60 transition-all duration-150"
                         >
                             {digit.trim()}

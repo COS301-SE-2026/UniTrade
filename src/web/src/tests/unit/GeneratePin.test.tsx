@@ -54,7 +54,7 @@ describe('GeneratePin', () => {
         locationState = { pin: '12'};
         renderComponent();
 
-        const containerss = document.querySelectorAll('.w-12.h-16');
+        const containerss = screen.getAllByTestId('pin-digit');
         expect(containerss).toHaveLength(6);
         expect(containerss[0].textContent).toBe('1');
         expect(containerss[1].textContent).toBe('2');

@@ -89,6 +89,12 @@ describe('EnterPin', () => {
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
     fireEvent.change(inputs[0], { target: { value: '1' } });
     fireEvent.change(inputs[1], { target: { value: '2' } });
+
+    inputs[1].focus();
+    fireEvent.keyDown(inputs[1], { key: 'Backspace' });
+    expect(inputs[1]).toHaveFocus();
+
+    fireEvent.change(inputs[1], { target: { value: '' } });
     fireEvent.keyDown(inputs[1], { key: 'Backspace' });
     expect(inputs[0]).toHaveFocus();
     fireEvent.keyDown(inputs[0], { key: 'Backspace' });

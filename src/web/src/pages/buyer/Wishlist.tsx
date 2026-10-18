@@ -275,14 +275,13 @@ export default function Wishlist() {
             <button
               type="button"
               onClick={() => setSortOpen((o) => !o)}
-              aria-label="Remove from wishlist"
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
             >
               Sort by : {sortOption.toLowerCase()}
               <IconChevronDown size={12} />
             </button>
             {sortOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+              <div className="absolute left-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(
                   ["Date added", "Price low", "Price high"] as SortOption[]
                 ).map((opt) => (
@@ -306,7 +305,6 @@ export default function Wishlist() {
             <button
               type="button"
               onClick={() => setFilterOpen((o) => !o)}
-              aria-label="Remove from wishlist"
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
             >
               <IconFilter size={12} />
@@ -314,7 +312,7 @@ export default function Wishlist() {
               <IconChevronDown size={12} />
             </button>
             {filterOpen && (
-              <div className="absolute left-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+              <div className="absolute right-0 z-20 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
                 {(["All", "new", "good", "fair", "poor"] as const).map(
                   (opt) => (
                     <button

@@ -243,13 +243,24 @@ describe('reserving a listing', () => {
   });
 });
 
-it('disables the reservation button and shows "Unavailable" for a non-live listing', () => {
+it('disables the reservation button and shows "Reserved" with an explanation for a listing reserved by someone else', () => {
   mockWishlist({
     listings: [makeListing({ id: '10', status: 'reserved' })],
     total: 150,
   });
   renderWishlist();
-  const reserveButton = screen.getByRole('button', { name: /unavailable/i });
+  const reserveButton = screen.getByRole('button', { name: /^reserved$/i });
+  expect(reserveButton).toBeDisabled();
+  expect(screen.getByText(/another buyer has reserved this/i)).toBeInTheDocument();
+});
+
+it('shows "Unavailable" for other non-live statuses', () => {
+  mockWishlist({
+    listings: [makeListing({ id: '10', status: 'removed' })],
+    total: 150,
+  });
+  renderWishlist();
+  const reserveButton = screen.getByRole('button', { name: /^unavailable$/i });
   expect(reserveButton).toBeDisabled();
 });
 
@@ -293,7 +304,7 @@ describe('removing a listing', () => {
     renderWishlist();
     fireEvent.click(screen.getByRole('button', { name: /remove/i }));
     await vi.waitFor(() => {
-      expect(screen.getByRole('button', { name: /^remove$/i })).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: /remove from wishlist/i })).not.toBeDisabled();
     });
     expect(queryClient.setQueryData).not.toHaveBeenCalled();
   });
@@ -306,7 +317,7 @@ it('navigates to the listing detail page when the image is clicked', () => {
   });
   renderWishlist();
   fireEvent.click(screen.getByAltText('Calculus'));
-  expect(navigateMock).toHaveBeenCalledWith('/listings/10');
+  expect(navigateMock).toHaveBeenCalledWith('/buyer/listings/10');
 });
 
 describe('sorting', () => {

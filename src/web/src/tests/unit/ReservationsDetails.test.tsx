@@ -224,9 +224,10 @@ describe('ReservationDetails - buyer view', () => {
     const cancelBtn = await screen.findByRole('button', { name: /^cancel$/i });
     expect(cancelBtn).toBeEnabled();
     fireEvent.click(cancelBtn);
+    fireEvent.click(await screen.findByRole('button', { name: /yes, cancel/i }));
 
     await waitFor(() => expect(mockCancelReservation).toHaveBeenCalledWith('res-cancel'));
-    expect(await screen.findByText('Cancelled')).toBeInTheDocument();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/buyer/reservations'));
     expect(mockShowToast).toHaveBeenCalledWith('success', 'Reservation cancelled successfully.');
   });
 
@@ -242,6 +243,7 @@ describe('ReservationDetails - buyer view', () => {
     renderAt('/buyer/reservations/res-1');
 
     fireEvent.click(await screen.findByRole('button', { name: /^cancel$/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /yes, cancel/i }));
     await waitFor(() =>
       expect(mockShowToast).toHaveBeenCalledWith(
         'error',
@@ -262,6 +264,7 @@ describe('ReservationDetails - buyer view', () => {
     renderAt('/buyer/reservations/res-1');
 
     fireEvent.click(await screen.findByRole('button', { name: /^cancel$/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /yes, cancel/i }));
     await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith('error', 'Server exploded'));
   });
 });
