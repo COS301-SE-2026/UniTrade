@@ -2,7 +2,11 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { listingsService } from "../../services/listingsService";
 import { formatCondition, formatPrice } from "../../utils/formatters";
-import type { WishlistListing, BrowseCondition, WishlistResponse } from "../../types/listing";
+import type {
+  WishlistListing,
+  BrowseCondition,
+  WishlistResponse,
+} from "../../types/listing";
 import { createReservation } from "../../services/reservationService";
 import { SummaryCard } from "./Reservation";
 import {
@@ -16,7 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { useWishlist } from "../../hooks/useWishlist";
 import { queryClient } from "../../lib/queryClient";
-import { LoadingState } from '../../components/layout/Spinner';
+import { LoadingState } from "../../components/layout/Spinner";
 import { useSearchQuery } from "../../hooks/useSearchQuery";
 import { getAccountStateErrorMessage } from "../../utils/accountStateErrors";
 
@@ -40,7 +44,9 @@ const conditionColours: Record<
   poor: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
-function ConditionBadge({ condition }: Readonly<{ condition: BrowseCondition }>) {
+function ConditionBadge({
+  condition,
+}: Readonly<{ condition: BrowseCondition }>) {
   const s = conditionColours[condition] ?? conditionColours.fair;
   return (
     <span
@@ -81,11 +87,9 @@ function WishlistCard({
       setReserveError(
         "Sorry, This Item has already been reserved by someone else",
       );
-    }
-    else if(result.error.code === "buyer_suspended"){
+    } else if (result.error.code === "buyer_suspended") {
       setReserveError(getAccountStateErrorMessage("buyer_suspended", ""));
-    } 
-    else {
+    } else {
       setReserveError(result.error.message ?? "Could not reserve this item.");
     }
     setReserving(false);
@@ -103,86 +107,99 @@ function WishlistCard({
   };
 
   const unavailable = listing.status !== "live";
+  const unavailableNote =
+    listing.status === "reserved"
+      ? "Another buyer has reserved this. It will go live again here if their reservation is cancelled or expires."
+      : listing.status === "sold"
+        ? "This item has been sold."
+        : "This listing isn't available right now. We'll keep it here in case it comes back.";
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-3">
       <div className="flex items-start gap-4">
-      <button
-        type="button"
-        onClick={() => navigate(`/buyer/listings/${listing.id}`)}
-        className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
-      >
-        <img
-          src={listing.image}
-          alt={listing.title}
-          className="w-full h-full object-cover"
-        />
-      </button>
-      <div className="flex-1 min-w-0">
         <button
           type="button"
           onClick={() => navigate(`/buyer/listings/${listing.id}`)}
-          className="block w-full min-w-0 cursor-pointer group text-left bg-transparent border-0 p-0"
+          className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
         >
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="min-w-0 max-w-full text-sm font-bold text-gray-800 truncate">
-              {listing.title}
-            </p>
-            <ConditionBadge condition={listing.condition} />
-          </div>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Listed by{" "}
-            <span className="font-semibold text-gray-500">
-              {listing.sellerName ?? "Unknown seller"}
-            </span>{" "}
-            . {listing.category}
-          </p>
+          <img
+            src={listing.image}
+            alt={listing.title}
+            className="w-full h-full object-cover"
+          />
         </button>
+        <div className="flex-1 min-w-0">
+          <button
+            type="button"
+            onClick={() => navigate(`/buyer/listings/${listing.id}`)}
+            className="block w-full min-w-0 cursor-pointer group text-left bg-transparent border-0 p-0"
+          >
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="min-w-0 max-w-full text-sm font-bold text-gray-800 truncate">
+                {listing.title}
+              </p>
+              <ConditionBadge condition={listing.condition} />
+            </div>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Listed by{" "}
+              <span className="font-semibold text-gray-500">
+                {listing.sellerName ?? "Unknown seller"}
+              </span>{" "}
+              . {listing.category}
+            </p>
+          </button>
         </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <span className="text-sm font-bold text-gray-800">
-            {formatPrice(listing.price)}
-          </span>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleReserve}
-              disabled={reserving || reserved || unavailable}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-4 py-2 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <IconBookmark size={16} />
-              {reserved
-                ? "Reserved "
-                : reserving
-                  ? "Reserving..."
-                  : unavailable
-                    ? "Unavailable"
-                    : "Reserve"}
-            </button>
-            <button
-              type="button"
-              onClick={handleRemove}
-              disabled={removing}
-              aria-label="Remove from wishlist"
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-300 text-rose-600 px-2.5 @md:px-4 py-2 text-sm font-semibold hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <IconTrash size={16} />
-              <span className="hidden @md:inline">{removing ? "Removing..." : "Remove"}</span>
-            </button>
-          </div>
-        </div>
-        {reserveError && (
-          <p className="text-xs text-rose-600">{reserveError}</p>
-        )}
       </div>
+
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <span className="text-sm font-bold text-gray-800">
+          {formatPrice(listing.price)}
+        </span>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleReserve}
+            disabled={reserving || reserved || unavailable}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy-800 border border-navy-800 text-white px-4 py-2 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <IconBookmark size={16} />
+            {reserved
+              ? "Reserved "
+              : reserving
+                ? "Reserving..."
+                : unavailable
+                  ? listing.status === "reserved"
+                    ? "Reserved"
+                    : listing.status === "sold"
+                      ? "Sold"
+                      : "Unavailable"
+                  : "Reserve"}
+          </button>
+          <button
+            type="button"
+            onClick={handleRemove}
+            disabled={removing}
+            aria-label="Remove from wishlist"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-300 text-rose-600 px-2.5 @md:px-4 py-2 text-sm font-semibold hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <IconTrash size={16} />
+            <span className="hidden @md:inline">
+              {removing ? "Removing..." : "Remove"}
+            </span>
+          </button>
+        </div>
+      </div>
+      {reserveError && <p className="text-xs text-rose-600">{reserveError}</p>}
+      {unavailable && (
+        <p className="text-xs text-gray-500">{unavailableNote}</p>
+      )}
+    </div>
   );
 }
 
 export default function Wishlist() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [sortOption, setSortOption] = useState<SortOption>("Date added");
   const [sortOpen, setSortOpen] = useState(false);
   const { data, isLoading, error } = useWishlist();
@@ -193,27 +210,34 @@ export default function Wishlist() {
   >("All");
 
   const handleRemoved = (id: string) => {
-    queryClient.setQueryData<WishlistResponse>(["wishlist"], (old) =>
-      old && { ...old, listings: old.listings.filter((l) => l.id !== id), total: old.total - 1 },
+    queryClient.setQueryData<WishlistResponse>(
+      ["wishlist"],
+      (old) =>
+        old && {
+          ...old,
+          listings: old.listings.filter((l) => l.id !== id),
+          total: old.total - 1,
+        },
     );
   };
 
-  const searchQuery = useSearchQuery()
+  const searchQuery = useSearchQuery();
   const filtered = useMemo(() => {
-    let result = conditionFilter === 'All'
-      ? listings
-      : listings.filter((l) => l.condition === conditionFilter)
+    let result =
+      conditionFilter === "All"
+        ? listings
+        : listings.filter((l) => l.condition === conditionFilter);
 
     if (searchQuery) {
       result = result.filter(
         (l) =>
           l.title.toLowerCase().includes(searchQuery) ||
-          (l.sellerName ?? '').toLowerCase().includes(searchQuery)
-      )
+          (l.sellerName ?? "").toLowerCase().includes(searchQuery),
+      );
     }
 
-    return result
-  }, [listings, conditionFilter, searchQuery])
+    return result;
+  }, [listings, conditionFilter, searchQuery]);
 
   const sorted = useMemo(() => {
     const copy = [...filtered];
@@ -252,7 +276,7 @@ export default function Wishlist() {
               type="button"
               onClick={() => setSortOpen((o) => !o)}
               aria-label="Remove from wishlist"
-className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:border-navy-700 transition-colors"
             >
               Sort by : {sortOption.toLowerCase()}
               <IconChevronDown size={12} />
@@ -263,7 +287,7 @@ className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border 
                   ["Date added", "Price low", "Price high"] as SortOption[]
                 ).map((opt) => (
                   <button
-                    type='button'
+                    type="button"
                     key={opt}
                     onClick={() => {
                       setSortOption(opt);
@@ -294,7 +318,7 @@ className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border 
                 {(["All", "new", "good", "fair", "poor"] as const).map(
                   (opt) => (
                     <button
-                      type='button'
+                      type="button"
                       key={opt}
                       onClick={() => {
                         setConditionFilter(opt);
@@ -334,9 +358,12 @@ className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border 
               <IconWallet size={20} />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-800">Reserve within a budget</p>
+              <p className="text-sm font-bold text-gray-800">
+                Reserve within a budget
+              </p>
               <p className="text-xs text-gray-500 mt-0.5">
-                Set a budget and we will reserve as many of your saved items as possible in one go.
+                Set a budget and we will reserve as many of your saved items as
+                possible in one go.
               </p>
             </div>
           </div>
@@ -368,7 +395,6 @@ className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border 
             {searchQuery
               ? `No items match "${searchQuery}".`
               : 'Browse listings and tap "Add to Wishlist" to save items here.'}
-
           </p>
         </div>
       )}
