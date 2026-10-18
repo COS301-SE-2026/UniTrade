@@ -9,6 +9,7 @@ import {
   IconHeart,
   IconFlag,
   IconX,
+  IconCircleCheck,
 } from "@tabler/icons-react";
 import type React from "react";
 import { listingsService } from "../../services/listingsService";
@@ -136,7 +137,7 @@ function ReportModal({
 }
 
 export default function ListingDetail() {
-  const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
+  const isAdmin = useAuthStore((s) => s.user?.role === "admin");
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { id } = useParams<{ id: string }>();
@@ -158,6 +159,7 @@ export default function ListingDetail() {
   const [reportReason, setReportReason] = useState("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [reportSubmitted, setReportSubmitted] = useState(false);
   const [wishlisting, setWishlisting] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
 
@@ -178,10 +180,7 @@ export default function ListingDetail() {
       setReportModalOpen(false);
       setReportReason("");
       setReportError(null);
-      showToast(
-        "success",
-        "Thanks — your report has been submitted and a UniTrade admin will review it shortly.",
-      );
+      setReportSubmitted(true);
     } catch (err) {
       const code = (err as { code?: string })?.code ?? "";
       const message_row =
@@ -261,8 +260,8 @@ export default function ListingDetail() {
           .catch(() => setSimilarListings([]));
         setActiveImage(
           data.images.find((i) => i.isPrimary)?.url ??
-          data.images[0]?.url ??
-          null,
+            data.images[0]?.url ??
+            null,
         );
 
         if (data.sellerId) {
@@ -296,12 +295,53 @@ export default function ListingDetail() {
     sellerReviews?.reviews.filter((r) => r.reviewType === "buyer_to_seller") ??
     [];
   const sellerReputationScore = computeReputationScore(sellerReceivedReviews);
-  if (loading) return <LoadingState message="Loading..." />;
 
+  if (loading) return <LoadingState message="Loading..." />;
+  if (reportSubmitted) {
+    return (
+      <div className="max-w-2xl w-full mx-auto p-6">
+        <div className="bg-white border border-emerald-200 rounded-2xl p-8 shadow-xs text-center">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+            <IconCircleCheck size={24} stroke={2} />
+          </div>
+          <h2 className="font-['Fraunces'] text-2xl text-gray-800 mb-2">
+            Thanks, we've got your report
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed mb-6">
+            This listing has been taken off the market while a UniTrade admin
+            reviews it. You can follow the outcome under My Disputes.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/buyer/listings")}
+              className="px-5 py-2.5 bg-navy-700 text-white rounded-xl text-sm font-bold hover:bg-navy-500 transition-colors"
+            >
+              Back to browse listings
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/buyer/disputes")}
+              className="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              View my disputes
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (error || !listing)
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-red-400">{error ?? "Listing not found"}</p>
+      <div className="flex flex-col items-center justify-center gap-4 h-64 text-center">
+        <p className="text-sm text-gray-500">{error ?? "Listing not found"}</p>
+        <button
+          type="button"
+          onClick={() => navigate("/buyer/listings")}
+          className="px-5 py-2.5 bg-navy-700 text-white rounded-xl text-sm font-bold hover:bg-navy-500 transition-colors"
+        >
+          Back to browse listings
+        </button>
       </div>
     );
   const getReserveLabel = () => {
@@ -360,10 +400,11 @@ export default function ListingDetail() {
                   type="button"
                   key={img.id}
                   onClick={() => setActiveImage(img.url)}
-                  className={`w-14 h-12 shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${activeImage === img.url
+                  className={`w-14 h-12 shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 bg-gray-100 dark:bg-navy-700 ${
+                    activeImage === img.url
                       ? "border-navy-700 dark:border-white"
                       : "border-transparent"
-                    }`}
+                  }`}
                 >
                   {img.url ? (
                     <img
@@ -516,12 +557,11 @@ export default function ListingDetail() {
 
             {!isAdmin && (
               <>
-
                 <div className="bg-blue-50 dark:bg-navy-700 rounded-lg p-3 mb-4 flex gap-2">
                   <span className="text-blue-500 text-sm shrink-0">🛡</span>
                   <p className="text-xs text-blue-700 dark:text-white/70 leading-relaxed">
-                    Reserve now to hold this item for 24 hours. No payment until you
-                    meet and inspect it in person.
+                    Reserve now to hold this item for 24 hours. No payment until
+                    you meet and inspect it in person.
                   </p>
                 </div>
 
@@ -564,7 +604,8 @@ export default function ListingDetail() {
                 >
                   <IconFlag size={16} /> Report this listing
                 </button>
-              </>)}
+              </>
+            )}
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-white/10 p-5">
