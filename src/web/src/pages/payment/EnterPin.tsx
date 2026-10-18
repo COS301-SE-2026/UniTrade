@@ -32,7 +32,7 @@ export default function EnterPin() {
     };
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-        if (e.key === 'Backspace' && index > 0) {
+        if (e.key === 'Backspace' && !pin[index] && index > 0) {
             inputRefs.current[index - 1]?.focus();
         }
     };
@@ -83,9 +83,9 @@ export default function EnterPin() {
 
     return (
         <div className="h-dvh overflow-hidden bg-gray-100 flex flex-col justify-center items-center font-sans p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xs border border-gray-100 p-12 md:p-16 flex flex-col items-center space-y-10">
+            <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xs border border-gray-100 p-6 lg:p-16 flex flex-col items-center space-y-8 lg:space-y-10">
                 <div className="text-center space-y-2">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-navy-700 tracking-tight">
+                    <h1 className="text-3xl lg:text-5xl font-extrabold text-navy-700 tracking-tight">
                         PIN Verification
                     </h1>
                     <p className="text-sm text-gray-500 font-medium">
@@ -97,21 +97,22 @@ export default function EnterPin() {
                         {error}
                     </div>
                 )}
-                <div className="flex justify-center gap-3 md:gap-4">
+                <div className="flex w-full max-w-sm justify-center gap-2 md:gap-3">
                     {pin.map((digit, index) => (
                         <input
                             key={index}
                             ref={el => { inputRefs.current[index] = el; }}
                             type="text"
                             inputMode="numeric"
+                            autoComplete="one-time-code"
                             maxLength={1}
                             value={digit}
                             onChange={e => handleChange(index, e.target.value)}
                             onKeyDown={e => handleKeyDown(index, e)}
                             onPaste={handlePaste}
-                            className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-hidden transition-all duration-150 ${digit
-                                ? 'border-[#00aaff] text-gray-800 bg-white'
-                                : 'border-[#00aaff]/60 text-gray-800 bg-white'
+                            className={`flex-1 min-w-0 max-w-14 h-14 md:h-16 text-center text-xl md:text-2xl font-bold rounded-xl border-2 outline-hidden  transition-all duration-150 ${digit
+                                ? 'border-[#00aaff] text-navy-700 bg-white'
+                                : 'border-[#00aaff]/60 text-navy-700 bg-white'
                                 } focus:border-[#00aaff] focus:ring-2 focus:ring-[#00aaff]/20`}
                         />
                     ))}
