@@ -63,6 +63,7 @@ test('seller rejects a reservation', async () => {
 
     await screen.findByRole('button', {name: /^Reject$/i})
     await user.click(screen.getByRole('button', { name: /^Reject$/i}))
+    await user.click(await screen.findByRole('button', { name: /yes, reject/i }))
 
     await waitFor(() => {
         expect(screen.queryByRole('button', { name: /^Reject$/i})).not.toBeInTheDocument()
