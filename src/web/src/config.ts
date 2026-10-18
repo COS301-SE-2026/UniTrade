@@ -30,6 +30,7 @@ export async function loadConfig(): Promise<AppConfig> {
   const allowedHosts = [
     "ca-backend-prod.kindgrass-55a2ae94.southafricanorth.azurecontainerapps.io",
     "ca-backend-staging.calmtree-ce65e53e.southafricanorth.azurecontainerapps.io",
+    "api.myunitrade.co.za",
     "localhost:8080","api.example.com",
   ];
   if (!allowedHosts.includes(parsed.host)) {
