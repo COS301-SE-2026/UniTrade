@@ -64,7 +64,7 @@ test.describe("QR-06b core task end-to-end time", () => {
 
         await sellerAdminContext.close();
 
-        await sellerPage.getByText("Switch", { exact: true }).click();
+        await sellerPage.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
         await sellerPage.waitForURL(/\/seller\/listings/);
         const { listingTitle } = await createSellerListing(sellerPage);
 

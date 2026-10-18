@@ -19,6 +19,7 @@ function Navbar() {
           <button
             type="button"
             onClick={() => navigate(-1)}
+            aria-label="Go back"
             className="p-2 text-gray-500 hover:text-[#003366] hover:bg-gray-100 rounded-full transition-all"
           >
             <IconArrowLeft size={20} />

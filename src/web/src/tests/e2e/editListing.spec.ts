@@ -21,7 +21,7 @@ test("seller can edit a listing's title and price", async ({
   await signupVerifyAndLogin(page, request, adminPage, { email: sellerEmail });
   await adminContext.close();
 
-  await page.getByText("Switch", { exact: true }).click();
+  await page.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
   await page.waitForURL(/\/seller\/listings/);
 
   await page.getByRole("button", { name: "New Listing" }).click();
@@ -72,7 +72,7 @@ test("cancelling out of edit discards changes", async ({ browser, page, request 
   await signupVerifyAndLogin(page, request, adminPage, { email: uniqueEmail("seller") });
   await adminContext.close();
   
-  await page.getByText("Switch", { exact: true }).click();
+  await page.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
   await page.waitForURL(/\/seller\/listings/);
 
   await page.getByRole("button", { name: "New Listing" }).click();

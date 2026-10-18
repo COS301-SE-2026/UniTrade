@@ -16,7 +16,7 @@ test("verified seller can upload a listing", async ({
   await signupVerifyAndLogin(page, request, adminPage, { email: sellerEmail });
   await adminContext.close();
   
-  await page.getByText("Switch", { exact: true }).click();
+  await page.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
   await page.waitForURL(/\/seller\/listings/);
 
   await page.getByRole("button", { name: "New Listing" }).click();

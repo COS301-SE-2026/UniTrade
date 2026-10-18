@@ -33,7 +33,7 @@ test('admin can approve a pending verification annd the student can then upload 
     : (stillPendingBody.cases ?? []);
     expect(stillPendingCases.some((c) => c.caseId === caseId)).toBe(false);
 
-    await studentPage.getByText('Switch', {exact: true}).click();
+    await studentPage.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
     await studentPage.waitForURL(/\/seller\/listings/);
     const {listingId} = await createSellerListing(studentPage);
 

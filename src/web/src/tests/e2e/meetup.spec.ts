@@ -68,7 +68,12 @@ test.describe("meetup scheduling and check-in", () => {
       .getByRole("button", { name: /enter a time manually/i })
       .first();
 
-    if (await enterManual.isVisible({ timeout: 5000 }).catch(() => false)) {
+   
+    const timeInput = sellerPage.locator('input[type="time"]');
+    await expect(enterManual.or(timeInput).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    if (await enterManual.isVisible()) {
       await enterManual.click();
     }
     const scheduledTime = await sellerPage.evaluate(() => {
@@ -101,4 +106,3 @@ test.describe("meetup scheduling and check-in", () => {
   });
 
 });
-// triigger

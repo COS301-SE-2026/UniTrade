@@ -26,7 +26,7 @@ test("chat is locked for both the seller and the buyer until the seller accepts 
     email: uniqueEmail("seller"),
   });
   await sellerAdminContext.close();
-  await sellerPage.getByText("Switch", { exact: true }).click();
+  await sellerPage.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
   await sellerPage.waitForURL(/\/seller\/listings/);
 
   await sellerPage.getByRole("link", { name: "New Listing" }).click();

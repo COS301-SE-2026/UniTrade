@@ -17,7 +17,7 @@ test ('publish is blocked for an unveriried seller and then unlocks when the adm
     const studentEmail = uniqueEmail('student');
     await signupAndLogin(studentPage, request, {email: studentEmail});
 
-    await studentPage.getByText('Switch', {exact: true}).click();
+    await studentPage.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
     await studentPage.waitForURL(/\/seller\/listings/);
     const {listingId} = await createSellerListing(studentPage);
 

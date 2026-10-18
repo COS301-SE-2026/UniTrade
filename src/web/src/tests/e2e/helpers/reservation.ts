@@ -86,7 +86,7 @@ export async function createListingAndReserve(
   });
   await sellerAdminContext.close();
 
-  await sellerPage.getByText("Switch", { exact: true }).click();
+  await sellerPage.getByRole("button", { name: /^(seller|buyer) mode$/i }).click();
   await sellerPage.waitForURL(/\/seller\/listings/);
 
   const { listingTitle, price } = await createSellerListing(sellerPage);
