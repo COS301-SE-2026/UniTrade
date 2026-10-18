@@ -1,11 +1,11 @@
 {
   "metric": "chat_message_delivery_ms",
   "samples": 20,
-  "p50_ms": 47,
-  "p95_ms": 67,
-  "max_ms": 70,
+  "p50_ms": 97,
+  "p95_ms": 135,
+  "max_ms": 158,
   "target_ms": 500,
   "pass": true,
-  "measuredAt": "2026-10-18T11:58:38.180Z",
+  "measuredAt": "2026-10-18T12:59:47.529Z",
   "note": "Recipient-side send->receive over SignalR, measured through the built UI (includes minor render)."
 }

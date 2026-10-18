@@ -22,9 +22,11 @@ export default function EnterPin() {
             setPin(prev => [...prev]);
             return;
         }
-        const newPin = [...pin];
-        newPin[index] = value.slice(-1);
-        setPin(newPin);
+        setPin(prev => {
+            const next = [...prev];
+            next[index] = value.slice(-1);
+            return next;
+        });
         setError(null);
         if (value && index < 5) {
             inputRefs.current[index + 1]?.focus();

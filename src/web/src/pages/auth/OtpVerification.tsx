@@ -27,9 +27,11 @@ export default function OTPVerification() {
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return
-    const newOtp = [...otp]
-    newOtp[index] = value.slice(-1)
-    setOtp(newOtp)
+    setOtp(prev => {
+      const next = [...prev]
+      next[index] = value.slice(-1)
+      return next
+    })
     if (value && index < 5) inputRefs.current[index + 1]?.focus()
   }
 
