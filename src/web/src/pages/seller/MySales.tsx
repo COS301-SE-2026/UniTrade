@@ -1,23 +1,21 @@
-
-import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Star } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query';
-import { listingsService } from '../../services/listingsService';
-import { formatPrice } from '../../utils/formatters';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { AlertCircle, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { listingsService } from "../../services/listingsService";
+import { formatPrice } from "../../utils/formatters";
 import { SummaryCard } from "../buyer/Reservation";
-import { LoadingState } from '../../components/layout/Spinner';
-import { ReviewModal } from '../auth/Review';
-import { useSearchQuery } from '../../hooks/useSearchQuery';
+import { LoadingState } from "../../components/layout/Spinner";
+import { ReviewModal } from "../auth/Review";
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
-
-export type SaleFilterTab = 'all' | 'semester' | 'awaiting' | 'reviewed'
-export type SaleSort = 'Newest' | 'Oldest' | 'Price Low' | 'Price High'
+export type SaleFilterTab = "all" | "semester" | "awaiting" | "reviewed";
+export type SaleSort = "Newest" | "Oldest" | "Price Low" | "Price High";
 function isThisSemester(iso: string): boolean {
-  //for now 
-  const mockMonth = new Date()
-  mockMonth.setMonth(mockMonth.getMonth() - 3)
-  return new Date(iso) >= mockMonth
+  //for now
+  const mockMonth = new Date();
+  mockMonth.setMonth(mockMonth.getMonth() - 3);
+  return new Date(iso) >= mockMonth;
 }
 
 const conditionColours: Record<
@@ -50,13 +48,13 @@ function ConditionBadge({ condition }: Readonly<{ condition: string }>) {
   );
 }
 export default function MySales() {
-  const [activeTab, setActiveTab] = useState<SaleFilterTab>('all');
-  const [sortSale, setSortSale] = useState<SaleSort>('Newest');
-  const navigate = useNavigate()
-  const searchQuery = useSearchQuery()
+  const [activeTab, setActiveTab] = useState<SaleFilterTab>("all");
+  const [sortSale, setSortSale] = useState<SaleSort>("Newest");
+  const navigate = useNavigate();
+  const searchQuery = useSearchQuery();
   const [reviewTarget, setReviewTarget] = useState<{
-    transactionId: string
-    revieweeName: string
+    transactionId: string;
+    revieweeName: string;
   } | null>(null);
 
   const {
@@ -65,56 +63,66 @@ export default function MySales() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['sales', 'completed'],
+    queryKey: ["sales", "completed"],
     queryFn: () => listingsService.getCompletedSales(),
   });
 
-  const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading your sales.';
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : "An error occurred while loading your sales.";
 
-    const filteredSales = useMemo(() => {
-      let result = sales
-      switch(activeTab) {
-        case 'semester': 
-        result = result.filter((o) => isThisSemester(o._createdAtIso))
-        break
+  const filteredSales = useMemo(() => {
+    let result = sales;
+    switch (activeTab) {
+      case "semester":
+        result = result.filter((o) => isThisSemester(o._createdAtIso));
+        break;
 
-        case 'awaiting' :  
-        result =  result.filter((o) => o.rating === 0)
-        break
+      case "awaiting":
+        result = result.filter((o) => o.rating === 0);
+        break;
 
-        case 'reviewed' :  
-        result =  result.filter((o) => o.rating > 0)
-        break
+      case "reviewed":
+        result = result.filter((o) => o.rating > 0);
+        break;
+    }
 
-       
-     }
- 
-     if (searchQuery) {
+    if (searchQuery) {
       result = result.filter(
         (o) =>
           o.title.toLowerCase().includes(searchQuery) ||
-          o.buyerName.toLowerCase().includes(searchQuery)
-      )
-     }
-     return [...result].sort((a, b) => {
-    if( sortSale === 'Price Low') return a.price - b.price
-    if( sortSale === 'Price High') return b.price - a.price
-    
-    if( sortSale === 'Oldest'){ return new Date(a._createdAtIso).getTime() - new Date(b._createdAtIso).getTime()
-   } 
-  return new Date(b._createdAtIso).getTime() - new Date(a._createdAtIso).getTime()
-   })
-  }, [sales, activeTab, searchQuery, sortSale])
+          o.buyerName.toLowerCase().includes(searchQuery),
+      );
+    }
+    return [...result].sort((a, b) => {
+      if (sortSale === "Price Low") return a.price - b.price;
+      if (sortSale === "Price High") return b.price - a.price;
+
+      if (sortSale === "Oldest") {
+        return (
+          new Date(a._createdAtIso).getTime() -
+          new Date(b._createdAtIso).getTime()
+        );
+      }
+      return (
+        new Date(b._createdAtIso).getTime() -
+        new Date(a._createdAtIso).getTime()
+      );
+    });
+  }, [sales, activeTab, searchQuery, sortSale]);
 
   const stats = useMemo(() => {
-    const totalSales = sales.length
-    const totalEarned = sales.reduce((sum, o) => sum + o.price, 0)
-    const reviewedCount = sales.filter((o) => o.rating > 0).length
+    const totalSales = sales.length;
+    const totalEarned = sales.reduce((sum, o) => sum + o.price, 0);
+    const reviewedCount = sales.filter((o) => o.rating > 0).length;
 
     return {
-      totalSales, totalEarned, reviewsReceived: `${reviewedCount}/${totalSales}`
-    }
-  }, [sales])
+      totalSales,
+      totalEarned,
+      reviewsReceived: `${reviewedCount}/${totalSales}`,
+    };
+  }, [sales]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -124,14 +132,14 @@ export default function MySales() {
             My Sales
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            {sales.length} {sales.length === 1 ? 'sale' : 'sales'} made
+            {sales.length} {sales.length === 1 ? "sale" : "sales"} made
           </p>
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <SummaryCard
-          label="Total Sales"
+          label={"Total Sales"}
           value={String(stats.totalSales)}
           icon={null}
         />
@@ -147,109 +155,105 @@ export default function MySales() {
         />
       </div>
 
-        <div className="flex items-center justify-between flex-wrap gap-3"> 
-
-      <div className="flex items-center gap-2">
-        {(['all', 'semester', 'awaiting', 'reviewed'] as SaleFilterTab[]).map((tab) => (
-          <button
-            type='button'
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
-              ? 'bg-navy-700 text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
-              }`}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {(["all", "semester", "awaiting", "reviewed"] as SaleFilterTab[]).map(
+            (tab) => (
+              <button
+                type="button"
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  activeTab === tab
+                    ? "bg-navy-700 text-white"
+                    : "bg-white text-gray-600 border border-gray-300 hover:border-navy-700"
+                }`}
+              >
+                {tab === "semester"
+                  ? "This semester"
+                  : tab === "awaiting"
+                    ? "Awaiting review"
+                    : tab === "reviewed"
+                      ? "Reviewed"
+                      : "All"}
+              </button>
+            ),
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={sortSale}
+            onChange={(e) => setSortSale(e.target.value as SaleSort)}
+            className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2 text-sm text-gray-600 focus:outline-hidden focus:outline-hidden focus:border-navy-700 max-w-full"
           >
-            {
-              tab === 'semester'
-                ? 'This semester'
-                : tab === 'awaiting'
-                  ? 'Awaiting review'
-                  : tab === 'reviewed'
-                    ? 'Reviewed'
-                    : 'All'
-            }
-          </button>
-        ))}
+            <option value="Newest">Sort by: Newest</option>
+            <option value="Oldest">Sort by: Oldest</option>
+            <option value="Price Low">Sort by: Price Low to High</option>
+            <option value="Price High">Sort by: Price High to Low</option>
+          </select>
+        </div>
       </div>
-              <div className="flex items-center gap-2">
-                <select
-                value={sortSale}
-                onChange={(e) => setSortSale(e.target.value as SaleSort)}
-                className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-hidden focus:outline-hidden focus:border-navy-700">
-                  <option value="Newest">Sort by: Newest</option>
-                  <option value="Oldest">Sort by: Oldest</option>
-                  <option value="Price Low">Sort by: Price Low to High</option>
-                  <option value="Price High">Sort by: Price High to Low</option>
-                </select>
-                </div>
-                </div>
-      
+
       {isLoading && <LoadingState message="Fetching sales..." />}
 
-
       {error && !isLoading && (
-        <div className='bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <AlertCircle className='w-5 h-5 text-rose-500 shrink-0' />
-            <span className='text-sm font-medium'>{errorMessage}</span>
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+            <span className="text-sm font-medium">{errorMessage}</span>
           </div>
           <button
-            type='button'
+            type="button"
             onClick={() => refetch()}
-            className='px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors'
+            className="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-semibold hover:bg-rose-700 transition-colors"
           >
             Retry
           </button>
-        </div>)}
+        </div>
+      )}
 
       {!isLoading && !error && filteredSales.length === 0 && (
-        <div className='bg-white rounded-xl border border-gray-200 p-8 text-center'>
-          <p className='text-sm font-semibold text-gray-700'>
-            No sales found
-          </p>
-          <p className='text-xs text-gray-400 mt-1'>
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-sm font-semibold text-gray-700">No sales found</p>
+          <p className="text-xs text-gray-400 mt-1">
             {searchQuery
-            ? `No sales with "${searchQuery}" found.`
-            : 'There are no sales available for this category.'}
+              ? `No sales with "${searchQuery}" found.`
+              : "There are no sales available for this category."}
           </p>
         </div>
       )}
 
-
       {!isLoading && !error && filteredSales.length > 0 && (
-        <div className='flex flex-col gap-4'>
+        <div className="@container flex flex-col gap-4">
           {filteredSales.map((sale) => (
             <div
               key={sale.id}
-              className='bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4'
+              className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-center gap-4"
             >
               <button
-                type='button'
+                type="button"
                 onClick={() => navigate(`/seller/sales/${sale.id}`)}
                 className="w-20 h-20 rounded-lg overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity border-0 p-0 bg-transparent"
-
               >
                 <img
-                  src={sale.imageUrl || '/placeholder-book.png'}
+                  src={sale.imageUrl || "/placeholder-book.png"}
                   alt={sale.title}
                   className="w-full h-full object-cover"
                 />
               </button>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-[10rem]">
                 <button
-                  type='button'
+                  type="button"
                   onClick={() => navigate(`/seller/sales/${sale.id}`)}
                   className="block w-full text-left cursor-pointer bg-transparent border-0 p-0"
                 >
-
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-bold text-gray-800 truncate">
                       {sale.title}
                     </p>
                     <ConditionBadge condition={sale.condition} />
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-400 mt-0.5 break-words">
                     Delivered {sale.date} . Ref: {sale.refNum}
                   </p>
                 </button>
@@ -263,24 +267,24 @@ export default function MySales() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 pt-1">
+                <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 pt-1">
                   {sale.rating > 0 ? (
                     <>
                       {Array.from({ length: 5 }, (_, i) => (
                         <Star
                           key={i}
-                          className={`w-4 h-4 ${i < sale.rating
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'text-gray-300'
-                            }`}
+                          className={`w-4 h-4 shrink-0 ${
+                            i < sale.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-gray-300"
+                          }`}
                         />
                       ))}
 
-                      <span className="text-xs text-gray-500 ml-1">
+                      <span className="text-xs text-gray-500 ml-1 whitespace-nowrap">
                         The buyer reviewed this sale
                       </span>
                     </>
-
                   ) : sale.transactionId ? (
                     <button
                       type="button"
@@ -304,17 +308,17 @@ export default function MySales() {
                 </div>
               </div>
 
-              <div className="text-right space-y-3">
-                <div>
-                  <p className="text-lg font-bold text-gray-900">
-                    {formatPrice(sale.price)}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {sale.date}
-                  </p>
+              <div className="w-full shrink-0 @md:w-auto @md:ml-auto @md:text-right">
+                <div className="flex w-full items-center justify-between @md:block @md:w-auto @md:space-y-3">
+                  <div className="text-left @md:text-right">
+                    <p className="text-lg font-bold text-gray-900">
+                      {formatPrice(sale.price)}
+                    </p>
+                    <p className="text-xs text-gray-400">{sale.date}</p>
+                  </div>
                   <button
-                    type='button'
-                    onClick={() => navigate(`/seller/sales/${sale.id}`)}
+                    type="button"
+                    onClick={() => navigate(`/buyer/orders/${sale.id}`)}
                     className="px-4 py-1.5 border border-gray-400 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
                   >
                     View details
@@ -334,8 +338,8 @@ export default function MySales() {
           revieweeName={reviewTarget.revieweeName}
           revieweeLabel="buyer"
           onSubmitted={() => {
-            setReviewTarget(null)
-            refetch()
+            setReviewTarget(null);
+            refetch();
           }}
         />
       )}

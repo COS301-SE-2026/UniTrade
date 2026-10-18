@@ -5,12 +5,11 @@ import { listingsService } from "../../services/listingsService";
 import { formatPrice } from "../../utils/formatters";
 import { useQuery } from "@tanstack/react-query";
 import { SummaryCard } from "./Reservation";
-import { ReviewModal } from '../auth/Review';
-import { LoadingState } from '../../components/layout/Spinner';
-import { useSearchQuery } from '../../hooks/useSearchQuery';
+import { ReviewModal } from "../auth/Review";
+import { LoadingState } from "../../components/layout/Spinner";
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 
-
-export type OrderSort = 'Newest' | 'Oldest' | 'Price Low' | 'Price High'
+export type OrderSort = "Newest" | "Oldest" | "Price Low" | "Price High";
 export type OrderFilterTab = "all" | "semester" | "awaiting" | "reviewed";
 
 function isThisSemester(iso: string): boolean {
@@ -20,7 +19,7 @@ function isThisSemester(iso: string): boolean {
 }
 
 export default function Orders() {
-  const [sortOrder, setSortOrder] = useState<OrderSort>('Newest');
+  const [sortOrder, setSortOrder] = useState<OrderSort>("Newest");
   const [activeTab, setActiveTab] = useState<OrderFilterTab>("all");
 
   const navigate = useNavigate();
@@ -40,48 +39,56 @@ export default function Orders() {
     queryFn: () => listingsService.getCompletedOrders(),
   });
 
-  const errorMessage = error instanceof Error ? error.message : 'An error occured while loading your orders.';
-  const searchQuery = useSearchQuery()
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : "An error occured while loading your orders.";
+  const searchQuery = useSearchQuery();
   const filteredOrders = useMemo(() => {
-    let result = orders
+    let result = orders;
     switch (activeTab) {
-      case 'semester': 
-      result = result.filter((o) => isThisSemester(o._createdAtIso))
-      break
+      case "semester":
+        result = result.filter((o) => isThisSemester(o._createdAtIso));
+        break;
 
-      case 'awaiting': 
-      result =  result.filter((o) => o.rating === 0)
-      break
+      case "awaiting":
+        result = result.filter((o) => o.rating === 0);
+        break;
 
-      case 'reviewed': 
-      result =  result.filter((o) => o.rating > 0)
-      break
-
+      case "reviewed":
+        result = result.filter((o) => o.rating > 0);
+        break;
     }
 
     if (searchQuery) {
       result = result.filter(
         (o) =>
-           o.title.toLowerCase().includes(searchQuery) ||
-           o.sellerName.toLowerCase().includes(searchQuery)
-      )
+          o.title.toLowerCase().includes(searchQuery) ||
+          o.sellerName.toLowerCase().includes(searchQuery),
+      );
     }
 
-   return [...result].sort((a, b) => {
-    if( sortOrder === 'Price Low') return a.price - b.price
-    if( sortOrder === 'Price High') return b.price - a.price
-    
-    if( sortOrder === 'Oldest'){ return new Date(a._createdAtIso).getTime() - new Date(b._createdAtIso).getTime()
-   } 
-  return new Date(b._createdAtIso).getTime() - new Date(a._createdAtIso).getTime()
-   })
-  }, [orders, activeTab, searchQuery, sortOrder])
+    return [...result].sort((a, b) => {
+      if (sortOrder === "Price Low") return a.price - b.price;
+      if (sortOrder === "Price High") return b.price - a.price;
+
+      if (sortOrder === "Oldest") {
+        return (
+          new Date(a._createdAtIso).getTime() -
+          new Date(b._createdAtIso).getTime()
+        );
+      }
+      return (
+        new Date(b._createdAtIso).getTime() -
+        new Date(a._createdAtIso).getTime()
+      );
+    });
+  }, [orders, activeTab, searchQuery, sortOrder]);
 
   const stats = useMemo(() => {
-    const totalPurchases = orders.length
-    const totalSpent = orders.reduce((sum, o) => sum + o.price, 0)
-    const reviewedCount = orders.filter((o) => o.rating > 0).length
-    
+    const totalPurchases = orders.length;
+    const totalSpent = orders.reduce((sum, o) => sum + o.price, 0);
+    const reviewedCount = orders.filter((o) => o.rating > 0).length;
 
     return {
       totalPurchases,
@@ -127,44 +134,44 @@ export default function Orders() {
         />
       </div>
 
-     <div className="flex items-center justify-between flex-wrap gap-3">  
-      <div className="flex items-center gap-2 flex-wrap">
-        {(['all', 'semester', 'awaiting', 'reviewed'] as OrderFilterTab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === tab
-                ? 'bg-navy-700 text-white'
-                : 'bg-white text-gray-600 border border-gray-300 hover:border-navy-700'
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {(
+            ["all", "semester", "awaiting", "reviewed"] as OrderFilterTab[]
+          ).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                activeTab === tab
+                  ? "bg-navy-700 text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:border-navy-700"
               }`}
+            >
+              {tab === "semester"
+                ? "This semester"
+                : tab === "awaiting"
+                  ? "Awaiting review"
+                  : tab === "reviewed"
+                    ? "Reviewed"
+                    : "All"}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as OrderSort)}
+            className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2 text-sm text-gray-600 focus:outline-hidden focus:outline-hidden focus:border-navy-700 max-w-full"
           >
-            {
-              tab === 'semester'
-                ? 'This semester'
-                : tab === 'awaiting'
-                  ? 'Awaiting review'
-                  : tab === 'reviewed'
-                    ? 'Reviewed'
-                    : 'All'
-            } 
-          </button>
-        ))}
+            <option value="Newest">Sort by: Newest</option>
+            <option value="Oldest">Sort by: Oldest</option>
+            <option value="Price Low">Sort by: Price Low to High</option>
+            <option value="Price High">Sort by: Price High to Low</option>
+          </select>
+        </div>
       </div>
-
-      <div className="flex items-center gap-2">
-        <select
-        value={sortOrder}
-        onChange={(e) => setSortOrder(e.target.value as OrderSort)}
-        className="border border-gray-300 dark:border-white/20 dark:bg-navy-800 dark:text-white rounded-lg  px-3 py-2text-sm text-gray-600 focus:outline-hidden focus:outline-hidden focus:border-navy-700">
-          <option value="Newest">Sort by: Newest</option>
-          <option value="Oldest">Sort by: Oldest</option>
-          <option value="Price Low">Sort by: Price Low to High</option>
-          <option value="Price High">Sort by: Price High to Low</option>
-        </select>
-        </div>
-        </div>
-
-
 
       {isLoading && <LoadingState message="Fetching orders..." />}
 
@@ -194,11 +201,11 @@ export default function Orders() {
       )}
 
       {!isLoading && !error && filteredOrders.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <div className="@container flex flex-col gap-4">
           {filteredOrders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"
+              className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-center gap-4"
             >
               <button
                 type="button"
@@ -223,7 +230,7 @@ export default function Orders() {
                       {order.title}
                     </p>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-400 mt-0.5 break-words">
                     Collected {order.date} . Ref: {order.refNum}
                   </p>
                 </button>
@@ -237,20 +244,20 @@ export default function Orders() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 pt-1">
+                <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 pt-1">
                   {order.rating > 0 ? (
                     <>
                       {Array.from({ length: 5 }, (_, i) => (
                         <Star
                           key={`star-${i}`}
-                          className={`w-4 h-4 ${i < order.rating
-                            ? "fill-amber-400 text-amber-400"
-                            : "text-gray-300"
-                            }`}
+                           className={`w-4 h-4 shrink-0 ${i < order.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-gray-300"
+                          }`}
                         />
                       ))}
 
-                      <span className="text-xs text-gray-500 ml-1">
+                      <span className="text-xs text-gray-500 ml-1 whitespace-nowrap">
                         You rated this
                       </span>
                     </>
@@ -277,12 +284,14 @@ export default function Orders() {
                 </div>
               </div>
 
-              <div className="text-right space-y-3">
-                <div>
-                  <p className="text-lg font-bold text-gray-900">
-                    {formatPrice(order.price)}
-                  </p>
-                  <p className="text-xs text-gray-400">{order.date}</p>
+              <div className="w-full shrink-0 @md:w-auto @md:ml-auto @md:text-right">
+                <div className="flex w-full items-center justify-between @md:block @md:w-auto @md:space-y-3">
+                  <div className="text-left @md:text-right">
+                    <p className="text-lg font-bold text-gray-900">
+                      {formatPrice(order.price)}
+                    </p>
+                    <p className="text-xs text-gray-400">{order.date}</p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate(`/buyer/orders/${order.id}`)}

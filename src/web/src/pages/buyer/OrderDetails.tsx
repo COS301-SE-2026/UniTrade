@@ -136,9 +136,6 @@ export default function OrderDetails() {
                     <IconChevronRight className="w-4 h-4 text-slate-400" />
                     <span className="text-slate-600 font-semibold">{displayTitle}</span>
                 </nav>
-                <span className="bg-emerald-100 text-emerald-700 text-xs px-4 py-1.5 rounded-full font-semibold">
-                    {reservation.reservationStatus === 'completed' ? 'Completed' : reservation.reservationStatus}
-                </span>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

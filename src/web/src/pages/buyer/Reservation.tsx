@@ -141,14 +141,14 @@ export function SummaryCard({
   icon,
 }: Readonly<{ label: string; value: string; icon: React.ReactNode }>) {
   return (
-    <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-200 py-3 px-3 sm:px-4 flex flex-col items-start sm:flex-row sm:items-center gap-1 sm:gap-3">
-      <span className="text-navy-700">{icon}</span>
-      <div>
-        <p className="text-xl sm:text-2xl font-extrabold text-gray-800">
-          {value}
-        </p>
-        <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 break-words">
+    <div className="flex-1 min-w-0 bg-white rounded-xl border border-gray-200 p-3 sm:px-4 flex flex-col items-start sm:flex-row sm:items-center gap-1 sm:gap-3">
+      {icon && <span className="text-navy-700">{icon}</span>}
+      <div className="min-w-0 w-full flex-1 flex flex-col justify-between">
+        <p className="text-[11px] sm:text-xs text-gray-500 leading-tight">
           {label}
+        </p>
+        <p className="text-xl sm:text-2xl font-extrabold text-gray-800 mt-1">
+          {value}
         </p>
       </div>
     </div>
@@ -864,7 +864,7 @@ export default function Reservations() {
           </p>
           <p className="text-xs text-gray-400 mt-1">
             {searchQuery
-              ? `There are no reservation with "${searchQuery} found.`
+              ? `There are no reservations matching "${searchQuery}".`
               : "Reserve items from listings to see them here."}
           </p>
         </div>
