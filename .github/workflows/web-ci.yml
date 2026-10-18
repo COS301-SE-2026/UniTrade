@@ -43,9 +43,16 @@ jobs:
               --verbose \
               --redact
           else
+            # workflow_dispatch (and brand-new branches) have no usable "before" sha
+            BEFORE="${{ github.event.before }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              RANGE="-1"
+            else
+              RANGE="$BEFORE..${{ github.sha }}"
+            fi
             gitleaks detect \
               --source . \
-              --log-opts="${{ github.event.before }}..${{ github.sha }}" \
+              --log-opts="$RANGE" \
               --config .gitleaks.toml \
               --verbose \
               --redact
@@ -87,17 +94,8 @@ jobs:
          java-version: '21'
          distribution: 'temurin'
 
-      - name: Validate frontend env
-        working-directory: src/web
-        env: 
-          VITE_API_URL: ${{secrets.VITE_API_URL}}
-        run: |
-         : "${VITE_API_URL:?VITE_API_URL is required for frontend build}"
-        
       - name: Build application
         working-directory: src/web
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL}}
         run: npm run build
 
       - name: Run unit tests with coverage
@@ -107,12 +105,6 @@ jobs:
       - name: Run integration tests with coverage
         working-directory: src/web
         run: npm run test:integration:cov
-      
-      #- name: Upload coverage to Codecov
-      #  uses: codecov/codecov-action@v4
-      #  with:
-      #    files: src/web/coverage/lcov.info
-      #    fail_ci_if_error: true
       
 
       - name: Install SonarScanner
@@ -195,4 +187,3 @@ jobs:
               git diff --staged --quiet || git commit -m "QR:update trivy frontend report [skip ci]"
               git push
               
-

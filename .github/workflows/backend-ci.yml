@@ -44,9 +44,15 @@ jobs:
               --verbose \
               --redact
           else
+            BEFORE="${{ github.event.before }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              RANGE="-1"
+            else
+              RANGE="$BEFORE..${{ github.sha }}"
+            fi
             gitleaks detect \
               --source . \
-              --log-opts="${{ github.event.before }}..${{ github.sha }}" \
+              --log-opts="$RANGE" \
               --config .gitleaks.toml \
               --verbose \
               --redact

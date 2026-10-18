@@ -1,23 +1,41 @@
 name: UniTrade Pipeline
-on:
-    push:
-        branches: ["main"]
-    workflow_dispatch:
-permissions:
-    id-token: write
-    contents: read
-concurrency:
-    group: pipeline-${{ github.ref }}
-    cancel-in-progress: false
 
-jobs: 
-     backend-ci:
-          uses: ./.github/workflows/backend-ci.yml
-          secrets: inherit
-     web-ci:
-         uses: ./.github/workflows/web-ci.yml
-         secrets: inherit
-    deploy:
-        needs: [backend-ci, web-ci]
-        uses: ./.github/workflows/cd.yml
-        secrets: inherit
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backend-ci:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/backend-ci.yml
+    secrets: inherit
+
+  web-ci:
+
+    permissions:
+      contents: write
+    uses: ./.github/workflows/web-ci.yml
+    secrets: inherit
+
+  deploy:
+    needs: [backend-ci, web-ci]
+
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/cd.yml
+    secrets: inherit

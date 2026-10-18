@@ -98,7 +98,10 @@ jobs:
       
       - name: restore dependencies
         run: dotnet restore UniTrade.sln
-      ##capture first for testing
+
+      - name: Build solution
+        run: dotnet build UniTrade.sln --no-restore
+
       - name: Capture last migration
         id: last_migration
         working-directory: src/backend/Api
@@ -155,7 +158,6 @@ jobs:
         working-directory: src/backend/Api
         env:
           ConnectionStrings__DefaultConnection: ${{secrets.DB_CONNECTION_STRING_STAGING}}
-          #do it the longer way after deploying!
           Acs__ConnectionString: ${{ secrets.Acs__ConnectionString }}
         run: dotnet ef database update --project ../Infrastructure --startup-project .
 
@@ -285,10 +287,16 @@ jobs:
           echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
       - name: Wait for backend revision to be Running
         run: |
-          az containerapp revision show \
-          --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
-          --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
-          --query "properties.healthState" -o tsv
+          for _ in $(seq 1 30); do
+            STATE=$(az containerapp revision show \
+              --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
+              --revision "${BACKEND_APP}--${{ steps.backend_rev.outputs.suffix }}" \
+              --query "properties.healthState" -o tsv)
+            echo "Backend revision health: ${STATE:-<unknown>}"
+            if [ "$STATE" = "Healthy" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "Backend revision never became Healthy" && exit 1
       - name: Health check staging backend (green)
         run: |
           FQDN=$(az containerapp revision show \
@@ -300,6 +308,18 @@ jobs:
              sleep 7
           done
           echo "Health check failed" && exit 1
+      - name: Health check frontend (green)
+        run: |
+          FQDN=$(az containerapp revision show \
+            --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
+            --revision "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}" \
+            --query "properties.fqdn" -o tsv)
+          for _ in $(seq 1 10); do
+            if curl -fsS "https://$FQDN/config.json" > /dev/null; then exit 0; fi
+            sleep 7
+          done
+          echo "Frontend health check failed" && exit 1
+
       - name: Shift traffic to green (backend)
         run: |
           az containerapp ingress traffic set \
@@ -440,6 +460,9 @@ jobs:
 
       - name: restore dependencies
         run: dotnet restore UniTrade.sln
+
+      - name: Build solution
+        run: dotnet build UniTrade.sln --no-restore
 
       - name: Capture last migration
         id: last_migration
@@ -636,6 +659,18 @@ jobs:
               sleep 7
           done
           echo "Health check failed" && exit 1
+      - name: Health check frontend (green)
+        run: |
+          FQDN=$(az containerapp revision show \
+            --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
+            --revision "${FRONTEND_APP}--${{ steps.front_rev.outputs.suffix }}" \
+            --query "properties.fqdn" -o tsv)
+          for _ in $(seq 1 10); do
+            if curl -fsS "https://$FQDN/config.json" > /dev/null; then exit 0; fi
+            sleep 7
+          done
+          echo "Frontend health check failed" && exit 1
+
       - name: Shift traffic to green (backend)
         run: |
           az containerapp ingress traffic set \
