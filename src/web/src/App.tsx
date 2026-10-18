@@ -9,51 +9,6 @@ import { LoadingState } from "./components/layout/Spinner";
 import RequireRole from "./components/layout/RequireRole";
 
 
-
-/*
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
-import OtpVerification from "./pages/auth/OtpVerification";
-import UploadListing from "./pages/seller/UploadListing";
-import EditListing from "./pages/seller/EditListing";
-import AdminVerificationReview from "./pages/admin/AdminVerificationReview";
-import AdminDisputeReview from "./pages/admin/AdminDisputeReview";
-
-import HomePage from "./pages/auth/HomePage";
-import Orders from "./pages/buyer/Orders";
-import Sales from "./pages/seller/MySales"
-import OrderDetails from "./pages/buyer/OrderDetails";
-import ListingDetail from "./pages/buyer/ListingDetail";
-import SellerDashboard from "./pages/seller/SellerDashboard";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminVerifications from "./pages/admin/AdminVerifications";
-import AdminListingQueue from "./pages/admin/AdminListingQueue";
-import AdminDisputes from "./pages/admin/AdminDisputes";
-import Users from "./pages/admin/Users";
-import ViewUser from "./pages/admin/ViewUser";
-
-import BrowseListings from "./pages/buyer/BrowseAllListing";
-import Wishlist from "./pages/buyer/Wishlist";
-import Reservations from "./pages/buyer/Reservation";
-import ReservationDetails from "./pages/buyer/ReservationDetails";
-import MyListings from "./pages/seller/MyListings";
-import SellerListingDetail from "./pages/seller/SellerListingDetail";
-import HelpCenter from "./pages/auth/HelpCenter";
-import Profile from "./pages/auth/Profile";
-import ChatPage from "./pages/chat/ChatPage";
-import SellerReservations from "./pages/seller/SellerReservation";
-
-import NoConversationsSelected from "./pages/chat/NoConversationsSelected";
-import MeetupDetails from "./pages/payment/MeetupDetails";
-import Redirect from "./pages/payment/Redirect";
-import GeneratePin from "./pages/payment/GeneratePin";
-import EnterPin from "./pages/payment/EnterPin";
-import PaymentComplete from "./pages/payment/PaymentComplete";
-import { RealtimeProvider } from "./providers/RealtimeProvider";
-import BrandingStyleDoc from "./pages/auth/BrandingStyleDoc";
-import ProofOfRegistrationUpload from "./pages/auth/UploadProofOfRegistration";
-import SavedSearches from "./pages/buyer/SavedSearches";
-*/
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
 const OtpVerification = lazy(() => import("./pages/auth/OtpVerification"));
