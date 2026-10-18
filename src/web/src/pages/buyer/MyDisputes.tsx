@@ -110,18 +110,18 @@ export default function MyDisputes() {
         <h1 className="font-['Fraunces'] font-normal text-[32px] text-gray-800">
           My Disputes
         </h1>
-        <p className="text-xs text-gray-600 mt-1">
+        <p className="text-sm text-gray-400 mt-1">
           Disputes you've filed and disputes filed against you.
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl p-4">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">
             {totalDisputes}
           </div>
           <div className="text-xs text-gray-600 mt-0.5">Total Disputes</div>
         </div>
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl p-4">
           <div>
             <div className="text-2xl font-bold text-navy-700 dark:text-white">
               {filedByYou}
@@ -129,13 +129,13 @@ export default function MyDisputes() {
             <div className="text-xs text-gray-600 mt-0.5">Filed by You</div>
           </div>
         </div>
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl p-4">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">
             {againstYou}
           </div>
           <div className="text-xs text-gray-600 mt-0.5">Against You</div>
         </div>
-        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl px-5 py-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl p-4">
           <div className="text-2xl font-bold text-navy-700 dark:text-white">
             {resolved}
           </div>
@@ -169,7 +169,7 @@ export default function MyDisputes() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2">
           {(["all", "No-show", "Listing-quality", "Report"] as const).map(
             (opt) => (
               <button
@@ -196,80 +196,57 @@ ${
         </div>
       </div>
 
-      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="text-xs text-gray-600 font-normal">
-              <th className="py-3 px-4">Listing</th>
-              <th className="py-3 px-4 text-center">Dispute type</th>
-              <th className="py-3 px-4 text-center">Status</th>
-              <th className="py-3 px-4 text-right pr-12">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 text-xs">
-            {filteredRows.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="py-6 text-center text-gray-600">
-                  No disputes match your criteria.
-                </td>
-              </tr>
-            ) : (
-              filteredRows.map((dispute) => (
-                <tr
-                  key={dispute.id}
-                  className={`hover:bg-gray-50/50 transition-colors border-l-4 ${dispute.viewerRole === "filed_by_me" ? "border-l-navy-700" : "border-l-gray-300"}`}
-                >
-                  <td className="py-4 px-4 flex items-center space-x-3">
-                    <img
-                      src={dispute.image}
-                      alt={dispute.title}
-                      className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
-                    />
-                    <div>
-                      <div className="font-bold text-gray-900">
-                        {dispute.title}
-                      </div>
-                      <div className="text-[10px] text-gray-600 mt-0.5">
-                        {dispute.viewerRole === "filed_by_me"
-                          ? "Filed by you"
-                          : "Filed against you"}{" "}
-                        &bull; {dispute.timeAgo}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-[10px] font-medium ${
-                        dispute.type === "No-show"
-                          ? "bg-rose-200 text-rose-800"
-                          : dispute.type === "Listing-quality"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-sky-100 text-sky-700"
-                      }`}
-                    >
-                      {dispute.type}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-medium bg-gray-100 text-gray-700 capitalize">
-                      {dispute.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/buyer/disputes/${dispute.id}`)}
-                      className="bg-navy-700 text-white px-5 py-1.5 rounded-full font-semibold hover:bg-navy-500 transition-colors cursor-pointer"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-white/10 rounded-xl divide-y divide-gray-100 overflow-hidden">
+  {filteredRows.length === 0 ? (
+    <p className="py-6 text-center text-xs text-gray-600">
+      No disputes match your criteria.
+    </p>
+  ) : (
+    filteredRows.map((dispute) => (
+      <div
+        key={dispute.id}
+        className={`flex items-center gap-3 p-4 hover:bg-gray-50/50 transition-colors border-l-4 ${dispute.viewerRole === "filed_by_me" ? "border-l-navy-700" : "border-l-gray-300"}`}
+      >
+        <img
+          src={dispute.image}
+          alt={dispute.title}
+          className="w-12 h-12 rounded-lg object-cover bg-gray-100 shrink-0"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="font-bold text-sm text-gray-900 truncate">
+            {dispute.title}
+          </div>
+          <div className="text-[11px] text-gray-600 mt-0.5">
+            {dispute.viewerRole === "filed_by_me" ? "Filed by you" : "Filed against you"} &bull; {dispute.timeAgo}
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <span
+              className={`inline-block px-3 py-1 rounded-full text-[10px] font-medium ${
+                dispute.type === "No-show"
+                  ? "bg-rose-200 text-rose-800"
+                  : dispute.type === "Listing-quality"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-sky-100 text-sky-700"
+              }`}
+            >
+              {dispute.type}
+            </span>
+            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-medium bg-gray-100 text-gray-700 capitalize">
+              {dispute.status}
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate(`/buyer/disputes/${dispute.id}`)}
+          className="shrink-0 bg-navy-700 text-white text-xs px-4 py-1.5 rounded-full font-semibold hover:bg-navy-500 transition-colors cursor-pointer"
+        >
+          View
+        </button>
       </div>
+    ))
+  )}
+</div>
     </div>
   );
 }
