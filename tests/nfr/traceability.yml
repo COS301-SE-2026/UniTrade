@@ -1,5 +1,6 @@
 schema_version: 2
 project: UniTrade
+repo: "https://github.com/COS301-SE-2026/UniTrade"
 srs_quality_requirements: 7
 
 requirements:
@@ -75,6 +76,7 @@ requirements:
     tactic: "Role-based authorisation on all admin routes"
     tool: "Integration test"
     test: "AdminTests.AdminPing_admin_200_student_403_anon_401"
+    test_path: "src/backend/Tests/Integration/Api/AdminSpineTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -87,6 +89,7 @@ requirements:
     tactic: "Server-side signed-ITN verification before any state change"
     tool: "Integration + fault injection"
     test: "PaymentWebhookTests.TamperedPaymentNotification_IsRejected_NoStateChange"
+    test_path: "src/backend/Tests/Integration/Api/PaymentWebhookTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -99,6 +102,7 @@ requirements:
     tactic: "Peppered hash + constant-time compare"
     tool: "Unit test"
     test: "OtpSecurityTests"
+    test_path: "src/backend/Tests/Unit/Modules/OtpSecurityTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -160,6 +164,7 @@ requirements:
     tactic: "Idempotent ITN handling (dedup on provider reference)"
     tool: "Integration + duplicate delivery"
     test: "PaymentWebhookTests.DuplicatePaymentNotification_ProcessedOnlyOnce"
+    test_path: "src/backend/Tests/Integration/Api/PaymentWebhookTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -172,6 +177,7 @@ requirements:
     tactic: "Per-cycle failure isolation in background workers"
     tool: "Integration + fault injection"
     test: "ReservationExpiryWorkerTests.Worker_ContinuesAfterFailedCycle_AndRunsNextCycle"
+    test_path: "src/backend/Tests/Integration/Workers/ReservationExpiryWorkerTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -210,14 +216,15 @@ requirements:
   - id: QR-05a
     category: Maintainability
     requirement: "Critical-path tests + static-analysis gate on main"
-    target: "Critical paths covered by unit + integration tests; quality gate green"
+    target: "Critical business paths covered by unit + integration tests; static-analysis gate runs in CI"
     tactic: "CI gate: build + unit/integration on critical paths + format + static analysis"
-    tool: "SonarCloud quality gate + xUnit (critical-path suites)"
+    tool: "SonarCloud (static analysis) + xUnit (critical-path suites)"
     evidence:
       kind: external-link
       link: "https://sonarcloud.io/summary/overall?id=COS301-SE-2026_UniTrade&branch=main"
       workflow: "Backend CI / Web Frontend CI"
-    status: pass
+    status: partial
+    note: "SonarCloud: Security rating A, 0 open security issues. Branch quality gate currently shows 'Not computed' after a quality-profile change - re-run analysis to recompute."
 
   - id: QR-05b
     category: Maintainability
@@ -268,6 +275,7 @@ requirements:
     tactic: "Age-ordered queue query over a persisted case entity"
     tool: "Integration test"
     test: "AdminTests.Cases_queue_is_oldest_first"
+    test_path: "src/backend/Tests/Integration/Api/AdminSpineTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -280,6 +288,7 @@ requirements:
     tactic: "Audit log written on every status-changing decision"
     tool: "Integration test"
     test: "AdminTests.VerificationDecision_writes_one_audit_row_with_all_fields"
+    test_path: "src/backend/Tests/Integration/Api/AdminSpineTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -292,6 +301,7 @@ requirements:
     tactic: "Notification dispatch on every status-changing decision"
     tool: "Integration test (notification check)"
     test: "AdminDecisionTests.AdminDecision_CreatesNotificationForSubject"
+    test_path: "src/backend/Tests/Integration/Api/AdminDecisionTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
@@ -304,6 +314,7 @@ requirements:
     tactic: "Dashboard flags cases open longer than the window"
     tool: "Integration test"
     test: "AdminDecisionTests.Dashboard_FlagsCasesExceedingSla"
+    test_path: "src/backend/Tests/Integration/Api/AdminDecisionTests.cs"
     evidence:
       kind: ci-run
       workflow: "Backend CI"
