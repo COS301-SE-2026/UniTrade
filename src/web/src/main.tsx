@@ -13,7 +13,7 @@ import { ToastProvider } from "./components/layout/Toast.tsx";
 
 registerSW({ immediate: true });
 
-
+// trigger
 async function start() {
   const root = createRoot(document.getElementById("root")!);
 
