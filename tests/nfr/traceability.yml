@@ -4,7 +4,7 @@ repo: "https://github.com/COS301-SE-2026/UniTrade"
 srs_quality_requirements: 7
 
 requirements:
-  #  Performance 
+  # Performance 
   - id: QR-01a
     category: Performance
     requirement: "p95 read latency (feed / search / browse) under load"
