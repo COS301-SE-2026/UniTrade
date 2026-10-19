@@ -1,21 +1,32 @@
+schema_version: 2
 project: UniTrade
 srs_quality_requirements: 7
 
 requirements:
-  # Performance
+  #  Performance 
   - id: QR-01a
     category: Performance
     requirement: "p95 read latency (feed / search / browse) under load"
-    target: "p95 <= 800ms, error rate < 1% at ~40 concurrent users (baseline)"
-    tactic: "Composite + filtered indexes on read paths; background workers off teh request path"
+    target: "p95 <= 800 ms, error rate < 1% at ~40 concurrent users (baseline)"
+    tactic: "Composite + filtered indexes on read paths; background work kept off the request path"
     tool: k6
     test: "tests/nfr/performance.js"
     evidence:
-      type: artifact
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/perf-summary(QR-01a).json"
       workflow: "NFR Fitness Functions"
-      artifact: "perf-summary"
+    metrics_shown:
+      - label: "p95 read latency"
+        source: "tests/nfr/evidence/perf-summary(QR-01a).json"
+        path: ["metrics", "http_req_duration", "values", "p(95)"]
+        unit: "ms"
+      - label: "request error rate"
+        source: "tests/nfr/evidence/perf-summary(QR-01a).json"
+        path: ["metrics", "http_req_failed", "values", "rate"]
+        unit: ""
     status: pass
-    note: "Run against localhost (free-tier constraints)"
+    note: "k6 run against localhost (free-tier constraints)"
 
   - id: QR-01b
     category: Performance
@@ -23,39 +34,49 @@ requirements:
     target: "p95 <= 500 ms"
     tactic: "Push-based delivery via SignalR (no polling)"
     tool: "Playwright (SignalR round-trip timing)"
-    test: "tests/nfr/chat-latency.ts"
+    test: "src/web/src/tests/e2e/chat-latency.spec.ts"
     evidence:
-      type: committed-file
-      path: "tests/nfr/evidence/chat-latency/chat-latency.json"
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/chat-latency/chat-latency.json"
       workflow: "E2E Tests"
     status: pass
 
-  # Scalability
-
+  #  Scalability 
   - id: QR-02
     category: Scalability
     requirement: "Error rate + latency at 2x baseline load"
     target: "p95(2x) <= 1.5x baseline p95, error < 1% (baseline 40 VUs -> peak 80 VUs)"
-    tactic: "Stateless API + Container Apps autoscale (min/max replicas) + DB connection pooling"
+    tactic: "Stateless API + Container Apps autoscale (1-3 replicas) + DB connection pooling"
     tool: k6
     test: "tests/nfr/scalability.js"
     evidence:
-      type: artifact
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/scale-summary(QR-02).json"
       workflow: "NFR Fitness Functions"
-      artifact: "scale-summary"
+    metrics_shown:
+      - label: "baseline p95"
+        source: "tests/nfr/evidence/scale-summary(QR-02).json"
+        path: ["metrics", "dur_baseline", "values", "p(95)"]
+        unit: "ms"
+      - label: "peak p95 (2x load)"
+        source: "tests/nfr/evidence/scale-summary(QR-02).json"
+        path: ["metrics", "dur_peak", "values", "p(95)"]
+        unit: "ms"
     status: pass
-    note: "Run against localhost"
+    note: "k6 baseline-vs-2x; the workflow asserts peak p95 <= 1.5x baseline"
 
-  # Security
+  #  Security 
   - id: QR-03a
     category: Security
     requirement: "Admin endpoints reject non-admin callers"
-    target: "100% reject (anon -> 401, student -> 403, admin 200)"
+    target: "100% reject (anon -> 401, student -> 403, admin -> 200)"
     tactic: "Role-based authorisation on all admin routes"
-    tool: "Integration Tests"
+    tool: "Integration test"
     test: "AdminTests.AdminPing_admin_200_student_403_anon_401"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
@@ -67,7 +88,7 @@ requirements:
     tool: "Integration + fault injection"
     test: "PaymentWebhookTests.TamperedPaymentNotification_IsRejected_NoStateChange"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
@@ -79,20 +100,27 @@ requirements:
     tool: "Unit test"
     test: "OtpSecurityTests"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
   - id: QR-03d
     category: Security
-    requirement: "No medium-or-above exposure on staging"
-    target: "0 high/critical (mediums triaged)"
-    tactic: "Security headers, TLS-only, limited exposure"
+    requirement: "No medium-or-above exposure on staging (ZAP baseline)"
+    target: "0 high/critical; mediums triaged"
+    tactic: "Security headers (CSP / HSTS / anti-clickjacking), TLS-only, limited exposure"
     tool: "OWASP ZAP baseline"
-    test: "./zap/rules.tsv (baseline)"
+    test: ".zap/rules.tsv (baseline rules)"
     evidence:
-      type: committed-file
-      path: "  commit the ZAP report tests/nfr/evidence/dast"
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/dast/zap-report(backend-QR-03d).html"
+        - "tests/nfr/evidence/dast/zap-report(backend-QR-03d).json"
+        - "tests/nfr/evidence/dast/zap-report(frontend-QR-03d).html"
+        - "tests/nfr/evidence/dast/zap-report(frontend-QR-03d).json"
+      workflow: "NFR Fitness Functions"
+    status: pass
+    note: "nginx security headers added (CSP/HSTS/anti-clickjacking); reports to be regenerated from staging after the next deploy"
 
   - id: QR-03e
     category: Security
@@ -102,14 +130,29 @@ requirements:
     tool: "dotnet list package --vulnerable + npm audit --audit-level=high"
     test: "nfr-checks (backend) + nfr-checks (web)"
     evidence:
-      type: committed-file
-      path:
+      kind: committed-file
+      paths:
         - "tests/nfr/evidence/Dependency Audits/npm-audit-report.txt"
         - "tests/nfr/evidence/Dependency Audits/dotnet-vulnerability-report.txt"
-    workflow: "Backend CI / Web Frontend CI"
+      workflow: "Backend CI / Web Frontend CI"
     status: pass
 
-  # Reliability
+  - id: QR-03f
+    category: Security
+    requirement: "No high/critical OS or library CVEs in container images"
+    target: "0 high/critical (triaged entries listed in .trivyignore)"
+    tactic: "Trivy image scan enforced in CI"
+    tool: "Trivy (container image scan)"
+    test: "code-quality (backend) + nfr-checks (web)"
+    evidence:
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/Container Image Scans/trivy-backend.txt"
+        - "tests/nfr/evidence/Container Image Scans/trivy-frontend.txt"
+      workflow: "Backend CI / Web Frontend CI"
+    status: pass
+
+  #  Reliability 
   - id: QR-04a
     category: Reliability
     requirement: "Duplicate payment notification is idempotent"
@@ -118,7 +161,7 @@ requirements:
     tool: "Integration + duplicate delivery"
     test: "PaymentWebhookTests.DuplicatePaymentNotification_ProcessedOnlyOnce"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
@@ -130,74 +173,76 @@ requirements:
     tool: "Integration + fault injection"
     test: "ReservationExpiryWorkerTests.Worker_ContinuesAfterFailedCycle_AndRunsNextCycle"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
   - id: QR-04c
     category: Reliability
     requirement: "A failed deployment auto-rolls-back"
-    target: "Health-gated with health check before traffic shift; rollback on failure"
-    tactic: "Per-cycle failure isolation in background workers"
+    target: "Health-gated: health check before traffic shift; automatic rollback on failure"
+    tactic: "Blue-green deploy - traffic shifts to the green revision only after it is healthy; on any failure the prior revision is restored and the green revision deactivated"
     tool: "Deploy config + observed failing run"
-    test: ".github/workflows/cd.yml (rollback to previous revision [failure event])"
+    test: ".github/workflows/cd.yml (Rollback to previous revisions [failure event])"
     evidence:
-      type: workflow-config + screenshots
-      path:
+      kind: committed-file
+      paths:
         - ".github/workflows/cd.yml"
-        - "screenshot of the failing deploy rolling back, tests/nfr/evidence/rollback/**"
-      workflow: "Backend CI"
+        - "tests/nfr/evidence/rollback/QR-04c_  Failed deployment should automatically roll back to the last live revision.pdf"
+      workflow: "CD - Deploy to Azure"
     status: documented
 
   - id: QR-04d
     category: Reliability
     requirement: "Availability over the 30 days before the demo"
-    target: ">=99.5%"
-    tactic: "Health checks + managed restart + always-warm min replica"
+    target: ">= 99.5%"
+    tactic: "Health checks + managed restart + always-warm minimum replica (minReplicas = 1)"
     tool: "UptimeRobot"
     evidence:
-      type: screenshot
-      path: "UptimeRobot screenshot, tests/nfr/evidence/uptime/**"
-      workflow: "Backend CI"
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/uptime/UpTimeRobotEvidence.png"
+      workflow: "external (UptimeRobot)"
     status: pass
-    note: Prod monitor currently 100%
+    note: "Prod monitor currently 100%"
 
-  # Maintainability
+  #  Maintainability 
   - id: QR-05a
     category: Maintainability
     requirement: "Critical-path tests + static-analysis gate on main"
-    target: "Critical paths covered by unit + integration tests"
-    tactic: "CI gate: build + unit/integration on critical paths + format + static analysis (quality gate)"
+    target: "Critical paths covered by unit + integration tests; quality gate green"
+    tactic: "CI gate: build + unit/integration on critical paths + format + static analysis"
     tool: "SonarCloud quality gate + xUnit (critical-path suites)"
     evidence:
-      type: ci-run
-      workflow: "Backend CI / Web Backend CI"
+      kind: external-link
       link: "https://sonarcloud.io/summary/overall?id=COS301-SE-2026_UniTrade&branch=main"
+      workflow: "Backend CI / Web Frontend CI"
     status: pass
 
   - id: QR-05b
     category: Maintainability
-    requirement: "MIgrations apply cleanly from an empty database"
-    target: "Applies clean in a fresh Postgres"
-    tactic: "Migrations run in the pipeline"
-    tool: "dotnet ed database update"
-    test: "nfr-checks (MIgrations apply from empty DB)"
+    requirement: "Migrations apply cleanly from an empty database"
+    target: "Applies clean on a fresh Postgres"
+    tactic: "Migrations run in the pipeline against an ephemeral database"
+    tool: "dotnet ef database update"
+    test: "nfr-checks (migrations apply from empty DB)"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
-  # Usability
+  #  Usability 
   - id: QR-06a
     category: Usability
     requirement: "Accessibility on public + admin pages"
     target: "0 serious/critical (Lighthouse/axe >= 90 threshold)"
     tactic: "Semantic markup + tested design tokens"
     tool: "Lighthouse (axe-core)"
-    test: "nfr-checks (MIgrations apply from empty DB)"
+    test: "src/web/src/tests/lighthouse/lighthouse.spec.ts"
     evidence:
-      type: committed-file
-      path: "tests/nfr/evidence/perf-access-lighthouse/*-accs.{html,json}"
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/perf-access-lighthouse/*-accs.json"
       workflow: "Lighthouse NFR Audits"
     status: pass
 
@@ -207,15 +252,15 @@ requirements:
     target: "<= 120s {browse -> reserve -> chat -> meetup -> initiate payment}"
     tactic: "Single PWA + real-time updates (no manual refresh)"
     tool: "Playwright e2e"
-    test: "src/web/tests/e2e/core-task.spec.ts"
+    test: "src/web/src/tests/e2e/core-task.spec.ts"
     evidence:
-      type: committed-file
-      path: "tests/nfr/evidence/core-task.json"
+      kind: committed-file
+      paths:
+        - "tests/nfr/evidence/core-task/core-task.json"
       workflow: "E2E Tests"
     status: pass
 
-  # Administration
-
+  #  Administration 
   - id: QR-07a
     category: Administration
     requirement: "Moderation queue returns cases oldest-first"
@@ -224,20 +269,19 @@ requirements:
     tool: "Integration test"
     test: "AdminTests.Cases_queue_is_oldest_first"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
-      link: TODO_RUN_URL
     status: pass
 
   - id: QR-07b
     category: Administration
     requirement: "Every admin decision is audited"
-    target: "actor + timestamp _ reason present (exactly one row)"
-    tactic: "Audit log written on every status"
+    target: "actor + timestamp + reason present (exactly one row)"
+    tactic: "Audit log written on every status-changing decision"
     tool: "Integration test"
     test: "AdminTests.VerificationDecision_writes_one_audit_row_with_all_fields"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
@@ -249,7 +293,7 @@ requirements:
     tool: "Integration test (notification check)"
     test: "AdminDecisionTests.AdminDecision_CreatesNotificationForSubject"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass
 
@@ -261,6 +305,6 @@ requirements:
     tool: "Integration test"
     test: "AdminDecisionTests.Dashboard_FlagsCasesExceedingSla"
     evidence:
-      type: ci-run
+      kind: ci-run
       workflow: "Backend CI"
     status: pass

@@ -240,6 +240,7 @@ jobs:
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "$ACR_REGISTRY/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
+              --min-replicas 0 --max-replicas 1 \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
@@ -276,6 +277,7 @@ jobs:
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "$ACR_REGISTRY/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
+              --min-replicas 0 --max-replicas 1 \
               --set-env-vars \
               "VITE_API_URL=$VITE_API_URL_STAGING" \
               "FIREBASE_API_KEY=$FIREBASE_API_KEY" \
@@ -601,6 +603,7 @@ jobs:
               --name "$BACKEND_APP" --resource-group "$BACKEND_RG" \
               --image "$ACR_REGISTRY/unitrade-backend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
+              --min-replicas 1 --max-replicas 3 \
               --set-env-vars \
                 "ConnectionStrings__DefaultConnection=secretref:db-conn" \
                 "Acs__ConnectionString=secretref:acs-conn" \
@@ -638,6 +641,7 @@ jobs:
               --name "$FRONTEND_APP" --resource-group "$FRONTEND_RG" \
               --image "$ACR_REGISTRY/unitrade-frontend:${IMAGE_TAG}" \
               --revision-suffix "$SUFFIX" \
+              --min-replicas 1 --max-replicas 3 \
               --set-env-vars \
               "VITE_API_URL=$VITE_API_URL" \
               "FIREBASE_API_KEY=$FIREBASE_API_KEY" \
