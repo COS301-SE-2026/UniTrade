@@ -270,7 +270,7 @@ export default function ReservationDetails() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.reservations("seller"),
       });
-      await loadReservation(); // refresh timerStage so the button disappears
+      await loadReservation();
     } else {
       showToast(
         "error",
@@ -465,7 +465,7 @@ export default function ReservationDetails() {
       </div>
     );
   }
-  const apiOrigin = reservation.isBundle ? getApiUrl().split("/api")[0] : "";
+  const apiOrigin = reservation.isBundle ? getApiUrl().replace(/\/api$/, "") : "";
   const isCancelled = reservation.reservationStatus === "cancelled";
   const isCoordinating = reservation.timerStage === "coordinating";
   const isMeetupConfirmed = reservation.timerStage === "meetup_confirmed";
@@ -483,12 +483,6 @@ export default function ReservationDetails() {
     isExpired,
     isUrgent,
   );
-  /*const statusBadge = isCancelled
-    ? { className: "bg-gray-100 text-gray-500 dark:bg-navy-700 dark:text-navy-100", text: "Cancelled" }
-    : isUrgent || isExpired
-      ? { className: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300", text: "Expiring soon" }
-      : { className: "bg-blue-100 text-navy-800 dark:bg-blue-900/40 dark:text-blue-200", text: "Reserved" };*/
-
   const canCancel =
     !isCancelled && !isCancelling && (isSeller || !isCoordinating);
 

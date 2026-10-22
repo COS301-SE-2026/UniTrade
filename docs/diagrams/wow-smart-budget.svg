@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 560" width="1240" height="560" role="img">
+<defs><marker id="ah" markerWidth="11" markerHeight="11" refX="8.5" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#94A3B8"/></marker></defs>
+<rect x="4" y="4" width="1232" height="552" rx="18" fill="#F6F8FA" stroke="#E2E8F0" stroke-width="1.5"/>
+<rect x="40" y="90" width="250" height="122" rx="11" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+<text x="165.0" y="138.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Candidates + budget B</text>
+<text x="165.0" y="160.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">items across many sellers</text>
+<text x="165.0" y="175.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">each with a price</text>
+<rect x="330" y="90" width="270" height="122" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="465.0" y="138.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Group by seller</text>
+<text x="465.0" y="160.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">within a seller, sort items</text>
+<text x="465.0" y="175.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">cheapest-first  (integer cents)</text>
+<rect x="640" y="90" width="290" height="122" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="785.0" y="130.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Per-seller cost table</text>
+<text x="785.0" y="152.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">costs[k] = discounted price</text>
+<text x="785.0" y="167.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">of the k cheapest items</text>
+<text x="785.0" y="182.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">(bundle discount folded in)</text>
+<rect x="640" y="300" width="290" height="132" rx="11" fill="#ECFAFF" stroke="#04B4FD" stroke-width="2.2"/>
+<text x="785.0" y="345.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#075985">Grouped-knapsack DP</text>
+<text x="785.0" y="367.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#0C4A6E">dp[j] = min cost for j items</text>
+<text x="785.0" y="382.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#0C4A6E">each seller contributes a count k</text>
+<text x="785.0" y="397.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#0C4A6E">O(n²) time  ·  O(n) space</text>
+<rect x="330" y="300" width="270" height="132" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="465.0" y="353.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Take the most items</text>
+<text x="465.0" y="375.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">largest j with dp[j] ≤ B</text>
+<text x="465.0" y="390.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">backtrack → count per seller</text>
+<rect x="40" y="300" width="250" height="132" rx="11" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.9"/>
+<text x="165.0" y="345.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#166534">Reservation plan</text>
+<text x="165.0" y="367.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#15803D">items grouped by seller</text>
+<text x="165.0" y="382.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#15803D">(subtotal · discount % · total)</text>
+<text x="165.0" y="397.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#15803D">+ excluded items</text>
+<line x1="290.0" y1="151.0" x2="330.0" y2="151.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="600.0" y1="151.0" x2="640.0" y2="151.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="785.0" y1="212.0" x2="785.0" y2="300.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="640.0" y1="366.0" x2="600.0" y2="366.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="330.0" y1="366.0" x2="290.0" y2="366.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<text x="620.0" y="526.0" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4" fill="#0F172A">SMART-BUDGET RESERVATION  ·  GROUPED KNAPSACK, MAXIMISE ITEMS WITHIN BUDGET</text>
+<text x="620.0" y="545.0" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" fill="#64748B">Maximises items reserved, not money spent · non-linear bundle discounts rule out greedy · re-solved inside the checkout transaction.</text>
+</svg>

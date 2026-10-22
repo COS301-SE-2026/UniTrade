@@ -29,9 +29,6 @@ import {
 import { useReservationsList } from "../../hooks/useReservationsList";
 import { queryKeys } from "../../lib/queryKeys";
 import { ConfirmModal } from "../admin/AdminReviewShared";
-//import { listingLifecycleHandlers } from '../../tests/mocks/handlers';
-//import { resumeToPipeableStream } from 'react-dom/server';
-//import type { ListingSnapshot } from '../../types/admin_disputes'
 
 type ItemStatus = "Active" | "Expired" | "Cancelled" | "Completed" | "Reserved";
 type FilterStatus = "All" | ItemStatus;
@@ -508,7 +505,7 @@ function ReservationCard({
     enabled: isActive && reservation.timerStage === "meetup_confirmed",
   });
   const bothCheckedIn = !!meetup?.buyerCheckedIn && !!meetup?.sellerCheckedIn;
-  const apiOrigin = getApiUrl().split("/api")[0];
+  const apiOrigin = getApiUrl().replace(/\/api$/, "");
   const primaryItem = reservation.listings[0];
   const displayTitle = reservation.isBundle
     ? `${reservation.listings.length} items from ${reservation.counterParty.name}`

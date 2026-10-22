@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1360 560" width="1360" height="560" role="img">
+<defs><marker id="ah" markerWidth="11" markerHeight="11" refX="8.5" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#94A3B8"/></marker></defs>
+<rect x="4" y="4" width="1352" height="552" rx="18" fill="#F6F8FA" stroke="#E2E8F0" stroke-width="1.5"/>
+<rect x="40" y="62" width="220" height="96" rx="11" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+<text x="150.0" y="104.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Buyer busy blocks</text>
+<text x="150.0" y="126.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">classes / labs</text>
+<rect x="300" y="62" width="250" height="96" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="425.0" y="104.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Clamp 08:00–20:00</text>
+<text x="425.0" y="126.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">+ merge overlaps  O(n log n)</text>
+<rect x="590" y="62" width="220" height="96" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="700.0" y="104.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Invert → free</text>
+<text x="700.0" y="126.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">window ∖ busy</text>
+<rect x="40" y="262" width="220" height="96" rx="11" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+<text x="150.0" y="304.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Seller busy blocks</text>
+<text x="150.0" y="326.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">classes / labs</text>
+<rect x="300" y="262" width="250" height="96" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="425.0" y="304.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Clamp 08:00–20:00</text>
+<text x="425.0" y="326.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">+ merge overlaps  O(n log n)</text>
+<rect x="590" y="262" width="220" height="96" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="700.0" y="304.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Invert → free</text>
+<text x="700.0" y="326.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">window ∖ busy</text>
+<rect x="860" y="160" width="250" height="100" rx="11" fill="#ECFAFF" stroke="#04B4FD" stroke-width="2.2"/>
+<text x="985.0" y="197.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#075985">Two-pointer sweep</text>
+<text x="985.0" y="219.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#0C4A6E">buyer free ∩ seller free</text>
+<text x="985.0" y="234.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#0C4A6E">O(|A| + |B|)</text>
+<rect x="1150" y="160" width="200" height="100" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="1250.0" y="204.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Keep ≥ 30 min</text>
+<text x="1250.0" y="226.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">common free slots</text>
+<rect x="1150" y="330" width="200" height="112" rx="11" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="1250.0" y="365.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A">Project → next 7 days</text>
+<text x="1250.0" y="387.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">drop past slots</text>
+<text x="1250.0" y="402.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">start ≥ now + 15 min</text>
+<text x="1250.0" y="417.9" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#475569">re-check ≥ 30 min</text>
+<rect x="860" y="330" width="250" height="112" rx="11" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.9"/>
+<text x="985.0" y="373.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#166534">Meetup slots</text>
+<text x="985.0" y="395.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#15803D">sorted, dated</text>
+<text x="985.0" y="410.4" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" fill="#15803D">daylight-only</text>
+<line x1="260.0" y1="110.0" x2="300.0" y2="110.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="550.0" y1="110.0" x2="590.0" y2="110.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="260.0" y1="310.0" x2="300.0" y2="310.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="550.0" y1="310.0" x2="590.0" y2="310.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="810.0" y1="110.0" x2="860.0" y2="180.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="810.0" y1="310.0" x2="860.0" y2="240.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="1110.0" y1="210.0" x2="1150.0" y2="210.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="1250.0" y1="260.0" x2="1250.0" y2="330.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<line x1="1150.0" y1="386.0" x2="1110.0" y2="386.0" stroke="#94A3B8" stroke-width="1.7" marker-end="url(#ah)"/>
+<text x="680.0" y="526.0" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4" fill="#0F172A">MUTUAL AVAILABILITY SCHEDULER  ·  INTERVAL SWEEP-LINE OVER TWO TIMETABLES</text>
+<text x="680.0" y="545.0" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" fill="#64748B">Each student’s busy intervals are inverted into free time inside campus hours, intersected, then projected onto real dates.</text>
+</svg>

@@ -48,7 +48,8 @@ public class UserController(IIdentityService identityService) : ControllerBase
     {
         try
         {
-            var UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var UserId =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(UserId))
             {
@@ -83,7 +84,8 @@ public class UserController(IIdentityService identityService) : ControllerBase
     {
         try
         {
-            var UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var UserId =
+                User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(UserId))
             {
@@ -117,4 +119,3 @@ public class UserController(IIdentityService identityService) : ControllerBase
         }
     }
 }
-// random

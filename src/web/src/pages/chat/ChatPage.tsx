@@ -459,7 +459,7 @@ export default function ChatPage() {
           <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xs rounded-2xl shadow-md border border-gray-100 p-3 flex gap-3 items-center mb-2">
             {!reservation.isBundle && reservation.listings[0].imagePath && (
               <img
-                src={`${getApiUrl().split("/api")[0]}${reservation.listings[0].imagePath}`}
+                src={`${getApiUrl().replace(/\/api$/, "")}${reservation.listings[0].imagePath}`}
                 alt={reservation.listings[0].title}
                 className="w-16 h-16 rounded-xl object-cover shrink-0"
               />
@@ -532,38 +532,6 @@ export default function ChatPage() {
         })}
         <div ref={messagesEndRef} />
       </div>
-
-      {/*{meetupConfirmed && isActive && checkinOpen && (
-                <div className="px-4 py-3 bg-emerald-50 border-t border-emerald-200 flex items-center justify-between gap-3 shrink-0">
-                    <p className="text-sm text-emerald-800">
-                        {isSeller
-                            ? "Check-in is open. Chec in when you arrive, then share your PIN with the buyer."
-                            : "Check-in is open. Check in when you arrice to unlock payment."}
-                    </p>
-                    <button
-                        type="button"
-                        onClick={goToMeetupDetails}
-                        className="bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl shrink-0"
-                    >
-                        Go to Meetup
-                    </button>
-                </div>
-            )}*/}
-
-      {/*{meetupConfirmed && isActive && meetup && isBefore && (
-                <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 text-xs text-blue-900 shrink-0">
-                    Meetup on{" "}
-                    {
-                        new Date(meetup.agreedTime).toLocaleString("en-ZA", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        })}
-                    . Check-in opens 15 minutes before.
-                </div>
-                )}*/}
       {isActive && !isAwaitingAck && (
         <div className="px-4 pb-2 pt-1 border-t bg-white shrink-0">
           <button

@@ -21,7 +21,7 @@ export default function ConversationsSidebar({ role }: Readonly<{ role: 'buyer' 
     const { data: reservations = [], isLoading } = useReservationsList(role);
     useUnreadRealtime(role);
     const { reservationId: activeId } = useParams<{ reservationId: string }>();
-    const apiOrigin = getApiUrl().split('/api')[0];
+    const apiOrigin = getApiUrl().replace(/\/api$/, '');
     const query = useSearchQuery();
 
 

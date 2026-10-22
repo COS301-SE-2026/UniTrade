@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router";
 import {
   IconAlertTriangle,
   IconBulb,
-  //IconCheck,
   IconChevronRight,
   IconCircleCheck,
   IconCircleX,
@@ -254,9 +253,9 @@ function transformCaseDetail(detail: CaseDetail): DisputeCase {
   if (detail.type === "no_show") {
     checkIn = {
       buyerCheckedIn: ev.buyerCheckedIn ?? false,
-      buyerCheckInTime: ev.buyerCheckInTime ?? undefined,
+      buyerCheckInTime: ev.buyerCheckInTime ? new Date(ev.buyerCheckInTime).toLocaleString() : undefined,
       sellerCheckedIn: ev.sellerCheckedIn ?? false,
-      sellerCheckInTime: ev.sellerCheckInTime ?? undefined,
+      sellerCheckInTime: ev.sellerCheckInTime ? new Date(ev.sellerCheckInTime).toLocaleString() : undefined,
       pinEntered: ev.pinStatus === "confirmed",
       checkInWindow: ev.checkInWindowClosesAt
         ? `Closes at ${new Date(ev.checkInWindowClosesAt).toLocaleString()}`
