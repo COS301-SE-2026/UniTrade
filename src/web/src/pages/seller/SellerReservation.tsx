@@ -201,7 +201,7 @@ function ReservationCard({
   const msRemaining = getMsRemaining(reservation.expiresAt);
   const urgency = getUrgency(msRemaining);
   const isActive = reservation.reservationStatus === "active";
-  const apiOrigin = getApiUrl().split("/api")[0];
+  const apiOrigin = getApiUrl().replace(/\/api$/, "");
 
   return (
     <>
