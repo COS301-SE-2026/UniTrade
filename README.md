@@ -68,9 +68,12 @@ UniTrade is a verified marketplace where students list, browse and buy second-ha
 
 ## Under the hood
 
-Three of the problems we found most interesting to solve.
+Three of the problems we found most interesting to solve. Click any card to expand.
 
-### Automated listing risk assessment
+<details>
+<summary><b>① Automated listing risk assessment</b> — AI screening for every new listing</summary>
+
+<br/>
 
 Every new listing is scored **0–100** by a weighted ensemble — a price-anomaly *z*-score against comparable listings, duplicate-image detection (perceptual dHash + CLIP embeddings) and seller history — then routed to full visibility, reduced visibility, or the admin review queue. Signals with too little data drop out and the weights renormalise.
 
@@ -80,7 +83,12 @@ Every new listing is scored **0–100** by a weighted ensemble — a price-anoma
 
 <sub><a href="src/backend/Modules/Listings/Risk/ListingRiskScoreService.cs"><code>ListingRiskScoreService.cs</code></a></sub>
 
-### Smart-budget reservation
+</details>
+
+<details>
+<summary><b>② Smart-budget reservation</b> — the most items you can afford, across sellers</summary>
+
+<br/>
 
 Given a budget and items spread across many sellers, a **grouped-knapsack** dynamic program maximises the *number* of items you can reserve — folding each seller's bundle discount into a per-count cost table, computed in integer cents and re-solved inside the checkout transaction.
 
@@ -90,7 +98,12 @@ Given a budget and items spread across many sellers, a **grouped-knapsack** dyna
 
 <sub><a href="src/backend/Modules/Reservations/BundleKnapsack.cs"><code>BundleKnapsack.cs</code></a></sub>
 
-### Mutual availability scheduler
+</details>
+
+<details>
+<summary><b>③ Mutual availability scheduler</b> — timetables in, daylight meetup slots out</summary>
+
+<br/>
 
 Buyer and seller timetables are inverted into free time within campus hours, intersected with a **two-pointer sweep line**, filtered to slots of at least 30 minutes, and projected onto the next seven days as concrete, daylight-only meetup times.
 
@@ -99,6 +112,8 @@ Buyer and seller timetables are inverted into free time within campus hours, int
 </div>
 
 <sub><a href="src/backend/Modules/Timetable/AvailabilityCalculator.cs"><code>AvailabilityCalculator.cs</code></a></sub>
+
+</details>
 
 ---
 
@@ -110,9 +125,16 @@ Buyer and seller timetables are inverted into free time within campus hours, int
 
 UniTrade is a **modular monolith**: a single .NET 10 API split into isolated domain modules (Identity, Listings, Reservations, Transactions, Chat, Disputes, Reputation, Timetable and more) under `src/backend/Modules`. This gives ACID transactions across domains — reserving a listing, starting its timer and opening a chat in one transaction — without the coordination cost of microservices. A separate Python service runs the CLIP image model on an internal-only network.
 
-<div align="center">
-
 ### Tech stack
+
+**Frontend** React 19 · TypeScript · Vite (PWA) · Tailwind CSS · Leaflet — **Backend** .NET 10 · EF Core · SignalR · PostgreSQL — **AI service** Python · FastAPI · PyTorch CLIP — **Cloud & DevOps** Azure Container Apps · Docker · Bicep · GitHub Actions
+
+<details>
+<summary><b>View full stack</b> — badges and layer-by-layer breakdown</summary>
+
+<br/>
+
+<div align="center">
 
 **Frontend**<br/>
 ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
@@ -149,6 +171,8 @@ UniTrade is a **modular monolith**: a single .NET 10 API split into isolated dom
 | Database | Azure Database for PostgreSQL Flexible Server |
 | Integrations | PayFast, Firebase Cloud Messaging, Azure Communication Services |
 | Cloud & DevOps | Azure Container Apps, Azure Container Registry, Bicep IaC, GitHub Actions |
+
+</details>
 
 ---
 
