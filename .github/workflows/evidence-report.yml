@@ -32,7 +32,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install deps
-        run: pip install --only-binary :all: -r tests/nfr/requirements.txt
+        run: pip install pyyaml reportlab
 
       - name: Render stamped evidence report
         run: python tests/nfr/render_evidence.py
