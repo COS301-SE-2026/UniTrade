@@ -68,7 +68,7 @@ UniTrade is a verified marketplace where students list, browse and buy second-ha
 
 ## Under the hood
 
-Three of the problems we found most interesting to solve. Each diagram is generated from the real implementation — the thresholds, weights and complexities match the code.
+Three of the problems we found most interesting to solve.
 
 ### Automated listing risk assessment
 
