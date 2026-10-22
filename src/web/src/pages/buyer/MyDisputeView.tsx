@@ -154,9 +154,9 @@ function disputeReducer(state: State, action: Action): State {
   if (detail.type === "no_show") {
     checkIn = {
       buyerCheckedIn: ev.buyerCheckedIn ?? false,
-      buyerCheckInTime: ev.buyerCheckInTime ?? undefined,
+      buyerCheckInTime: ev.buyerCheckInTime ? new Date(ev.buyerCheckInTime).toLocaleString() : undefined,
       sellerCheckedIn: ev.sellerCheckedIn ?? false,
-      sellerCheckInTime: ev.sellerCheckInTime ?? undefined,
+      sellerCheckInTime: ev.sellerCheckInTime ? new Date(ev.sellerCheckInTime).toLocaleString() : undefined,
       pinEntered: ev.pinStatus === "confirmed",
       checkInWindow: ev.checkInWindowClosesAt
         ? `Closes at ${new Date(ev.checkInWindowClosesAt).toLocaleString()}`
@@ -369,11 +369,11 @@ function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<MyDisputeCase
   return (
     <Panel title="Check-in and PIN evidence">
       <div className="grid grid-cols-2 gap-3">
-        <div className="border border-gray-100 dark:border-white/5 rounded-lg p-3">
+        <div className="min-w-0 border border-gray-100 dark:border-white/5 rounded-lg p-3">
           <p className="text-xs text-gray-600 mb-1">Buyer checked in</p>
           <StatusLine ok={checkIn.buyerCheckedIn} okLabel={`Checked in at ${checkIn.buyerCheckInTime ?? ""}`} notOkLabel="Not checked in" />
         </div>
-        <div className="border border-gray-100 dark:border-white/5 rounded-lg p-3">
+        <div className="min-w-0 border border-gray-100 dark:border-white/5 rounded-lg p-3">
           <p className="text-xs text-gray-600 mb-1">Seller checked in</p>
           <StatusLine ok={checkIn.sellerCheckedIn} okLabel={`Checked in at ${checkIn.sellerCheckInTime ?? ""}`} notOkLabel="Not checked in" />
         </div>
@@ -388,12 +388,14 @@ function CheckInPanel({ checkIn }: Readonly<{ checkIn: NonNullable<MyDisputeCase
 
 function StatusLine({ ok, okLabel, notOkLabel }: Readonly<{ ok: boolean; okLabel: string; notOkLabel: string }>) {
   return ok ? (
-    <span className="flex items-center gap-1 text-sm text-green-600">
-      <IconCircleCheck size={16} /> {okLabel}
+    <span className="flex items-start gap-1 text-sm text-green-600">
+      <IconCircleCheck size={16} className="shrink-0 mt-0.5" />
+      <span className="min-w-0 break-words">{okLabel}</span>
     </span>
   ) : (
-    <span className="flex items-center gap-1 text-sm text-red-600">
-      <IconCircleX size={16} /> {notOkLabel}
+    <span className="flex items-start gap-1 text-sm text-red-600">
+      <IconCircleX size={16} className="shrink-0 mt-0.5" />
+      <span className="min-w-0 break-words">{notOkLabel}</span>
     </span>
   );
 }
