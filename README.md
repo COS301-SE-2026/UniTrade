@@ -238,7 +238,7 @@ UniTrade is a **modular monolith**: a single .NET 10 API split into isolated dom
 <td align="center" valign="top"><b>Tafadzwa Musiiwa</b><br/><sub>Frontend Lead &amp; Integration Engineer</sub></td>
 </tr>
 <tr>
-<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Back-end engineer and team lead, into quant and software engineering (with a little cybersecurity on the side). Self-appointed architecture purist — right up until the one boundary I crossed myself, which is exactly why our SharedKernel exists.</sub></details></td>
+<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Back-end engineer and team lead, into quant and software engineering (with a little cybersecurity on the side). Self-appointed architecture purist.</sub></details></td>
 <td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Fast learner, backend and database systems enthusiast, and (unfortunately for my sleep schedule) a new DevOps convert thanks to capstone.</sub></details></td>
 <td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Frontend developer and creative thinker who enjoys turning ideas into code, solving puzzles on the chessboard, and running toward the next challenge.</sub></details></td>
 <td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>UX and data-science enthusiast interested in fashion, architecture and design.</sub></details></td>
