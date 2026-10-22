@@ -13,11 +13,16 @@
 <!-- Primary calls to action -->
 <a href="https://myunitrade.co.za"><img src="https://img.shields.io/badge/Live_App-04B4FD?style=for-the-badge&logo=pwa&logoColor=white" height="34" alt="Live app"></a>
 <!-- TODO: paste the demo video URL --><a href="TODO_DEMO_VIDEO_URL"><img src="https://img.shields.io/badge/Demo_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="34" alt="Demo video"></a>
-<!-- TODO: paste the trailer URL --><a href="TODO_TRAILER_URL"><img src="https://img.shields.io/badge/Trailer-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="34" alt="Trailer"></a>
+<a href="https://youtu.be/Hr4_pNWIA4Q"><img src="https://img.shields.io/badge/Trailer-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="34" alt="Trailer"></a>
 <a href="https://github.com/orgs/COS301-SE-2026/projects/37"><img src="https://img.shields.io/badge/Project_Board-181717?style=for-the-badge&logo=github&logoColor=white" height="34" alt="Project board"></a>
 
 <br/>
-<sub><b>Demo accounts</b> (no sign-up needed): <!-- TODO: fill credentials -->buyer <code>TODO_EMAIL</code> / <code>TODO_PASSWORD</code> · seller <code>TODO_EMAIL</code> / <code>TODO_PASSWORD</code></sub>
+<sub><b>Demo account</b> (no sign-up needed): <!-- TODO: fill credentials --><code>TODO_EMAIL</code> / <code>TODO_PASSWORD</code></sub>
+
+<br/><br/>
+
+<!-- Quick nav -->
+<a href="#key-features"><b>Features</b></a> &nbsp;·&nbsp; <a href="#under-the-hood"><b>Under the hood</b></a> &nbsp;·&nbsp; <a href="#architecture"><b>Architecture</b></a> &nbsp;·&nbsp; <a href="#documentation"><b>Docs</b></a> &nbsp;·&nbsp; <a href="#team--devnexus"><b>Team</b></a>
 
 <br/><br/>
 
@@ -25,12 +30,18 @@
 [![Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml)
 [![Web Frontend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 [![CD](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/cd.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/cd.yml)
+[![E2E](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/e2e.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/e2e.yml)
+[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 [![Uptime](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=uptime)](https://stats.uptimerobot.com/)
 [![Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 
 </div>
 
-<!-- TODO (recommended): add a hero screenshot or short demo GIF here, e.g. ![UniTrade](docs/screenshots/hero.png) -->
+<div align="center">
+<a href="https://youtu.be/Hr4_pNWIA4Q"><img src="docs/trailer-cover.jpg" alt="UniTrade — watch the trailer" width="880"></a>
+
+<sub><b>Watch the trailer</b> · <a href="https://youtu.be/Hr4_pNWIA4Q">YouTube</a> · <a href="https://myunitrade.co.za">live app</a></sub>
+</div>
 
 ---
 
@@ -54,6 +65,42 @@ UniTrade is a verified marketplace where students list, browse and buy second-ha
 | **GPS check-in** | Geofenced meetup check-in feeds automatic no-show detection and dispute handling |
 | **Real-time chat & alerts** | SignalR chat, saved-search alerts, FCM push notifications and email via Azure Communication Services |
 | **Reputation & sanctions** | Reviews unlock only after a completed trade, and strikes escalate automatically to temporary and permanent bans |
+
+---
+
+## Under the hood
+
+Three of the problems we found most interesting to solve. Each diagram is generated from the real implementation — the thresholds, weights and complexities match the code.
+
+### Automated listing risk assessment
+
+Every new listing is scored **0–100** by a weighted ensemble — a price-anomaly *z*-score against comparable listings, duplicate-image detection (perceptual dHash + CLIP embeddings) and seller history — then routed to full visibility, reduced visibility, or the admin review queue. Signals with too little data drop out and the weights renormalise.
+
+<div align="center">
+<img src="docs/diagrams/wow-risk-assessment.svg" alt="Automated listing risk assessment" width="900">
+</div>
+
+<sub><a href="src/backend/Modules/Listings/Risk/ListingRiskScoreService.cs"><code>ListingRiskScoreService.cs</code></a></sub>
+
+### Smart-budget reservation
+
+Given a budget and items spread across many sellers, a **grouped-knapsack** dynamic program maximises the *number* of items you can reserve — folding each seller's bundle discount into a per-count cost table, computed in integer cents and re-solved inside the checkout transaction.
+
+<div align="center">
+<img src="docs/diagrams/wow-smart-budget.svg" alt="Smart-budget grouped knapsack" width="900">
+</div>
+
+<sub><a href="src/backend/Modules/Reservations/BundleKnapsack.cs"><code>BundleKnapsack.cs</code></a></sub>
+
+### Mutual availability scheduler
+
+Buyer and seller timetables are inverted into free time within campus hours, intersected with a **two-pointer sweep line**, filtered to slots of at least 30 minutes, and projected onto the next seven days as concrete, daylight-only meetup times.
+
+<div align="center">
+<img src="docs/diagrams/wow-availability-scheduler.svg" alt="Mutual availability scheduler" width="900">
+</div>
+
+<sub><a href="src/backend/Modules/Timetable/AvailabilityCalculator.cs"><code>AvailabilityCalculator.cs</code></a></sub>
 
 ---
 
@@ -155,67 +202,39 @@ UniTrade is a **modular monolith**: a single .NET 10 API split into isolated dom
 <div align="center">
 <table>
 <tr>
-
-<td align="center" width="20%" valign="top">
-<img src="src/web/src/assets/Zee.jpeg" width="150"><br/>
-<b>Zelamene Shazi</b><br/>
-<sub>Project Lead &amp; Backend Engineer</sub>
-<details><summary><b>About</b></summary><sub>Back-end engineer and team lead, into quant and software engineering (with a little cybersecurity on the side). Self-appointed architecture purist — right up until the one boundary I crossed myself, which is exactly why our SharedKernel exists.</sub></details>
-<details><summary><b>Quote</b></summary><sub><em>“Rubberduck McQueen”</em></sub></details>
-<br/>
-<a href="https://github.com/Zelamene"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a>
-<a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
-<a href="mailto:shazizelamene@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a>
-</td>
-
-<td align="center" width="20%" valign="top">
-<img src="src/web/src/assets/Sabira.jpeg" width="150"><br/>
-<b>Sabira Karie</b><br/>
-<sub>DevOps &amp; Backend Engineer</sub>
-<details><summary><b>About</b></summary><sub>Fast learner, backend and database systems enthusiast, and (unfortunately for my sleep schedule) a new DevOps convert thanks to capstone.</sub></details>
-<details><summary><b>Quote</b></summary><sub><em>“Every failed build is just a training arc before the green checkmark.”</em></sub></details>
-<br/>
-<a href="https://github.com/Sabira-k-commits"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a>
-<a href="https://www.linkedin.com/in/sabira-karie-666365378/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
-<a href="mailto:sabira.k200416@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a>
-</td>
-
-<td align="center" width="20%" valign="top">
-<img src="src/web/src/assets/Didi.jpeg" width="150"><br/>
-<b>Mahadio Tlaka</b><br/>
-<sub>Frontend Engineer</sub>
-<details><summary><b>About</b></summary><sub>Frontend developer and creative thinker who enjoys turning ideas into code, solving puzzles on the chessboard, and running toward the next challenge.</sub></details>
-<details><summary><b>Quote</b></summary><sub><em>“Every bug is just another opportunity to learn, grow, and make something better.”</em></sub></details>
-<br/>
-<a href="https://github.com/diditlaka"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a>
-<a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
-<a href="mailto:diditlaka51@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a>
-</td>
-
-<td align="center" width="20%" valign="top">
-<img src="src/web/src/assets/Langa.jpeg" width="150"><br/>
-<b>Langa Vakalisa</b><br/>
-<sub>Frontend Engineer</sub>
-<details><summary><b>About</b></summary><sub>UX and data-science enthusiast interested in fashion, architecture and design.</sub></details>
-<details><summary><b>Quote</b></summary><sub><em>“Job your love.” 😀</em></sub></details>
-<br/>
-<a href="https://github.com/langa-vk"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a>
-<a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
-<a href="mailto:langavaks@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a>
-</td>
-
-<td align="center" width="20%" valign="top">
-<img src="src/web/src/assets/Tafadzwa.jpeg" width="150"><br/>
-<b>Tafadzwa Musiiwa</b><br/>
-<sub>Frontend Lead &amp; Integration Engineer</sub>
-<details><summary><b>About</b></summary><sub>Frontend developer, integration engineer, a little bit of backend (actually a lot of backend), and an ML enthusiast.</sub></details>
-<details><summary><b>Quote</b></summary><sub><em>“Apparently, integration also means full-stack developer. Who knew?”</em></sub></details>
-<br/>
-<a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a>
-<a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a>
-<a href="mailto:tafadzwamusiiwa08@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a>
-</td>
-
+<td align="center" width="20%"><img src="src/web/src/assets/Zee.jpeg" width="150"></td>
+<td align="center" width="20%"><img src="src/web/src/assets/Sabira.jpeg" width="150"></td>
+<td align="center" width="20%"><img src="src/web/src/assets/Didi.jpeg" width="150"></td>
+<td align="center" width="20%"><img src="src/web/src/assets/Langa.jpeg" width="150"></td>
+<td align="center" width="20%"><img src="src/web/src/assets/Tafadzwa.jpeg" width="150"></td>
+</tr>
+<tr>
+<td align="center" valign="top"><b>Zelamene Shazi</b><br/><sub>Project Lead &amp; Backend Engineer</sub></td>
+<td align="center" valign="top"><b>Sabira Karie</b><br/><sub>DevOps &amp; Backend Engineer</sub></td>
+<td align="center" valign="top"><b>Mahadio Tlaka</b><br/><sub>Frontend Engineer</sub></td>
+<td align="center" valign="top"><b>Langa Vakalisa</b><br/><sub>Frontend Engineer</sub></td>
+<td align="center" valign="top"><b>Tafadzwa Musiiwa</b><br/><sub>Frontend Lead &amp; Integration Engineer</sub></td>
+</tr>
+<tr>
+<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Back-end engineer and team lead, into quant and software engineering (with a little cybersecurity on the side). Self-appointed architecture purist — right up until the one boundary I crossed myself, which is exactly why our SharedKernel exists.</sub></details></td>
+<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Fast learner, backend and database systems enthusiast, and (unfortunately for my sleep schedule) a new DevOps convert thanks to capstone.</sub></details></td>
+<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Frontend developer and creative thinker who enjoys turning ideas into code, solving puzzles on the chessboard, and running toward the next challenge.</sub></details></td>
+<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>UX and data-science enthusiast interested in fashion, architecture and design.</sub></details></td>
+<td align="center" valign="top"><details><summary><sub>About</sub></summary><br/><sub>Frontend developer, integration engineer, a little bit of backend (actually a lot of backend), and an ML enthusiast.</sub></details></td>
+</tr>
+<tr>
+<td align="center" valign="top"><details><summary><sub>Quote</sub></summary><br/><sub><em>“Rubberduck McQueen”</em></sub></details></td>
+<td align="center" valign="top"><details><summary><sub>Quote</sub></summary><br/><sub><em>“Every failed build is just a training arc before the green checkmark.”</em></sub></details></td>
+<td align="center" valign="top"><details><summary><sub>Quote</sub></summary><br/><sub><em>“Every bug is just another opportunity to learn, grow, and make something better.”</em></sub></details></td>
+<td align="center" valign="top"><details><summary><sub>Quote</sub></summary><br/><sub><em>“Job your love.” 😀</em></sub></details></td>
+<td align="center" valign="top"><details><summary><sub>Quote</sub></summary><br/><sub><em>“Apparently, integration also means full-stack developer. Who knew?”</em></sub></details></td>
+</tr>
+<tr>
+<td align="center" valign="top"><a href="https://github.com/Zelamene"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a> <a href="https://www.linkedin.com/in/zelamene-shazi-66ab142b6/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a> <a href="mailto:shazizelamene@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/Sabira-k-commits"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a> <a href="https://www.linkedin.com/in/sabira-karie-666365378/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a> <a href="mailto:sabira.k200416@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/diditlaka"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a> <a href="https://www.linkedin.com/in/mahadio-tlaka-419a12393/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a> <a href="mailto:diditlaka51@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/langa-vk"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a> <a href="https://www.linkedin.com/in/langazelelwa-vakalisa-676a773a7"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a> <a href="mailto:langavaks@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a></td>
+<td align="center" valign="top"><a href="https://github.com/Tafadzwa2608"><img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white"/></a> <a href="https://www.linkedin.com/in/tafadzwa-musiiwa-3465553b9"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white"/></a> <a href="mailto:tafadzwamusiiwa08@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white"/></a></td>
 </tr>
 </table>
 </div>
@@ -224,7 +243,7 @@ UniTrade is a **modular monolith**: a single .NET 10 API split into isolated dom
 
 ## Documentation
 
-### 📄 Latest (Demo 4)
+### Latest (Demo 4)
 
 > These Demo 4 documents are the **current, authoritative** versions. Earlier demos are archived below.
 
@@ -237,8 +256,7 @@ UniTrade is a **modular monolith**: a single .NET 10 API split into isolated dom
 | Coding Standards | [![View PDF](https://img.shields.io/badge/View_PDF-475569?style=flat-square&logo=readthedocs&logoColor=white)](docs/Demo2_Docs/CODING_%20STANDARDS.pdf) |
 | Testing Policy | [![View PDF](https://img.shields.io/badge/View_PDF-475569?style=flat-square&logo=readthedocs&logoColor=white)](docs/Demo2_Docs/Testing_Policy.pdf) |
 | API Contracts | [![OpenAPI](https://img.shields.io/badge/OpenAPI-475569?style=flat-square&logo=openapiinitiative&logoColor=white)](contracts/openapi.yml) [![View PDF](https://img.shields.io/badge/View_PDF-475569?style=flat-square&logo=readthedocs&logoColor=white)](docs/Demo2_Docs/API_Contracts.pdf) |
-| Database Schema | [![Schema](https://img.shields.io/badge/Schema-475569?style=flat-square&logo=postgresql&logoColor=white)](database/schema.md) |
-| NFR Traceability & Evidence | [![Traceability](https://img.shields.io/badge/Traceability-475569?style=flat-square&logo=githubactions&logoColor=white)](tests/nfr/traceability.yml) [![Evidence](https://img.shields.io/badge/Evidence-475569?style=flat-square&logo=files&logoColor=white)](tests/nfr/evidence) |
+| NFR Traceability & Evidence | [![Traceability](https://img.shields.io/badge/Traceability-475569?style=flat-square&logo=githubactions&logoColor=white)](tests/nfr/traceability.yml) [![EVIDENCE.md](https://img.shields.io/badge/EVIDENCE.md-475569?style=flat-square&logo=markdown&logoColor=white)](tests/nfr/EVIDENCE.md) [![Evidence files](https://img.shields.io/badge/Evidence_files-475569?style=flat-square&logo=files&logoColor=white)](tests/nfr/evidence) |
 | Wireframes / Figma | [![Wireframes](https://img.shields.io/badge/Wireframes-475569?style=flat-square&logo=readthedocs&logoColor=white)](docs/wireframes/Wireframes.pdf) [![Figma](https://img.shields.io/badge/Figma-F24E1E?style=flat-square&logo=figma&logoColor=white)](https://www.figma.com/design/jOuASbpQX3ANQwK6z65HXw/Capstone-wireframes?node-id=0-1&t=TGxL1XFTdsDd1qtU-1) |
 | Brand Style Guide | [![View PDF](https://img.shields.io/badge/View_PDF-475569?style=flat-square&logo=readthedocs&logoColor=white)](docs/Demo2_Docs/Brand-style-doc.pdf) [![Deployed](https://img.shields.io/badge/Deployed-04B4FD?style=flat-square&logo=pwa&logoColor=white)](https://myunitrade.co.za/auth/Brand-style-doc) |
 
