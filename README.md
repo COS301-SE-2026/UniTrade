@@ -30,8 +30,6 @@
 [![Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml)
 [![Web Frontend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/web-ci.yml)
 [![CD](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/cd.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/cd.yml)
-[![E2E](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/e2e.yml/badge.svg)](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/e2e.yml)
-[![codecov](https://codecov.io/gh/COS301-SE-2026/UniTrade/graph/badge.svg?token=0SK09KUEO1)](https://codecov.io/gh/COS301-SE-2026/UniTrade)
 [![Uptime](https://img.shields.io/uptimerobot/status/m803674174-30a848fbf196d9ea502cdcc3?label=uptime)](https://stats.uptimerobot.com/)
 [![Issues](https://img.shields.io/github/issues/COS301-SE-2026/UniTrade)](https://github.com/COS301-SE-2026/UniTrade/issues)
 
