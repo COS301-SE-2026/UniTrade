@@ -50,7 +50,7 @@ describe('HelpCenter', () => {
         renderHelpCenter()
         expect(screen.getByText('Reserving items')).toBeInTheDocument()
         expect(screen.getByText('Listing a product')).toBeInTheDocument()
-        expect(screen.getByText('Payment and Payouts')).toBeInTheDocument()
+        expect(screen.getByText('Payment and Handover')).toBeInTheDocument()
         expect(screen.getByText('Buyer Protection')).toBeInTheDocument()
         expect(screen.getByText('Reviews and ratings')).toBeInTheDocument()
         expect(screen.getByText('Reporting a problem')).toBeInTheDocument()
@@ -67,8 +67,21 @@ describe('HelpCenter', () => {
         renderHelpCenter()
         const question = screen.getByText('How long does a reservation last?')
         fireEvent.click(question)
-        expect(screen.getByText(/Reservations last 24 hours by default/)).toBeInTheDocument()
+        expect(screen.getByText(/A reservation starts with a 24-hour response window/)).toBeInTheDocument()
         fireEvent.click(question)
-        expect(screen.queryByText(/Reservations last 24 hours by default/)).not.toBeInTheDocument()
+        expect(screen.queryByText(/A reservation starts with a 24-hour response window/)).not.toBeInTheDocument()
+    })
+
+    it('explains that Smart Budget can select listings across sellers', () => {
+        renderHelpCenter()
+        fireEvent.click(screen.getByRole('button', { name: /Smart Budget/ }))
+        expect(screen.getByText(/select items across multiple sellers/)).toBeInTheDocument()
+    })
+
+    it('explains that the seller shows the PIN and the buyer enters it', () => {
+        renderHelpCenter()
+        fireEvent.click(screen.getByRole('button', { name: /PIN-based handover confirmation/ }))
+        expect(screen.getByText(/seller will show you a six-digit PIN/)).toBeInTheDocument()
+        expect(screen.getByText(/Enter the PIN in UniTrade/)).toBeInTheDocument()
     })
 })
