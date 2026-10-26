@@ -5,7 +5,11 @@
   "finalDisplayedUrl": "http://localhost:4173/auth/Signup",
   "finalUrl": "http://localhost:4173/auth/Signup",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "fetchTime": "2026-10-25T16:53:37.206Z",
+=======
+  "fetchTime": "2026-10-22T14:18:43.053Z",
+>>>>>>> origin/main
 =======
   "fetchTime": "2026-10-22T14:18:43.053Z",
 >>>>>>> origin/main
@@ -16,7 +20,11 @@
     "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
     "hostUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "benchmarkIndex": 2919,
+=======
+    "benchmarkIndex": 2516.5,
+>>>>>>> origin/main
 =======
     "benchmarkIndex": 2516.5,
 >>>>>>> origin/main
@@ -1218,6 +1226,7 @@
     "entries": [
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 15890.77,
         "name": "lh:config",
         "duration": 176.35,
@@ -1342,13 +1351,80 @@
       {
         "startTime": 23089.34,
 >>>>>>> origin/main
+=======
+        "startTime": 19018.58,
+        "name": "lh:config",
+        "duration": 266.08,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 19019.1,
+        "name": "lh:config:resolveArtifactsToDefns",
+        "duration": 6.64,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 19284.75,
+        "name": "lh:runner:gather",
+        "duration": 5130.26,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 19327.47,
+        "name": "lh:driver:connect",
+        "duration": 4.3,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 19331.81,
+        "name": "lh:driver:navigate",
+        "duration": 6.12,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 19338.01,
+        "name": "lh:gather:getBenchmarkIndex",
+        "duration": 1005.79,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 20343.85,
+        "name": "lh:gather:getVersion",
+        "duration": 1.1,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 20345.05,
+        "name": "lh:prepare:navigationMode",
+        "duration": 15.72,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 20359.33,
+        "name": "lh:gather:prepareThrottlingAndNetwork",
+        "duration": 1.42,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 20369.39,
+        "name": "lh:driver:navigate",
+        "duration": 2718.07,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 23089.34,
+>>>>>>> origin/main
         "name": "lh:computed:NetworkRecords",
         "duration": 0.57,
         "entryType": "measure"
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 19823.81,
+=======
+        "startTime": 23089.98,
+>>>>>>> origin/main
 =======
         "startTime": 23089.98,
 >>>>>>> origin/main
@@ -1357,6 +1433,7 @@
         "entryType": "measure"
       },
       {
+<<<<<<< HEAD
 <<<<<<< HEAD
         "startTime": 19823.83,
         "name": "lh:gather:getArtifact:Accessibility",
@@ -1794,6 +1871,16 @@
       {
         "startTime": 23320.89,
         "name": "lh:gather:getArtifact:NetworkUserAgent",
+=======
+        "startTime": 23090.01,
+        "name": "lh:gather:getArtifact:Accessibility",
+        "duration": 230.8,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 23320.89,
+        "name": "lh:gather:getArtifact:NetworkUserAgent",
+>>>>>>> origin/main
         "duration": 0.03,
         "entryType": "measure"
       },
@@ -2213,6 +2300,9 @@
       },
       {
         "startTime": 24575.04,
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
         "name": "lh:audit:custom-controls-roles",
         "duration": 0.12,
@@ -2220,7 +2310,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.31,
+=======
+        "startTime": 24575.06,
+>>>>>>> origin/main
 =======
         "startTime": 24575.06,
 >>>>>>> origin/main
@@ -2230,7 +2324,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.34,
+=======
+        "startTime": 24575.08,
+>>>>>>> origin/main
 =======
         "startTime": 24575.08,
 >>>>>>> origin/main
@@ -2240,7 +2338,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.36,
+=======
+        "startTime": 24575.09,
+>>>>>>> origin/main
 =======
         "startTime": 24575.09,
 >>>>>>> origin/main
@@ -2250,7 +2352,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.38,
+=======
+        "startTime": 24575.11,
+>>>>>>> origin/main
 =======
         "startTime": 24575.11,
 >>>>>>> origin/main
@@ -2260,7 +2366,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.4,
+=======
+        "startTime": 24575.12,
+>>>>>>> origin/main
 =======
         "startTime": 24575.12,
 >>>>>>> origin/main
@@ -2270,7 +2380,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.42,
+=======
+        "startTime": 24575.14,
+>>>>>>> origin/main
 =======
         "startTime": 24575.14,
 >>>>>>> origin/main
@@ -2280,7 +2394,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.45,
+=======
+        "startTime": 24575.16,
+>>>>>>> origin/main
 =======
         "startTime": 24575.16,
 >>>>>>> origin/main
@@ -2290,7 +2408,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 21226.53,
+=======
+        "startTime": 24575.2,
+>>>>>>> origin/main
 =======
         "startTime": 24575.2,
 >>>>>>> origin/main
@@ -2299,6 +2421,7 @@
         "entryType": "measure"
       },
       {
+<<<<<<< HEAD
 <<<<<<< HEAD
         "startTime": 21226.56,
         "name": "lh:runner:generate",
@@ -2313,6 +2436,21 @@
       }
     ],
     "total": 5159.45
+=======
+        "startTime": 24575.23,
+        "name": "lh:runner:generate",
+        "duration": 0.12,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 24575.5,
+        "name": "lh:computed:EntityClassification",
+        "duration": 0.35,
+        "entryType": "measure"
+      }
+    ],
+    "total": 5290.530000000001
+>>>>>>> origin/main
 =======
         "startTime": 24575.23,
         "name": "lh:runner:generate",

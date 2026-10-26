@@ -4,8 +4,13 @@
 
 - **Project:** UniTrade
 <<<<<<< HEAD
+<<<<<<< HEAD
 - **Commit:** `d5b343809d5b9f872ed6f03739fdb9d725428f97`
 - **Generated (UTC):** 2026-10-25 16:56:31 UTC
+=======
+- **Commit:** `9340c2936bfaebae73f48e06eeb049076c42188e`
+- **Generated (UTC):** 2026-10-22 12:12:52 UTC
+>>>>>>> origin/main
 =======
 - **Commit:** `9340c2936bfaebae73f48e06eeb049076c42188e`
 - **Generated (UTC):** 2026-10-22 12:12:52 UTC
@@ -19,15 +24,21 @@
 | ID | Requirement | Target | Tool | Status | Evidence |
 |----|-------------|--------|------|--------|----------|
 <<<<<<< HEAD
+<<<<<<< HEAD
 | QR-07a | Moderation queue returns cases oldest-first | oldest-first ordering | Integration test | pass | [test: AdminSpineTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/AdminSpineTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-07b | Every admin decision is audited | actor + timestamp + reason present (exactly one row) | Integration test | pass | [test: AdminSpineTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/AdminSpineTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-07c | Decision notifies the subject | Notification dispatched on each decision | Integration test (notification check) | pass | [test: AdminDecisionTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/AdminDecisionTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-07d | SLA breach is surfaced on the dashboard | Cases older than SLA (48 h verification / 72 h disputes) flagged | Integration test | pass | [test: AdminDecisionTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/AdminDecisionTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 =======
+=======
+>>>>>>> origin/main
 | QR-07a | Moderation queue returns cases oldest-first | oldest-first ordering | Integration test | pass | [test: AdminSpineTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/AdminSpineTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-07b | Every admin decision is audited | actor + timestamp + reason present (exactly one row) | Integration test | pass | [test: AdminSpineTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/AdminSpineTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-07c | Decision notifies the subject | Notification dispatched on each decision | Integration test (notification check) | pass | [test: AdminDecisionTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/AdminDecisionTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-07d | SLA breach is surfaced on the dashboard | Cases older than SLA (48 h verification / 72 h disputes) flagged | Integration test | pass | [test: AdminDecisionTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/AdminDecisionTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 
 ## Maintainability
@@ -45,8 +56,13 @@
 | ID | Requirement | Target | Tool | Status | Evidence |
 |----|-------------|--------|------|--------|----------|
 <<<<<<< HEAD
+<<<<<<< HEAD
 | QR-01a | p95 read latency (feed / search / browse) under load | p95 <= 800 ms, error rate < 1% at ~40 concurrent users (baseline) | k6 | pass | [perf-summary(QR-01a).json](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/perf-summary%28QR-01a%29.json) |
 | QR-01b | Chat message delivery latency | p95 <= 500 ms | Playwright (SignalR round-trip timing) | pass | [chat-latency.json](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/chat-latency/chat-latency.json) |
+=======
+| QR-01a | p95 read latency (feed / search / browse) under load | p95 <= 800 ms, error rate < 1% at ~40 concurrent users (baseline) | k6 | pass | [perf-summary(QR-01a).json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/perf-summary%28QR-01a%29.json) |
+| QR-01b | Chat message delivery latency | p95 <= 500 ms | Playwright (SignalR round-trip timing) | pass | [chat-latency.json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/chat-latency/chat-latency.json) |
+>>>>>>> origin/main
 =======
 | QR-01a | p95 read latency (feed / search / browse) under load | p95 <= 800 ms, error rate < 1% at ~40 concurrent users (baseline) | k6 | pass | [perf-summary(QR-01a).json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/perf-summary%28QR-01a%29.json) |
 | QR-01b | Chat message delivery latency | p95 <= 500 ms | Playwright (SignalR round-trip timing) | pass | [chat-latency.json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/chat-latency/chat-latency.json) |
@@ -61,6 +77,7 @@
 | ID | Requirement | Target | Tool | Status | Evidence |
 |----|-------------|--------|------|--------|----------|
 <<<<<<< HEAD
+<<<<<<< HEAD
 | QR-04a | Duplicate payment notification is idempotent | Exactly one side effect (one transaction, status completed) | Integration + duplicate delivery | pass | [test: PaymentWebhookTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/PaymentWebhookTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-04b | A single failed worker cycle does not stop the worker | Worker continues to next cycle after an injected fault | Integration + fault injection | pass | [test: ReservationExpiryWorkerTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Workers/ReservationExpiryWorkerTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-04c | A failed deployment auto-rolls-back | Health-gated: health check before traffic shift; automatic rollback on failure | Deploy config + observed failing run | pass | [cd.yml](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/.github/workflows/cd.yml)<br>[QR-04c_  Failed deployment should automatically roll back to the last live revision.pdf](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/rollback/QR-04c_%20%20Failed%20deployment%20should%20automatically%20roll%20back%20to%20the%20last%20live%20revision.pdf) |
@@ -69,10 +86,15 @@
 **QR-04c** - Blue-green deploy - traffic shifts to the green revision only after it is healthy; on any failure the prior revision is restored and the green revision deactivated  
   note: Observed on a real failed deploy-prod run: traffic on both apps and the database migrations rolled back automatically, with no manual intervention.  
 =======
+=======
+>>>>>>> origin/main
 | QR-04a | Duplicate payment notification is idempotent | Exactly one side effect (one transaction, status completed) | Integration + duplicate delivery | pass | [test: PaymentWebhookTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/PaymentWebhookTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-04b | A single failed worker cycle does not stop the worker | Worker continues to next cycle after an injected fault | Integration + fault injection | pass | [test: ReservationExpiryWorkerTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Workers/ReservationExpiryWorkerTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-04c | A failed deployment auto-rolls-back | Health-gated: health check before traffic shift; automatic rollback on failure | Deploy config + observed failing run | documented | [cd.yml](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/.github/workflows/cd.yml)<br>[QR-04c_  Failed deployment should automatically roll back to the last live revision.pdf](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/rollback/QR-04c_%20%20Failed%20deployment%20should%20automatically%20roll%20back%20to%20the%20last%20live%20revision.pdf) |
 | QR-04d | Availability over the 30 days before the demo | >= 99.5% | UptimeRobot | pass | [UpTimeRobotEvidence.png](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/uptime/UpTimeRobotEvidence.png) |
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 
 **QR-04d** - Health checks + managed restart + always-warm minimum replica (minReplicas = 1)  
@@ -83,7 +105,11 @@
 | ID | Requirement | Target | Tool | Status | Evidence |
 |----|-------------|--------|------|--------|----------|
 <<<<<<< HEAD
+<<<<<<< HEAD
 | QR-02 | Error rate + latency at 2x baseline load | p95(2x) <= 1.5x baseline p95, error < 1% (baseline 40 VUs -> peak 80 VUs) | k6 | pass | [scale-summary(QR-02).json](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/scale-summary%28QR-02%29.json) |
+=======
+| QR-02 | Error rate + latency at 2x baseline load | p95(2x) <= 1.5x baseline p95, error < 1% (baseline 40 VUs -> peak 80 VUs) | k6 | pass | [scale-summary(QR-02).json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/scale-summary%28QR-02%29.json) |
+>>>>>>> origin/main
 =======
 | QR-02 | Error rate + latency at 2x baseline load | p95(2x) <= 1.5x baseline p95, error < 1% (baseline 40 VUs -> peak 80 VUs) | k6 | pass | [scale-summary(QR-02).json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/scale-summary%28QR-02%29.json) |
 >>>>>>> origin/main
@@ -97,6 +123,7 @@
 | ID | Requirement | Target | Tool | Status | Evidence |
 |----|-------------|--------|------|--------|----------|
 <<<<<<< HEAD
+<<<<<<< HEAD
 | QR-03a | Admin endpoints reject non-admin callers | 100% reject (anon -> 401, student -> 403, admin -> 200) | Integration test | pass | [test: AdminSpineTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/AdminSpineTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-03b | Forged/tampered payment callback has no effect | Rejected (400 invalid_signature), no state change | Integration + fault injection | pass | [test: PaymentWebhookTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Integration/Api/PaymentWebhookTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-03c | OTP storage + comparison | Peppered hash; constant-time compare; never equals raw OTP | Unit test | pass | [test: OtpSecurityTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/src/backend/Tests/Unit/Modules/OtpSecurityTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
@@ -104,12 +131,17 @@
 | QR-03e | No high/critical dependency CVEs on main | 0 high/critical | dotnet list package --vulnerable + npm audit --audit-level=high | pass | [npm-audit-report.txt](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/Dependency%20Audits/npm-audit-report.txt)<br>[dotnet-vulnerability-report.txt](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/Dependency%20Audits/dotnet-vulnerability-report.txt) |
 | QR-03f | No high/critical OS or library CVEs in container images | 0 high/critical (triaged entries listed in .trivyignore) | Trivy (container image scan) | pass | [trivy-backend.txt](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/Container%20Image%20Scans/trivy-backend.txt)<br>[trivy-frontend.txt](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/Container%20Image%20Scans/trivy-frontend.txt) |
 =======
+=======
+>>>>>>> origin/main
 | QR-03a | Admin endpoints reject non-admin callers | 100% reject (anon -> 401, student -> 403, admin -> 200) | Integration test | pass | [test: AdminSpineTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/AdminSpineTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-03b | Forged/tampered payment callback has no effect | Rejected (400 invalid_signature), no state change | Integration + fault injection | pass | [test: PaymentWebhookTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Integration/Api/PaymentWebhookTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-03c | OTP storage + comparison | Peppered hash; constant-time compare; never equals raw OTP | Unit test | pass | [test: OtpSecurityTests.cs](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/src/backend/Tests/Unit/Modules/OtpSecurityTests.cs)<br>[CI: Backend CI](https://github.com/COS301-SE-2026/UniTrade/actions/workflows/backend-ci.yml) |
 | QR-03d | No medium-or-above exposure on staging (ZAP baseline) | 0 high/critical; mediums triaged | OWASP ZAP baseline | pass | [zap-report(backend-QR-03d).html](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/dast/zap-report%28backend-QR-03d%29.html)<br>[zap-report(backend-QR-03d).json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/dast/zap-report%28backend-QR-03d%29.json)<br>[zap-report(frontend-QR-03d).html](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/dast/zap-report%28frontend-QR-03d%29.html)<br>[zap-report(frontend-QR-03d).json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/dast/zap-report%28frontend-QR-03d%29.json) |
 | QR-03e | No high/critical dependency CVEs on main | 0 high/critical | dotnet list package --vulnerable + npm audit --audit-level=high | pass | [npm-audit-report.txt](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/Dependency%20Audits/npm-audit-report.txt)<br>[dotnet-vulnerability-report.txt](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/Dependency%20Audits/dotnet-vulnerability-report.txt) |
 | QR-03f | No high/critical OS or library CVEs in container images | 0 high/critical (triaged entries listed in .trivyignore) | Trivy (container image scan) | pass | [trivy-backend.txt](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/Container%20Image%20Scans/trivy-backend.txt)<br>[trivy-frontend.txt](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/Container%20Image%20Scans/trivy-frontend.txt) |
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 
 **QR-03d** - Security headers (CSP / HSTS / anti-clickjacking), TLS-only, limited exposure  
@@ -120,8 +152,13 @@
 | ID | Requirement | Target | Tool | Status | Evidence |
 |----|-------------|--------|------|--------|----------|
 <<<<<<< HEAD
+<<<<<<< HEAD
 | QR-06a | Accessibility on public + admin pages | 0 serious/critical (Lighthouse/axe >= 90 threshold) | Lighthouse (axe-core) | pass | [perf-access-lighthouse/ (9 files)](https://github.com/COS301-SE-2026/UniTrade/tree/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/perf-access-lighthouse) |
 | QR-06b | Core task completes end-to-end in <= 2 min | <= 120s {browse -> reserve -> chat -> meetup -> initiate payment} | Playwright e2e | pass | [core-task.json](https://github.com/COS301-SE-2026/UniTrade/blob/d5b343809d5b9f872ed6f03739fdb9d725428f97/tests/nfr/evidence/core-task/core-task.json) |
+=======
+| QR-06a | Accessibility on public + admin pages | 0 serious/critical (Lighthouse/axe >= 90 threshold) | Lighthouse (axe-core) | pass | [perf-access-lighthouse/ (9 files)](https://github.com/COS301-SE-2026/UniTrade/tree/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/perf-access-lighthouse) |
+| QR-06b | Core task completes end-to-end in <= 2 min | <= 120s {browse -> reserve -> chat -> meetup -> initiate payment} | Playwright e2e | pass | [core-task.json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/core-task/core-task.json) |
+>>>>>>> origin/main
 =======
 | QR-06a | Accessibility on public + admin pages | 0 serious/critical (Lighthouse/axe >= 90 threshold) | Lighthouse (axe-core) | pass | [perf-access-lighthouse/ (9 files)](https://github.com/COS301-SE-2026/UniTrade/tree/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/perf-access-lighthouse) |
 | QR-06b | Core task completes end-to-end in <= 2 min | <= 120s {browse -> reserve -> chat -> meetup -> initiate payment} | Playwright e2e | pass | [core-task.json](https://github.com/COS301-SE-2026/UniTrade/blob/9340c2936bfaebae73f48e06eeb049076c42188e/tests/nfr/evidence/core-task/core-task.json) |

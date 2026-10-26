@@ -5,7 +5,11 @@
   "finalDisplayedUrl": "http://localhost:4173/auth/Login",
   "finalUrl": "http://localhost:4173/auth/Login",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "fetchTime": "2026-10-25T16:54:27.396Z",
+=======
+  "fetchTime": "2026-10-22T14:19:35.706Z",
+>>>>>>> origin/main
 =======
   "fetchTime": "2026-10-22T14:19:35.706Z",
 >>>>>>> origin/main
@@ -16,7 +20,11 @@
     "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
     "hostUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "benchmarkIndex": 2992,
+=======
+    "benchmarkIndex": 2511,
+>>>>>>> origin/main
 =======
     "benchmarkIndex": 2511,
 >>>>>>> origin/main
@@ -46,7 +54,11 @@
       "score": 1,
       "scoreDisplayMode": "numeric",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 984.97415,
+=======
+      "numericValue": 992.3428249999997,
+>>>>>>> origin/main
 =======
       "numericValue": 992.3428249999997,
 >>>>>>> origin/main
@@ -64,7 +76,11 @@
       "score": 1,
       "scoreDisplayMode": "numeric",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 1217.6322,
+=======
+      "numericValue": 1231.4570999999996,
+>>>>>>> origin/main
 =======
       "numericValue": 1231.4570999999996,
 >>>>>>> origin/main
@@ -89,7 +105,11 @@
       "score": 1,
       "scoreDisplayMode": "numeric",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 1066.4627520000047,
+=======
+      "numericValue": 1029.1623239999797,
+>>>>>>> origin/main
 =======
       "numericValue": 1029.1623239999797,
 >>>>>>> origin/main
@@ -113,6 +133,7 @@
           {
             "timing": 375,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 302408107,
             "data": "data:image/jpeg;base64,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"
           },
@@ -127,12 +148,24 @@
             "timing": 750,
             "timestamp": 433048495,
 >>>>>>> origin/main
+=======
+            "timestamp": 432673495,
+            "data": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAHyAPoDASIAAhEBAxEB/8QAGQABAQEBAQEAAAAAAAAAAAAAAAYFAgMI/8QALBABAAICAgEDAgQHAQAAAAAAAAECAwQFESEGEjETIkFRYZEHFDJCYoGh0f/EABYBAQEBAAAAAAAAAAAAAAAAAAABAv/EABgRAQEBAQEAAAAAAAAAAAAAAAABESEC/9oADAMBAAIRAxEAPwD6pAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGX6o5rD6f4Hb5PYpbJXBX7cdfm9pmIrWP1mZiP9pfDwHq/kMUbu96qycdt3++unqa2O2DF/jM2ibX/We4anne1LV4Jf0Tzu5yF+R4vm8ePHzPGZIx55xeKZqWjumWsfhFo/D8JiVQlmXCXQBFAAAAAAAAAAAAAAAAAAAAAAAAAATv8QOEzeoPSe7oalq1259mbBNv6ZyUtF6xP6TNYh5+k/V2rzmSdHPg2dHmcWP3bGlsYrVmnUxEzFuvbavc+JiVMdR3315a3mVM7rE4zgf5P1RzPM22JyX5CmHHGP29RjrjiY67789zaZbYJbqyYAIAAAAAAAAAAAAAAAAAAAAAAAADA39zPqcnyU4ceW+W2rjnXr9O1qWvH1PHcePy/wCN8BHbvLcti4+860bGa8Xt9LLOrNZyRFInqa+2Zj7pmPiO+vmPl5b+zyefdvNo2O6U2IjBXBaK1jqPZPu/umfn5/bpbC6mJO+/y+KmOct8tceafvvGt7pwRF5jxER57j2/Pf5tHhOX+rxOvl3bZb5rxMzauvfzHduvER48V+P/AGGvs6+HaxTi2cWPLjnzNL1i0ftLrFjphxVx4qVpjrHVa1jqIj8og3hnXQCKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/9k="
+          },
+          {
+            "timing": 750,
+            "timestamp": 433048495,
+>>>>>>> origin/main
             "data": "data:image/jpeg;base64,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"
           },
           {
             "timing": 1125,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 303158107,
+=======
+            "timestamp": 433423495,
+>>>>>>> origin/main
 =======
             "timestamp": 433423495,
 >>>>>>> origin/main
@@ -141,7 +174,11 @@
           {
             "timing": 1500,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 303533107,
+=======
+            "timestamp": 433798495,
+>>>>>>> origin/main
 =======
             "timestamp": 433798495,
 >>>>>>> origin/main
@@ -150,7 +187,11 @@
           {
             "timing": 1875,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 303908107,
+=======
+            "timestamp": 434173495,
+>>>>>>> origin/main
 =======
             "timestamp": 434173495,
 >>>>>>> origin/main
@@ -159,7 +200,11 @@
           {
             "timing": 2250,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 304283107,
+=======
+            "timestamp": 434548495,
+>>>>>>> origin/main
 =======
             "timestamp": 434548495,
 >>>>>>> origin/main
@@ -168,7 +213,11 @@
           {
             "timing": 2625,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 304658107,
+=======
+            "timestamp": 434923495,
+>>>>>>> origin/main
 =======
             "timestamp": 434923495,
 >>>>>>> origin/main
@@ -177,7 +226,11 @@
           {
             "timing": 3000,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timestamp": 305033107,
+=======
+            "timestamp": 435298495,
+>>>>>>> origin/main
 =======
             "timestamp": 435298495,
 >>>>>>> origin/main
@@ -195,8 +248,13 @@
       "details": {
         "type": "screenshot",
 <<<<<<< HEAD
+<<<<<<< HEAD
         "timing": 458,
         "timestamp": 302490661,
+=======
+        "timing": 428,
+        "timestamp": 432726317,
+>>>>>>> origin/main
 =======
         "timing": 428,
         "timestamp": 432726317,
@@ -225,9 +283,15 @@
       "score": 0.69,
       "scoreDisplayMode": "numeric",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 193,
       "numericUnit": "millisecond",
       "displayValue": "190 ms"
+=======
+      "numericValue": 25,
+      "numericUnit": "millisecond",
+      "displayValue": "30 ms"
+>>>>>>> origin/main
 =======
       "numericValue": 25,
       "numericUnit": "millisecond",
@@ -268,7 +332,11 @@
       "score": 1,
       "scoreDisplayMode": "metricSavings",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 0.9019999999999999,
+=======
+      "numericValue": 0.875,
+>>>>>>> origin/main
 =======
       "numericValue": 0.875,
 >>>>>>> origin/main
@@ -296,7 +364,11 @@
           {
             "url": "http://localhost:4173/auth/Login",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "responseTime": 0.9019999999999999
+=======
+            "responseTime": 0.875
+>>>>>>> origin/main
 =======
             "responseTime": 0.875
 >>>>>>> origin/main
@@ -313,7 +385,11 @@
       "score": 1,
       "scoreDisplayMode": "numeric",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 1217.6322,
+=======
+      "numericValue": 1231.4570999999996,
+>>>>>>> origin/main
 =======
       "numericValue": 1231.4570999999996,
 >>>>>>> origin/main
@@ -343,6 +419,7 @@
       "details": {
         "type": "criticalrequestchain",
         "chains": {
+<<<<<<< HEAD
 <<<<<<< HEAD
           "BD05022F2CE6DAFB8201BB82B08DF7DD": {
             "request": {
@@ -394,11 +471,38 @@
                       "endTime": 432.390977,
                       "responseReceivedTime": 432.390352,
 >>>>>>> origin/main
+=======
+          "BD303A87A8DB988AD3F7DD89342B0D03": {
+            "request": {
+              "url": "http://localhost:4173/auth/Login",
+              "startTime": 432.299229,
+              "endTime": 432.301473,
+              "responseReceivedTime": 432.301029,
+              "transferSize": 127
+            },
+            "children": {
+              "6027.2": {
+                "request": {
+                  "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+                  "startTime": 432.331252,
+                  "endTime": 432.333301,
+                  "responseReceivedTime": 432.331913,
+                  "transferSize": 0
+                },
+                "children": {
+                  "6027.26": {
+                    "request": {
+                      "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+                      "startTime": 432.390103,
+                      "endTime": 432.390977,
+                      "responseReceivedTime": 432.390352,
+>>>>>>> origin/main
                       "transferSize": 0
                     }
                   }
                 }
               },
+<<<<<<< HEAD
 <<<<<<< HEAD
               "6193.3": {
                 "request": {
@@ -450,6 +554,32 @@
                   "endTime": 432.336252,
                   "responseReceivedTime": 432.33475999999996,
 >>>>>>> origin/main
+=======
+              "6027.3": {
+                "request": {
+                  "url": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400&display=swap",
+                  "startTime": 432.331435,
+                  "endTime": 432.334623,
+                  "responseReceivedTime": 432.33295000000004,
+                  "transferSize": 0
+                }
+              },
+              "6027.4": {
+                "request": {
+                  "url": "http://localhost:4173/assets/index-Dl-zx2JO.js",
+                  "startTime": 432.331622,
+                  "endTime": 432.343005,
+                  "responseReceivedTime": 432.33729999999997,
+                  "transferSize": 179
+                }
+              },
+              "6027.10": {
+                "request": {
+                  "url": "http://localhost:4173/assets/index-DGleVy2G.css",
+                  "startTime": 432.332877,
+                  "endTime": 432.336252,
+                  "responseReceivedTime": 432.33475999999996,
+>>>>>>> origin/main
                   "transferSize": 179
                 }
               }
@@ -458,7 +588,11 @@
         },
         "longestChain": {
 <<<<<<< HEAD
+<<<<<<< HEAD
           "duration": 73.79000000003725,
+=======
+          "duration": 91.74799999996321,
+>>>>>>> origin/main
 =======
           "duration": 91.74799999996321,
 >>>>>>> origin/main
@@ -496,9 +630,15 @@
       "score": 1,
       "scoreDisplayMode": "metricSavings",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 583.7320000000003,
       "numericUnit": "millisecond",
       "displayValue": "0.6 s",
+=======
+      "numericValue": 504.0320000000005,
+      "numericUnit": "millisecond",
+      "displayValue": "0.5 s",
+>>>>>>> origin/main
 =======
       "numericValue": 504.0320000000005,
       "numericUnit": "millisecond",
@@ -532,23 +672,33 @@
           {
             "group": "other",
             "groupLabel": "Other",
+<<<<<<< HEAD
             "duration": 201.86400000000037
 =======
             "group": "other",
             "groupLabel": "Other",
+=======
+>>>>>>> origin/main
             "duration": 258.31200000000007
           },
           {
             "group": "scriptEvaluation",
             "groupLabel": "Script Evaluation",
             "duration": 166.28800000000047
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
           },
           {
             "group": "styleLayout",
             "groupLabel": "Style & Layout",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "duration": 41.536
+=======
+            "duration": 49.432
+>>>>>>> origin/main
 =======
             "duration": 49.432
 >>>>>>> origin/main
@@ -557,7 +707,11 @@
             "group": "parseHTML",
             "groupLabel": "Parse HTML & CSS",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "duration": 11.2
+=======
+            "duration": 20.496
+>>>>>>> origin/main
 =======
             "duration": 20.496
 >>>>>>> origin/main
@@ -566,7 +720,11 @@
             "group": "paintCompositeRender",
             "groupLabel": "Rendering",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "duration": 5.492
+=======
+            "duration": 6.792
+>>>>>>> origin/main
 =======
             "duration": 6.792
 >>>>>>> origin/main
@@ -575,7 +733,11 @@
             "group": "scriptParseCompile",
             "groupLabel": "Script Parsing & Compilation",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "duration": 2.4080000000000004
+=======
+            "duration": 2.712
+>>>>>>> origin/main
 =======
             "duration": 2.712
 >>>>>>> origin/main
@@ -594,9 +756,15 @@
       "score": 1,
       "scoreDisplayMode": "metricSavings",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 321.34799999999996,
       "numericUnit": "millisecond",
       "displayValue": "0.3 s",
+=======
+      "numericValue": 166.6800000000002,
+      "numericUnit": "millisecond",
+      "displayValue": "0.2 s",
+>>>>>>> origin/main
 =======
       "numericValue": 166.6800000000002,
       "numericUnit": "millisecond",
@@ -642,6 +810,7 @@
           {
             "url": "Unattributable",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "total": 172.51600000000036,
             "scripting": 9.947999999999997,
             "scriptParseCompile": 0
@@ -655,6 +824,27 @@
         ],
         "summary": {
           "wastedMs": 321.34799999999996
+=======
+            "total": 244.82000000000033,
+            "scripting": 32.51599999999998,
+            "scriptParseCompile": 0
+          },
+          {
+            "url": "http://localhost:4173/assets/index-Dl-zx2JO.js",
+            "total": 148.47600000000023,
+            "scripting": 129.28000000000023,
+            "scriptParseCompile": 1.672
+          },
+          {
+            "url": "http://localhost:4173/auth/Login",
+            "total": 93.416,
+            "scripting": 2.7680000000000002,
+            "scriptParseCompile": 0.444
+          }
+        ],
+        "summary": {
+          "wastedMs": 166.6800000000002
+>>>>>>> origin/main
 =======
             "total": 244.82000000000033,
             "scripting": 32.51599999999998,
@@ -725,6 +915,7 @@
             "numStylesheets": 3,
             "numFonts": 1,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "numTasks": 424,
             "numTasksOver10ms": 2,
             "numTasksOver25ms": 1,
@@ -738,6 +929,8 @@
             "totalByteWeight": 3250,
             "totalTaskTime": 145.93299999999985,
 =======
+=======
+>>>>>>> origin/main
             "numTasks": 413,
             "numTasksOver10ms": 1,
             "numTasksOver25ms": 0,
@@ -750,6 +943,9 @@
             "maxServerLatency": 1.5316999999999998,
             "totalByteWeight": 3250,
             "totalTaskTime": 126.00800000000004,
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
             "mainDocumentTransferSize": 127
           }
@@ -824,8 +1020,13 @@
             "protocol": "http/1.1",
             "rendererStartTime": 0,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "networkRequestTime": 0.4419999999809079,
             "networkEndTime": 2.326999999990221,
+=======
+            "networkRequestTime": 0.590000000083819,
+            "networkEndTime": 2.834000000031665,
+>>>>>>> origin/main
 =======
             "networkRequestTime": 0.590000000083819,
             "networkEndTime": 2.834000000031665,
@@ -845,9 +1046,15 @@
             "sessionTargetType": "page",
             "protocol": "h2",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.22099999996135,
             "networkRequestTime": 25.754000000015367,
             "networkEndTime": 29.42200000002049,
+=======
+            "rendererStartTime": 32.02700000006007,
+            "networkRequestTime": 32.61300000001211,
+            "networkEndTime": 34.662000000011176,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 32.02700000006007,
             "networkRequestTime": 32.61300000001211,
@@ -868,9 +1075,15 @@
             "sessionTargetType": "page",
             "protocol": "h2",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.48399999999674,
             "networkRequestTime": 25.961999999999534,
             "networkEndTime": 29.691999999980908,
+=======
+            "rendererStartTime": 32.286000000021886,
+            "networkRequestTime": 32.7960000000312,
+            "networkEndTime": 35.98400000005495,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 32.286000000021886,
             "networkRequestTime": 32.7960000000312,
@@ -888,6 +1101,7 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "url": "http://localhost:4173/assets/index-BsNDa84T.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
@@ -897,6 +1111,17 @@
             "finished": true,
             "transferSize": 179,
             "resourceSize": 404475,
+=======
+            "url": "http://localhost:4173/assets/index-Dl-zx2JO.js",
+            "sessionTargetType": "page",
+            "protocol": "http/1.1",
+            "rendererStartTime": 32.445000000006985,
+            "networkRequestTime": 32.98300000000745,
+            "networkEndTime": 44.366000000038184,
+            "finished": true,
+            "transferSize": 179,
+            "resourceSize": 404452,
+>>>>>>> origin/main
 =======
             "url": "http://localhost:4173/assets/index-Dl-zx2JO.js",
             "sessionTargetType": "page",
@@ -920,9 +1145,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.64000000001397,
             "networkRequestTime": 26.323999999964144,
             "networkEndTime": 31.51799999998184,
+=======
+            "rendererStartTime": 32.5460000000312,
+            "networkRequestTime": 33.21900000004098,
+            "networkEndTime": 41.40800000005402,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 32.5460000000312,
             "networkRequestTime": 33.21900000004098,
@@ -944,9 +1175,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.73399999999674,
             "networkRequestTime": 26.441999999980908,
             "networkEndTime": 31.624999999941792,
+=======
+            "rendererStartTime": 32.694000000017695,
+            "networkRequestTime": 33.678000000014435,
+            "networkEndTime": 41.565000000060536,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 32.694000000017695,
             "networkRequestTime": 33.678000000014435,
@@ -968,9 +1205,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.822999999974854,
             "networkRequestTime": 26.543000000005122,
             "networkEndTime": 35.539999999979045,
+=======
+            "rendererStartTime": 32.82699999999022,
+            "networkRequestTime": 33.81400000001304,
+            "networkEndTime": 41.80800000001909,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 32.82699999999022,
             "networkRequestTime": 33.81400000001304,
@@ -992,9 +1235,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.87699999997858,
             "networkRequestTime": 26.653999999980442,
             "networkEndTime": 35.6699999999837,
+=======
+            "rendererStartTime": 32.93600000004517,
+            "networkRequestTime": 33.94700000004377,
+            "networkEndTime": 42.03000000002794,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 32.93600000004517,
             "networkRequestTime": 33.94700000004377,
@@ -1016,9 +1265,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 25.95400000002701,
             "networkRequestTime": 26.75099999998929,
             "networkEndTime": 35.99900000001071,
+=======
+            "rendererStartTime": 33.06000000005588,
+            "networkRequestTime": 34.084000000031665,
+            "networkEndTime": 42.24500000005355,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 33.06000000005588,
             "networkRequestTime": 34.084000000031665,
@@ -1040,9 +1295,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 26.01799999998184,
             "networkRequestTime": 26.85600000002887,
             "networkEndTime": 35.24699999997392,
+=======
+            "rendererStartTime": 33.16700000001583,
+            "networkRequestTime": 34.23800000001211,
+            "networkEndTime": 37.61300000001211,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 33.16700000001583,
             "networkRequestTime": 34.23800000001211,
@@ -1063,9 +1324,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 58.339999999967404,
             "networkRequestTime": 58.81299999996554,
             "networkEndTime": 60.90399999998044,
+=======
+            "rendererStartTime": 75.43500000005588,
+            "networkRequestTime": 75.86600000003818,
+            "networkEndTime": 79.15799999999581,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 75.43500000005588,
             "networkRequestTime": 75.86600000003818,
@@ -1086,9 +1353,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 58.63999999995576,
             "networkRequestTime": 59.13699999998789,
             "networkEndTime": 62.35800000000745,
+=======
+            "rendererStartTime": 75.77600000001257,
+            "networkRequestTime": 76.24200000002747,
+            "networkEndTime": 78.07600000000093,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 75.77600000001257,
             "networkRequestTime": 76.24200000002747,
@@ -1126,9 +1399,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 70.63999999995576,
             "networkRequestTime": 71.09500000003027,
             "networkEndTime": 77.84699999995064,
+=======
+            "rendererStartTime": 96.29900000005728,
+            "networkRequestTime": 98.40400000003865,
+            "networkEndTime": 100.90100000001257,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 96.29900000005728,
             "networkRequestTime": 98.40400000003865,
@@ -1145,6 +1424,7 @@
             "entity": "localhost"
           },
           {
+<<<<<<< HEAD
 <<<<<<< HEAD
             "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
             "sessionTargetType": "page",
@@ -1177,6 +1457,14 @@
             "networkRequestTime": 106.56500000006054,
             "networkEndTime": 112.46199999999953,
 >>>>>>> origin/main
+=======
+            "url": "http://localhost:4173/assets/Login-90J2FzqB.js",
+            "sessionTargetType": "page",
+            "protocol": "http/1.1",
+            "rendererStartTime": 106.21300000004703,
+            "networkRequestTime": 106.56500000006054,
+            "networkEndTime": 112.46199999999953,
+>>>>>>> origin/main
             "finished": true,
             "transferSize": 179,
             "resourceSize": 9716,
@@ -1189,12 +1477,21 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "url": "http://localhost:4173/assets/IconArrowLeft-BPDFQwRV.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 82.32499999995343,
             "networkRequestTime": 82.66700000001583,
             "networkEndTime": 86.30799999996088,
+=======
+            "url": "http://localhost:4173/assets/IconArrowLeft-TiMcNwti.js",
+            "sessionTargetType": "page",
+            "protocol": "http/1.1",
+            "rendererStartTime": 106.43500000005588,
+            "networkRequestTime": 106.94200000003912,
+            "networkEndTime": 112.6370000000461,
+>>>>>>> origin/main
 =======
             "url": "http://localhost:4173/assets/IconArrowLeft-TiMcNwti.js",
             "sessionTargetType": "page",
@@ -1215,12 +1512,21 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "url": "http://localhost:4173/assets/IconEyeOff-53RNVEmh.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 82.48199999995995,
             "networkRequestTime": 82.76799999998184,
             "networkEndTime": 86.41300000000047,
+=======
+            "url": "http://localhost:4173/assets/IconEyeOff-V8h19ggY.js",
+            "sessionTargetType": "page",
+            "protocol": "http/1.1",
+            "rendererStartTime": 106.64200000005076,
+            "networkRequestTime": 107.16400000004796,
+            "networkEndTime": 112.92200000002049,
+>>>>>>> origin/main
 =======
             "url": "http://localhost:4173/assets/IconEyeOff-V8h19ggY.js",
             "sessionTargetType": "page",
@@ -1241,12 +1547,21 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "url": "http://localhost:4173/assets/IconEye-CAP4V9bW.js",
             "sessionTargetType": "page",
             "protocol": "http/1.1",
             "rendererStartTime": 82.64600000000792,
             "networkRequestTime": 83.50500000000466,
             "networkEndTime": 87.4440000000177,
+=======
+            "url": "http://localhost:4173/assets/IconEye-5mEgOL9g.js",
+            "sessionTargetType": "page",
+            "protocol": "http/1.1",
+            "rendererStartTime": 106.88600000005681,
+            "networkRequestTime": 107.40000000008149,
+            "networkEndTime": 113.5570000000298,
+>>>>>>> origin/main
 =======
             "url": "http://localhost:4173/assets/IconEye-5mEgOL9g.js",
             "sessionTargetType": "page",
@@ -1270,9 +1585,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 82.76600000000326,
             "networkRequestTime": 83.64199999999255,
             "networkEndTime": 87.6020000000135,
+=======
+            "rendererStartTime": 107.1030000000028,
+            "networkRequestTime": 107.62400000006892,
+            "networkEndTime": 113.78700000001118,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 107.1030000000028,
             "networkRequestTime": 107.62400000006892,
@@ -1293,9 +1614,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 96.47000000003027,
             "networkRequestTime": 96.82699999993201,
             "networkEndTime": 98.49700000003213,
+=======
+            "rendererStartTime": 126.7050000000163,
+            "networkRequestTime": 127.12100000004284,
+            "networkEndTime": 129.649000000034,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 126.7050000000163,
             "networkRequestTime": 127.12100000004284,
@@ -1316,9 +1643,15 @@
             "sessionTargetType": "page",
             "protocol": "http/1.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rendererStartTime": 96.59899999998743,
             "networkRequestTime": 97.08799999998882,
             "networkEndTime": 99.02000000001863,
+=======
+            "rendererStartTime": 126.88900000002468,
+            "networkRequestTime": 127.31300000002375,
+            "networkEndTime": 130.01700000005076,
+>>>>>>> origin/main
 =======
             "rendererStartTime": 126.88900000002468,
             "networkRequestTime": 127.31300000002375,
@@ -1338,7 +1671,11 @@
         "debugData": {
           "type": "debugdata",
 <<<<<<< HEAD
+<<<<<<< HEAD
           "networkStartTimeTs": 302033227
+=======
+          "networkStartTimeTs": 432298638.99999994
+>>>>>>> origin/main
 =======
           "networkStartTimeTs": 432298638.99999994
 >>>>>>> origin/main
@@ -1352,7 +1689,11 @@
       "score": 1,
       "scoreDisplayMode": "informative",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 0.07545,
+=======
+      "numericValue": 0.1023,
+>>>>>>> origin/main
 =======
       "numericValue": 0.1023,
 >>>>>>> origin/main
@@ -1377,6 +1718,7 @@
           {
             "origin": "http://localhost:4173",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "rtt": 0.07545
           },
           {
@@ -1399,11 +1741,24 @@
           },
           {
             "origin": "https://fonts.gstatic.com",
+=======
+            "rtt": 0.1023
+          },
+          {
+            "origin": "https://fonts.googleapis.com",
+            "rtt": 0.04725
+          },
+          {
+            "origin": "https://fonts.gstatic.com",
+>>>>>>> origin/main
             "rtt": 0.04725
           },
           {
             "origin": "http://localhost:8080",
             "rtt": 0.04725
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
           }
         ],
@@ -1419,7 +1774,11 @@
       "score": 1,
       "scoreDisplayMode": "informative",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 1.70255,
+=======
+      "numericValue": 1.5316999999999998,
+>>>>>>> origin/main
 =======
       "numericValue": 1.5316999999999998,
 >>>>>>> origin/main
@@ -1443,6 +1802,7 @@
         "items": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "origin": "https://fonts.googleapis.com",
             "serverResponseTime": 1.70255
           },
@@ -1457,6 +1817,22 @@
           {
             "origin": "https://fonts.gstatic.com",
             "serverResponseTime": 0.08454999999999999
+=======
+            "origin": "http://localhost:4173",
+            "serverResponseTime": 1.5316999999999998
+          },
+          {
+            "origin": "https://fonts.googleapis.com",
+            "serverResponseTime": 0.9957499999999999
+          },
+          {
+            "origin": "http://localhost:8080",
+            "serverResponseTime": 0.61075
+          },
+          {
+            "origin": "https://fonts.gstatic.com",
+            "serverResponseTime": 0.15875
+>>>>>>> origin/main
 =======
             "origin": "http://localhost:4173",
             "serverResponseTime": 1.5316999999999998
@@ -1505,6 +1881,7 @@
         "items": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "duration": 12.88,
             "startTime": 7.477
           },
@@ -1552,6 +1929,24 @@
             "startTime": 60.911
           },
           {
+=======
+            "duration": 16.816,
+            "startTime": 9.268
+          },
+          {
+            "duration": 7.732,
+            "startTime": 26.116
+          },
+          {
+            "duration": 5.428,
+            "startTime": 38.818
+          },
+          {
+            "duration": 9.199,
+            "startTime": 60.911
+          },
+          {
+>>>>>>> origin/main
             "duration": 6.322,
             "startTime": 70.114
           },
@@ -1570,6 +1965,9 @@
           {
             "duration": 6.247,
             "startTime": 410.419
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
           }
         ]
@@ -1582,7 +1980,11 @@
       "score": 1,
       "scoreDisplayMode": "informative",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "numericValue": 1218,
+=======
+      "numericValue": 1231,
+>>>>>>> origin/main
 =======
       "numericValue": 1231,
 >>>>>>> origin/main
@@ -1592,6 +1994,7 @@
         "items": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "firstContentfulPaint": 985,
             "largestContentfulPaint": 1218,
             "interactive": 1218,
@@ -1599,17 +2002,23 @@
             "totalBlockingTime": 81,
             "maxPotentialFID": 193,
 =======
+=======
+>>>>>>> origin/main
             "firstContentfulPaint": 992,
             "largestContentfulPaint": 1231,
             "interactive": 1231,
             "speedIndex": 1029,
             "totalBlockingTime": 0,
             "maxPotentialFID": 25,
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
             "cumulativeLayoutShift": 0,
             "cumulativeLayoutShiftMainFrame": 0,
             "timeToFirstByte": 452,
             "observedTimeOrigin": 0,
+<<<<<<< HEAD
 <<<<<<< HEAD
             "observedTimeOriginTs": 302033107,
             "observedNavigationStart": 0,
@@ -1660,12 +2069,38 @@
             "observedDomContentLoadedTs": 432299299,
             "observedCumulativeLayoutShift": 0,
             "observedCumulativeLayoutShiftMainFrame": 0,
+=======
+            "observedTimeOriginTs": 432298495,
+            "observedNavigationStart": 0,
+            "observedNavigationStartTs": 432298495,
+            "observedFirstPaint": 100,
+            "observedFirstPaintTs": 432398256,
+            "observedFirstContentfulPaint": 100,
+            "observedFirstContentfulPaintTs": 432398256,
+            "observedFirstContentfulPaintAllFrames": 100,
+            "observedFirstContentfulPaintAllFramesTs": 432398256,
+            "observedLargestContentfulPaint": 428,
+            "observedLargestContentfulPaintTs": 432726102,
+            "observedLargestContentfulPaintAllFrames": 428,
+            "observedLargestContentfulPaintAllFramesTs": 432726102,
+            "observedTraceEnd": 2433,
+            "observedTraceEndTs": 434731882,
+            "observedLoad": 76,
+            "observedLoadTs": 432374744,
+            "observedDomContentLoaded": 1,
+            "observedDomContentLoadedTs": 432299299,
+            "observedCumulativeLayoutShift": 0,
+            "observedCumulativeLayoutShiftMainFrame": 0,
+>>>>>>> origin/main
             "observedFirstVisualChange": 237,
             "observedFirstVisualChangeTs": 432535495,
             "observedLastVisualChange": 427,
             "observedLastVisualChangeTs": 432725495,
             "observedSpeedIndex": 427,
             "observedSpeedIndexTs": 432725077
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
           },
           {
@@ -1801,7 +2236,11 @@
         "items": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "mainThreadTime": 2.292,
+=======
+            "mainThreadTime": 0,
+>>>>>>> origin/main
 =======
             "mainThreadTime": 0,
 >>>>>>> origin/main
@@ -1815,7 +2254,11 @@
                 {
                   "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
 <<<<<<< HEAD
+<<<<<<< HEAD
                   "mainThreadTime": 1.056,
+=======
+                  "mainThreadTime": 0,
+>>>>>>> origin/main
 =======
                   "mainThreadTime": 0,
 >>>>>>> origin/main
@@ -1826,7 +2269,11 @@
                 {
                   "url": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400&display=swap",
 <<<<<<< HEAD
+<<<<<<< HEAD
                   "mainThreadTime": 1.236,
+=======
+                  "mainThreadTime": 0,
+>>>>>>> origin/main
 =======
                   "mainThreadTime": 0,
 >>>>>>> origin/main
@@ -1926,7 +2373,11 @@
               {
                 "phase": "TTFB",
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "timing": 451.09055,
+=======
+                "timing": 451.5317,
+>>>>>>> origin/main
 =======
                 "timing": 451.5317,
 >>>>>>> origin/main
@@ -1945,7 +2396,11 @@
               {
                 "phase": "Render Delay",
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "timing": 766.54165,
+=======
+                "timing": 779.9253999999996,
+>>>>>>> origin/main
 =======
                 "timing": 779.9253999999996,
 >>>>>>> origin/main
@@ -1991,7 +2446,11 @@
       "score": 1,
       "scoreDisplayMode": "informative",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "displayValue": "2 long tasks found",
+=======
+      "displayValue": "1 long task found",
+>>>>>>> origin/main
 =======
       "displayValue": "1 long task found",
 >>>>>>> origin/main
@@ -2022,6 +2481,7 @@
         "items": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "url": "http://localhost:4173/assets/index-BsNDa84T.js",
             "duration": 193,
             "startTime": 942.3611000000001
@@ -2030,6 +2490,11 @@
             "url": "Unattributable",
             "duration": 52,
             "startTime": 602.18055
+=======
+            "url": "Unattributable",
+            "duration": 67,
+            "startTime": 603.6417999999999
+>>>>>>> origin/main
 =======
             "url": "Unattributable",
             "duration": 67,
@@ -2047,7 +2512,10 @@
           "type": "debugdata",
           "urls": [
 <<<<<<< HEAD
+<<<<<<< HEAD
             "http://localhost:4173/assets/index-BsNDa84T.js",
+=======
+>>>>>>> origin/main
 =======
 >>>>>>> origin/main
             "Unattributable"
@@ -2055,6 +2523,7 @@
           "tasks": [
             {
               "urlIndex": 0,
+<<<<<<< HEAD
 <<<<<<< HEAD
               "startTime": 942.4,
               "duration": 193,
@@ -2066,6 +2535,11 @@
               "startTime": 602.2,
               "duration": 52,
               "other": 52
+=======
+              "startTime": 603.6,
+              "duration": 67,
+              "other": 67
+>>>>>>> origin/main
 =======
               "startTime": 603.6,
               "duration": 67,
@@ -2131,10 +2605,17 @@
         "nodes": [
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "name": "http://localhost:4173/assets/index-BsNDa84T.js",
             "resourceBytes": 404471,
             "encodedBytes": 0,
             "unusedBytes": 234493
+=======
+            "name": "http://localhost:4173/assets/index-Dl-zx2JO.js",
+            "resourceBytes": 404448,
+            "encodedBytes": 0,
+            "unusedBytes": 234470
+>>>>>>> origin/main
 =======
             "name": "http://localhost:4173/assets/index-Dl-zx2JO.js",
             "resourceBytes": 404448,
@@ -2180,7 +2661,11 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "name": "http://localhost:4173/assets/Login-DnAulmlQ.js",
+=======
+            "name": "http://localhost:4173/assets/Login-90J2FzqB.js",
+>>>>>>> origin/main
 =======
             "name": "http://localhost:4173/assets/Login-90J2FzqB.js",
 >>>>>>> origin/main
@@ -2190,7 +2675,11 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "name": "http://localhost:4173/assets/IconArrowLeft-BPDFQwRV.js",
+=======
+            "name": "http://localhost:4173/assets/IconArrowLeft-TiMcNwti.js",
+>>>>>>> origin/main
 =======
             "name": "http://localhost:4173/assets/IconArrowLeft-TiMcNwti.js",
 >>>>>>> origin/main
@@ -2200,7 +2689,11 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "name": "http://localhost:4173/assets/IconEyeOff-53RNVEmh.js",
+=======
+            "name": "http://localhost:4173/assets/IconEyeOff-V8h19ggY.js",
+>>>>>>> origin/main
 =======
             "name": "http://localhost:4173/assets/IconEyeOff-V8h19ggY.js",
 >>>>>>> origin/main
@@ -2210,7 +2703,11 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "name": "http://localhost:4173/assets/IconEye-CAP4V9bW.js",
+=======
+            "name": "http://localhost:4173/assets/IconEye-5mEgOL9g.js",
+>>>>>>> origin/main
 =======
             "name": "http://localhost:4173/assets/IconEye-5mEgOL9g.js",
 >>>>>>> origin/main
@@ -2289,6 +2786,7 @@
           },
           {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "url": "http://localhost:4173/assets/IconArrowLeft-BPDFQwRV.js",
             "totalBytes": 179
           },
@@ -2302,6 +2800,17 @@
           },
           {
             "url": "http://localhost:4173/assets/index-BsNDa84T.js",
+=======
+            "url": "http://localhost:4173/assets/IconArrowLeft-TiMcNwti.js",
+            "totalBytes": 179
+          },
+          {
+            "url": "http://localhost:4173/assets/IconEye-5mEgOL9g.js",
+            "totalBytes": 179
+          },
+          {
+            "url": "http://localhost:4173/assets/IconEyeOff-V8h19ggY.js",
+>>>>>>> origin/main
 =======
             "url": "http://localhost:4173/assets/IconArrowLeft-TiMcNwti.js",
             "totalBytes": 179
@@ -3189,7 +3698,11 @@
                 "phase": "timeToFirstByte",
                 "label": "Time to first byte",
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "duration": 2.008
+=======
+                "duration": 2.3930000000596046
+>>>>>>> origin/main
 =======
                 "duration": 2.3930000000596046
 >>>>>>> origin/main
@@ -3198,7 +3711,11 @@
                 "phase": "elementRenderDelay",
                 "label": "Element render delay",
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "duration": 455.39500000000004
+=======
+                "duration": 425.2139999999404
+>>>>>>> origin/main
 =======
                 "duration": 425.2139999999404
 >>>>>>> origin/main
@@ -3257,6 +3774,7 @@
         "type": "network-tree",
         "chains": {
 <<<<<<< HEAD
+<<<<<<< HEAD
           "BD05022F2CE6DAFB8201BB82B08DF7DD": {
             "url": "http://localhost:4173/auth/Login",
             "navStartToEndTime": 27,
@@ -3287,11 +3805,28 @@
                     "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
                     "navStartToEndTime": 95,
 >>>>>>> origin/main
+=======
+          "BD303A87A8DB988AD3F7DD89342B0D03": {
+            "url": "http://localhost:4173/auth/Login",
+            "navStartToEndTime": 35,
+            "transferSize": 127,
+            "isLongest": true,
+            "children": {
+              "6027.2": {
+                "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+                "navStartToEndTime": 35,
+                "transferSize": 0,
+                "children": {
+                  "6027.26": {
+                    "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+                    "navStartToEndTime": 95,
+>>>>>>> origin/main
                     "transferSize": 0,
                     "children": {}
                   }
                 }
               },
+<<<<<<< HEAD
 <<<<<<< HEAD
               "6193.3": {
                 "url": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400&display=swap",
@@ -3325,6 +3860,23 @@
                     "url": "http://localhost:8080/api/auth/me",
                     "navStartToEndTime": 101,
 >>>>>>> origin/main
+=======
+              "6027.3": {
+                "url": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400&display=swap",
+                "navStartToEndTime": 38,
+                "transferSize": 0,
+                "children": {}
+              },
+              "6027.4": {
+                "url": "http://localhost:4173/assets/index-Dl-zx2JO.js",
+                "navStartToEndTime": 61,
+                "transferSize": 179,
+                "isLongest": true,
+                "children": {
+                  "6027.53": {
+                    "url": "http://localhost:8080/api/auth/me",
+                    "navStartToEndTime": 101,
+>>>>>>> origin/main
                     "transferSize": 0,
                     "isLongest": true,
                     "children": {}
@@ -3332,9 +3884,15 @@
                 }
               },
 <<<<<<< HEAD
+<<<<<<< HEAD
               "6193.10": {
                 "url": "http://localhost:4173/assets/index-DGleVy2G.css",
                 "navStartToEndTime": 39,
+=======
+              "6027.10": {
+                "url": "http://localhost:4173/assets/index-DGleVy2G.css",
+                "navStartToEndTime": 38,
+>>>>>>> origin/main
 =======
               "6027.10": {
                 "url": "http://localhost:4173/assets/index-DGleVy2G.css",
@@ -3348,7 +3906,11 @@
         },
         "longestChain": {
 <<<<<<< HEAD
+<<<<<<< HEAD
           "duration": 78
+=======
+          "duration": 101
+>>>>>>> origin/main
 =======
           "duration": 101
 >>>>>>> origin/main
@@ -3393,10 +3955,13 @@
             "url": "http://localhost:4173/assets/index-DGleVy2G.css",
             "totalBytes": 179,
             "wastedMs": 152
+<<<<<<< HEAD
           },
           {
             "url": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400&display=swap",
             "totalBytes": 0
+=======
+>>>>>>> origin/main
           },
           {
             "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
@@ -4367,6 +4932,7 @@
     "entries": [
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 66072.25,
         "name": "lh:config",
         "duration": 183.78,
@@ -4491,13 +5057,80 @@
       {
         "startTime": 75649.98,
 >>>>>>> origin/main
+=======
+        "startTime": 71701.7,
+        "name": "lh:config",
+        "duration": 230.58,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 71702.38,
+        "name": "lh:config:resolveArtifactsToDefns",
+        "duration": 8.12,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 71932.37,
+        "name": "lh:runner:gather",
+        "duration": 5675.52,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 71977.8,
+        "name": "lh:driver:connect",
+        "duration": 4.55,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 71982.4,
+        "name": "lh:driver:navigate",
+        "duration": 8.47,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 71990.95,
+        "name": "lh:gather:getBenchmarkIndex",
+        "duration": 1005.8,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 72996.81,
+        "name": "lh:gather:getVersion",
+        "duration": 0.82,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 72997.71,
+        "name": "lh:prepare:navigationMode",
+        "duration": 15.12,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 73011.67,
+        "name": "lh:gather:prepareThrottlingAndNetwork",
+        "duration": 1.14,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 73046.36,
+        "name": "lh:driver:navigate",
+        "duration": 2434.8,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 75649.98,
+>>>>>>> origin/main
         "name": "lh:computed:NetworkRecords",
         "duration": 0.39,
         "entryType": "measure"
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 69881.79,
+=======
+        "startTime": 75650.53,
+>>>>>>> origin/main
 =======
         "startTime": 75650.53,
 >>>>>>> origin/main
@@ -4507,7 +5140,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 69881.81,
+=======
+        "startTime": 75650.55,
+>>>>>>> origin/main
 =======
         "startTime": 75650.55,
 >>>>>>> origin/main
@@ -4517,7 +5154,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 69881.83,
+=======
+        "startTime": 75650.59,
+>>>>>>> origin/main
 =======
         "startTime": 75650.59,
 >>>>>>> origin/main
@@ -4526,6 +5167,7 @@
         "entryType": "measure"
       },
       {
+<<<<<<< HEAD
 <<<<<<< HEAD
         "startTime": 69881.85,
         "name": "lh:gather:getArtifact:CSSUsage",
@@ -5343,10 +5985,33 @@
         "startTime": 76000.35,
         "name": "lh:gather:getArtifact:JsUsage",
 >>>>>>> origin/main
+=======
+        "startTime": 75650.62,
+        "name": "lh:gather:getArtifact:CSSUsage",
+        "duration": 171.64,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 75822.29,
+        "name": "lh:gather:getArtifact:DOMStats",
+        "duration": 7.66,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 75830,
+        "name": "lh:gather:getArtifact:ImageElements",
+        "duration": 170.32,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 76000.35,
+        "name": "lh:gather:getArtifact:JsUsage",
+>>>>>>> origin/main
         "duration": 0.12,
         "entryType": "measure"
       },
       {
+<<<<<<< HEAD
 <<<<<<< HEAD
         "startTime": 71857.99,
         "name": "lh:computed:LCPImageRecord",
@@ -5482,6 +6147,20 @@
         "entryType": "measure"
       },
       {
+=======
+        "startTime": 76000.56,
+        "name": "lh:gather:getArtifact:LinkElements",
+        "duration": 4.89,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 76005.22,
+        "name": "lh:computed:MainResource",
+        "duration": 0.18,
+        "entryType": "measure"
+      },
+      {
+>>>>>>> origin/main
         "startTime": 76005.46,
         "name": "lh:gather:getArtifact:MetaElements",
         "duration": 2.85,
@@ -6359,6 +7038,9 @@
       },
       {
         "startTime": 77898.6,
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
         "name": "lh:computed:UnusedJavascriptSummary",
         "duration": 0.06,
@@ -6366,7 +7048,11 @@
       },
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "startTime": 71895.12,
+=======
+        "startTime": 77898.7,
+>>>>>>> origin/main
 =======
         "startTime": 77898.7,
 >>>>>>> origin/main
@@ -6375,6 +7061,7 @@
         "entryType": "measure"
       },
       {
+<<<<<<< HEAD
 <<<<<<< HEAD
         "startTime": 71895.25,
         "name": "lh:computed:UnusedJavascriptSummary",
@@ -6404,11 +7091,15 @@
 =======
         "startTime": 77898.84,
 >>>>>>> origin/main
+=======
+        "startTime": 77898.84,
+>>>>>>> origin/main
         "name": "lh:computed:UnusedJavascriptSummary",
         "duration": 0.13,
         "entryType": "measure"
       },
       {
+<<<<<<< HEAD
 <<<<<<< HEAD
         "startTime": 71896.43,
         "name": "lh:audit:uses-long-cache-ttl",
@@ -6714,6 +7405,64 @@
       {
         "startTime": 77909.93,
         "name": "lh:computed:UnusedCSS",
+=======
+        "startTime": 77899.01,
+        "name": "lh:computed:UnusedJavascriptSummary",
+        "duration": 0.17,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77899.25,
+        "name": "lh:computed:UnusedJavascriptSummary",
+        "duration": 0.07,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77899.38,
+        "name": "lh:computed:UnusedJavascriptSummary",
+        "duration": 0.08,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77899.59,
+        "name": "lh:computed:UnusedJavascriptSummary",
+        "duration": 0.09,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77899.82,
+        "name": "lh:computed:UnusedJavascriptSummary",
+        "duration": 0.2,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77900.63,
+        "name": "lh:audit:uses-long-cache-ttl",
+        "duration": 2.35,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77903.19,
+        "name": "lh:audit:total-byte-weight",
+        "duration": 1.95,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77905.32,
+        "name": "lh:audit:offscreen-images",
+        "duration": 3.94,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77909.43,
+        "name": "lh:audit:render-blocking-resources",
+        "duration": 3.86,
+        "entryType": "measure"
+      },
+      {
+        "startTime": 77909.93,
+        "name": "lh:computed:UnusedCSS",
+>>>>>>> origin/main
         "duration": 0.46,
         "entryType": "measure"
       },
@@ -6935,6 +7684,9 @@
       },
       {
         "startTime": 78089.05,
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
         "name": "lh:runner:generate",
         "duration": 0.11,
@@ -6942,7 +7694,11 @@
       }
     ],
 <<<<<<< HEAD
+<<<<<<< HEAD
     "total": 5778.34
+=======
+    "total": 6156.68
+>>>>>>> origin/main
 =======
     "total": 6156.68
 >>>>>>> origin/main
@@ -7028,7 +7784,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 984.97415
+=======
+            "timeInMs": 992.3428249999997
+>>>>>>> origin/main
 =======
             "timeInMs": 992.3428249999997
 >>>>>>> origin/main
@@ -7038,7 +7798,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 1217.6322
+=======
+            "timeInMs": 1231.4570999999996
+>>>>>>> origin/main
 =======
             "timeInMs": 1231.4570999999996
 >>>>>>> origin/main
@@ -7048,7 +7812,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 1066.4627520000047
+=======
+            "timeInMs": 1029.1623239999797
+>>>>>>> origin/main
 =======
             "timeInMs": 1029.1623239999797
 >>>>>>> origin/main
@@ -7058,7 +7826,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 1217.6322
+=======
+            "timeInMs": 1231.4570999999996
+>>>>>>> origin/main
 =======
             "timeInMs": 1231.4570999999996
 >>>>>>> origin/main
@@ -7068,7 +7840,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 583.7320000000003
+=======
+            "timeInMs": 504.0320000000005
+>>>>>>> origin/main
 =======
             "timeInMs": 504.0320000000005
 >>>>>>> origin/main
@@ -7078,7 +7854,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 321.34799999999996
+=======
+            "timeInMs": 166.6800000000002
+>>>>>>> origin/main
 =======
             "timeInMs": 166.6800000000002
 >>>>>>> origin/main
@@ -7120,7 +7900,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 193
+=======
+            "timeInMs": 25
+>>>>>>> origin/main
 =======
             "timeInMs": 25
 >>>>>>> origin/main
@@ -7130,7 +7914,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 0.07545
+=======
+            "timeInMs": 0.1023
+>>>>>>> origin/main
 =======
             "timeInMs": 0.1023
 >>>>>>> origin/main
@@ -7140,7 +7928,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 1.70255
+=======
+            "timeInMs": 1.5316999999999998
+>>>>>>> origin/main
 =======
             "timeInMs": 1.5316999999999998
 >>>>>>> origin/main
@@ -7150,7 +7942,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 1217.6322
+=======
+            "timeInMs": 1231.4570999999996
+>>>>>>> origin/main
 =======
             "timeInMs": 1231.4570999999996
 >>>>>>> origin/main
@@ -7180,7 +7976,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "timeInMs": 0.9019999999999999
+=======
+            "timeInMs": 0.875
+>>>>>>> origin/main
 =======
             "timeInMs": 0.875
 >>>>>>> origin/main
@@ -7404,7 +8204,11 @@
         {
           "values": {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "itemCount": 2
+=======
+            "itemCount": 1
+>>>>>>> origin/main
 =======
             "itemCount": 1
 >>>>>>> origin/main

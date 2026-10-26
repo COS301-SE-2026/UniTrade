@@ -9,6 +9,7 @@ a3136dbc18361322c50ce316c1b155054d4033b27ad69ec3109fdf24f81c5b66  tests/nfr/evid
 142ff37078ec957b9d170642b77b05c8381b3144452baa60b8574fd156f2d65a  tests/nfr/evidence/dast/zap-report(frontend-QR-03d).html
 fd47e28f1103eccbbb48e28a6366fe430009658c7a837a87ef92bcff232e08bc  tests/nfr/evidence/dast/zap-report(frontend-QR-03d).json
 <<<<<<< HEAD
+<<<<<<< HEAD
 cf6ff92a434bf44caf4e7f60762917019394d7fd44491f4629187144fc2c1f0c  tests/nfr/evidence/perf-access-lighthouse/admin-dashboard-accs.html
 19791c6a752ca2236142c0dd5e070a49c1079dd690f14ea1ec320f5c3c946071  tests/nfr/evidence/perf-access-lighthouse/admin-dashboard-accs.json
 b7ce42667c58e572fb31917479276d5dc281e7f35d11b5c7dc52ea09cc5d40b2  tests/nfr/evidence/perf-access-lighthouse/admin-dashboard-perf.html
@@ -46,6 +47,8 @@ e4965fa4fdb385aaf89c4272660347eb466fe281eea1fa2563e799fb8a409057  tests/nfr/evid
 43b6a7ba9d2861c206f7cf8a11bdf16f0887811c95870309b5c765efadbaa7d8  tests/nfr/evidence/perf-access-lighthouse/signup-perf.html
 4d85d4b82f4994588e168b6420d8c5141118e7fc2a7d6341d0f4b9a66f78d193  tests/nfr/evidence/perf-access-lighthouse/signup-perf.json
 =======
+=======
+>>>>>>> origin/main
 995b862b99c6f67bc48a0b7dd3e9d463660ceca45cb6a864ac86d75a66859525  tests/nfr/evidence/perf-access-lighthouse/admin-dashboard-accs.html
 372e7419cd07976efa49c88f7f7d35d0dc48b7edc81b830aeb6756b33d0746a9  tests/nfr/evidence/perf-access-lighthouse/admin-dashboard-accs.json
 d3ad3d744c1ff618f9d6ffab93e26ad7ba23ae23dec297a016ef9c7833b3acf6  tests/nfr/evidence/perf-access-lighthouse/admin-dashboard-perf.html
@@ -82,6 +85,9 @@ a1835f1590d0f182e1466d007a28e12838ed649daf6f04f39a251d26bbb436bd  tests/nfr/evid
 8d23353cc326f4ebc67f343308df84581a7afddf91ab993a59d0e2a0d2c99c49  tests/nfr/evidence/perf-access-lighthouse/signup-accs.json
 765a03ce6da7227f72dbd8cd095a1872714601b06223d031cc64768dd227fe54  tests/nfr/evidence/perf-access-lighthouse/signup-perf.html
 4a7f530d126075be5a7e42482a4c513f51b83e28865123fb1c0a697d4db7d7cc  tests/nfr/evidence/perf-access-lighthouse/signup-perf.json
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
 >>>>>>> origin/main
 e25fd843182fd9ad6ee13dbc571163961bc9d340958866f4067d974d939e3158  tests/nfr/evidence/perf-summary(QR-01a).json
 5368b975232f4072a4182236f59256ac7a6395038a06db236256dcfdf6187868  tests/nfr/evidence/rollback/QR-04c_  Failed deployment should automatically roll back to the last live revision.pdf
