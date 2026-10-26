@@ -17,7 +17,7 @@
 <a href="https://github.com/orgs/COS301-SE-2026/projects/37"><img src="https://img.shields.io/badge/Project_Board-181717?style=for-the-badge&logo=github&logoColor=white" height="34" alt="Project board"></a>
 
 <br/>
-<sub><b>Demo account</b> (no sign-up needed): <!-- TODO: fill credentials --><code>TODO_EMAIL</code> / <code>TODO_PASSWORD</code></sub>
+<sub><b>Demo account</b> (no sign-up needed): <!-- TODO: fill credentials --><code>u23545098@tuks.co.za</code> / <code>Spiderman@10</code></sub>
 
 <br/><br/>
 
