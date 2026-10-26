@@ -8,10 +8,10 @@ Report Summary
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
 │ app/Api.deps.json                                                                │ dotnet-core │        0        │    -    │
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
-│ usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.13/Microsoft.AspNetCore.A- │ dotnet-core │        0        │    -    │
+│ usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.14/Microsoft.AspNetCore.A- │ dotnet-core │        0        │    -    │
 │ pp.deps.json                                                                     │             │                 │         │
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
-│ usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.13/Microsoft.NETCore.App.dep- │ dotnet-core │        0        │    -    │
+│ usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.14/Microsoft.NETCore.App.dep- │ dotnet-core │        0        │    -    │
 │ s.json                                                                           │             │                 │         │
 └──────────────────────────────────────────────────────────────────────────────────┴─────────────┴─────────────────┴─────────┘
 Legend:
