@@ -36,9 +36,13 @@
 </div>
 
 <div align="center">
+
+### Watch the UniTrade Trailer
+
 <a href="https://youtu.be/Hr4_pNWIA4Q"><img src="docs/trailer-cover.jpg" alt="UniTrade — watch the trailer" width="880"></a>
 
 <sub><b>Watch the trailer</b> · <a href="https://youtu.be/Hr4_pNWIA4Q">YouTube</a> · <a href="https://myunitrade.co.za">live app</a></sub>
+
 </div>
 
 ---
