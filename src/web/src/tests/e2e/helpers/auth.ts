@@ -6,7 +6,7 @@ import {
 } from "./admin";
 
 export function uniqueEmail(prefix = "e2e") {
-  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}@tuks.co.za`;
+  return `${prefix}-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0] % 10000}@tuks.co.za`;
 }
 
 export async function signupAndLogin(

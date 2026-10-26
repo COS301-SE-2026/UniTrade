@@ -196,11 +196,12 @@ requirements:
         - ".github/workflows/cd.yml"
         - "tests/nfr/evidence/rollback/QR-04c_  Failed deployment should automatically roll back to the last live revision.pdf"
       workflow: "CD - Deploy to Azure"
-    status: documented
+    status: pass
+    note: "Observed on a real failed deploy-prod run: traffic on both apps and the database migrations rolled back automatically, with no manual intervention."
 
   - id: QR-04d
     category: Reliability
-    requirement: "Availability over the 30 days before the demo"
+    requirement: "Availability over a rolling 30-day window"
     target: ">= 99.5%"
     tactic: "Health checks + managed restart + always-warm minimum replica (minReplicas = 1)"
     tool: "UptimeRobot"
@@ -215,16 +216,16 @@ requirements:
   #  Maintainability 
   - id: QR-05a
     category: Maintainability
-    requirement: "Critical-path tests + static-analysis gate on main"
-    target: "Critical business paths covered by unit + integration tests; static-analysis gate runs in CI"
-    tactic: "CI gate: build + unit/integration on critical paths + format + static analysis"
-    tool: "SonarCloud (static analysis) + xUnit (critical-path suites)"
+    requirement: "CI build & test gate on main"
+    target: "Zero compile errors, 100% test pass rate and formatting enforced before merge"
+    tactic: "Automated CI pipeline (Backend CI & Web Frontend CI) gating merges before staging deployment"
+    tool: "dotnet build / dotnet format / xUnit; tsc / ESLint / Vitest; SonarCloud static analysis"
+    test: "Backend CI + Web Frontend CI (build, format and lint, unit + integration tests)"
     evidence:
-      kind: external-link
-      link: "https://sonarcloud.io/summary/overall?id=COS301-SE-2026_UniTrade&branch=main"
+      kind: ci-run
       workflow: "Backend CI / Web Frontend CI"
-    status: partial
-    note: "SonarCloud: Security rating A, 0 open security issues. Branch quality gate currently shows 'Not computed' after a quality-profile change - re-run analysis to recompute."
+    status: pass
+    note: "Both workflows green on main. SonarCloud static analysis also runs in CI: Maintainability A, Security A, 0 vulnerabilities."
 
   - id: QR-05b
     category: Maintainability

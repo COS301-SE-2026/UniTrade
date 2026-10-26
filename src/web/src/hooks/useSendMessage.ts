@@ -138,7 +138,7 @@ export function useSendMessage(reservationId: string) {
   const canSend = () =>
     navigator.onLine && connectionManager.getState() === "Connected";
   const send = (content: string) => {
-    const clientId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const clientId = `temp-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`;
 
     if (!canSend()) {
       queryClient.setQueryData<ClientChatMessage[]>(key, (old = []) => [

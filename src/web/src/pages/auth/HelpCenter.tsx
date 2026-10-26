@@ -131,9 +131,9 @@ export default function HelpCenter() {
       title: "Listing a product",
       description: "Create and manage your product listing.",
       details: [
-        "Go to upload a listing and fill in the details of the listing such as the price, condition and at least one photo of the item",
-        "You can edit or remove a listing at any time before it is reserved by a buyer.",
-        "Listings are automatically risk-scored (reservation image checks, content classification) and routed to go live, or held for an admin review.",
+        "Add a title, description, category, price, condition and at least one photo. You need a verified student account to publish.",
+        "You can edit listings that are still available. Reserved, sold, pending and rejected listings cannot be edited.",
+        "Use the listing controls to unpublish or remove your item.",
       ],
     },
     {
@@ -141,121 +141,112 @@ export default function HelpCenter() {
       title: "Reserving items",
       description: "How reservations work and when they expire.",
       details: [
-        "When you reserve a listing , you have 24 hours to coordinate a meetup with the seller, if the meetup is not scheduled the reservation is not going to expire and relisted.",
-        "Once accepted, the item is held for you and will not be shown to other buyers until the reservation is completed or cancelled",
-        "You can cancel a pending reservation at any time from your Reservations page",
+        "A reservation starts with a 24-hour response window. Responding or confirming a meetup affects how long it stays active.",
+        "The item is held for you until the reservation is completed, cancelled or expires.",
+        "You can cancel before the meetup is confirmed from your Reservations page.",
       ],
     },
     {
       icon: <IconBrandHipchat size={22} className="text-[#003366]" />,
       title: "In-app chat",
-      description: "How the In-app chat work and when you start chatting.",
+      description: "Chat with the other student and arrange your meetup.",
       details: [
-        "Coordinate directly with the other party to arrange meetup time and location through a meetup scheduler.",
-        "The chat thread opens immediately upon reservation creation, populated with an automated greeting. Both parties can immediately coordinate logistics.",
-        "It is very important to schedule a meeting with the other party, because that is what will be used to stop the timer.",
-        "If a meetup is not scheduled, then the buyer will not be allowed to pay (the pay button will be disabled), so to enable the pay button the buyer needs to check in at the location, and checkin can only be done if a meetup was arranged.",
+        "Once the seller acknowledges your reservation, use chat to agree on a time and place or suggest a meetup.",
+        "You can use your timetables to find a time that works for both of you. The meetup must be confirmed before check-in and payment.",
       ],
     },
     {
       icon: <IconCreditCard size={22} className="text-[#003366]" />,
-      title: "Payment and Payouts",
-      description: "How payments are processed and when you get paid.",
+      title: "Payment and Handover",
+      description: "Pay for your item and confirm the handover.",
       details: [
-        "UniTrade operates as a direct escrow-style gateway via PayFast. Payments complete immediately at the physical meetup upon entering the 6-digit confirmation PIN.",
-        "Sellers receive payouts within 2-3 business days after a completed and confirmed handover.",
-        "You can track payout status from your Seller Dashboard.",
+        "After your meetup is confirmed and you check in, pay through PayFast.",
+        "The seller will show you a six-digit PIN. Enter it in UniTrade to confirm you received the item and complete the trade.",
       ],
     },
     {
       icon: <IconFlag size={22} className="text-[#003366]" />,
       title: "Dispute Reporting",
-      description: "How you can report a dispute.",
+      description: "Report a listing or an item-quality issue.",
       details: [
-        "After a transaction and you are not happy you should always report to the system as soon as possible, provide enough evidence for the admin to decide on a punishment.",
-        "If you are reported you are always given a chance to state your case, ensure you have enough evidence to prove your innocence.",
-        "Verifications operate on a 48-hour SLA; disputed operate on a 72-hour SLA, processed in strict FIFO chronological sequence.",
+        "To report a listing, choose Report Listing on its detail page.",
+        "For an item-quality issue, choose Report listing quality on your reservation after you and the seller check in. Add photos to your report.",
       ],
     },
     {
       icon: <IconShield size={22} className="text-[#003366]" />,
       title: "Buyer Protection",
-      description: "Whats covered is something goes wrong.",
+      description: "Check your item and report any problems.",
       details: [
-        "A buyer can report a seller to the system if they are not happy with their product after a transaction.",
-        "As a buyer you have to meetup with the seller on campus and inspect the product before commiting and paying.",
-        "As a buyer you can review the seller after the transaction is complete, if you were not happy with the seller's behaviour, this is where you express your feelings.",
+        "Meet in person and check the item before you pay.",
+        "If the item has a problem, report it from your reservation after you and the seller check in.",
+        "After the trade, you and the seller can each leave one review.",
       ],
     },
     {
       icon: <IconLockCode size={22} className="text-[#003366]" />,
       title: "PIN-based handover confirmation",
-      description: "How the PIN-based confirmation works.",
+      description: "Confirm that you received your item.",
       details: [
-        "Upon payment completion, the buyer receives a PIN they have to give to the seller, the PIN is used to confirm that the handover actually happened.",
-        "If the PIN is not entered the transaction is never labelled complete, the listing status is always going to stay as reserved.",
+        "After your payment is confirmed, the seller will show you a six-digit PIN.",
+        "Enter the PIN in UniTrade to confirm you received the item and complete the trade.",
       ],
     },
     {
       icon: <IconStar size={22} className="text-[#003366]" />,
       title: "Reviews and ratings",
-      description: "How to leave and respond to reviews.",
+      description: "Who can leave a review and when.",
       details: [
-        "After a reservation is completed, both buyer and seller can leave a rating and short review.",
-        "Reviews are public on a user's profile and can't be edited after posting, so double-check before submitting.",
-        "You can reply once to a review you've received to add context.",
+        "After you confirm the handover PIN, you and the other student can each leave one rating and an optional comment.",
+        "Check your review before submitting; you cannot edit it later.",
       ],
     },
     {
       icon: <IconAlertCircle size={22} className="text-[#003366]" />,
       title: "Reporting a problem",
-      description: "Flag a listing, user, or dispute an order.",
+      description: "Report a listing or an item-quality issue.",
       details: [
-        "Use the 'Report' option on any listing, profile, or chat to flag something to our team.",
-        "For order-specific issues, open a dispute from the Reservation page instead — it routes faster.",
-        "We aim to review reports within 24 hours.",
+        "To report a listing, choose Report Listing on its detail page.",
+        "To report an item-quality issue, choose Report listing quality on your reservation after you and the seller check in.",
       ],
     },
     {
       icon: <IconLockCode size={22} className="text-[#003366]" />,
       title: "Handover PIN Protocol",
-      description: "The 5 steps from check-in to confirmed handover",
+      description: "Follow these steps to complete your trade.",
       details: [
-        "Step 1: Buyer and seller meet at the agreed campus location.",
-        "Step 2: Buyer checks in on their phone, unlocking the Pay button",
-        "Step 3: Buyer completes payment via PayFast and inspects the textbook.",
-        "Step 4: Seller's screen displays a 6-digit confirmation PIN.",
-        "Step 5: Buyer enters the 6-digit PIN on their phone to complete the trade.",
+        "Meet at the agreed campus location and check in through UniTrade.",
+        "Inspect the item, then pay through PayFast.",
+        "The seller will show you a six-digit PIN. Enter it in UniTrade to confirm the handover.",
       ],
     },
     {
       icon: <IconPigMoney size={22} className="text-[#003366]" />,
       title: "Smart Budget",
-      description: "Set a budget and unlock seller bundle discounts.",
+      description: "Find items that fit your budget.",
       details: [
-        "Set a total budget cap, then select listings from the same seller until your combined total reaches, but does not exceed, that cap.",
-        "When your selection qualifies for a seller's bundle discount, it is applied automatically. You don't need to request it or negotiate it in chat.",
-        "You can add or remove listings at any time before reserving, and the running total and any discount update as you go.",
+        "Choose listings and set your total budget. Smart Budget can select items across multiple sellers to help you get the most for your money.",
+        "Eligible bundle discounts are applied automatically.",
+        "Review your total before confirming your reservation.",
       ],
     },
     {
       icon: <IconCalendarEvent size={22} className="text-[#003366]" />,
       title: "Timetable Sync",
-      description: "Import your timetable to find free slots that match.",
+      description: "Find a meetup time that works for both of you.",
       details: [
-        "Export your timetable from your calendar app as an .ics file, then import it into UniTrade.",
-        "UniTrade compares your classes with the other person's and highlights the gaps you both have free on campus.",
-        "Pick one of the highlighted slots when scheduling your meetup. A scheduled meetup is required to check in and unlock payment.",
+        "Export your timetable as an .ics file and import it into UniTrade.",
+        "For an active reservation, UniTrade suggests times when you are both free.",
+        "Choose a time and propose a meetup in chat. The meetup must be accepted before check-in and payment.",
       ],
     },
     {
       icon: <IconShieldLock size={22} className="text-[#003366]" />,
       title: "POPIA Privacy",
-      description: "How your student data is protected and deleted.",
+      description: "How your student verification file is handled.",
       details: [
-        "Your proof of registration is only used to verify that you are a student.",
-        "To protect your data in line with POPIA, proof-of-registration files are automatically and permanently deleted after 30 days.",
-        "Deletion is automated, so you don't need to request it. If you are asked to resubmit later, you can upload a fresh copy.",
+        "Your proof of registration is used to verify your student status.",
+        "It is automatically deleted 30 days after your verification decision. If you need to resubmit, you can upload a new copy.",
       ],
     },
   ];
@@ -264,62 +255,62 @@ export default function HelpCenter() {
     {
       question: "How long does verification take?",
       answer:
-        "An admin reviews your proof of registration, usually within 48 hours.",
+        "We aim to review your verification within 48 hours.",
     },
     {
       question: "What can I do while I'm waiting for verification?",
       answer:
-        "You get partial access to the system, as a buyer you can only browse and view listing, as a seller you can create a listing but it is automatically saved as draft until you are fully verified.",
+        "You can browse listings and create drafts. You need verified student status to publish or reserve an item.",
     },
     {
       question: "Can I be both a buyer and a seller?",
       answer:
-        "Yes you can be both be a buyer and a seller, just use the switch on the side bar to access your other dashboard.",
+        "Yes. Use the switch in the sidebar to move between your buyer and seller dashboards.",
     },
     {
       question: "Can I resubmit if my verification was sent back?",
       answer:
-        "If an admin marks your verification for resubmission, you can re-upload your proof of registration for another review — resubmitting doesn't guarantee approval. ",
+        "Yes. Upload your proof of registration again for review.",
     },
     {
       question: "Can I edit a listing after it's live?",
       answer:
-        "Yes you can edit your listing, but edit is going to be blocked once the listing is reserved because that will not be fair to the buyer.",
+        "Yes, unless it is reserved, sold, pending or rejected.",
     },
     {
       question: "Can I report a listing I think is fake or misleading?",
       answer:
-        "Yes, If you see a listing you suspect of being fake please report it immediately, and admin will review it and decide on the verdict, either the seller will receive a warning or can be banned from the system.",
+        "Yes. Choose Report Listing on the listing's detail page and tell us why you're reporting it.",
     },
     {
       question: "How long does a reservation last?",
       answer:
-        "Reservations last 24 hours by default. If there is no communication or a schedules meeting between the buyer and seller within this window, the reservation expires and the item is re-listed automatically.",
+        "A reservation starts with a 24-hour response window. Reply to the seller to reset the timer, or confirm a meetup to pause it. If the time runs out, the item becomes available again.",
     },
     {
       question: "How is a sale paid for and completed?",
       answer:
-        "Payment happens in person when you meet. Once the meet-up is underway, the buyer pays through PayFast; when the payment goes through, the seller is shown a 6-digit PIN. The buyer enters that PIN to confirm they've received the item, and the sale is marked complete and the listing sold right away. The PIN is the final handshake — there's no separate waiting period or payout step.",
+        "After your meetup is confirmed, check in and pay through PayFast. The seller will show you a six-digit PIN; enter it in UniTrade to confirm you received the item and complete the sale.",
     },
     {
       question: "Can I negotiate the price with a seller?",
       answer:
-        "No — items sell at the price the seller set. There's no in-app offers or haggling, and the amount at checkout is always the listed price. You can still use the listing's question feature to ask the seller about the item before you reserve it.",
+        "You can't make an offer in UniTrade, but you can ask the seller a question before reserving. Eligible bundle discounts may apply when you use Smart Budget.",
     },
     {
       question: "What happens if I don't collect a reserved item on time?",
       answer:
-        "If you miss the collection window without communicating, the seller has the right to cancel the transaction and make the listing active for other university students again.",
+        "Check in during the meetup window. If you and the seller miss it, the reservation is cancelled and the item becomes available again.",
     },
     {
       question: "What is my reputation score and how is it calculated?",
       answer:
-        "It's a trust score out of 100 that shows how trustworthy you are to trade with, based on the star ratings buyers leave you and how many reviews you've received.",
+        "Your score is out of 100 and is based on your average rating and the number of reviews you've received.",
     },
     {
       question: "What do I do if I am not happy with the product?",
       answer:
-        "If the item isn't as described or has hidden damage, tap 'Report listing quality' on the reservation. It appears once you and the seller have both checked in at the meet-up (before any payment is processed).",
+        "Check the item before paying. If it is damaged or not as described, check in with the seller and choose Report listing quality on your reservation.",
     },
   ];
 
