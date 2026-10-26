@@ -75,6 +75,13 @@
     "@opentelemetry/sdk-trace-base": "2.8.0",
     "@puppeteer/browsers": "^3.2.0",
     "@grpc/grpc-js": "^1.14.5",
-    "braces": "^3.0.3"
+    "braces": "^3.0.3",
+    "@opentelemetry/instrumentation-knex": "^0.65.0",
+    "@opentelemetry/instrumentation-mongoose": "^0.67.0",
+    "@opentelemetry/instrumentation-mysql": "^0.67.0",
+    "@opentelemetry/instrumentation-mysql2": "^0.67.0",
+    "@opentelemetry/instrumentation-pg": "^0.73.0",
+    "@opentelemetry/instrumentation-tedious": "^0.40.0",
+    "zod": "^4.6.6"
   }
 }
