@@ -12,7 +12,7 @@
 
 <!-- Primary calls to action -->
 <a href="https://myunitrade.co.za"><img src="https://img.shields.io/badge/Live_App-04B4FD?style=for-the-badge&logo=pwa&logoColor=white" height="34" alt="Live app"></a>
-<!-- TODO: paste the demo video URL --><a href="TODO_DEMO_VIDEO_URL"><img src="https://img.shields.io/badge/Demo_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="34" alt="Demo video"></a>
+<a href="https://youtube.com/@devnexus-k2p?si=c6PstHcy9t_yXLo4"><img src="https://img.shields.io/badge/See_Demo_Videos-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="34" alt="Demo videos"></a>
 <a href="https://youtu.be/Hr4_pNWIA4Q"><img src="https://img.shields.io/badge/Trailer-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="34" alt="Trailer"></a>
 <a href="https://github.com/orgs/COS301-SE-2026/projects/37"><img src="https://img.shields.io/badge/Project_Board-181717?style=for-the-badge&logo=github&logoColor=white" height="34" alt="Project board"></a>
 
