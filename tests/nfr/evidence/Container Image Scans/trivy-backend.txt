@@ -6,15 +6,36 @@ Report Summary
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
 │ unitrade-backend-ci (ubuntu 24.04)                                               │   ubuntu    │        0        │    -    │
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
-│ app/Api.deps.json                                                                │ dotnet-core │        0        │    -    │
+│ app/Api.deps.json                                                                │ dotnet-core │        1        │    -    │
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
-│ usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.14/Microsoft.AspNetCore.A- │ dotnet-core │        0        │    -    │
+│ usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.15/Microsoft.AspNetCore.A- │ dotnet-core │        0        │    -    │
 │ pp.deps.json                                                                     │             │                 │         │
 ├──────────────────────────────────────────────────────────────────────────────────┼─────────────┼─────────────────┼─────────┤
-│ usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.14/Microsoft.NETCore.App.dep- │ dotnet-core │        0        │    -    │
+│ usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.15/Microsoft.NETCore.App.dep- │ dotnet-core │        0        │    -    │
 │ s.json                                                                           │             │                 │         │
 └──────────────────────────────────────────────────────────────────────────────────┴─────────────┴─────────────────┴─────────┘
 Legend:
 - '-': Not scanned
 - '0': Clean (no security findings detected)
 
+
+For OSS Maintainers: VEX Notice
+--------------------------------
+If you're an OSS maintainer and Trivy has detected vulnerabilities in your project that you believe are not actually exploitable, consider issuing a VEX (Vulnerability Exploitability eXchange) statement.
+VEX allows you to communicate the actual status of vulnerabilities in your project, improving security transparency and reducing false positives for your users.
+Learn more and start using VEX: https://trivy.dev/docs/v0.70/guide/supply-chain/vex/repo#publishing-vex-documents
+
+To disable this notice, set the TRIVY_DISABLE_VEX_NOTICE environment variable.
+
+
+app/Api.deps.json (dotnet-core)
+===============================
+Total: 1 (HIGH: 1, CRITICAL: 0)
+
+┌──────────────────────┬─────────────────┬──────────┬────────┬───────────────────┬───────────────┬────────────────────────────────────────────────────────────┐
+│       Library        │  Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │                           Title                            │
+├──────────────────────┼─────────────────┼──────────┼────────┼───────────────────┼───────────────┼────────────────────────────────────────────────────────────┤
+│ SixLabors.ImageSharp │ CVE-2026-106118 │ HIGH     │ fixed  │ 3.1.11            │ 3.2.0, 4.1.1  │ ImageSharp: Tiled fax TIFF: tile buffer sized by TileWidth │
+│                      │                 │          │        │                   │               │ but fax decompressor...                                    │
+│                      │                 │          │        │                   │               │ https://avd.aquasec.com/nvd/cve-2026-106118                │
+└──────────────────────┴─────────────────┴──────────┴────────┴───────────────────┴───────────────┴────────────────────────────────────────────────────────────┘
