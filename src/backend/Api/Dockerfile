@@ -15,7 +15,7 @@ COPY src/backend/ src/backend/
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish  src/backend/Api/Api.csproj -c $BUILD_CONFIGURATION -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS final
 WORKDIR /app
 
 RUN apt-get update \
